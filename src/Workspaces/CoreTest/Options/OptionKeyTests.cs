@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             Assert.Throws<ArgumentNullException>(() => new Option<bool>("Test Feature", null!, false));
             Assert.Throws<ArgumentNullException>(() => new Option<bool>(null!, "Test Name", false));
             Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: null!));
-            Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: new OptionStorageLocation[] { null! }));
+            Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: [null!]));
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("Test Feature", null!, false));
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>(null!, "Test Name", false));
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: null!));
-            Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: new OptionStorageLocation[] { null! }));
+            Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: [null!]));
         }
 
         [Fact]
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             var publicOption = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
             Assert.True(option.Definition.Serializer.TryParseValue("true:suggestion", out var result));
-            Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion), result);
+            Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion.WithIsExplicitlySpecified(true)), result);
 
             Assert.Empty(publicOption.StorageLocations);
         }

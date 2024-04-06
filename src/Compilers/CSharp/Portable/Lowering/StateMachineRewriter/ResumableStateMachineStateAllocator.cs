@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             _nextState = slotAllocator?.GetFirstUnusedStateMachineState(increasing) ?? firstState;
         }
 
-        public StateMachineState AllocateState(SyntaxNode awaitOrYieldReturnSyntax)
+        public StateMachineState AllocateState(SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId)
         {
             Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(awaitOrYieldReturnSyntax));
 
             int direction = _increasing ? +1 : -1;
 
-            if (_slotAllocator?.TryGetPreviousStateMachineState(awaitOrYieldReturnSyntax, out var state) == true)
+            if (_slotAllocator?.TryGetPreviousStateMachineState(awaitOrYieldReturnSyntax, awaitId, out var state) == true)
             {
 #if DEBUG
                 // two states of the new state machine should not match the same state of the previous machine:

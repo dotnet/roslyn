@@ -59,13 +59,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             // Create the actual tooltip around the region of that text buffer we want to show.
             var toolTip = new ToolTip
             {
-                Content = control,
-                Background = (Brush)Application.Current.Resources[backgroundResourceKey]
+                Content = control
             };
 
-            // Create a preview workspace for this text buffer and open it's corresponding 
-            // document. 
-            // 
+            toolTip.SetResourceReference(Control.BackgroundProperty, backgroundResourceKey);
+
+            // Create a preview workspace for this text buffer and open it's corresponding
+            // document.
+            //
             // our underlying preview tagger and mechanism to attach tagger to associated buffer of
             // opened document will light up automatically
             var workspace = new PreviewWorkspace(document.Project.Solution);
@@ -81,9 +82,10 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             // Create the actual tooltip around the region of that text buffer we want to show.
             var toolTip = new ToolTip
             {
-                Content = control,
-                Background = (Brush)Application.Current.Resources[backgroundResourceKey]
+                Content = control
             };
+
+            toolTip.SetResourceReference(Control.BackgroundProperty, backgroundResourceKey);
 
             // we have stand alone view that is not associated with roslyn solution
             return new DisposableToolTip(toolTip, workspaceOpt: null);
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
             var contentControl = ProjectionBufferContent.Create(
                 _threadingContext,
-                ImmutableArray.Create(snapshotSpan),
+                [snapshotSpan],
                 _projectionBufferFactoryService,
                 _editorOptionsService,
                 _textEditorFactoryService,

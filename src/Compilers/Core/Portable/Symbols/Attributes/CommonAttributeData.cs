@@ -58,10 +58,15 @@ namespace Microsoft.CodeAnalysis
             get { return false; }
         }
 
-        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
+        // Uncommenting portion of the attribute is tracked by https://github.com/dotnet/roslyn/issues/70592
+        [MemberNotNullWhen(false, nameof(AttributeClass)/*, nameof(AttributeConstructor)*/)]
         internal virtual bool HasErrors
         {
-            get { return false; }
+            get
+            {
+                Debug.Assert(AttributeClass is not null);
+                return false;
+            }
         }
 
         /// <summary>

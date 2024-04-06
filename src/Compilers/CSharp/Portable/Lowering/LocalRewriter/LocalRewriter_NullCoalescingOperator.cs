@@ -5,8 +5,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -132,13 +130,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
-            if (rewrittenLeft.Type.IsNullableType()
-                && RemoveIdentityConversions(rewrittenRight).IsDefaultValue()
-                && rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions)
-                && TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
+            if (rewrittenLeft.Type.IsNullableType() &&
+                rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions))
             {
-                return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+                var unwrappedRight = RemoveIdentityConversions(rewrittenRight);
+
+                // Optimize left ?? right to left.GetValueOrDefault() when left is T? and right is the default value of T
+                if (unwrappedRight.IsDefaultValue() &&
+                    TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol? getValueOrDefault, isOptional: true))
+                {
+                    return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+                }
+
+                // Optimize left ?? right to left.GetValueOrDefault(right) when left is T? and right is a side-effectless expression of type T
+                if (unwrappedRight is { ConstantValueOpt: not null } or BoundLocal { LocalSymbol.IsRef: false } or BoundParameter { ParameterSymbol.RefKind: RefKind.None } &&
+                    TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, out MethodSymbol? getValueOrDefaultDefaultValue, isOptional: true))
+                {
+                    return BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefaultDefaultValue, rewrittenRight);
+                }
             }
 
             // We lower left ?? right to

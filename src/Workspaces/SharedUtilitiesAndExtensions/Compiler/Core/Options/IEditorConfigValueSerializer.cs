@@ -4,15 +4,14 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Options
-{
-    internal interface IEditorConfigValueSerializer
-    {
-        bool TryParse(string value, out object? result);
+namespace Microsoft.CodeAnalysis.Options;
 
-        /// <summary>
-        /// Gets the editorconfig string representation for the specified <paramref name="value"/>. 
-        /// </summary>
-        string Serialize(object? value);
-    }
+internal interface IEditorConfigValueSerializer
+{
+    bool TryParse(string value, out object? result);
+
+    /// <summary>
+    /// Gets the editorconfig string representation for the specified <paramref name="value"/>. 
+    /// </summary>
+    string Serialize(object? value);
 }

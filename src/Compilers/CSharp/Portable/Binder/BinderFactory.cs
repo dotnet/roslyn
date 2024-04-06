@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // key in the binder cache.
         // PERF: we are not using ValueTuple because its Equals is relatively slow.
-        private readonly struct BinderCacheKey : IEquatable<BinderCacheKey>
+        internal readonly struct BinderCacheKey : IEquatable<BinderCacheKey>
         {
             public readonly CSharpSyntaxNode syntaxNode;
             public readonly NodeUsage usage;
@@ -55,15 +55,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // In a typing scenario, GetBinder is regularly called with a non-zero position.
         // This results in a lot of allocations of BinderFactoryVisitors. Pooling them
         // reduces this churn to almost nothing.
+        private static readonly ObjectPool<BinderFactoryVisitor> s_binderFactoryVisitorPool
+            = new ObjectPool<BinderFactoryVisitor>(static () => new BinderFactoryVisitor(), 64);
+
         private readonly ObjectPool<BinderFactoryVisitor> _binderFactoryVisitorPool;
 
-        internal BinderFactory(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility)
+        internal BinderFactory(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility, ObjectPool<BinderFactoryVisitor> binderFactoryVisitorPoolOpt = null)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
             _ignoreAccessibility = ignoreAccessibility;
-
-            _binderFactoryVisitorPool = new ObjectPool<BinderFactoryVisitor>(() => new BinderFactoryVisitor(this), 64);
+            _binderFactoryVisitorPool = binderFactoryVisitorPoolOpt ?? s_binderFactoryVisitorPool;
 
             // 50 is more or less a guess, but it seems to work fine for scenarios that I tried.
             // we need something big enough to keep binders for most classes and some methods 
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // more than 50 items added before getting collected.
             _binderCache = new ConcurrentCache<BinderCacheKey, Binder>(50);
 
-            _buckStopsHereBinder = new BuckStopsHereBinder(compilation, FileIdentifier.Create(syntaxTree));
+            _buckStopsHereBinder = new BuckStopsHereBinder(compilation, FileIdentifier.Create(syntaxTree, compilation.Options.SourceReferenceResolver));
         }
 
         internal SyntaxTree SyntaxTree
@@ -129,12 +131,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 container.AssertMemberExposure(memberOpt);
             }
 #endif
-            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-            visitor.Initialize(position, memberDeclarationOpt, memberOpt);
+            BinderFactoryVisitor visitor = GetBinderFactoryVisitor(position, memberDeclarationOpt, memberOpt);
             Binder result = visitor.Visit(node);
-            _binderFactoryVisitorPool.Free(visitor);
+            ClearBinderFactoryVisitor(visitor);
 
             return result;
+        }
+
+        private BinderFactoryVisitor GetBinderFactoryVisitor(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
+        {
+            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
+            visitor.Initialize(factory: this, position, memberDeclarationOpt, memberOpt);
+
+            return visitor;
+        }
+
+        private void ClearBinderFactoryVisitor(BinderFactoryVisitor visitor)
+        {
+            visitor.Clear();
+            _binderFactoryVisitorPool.Free(visitor);
         }
 
         internal InMethodBinder GetPrimaryConstructorInMethodBinder(SynthesizedPrimaryConstructor constructor)
@@ -159,10 +174,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Binder GetInTypeBodyBinder(TypeDeclarationSyntax typeDecl)
         {
-            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-            visitor.Initialize(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
+            BinderFactoryVisitor visitor = GetBinderFactoryVisitor(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
             Binder resultBinder = visitor.VisitTypeDeclarationCore(typeDecl, NodeUsage.NamedTypeBodyOrTypeParameters);
-            _binderFactoryVisitorPool.Free(visitor);
+            ClearBinderFactoryVisitor(visitor);
 
             return resultBinder;
         }
@@ -174,20 +188,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
-                        BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-                        visitor.Initialize(0, null, null);
+                        BinderFactoryVisitor visitor = GetBinderFactoryVisitor(0, null, null);
                         Binder result = visitor.VisitNamespaceDeclaration((BaseNamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
-                        _binderFactoryVisitorPool.Free(visitor);
+                        ClearBinderFactoryVisitor(visitor);
                         return result;
                     }
 
                 case SyntaxKind.CompilationUnit:
                     // imports are bound by the Script class binder:
                     {
-                        BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-                        visitor.Initialize(0, null, null);
+                        BinderFactoryVisitor visitor = GetBinderFactoryVisitor(0, null, null);
                         Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: false, inScript: InScript);
-                        _binderFactoryVisitorPool.Free(visitor);
+                        ClearBinderFactoryVisitor(visitor);
                         return result;
                     }
 

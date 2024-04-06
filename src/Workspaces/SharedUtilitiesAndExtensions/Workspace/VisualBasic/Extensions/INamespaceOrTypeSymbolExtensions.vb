@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return Nothing
             End If
 
-            Dim originalSemanticModel = DirectCast(semanticModel.GetOriginalSemanticModel(), SemanticModel)
+            Dim originalSemanticModel = semanticModel.GetOriginalSemanticModel()
             If Not originalSemanticModel.SyntaxTree.HasCompilationUnitRoot Then
                 Return Nothing
             End If

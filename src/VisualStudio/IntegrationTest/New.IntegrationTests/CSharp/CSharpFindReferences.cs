@@ -117,7 +117,7 @@ class Program
                     }
                 });
 
-            await telemetry.VerifyFiredAsync(new[] { "vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference" }, HangMitigatingCancellationToken);
+            await telemetry.VerifyFiredAsync(["vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference"], HangMitigatingCancellationToken);
         }
 
         [IdeFact]

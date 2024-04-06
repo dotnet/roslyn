@@ -267,7 +267,7 @@ End Module
             Test(expected.NormalizedValue(), code.NormalizedValue())
         End Sub
 
-        Friend Overrides Function GetCommandHandler(workspace As TestWorkspace) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
+        Friend Overrides Function GetCommandHandler(workspace As EditorTestWorkspace) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
             Return Assert.IsType(Of AutomaticLineEnderCommandHandler)(
                 workspace.GetService(Of ICommandHandler)(
@@ -275,7 +275,7 @@ End Module
                     PredefinedCommandHandlerNames.AutomaticLineEnder))
         End Function
 
-        Protected Overrides Function CreateNextHandler(workspace As TestWorkspace) As Action
+        Protected Overrides Function CreateNextHandler(workspace As EditorTestWorkspace) As Action
             Dim endConstructor = New EndConstructCommandHandler(
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ITextUndoHistoryRegistry),

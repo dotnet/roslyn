@@ -3001,7 +3001,7 @@ class C{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             compilation.VerifyDiagnostics(
                 // (4,22): error CS0110: The evaluation of the constant value for 'C0.X' involves a circular definition
@@ -3033,7 +3033,7 @@ class C{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("C" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             // All but C9.X, which is not (lexically) first in any cycle.
             compilation.VerifyDiagnostics(
@@ -3088,7 +3088,7 @@ enum E{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS0110: The evaluation of the constant value for 'E0.X' involves a circular definition
@@ -3120,7 +3120,7 @@ enum E{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             // All but E9.X, which is not (lexically) first in any cycle.
             compilation.VerifyDiagnostics(
@@ -3178,7 +3178,7 @@ enum E{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS0110: The evaluation of the constant value for 'E0.A' involves a circular definition
@@ -3213,7 +3213,7 @@ enum E{0}
             var types = range.Select(i => global.GetMember<NamedTypeSymbol>("E" + i));
 
             // Complete all the types at the same time.
-            Parallel.ForEach(types, t => t.ForceComplete(null, default(CancellationToken)));
+            Parallel.ForEach(types, t => t.ForceComplete(null, filter: null, default(CancellationToken)));
 
             // All but E9.X, which is not (lexically) first in any cycle.
             compilation.VerifyDiagnostics(

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -24,8 +23,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly SolutionServices _solutionServices;
 
         private readonly DiagnosticReporter _diagnosticReporter;
+        private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
         private readonly PathResolver _pathResolver;
-        private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
+        private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
         // used to protect access to the following mutable state
         private readonly NonReentrantLock _dataGuard = new();
@@ -33,13 +33,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         internal MSBuildProjectLoader(
             SolutionServices solutionServices,
             DiagnosticReporter diagnosticReporter,
-            ProjectFileLoaderRegistry? projectFileLoaderRegistry,
+            Microsoft.Extensions.Logging.ILoggerFactory loggerFactory,
+            ProjectFileExtensionRegistry projectFileExtensionRegistry,
             ImmutableDictionary<string, string>? properties)
         {
             _solutionServices = solutionServices;
             _diagnosticReporter = diagnosticReporter;
+            _loggerFactory = loggerFactory;
             _pathResolver = new PathResolver(_diagnosticReporter);
-            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(solutionServices, _diagnosticReporter);
+            _projectFileExtensionRegistry = projectFileExtensionRegistry;
 
             Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -56,8 +58,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
         /// These are the same properties that are passed to MSBuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
-            : this(workspace.Services.SolutionServices, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
         {
+            _solutionServices = workspace.Services.SolutionServices;
+            _diagnosticReporter = new DiagnosticReporter(workspace);
+            _loggerFactory = DiagnosticReporterLoggerProvider.CreateLoggerFactoryForDiagnosticReporter(_diagnosticReporter);
+            _pathResolver = new PathResolver(_diagnosticReporter);
+            _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(_solutionServices, _diagnosticReporter);
+
+            Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            if (properties != null)
+            {
+                Properties = Properties.AddRange(properties);
+            }
         }
 
         /// <summary>
@@ -104,7 +117,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(language));
             }
 
-            _projectFileLoaderRegistry.AssociateFileExtensionWithLanguage(projectFileExtension, language);
+            _projectFileExtensionRegistry.AssociateFileExtensionWithLanguage(projectFileExtension, language);
         }
 
         private void SetSolutionProperties(string? solutionFilePath)
@@ -144,7 +157,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
             IProgress<ProjectLoadProgress>? progress = null,
+#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
             ILogger? msbuildLogger = null,
+#pragma warning restore IDE0060
             CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
@@ -197,14 +212,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
+            var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+            await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
             var worker = new Worker(
                 _solutionServices,
                 _diagnosticReporter,
                 _pathResolver,
-                _projectFileLoaderRegistry,
-                buildManager,
+                _projectFileExtensionRegistry,
+                buildHostProcessManager,
                 projectPaths.ToImmutable(),
                 // TryGetAbsoluteSolutionPath should not return an invalid path
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
@@ -240,7 +256,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string projectFilePath,
             ProjectMap? projectMap = null,
             IProgress<ProjectLoadProgress>? progress = null,
+#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
             ILogger? msbuildLogger = null,
+#pragma warning restore IDE0060
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
@@ -256,15 +274,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
+            var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+            await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
             var worker = new Worker(
                 _solutionServices,
                 _diagnosticReporter,
                 _pathResolver,
-                _projectFileLoaderRegistry,
-                buildManager,
-                requestedProjectPaths: ImmutableArray.Create(projectFilePath),
+                _projectFileExtensionRegistry,
+                buildHostProcessManager,
+                requestedProjectPaths: [projectFilePath],
                 baseDirectory: Directory.GetCurrentDirectory(),
                 globalProperties: Properties,
                 projectMap,

@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpCompilation
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = BindingDiagnosticBag.GetConcurrentInstance();
                 RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
 
-                GetDiagnosticsWithoutFiltering(CompilationStage.Declare, includeEarlierStages: true, diagnostics, cancellationToken);
+                GetDiagnosticsWithoutSeverityFiltering(CompilationStage.Declare, includeEarlierStages: true, diagnostics, symbolFilter: null, cancellationToken);
 
                 bool seenErrors = diagnostics.HasAnyErrors();
                 if (!seenErrors)

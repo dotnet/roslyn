@@ -4,16 +4,15 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptDiagnosticsUpdatedArgsWrapper(DiagnosticsUpdatedArgs underlyingObject)
 {
-    internal readonly struct VSTypeScriptDiagnosticsUpdatedArgsWrapper(DiagnosticsUpdatedArgs underlyingObject)
-    {
-        internal readonly DiagnosticsUpdatedArgs UnderlyingObject = underlyingObject;
+    internal readonly DiagnosticsUpdatedArgs UnderlyingObject = underlyingObject;
 
-        public Solution? Solution
-            => UnderlyingObject.Solution;
+    public Solution? Solution
+        => UnderlyingObject.Solution;
 
-        public DocumentId? DocumentId
-            => UnderlyingObject.DocumentId;
-    }
+    public DocumentId? DocumentId
+        => UnderlyingObject.DocumentId;
 }

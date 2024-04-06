@@ -44,16 +44,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantEquality
         [Fact]
         public async Task TestSimpleCaseForEqualsFalse_NoDiagnostics()
         {
-            var code = """
+            await VerifyCS.VerifyCodeFixAsync("""
                 public class C
                 {
                     public bool M1(bool x)
                     {
-                        return x == false;
+                        return x [|==|] false;
                     }
                 }
-                """;
-            await VerifyCS.VerifyAnalyzerAsync(code);
+                """, """
+                public class C
+                {
+                    public bool M1(bool x)
+                    {
+                        return !x;
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -83,16 +90,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantEquality
         [Fact]
         public async Task TestSimpleCaseForNotEqualsTrue_NoDiagnostics()
         {
-            var code = """
+            await VerifyCS.VerifyCodeFixAsync("""
                 public class C
                 {
                     public bool M1(bool x)
                     {
-                        return x != true;
+                        return x [|!=|] true;
                     }
                 }
-                """;
-            await VerifyCS.VerifyAnalyzerAsync(code);
+                """, """
+                public class C
+                {
+                    public bool M1(bool x)
+                    {
+                        return !x;
+                    }
+                }
+                """);
         }
 
         [Fact]

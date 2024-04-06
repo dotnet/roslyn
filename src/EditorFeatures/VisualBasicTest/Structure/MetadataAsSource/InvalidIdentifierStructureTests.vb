@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
     ''' IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     ''' </summary>
     <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-    Public Class InvalidIdentifierTests
+    Public Class InvalidIdentifierStructureTests
         Inherits AbstractSyntaxStructureProviderTests
 
         Protected Overrides ReadOnly Property LanguageName As String
@@ -64,8 +64,8 @@ End Class
 End Class
 "
             Await VerifyBlockSpansAsync(code,
-                Region("textspan1", "hint1", "Class C " & Ellipsis, autoCollapse:=False),
-                Region("textspan2", "hint2", "Public Sub  " & Ellipsis, autoCollapse:=True))
+                Region("textspan2", "hint2", "Public Sub  " & Ellipsis, autoCollapse:=True),
+                Region("textspan1", "hint1", "Class C " & Ellipsis, autoCollapse:=False))
         End Function
 
     End Class

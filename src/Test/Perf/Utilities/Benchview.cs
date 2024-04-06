@@ -18,7 +18,7 @@ namespace Roslyn.Test.Performance.Utilities
         private static readonly string s_scriptDirectory = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory, "..", "..", "tools", "Microsoft.BenchView.JSONFormat", "tools");
         private static readonly string s_outputDirectory = GetCPCDirectoryPath();
-        private static readonly string[] s_validSubmissionTypes = new string[] { "rolling", "private", "local" };
+        private static readonly string[] s_validSubmissionTypes = ["rolling", "private", "local"];
 
         private static string s_submissionType;
         private static string s_branch;

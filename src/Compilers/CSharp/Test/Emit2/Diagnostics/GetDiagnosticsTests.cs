@@ -1402,7 +1402,7 @@ internal class TestAttribute : Attribute
             analyzerDiagnostic = analyzerDiagnostics.Single();
             Assert.True(analyzerDiagnostic.IsSuppressed);
             var suppression = analyzerDiagnostic.ProgrammaticSuppressionInfo.Suppressions.Single();
-            Assert.Equal(DiagnosticSuppressorForCS0657.SuppressionId, suppression.Id);
+            Assert.Equal(DiagnosticSuppressorForCS0657.SuppressionId, suppression.Descriptor.Id);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]

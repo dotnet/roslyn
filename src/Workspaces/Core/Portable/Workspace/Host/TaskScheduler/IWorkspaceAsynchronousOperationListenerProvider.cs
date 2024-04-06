@@ -4,13 +4,12 @@
 
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+/// <summary>
+/// Workspace service that provides <see cref="IAsynchronousOperationListener"/> instance.
+/// </summary>
+internal interface IWorkspaceAsynchronousOperationListenerProvider : IWorkspaceService
 {
-    /// <summary>
-    /// Workspace service that provides <see cref="IAsynchronousOperationListener"/> instance.
-    /// </summary>
-    internal interface IWorkspaceAsynchronousOperationListenerProvider : IWorkspaceService
-    {
-        IAsynchronousOperationListener GetListener();
-    }
+    IAsynchronousOperationListener GetListener();
 }

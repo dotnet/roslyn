@@ -352,6 +352,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription AssemblyKeyFileAttribute = new AttributeDescription("System.Reflection", "AssemblyKeyFileAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyKeyNameAttribute = new AttributeDescription("System.Reflection", "AssemblyKeyNameAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription ParamArrayAttribute = new AttributeDescription("System", "ParamArrayAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription ParamCollectionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ParamCollectionAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription DefaultMemberAttribute = new AttributeDescription("System.Reflection", "DefaultMemberAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription IndexerNameAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IndexerNameAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyDelaySignAttribute = new AttributeDescription("System.Reflection", "AssemblyDelaySignAttribute", s_signatures_HasThis_Void_Boolean_Only);

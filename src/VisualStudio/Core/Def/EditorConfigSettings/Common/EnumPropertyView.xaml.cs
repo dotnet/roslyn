@@ -5,31 +5,29 @@
 using System.Windows.Automation;
 using System.Windows.Controls;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+
+/// <summary>
+/// Interaction logic for EnumPropertyView.xaml
+/// </summary>
+internal partial class EnumSettingView : UserControl
 {
+    private readonly IEnumSettingViewModel _model;
 
-    /// <summary>
-    /// Interaction logic for EnumPropertyView.xaml
-    /// </summary>
-    internal partial class EnumSettingView : UserControl
+    public EnumSettingView(IEnumSettingViewModel model)
     {
-        private readonly IEnumSettingViewModel _model;
+        InitializeComponent();
+        DataContext = model;
+        _model = model;
+    }
 
-        public EnumSettingView(IEnumSettingViewModel model)
+    private void EnumValueComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var index = EnumValueComboBox.SelectedIndex;
+        var descriptions = _model.EnumValues;
+        if (index < descriptions.Length && index >= 0)
         {
-            InitializeComponent();
-            DataContext = model;
-            _model = model;
-        }
-
-        private void EnumValueComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var index = EnumValueComboBox.SelectedIndex;
-            var descriptions = _model.EnumValues;
-            if (index < descriptions.Length && index >= 0)
-            {
-                _model.ChangeProperty(descriptions[index]);
-            }
+            _model.ChangeProperty(descriptions[index]);
         }
     }
 }

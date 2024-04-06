@@ -616,12 +616,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.Instrumentation != null)
             {
-                DeclareLocal(node.Instrumentation.Local, stack: 0);
+                foreach (var local in node.Instrumentation.Locals)
+                    DeclareLocal(local, stack: 0);
             }
 
             // normally we would not allow stack locals
             // when evaluation stack is not empty.
-            DeclareLocals(node.Locals, 0);
+            DeclareLocals(node.Locals, stack: 0);
 
             return base.VisitBlock(node);
         }
@@ -2402,7 +2403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return true; }
         }
 
-        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
             throw new NotImplementedException();
         }

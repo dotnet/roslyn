@@ -42,9 +42,9 @@
         <target state="translated">Rendi asincrona la funzione sub</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Rimuovi Import non necessari</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="translated">Rimuovere le importazioni non necessarie</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">

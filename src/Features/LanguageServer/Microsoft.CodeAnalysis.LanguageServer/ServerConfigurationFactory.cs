@@ -34,8 +34,8 @@ internal class ServerConfigurationFactory
 
         // Update any other global options based on the configuration the server was started with.
 
-        // Use the SharedDependenciesPath option as a proxy for whether or not devkit is running.
-        var isDevkitEnabled = !string.IsNullOrEmpty(serverConfiguration.SharedDependenciesPath);
+        // Check if the devkit extension is included to see if devkit is enabled.
+        var isDevkitEnabled = serverConfiguration.DevKitDependencyPath != null;
         // Set the standalone option so other features know whether devkit is running.
         _globalOptionService.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, isDevkitEnabled);
     }
@@ -47,6 +47,7 @@ internal record class ServerConfiguration(
     string? StarredCompletionsPath,
     string? TelemetryLevel,
     string? SessionId,
-    string? SharedDependenciesPath,
     IEnumerable<string> ExtensionAssemblyPaths,
+    string? DevKitDependencyPath,
+    string? RazorSourceGenerator,
     string ExtensionLogDirectory);

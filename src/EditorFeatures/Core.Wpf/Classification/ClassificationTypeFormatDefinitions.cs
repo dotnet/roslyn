@@ -18,13 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal sealed class ClassificationTypeFormatDefinitions
     {
-        // Note:
-        //
-        // Classification of syntax and semantics happens on different cadences.  For that reason, prioritize the
-        // classification of everything 'semantic' to come 'after' 'comment' classification.  That way, if a user
-        // comments something out, they'll see things snap to the commented state immediately, instead of having to wait
-        // for semantic-classification to finish and return no items for that region.
-
         #region Preprocessor Text
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.PreprocessorText)]
@@ -123,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.OperatorOverloaded)]
         [Name(ClassificationTypeNames.OperatorOverloaded)]
         [Order(After = PredefinedClassificationTypeNames.Operator)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class OperatorOverloadedFormatDefinition : ClassificationFormatDefinition
@@ -140,7 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ReassignedVariable)]
         [Name(ClassificationTypeNames.ReassignedVariable)]
         [Order(After = Priority.High)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(false)]
         [ExcludeFromCodeCoverage]
         private class ReassignedVariableFormatDefinition : ClassificationFormatDefinition
@@ -155,12 +146,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region Obsolete Symobl
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ObsoleteSymbol)]
+        [Name(ClassificationTypeNames.ObsoleteSymbol)]
+        [Order(After = Priority.High)]
+        [UserVisible(false)]
+        [ExcludeFromCodeCoverage]
+        private class ObsoleteSymbolFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public ObsoleteSymbolFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Obsolete_symbol;
+                this.TextDecorations = System.Windows.TextDecorations.Strikethrough;
+            }
+        }
+        #endregion
+
         #region Symbol - Static
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
         [Name(ClassificationTypeNames.StaticSymbol)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
@@ -201,7 +210,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeClassesFormatDefinition : ClassificationFormatDefinition
@@ -222,7 +230,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeRecordsFormatDefinition : ClassificationFormatDefinition
@@ -242,7 +249,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeRecordStructsFormatDefinition : ClassificationFormatDefinition
@@ -262,7 +268,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeDelegatesFormatDefinition : ClassificationFormatDefinition
@@ -283,7 +288,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeEnumsFormatDefinition : ClassificationFormatDefinition
@@ -304,7 +308,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeInterfacesFormatDefinition : ClassificationFormatDefinition
@@ -325,7 +328,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         private class UserTypeModulesFormatDefinition : ClassificationFormatDefinition
         {
@@ -345,7 +347,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeStructuresFormatDefinition : ClassificationFormatDefinition
@@ -366,7 +367,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserTypeTypeParametersFormatDefinition : ClassificationFormatDefinition
@@ -388,7 +388,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersFieldNameFormatDefinition : ClassificationFormatDefinition
@@ -406,7 +405,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersEnumMemberNameFormatDefinition : ClassificationFormatDefinition
@@ -424,7 +422,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersConstantNameFormatDefinition : ClassificationFormatDefinition
@@ -442,7 +439,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersLocalNameFormatDefinition : ClassificationFormatDefinition
@@ -460,7 +456,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersParameterNameFormatDefinition : ClassificationFormatDefinition
@@ -478,7 +473,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersMethodNameFormatDefinition : ClassificationFormatDefinition
@@ -496,7 +490,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
@@ -514,7 +507,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersPropertyNameFormatDefinition : ClassificationFormatDefinition
@@ -531,7 +523,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.EventName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersEventNameFormatDefinition : ClassificationFormatDefinition
@@ -548,7 +539,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.NamespaceName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
@@ -566,7 +556,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersLabelNameFormatDefinition : ClassificationFormatDefinition
@@ -766,7 +755,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.TestCode)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class TestCodeFormatDefinition : ClassificationFormatDefinition
@@ -785,7 +773,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.TestCodeMarkdown)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class TestCodeMarkdownFormatDefinition : ClassificationFormatDefinition
@@ -806,7 +793,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexComment)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexCommentFormatDefinition : ClassificationFormatDefinition
@@ -825,7 +811,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexCharacterClass)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
@@ -844,7 +829,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexAnchor)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexAnchorFormatDefinition : ClassificationFormatDefinition
@@ -863,7 +847,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexQuantifier)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
@@ -882,7 +865,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexGrouping)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexGroupingFormatDefinition : ClassificationFormatDefinition
@@ -901,7 +883,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexAlternation)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
@@ -920,7 +901,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexText)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexTextFormatDefinition : ClassificationFormatDefinition
@@ -939,7 +919,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexSelfEscapedCharacter)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
@@ -962,7 +941,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.RegexOtherEscape)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
@@ -984,7 +962,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonComment)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonCommentFormatDefinition : ClassificationFormatDefinition
@@ -999,7 +976,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonNumber)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonNumberFormatDefinition : ClassificationFormatDefinition
@@ -1014,7 +990,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonString)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonStringFormatDefinition : ClassificationFormatDefinition
@@ -1029,7 +1004,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonKeyword)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonKeywordFormatDefinition : ClassificationFormatDefinition
@@ -1044,7 +1018,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonText)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonTextFormatDefinition : ClassificationFormatDefinition
@@ -1059,7 +1032,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonOperator)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonOperatorFormatDefinition : ClassificationFormatDefinition
@@ -1074,7 +1046,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonPunctuation)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonPunctuationFormatDefinition : ClassificationFormatDefinition
@@ -1089,7 +1060,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonObject)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonObjectFormatDefinition : ClassificationFormatDefinition
@@ -1104,7 +1074,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonArray)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonArrayFormatDefinition : ClassificationFormatDefinition
@@ -1119,7 +1088,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonPropertyName)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonPropertyNameFormatDefinition : ClassificationFormatDefinition
@@ -1134,7 +1102,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.JsonConstructorName)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = PredefinedClassificationTypeNames.Comment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class JsonConstructorNameFormatDefinition : ClassificationFormatDefinition

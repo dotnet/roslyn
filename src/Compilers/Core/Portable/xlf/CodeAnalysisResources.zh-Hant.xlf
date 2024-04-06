@@ -42,13 +42,6 @@
         <target state="translated">在偵錯期間不允許變更組件參考的版本: '{0}' 已將版本變更為 '{1}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">分析器 '{0}' 擲回下列例外狀況:
-'{1}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
         <target state="translated">請隱藏下列診斷以停用此分析器: {0}</target>
@@ -62,6 +55,26 @@
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
         <target state="translated">編輯和繼續無法繼續暫停的列舉程式，因為對應的 yield return 陳述式已刪除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncDeletedLambdaInvoked">
+        <source>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</source>
+        <target state="translated">嘗試叫用已刪除的 Lambda 或 Local 函式實作。在應用程式執行時刪除 Lambda 或 Local 函式，便可能會發生此情況。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncDeletedMethodInvoked">
+        <source>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</source>
+        <target state="translated">嘗試叫用已刪除的方法實作。在應用程式執行時刪除方法或變更其名稱或簽章，便可能會發生此情況。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit">
+        <source>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</source>
+        <target state="translated">在應用程式執行時嘗試叫用具有不支援變更的 Lambda 或 Local 函式: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit_CapturedVariables">
+        <source>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</source>
+        <target state="translated">在應用程式執行時嘗試叫用對擷取到的變數具有不支援變更的 Lambda 或 Local 函式</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
@@ -212,7 +225,7 @@
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
-        <target state="new">The temporary path for legacy file signing is unavailable.</target>
+        <target state="translated">舊版檔案簽署的暫存路徑無法使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
@@ -746,16 +759,13 @@
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverThrows">
-        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
-        <target state="translated">分析器驅動程式擲回類型 '{0}' 的例外狀況，訊息為 '{1}'。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerDriverThrowsDescription">
-        <source>Analyzer driver threw the following exception:
-'{0}'.</source>
-        <target state="translated">分析器驅動程式擲回下列例外狀況:
-'{0}'。</target>
-        <note />
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</source>
+        <target state="translated">分析器驅動程式擲回類型 '{0}' 的例外狀況，訊息為 '{1}'。
+{2}</target>
+        <note>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>

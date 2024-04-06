@@ -4,27 +4,17 @@
     <body>
       <trans-unit id="CSharp_Coding_Conventions">
         <source>C# Coding Conventions</source>
-        <target state="new">C# Coding Conventions</target>
+        <target state="translated">C# コーディング規則</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
-        <target state="new">C# Formatting Rules</target>
+        <target state="translated">C# 書式ルール</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
         <target state="translated">インデント設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">ノードがルートから派生していません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">ノードが親の子リストにありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
@@ -40,16 +30,6 @@
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
         <target state="translated">スペース設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">トリビアがトークンに関連付けられていません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_retrieve_the_Span_of_a_null_syntax_reference">
-        <source>Cannot retrieve the Span of a null syntax reference.</source>
-        <target state="translated">Null の構文参照の範囲を取得できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">

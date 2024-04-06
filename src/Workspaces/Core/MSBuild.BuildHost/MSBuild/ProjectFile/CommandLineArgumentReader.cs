@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (RoslynString.IsNullOrEmpty(name) || name.Contains(char.IsWhiteSpace))
             {
-                throw new ArgumentException(WorkspaceMSBuildResources.Parameter_cannot_be_null_empty_or_contain_whitespace, nameof(name));
+                throw new ArgumentException(WorkspaceMSBuildBuildHostResources.Parameter_cannot_be_null_empty_or_contain_whitespace, nameof(name));
             }
         }
 

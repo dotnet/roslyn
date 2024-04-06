@@ -18,7 +18,7 @@ public class TestOutputLogger : ILogger
         Factory = new LoggerFactory(new[] { new TestLoggerProvider(this) });
     }
 
-    public IDisposable BeginScope<TState>(TState state)
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull
     {
         return new NoOpDisposable();
     }

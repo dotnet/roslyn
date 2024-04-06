@@ -392,7 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation && p.IsOutDeclaration();
         }
 
-#nullable enable
         /// <summary>
         /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn.
         /// </summary>

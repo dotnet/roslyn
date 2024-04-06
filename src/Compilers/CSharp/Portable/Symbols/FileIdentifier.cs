@@ -89,11 +89,11 @@ internal sealed class FileIdentifier
         }
     }
 
-    public static FileIdentifier Create(SyntaxTree tree)
-        => Create(tree.FilePath);
+    public static FileIdentifier Create(SyntaxTree syntaxTree, SourceReferenceResolver? resolver)
+        => new FileIdentifier(syntaxTree.GetNormalizedPath(resolver));
 
-    public static FileIdentifier Create(string filePath)
-        => new FileIdentifier(filePath);
+    public static FileIdentifier Create(string normalizedFilePath)
+        => new FileIdentifier(normalizedFilePath);
 
     public static FileIdentifier Create(ImmutableArray<byte> filePathChecksumOpt, string displayFilePath)
         => new FileIdentifier(filePathChecksumOpt, displayFilePath);

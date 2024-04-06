@@ -4,32 +4,34 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static SyntaxFactory;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer
-    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
+internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId,
+        EnforceOnBuildValues.UseCollectionExpressionForArray)
 {
-    public CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId,
-               EnforceOnBuildValues.UseCollectionExpressionForArray)
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
     {
+        context.RegisterSyntaxNodeAction(context => AnalyzeArrayInitializerExpression(context, expressionType), SyntaxKind.ArrayInitializerExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeArrayCreationExpression(context, expressionType), SyntaxKind.ArrayCreationExpression);
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
-    {
-        context.RegisterSyntaxNodeAction(AnalyzeArrayInitializerExpression, SyntaxKind.ArrayInitializerExpression);
-        context.RegisterSyntaxNodeAction(AnalyzeArrayCreationExpression, SyntaxKind.ArrayCreationExpression);
-    }
-
-    private void AnalyzeArrayCreationExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeArrayCreationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -42,31 +44,93 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         // Analyze the statements that follow to see if they can initialize this array.
-        var matches = TryGetMatches(semanticModel, arrayCreationExpression, cancellationToken);
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var matches = TryGetMatches(semanticModel, arrayCreationExpression, expressionType, allowSemanticsChange, cancellationToken, out var changesSemantics);
         if (matches.IsDefault)
             return;
 
-        ReportArrayCreationDiagnostics(context, syntaxTree, option, arrayCreationExpression);
+        ReportArrayCreationDiagnostics(context, syntaxTree, option.Notification, arrayCreationExpression, changesSemantics);
     }
 
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         ArrayCreationExpressionSyntax expression,
-        CancellationToken cancellationToken)
+        INamedTypeSymbol? expressionType,
+        bool allowSemanticsChange,
+        CancellationToken cancellationToken,
+        out bool changesSemantics)
     {
-        return UseCollectionExpressionHelpers.TryGetMatches(
+        // we have `new T[...] ...;` defer to analyzer to find the items that follow that may need to
+        // be added to the collection expression.
+        var matches = UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
+            expressionType,
+            isSingletonInstance: false,
+            allowSemanticsChange,
             static e => e.Type,
             static e => e.Initializer,
-            cancellationToken);
+            cancellationToken,
+            out changesSemantics);
+        if (matches.IsDefault)
+            return default;
+
+        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+                semanticModel, expression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+        {
+            return default;
+        }
+
+        // If we have an initializer that itself is only full of collection expressions (like `{ ["a"], ["b"] }`), then
+        // we can only convert if the final type we're converting to has an element type that itself is a collection type.
+        if (expression.Initializer is { Expressions.Count: > 0 } &&
+            expression.Initializer.Expressions.All(e => e is CollectionExpressionSyntax))
+        {
+            var convertedType = semanticModel.GetTypeInfo(expression.WalkUpParentheses(), cancellationToken).ConvertedType;
+            if (convertedType is null)
+                return default;
+
+            var ienumerableType = convertedType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T
+                ? (INamedTypeSymbol)convertedType
+                : convertedType.AllInterfaces.FirstOrDefault(
+                    i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+            if (ienumerableType is null)
+                return default;
+
+            if (!UseCollectionExpressionHelpers.IsConstructibleCollectionType(
+                    semanticModel.Compilation, ienumerableType.TypeArguments.Single()))
+            {
+                return default;
+            }
+        }
+
+        return matches;
     }
 
-    private void AnalyzeArrayInitializerExpression(SyntaxNodeAnalysisContext context)
+    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
+        SemanticModel semanticModel,
+        ImplicitArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
+        bool allowSemanticsChange,
+        CancellationToken cancellationToken,
+        out bool changesSemantics)
+    {
+        // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
+        // from within the initializer.
+        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+                semanticModel, expression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+        {
+            return default;
+        }
+
+        return [];
+    }
+
+    private void AnalyzeArrayInitializerExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -75,7 +139,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var isConcreteOrImplicitArrayCreation = initializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax;
@@ -88,40 +152,63 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             ? (ExpressionSyntax)initializer.GetRequiredParent()
             : initializer;
 
+        // Have to actually examine what would happen when we do the replacement, as the replaced value may interact
+        // with inference based on the values within.
+        var replacementCollectionExpression = CollectionExpression(
+            [.. initializer.Expressions.Select(ExpressionElement)]);
+
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, arrayCreationExpression, skipVerificationForReplacedNode: false, cancellationToken))
+                semanticModel, arrayCreationExpression, replacementCollectionExpression,
+                expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken,
+                out var changesSemantics))
         {
             return;
         }
 
         if (isConcreteOrImplicitArrayCreation)
         {
-            ReportArrayCreationDiagnostics(context, syntaxTree, option, arrayCreationExpression);
+            var matches = initializer.Parent switch
+            {
+                ArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, expressionType, allowSemanticsChange, cancellationToken, out _),
+                ImplicitArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, expressionType, allowSemanticsChange, cancellationToken, out _),
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
+
+            if (matches.IsDefault)
+                return;
+
+            ReportArrayCreationDiagnostics(context, syntaxTree, option.Notification, arrayCreationExpression, changesSemantics);
         }
         else
         {
             Debug.Assert(initializer.Parent is EqualsValueClauseSyntax);
+
             // int[] = { 1, 2, 3 };
             //
             // In this case, we always have a target type, so it should always be valid to convert this to a collection expression.
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 initializer.OpenBraceToken.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
-                properties: null));
+                properties: changesSemantics ? ChangesSemantics : null));
         }
     }
 
-    private void ReportArrayCreationDiagnostics(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, CodeStyleOption2<bool> option, ExpressionSyntax expression)
+    private void ReportArrayCreationDiagnostics(
+        SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, NotificationOption2 notification, ExpressionSyntax expression, bool changesSemantics)
     {
+        var properties = changesSemantics ? ChangesSemantics : null;
         var locations = ImmutableArray.Create(expression.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            notification,
+            context.Options,
             additionalLocations: locations,
-            properties: null));
+            properties: properties));
 
         var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
@@ -133,8 +220,10 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
-            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+            properties: properties));
     }
 }

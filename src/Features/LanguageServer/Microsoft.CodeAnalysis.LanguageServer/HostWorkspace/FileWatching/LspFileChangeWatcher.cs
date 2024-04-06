@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using System.Collections.Immutable;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using FileSystemWatcher = Microsoft.VisualStudio.LanguageServer.Protocol.FileSystemWatcher;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using StreamJsonRpc;
+using FileSystemWatcher = Roslyn.LanguageServer.Protocol.FileSystemWatcher;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
@@ -63,7 +65,8 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         /// The list of file paths we're watching manually that were outside the directories being watched. The count in this case counts
         /// the number of 
         /// </summary>
-        private readonly Dictionary<string, int> _watchedFiles = new Dictionary<string, int>(StringComparer.Ordinal);
+        private readonly Dictionary<string, int> _watchedFiles = new Dictionary<string, int>(_stringComparer);
+        private static readonly StringComparer _stringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
         public FileChangeContext(ImmutableArray<WatchedDirectory> watchedDirectories, LspFileChangeWatcher lspFileChangeWatcher)
         {
@@ -201,8 +204,8 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
             var registrationParams = new RegistrationParams()
             {
-                Registrations = new Registration[]
-                {
+                Registrations =
+                [
                     new Registration
                     {
                         Id = _id,
@@ -212,7 +215,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                             Watchers = fileSystemWatchers
                         }
                     }
-                }
+                ]
             };
 
             var asyncToken = _changeWatcher._asynchronousOperationListener.BeginAsyncOperation(nameof(LspFileWatchRegistration));
@@ -232,17 +235,25 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
             {
                 var unregistrationParams = new UnregistrationParamsWithMisspelling()
                 {
-                    Unregistrations = new Unregistration[]
-                    {
+                    Unregistrations =
+                    [
                         new Unregistration()
                         {
                             Id = _id,
                             Method = "workspace/didChangeWatchedFiles"
                         }
-                    }
+                    ]
                 };
 
-                await _changeWatcher._clientLanguageServerManager.SendRequestAsync("client/unregisterCapability", unregistrationParams, CancellationToken.None);
+                try
+                {
+                    await _changeWatcher._clientLanguageServerManager.SendRequestAsync("client/unregisterCapability", unregistrationParams, CancellationToken.None);
+                }
+                catch (ConnectionLostException)
+                {
+                    // It is very possible we are disposing of this when we're shutting down and the pipe has closed.
+                    // There is no need to spam non fatal faults when this happens.
+                }
             }, CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap().ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
         }
     }

@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQualify
     <Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
     Public Class FullyQualifyTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicFullyQualifyCodeFixProvider())
@@ -48,6 +48,26 @@ Namespace SomeNamespace
 End Namespace",
 "Class Class1
     Dim v As SomeNamespace.SomeClass1
+End Class
+Namespace SomeNamespace
+    Public Class SomeClass1
+    End Class
+End Namespace", testHost:=testHost)
+        End Function
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")>
+        Public Async Function TestPreservesIncorrectIndentation(testHost As TestHost) As Task
+            Await TestInRegularAndScriptAsync(
+"Class Class1
+      Dim v As [|SomeClass1|]
+End Class
+Namespace SomeNamespace
+    Public Class SomeClass1
+    End Class
+End Namespace",
+"Class Class1
+      Dim v As SomeNamespace.SomeClass1
 End Class
 Namespace SomeNamespace
     Public Class SomeClass1
@@ -830,7 +850,7 @@ End Namespace</Text>.Value.Replace(vbLf, vbCrLf), testHost:=testHost)
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider
-            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
                 Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),

@@ -6,27 +6,26 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+
+/// <summary>
+/// Base class for "if" and "while" snippet providers
+/// </summary>
+internal abstract class AbstractConditionalBlockSnippetProvider<TStatementSyntax, TExpressionSyntax> : AbstractInlineStatementSnippetProvider<TStatementSyntax>
+    where TStatementSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
 {
-    /// <summary>
-    /// Base class for "if" and "while" snippet providers
-    /// </summary>
-    internal abstract class AbstractConditionalBlockSnippetProvider : AbstractInlineStatementSnippetProvider
+    protected abstract TExpressionSyntax GetCondition(TStatementSyntax node);
+
+    protected sealed override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+        => type.SpecialType == SpecialType.System_Boolean;
+
+    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
-        protected abstract SyntaxNode GetCondition(SyntaxNode node);
+        if (ConstructedFromInlineExpression)
+            return [];
 
-        protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
-            => type.SpecialType == SpecialType.System_Boolean;
-
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            if (ConstructedFromInlineExpression)
-                return ImmutableArray<SnippetPlaceholder>.Empty;
-
-            var condition = GetCondition(node);
-            var placeholder = new SnippetPlaceholder(condition.ToString(), condition.SpanStart);
-
-            return ImmutableArray.Create(placeholder);
-        }
+        var condition = GetCondition(node);
+        return [new SnippetPlaceholder(condition.ToString(), condition.SpanStart)];
     }
 }

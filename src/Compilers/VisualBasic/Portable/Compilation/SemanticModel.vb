@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -45,6 +46,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
         Friend MustOverride Shadows ReadOnly Property Root As SyntaxNode
+
+        <Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat:=RoslynExperiments.NullableDisabledSemanticModel_Url)>
+        Public NotOverridable Overrides ReadOnly Property NullableAnalysisIsDisabled As Boolean = False
 
         ''' <summary>
         ''' Gets symbol information about an expression syntax node. This is the worker

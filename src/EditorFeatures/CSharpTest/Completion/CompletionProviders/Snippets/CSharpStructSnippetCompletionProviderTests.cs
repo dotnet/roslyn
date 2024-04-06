@@ -359,5 +359,201 @@ public struct MyStruct
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
         }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
+        [InlineData("public")]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("private protected")]
+        [InlineData("protected internal")]
+        public async Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
+        {
+            var markupBeforeCommit = $$"""
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">{{modifier}} partial $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                root = true
+
+                [*]
+                # IDE0008: Use explicit type
+                dotnet_style_require_accessibility_modifiers = always
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                {{modifier}} partial struct MyStruct
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
+        public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">partial $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                root = true
+
+                [*]
+                # IDE0008: Use explicit type
+                dotnet_style_require_accessibility_modifiers = always
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public partial struct MyStruct
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
+        public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest_InvalidPreferredModifiersList()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">partial $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = invalid!
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public partial struct MyStruct
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">readonly ref $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = public,readonly,ref
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public readonly ref struct MyStruct
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers_NotAllModifiersInTheList()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">readonly ref $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = public,readonly
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                public readonly ref struct MyStruct
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBetweenOthers()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">readonly ref $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = readonly,public,ref
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                readonly public ref struct MyStruct
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierAfterAllOthers()
+        {
+            var markupBeforeCommit = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="/0/Test0.cs">readonly ref $$</Document>
+                <AnalyzerConfigDocument FilePath="/.editorconfig">
+                [*]
+                dotnet_style_require_accessibility_modifiers = always
+
+                csharp_preferred_modifier_order = readonly,ref,public
+                    </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expectedCodeAfterCommit = """
+                readonly ref public struct MyStruct
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }

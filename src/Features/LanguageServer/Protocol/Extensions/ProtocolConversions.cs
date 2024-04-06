@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,24 +22,26 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal static class ProtocolConversions
+    internal static partial class ProtocolConversions
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
         private const string SourceGeneratedDocumentBaseUri = "source-generated:///";
+        private const string BlockCodeFence = "```";
+        private const string InlineCodeFence = "`";
 
 #pragma warning disable RS0030 // Do not use banned APIs
         private static readonly Uri s_sourceGeneratedDocumentBaseUri = new(SourceGeneratedDocumentBaseUri, UriKind.Absolute);
 #pragma warning restore
 
-        private static readonly char[] s_dirSeparators = new[] { PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar };
+        private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -92,6 +93,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.StatusInformation, ImmutableArray.Create(LSP.CompletionItemKind.Text) },
             { WellKnownTags.AddReference, ImmutableArray.Create(LSP.CompletionItemKind.Text) },
             { WellKnownTags.NuGet, ImmutableArray.Create(LSP.CompletionItemKind.Text) }
+        }.ToImmutableDictionary();
+
+        /// <summary>
+        /// Mapping from tags to LSP completion item tags.  The value lists the potential LSP tags from
+        /// least-preferred to most preferred.  More preferred kinds will be chosen if the client states they support
+        /// it.  This mapping allows values including extensions to the kinds defined by VS (but not in the core LSP
+        /// spec).
+        /// </summary>
+        public static readonly ImmutableDictionary<string, ImmutableArray<LSP.CompletionItemTag>> RoslynTagToCompletionItemTags = new Dictionary<string, ImmutableArray<LSP.CompletionItemTag>>()
+        {
+            { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
         }.ToImmutableDictionary();
 
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
@@ -265,7 +277,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
         }
 
-        public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(Document document)
+        public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
             => new LSP.TextDocumentIdentifier { Uri = document.GetURI() };
 
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
@@ -420,7 +432,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static Task<LSP.Location?> TextSpanToLocationAsync(
-            Document document,
+            TextDocument document,
             TextSpan textSpan,
             bool isStale,
             CancellationToken cancellationToken)
@@ -429,7 +441,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static async Task<LSP.Location?> TextSpanToLocationAsync(
-            Document document,
+            TextDocument document,
             TextSpan textSpan,
             bool isStale,
             RequestContext? context,
@@ -437,13 +449,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             Debug.Assert(document.FilePath != null);
 
-            var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
+            var result = await GetMappedSpanResultAsync(document, [textSpan], cancellationToken).ConfigureAwait(false);
             if (result == null)
-                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
-                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
             Uri? uri = null;
             try
@@ -467,14 +479,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location?> ConvertTextSpanToLocation(
-                Document document,
+            static async Task<LSP.Location?> ConvertTextSpanToLocationAsync(
+                TextDocument document,
                 TextSpan span,
                 bool isStale,
                 CancellationToken cancellationToken)
             {
                 Debug.Assert(document.FilePath != null);
-                var uri = CreateAbsoluteUri(document.FilePath);
+                var uri = document.GetURI();
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)
@@ -830,7 +842,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return formattingOptions;
         }
 
-        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
+        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, TextDocument document, bool featureSupportsMarkdown)
             => GetDocumentationMarkupContent(tags, document.Project.Language, featureSupportsMarkdown);
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
@@ -844,40 +856,65 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 };
             }
 
-            var builder = new StringBuilder();
-            var isInCodeBlock = false;
+            using var markdownBuilder = new MarkdownContentBuilder();
+            string? codeFence = null;
             foreach (var taggedText in tags)
             {
                 switch (taggedText.Tag)
                 {
                     case TextTags.CodeBlockStart:
-                        var codeBlockLanguageName = GetCodeBlockLanguageName(language);
-                        builder.Append($"```{codeBlockLanguageName}{Environment.NewLine}");
-                        builder.Append(taggedText.Text);
-                        isInCodeBlock = true;
+                        if (markdownBuilder.IsLineEmpty())
+                        {
+                            // If the current line is empty, we can append a code block.
+                            codeFence = BlockCodeFence;
+                            var codeBlockLanguageName = GetCodeBlockLanguageName(language);
+                            markdownBuilder.AppendLine($"{codeFence}{codeBlockLanguageName}");
+                            markdownBuilder.AppendLine(taggedText.Text);
+                        }
+                        else
+                        {
+                            // There is text on the line already - we should append an in-line code block.
+                            codeFence = InlineCodeFence;
+                            markdownBuilder.Append(codeFence + taggedText.Text);
+                        }
                         break;
                     case TextTags.CodeBlockEnd:
-                        builder.Append($"{Environment.NewLine}```{Environment.NewLine}");
-                        builder.Append(taggedText.Text);
-                        isInCodeBlock = false;
+                        if (codeFence == BlockCodeFence)
+                        {
+                            markdownBuilder.AppendLine(codeFence);
+                            markdownBuilder.AppendLine(taggedText.Text);
+                        }
+                        else if (codeFence == InlineCodeFence)
+                        {
+                            markdownBuilder.Append(codeFence + taggedText.Text);
+                        }
+                        else
+                        {
+                            throw ExceptionUtilities.UnexpectedValue(codeFence);
+                        }
+
+                        codeFence = null;
+
                         break;
                     case TextTags.LineBreak:
                         // A line ending with double space and a new line indicates to markdown
                         // to render a single-spaced line break.
-                        builder.Append("  ");
-                        builder.Append(Environment.NewLine);
+                        markdownBuilder.Append("  ");
+                        markdownBuilder.AppendLine();
                         break;
                     default:
-                        var styledText = GetStyledText(taggedText, isInCodeBlock);
-                        builder.Append(styledText);
+                        var styledText = GetStyledText(taggedText, codeFence != null);
+                        markdownBuilder.Append(styledText);
                         break;
                 }
             }
 
+            var content = markdownBuilder.Build(Environment.NewLine);
+
             return new LSP.MarkupContent
             {
                 Kind = LSP.MarkupKind.Markdown,
-                Value = builder.ToString(),
+                Value = content,
             };
 
             static string GetCodeBlockLanguageName(string language)

@@ -24,9 +24,13 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         MemberAccessExpressionSyntax,
         InvocationExpressionSyntax,
         ExpressionStatementSyntax,
+        LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
         CSharpUseCollectionInitializerAnalyzer>
 {
+    protected override ISyntaxFacts SyntaxFacts
+        => CSharpSyntaxFacts.Instance;
+
     protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
         => CSharpUseCollectionInitializerAnalyzer.Allocate();
 
@@ -36,9 +40,6 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
     protected override bool AreCollectionExpressionsSupported(Compilation compilation)
         => compilation.LanguageVersion().SupportsCollectionExpressions();
 
-    protected override ISyntaxFacts GetSyntaxFacts()
-        => CSharpSyntaxFacts.Instance;
-
-    protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
-        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, skipVerificationForReplacedNode: true, cancellationToken);
+    protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowSemanticsChange, CancellationToken cancellationToken, out bool changesSemantics)
+        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
 }

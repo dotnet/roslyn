@@ -223,6 +223,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Indicates the minimum reported diagnostic severity for this analysis context.
+        /// Analyzer diagnostics with severity lesser than this severity are not reported.
+        /// </summary>
+        public virtual DiagnosticSeverity MinimumReportedSeverity => DiagnosticSeverity.Hidden;
+
+        /// <summary>
         /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
         /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.

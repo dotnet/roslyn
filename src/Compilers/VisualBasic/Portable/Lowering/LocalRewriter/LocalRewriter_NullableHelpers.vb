@@ -3,13 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -153,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The helper is familiar with wrapping expressions and will go directly after the value 
         ''' skipping wrap/unwrap steps.
         ''' </summary>
-        Private Function NullableValueOrDefault(expr As BoundExpression) As BoundExpression
+        Private Function NullableValueOrDefault(expr As BoundExpression, Optional isOptional As Boolean = False) As BoundExpression
             Debug.Assert(expr.Type.IsNullableType)
 
             ' check if we are not getting value from freshly constructed nullable
@@ -181,14 +177,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim whenNull As BoundExpression = Nothing
                         If IsConditionalAccess(expr, whenNotNull, whenNull) AndAlso HasNoValue(whenNull) Then
                             Debug.Assert(Not HasNoValue(whenNotNull))
+                            Dim valueOrDefault = NullableValueOrDefault(whenNotNull, isOptional)
+                            If valueOrDefault Is Nothing Then
+                                Debug.Assert(isOptional)
+                                Return Nothing
+                            End If
                             Return UpdateConditionalAccess(expr,
-                                                           NullableValueOrDefault(whenNotNull),
+                                                           valueOrDefault,
                                                            New BoundLiteral(expr.Syntax, ConstantValue.False, expr.Type.GetNullableUnderlyingType()))
                         End If
                     End If
             End Select
 
-            Dim getValueOrDefaultMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault)
+            Dim getValueOrDefaultMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, isOptional)
 
             If getValueOrDefaultMethod IsNot Nothing Then
                 Return New BoundCall(expr.Syntax,
@@ -202,7 +203,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  type:=getValueOrDefaultMethod.ReturnType)
             End If
 
-            Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True)
+            Return If(isOptional, Nothing, New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), expr.Type.GetNullableUnderlyingType(), hasErrors:=True))
+        End Function
+
+        Private Function NullableValueOrDefaultOpt(expr As BoundExpression, defaultValue As BoundExpression) As BoundExpression
+            Debug.Assert(expr.Type.IsNullableType)
+
+            Dim getValueOrDefaultWithDefaultValueMethod = GetNullableMethod(expr.Syntax, expr.Type, SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue, isOptional:=True)
+
+            If getValueOrDefaultWithDefaultValueMethod IsNot Nothing Then
+                Return New BoundCall(expr.Syntax,
+                                 getValueOrDefaultWithDefaultValueMethod,
+                                 Nothing,
+                                 expr,
+                                 ImmutableArray.Create(defaultValue),
+                                 Nothing,
+                                 isLValue:=False,
+                                 suppressObjectClone:=True,
+                                 type:=getValueOrDefaultWithDefaultValueMethod.ReturnType)
+            End If
+
+            Return Nothing
         End Function
 
         Private Shared Function IsConversionFromUnderlyingToNullable(conversion As BoundConversion) As Boolean
@@ -306,10 +327,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WrapInNullable(New BoundLiteral(syntax, ConstantValue.True, booleanType), nullableOfBoolean)
         End Function
 
-        Private Function GetNullableMethod(syntax As SyntaxNode, nullableType As TypeSymbol, member As SpecialMember) As MethodSymbol
+        Private Function GetNullableMethod(syntax As SyntaxNode, nullableType As TypeSymbol, member As SpecialMember, Optional isOptional As Boolean = False) As MethodSymbol
             Dim method As MethodSymbol = Nothing
 
-            If TryGetSpecialMember(method, member, syntax) Then
+            If TryGetSpecialMember(method, member, syntax, isOptional) Then
                 Dim substitutedType = DirectCast(nullableType, SubstitutedNamedType)
                 Return DirectCast(substitutedType.GetMemberForDefinition(method), MethodSymbol)
             End If

@@ -42,8 +42,8 @@
         <target state="translated">Ustaw podprocedurę jako asynchroniczną</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
         <target state="translated">Usuń niepotrzebne importy</target>
         <note />
       </trans-unit>

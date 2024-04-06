@@ -5,7 +5,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
-    <TargetFrameworks>$(SourceBuildToolsetTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
     <RootNamespace></RootNamespace>
     <IsShipping>false</IsShipping>
@@ -17,15 +17,15 @@
     <ProjectReference Include="..\..\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
+    <PackageReference Include="Microsoft.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFramework)' == 'net6.0'">
+    <None Include="vbi.coreclr.rsp" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="vbi.desktop.rsp" Condition="'$(TargetFramework)' != 'net6.0'">
+    <None Include="vbi.desktop.rsp" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
       <Link>vbi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

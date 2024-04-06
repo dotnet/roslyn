@@ -42,13 +42,6 @@
         <target state="translated">Das Ändern der Version eines Assemblyverweises ist während des Debuggens nicht zulässig: "{0}" hat die Version in "{1}" geändert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">Das Analysetool "{0}" hat die folgende Ausnahme ausgelöst:
-"{1}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
         <target state="translated">Unterdrücken Sie die folgende Diagnose, um dieses Analysetool zu deaktivieren: {0}</target>
@@ -62,6 +55,26 @@
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
         <target state="translated">"Bearbeiten und Fortfahren" kann den angehaltenen Iterator nicht fortsetzen, da die entsprechende yield return-Anweisung gelöscht wurde</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncDeletedLambdaInvoked">
+        <source>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</source>
+        <target state="translated">Es wurde versucht, eine gelöschte Lambda- oder lokale Funktionsimplementierung aufzurufen. Dies kann vorkommen, wenn eine Lambdafunktion oder lokale Funktion gelöscht wird, während die Anwendung ausgeführt wird.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncDeletedMethodInvoked">
+        <source>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</source>
+        <target state="translated">Es wurde versucht, eine gelöschte Methodenimplementierung aufzurufen. Dies kann vorkommen, wenn eine Methode gelöscht oder ihr Name oder ihre Signatur während der Ausführung der Anwendung geändert wird.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit">
+        <source>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</source>
+        <target state="translated">Es wurde versucht, Lambda- oder lokale Funktionen mit einer nicht unterstützten Änderung aufzurufen, die während der Ausführung der Anwendung vorgenommen wurde: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit_CapturedVariables">
+        <source>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</source>
+        <target state="translated">Es wurde versucht, eine Lambda- oder lokale Funktion aufzurufen, die eine nicht unterstützte Änderung an erfassten Variablen aufweist, die während der Ausführung der Anwendung vorgenommen wurde.</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
@@ -212,7 +225,7 @@
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
-        <target state="new">The temporary path for legacy file signing is unavailable.</target>
+        <target state="translated">Der temporäre Pfad für das Signieren von Legacydateien ist nicht verfügbar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
@@ -746,16 +759,13 @@
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverThrows">
-        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
-        <target state="translated">Der Analysetreiber hat eine Ausnahme vom Typ "{0}" mit der Meldung "{1}" ausgelöst.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerDriverThrowsDescription">
-        <source>Analyzer driver threw the following exception:
-'{0}'.</source>
-        <target state="translated">Der Analysetreiber hat die folgende Ausnahme ausgelöst:
-"{0}".</target>
-        <note />
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</source>
+        <target state="translated">Der Analysetreiber hat eine Ausnahme vom Typ "{0}" mit der Meldung "{1}" ausgelöst.
+{2}</target>
+        <note>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>

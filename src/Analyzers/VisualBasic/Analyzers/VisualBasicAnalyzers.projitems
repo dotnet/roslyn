@@ -49,6 +49,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\VisualBasicUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicCollectionInitializerAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicObjectCreationHelpers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUpdateExpressionSyntaxHelper.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\Utilities.vb" />
@@ -59,6 +60,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNotExpression\VisualBasicUseIsNotDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\VisualBasicUseNullPropagationDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseNamedMemberInitializerAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseObjectInitializerDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\VisualBasicValidateFormatStringDiagnosticAnalyzer.vb" />
   </ItemGroup>

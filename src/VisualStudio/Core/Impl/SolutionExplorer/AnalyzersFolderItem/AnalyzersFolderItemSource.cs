@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _projectHierarchyItem = projectHierarchyItem;
             _commandHandler = commandHandler;
 
-            _folderItems = new ObservableCollection<AnalyzersFolderItem>();
+            _folderItems = [];
 
             Update();
         }

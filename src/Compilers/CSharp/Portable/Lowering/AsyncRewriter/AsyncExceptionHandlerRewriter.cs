@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private AwaitCatchFrame _currentAwaitCatchFrame;
         private AwaitFinallyFrame _currentAwaitFinallyFrame = new AwaitFinallyFrame();
+        private bool _inCatchWithoutAwaits;
 
         private AsyncExceptionHandlerRewriter(
             MethodSymbol containingMethod,
@@ -516,12 +517,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_analysis.CatchContainsAwait(node))
             {
                 var origCurrentAwaitCatchFrame = _currentAwaitCatchFrame;
-                _currentAwaitCatchFrame = null;
+                _currentAwaitCatchFrame = parentAwaitCatchFrame;
+
+                var origInCatchWithoutAwaits = _inCatchWithoutAwaits;
+                _inCatchWithoutAwaits = true;
 
                 var result = base.VisitCatchBlock(node);
                 _currentAwaitCatchFrame = origCurrentAwaitCatchFrame;
+                _inCatchWithoutAwaits = origInCatchWithoutAwaits;
                 return result;
             }
+
+            // We cannot get here from a catch without awaits.
+            Debug.Assert(!_inCatchWithoutAwaits);
 
             var currentAwaitCatchFrame = _currentAwaitCatchFrame;
             if (currentAwaitCatchFrame == null)
@@ -673,7 +681,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
         {
-            if (node.ExpressionOpt != null || _currentAwaitCatchFrame == null)
+            // If we are in a catch without awaits, `_currentAwaitCatchFrame` is the nearest ancestor catch frame with awaits
+            // and `_inCatchWithoutAwaits` is `true`.
+            if (node.ExpressionOpt != null || _currentAwaitCatchFrame == null || _inCatchWithoutAwaits)
             {
                 return base.VisitThrowStatement(node);
             }

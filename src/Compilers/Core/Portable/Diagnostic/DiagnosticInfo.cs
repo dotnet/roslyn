@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// provide access to additional information about the error, such as what symbols were involved in the ambiguity.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal class DiagnosticInfo : IFormattable, IObjectWritable
+    internal class DiagnosticInfo : IFormattable
     {
         private readonly CommonMessageProvider _messageProvider;
         private readonly int _errorCode;
@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis
         // Mark compiler errors as non-configurable to ensure they can never be suppressed or filtered.
         private static readonly ImmutableArray<string> s_compilerErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable);
         private static readonly ImmutableArray<string> s_compilerNonErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
-
-        static DiagnosticInfo()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(DiagnosticInfo), r => new DiagnosticInfo(r));
-        }
 
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode)
@@ -183,58 +178,6 @@ namespace Microsoft.CodeAnalysis
         {
             return new DiagnosticInfo(this, severity);
         }
-
-        #region Serialization
-
-        bool IObjectWritable.ShouldReuseInSerialization => false;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            this.WriteTo(writer);
-        }
-
-        protected virtual void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteValue(_messageProvider);
-            writer.WriteUInt32((uint)_errorCode);
-            writer.WriteInt32((int)_effectiveSeverity);
-            writer.WriteInt32((int)_defaultSeverity);
-
-            int count = _arguments.Length;
-            writer.WriteUInt32((uint)count);
-
-            if (count > 0)
-            {
-                foreach (var arg in _arguments)
-                {
-                    writer.WriteString(arg.ToString());
-                }
-            }
-        }
-
-        protected DiagnosticInfo(ObjectReader reader)
-        {
-            _messageProvider = (CommonMessageProvider)reader.ReadValue();
-            _errorCode = (int)reader.ReadUInt32();
-            _effectiveSeverity = (DiagnosticSeverity)reader.ReadInt32();
-            _defaultSeverity = (DiagnosticSeverity)reader.ReadInt32();
-
-            var count = (int)reader.ReadUInt32();
-            if (count > 0)
-            {
-                _arguments = new string[count];
-                for (int i = 0; i < count; i++)
-                {
-                    _arguments[i] = reader.ReadString();
-                }
-            }
-            else
-            {
-                _arguments = Array.Empty<object>();
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// The error code, as an integer.

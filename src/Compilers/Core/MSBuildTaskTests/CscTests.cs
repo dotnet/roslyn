@@ -568,5 +568,70 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
         }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/71571")]
+        public void ReferenceForms()
+        {
+            parse(@"util.dll", null, @"/reference:util.dll");
+            parse(@"util.dll", "global", @"/reference:util.dll");
+            parse(@"util.dll", "lib", @"/reference:lib=util.dll");
+            parse(@"""util.dll""", "global", @"/reference:""\""util.dll\""""");
+            parse(@"c:\a=util.dll", null, @"/reference:""c:\a=util.dll""");
+            parse(@"c:\a=util.dll", "global", @"/reference:""c:\a=util.dll""");
+            parse(@"""c:\a=util.dll""", "global", @"/reference:""\""c:\a=util.dll\""""");
+            parse(@"a=util.dll", null, @"/reference:""a=util.dll""");
+            parse(@"util.dll", "lib", @"/reference:lib=util.dll");
+            parse(@"c:\a=util.dll", "lib", @"/reference:lib=c:\a=util.dll");
+            parse(@"util.dll", null, @"/link:util.dll", true);
+            parse(@"util.dll", "global", @"/link:util.dll", true);
+            parse(@"util.dll", "lib", @"/link:lib=util.dll", true);
+            parseMultiple(@"util.dll", "global,a", @"/reference:util.dll", @"/reference:a=util.dll");
+            parseMultiple(@"util.dll", "b,a", @"/reference:b=util.dll", @"/reference:a=util.dll");
+            parseMultiple(@"c:\a=b\util.dll", "global,c", @"/reference:""c:\a=b\util.dll""", @"/reference:c=c:\a=b\util.dll");
+            parseMultiple(@"c:\a=b\util.dll", "x,z", @"/reference:x=c:\a=b\util.dll", @"/reference:z=c:\a=b\util.dll");
+
+            void parse(string refText, string? alias, string expectedArg, bool embedInteropTypes = false) =>
+                parseCore(refText, alias, embedInteropTypes, [expectedArg]);
+
+            void parseMultiple(string refText, string? alias, params string[] expectedArgs) =>
+                parseCore(refText, alias, embedInteropTypes: false, expectedArgs);
+
+            void parseCore(string refText, string? alias, bool embedInteropTypes, string[] expectedArgs)
+            {
+                var engine = new MockEngine(TestOutputHelper);
+                var csc = new Csc()
+                {
+                    BuildEngine = engine,
+                    Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                    TargetType = "library",
+                    References = [SimpleTaskItem.CreateReference(refText, alias: alias, embedInteropTypes)],
+                };
+
+                TaskTestUtil.AssertCommandLine(csc, engine, [.. expectedArgs, "/out:test.dll", "/target:library", "test.cs"]);
+            }
+        }
+
+        [Fact]
+        public void ReferenceErrors()
+        {
+            parseRef(@"util.dll", "a=b");
+            parseRef(@"util.dll", "a b");
+            parseRef(@"util.dll", "a;b");
+            parseRef(@"util.dll", @"a""b");
+
+            void parseRef(string refText, string alias)
+            {
+                var engine = new MockEngine(TestOutputHelper);
+                var csc = new Csc()
+                {
+                    BuildEngine = engine,
+                    Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                    TargetType = "library",
+                    References = [SimpleTaskItem.CreateReference(refText, alias)]
+                };
+
+                Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
+            }
+        }
     }
 }

@@ -32,8 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
+            var constructor = node.Constructor;
+
             // Rewrite the arguments.
-            // NOTE: We may need additional argument rewriting such as generating a params array,
+            // NOTE: We may need additional argument rewriting such as
             //       re-ordering arguments based on argsToParamsOpt map, etc.
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             BoundExpression? receiverDiscard = null;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref receiverDiscard,
                 captureReceiverMode: ReceiverCaptureMode.Default,
                 node.Arguments,
-                node.Constructor,
+                constructor,
                 node.ArgsToParamsOpt,
                 argumentRefKindsOpt,
                 storesOpt: null,
@@ -53,11 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiverDiscard is null);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
+            // such as re-ordering arguments based on argsToParamsOpt map, etc.
             rewrittenArguments = MakeArguments(
-                node.Syntax,
                 rewrittenArguments,
-                node.Constructor,
+                constructor,
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 ref argumentRefKindsOpt,
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(temps.Length);
                 }
 
-                rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, argumentRefKindsOpt, MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), changeTypeOpt: node.Constructor.ContainingType);
+                rewrittenObjectCreation = node.Update(constructor, rewrittenArguments, argumentRefKindsOpt, MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), changeTypeOpt: constructor.ContainingType);
 
                 if (node.Type.IsInterfaceType())
                 {
@@ -84,10 +85,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenObjectCreation;
             }
 
-            rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, argumentRefKindsOpt, newInitializerExpression: null, changeTypeOpt: node.Constructor.ContainingType);
+            if (Instrument)
+            {
+                BoundExpression? receiver = null;
+                Instrumenter.InterceptCallAndAdjustArguments(ref constructor, ref receiver, ref rewrittenArguments, ref argumentRefKindsOpt);
+            }
+
+            rewrittenObjectCreation = node.Update(constructor, rewrittenArguments, argumentRefKindsOpt, newInitializerExpression: null, changeTypeOpt: constructor.ContainingType);
 
             // replace "new S()" with a default struct ctor with "default(S)"
-            if (node.Constructor.IsDefaultValueTypeConstructor())
+            if (constructor.IsDefaultValueTypeConstructor())
             {
                 rewrittenObjectCreation = new BoundDefaultExpression(rewrittenObjectCreation.Syntax, rewrittenObjectCreation.Type!);
             }
@@ -323,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if struct defines one.
             // Since we cannot know if T has a parameterless constructor statically, 
             // we must call Activator.CreateInstance unconditionally.
-            MethodSymbol method;
+            MethodSymbol? method;
 
             if (!this.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Activator__CreateInstance_T, out method))
             {
@@ -339,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
-                default(ImmutableArray<string>),
+                default(ImmutableArray<string?>),
                 default(ImmutableArray<RefKind>),
                 isDelegateCall: false,
                 expanded: false,

@@ -78,6 +78,68 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         }
 
         [Fact]
+        public async Task TestNotForField1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    C c = new C();
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotForField2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    C c = new C() { };
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotForField3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    C c = new C { };
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotForField4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int P;
+                    C c = new C() { P = 1 };
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotForField5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int P;
+                    C c = new C { P = 1 };
+                }
+                """);
+        }
+
+        [Fact]
         public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
         {
             await TestInRegularAndScriptAsync(
@@ -978,6 +1040,90 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
                     public int MyProperty { get; set; }
                 }
                 """, OutputKind.ConsoleApplication);
+        }
+
+        [Theory]
+        [InlineData(8.0)]
+        [InlineData(9.0)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72094")]
+        public async Task TestWithConflictingSeverityConfigurationEntries(double analysisLevel)
+        {
+            var expectFix = analysisLevel >= 9.0;
+
+            string testCode, fixedCode;
+            if (expectFix)
+            {
+                testCode =
+                    """
+                    class C
+                    {
+                        int i;
+                
+                        void M()
+                        {
+                            var c = [|new|] C();
+                            c.i = 1;
+                        }
+                    }
+                    """;
+
+                fixedCode =
+                    """
+                    class C
+                    {
+                        int i;
+                
+                        void M()
+                        {
+                            var c = new C
+                            {
+                                i = 1
+                            };
+                        }
+                    }
+                    """;
+            }
+            else
+            {
+                testCode =
+                    """
+                    class C
+                    {
+                        int i;
+                
+                        void M()
+                        {
+                            var c = new C();
+                            c.i = 1;
+                        }
+                    }
+                    """;
+                fixedCode = testCode;
+            }
+
+            var globalConfig =
+                $"""
+                is_global = true
+
+                dotnet_style_object_initializer = true:suggestion
+                dotnet_diagnostic.IDE0017.severity = none
+
+                build_property.EffectiveAnalysisLevelStyle = {analysisLevel}
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { testCode },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", globalConfig),
+                    }
+                },
+                FixedState = { Sources = { fixedCode } },
+                LanguageVersion = LanguageVersion.CSharp12,
+            }.RunAsync();
         }
     }
 }

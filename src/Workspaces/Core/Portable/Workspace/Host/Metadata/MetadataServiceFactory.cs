@@ -8,27 +8,26 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+[ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Default), Shared]
+internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Default), Shared]
-    internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public MetadataServiceFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MetadataServiceFactory()
-        {
-        }
+    }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new Service(workspaceServices.GetService<IDocumentationProviderService>());
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new Service(workspaceServices.GetService<IDocumentationProviderService>());
 
-        private sealed class Service(IDocumentationProviderService documentationService) : IMetadataService
-        {
-            private readonly MetadataReferenceCache _metadataCache = new MetadataReferenceCache((path, properties) =>
-                    MetadataReference.CreateFromFile(path, properties, documentationService.GetDocumentationProvider(path)));
+    private sealed class Service(IDocumentationProviderService documentationService) : IMetadataService
+    {
+        private readonly MetadataReferenceCache _metadataCache = new MetadataReferenceCache((path, properties) =>
+                MetadataReference.CreateFromFile(path, properties, documentationService.GetDocumentationProvider(path)));
 
-            public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-                => (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
-        }
+        public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
+            => (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
     }
 }

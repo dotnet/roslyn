@@ -221,7 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            BindingDiagnosticBag diagnostics = null;
+                            BindingDiagnosticBag? diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
@@ -268,15 +269,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.MembersCompleted:
-                        this.GlobalNamespace.ForceComplete(locationOpt, cancellationToken);
+                        this.GlobalNamespace.ForceComplete(locationOpt, filter, cancellationToken);
 
                         if (this.GlobalNamespace.HasComplete(CompletionPart.MembersCompleted))
                         {
+                            // Completing the global namespace members means all InterceptsLocationAttributes have been bound.
+                            Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
+
                             _state.NotePartComplete(CompletionPart.MembersCompleted);
                         }
                         else
                         {
-                            Debug.Assert(locationOpt != null, "If no location was specified, then the namespace members should be completed");
+                            Debug.Assert(locationOpt != null || filter != null, "If no location or filter was specified, then the namespace members should be completed");
                             return;
                         }
 
@@ -303,47 +307,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!a.IsMissing && a.IsLinked)
                 {
-                    bool hasGuidAttribute = false;
-                    bool hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = false;
-
-                    foreach (var attrData in a.GetAttributes())
-                    {
-                        if (attrData.IsTargetAttribute(a, AttributeDescription.GuidAttribute))
-                        {
-                            string guidString;
-                            if (attrData.TryGetGuidAttributeValue(out guidString))
-                            {
-                                hasGuidAttribute = true;
-                            }
-                        }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.ImportedFromTypeLibAttribute))
-                        {
-                            if (attrData.CommonConstructorArguments.Length == 1)
-                            {
-                                hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
-                            }
-                        }
-                        else if (attrData.IsTargetAttribute(a, AttributeDescription.PrimaryInteropAssemblyAttribute))
-                        {
-                            if (attrData.CommonConstructorArguments.Length == 2)
-                            {
-                                hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = true;
-                            }
-                        }
-
-                        if (hasGuidAttribute && hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (!hasGuidAttribute)
+                    if (!a.GetGuidString(out _))
                     {
                         // ERRID_PIAHasNoAssemblyGuid1/ERR_NoPIAAssemblyMissingAttribute
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttribute, NoLocation.Singleton, a, AttributeDescription.GuidAttribute.FullName);
                     }
 
-                    if (!hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute)
+                    if (!a.HasImportedFromTypeLibAttribute && !a.HasPrimaryInteropAssemblyAttribute)
                     {
                         // ERRID_PIAHasNoTypeLibAttribute1/ERR_NoPIAAssemblyMissingAttributes
                         diagnostics.Add(ErrorCode.ERR_NoPIAAssemblyMissingAttributes, NoLocation.Singleton, a,
@@ -353,6 +323,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal void DiscoverInterceptorsIfNeeded()
+        {
+            if (!Volatile.Read(ref DeclaringCompilation.InterceptorsDiscoveryComplete))
+            {
+                discoverInterceptors();
+                Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
+            }
+
+            void discoverInterceptors()
+            {
+                var location = this.GlobalNamespace.GetFirstLocationOrNone();
+                if (!location.IsInSource)
+                {
+                    return;
+                }
+
+                var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+
+                // Search the namespaces which were indicated to contain interceptors.
+                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
+                foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
+                {
+                    if (namespaceParts is ["global"])
+                    {
+                        toVisit.Clear();
+                        toVisit.Add(GlobalNamespace);
+                        // No point in continuing, we already are going to search the entire module in this case.
+                        break;
+                    }
+
+                    var cursor = GlobalNamespace;
+                    foreach (string namespacePart in namespaceParts)
+                    {
+                        cursor = (NamespaceSymbol?)cursor.GetNestedNamespace(namespacePart);
+                        if (cursor is null)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (cursor is not null)
+                    {
+                        toVisit.Add(cursor);
+                    }
+                }
+
+                while (toVisit.Count > 0)
+                {
+                    var item = toVisit.Pop();
+                    if (item is SourceMemberContainerTypeSymbol type)
+                    {
+                        type.DiscoverInterceptors(toVisit);
+                    }
+                    else if (item is SourceNamespaceSymbol @namespace)
+                    {
+                        foreach (var member in @namespace.GetMembers())
+                        {
+                            if (member is not NamespaceOrTypeSymbol namespaceOrType)
+                            {
+                                throw ExceptionUtilities.UnexpectedValue(member);
+                            }
+
+                            toVisit.Add(namespaceOrType);
+                        }
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(item);
+                    }
+                }
+
+                toVisit.Free();
+            }
+        }
+#nullable disable
 
         public override ImmutableArray<Location> Locations
         {
@@ -510,13 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCharSetAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.DefaultCharSetAttribute))
             {
                 CharSet charSet = attribute.GetConstructorArgument<CharSet>(0, SpecialType.System_Enum);
                 if (!ModuleWellKnownAttributeData.IsValidCharSet(charSet))
                 {
-                    CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                    ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_InvalidAttributeArgument, attribute.GetAttributeArgumentLocation(0), arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
@@ -527,11 +572,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
             {
                 CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExperimentalAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExperimentalAttribute))
             {
                 arguments.GetOrCreateData<ModuleWellKnownAttributeData>().ExperimentalAttributeData = attribute.DecodeExperimentalAttribute();
             }

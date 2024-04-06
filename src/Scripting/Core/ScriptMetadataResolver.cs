@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         private readonly RuntimeMetadataReferenceResolver _resolver;
 
         public ImmutableArray<string> SearchPaths => _resolver.PathResolver.SearchPaths;
-        public string BaseDirectory => _resolver.PathResolver.BaseDirectory;
+        public string? BaseDirectory => _resolver.PathResolver.BaseDirectory;
 
         internal ScriptMetadataResolver(RuntimeMetadataReferenceResolver resolver)
         {

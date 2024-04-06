@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Design;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -46,20 +48,31 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 using IComponentModel = Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using IPersistFile = Microsoft.VisualStudio.OLE.Interop.IPersistFile;
-using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using SComponentModel = Microsoft.VisualStudio.ComponentModelHost.SComponentModel;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    internal partial class EditorInProcess
+    internal partial class EditorInProcess : ITextViewWindowInProcess
     {
+        TestServices ITextViewWindowInProcess.TestServices => TestServices;
+
+        Task<IWpfTextView> ITextViewWindowInProcess.GetActiveTextViewAsync(CancellationToken cancellationToken)
+            => GetActiveTextViewAsync(cancellationToken);
+
+        async Task<ITextBuffer?> ITextViewWindowInProcess.GetBufferContainingCaretAsync(IWpfTextView view, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return view.GetBufferContainingCaret();
+        }
+
         public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -126,6 +139,16 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
             var bufferPosition = view.Caret.Position.BufferPosition;
             return bufferPosition.Snapshot.GetText();
+        }
+
+        public async Task ReplaceTextAsync(string oldText, string newText, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            await SelectTextInCurrentDocumentAsync(oldText, cancellationToken);
+            var replacementSpan = new SnapshotSpan(view.TextSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
+            view.TextBuffer.Replace(replacementSpan, newText);
         }
 
         public async Task<string> GetCurrentLineTextAsync(CancellationToken cancellationToken)
@@ -209,8 +232,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task SelectTextInCurrentDocumentAsync(string text, CancellationToken cancellationToken)
         {
-            await PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
-            await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false, cancellationToken);
+            await this.PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
+            await this.PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false, cancellationToken);
         }
 
         public async Task DeleteTextAsync(string text, CancellationToken cancellationToken)
@@ -224,7 +247,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var provider = await TestServices.Shell.GetComponentModelServiceAsync<IAsynchronousOperationListenerProvider>(cancellationToken);
             var waiter = (IAsynchronousOperationWaiter)provider.GetListener(FeatureAttribute.AddImportsOnPaste);
 
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy], cancellationToken);
             Clipboard.SetText(text);
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Paste, cancellationToken);
 
@@ -290,37 +313,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             activeSession.Collapse();
-            return Array.Empty<ClassificationSpan>();
-        }
-
-        public async Task InvokeQuickInfoAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var broker = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncQuickInfoBroker>(cancellationToken);
-            var session = await broker.TriggerQuickInfoAsync(await TestServices.Editor.GetActiveTextViewAsync(cancellationToken), cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(session);
-        }
-
-        public async Task<string> GetQuickInfoAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
-            var broker = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncQuickInfoBroker>(cancellationToken);
-
-            var session = broker.GetSession(view);
-
-            // GetSession will not return null if preceded by a call to InvokeQuickInfo
-            Contract.ThrowIfNull(session);
-
-            while (session.State != QuickInfoSessionState.Visible)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Task.Delay(50, cancellationToken).ConfigureAwait(true);
-            }
-
-            return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
+            return [];
         }
 
         public async Task<string[]> GetCurrentClassificationsAsync(CancellationToken cancellationToken)
@@ -350,6 +343,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     classifierDispose.Dispose();
                 }
             }
+        }
+
+        public async Task<int> GetVisibleColumnCountAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            return (int)Math.Ceiling(view.ViewportWidth / Math.Max(view.FormattedLineSource.ColumnWidth, 1));
         }
 
         public async Task ActivateAsync(CancellationToken cancellationToken)
@@ -419,14 +420,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, cancellationToken);
                 if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
                 {
-                    throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
+                    throw new InvalidOperationException($"{nameof(WellKnownCommands.Edit)}.{nameof(WellKnownCommands.Edit.ToggleCompletionMode)} did not leave the editor in the expected state.");
                 }
             }
-        }
-
-        public Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
-        {
-            return GetTagsAsync<IErrorTag>(cancellationToken);
         }
 
         public async Task<ImmutableArray<TagSpan<ITextMarkerTag>>> GetRenameTagsAsync(CancellationToken cancellationToken)
@@ -444,11 +440,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
 
             var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
-            var tags = aggregator
-                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                .Cast<IMappingTagSpan<ITag>>();
+            var tags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));
 
-            return tags.SelectAsArray(tag => (new TagSpan<TTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (TTag)tag.Tag)));
+            return tags.SelectAsArray(tag => new TagSpan<TTag>(tag.Span.GetSpans(view.TextBuffer).Single(), tag.Tag));
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
@@ -478,7 +472,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 iEndIndex = column,
             };
 
-            ErrorHandler.ThrowOnFailure(languageContextProvider.UpdateLanguageContext(dwHint: 0, textLines, new[] { span }, emptyUserContext));
+            ErrorHandler.ThrowOnFailure(languageContextProvider.UpdateLanguageContext(dwHint: 0, textLines, [span], emptyUserContext));
             ErrorHandler.ThrowOnFailure(emptyUserContext.CountAttributes("keyword", fIncludeChildren: Convert.ToInt32(true), out var count));
             var results = ImmutableArray.CreateBuilder<string>(count);
             for (var i = 0; i < count; i++)
@@ -692,11 +686,32 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             broker.DismissAllSessions(view);
         }
 
+        public async Task<Completion> GetCurrentCompletionItemAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await WaitForCompletionSetAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var broker = await GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+            }
+
+            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+            return selectedCompletionSet.SelectionStatus.Completion;
+        }
+
         public async Task<bool> IsCompletionActiveAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await WaitForCompletionSetAsync(cancellationToken);
+
+            // It's not known why WaitForCompletionSetAsync fails to stabilize calls to IsCompletionActive.
+            await Task.Delay(TimeSpan.FromSeconds(1));
 
             var view = await GetActiveTextViewAsync(cancellationToken);
             if (view is null)
@@ -706,67 +721,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return broker.IsCompletionActive(view);
         }
 
-        public async Task ShowLightBulbAsync(CancellationToken cancellationToken)
+        public async Task InvokeSignatureHelpAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var shell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell>(cancellationToken);
-            var cmdGroup = typeof(VSConstants.VSStd14CmdID).GUID;
-            var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.ParameterInfo, cancellationToken);
+            await WaitForSignatureHelpAsync(cancellationToken);
+        }
 
-            var cmdID = VSConstants.VSStd14CmdID.ShowQuickFixes;
-            object? obj = null;
-            shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
-
+        public async Task<bool> IsSignatureHelpActiveAsync(CancellationToken cancellationToken)
+        {
+            await WaitForSignatureHelpAsync(cancellationToken);
             var view = await GetActiveTextViewAsync(cancellationToken);
-            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
-            await LightBulbHelper.WaitForLightBulbSessionAsync(TestServices, broker, view, cancellationToken);
-        }
-
-        public async Task InvokeCodeActionListAsync(CancellationToken cancellationToken)
-        {
-            await TestServices.Workarounds.WaitForLightBulbAsync(cancellationToken);
-
-            await InvokeCodeActionListWithoutWaitingAsync(cancellationToken);
-
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, cancellationToken);
-        }
-
-        public async Task InvokeCodeActionListWithoutWaitingAsync(CancellationToken cancellationToken)
-        {
-            if (Version.Parse("17.2.32210.308") > await TestServices.Shell.GetVersionAsync(cancellationToken))
-            {
-                // Workaround for extremely unstable async lightbulb (can dismiss itself when SuggestedActionsChanged
-                // fires while expanding the light bulb).
-                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL), cancellationToken);
-                await Task.Delay(5000, cancellationToken);
-
-                await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
-                await Task.Delay(5000, cancellationToken);
-            }
-
-            await ShowLightBulbAsync(cancellationToken);
-        }
-
-        public async Task<bool> IsLightBulbSessionExpandedAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var broker = await GetComponentModelServiceAsync<ILightBulbBroker>(cancellationToken);
-            if (!broker.IsLightBulbSessionActive(view))
-            {
-                return false;
-            }
-
-            var session = broker.GetSession(view);
-            if (session == null || !session.IsExpanded)
-            {
-                return false;
-            }
-
-            return true;
+            var broker = await GetComponentModelServiceAsync<ISignatureHelpBroker>(cancellationToken);
+            return broker.IsSignatureHelpActive(view);
         }
 
         public async Task<string[]> GetLightBulbActionsAsync(CancellationToken cancellationToken)
@@ -970,102 +938,51 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return null;
         }
 
-        public Task PlaceCaretAsync(string marker, int charsOffset, CancellationToken cancellationToken)
-            => PlaceCaretAsync(marker, charsOffset, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
-
-        public async Task PlaceCaretAsync(
-            string marker,
-            int charsOffset,
-            int occurrence,
-            bool extendSelection,
-            bool selectBlock,
-            CancellationToken cancellationToken)
+        public async Task<int> GetCaretColumnAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
-            dte.Find.FindWhat = marker;
-            dte.Find.MatchCase = true;
-            dte.Find.MatchInHiddenText = true;
-            dte.Find.Target = EnvDTE.vsFindTarget.vsFindTargetCurrentDocument;
-            dte.Find.Action = EnvDTE.vsFindAction.vsFindActionFind;
-
-            var originalPosition = await GetCaretPositionAsync(cancellationToken);
-            view.Caret.MoveTo(new SnapshotPoint(view.GetBufferContainingCaret()!.CurrentSnapshot, 0));
-
-            if (occurrence > 0)
-            {
-                var result = EnvDTE.vsFindResult.vsFindResultNotFound;
-                for (var i = 0; i < occurrence; i++)
-                {
-                    result = dte.Find.Execute();
-                }
-
-                if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                {
-                    throw new Exception("Occurrence " + occurrence + " of marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                }
-            }
-            else
-            {
-                var result = dte.Find.Execute();
-                if (result != EnvDTE.vsFindResult.vsFindResultFound)
-                {
-                    throw new Exception("Marker '" + marker + "' not found in text: " + view.TextSnapshot.GetText());
-                }
-            }
-
-            if (charsOffset > 0)
-            {
-                for (var i = 0; i < charsOffset - 1; i++)
-                {
-                    view.Caret.MoveToNextCaretPosition();
-                }
-
-                view.Selection.Clear();
-            }
-
-            if (charsOffset < 0)
-            {
-                // On the first negative charsOffset, move to anchor-point position, as if the user hit the LEFT key
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, view.Selection.AnchorPoint.Position.Position));
-
-                for (var i = 0; i < -charsOffset - 1; i++)
-                {
-                    view.Caret.MoveToPreviousCaretPosition();
-                }
-
-                view.Selection.Clear();
-            }
-
-            if (extendSelection)
-            {
-                var newPosition = view.Selection.ActivePoint.Position.Position;
-                view.Selection.Select(new VirtualSnapshotPoint(view.TextSnapshot, originalPosition), new VirtualSnapshotPoint(view.TextSnapshot, newPosition));
-                view.Selection.Mode = selectBlock ? TextSelectionMode.Box : TextSelectionMode.Stream;
-            }
+            var startOfLine = view.Caret.ContainingTextViewLine.Start.Position;
+            var caretVirtualPosition = view.Caret.Position.VirtualBufferPosition;
+            return caretVirtualPosition.Position - startOfLine + caretVirtualPosition.VirtualSpaces;
         }
 
-        public async Task<int> GetCaretPositionAsync(CancellationToken cancellationToken)
+        public async Task<bool> IsCaretOnScreenAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var caret = view.Caret;
+
+            return caret.Left >= view.ViewportLeft
+                && caret.Right <= view.ViewportRight
+                && caret.Top >= view.ViewportTop
+                && caret.Bottom <= view.ViewportBottom;
+        }
+
+        public async Task<ISignature> GetCurrentSignatureAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
 
-            var subjectBuffer = view.GetBufferContainingCaret();
-            Assumes.Present(subjectBuffer);
+            await WaitForSignatureHelpAsync(cancellationToken);
+            var broker = await GetComponentModelServiceAsync<ISignatureHelpBroker>(cancellationToken);
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
+            {
+                throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+            }
 
-            var bufferPosition = view.Caret.Position.BufferPosition;
-            return bufferPosition.Position;
+            return sessions[0].SelectedSignature;
         }
 
         public async Task GoToDefinitionAsync(CancellationToken cancellationToken)
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.GotoDefn, cancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo, FeatureAttribute.GoToDefinition },
+                [FeatureAttribute.Workspace, FeatureAttribute.NavigateTo, FeatureAttribute.GoToDefinition],
                 cancellationToken);
         }
 
@@ -1104,14 +1021,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.GoToImplementation, cancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.GoToImplementation },
+                [FeatureAttribute.Workspace, FeatureAttribute.GoToImplementation],
                 cancellationToken);
         }
 
         public async Task<ImmutableArray<(bool Collapsed, TextSpan Span)>> GetOutliningSpansAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.Outlining },
+                [FeatureAttribute.Workspace, FeatureAttribute.Outlining],
                 cancellationToken);
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -1140,9 +1057,193 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATSELECTION, cancellationToken);
         }
 
+        private async Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
+        }
+
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
+        }
+
+        public async Task AddWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var componentChangeService = (IComponentChangeService)designerHost;
+
+            var waitHandle = new AsyncManualResetEvent(false);
+
+            void ComponentAdded(object sender, ComponentEventArgs e)
+            {
+                var control = (System.Windows.Forms.Control)e.Component;
+                if (control.Name == buttonName)
+                {
+                    waitHandle.Set();
+                }
+            }
+
+            componentChangeService.ComponentAdded += ComponentAdded;
+
+            try
+            {
+                var mainForm = (System.Windows.Forms.Form)designerHost.RootComponent;
+                var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
+                newControl.Parent = mainForm;
+                await waitHandle.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                componentChangeService.ComponentAdded -= ComponentAdded;
+            }
+        }
+
+        public async Task DeleteWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var componentChangeService = (IComponentChangeService)designerHost;
+
+            var waitHandle = new AsyncManualResetEvent(false);
+
+            void ComponentRemoved(object sender, ComponentEventArgs e)
+            {
+                var control = (System.Windows.Forms.Control)e.Component;
+                if (control.Name == buttonName)
+                {
+                    waitHandle.Set();
+                }
+            }
+
+            componentChangeService.ComponentRemoved += ComponentRemoved;
+
+            try
+            {
+                designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
+                await waitHandle.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                componentChangeService.ComponentRemoved -= ComponentRemoved;
+            }
+        }
+
+        public Task EditWinFormButtonPropertyAsync(string buttonName, string propertyName, string propertyValue, CancellationToken cancellationToken)
+            => EditWinFormButtonPropertyAsync(buttonName, propertyName, propertyValue, propertyTypeName: null, cancellationToken);
+
+        public async Task EditWinFormButtonPropertyAsync(string buttonName, string propertyName, string propertyValue, string? propertyTypeName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var componentChangeService = (IComponentChangeService)designerHost;
+
+            var waitHandle = new AsyncManualResetEvent(false);
+
+            object GetEnumPropertyValue(string typeName, string value)
+            {
+                var type = Type.GetType(typeName);
+                var converter = new EnumConverter(type);
+                return converter.ConvertFromInvariantString(value);
+            }
+
+            bool EqualToPropertyValue(object newValue)
+            {
+                if (propertyTypeName == null)
+                {
+                    return (newValue as string)?.Equals(propertyValue) == true;
+                }
+                else
+                {
+                    var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
+                    return newValue?.Equals(enumPropertyValue) == true;
+                }
+            }
+
+            void ComponentChanged(object sender, ComponentChangedEventArgs e)
+            {
+                if (e.Member.Name == propertyName && EqualToPropertyValue(e.NewValue))
+                {
+                    waitHandle.Set();
+                }
+            }
+
+            componentChangeService.ComponentChanged += ComponentChanged;
+
+            try
+            {
+                var button = designerHost.Container.Components[buttonName];
+                var properties = TypeDescriptor.GetProperties(button);
+                var property = properties[propertyName];
+                if (propertyTypeName == null)
+                {
+                    property.SetValue(button, propertyValue);
+                }
+                else
+                {
+                    var enumPropertyValue = GetEnumPropertyValue(propertyTypeName, propertyValue);
+                    property.SetValue(button, enumPropertyValue);
+                }
+
+                await waitHandle.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                componentChangeService.ComponentChanged -= ComponentChanged;
+            }
+        }
+
+        public async Task EditWinFormButtonEventAsync(string buttonName, string eventName, string eventHandlerName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var componentChangeService = (IComponentChangeService)designerHost;
+
+            var waitHandle = new AsyncManualResetEvent(false);
+
+            void ComponentChanged(object sender, ComponentChangedEventArgs e)
+            {
+                if (e.Member.Name == eventName)
+                {
+                    waitHandle.Set();
+                }
+            }
+
+            componentChangeService.ComponentChanged += ComponentChanged;
+
+            try
+            {
+                var button = designerHost.Container.Components[buttonName];
+                var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
+                var events = TypeDescriptor.GetEvents(button);
+                var eventProperty = eventBindingService.GetEventProperty(events.Find(eventName, ignoreCase: true));
+                eventProperty.SetValue(button, eventHandlerName);
+
+                await waitHandle.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                componentChangeService.ComponentChanged -= ComponentChanged;
+            }
+        }
+
+        public async Task<string?> GetWinFormButtonPropertyValueAsync(string buttonName, string propertyName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var designerHost = (IDesignerHost)dte.ActiveWindow.Object;
+            var button = designerHost.Container.Components[buttonName];
+            var properties = TypeDescriptor.GetProperties(button);
+            return properties[propertyName].GetValue(button) as string;
         }
     }
 }

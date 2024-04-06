@@ -5,27 +5,26 @@
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
+namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+
+internal partial class GenericNameSignatureHelpProvider
 {
-    internal partial class GenericNameSignatureHelpProvider
+    private static IList<SymbolDisplayPart> GetPreambleParts(
+        INamedTypeSymbol namedType,
+        SemanticModel semanticModel,
+        int position)
     {
-        private static IList<SymbolDisplayPart> GetPreambleParts(
-            INamedTypeSymbol namedType,
-            SemanticModel semanticModel,
-            int position)
-        {
-            var result = new List<SymbolDisplayPart>();
+        var result = new List<SymbolDisplayPart>();
 
-            result.AddRange(namedType.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutTypeParametersFormat));
-            result.Add(Punctuation(SyntaxKind.LessThanToken));
+        result.AddRange(namedType.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutTypeParametersFormat));
+        result.Add(Punctuation(SyntaxKind.LessThanToken));
 
-            return result;
-        }
+        return result;
+    }
 
-        private static IList<SymbolDisplayPart> GetPostambleParts()
-        {
-            return SpecializedCollections.SingletonList(
-                Punctuation(SyntaxKind.GreaterThanToken));
-        }
+    private static IList<SymbolDisplayPart> GetPostambleParts()
+    {
+        return SpecializedCollections.SingletonList(
+            Punctuation(SyntaxKind.GreaterThanToken));
     }
 }

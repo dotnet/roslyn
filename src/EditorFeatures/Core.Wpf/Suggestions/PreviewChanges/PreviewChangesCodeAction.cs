@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,23 +20,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 private readonly Workspace _workspace;
                 private readonly CodeAction _originalCodeAction;
-                private readonly SolutionChangeSummary _changeSummary;
+                private readonly Func<CancellationToken, Task<SolutionPreviewResult?>> _getPreviewResultAsync;
 
-                public PreviewChangesCodeAction(Workspace workspace, CodeAction originalCodeAction, SolutionChangeSummary changeSummary)
+                public PreviewChangesCodeAction(Workspace workspace, CodeAction originalCodeAction, Func<CancellationToken, Task<SolutionPreviewResult?>> getPreviewResultAsync)
                 {
                     _workspace = workspace;
                     _originalCodeAction = originalCodeAction;
-                    _changeSummary = changeSummary;
+                    _getPreviewResultAsync = getPreviewResultAsync;
                 }
 
                 public override string Title => EditorFeaturesResources.Preview_changes2;
 
-                internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-                    Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                private protected override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+                    Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
                     if (previewDialogService == null)
+                    {
+                        return ImmutableArray<CodeActionOperation>.Empty;
+                    }
+
+                    var previewResult = await _getPreviewResultAsync(cancellationToken).ConfigureAwait(true);
+                    if (previewResult?.ChangeSummary is not { } changeSummary)
                     {
                         return ImmutableArray<CodeActionOperation>.Empty;
                     }
@@ -46,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         _originalCodeAction.Title,
                         EditorFeaturesResources.Changes,
                         CodeAnalysis.Glyph.OpenFolder,
-                        _changeSummary.NewSolution,
-                        _changeSummary.OldSolution,
+                        changeSummary.NewSolution,
+                        changeSummary.OldSolution,
                         showCheckBoxes: false);
 
                     if (changedSolution == null)

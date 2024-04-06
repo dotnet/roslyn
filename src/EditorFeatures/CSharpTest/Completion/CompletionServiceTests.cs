@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 
             var service = CompletionService.GetService(document);
 
-            // Create an item with ProvderName set to ThirdPartyCompletionProvider
-            // We should be able to find the provider object vithout calling into CompletionService for other operations.
+            // Create an item with ProviderName set to ThirdPartyCompletionProvider
+            // We should be able to find the provider object without calling into CompletionService for other operations.
             var item = CompletionItem.Create("ThirdPartyCompletionProviderItem");
             item.ProviderName = typeof(ThirdPartyCompletionProvider).FullName;
 
@@ -126,10 +126,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         [Fact]
         public async Task PassThroughOptions2()
         {
-            using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(ThirdPartyCompletionProvider)));
+            using var workspace = new EditorTestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(ThirdPartyCompletionProvider)));
 
-            var testDocument = new TestHostDocument("class C {}");
-            var project = new TestHostProject(workspace, testDocument, name: "project1");
+            var testDocument = new EditorTestHostDocument("class C {}");
+            var project = new EditorTestHostProject(workspace, testDocument, name: "project1");
             workspace.AddTestProject(project);
             workspace.OpenDocument(testDocument.Id);
 
@@ -148,7 +148,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         }
 
         [Theory, CombinatorialData]
-        public async Task GettingCompletionListShoudNotRunSourceGenerator(bool forkBeforeFreeze)
+        public async Task GettingCompletionListPerformSort(bool performSort)
+        {
+            var sourceMarkup = """
+                using System;
+
+                namespace N
+                {
+                    public class C
+                    {
+                        void M()
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+            MarkupTestFile.GetPosition(sourceMarkup.NormalizeLineEndings(), out var source, out int? position);
+
+            var workspace = new AdhocWorkspace();
+
+            var document = workspace
+                .AddProject("TestProject", LanguageNames.CSharp)
+                .AddDocument("TestDocument.cs", source);
+
+            var completionService = document.GetLanguageService<CompletionService>();
+
+            var options = CompletionOptions.Default with { PerformSort = performSort };
+            var completionList = await completionService.GetCompletionsAsync(document, position.Value, options, OptionSet.Empty);
+
+            var completionListManuallySorted = completionList.ItemsList.ToList();
+            completionListManuallySorted.Sort();
+
+            Assert.True(performSort == completionList.ItemsList.SequenceEqual(completionListManuallySorted));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task GettingCompletionListShouldNotRunSourceGenerator(bool forkBeforeFreeze)
         {
             var sourceMarkup = """
                 using System;

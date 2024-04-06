@@ -3760,7 +3760,7 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
         public void WhenWithAlwaysThrowingExpression_01()
         {
@@ -4247,6 +4247,75 @@ class C
   IL_0009:  ret
 }
 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70200")]
+        public void Repro70200()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task M()
+    {
+        return;
+
+        try
+        {
+            Console.WriteLine(string.Empty);
+        }
+        catch (Exception e1) when (e1.InnerException is Exception { InnerException: { } e2 })
+        {
+            Console.WriteLine(e2.Message);
+        }
+    }
+}
+""";
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(6, 16),
+                // (10,9): warning CS0162: Unreachable code detected
+                //         try
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "try").WithLocation(10, 9)
+            };
+
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70200")]
+        public void Repro70200_WithoutReturn()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task M()
+    {
+        try
+        {
+            Console.WriteLine(string.Empty);
+        }
+        catch (Exception e1) when (e1.InnerException is Exception { InnerException: { } e2 })
+        {
+            Console.WriteLine(e2.Message);
+        }
+    }
+}
+""";
+
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async Task M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(6, 16)
+                );
         }
     }
 }

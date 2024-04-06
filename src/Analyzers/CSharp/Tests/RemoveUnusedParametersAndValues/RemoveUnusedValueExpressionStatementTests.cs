@@ -119,15 +119,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                     int M2() => 0;
                 }
                 """,
-$@"class C
-{{
-    void M()
-    {{
-        {fix} = M2();
-    }}
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        {{fix}} = M2();
+                    }
 
-    int M2() => 0;
-}}", optionName);
+                    int M2() => 0;
+                }
+                """, optionName);
         }
 
         [Theory]
@@ -147,15 +149,17 @@ $@"class C
                     C M2() => new C();
                 }
                 """,
-$@"class C
-{{
-    void M()
-    {{
-        {fix} = M2();
-    }}
+                $$"""
+                class C
+                {
+                    void M()
+                    {
+                        {{fix}} = M2();
+                    }
 
-    C M2() => new C();
-}}", optionName);
+                    C M2() => new C();
+                }
+                """, optionName);
         }
 
         [Theory]
@@ -295,15 +299,17 @@ $@"class C
         public async Task ExpressionStatement_AssignmentExpression(string op)
         {
             await TestMissingInRegularAndScriptWithAllOptionsAsync(
-$@"class C
-{{
-    void M(int x)
-    {{
-        x {op} [|M2()|];
-    }}
+                $$"""
+                class C
+                {
+                    void M(int x)
+                    {
+                        x {{op}} [|M2()|];
+                    }
 
-    int M2() => 0;
-}}");
+                    int M2() => 0;
+                }
+                """);
         }
 
         [Theory]
@@ -314,14 +320,16 @@ $@"class C
         public async Task ExpressionStatement_IncrementOrDecrement(string incrementOrDecrement)
         {
             await TestMissingInRegularAndScriptWithAllOptionsAsync(
-$@"class C
-{{
-    int M(int x)
-    {{
-        [|{incrementOrDecrement}|];
-        return x;
-    }}
-}}");
+                $$"""
+                class C
+                {
+                    int M(int x)
+                    {
+                        [|{{incrementOrDecrement}}|];
+                        return x;
+                    }
+                }
+                """);
         }
 
         [Fact]
@@ -487,23 +495,25 @@ $@"class C
                     int M2() => 0;
                 }
                 """,
-$@"class C
-{{
-    public C()
-    {{
-        {fix1} = M2();           // Separate code block
-    }}
+                $$"""
+                class C
+                {
+                    public C()
+                    {
+                        {{fix1}} = M2();           // Separate code block
+                    }
 
-    void M(int unused1, int unused2)
-    {{
-        {fix3} = M2();
-        {fix2} = M2();           // Another instance in same code block
-        _ = M2();       // Already fixed
-        var x = M2();   // Different unused value diagnostic
-    }}
+                    void M(int unused1, int unused2)
+                    {
+                        {{fix3}} = M2();
+                        {{fix2}} = M2();           // Another instance in same code block
+                        _ = M2();       // Already fixed
+                        var x = M2();   // Different unused value diagnostic
+                    }
 
-    int M2() => 0;
-}}", optionName);
+                    int M2() => 0;
+                }
+                """, optionName);
         }
 
         [Fact]

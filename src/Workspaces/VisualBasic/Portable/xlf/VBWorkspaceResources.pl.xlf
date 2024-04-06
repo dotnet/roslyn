@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Konwencje kodowania w języku VB</target>
         <note />
       </trans-unit>
       <trans-unit id="event_">
@@ -225,21 +225,6 @@
       <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
         <source>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</source>
         <target state="translated">Wprowadza operację konwersji typu, która nie zgłasza wyjątku. Jeśli próba konwersji nie powiedzie się, element TryCast zwróci wartość Nothing, którą Twój program może użyć do testów.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">Węzeł nie jest elementem podrzędnym elementu głównego.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">Węzeł nie znajduje się na liście elementów podrzędnych elementu nadrzędnego</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Elementy towarzyszące składni nie są skojarzone z tokenem</target>
         <note />
       </trans-unit>
       <trans-unit id="typeOrMember">

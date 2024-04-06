@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function GetQueryClauseInfo(
-                model As SemanticModel,
+                semanticModel As SemanticModel,
                 node As SyntaxNode,
                 cancellationToken As CancellationToken) As ITypeSymbol
 
@@ -232,8 +232,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             If query Is Nothing Then
                 query = node.GetAncestor(Of QueryExpressionSyntax)()
             End If
-
-            Dim semanticModel = DirectCast(model, SemanticModel)
 
             For Each clause In query.Clauses
                 If TypeOf clause Is AggregateClauseSyntax Then

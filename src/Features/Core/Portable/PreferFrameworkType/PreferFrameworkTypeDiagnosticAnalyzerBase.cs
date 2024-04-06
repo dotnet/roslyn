@@ -9,105 +9,114 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.PreferFrameworkType
+namespace Microsoft.CodeAnalysis.PreferFrameworkType;
+
+internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<
+    TSyntaxKind,
+    TExpressionSyntax,
+    TTypeSyntax,
+    TIdentifierNameSyntax,
+    TPredefinedTypeSyntax> :
+    AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    where TSyntaxKind : struct
+    where TExpressionSyntax : SyntaxNode
+    where TTypeSyntax : TExpressionSyntax
+    where TPredefinedTypeSyntax : TTypeSyntax
+    where TIdentifierNameSyntax : TTypeSyntax
 {
-    internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<
-        TSyntaxKind,
-        TExpressionSyntax,
-        TTypeSyntax,
-        TIdentifierNameSyntax,
-        TPredefinedTypeSyntax> :
-        AbstractBuiltInCodeStyleDiagnosticAnalyzer
-        where TSyntaxKind : struct
-        where TExpressionSyntax : SyntaxNode
-        where TTypeSyntax : TExpressionSyntax
-        where TPredefinedTypeSyntax : TTypeSyntax
-        where TIdentifierNameSyntax : TTypeSyntax
+    protected PreferFrameworkTypeDiagnosticAnalyzerBase()
+        : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+               EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
+               options:
+               [
+                   CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                   CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+               ],
+               new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+               new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
     {
-        protected PreferFrameworkTypeDiagnosticAnalyzerBase()
-            : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
-                   EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
-                   options: ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+    }
+
+    public override bool OpenFileOnly(SimplifierOptions? options)
+    {
+        // analyzer is only active in C# and VB projects
+        Contract.ThrowIfNull(options);
+
+        return
+            !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
+              options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
+    }
+
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+    protected abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
+    protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);
+    protected abstract bool IsIdentifierNameReplaceableWithFrameworkType(SemanticModel semanticModel, TIdentifierNameSyntax node);
+    protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);
+
+    protected sealed override void InitializeWorker(AnalysisContext context)
+        => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
+
+    protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
+    {
+        var semanticModel = context.SemanticModel;
+        var options = context.GetAnalyzerOptions();
+        var cancellationToken = context.CancellationToken;
+
+        // if the user never prefers this style, do not analyze at all.
+        // we don't know the context of the node yet, so check all predefined type option preferences and bail early.
+        if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration)
+            && !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess)
+            && ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
+                [
+                    options.PreferPredefinedTypeKeywordInDeclaration.Notification,
+                    options.PreferPredefinedTypeKeywordInMemberAccess.Notification,
+                ],
+                context.CancellationToken))
         {
+            return;
         }
 
-        public override bool OpenFileOnly(SimplifierOptions? options)
+        var typeNode = (TTypeSyntax)context.Node;
+
+        // check if the predefined type is replaceable with an equivalent framework type.
+        switch (typeNode)
         {
-            // analyzer is only active in C# and VB projects
-            Contract.ThrowIfNull(options);
-
-            return
-                !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-                  options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
-        }
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        protected abstract ImmutableArray<TSyntaxKind> SyntaxKindsOfInterest { get; }
-        protected abstract bool IsPredefinedTypeReplaceableWithFrameworkType(TPredefinedTypeSyntax node);
-        protected abstract bool IsIdentifierNameReplaceableWithFrameworkType(SemanticModel semanticModel, TIdentifierNameSyntax node);
-        protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);
-
-        protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
-
-        protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
-        {
-            var semanticModel = context.SemanticModel;
-            var options = context.GetAnalyzerOptions();
-            var cancellationToken = context.CancellationToken;
-
-            // if the user never prefers this style, do not analyze at all.
-            // we don't know the context of the node yet, so check all predefined type option preferences and bail early.
-            if (!IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInDeclaration) &&
-                !IsFrameworkTypePreferred(options.PreferPredefinedTypeKeywordInMemberAccess))
-            {
-                return;
-            }
-
-            var typeNode = (TTypeSyntax)context.Node;
-
-            // check if the predefined type is replaceable with an equivalent framework type.
-            switch (typeNode)
-            {
-                case TPredefinedTypeSyntax predefinedType:
-                    if (!IsPredefinedTypeReplaceableWithFrameworkType(predefinedType))
-                        return;
-                    break;
-                case TIdentifierNameSyntax identifierName:
-                    if (!IsIdentifierNameReplaceableWithFrameworkType(semanticModel, identifierName))
-                        return;
-                    break;
-                default:
+            case TPredefinedTypeSyntax predefinedType:
+                if (!IsPredefinedTypeReplaceableWithFrameworkType(predefinedType))
                     return;
-            }
-
-            // check we have a symbol so that the fixer can generate the right type syntax from it.
-            if (semanticModel.GetSymbolInfo(typeNode, cancellationToken).Symbol is not ITypeSymbol typeSymbol ||
-                typeSymbol.SpecialType is SpecialType.None)
-            {
+                break;
+            case TIdentifierNameSyntax identifierName:
+                if (!IsIdentifierNameReplaceableWithFrameworkType(semanticModel, identifierName))
+                    return;
+                break;
+            default:
                 return;
-            }
-
-            // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
-            // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            var optionValue = IsInMemberAccessOrCrefReferenceContext(typeNode)
-                ? options.PreferPredefinedTypeKeywordInMemberAccess
-                : options.PreferPredefinedTypeKeywordInDeclaration;
-
-            if (IsFrameworkTypePreferred(optionValue))
-            {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor, typeNode.GetLocation(),
-                    optionValue.Notification.Severity, additionalLocations: null,
-                    PreferFrameworkTypeConstants.Properties));
-            }
-
-            static bool IsFrameworkTypePreferred(CodeStyleOption2<bool> optionValue)
-                => !optionValue.Value && optionValue.Notification.Severity != ReportDiagnostic.Suppress;
         }
+
+        // check we have a symbol so that the fixer can generate the right type syntax from it.
+        if (semanticModel.GetSymbolInfo(typeNode, cancellationToken).Symbol is not ITypeSymbol typeSymbol ||
+            typeSymbol.SpecialType is SpecialType.None)
+        {
+            return;
+        }
+
+        // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
+        // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
+        var optionValue = IsInMemberAccessOrCrefReferenceContext(typeNode)
+            ? options.PreferPredefinedTypeKeywordInMemberAccess
+            : options.PreferPredefinedTypeKeywordInDeclaration;
+
+        if (IsFrameworkTypePreferred(optionValue))
+        {
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor, typeNode.GetLocation(),
+                optionValue.Notification, context.Options, additionalLocations: null,
+                PreferFrameworkTypeConstants.Properties));
+        }
+
+        static bool IsFrameworkTypePreferred(CodeStyleOption2<bool> optionValue)
+            => !optionValue.Value && optionValue.Notification.Severity != ReportDiagnostic.Suppress;
     }
 }

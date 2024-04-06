@@ -6,17 +6,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
-{
-    internal partial class INamespaceSymbolExtensions
-    {
-        private class Comparer : IEqualityComparer<INamespaceSymbol?>
-        {
-            public bool Equals(INamespaceSymbol? x, INamespaceSymbol? y)
-                => GetNameParts(x).SequenceEqual(GetNameParts(y));
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-            public int GetHashCode(INamespaceSymbol? obj)
-                => GetNameParts(obj).Aggregate(0, (a, v) => Hash.Combine(v, a));
-        }
+internal partial class INamespaceSymbolExtensions
+{
+    private class Comparer : IEqualityComparer<INamespaceSymbol?>
+    {
+        public bool Equals(INamespaceSymbol? x, INamespaceSymbol? y)
+            => GetNameParts(x).SequenceEqual(GetNameParts(y));
+
+        public int GetHashCode(INamespaceSymbol? obj)
+            => GetNameParts(obj).Aggregate(0, (a, v) => Hash.Combine(v, a));
     }
 }

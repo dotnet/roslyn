@@ -11,10 +11,10 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             .Add(LanguageNames.CSharp, "csharp")
             .Add(LanguageNames.VisualBasic, "visual_basic");
 
-        public static readonly ImmutableArray<string> SupportedLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
+        public static readonly ImmutableArray<string> SupportedLanguages = [LanguageNames.CSharp, LanguageNames.VisualBasic];
 
         public DidChangeConfigurationNotificationHandler(
             ILspLogger logger,
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 _lspLogger.LogException(e, $"Exception occurs when make {Methods.WorkspaceConfigurationName}.");
             }
 
-            return ImmutableArray<string>.Empty;
+            return [];
         }
 
         private static ImmutableArray<(IOption2 option, string? langaugeName)> GenerateOptionsNeedsToRefresh()

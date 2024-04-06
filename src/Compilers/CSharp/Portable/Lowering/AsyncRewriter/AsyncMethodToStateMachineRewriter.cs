@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol state,
             FieldSymbol builder,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_awaiterFields.TryGetValue(awaiterType, out result))
             {
                 int slotIndex;
-                if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag), F.Diagnostics.DiagnosticBag, out slotIndex))
+                if (slotAllocator == null || !slotAllocator.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag), F.Diagnostics.DiagnosticBag, out slotIndex))
                 {
                     slotIndex = _nextAwaiterId++;
                 }
@@ -203,13 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody);
             }
 
-            if (instrumentation != null)
-            {
-                newBody = F.Block(
-                    ImmutableArray.Create(instrumentation.Local),
-                    instrumentation.Prologue,
-                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
-            }
+            newBody = F.Instrument(newBody, instrumentation);
 
             F.CloseMethod(newBody);
         }
@@ -380,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if(!($awaiterTemp.IsCompleted)) { ... }
                     F.If(
                         condition: F.Not(GenerateGetIsCompleted(awaiterTemp, isCompletedMethod)),
-                        thenClause: GenerateAwaitForIncompleteTask(awaiterTemp)));
+                        thenClause: GenerateAwaitForIncompleteTask(awaiterTemp, node.DebugInfo)));
             BoundExpression getResultCall = MakeCallMaybeDynamic(
                 F.Local(awaiterTemp),
                 getResult,
@@ -450,9 +443,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.Call(F.Local(awaiterTemp), getIsCompletedMethod);
         }
 
-        private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp)
+        private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp, BoundAwaitExpressionDebugInfo debugInfo)
         {
-            AddResumableState(awaiterTemp.GetDeclaratorSyntax(), out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
+            var awaitSyntax = awaiterTemp.GetDeclaratorSyntax();
+            AddResumableState(awaitSyntax, debugInfo.AwaitId, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             TypeSymbol awaiterFieldType = awaiterTemp.Type.IsVerifierReference()
                 ? F.SpecialType(SpecialType.System_Object)
@@ -484,6 +478,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                 GenerateReturn(false));
+
+            if (F.Compilation.Options.EnableEditAndContinue)
+            {
+                for (int i = 0; i < debugInfo.ReservedStateMachineCount; i++)
+                {
+                    AddResumableState(awaitSyntax, new AwaitDebugId((byte)(debugInfo.AwaitId.RelativeStateOrdinal + 1 + i)), out _, out var dummyResumeLabel);
+                    blockBuilder.Add(F.Label(dummyResumeLabel));
+                }
+            }
 
             blockBuilder.Add(
                 F.Label(resumeLabel));

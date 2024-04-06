@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
     [UseExportProvider]
     public class DiagnosticAnalyzerDriverTests
     {
-        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
         [Fact]
         public async Task DiagnosticAnalyzerDriverAllInOne()
@@ -42,20 +40,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var source = TestResource.AllInOneCSharpCode;
 
             // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
-            var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
+            var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>
+            {
+                SymbolKind.Property,
+                SymbolKind.NamedType
+            };
 
-            var missingSyntaxNodes = new HashSet<SyntaxKind>();
-            // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
-            missingSyntaxNodes.Add(SyntaxKind.WithExpression);
-            missingSyntaxNodes.Add(SyntaxKind.RecordDeclaration);
-            missingSyntaxNodes.Add(SyntaxKind.CollectionExpression);
-            missingSyntaxNodes.Add(SyntaxKind.ExpressionElement);
-            missingSyntaxNodes.Add(SyntaxKind.SpreadElement);
+            var missingSyntaxNodes = new HashSet<SyntaxKind>
+            {
+                // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
+                SyntaxKind.WithExpression,
+                SyntaxKind.RecordDeclaration,
+                SyntaxKind.CollectionExpression,
+                SyntaxKind.ExpressionElement,
+                SyntaxKind.SpreadElement
+            };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
             var newSolution = workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference })
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 """;
 
             var ideEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
+            using (var ideEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
                 var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(ideEngineAnalyzer));
                 ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             }
 
             var compilerEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var compilerEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
             var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None).Result;
             compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { compilerEngineAnalyzer });
             foreach (var method in methodNames)
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
 
             await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>
             {
-                using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+                using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
                 var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -155,13 +157,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 exceptions.Add(e);
             }
 
-            Assert.True(exceptions.Count == 0);
+            Assert.Empty(exceptions);
         }
 
         [Fact]
         public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
-            using var workspace = TestWorkspace.CreateCSharp(TestResource.AllInOneCSharpCode, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = EditorTestWorkspace.CreateCSharp(TestResource.AllInOneCSharpCode, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
             var additionalDocId = DocumentId.CreateNewId(workspace.CurrentSolution.Projects.Single().Id);
             var additionalText = new TestAdditionalText("add.config", SourceText.From("random text"));
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
         {
             var source = @"x";
 
-            using var workspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
             var analyzer = new CompilationAnalyzerWithSyntaxTreeAnalyzer();
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 """;
 
             var analyzer = new CodeBlockAnalyzerFactory();
-            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
+            using (var ideEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
                 var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
                 ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -278,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 }
                 """;
 
-            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
+            using (var compilerEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
                 var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None).Result;
                 var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
@@ -338,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var source = @"// empty code";
 
             var analyzer = new InvalidSpanAnalyzer();
-            using var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source);
+            using var compilerEngineWorkspace = EditorTestWorkspace.CreateCSharp(source);
             var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None));
 
             var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
@@ -606,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var vsixAnalyzer = new VsixAnalyzer(vsixAnalyzerDiagnosticIds);
             var vsixSuppressor = new VsixSuppressor(vsixAnalyzerDiagnosticIds);
             var nugetSuppressor = new NuGetSuppressor(vsixAnalyzerDiagnosticIds);
-            var partialNugetSuppressor = new NuGetSuppressor(new[] { "Y", "Z" });
+            var partialNugetSuppressor = new NuGetSuppressor(["Y", "Z"]);
 
             Assert.Equal(firstNugetAnalyzerDiagnosticIds, firstNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
             Assert.Equal(secondNugetAnalyzerDiagnosticIds, secondNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
@@ -771,7 +773,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 vsixSuppressor.SuppressorInvoked = false;
             }
 
-            using var workspace = TestWorkspace.CreateCSharp("class Class { }", TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = EditorTestWorkspace.CreateCSharp("class Class { }", TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
             var vsixAnalyzerReferences = new List<DiagnosticAnalyzer>(vsixAnalyzers.CastArray<DiagnosticAnalyzer>());
             vsixAnalyzerReferences.AddRange(vsixSuppressors.CastArray<DiagnosticAnalyzer>());
 
@@ -904,7 +906,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
 
         private abstract class AbstractNugetOrVsixSuppressor : DiagnosticSuppressor
         {
-            private readonly Dictionary<string, SuppressionDescriptor> mapping = new Dictionary<string, SuppressionDescriptor>();
+            private readonly Dictionary<string, SuppressionDescriptor> mapping = [];
 
             protected AbstractNugetOrVsixSuppressor(string analyzerName, params string[] reportedIds)
                 => SupportedSuppressions = CreateSupportedSuppressions(analyzerName, this.mapping, reportedIds);

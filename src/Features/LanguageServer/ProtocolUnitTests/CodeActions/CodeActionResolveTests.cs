@@ -12,11 +12,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     }
 }";
             await using var testLspServer = await CreateTestLspServerAsync(initialMarkup, mutatingLspWorkspace);
-
+            var titlePath = new string[] { CSharpAnalyzersResources.Use_implicit_type };
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
-                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, testLspServer.GetLocations("caret").Single()),
+                children: [],
+                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expectedResolvedAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
-                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, testLspServer.GetLocations("caret").Single()),
+                children: [],
+                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Low,
                 groupName: "Roslyn1",
                 diagnostics: null,
@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     }
 }";
             await using var testLspServer = await CreateTestLspServerAsync(initialMarkup, mutatingLspWorkspace);
-
+            var titlePath = new string[] { FeaturesResources.Introduce_constant, string.Format(FeaturesResources.Introduce_constant_for_0, "1") };
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
@@ -123,10 +123,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var expectedResolvedAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
@@ -154,18 +154,20 @@ class {|caret:ABC|}
                     {
                         WorkspaceEdit = new WorkspaceEditSetting
                         {
-                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Rename }
+                            ResourceOperations = [ResourceOperationKind.Rename]
                         }
                     }
                 }
             });
+
+            var titlePath = new string[] { string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs") };
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
@@ -183,10 +185,10 @@ class {|caret:ABC|}
             var expectedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
@@ -214,14 +216,14 @@ class {|caret:ABC|}
                 </Workspace>
 ";
             await using var testLspServer = await CreateXmlTestLspServerAsync(xmlWorkspace, mutatingLspWorkspace);
-
+            var titlePath = new string[] { string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value") };
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 2, Character = 33 }, End = new Position { Line = 39, Character = 2 } },
@@ -287,10 +289,10 @@ class {|caret:ABC|}
             var expectedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 2, Character = 33 }, End = new Position { Line = 39, Character = 2 } },
@@ -318,19 +320,20 @@ class BCD
                     {
                         WorkspaceEdit = new WorkspaceEditSetting
                         {
-                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                            ResourceOperations = [ResourceOperationKind.Create]
                         }
                     }
                 }
             });
 
+            var titlePath = new string[] { string.Format(FeaturesResources.Move_type_to_0, "ABC.cs") };
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
@@ -407,10 +410,10 @@ class BCD
             var expectedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
@@ -439,7 +442,7 @@ class {|caret:BCD|}
                     {
                         WorkspaceEdit = new WorkspaceEditSetting
                         {
-                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                            ResourceOperations = [ResourceOperationKind.Create]
                         }
                     }
                 },
@@ -447,13 +450,14 @@ class {|caret:BCD|}
                 DocumentFileContainingFolders = new[] { Path.Combine("dir1", "dir2", "dir3") },
             });
 
+            var titlePath = new string[] { string.Format(FeaturesResources.Move_type_to_0, "BCD.cs") };
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 3, Character = 6 }, End = new Position { Line = 3, Character = 9 } },
@@ -532,10 +536,10 @@ class {|caret:BCD|}
             var expectedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
                 kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                children: [],
                 data: CreateCodeActionResolveData(
                     string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
-                    testLspServer.GetLocations("caret").Single()),
+                    testLspServer.GetLocations("caret").Single(), titlePath),
                 priority: VSInternalPriorityLevel.Normal,
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 3, Character = 6 }, End = new Position { Line = 3, Character = 9 } },

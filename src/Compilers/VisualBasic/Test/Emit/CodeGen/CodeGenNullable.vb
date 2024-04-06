@@ -3483,7 +3483,13 @@ End Module
                     </file>
                 </compilation>
 
-            CompileAndVerify(source).VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
+            Dim verifier = CompileAndVerify(source, verify:=Verification.FailsILVerify.WithILVerifyMessage("
+[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x16 }
+[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x2e }
+[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x46 }
+[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x5d }"))
+
+            verifier.VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
 {
   // Code size      124 (0x7c)
   .maxstack  3

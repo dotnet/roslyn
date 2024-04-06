@@ -4,21 +4,18 @@
 
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
-using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
-using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.PooledObjects;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace IdeBenchmarks.Lsp
 {
@@ -96,7 +93,7 @@ class A
                     {
                         CompletionListSetting = new LSP.CompletionListSetting
                         {
-                            ItemDefaults = new string[] { "editRange", "commitCharacters", "data" },
+                            ItemDefaults = ["editRange", "commitCharacters", "data"],
                         }
                     }
                 }

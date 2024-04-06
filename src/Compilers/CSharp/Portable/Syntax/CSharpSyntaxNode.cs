@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -182,28 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Deserialize a syntax node from the byte stream.
         /// </summary>
+        [Obsolete(SerializationDeprecationException.Text, error: true)]
         public static SyntaxNode DeserializeFrom(Stream stream, CancellationToken cancellationToken = default)
-        {
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
-
-            if (!stream.CanRead)
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
-            }
-
-            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
-
-            if (reader == null)
-            {
-                throw new ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, nameof(stream));
-            }
-
-            var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
-            return root.CreateRed();
-        }
+            => throw new SerializationDeprecationException();
 
         #endregion
 

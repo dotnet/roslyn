@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            var newMember = member.WithModifiers(SyntaxFactory.TokenList(newModifierList));
+            var newMember = member.WithModifiers([.. newModifierList]);
             return newMember.WithLeadingTrivia(leadingTrivia);
         }
     }

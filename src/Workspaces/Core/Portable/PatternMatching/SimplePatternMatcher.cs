@@ -9,58 +9,57 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
-namespace Microsoft.CodeAnalysis.PatternMatching
+namespace Microsoft.CodeAnalysis.PatternMatching;
+
+internal partial class PatternMatcher
 {
-    internal partial class PatternMatcher
+    internal sealed partial class SimplePatternMatcher : PatternMatcher
     {
-        internal sealed partial class SimplePatternMatcher : PatternMatcher
+        private PatternSegment _fullPatternSegment;
+
+        public SimplePatternMatcher(
+            string pattern,
+            CultureInfo culture,
+            bool includeMatchedSpans,
+            bool allowFuzzyMatching)
+            : base(includeMatchedSpans, culture, allowFuzzyMatching)
         {
-            private PatternSegment _fullPatternSegment;
+            pattern = pattern.Trim();
 
-            public SimplePatternMatcher(
-                string pattern,
-                CultureInfo culture,
-                bool includeMatchedSpans,
-                bool allowFuzzyMatching)
-                : base(includeMatchedSpans, culture, allowFuzzyMatching)
+            _fullPatternSegment = new PatternSegment(pattern, allowFuzzyMatching);
+            _invalidPattern = _fullPatternSegment.IsInvalid;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _fullPatternSegment.Dispose();
+        }
+
+        /// <summary>
+        /// Determines if a given candidate string matches under a multiple word query text, as you
+        /// would find in features like Navigate To.
+        /// </summary>
+        /// <returns>If this was a match, a set of match types that occurred while matching the
+        /// patterns. If it was not a match, it returns null.</returns>
+        public override bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches)
+        {
+            if (SkipMatch(candidate))
             {
-                pattern = pattern.Trim();
-
-                _fullPatternSegment = new PatternSegment(pattern, allowFuzzyMatching);
-                _invalidPattern = _fullPatternSegment.IsInvalid;
+                return false;
             }
 
-            public override void Dispose()
-            {
-                base.Dispose();
-                _fullPatternSegment.Dispose();
-            }
+            return MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: false) ||
+                   MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: true);
+        }
 
-            /// <summary>
-            /// Determines if a given candidate string matches under a multiple word query text, as you
-            /// would find in features like Navigate To.
-            /// </summary>
-            /// <returns>If this was a match, a set of match types that occurred while matching the
-            /// patterns. If it was not a match, it returns null.</returns>
-            public override bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches)
-            {
-                if (SkipMatch(candidate))
-                {
-                    return false;
-                }
+        public TestAccessor GetTestAccessor()
+            => new(this);
 
-                return MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: false) ||
-                       MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: true);
-            }
-
-            public TestAccessor GetTestAccessor()
-                => new(this);
-
-            public readonly struct TestAccessor(SimplePatternMatcher simplePatternMatcher)
-            {
-                public readonly bool LastCacheResultIs(bool areSimilar, string candidateText)
-                    => simplePatternMatcher._fullPatternSegment.TotalTextChunk.SimilarityChecker.LastCacheResultIs(areSimilar, candidateText);
-            }
+        public readonly struct TestAccessor(SimplePatternMatcher simplePatternMatcher)
+        {
+            public readonly bool LastCacheResultIs(bool areSimilar, string candidateText)
+                => simplePatternMatcher._fullPatternSegment.TotalTextChunk.SimilarityChecker.LastCacheResultIs(areSimilar, candidateText);
         }
     }
 }

@@ -322,8 +322,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ushort GenericParameterCount => 0;
 
-        public bool IsGeneric => false;
-
         public Cci.IMethodDefinition? GetResolvedMethod(EmitContext context) => null;
 
         public ImmutableArray<Cci.IParameterTypeInformation> ExtraParameters

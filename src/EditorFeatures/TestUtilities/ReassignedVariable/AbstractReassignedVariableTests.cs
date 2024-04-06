@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable;
 [UseExportProvider]
 public abstract class AbstractReassignedVariableTests
 {
-    protected abstract TestWorkspace CreateWorkspace(string markup);
+    protected abstract EditorTestWorkspace CreateWorkspace(string markup);
 
     protected async Task TestAsync(string markup)
     {
@@ -34,7 +33,8 @@ public abstract class AbstractReassignedVariableTests
             var text = await document.GetTextAsync();
 
             var service = document.GetRequiredLanguageService<IReassignedVariableService>();
-            var result = await service.GetLocationsAsync(document, new TextSpan(0, text.Length), CancellationToken.None);
+            var textSpans = ImmutableArray.Create(new TextSpan(0, text.Length));
+            var result = await service.GetLocationsAsync(document, textSpans, CancellationToken.None);
 
             var expectedSpans = workspace.Documents[i].SelectedSpans.OrderBy(s => s.Start);
             var actualSpans = result.OrderBy(s => s.Start);

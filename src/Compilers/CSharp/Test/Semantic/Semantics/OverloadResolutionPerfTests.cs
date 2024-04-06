@@ -679,7 +679,7 @@ class C
             sourceBuilder.Append("    ");
             for (var i = 0; i < 15; i++)
             {
-                sourceBuilder.Append(")");
+                sourceBuilder.Append(')');
             }
 
             sourceBuilder.Append(source2);

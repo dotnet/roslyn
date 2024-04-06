@@ -15,6 +15,7 @@ parameters:
   timeoutInMinutes: ''
   variables: []
   workspace: ''
+  templateContext: ''
 
 # Job base template specific parameters
   # See schema documentation - https://github.com/dotnet/arcade/blob/master/Documentation/AzureDevOps/TemplateSchema.md
@@ -67,6 +68,9 @@ jobs:
 
   ${{ if ne(parameters.timeoutInMinutes, '') }}:
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+
+  ${{ if ne(parameters.templateContext, '') }}:
+    templateContext: ${{ parameters.templateContext }}
 
   variables:
   - ${{ if ne(parameters.enableTelemetry, 'false') }}:
@@ -136,7 +140,7 @@ jobs:
         condition: and(succeeded(), in(variables['_SignType'], 'real', 'test'), eq(variables['Agent.Os'], 'Windows_NT'))
 
   - ${{ if and(eq(parameters.runAsPublic, 'false'), eq(variables['System.TeamProject'], 'internal')) }}:
-    - task: NuGetAuthenticate@0
+    - task: NuGetAuthenticate@1
 
   - ${{ if and(ne(parameters.artifacts.download, 'false'), ne(parameters.artifacts.download, '')) }}:
     - task: DownloadPipelineArtifact@2

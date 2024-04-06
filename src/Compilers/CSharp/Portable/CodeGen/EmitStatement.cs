@@ -677,38 +677,63 @@ oneMoreTime:
 
         private void EmitInstrumentedBlock(BoundBlockInstrumentation instrumentation, BoundBlock block)
         {
-            _builder.OpenLocalScope();
-            DefineLocal(instrumentation.Local, block.Syntax);
-
-            if (_emitPdbSequencePoints)
+            if (!instrumentation.Locals.IsEmpty)
             {
-                EmitHiddenSequencePoint();
+                _builder.OpenLocalScope();
+
+                foreach (var local in instrumentation.Locals)
+                {
+                    DefineLocal(local, block.Syntax);
+                }
             }
 
-            EmitStatement(instrumentation.Prologue);
+            if (instrumentation.Prologue != null)
+            {
+                if (_emitPdbSequencePoints)
+                {
+                    EmitHiddenSequencePoint();
+                }
+
+                EmitStatement(instrumentation.Prologue);
+            }
 
             _builder.AssertStackEmpty();
 
-            _builder.OpenLocalScope(ScopeType.TryCatchFinally);
-
-            _builder.OpenLocalScope(ScopeType.Try);
-            EmitUninstrumentedBlock(block);
-            _builder.CloseLocalScope(); // try
-
-            _builder.OpenLocalScope(ScopeType.Finally);
-
-            if (_emitPdbSequencePoints)
+            if (instrumentation.Epilogue != null)
             {
-                EmitHiddenSequencePoint();
+                _builder.OpenLocalScope(ScopeType.TryCatchFinally);
+
+                _builder.OpenLocalScope(ScopeType.Try);
+
+                EmitUninstrumentedBlock(block);
+                _builder.CloseLocalScope(); // try
+
+                _builder.OpenLocalScope(ScopeType.Finally);
+
+                if (_emitPdbSequencePoints)
+                {
+                    EmitHiddenSequencePoint();
+                }
+
+                EmitStatement(instrumentation.Epilogue);
+                _builder.CloseLocalScope(); // finally
+
+                _builder.CloseLocalScope(); // try-finally
+            }
+            else
+            {
+                EmitUninstrumentedBlock(block);
             }
 
-            EmitStatement(instrumentation.Epilogue);
-            _builder.CloseLocalScope(); // finally
+            if (!instrumentation.Locals.IsEmpty)
+            {
+                foreach (var local in instrumentation.Locals)
+                {
+                    FreeLocal(local);
+                }
 
-            _builder.CloseLocalScope(); // try-finally
-
-            FreeLocal(instrumentation.Local);
-            _builder.CloseLocalScope();
+                _builder.CloseLocalScope();
+            }
         }
 
         private void EmitUninstrumentedBlock(BoundBlock block)
@@ -1467,7 +1492,7 @@ oneMoreTime:
             // Condition is necessary, but not sufficient (e.g. might be missing a special or well-known member).
             if (SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(switchCaseLabels.Length))
             {
-                var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics.DiagnosticBag);
+                var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics.DiagnosticBag).PrivateImplementationDetails;
                 Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(
                     isSpanOrReadOnlySpan
                         ? isReadOnlySpan

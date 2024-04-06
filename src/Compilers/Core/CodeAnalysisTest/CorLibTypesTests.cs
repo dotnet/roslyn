@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IntegrityTest()
         {
-            for (int i = 1; i <= (int)SpecialType.Count; i++)
+            for (int i = 1; i < (int)InternalSpecialType.NextAvailable; i++)
             {
-                string name = SpecialTypes.GetMetadataName((SpecialType)i);
-                Assert.Equal((SpecialType)i, SpecialTypes.GetTypeFromMetadataName(name));
+                string name = SpecialTypes.GetMetadataName((ExtendedSpecialType)i);
+                Assert.Equal((ExtendedSpecialType)i, SpecialTypes.GetTypeFromMetadataName(name));
             }
 
             for (int i = 0; i <= (int)SpecialType.Count; i++)
@@ -94,18 +94,61 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.Throws<InvalidOperationException>(() => { ConstantValue.Create(null, ConstantValueTypeDiscriminator.Bad); });
 
-            var cv = ConstantValue.Create(1);
-            Assert.Throws<InvalidOperationException>(() => { var c = cv.StringValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv.CharValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv.DateTimeValue; });
+            var cv1 = ConstantValue.Create(1);
+            Assert.Throws<InvalidOperationException>(() => { var c = cv1.StringValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cv1.DateTimeValue; });
 
-            var cv1 = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.BooleanValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.DecimalValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.DoubleValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.SingleValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.SByteValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.ByteValue; });
+            var cv2 = ConstantValue.Create(2);
+            Assert.Throws<InvalidOperationException>(() => { var c = cv2.StringValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cv2.CharValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cv2.DateTimeValue; });
+
+            var cvNull = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.BooleanValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.DecimalValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.DoubleValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.SingleValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.SByteValue; });
+            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.ByteValue; });
+        }
+
+        [Fact]
+        public void ConstantValueOneTest01()
+        {
+            var cv1 = ConstantValue.Create(1);
+            Assert.True(cv1.IsOne);
+
+            Assert.Equal(1, cv1.ByteValue);
+            Assert.Equal(1, cv1.SByteValue);
+            Assert.True(cv1.BooleanValue);
+            Assert.Equal(1, cv1.DoubleValue);
+            Assert.Equal(1, cv1.SingleValue);
+            Assert.Equal(1, cv1.DecimalValue);
+            Assert.Equal(1, cv1.Int16Value);
+            Assert.Equal(1, cv1.UInt16Value);
+            Assert.Equal(1, cv1.Int32Value);
+            Assert.Equal(1U, cv1.UInt32Value);
+            Assert.Equal(1, cv1.Int64Value);
+            Assert.Equal(1U, cv1.UInt64Value);
+            Assert.Equal(1, cv1.CharValue);
+        }
+
+        [Fact]
+        public void ConstantValueOneTest02()
+        {
+            Assert.True(ConstantValue.Create((byte)1).IsOne);
+            Assert.True(ConstantValue.Create((sbyte)1).IsOne);
+            Assert.True(ConstantValue.Create(true).IsOne);
+            Assert.True(ConstantValue.Create((double)1).IsOne);
+            Assert.True(ConstantValue.Create((float)1).IsOne);
+            Assert.True(ConstantValue.Create((decimal)1).IsOne);
+            Assert.True(ConstantValue.Create((short)1).IsOne);
+            Assert.True(ConstantValue.Create((ushort)1).IsOne);
+            Assert.True(ConstantValue.Create((int)1).IsOne);
+            Assert.True(ConstantValue.Create((uint)1).IsOne);
+            Assert.True(ConstantValue.Create((long)1).IsOne);
+            Assert.True(ConstantValue.Create((ulong)1).IsOne);
+            Assert.True(ConstantValue.Create((char)1).IsOne);
         }
 
         [Fact]

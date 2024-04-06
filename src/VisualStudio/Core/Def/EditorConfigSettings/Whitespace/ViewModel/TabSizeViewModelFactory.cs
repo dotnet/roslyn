@@ -11,25 +11,24 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
+
+[Export(typeof(IEnumSettingViewModelFactory)), Shared]
+internal class TabSizeViewModelFactory : IEnumSettingViewModelFactory
 {
-    [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-    internal class TabSizeViewModelFactory : IEnumSettingViewModelFactory
+    private readonly OptionKey2 _key;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TabSizeViewModelFactory()
     {
-        private readonly OptionKey2 _key;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TabSizeViewModelFactory()
-        {
-            _key = new OptionKey2(FormattingOptions2.TabSize, LanguageNames.CSharp);
-        }
-
-        public IEnumSettingViewModel CreateViewModel(Setting setting)
-        {
-            return new TabSizeViewModel(setting);
-        }
-
-        public bool IsSupported(OptionKey2 key) => _key == key;
+        _key = new OptionKey2(FormattingOptions2.TabSize, LanguageNames.CSharp);
     }
+
+    public IEnumSettingViewModel CreateViewModel(Setting setting)
+    {
+        return new TabSizeViewModel(setting);
+    }
+
+    public bool IsSupported(OptionKey2 key) => _key == key;
 }

@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' lazily populated with the bound imports
         Private _lazyBoundImports As BoundImports
-        Private _lazyBoundImportsAdditionalDiagnostics As StrongBox(Of ImmutableBindingDiagnostic(Of AssemblySymbol))
+        Private _lazyBoundImportsAdditionalDiagnostics As StrongBox(Of ReadOnlyBindingDiagnostic(Of AssemblySymbol))
 
         ' lazily populate with quick attribute checker that is initialized with the imports.
         Private _lazyQuickAttributeChecker As QuickAttributeChecker
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _lazyBoundImportsAdditionalDiagnostics Is Nothing Then
                 Dim diagnosticBag = BindingDiagnosticBag.GetInstance()
                 ValidateImports(_lazyBoundImports.MemberImports, _lazyBoundImports.MemberImportsInfo, _lazyBoundImports.AliasImports, _lazyBoundImports.AliasImportsInfo, diagnosticBag)
-                Interlocked.CompareExchange(_lazyBoundImportsAdditionalDiagnostics, New StrongBox(Of ImmutableBindingDiagnostic(Of AssemblySymbol))(diagnosticBag.ToReadOnlyAndFree()), Nothing)
+                Interlocked.CompareExchange(_lazyBoundImportsAdditionalDiagnostics, New StrongBox(Of ReadOnlyBindingDiagnostic(Of AssemblySymbol))(diagnosticBag.ToReadOnlyAndFree()), Nothing)
             End If
         End Sub
 
@@ -775,43 +775,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Continue For
                 End If
 
-                Dim hasGuidAttribute = False
-                Dim hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = False
-
-                For Each attrData In assembly.GetAttributes()
-                    If attrData.IsTargetAttribute(assembly, AttributeDescription.GuidAttribute) Then
-                        If attrData.CommonConstructorArguments.Length = 1 Then
-                            Dim value = attrData.CommonConstructorArguments(0).ValueInternal
-                            If value Is Nothing OrElse TypeOf value Is String Then
-                                hasGuidAttribute = True
-                            End If
-                        End If
-
-                    ElseIf attrData.IsTargetAttribute(assembly, AttributeDescription.ImportedFromTypeLibAttribute) Then
-                        If attrData.CommonConstructorArguments.Length = 1 Then
-                            hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = True
-                        End If
-
-                    ElseIf attrData.IsTargetAttribute(assembly, AttributeDescription.PrimaryInteropAssemblyAttribute) Then
-                        If attrData.CommonConstructorArguments.Length = 2 Then
-                            hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute = True
-                        End If
-
-                    End If
-
-                    If hasGuidAttribute AndAlso hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute Then
-                        Exit For
-                    End If
-                Next
-
-                If Not hasGuidAttribute Then
+                If Not assembly.GetGuidString(Nothing) Then
                     diagnostics.Add(ERRID.ERR_PIAHasNoAssemblyGuid1,
                                     NoLocation.Singleton,
                                     assembly,
                                     AttributeDescription.GuidAttribute.FullName)
                 End If
 
-                If Not hasImportedFromTypeLibOrPrimaryInteropAssemblyAttribute Then
+                If Not assembly.HasImportedFromTypeLibAttribute AndAlso Not assembly.HasPrimaryInteropAssemblyAttribute Then
                     diagnostics.Add(ERRID.ERR_PIAHasNoTypeLibAttribute1,
                                     NoLocation.Singleton,
                                     assembly,
@@ -1103,20 +1074,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultCharSetAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.DefaultCharSetAttribute) Then
                 Dim charSet As CharSet = attrData.GetConstructorArgument(Of CharSet)(0, SpecialType.System_Enum)
                 If Not CommonModuleWellKnownAttributeData.IsValidCharSet(charSet) Then
                     DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt), attrData.AttributeClass)
                 Else
                     arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData)().DefaultCharacterSet = charSet
                 End If
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DebuggableAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DebuggableAttribute) Then
                 arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).HasDebuggableAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExperimentalAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.ExperimentalAttribute) Then
                 arguments.GetOrCreateData(Of CommonModuleWellKnownAttributeData).ExperimentalAttributeData = attrData.DecodeObsoleteAttribute(ObsoleteAttributeKind.Experimental)
             End If
 

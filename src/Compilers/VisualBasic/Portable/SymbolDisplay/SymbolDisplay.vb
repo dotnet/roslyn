@@ -133,8 +133,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(positionOpt < 0)
             End If
 
-            Dim visitor = New SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt)
+            Dim visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt)
             symbol.Accept(visitor)
+            visitor.Free()
         End Sub
 
         ''' <summary>

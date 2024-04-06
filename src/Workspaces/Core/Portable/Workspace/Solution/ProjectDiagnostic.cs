@@ -4,10 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public class ProjectDiagnostic(WorkspaceDiagnosticKind kind, string message, ProjectId projectId) : WorkspaceDiagnostic(kind, message)
 {
-    public class ProjectDiagnostic(WorkspaceDiagnosticKind kind, string message, ProjectId projectId) : WorkspaceDiagnostic(kind, message)
-    {
-        public ProjectId ProjectId { get; } = projectId;
-    }
+    public ProjectId ProjectId { get; } = projectId;
 }

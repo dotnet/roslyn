@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 

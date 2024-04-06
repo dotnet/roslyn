@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal abstract class LspWorkspaceRegistrationService : IDisposable
 {
     private readonly object _gate = new();
-    private ImmutableArray<Workspace> _registrations = ImmutableArray.Create<Workspace>();
+    private ImmutableArray<Workspace> _registrations = [];
 
     public ImmutableArray<Workspace> GetAllRegistrations()
     {

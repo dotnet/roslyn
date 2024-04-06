@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -144,9 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasComplete(CompletionPart part) => _underlyingField.HasComplete(part);
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
-            _underlyingField.ForceComplete(locationOpt, cancellationToken);
+            _underlyingField.ForceComplete(locationOpt, filter, cancellationToken);
         }
 
         public sealed override int GetHashCode()

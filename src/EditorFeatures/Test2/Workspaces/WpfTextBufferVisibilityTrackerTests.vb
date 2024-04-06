@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     Public Class WpfTextBufferVisibilityTrackerTests
         <WpfFact>
         Public Sub TestMutationInCallback()
-            Using workspace = TestWorkspace.CreateCSharp("", composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Using workspace = EditorTestWorkspace.CreateCSharp("", composition:=EditorTestCompositions.EditorFeaturesWpf)
                 Dim visibilityTracker = DirectCast(workspace.ExportProvider.GetExportedValue(Of ITextBufferVisibilityTracker), WpfTextBufferVisibilityTracker)
 
                 Dim buffer = workspace.Documents.Single().GetTextBuffer()

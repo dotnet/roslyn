@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -67,102 +73,126 @@ $$");
         public async Task TestBeforeStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"$$
-return true;"));
+                """
+                $$
+                return true;
+                """));
         }
 
         [Fact]
         public async Task TestAfterStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"return true;
-$$"));
+                """
+                return true;
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterBlock()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"if (true) {
-}
-$$"));
+                """
+                if (true) {
+                }
+                $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterIf()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"if (true) 
-    $$"));
+                """
+                if (true) 
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterDo()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"do 
-    $$"));
+                """
+                do 
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterWhile()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"while (true) 
-    $$"));
+                """
+                while (true) 
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterFor()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"for (int i = 0; i < 10; i++) 
-    $$"));
+                """
+                for (int i = 0; i < 10; i++) 
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterForeach()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"foreach (var v in bar)
-    $$"));
+                """
+                foreach (var v in bar)
+                    $$
+                """));
         }
 
         [Fact]
         public async Task TestNotInsideLambda()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"foreach (var v in bar) {
-   var d = () => {
-     $$"));
+                """
+                foreach (var v in bar) {
+                   var d = () => {
+                     $$
+                """));
         }
 
         [Fact]
         public async Task TestOutsideLambda()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"foreach (var v in bar) {
-   var d = () => {
-   };
-   $$"));
+                """
+                foreach (var v in bar) {
+                   var d = () => {
+                   };
+                   $$
+                """));
         }
 
         [Fact]
         public async Task TestNotInsideAnonymousMethod()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"foreach (var v in bar) {
-   var d = delegate {
-     $$"));
+                """
+                foreach (var v in bar) {
+                   var d = delegate {
+                     $$
+                """));
         }
 
         [Fact]
         public async Task TestNotInsideSwitch()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"switch (a) {
-    case 0:
-      $$"));
+                """
+                switch (a) {
+                    case 0:
+                      $$
+                """));
         }
 
         [Fact]
@@ -175,10 +205,12 @@ $$"));
         [Fact]
         public async Task TestNotInClass()
         {
-            await VerifyAbsenceAsync(@"class C
-{
-  $$
-}");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                  $$
+                }
+                """);
         }
     }
 }

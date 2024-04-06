@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
+namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
+
+internal class RenameTokenSimplificationAnnotation : RenameAnnotation
 {
-    internal class RenameTokenSimplificationAnnotation : RenameAnnotation
-    {
-        public TextSpan OriginalTextSpan { get; set; }
-    }
+    public TextSpan OriginalTextSpan { get; set; }
 }

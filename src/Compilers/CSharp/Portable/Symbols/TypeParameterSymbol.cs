@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
+        protected sealed override ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }

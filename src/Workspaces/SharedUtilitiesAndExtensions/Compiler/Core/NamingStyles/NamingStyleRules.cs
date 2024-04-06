@@ -8,103 +8,99 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+
+internal class NamingStyleRules(ImmutableArray<NamingRule> namingRules)
 {
-    internal class NamingStyleRules(ImmutableArray<NamingRule> namingRules)
+    public ImmutableArray<NamingRule> NamingRules { get; } = namingRules;
+
+    private readonly ImmutableArray<SymbolKind> _symbolKindsThatCanBeOverridden =
+        [SymbolKind.Method, SymbolKind.Property, SymbolKind.Event];
+
+    internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
     {
-        public ImmutableArray<NamingRule> NamingRules { get; } = namingRules;
-
-        private readonly ImmutableArray<SymbolKind> _symbolKindsThatCanBeOverridden =
-            ImmutableArray.Create(
-                SymbolKind.Method,
-                SymbolKind.Property,
-                SymbolKind.Event);
-
-        internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
+        if (NamingRules != null &&
+            IsSymbolNameAnalyzable(symbol))
         {
-            if (NamingRules != null &&
-                IsSymbolNameAnalyzable(symbol))
+            foreach (var namingRule in NamingRules)
             {
-                foreach (var namingRule in NamingRules)
+                if (namingRule.SymbolSpecification.AppliesTo(symbol))
                 {
-                    if (namingRule.SymbolSpecification.AppliesTo(symbol))
-                    {
-                        applicableRule = namingRule;
-                        return true;
-                    }
+                    applicableRule = namingRule;
+                    return true;
                 }
             }
+        }
 
-            applicableRule = default;
+        applicableRule = default;
+        return false;
+    }
+
+    private bool IsSymbolNameAnalyzable(ISymbol symbol)
+    {
+        if (_symbolKindsThatCanBeOverridden.Contains(symbol.Kind) && DoesSymbolImplementAnotherSymbol(symbol))
+        {
             return false;
         }
 
-        private bool IsSymbolNameAnalyzable(ISymbol symbol)
+        if (symbol is IMethodSymbol method)
         {
-            if (_symbolKindsThatCanBeOverridden.Contains(symbol.Kind) && DoesSymbolImplementAnotherSymbol(symbol))
-            {
-                return false;
-            }
-
-            if (symbol is IMethodSymbol method)
-            {
-                return method.MethodKind is MethodKind.Ordinary or
-                       MethodKind.LocalFunction;
-            }
-
-            if (symbol is IPropertySymbol property)
-            {
-                return !property.IsIndexer;
-            }
-
-            return true;
+            return method.MethodKind is MethodKind.Ordinary or
+                   MethodKind.LocalFunction;
         }
 
-        private static bool DoesSymbolImplementAnotherSymbol(ISymbol symbol)
+        if (symbol is IPropertySymbol property)
         {
-            if (symbol.IsStatic)
-            {
-                return false;
-            }
-
-            var containingType = symbol.ContainingType;
-            if (containingType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
-            {
-                return false;
-            }
-
-            return symbol.IsOverride ||
-                symbol.ExplicitInterfaceImplementations().Any() ||
-                IsInterfaceImplementation(symbol);
+            return !property.IsIndexer;
         }
 
-        /// <summary>
-        /// This does not handle the case where a method in a base type implicitly implements an
-        /// interface method on behalf of one of its derived types.
-        /// </summary>
-        private static bool IsInterfaceImplementation(ISymbol symbol)
+        return true;
+    }
+
+    private static bool DoesSymbolImplementAnotherSymbol(ISymbol symbol)
+    {
+        if (symbol.IsStatic)
         {
-            if (symbol.DeclaredAccessibility != Accessibility.Public)
-            {
-                return false;
-            }
-
-            var containingType = symbol.ContainingType;
-            var implementedInterfaces = containingType.AllInterfaces;
-
-            foreach (var implementedInterface in implementedInterfaces)
-            {
-                var implementedInterfaceMembersWithSameName = implementedInterface.GetMembers(symbol.Name);
-                foreach (var implementedInterfaceMember in implementedInterfaceMembersWithSameName)
-                {
-                    if (symbol.Equals(containingType.FindImplementationForInterfaceMember(implementedInterfaceMember)))
-                    {
-                        return true;
-                    }
-                }
-            }
-
             return false;
         }
+
+        var containingType = symbol.ContainingType;
+        if (containingType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
+        {
+            return false;
+        }
+
+        return symbol.IsOverride ||
+            symbol.ExplicitInterfaceImplementations().Any() ||
+            IsInterfaceImplementation(symbol);
+    }
+
+    /// <summary>
+    /// This does not handle the case where a method in a base type implicitly implements an
+    /// interface method on behalf of one of its derived types.
+    /// </summary>
+    private static bool IsInterfaceImplementation(ISymbol symbol)
+    {
+        if (symbol.DeclaredAccessibility != Accessibility.Public)
+        {
+            return false;
+        }
+
+        var containingType = symbol.ContainingType;
+        var implementedInterfaces = containingType.AllInterfaces;
+
+        foreach (var implementedInterface in implementedInterfaces)
+        {
+            var implementedInterfaceMembersWithSameName = implementedInterface.GetMembers(symbol.Name);
+            foreach (var implementedInterfaceMember in implementedInterfaceMembersWithSameName)
+            {
+                if (symbol.Equals(containingType.FindImplementationForInterfaceMember(implementedInterfaceMember)))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

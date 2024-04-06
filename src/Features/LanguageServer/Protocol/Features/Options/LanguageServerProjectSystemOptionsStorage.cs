@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace
         public static readonly Option2<string?> BinaryLogPath = new Option2<string?>("dotnet_binary_log_path", defaultValue: null, s_optionGroup);
 
         /// <summary>
-        /// Whether we are doing design-time builds in-process; this is only to offer a fallback if the OOP builds are broken, and should be removed once
-        /// we don't have folks using this.
+        /// Whether or not automatic nuget restore is enabled.
         /// </summary>
-        public static readonly Option2<bool> LoadInProcess = new("dotnet_load_in_process", defaultValue: false, s_optionGroup);
+        public static readonly Option2<bool> EnableAutomaticRestore = new Option2<bool>("dotnet_enable_automatic_restore", defaultValue: true, s_optionGroup);
     }
 }

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeMemberRequired;
 [ExtensionOrder(Before = PredefinedCodeFixProviderNames.DeclareAsNullable)]
 internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    private const string CS8618 = nameof(CS8618); // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
+    private const string CS8618 = nameof(CS8618); // Non-nullable variable must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring it as nullable.
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -33,7 +33,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider : SyntaxEditorBase
     }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(CS8618);
+        [CS8618];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {

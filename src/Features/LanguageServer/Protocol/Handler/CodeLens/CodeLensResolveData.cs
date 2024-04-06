@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
@@ -12,4 +12,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 /// <param name="SyntaxVersion">the syntax version of the text document.</param>
 /// <param name="ListIndex">the index of the specific code lens item in the original list.</param>
 /// <param name="TextDocument">the text document associated with the code lens to resolve.</param>
-internal sealed record CodeLensResolveData(string SyntaxVersion, int ListIndex, TextDocumentIdentifier TextDocument);
+internal sealed record CodeLensResolveData(string SyntaxVersion, int ListIndex, TextDocumentIdentifier TextDocument) : DocumentResolveData(TextDocument);

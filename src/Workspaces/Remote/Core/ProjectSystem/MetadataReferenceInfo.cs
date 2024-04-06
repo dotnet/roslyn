@@ -15,6 +15,6 @@ internal readonly record struct MetadataReferenceInfo(
 {
     public MetadataReferenceProperties CreateProperties()
     {
-        return new MetadataReferenceProperties(aliases: Aliases != null ? ImmutableArray.Create(Aliases) : default, embedInteropTypes: EmbedInteropTypes);
+        return new MetadataReferenceProperties(aliases: Aliases != null ? [Aliases] : default, embedInteropTypes: EmbedInteropTypes);
     }
 }

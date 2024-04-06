@@ -3,7 +3,7 @@
 ## Summary
 [summary]: #summary
 
-*Interceptors* are an experimental compiler feature planned to ship in .NET 8. The feature may be subject to breaking changes or removal in a future release.
+*Interceptors* are an experimental compiler feature planned to ship in .NET 8 (with support for C# only). The feature may be subject to breaking changes or removal in a future release.
 
 An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
 
@@ -68,20 +68,15 @@ File-local declarations of this type (`file class InterceptsLocationAttribute`) 
 
 #### File paths
 
-File paths used in `[InterceptsLocation]` are expected to have `/pathmap` substitution already applied. Generators should accomplish this by locally recreating the file path transformation performed by the compiler:
+The *referenced syntax tree* of an `[InterceptsLocation]` is determined by normalizing the `filePath` argument value relative to the path of the containing syntax tree of the `[InterceptsLocation]` usage, similar to how paths in `#line` directives are normalized. Let this normalized path be called `normalizedInterceptorPath`. If exactly one syntax tree in the compilation has a normalized path which matches `normalizedInterceptorPath` by ordinal string comparison, that is the *referenced syntax tree*. Otherwise, an error occurs.
 
-```cs
-using Microsoft.CodeAnalysis;
+`#line` directives are not considered when determining the call referenced by an `[InterceptsLocation]` attribute. In other words, the file path, line and column numbers used in `[InterceptsLocation]` are expected to refer to *unmapped* source locations.
 
-string GetInterceptorFilePath(SyntaxTree tree, Compilation compilation)
-{
-    return compilation.Options.SourceReferenceResolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
-}
-```
+Temporarily, for compatibility purposes, when the initial matching strategy outlined above fails to match any syntax trees, we will fall back to a "compat" matching strategy which works in the following way:
+- A *mapped path* of each syntax tree is determined by applying [`/pathmap`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.commandlinearguments.pathmap?view=roslyn-dotnet-4.7.0) substitution to `SyntaxTree.FilePath`.
+- For a given `[InterceptsLocation]` usage, the `filePath` argument value is compared to the *mapped path* of each syntax tree using ordinal string comparison. If exactly one syntax tree matches under this comparison, that is the *referenced syntax tree*. Otherwise, an error occurs.
 
-The file path given in the attribute must be equal by ordinal comparison to the value given by the above function.
-
-The compiler does not map `#line` directives when determining if an `[InterceptsLocation]` attribute intercepts a particular call in syntax.
+Support for the "compat" strategy will be dropped prior to stable release. Tracked by https://github.com/dotnet/roslyn/issues/72265.
 
 #### Position
 

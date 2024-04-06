@@ -65,10 +65,10 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
     /// <summary>
     /// Computes a statement-level syntax tree match of this body with <paramref name="newBody"/>.
     /// </summary>
-    public virtual BidirectionalMap<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    public virtual DeclarationBodyMap ComputeMap(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
     {
         var primaryMatch = ComputeSingleRootMatch(newBody, knownMatches);
-        return (primaryMatch != null) ? BidirectionalMap<SyntaxNode>.FromMatch(primaryMatch) : BidirectionalMap<SyntaxNode>.Empty;
+        return (primaryMatch != null) ? DeclarationBodyMap.FromMatch(primaryMatch) : DeclarationBodyMap.Empty;
     }
 
     /// <summary>

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,7 +43,7 @@ Namespace Acme
 End Namespace", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("MathAlias", charsOffset: 0, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "identifier", HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "class name", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Namespace", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync(tokenType: "keyword", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("summary", charsOffset: 0, HangMitigatingCancellationToken);

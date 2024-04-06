@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export(typeof(CSharpVisualBasicLspServiceProvider)), Shared]
-internal class CSharpVisualBasicLspServiceProvider : AbstractLspServiceProvider
+internal sealed class CSharpVisualBasicLspServiceProvider : AbstractLspServiceProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

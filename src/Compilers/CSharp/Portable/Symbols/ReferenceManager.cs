@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private abstract class AssemblyDataForMetadataOrCompilation : AssemblyData
             {
-                private List<AssemblySymbol>? _assemblies;
+                private ImmutableArray<AssemblySymbol> _assemblies;
                 private readonly AssemblyIdentity _identity;
                 private readonly ImmutableArray<AssemblyIdentity> _referencedAssemblies;
                 private readonly bool _embedInteropTypes;
@@ -890,25 +890,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public override IEnumerable<AssemblySymbol> AvailableSymbols
+                public override ImmutableArray<AssemblySymbol> AvailableSymbols
                 {
                     get
                     {
-                        if (_assemblies == null)
+                        if (_assemblies.IsDefault)
                         {
-                            _assemblies = new List<AssemblySymbol>();
+                            var builder = ArrayBuilder<AssemblySymbol>.GetInstance();
 
                             // This should be done lazy because while we creating
                             // instances of this type, creation of new SourceAssembly symbols
                             // might change the set of available AssemblySymbols.
-                            AddAvailableSymbols(_assemblies);
+                            AddAvailableSymbols(builder);
+
+                            _assemblies = builder.ToImmutableAndFree();
                         }
 
                         return _assemblies;
                     }
                 }
 
-                protected abstract void AddAvailableSymbols(List<AssemblySymbol> assemblies);
+                protected abstract void AddAvailableSymbols(ArrayBuilder<AssemblySymbol> builder);
 
                 public override ImmutableArray<AssemblyIdentity> AssemblyReferences
                 {
@@ -919,9 +921,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override AssemblyReferenceBinding[] BindAssemblyReferences(
-                    ImmutableArray<AssemblyData> assemblies, AssemblyIdentityComparer assemblyIdentityComparer)
+                    MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> assemblies, AssemblyIdentityComparer assemblyIdentityComparer)
                 {
-                    return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, definitionStartIndex: 0, assemblyIdentityComparer: assemblyIdentityComparer);
+                    return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, resolveAgainstAssemblyBeingBuilt: true, assemblyIdentityComparer: assemblyIdentityComparer);
                 }
 
                 public sealed override bool IsLinked
@@ -1010,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                protected override void AddAvailableSymbols(List<AssemblySymbol> assemblies)
+                protected override void AddAvailableSymbols(ArrayBuilder<AssemblySymbol> assemblies)
                 {
                     // accessing cached symbols requires a lock
                     lock (SymbolCacheAndReferenceManagerStateGuard)
@@ -1092,8 +1094,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private static ImmutableArray<AssemblyIdentity> GetReferencedAssemblies(CSharpCompilation compilation)
                 {
                     // Collect information about references
-                    var result = ArrayBuilder<AssemblyIdentity>.GetInstance();
-
                     var modules = compilation.Assembly.Modules;
 
                     // Filter out linked assemblies referenced by the source module.
@@ -1101,6 +1101,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var sourceReferencedAssemblySymbols = modules[0].GetReferencedAssemblySymbols();
 
                     Debug.Assert(sourceReferencedAssemblies.Length == sourceReferencedAssemblySymbols.Length);
+
+                    // Pre-calculate size to ensure this code only requires a single array allocation.
+                    var builderSize = modules.Sum(static (module, index) =>
+                    {
+                        if (index == 0)
+                            return module.GetReferencedAssemblySymbols().Count(static identity => !identity.IsLinked);
+                        else
+                            return module.GetReferencedAssemblies().Length;
+                    });
+
+                    var result = ArrayBuilder<AssemblyIdentity>.GetInstance(builderSize);
 
                     for (int i = 0; i < sourceReferencedAssemblies.Length; i++)
                     {
@@ -1115,6 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result.AddRange(modules[i].GetReferencedAssemblies());
                     }
 
+                    Debug.Assert(result.Count == builderSize);
                     return result.ToImmutableAndFree();
                 }
 
@@ -1123,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new RetargetingAssemblySymbol(Compilation.SourceAssembly, this.IsLinked);
                 }
 
-                protected override void AddAvailableSymbols(List<AssemblySymbol> assemblies)
+                protected override void AddAvailableSymbols(ArrayBuilder<AssemblySymbol> assemblies)
                 {
                     assemblies.Add(Compilation.Assembly);
 

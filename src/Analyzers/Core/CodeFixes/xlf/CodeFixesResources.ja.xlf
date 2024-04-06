@@ -157,6 +157,11 @@
         <target state="translated">破棄されたローカルを使用します</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_may_change_semantics">
+        <source>{0} (may change semantics)</source>
+        <target state="translated">{0} (セマンティクスが変更される可能性があります)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

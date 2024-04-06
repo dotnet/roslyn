@@ -5,9 +5,8 @@
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
-using Roslyn.Utilities;
+using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 using Xunit.Abstractions;
 
@@ -32,9 +31,10 @@ public abstract class AbstractLanguageServerHostTests
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
 
-        public static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, bool includeDevKitComponents = true)
+        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, bool includeDevKitComponents = true)
         {
-            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(logger.Factory, includeDevKitComponents);
+            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
+                logger.Factory, includeDevKitComponents, out var _);
             var testLspServer = new TestLspServer(exportProvider, logger);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);

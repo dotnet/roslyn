@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMethodAsynchronous
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-    public partial class MakeMethodAsynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class MakeMethodAsynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public MakeMethodAsynchronousTests(ITestOutputHelper logger)
            : base(logger)
@@ -1229,42 +1229,46 @@ index: 1);
         public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string initialReturn, string expectedReturn, string expectedName)
         {
             await TestInRegularAndScriptAsync(
-$@"using System.Threading.Tasks;
+                $$"""
+                using System.Threading.Tasks;
 
-class C
-{{
-    public void M1()
-    {{
-        // Leading trivia
-        /*1*/ {initialReturn} /*2*/ M2/*3*/() /*4*/
-        {{
-            [|await M3Async();|]
-        }}
-    }}
+                class C
+                {
+                    public void M1()
+                    {
+                        // Leading trivia
+                        /*1*/ {{initialReturn}} /*2*/ M2/*3*/() /*4*/
+                        {
+                            [|await M3Async();|]
+                        }
+                    }
 
-    async Task<int> M3Async()
-    {{
-        return 1;
-    }}
-}}",
-$@"using System.Threading.Tasks;
+                    async Task<int> M3Async()
+                    {
+                        return 1;
+                    }
+                }
+                """,
+                $$"""
+                using System.Threading.Tasks;
 
-class C
-{{
-    public void M1()
-    {{
-        // Leading trivia
-        /*1*/ async {expectedReturn} /*2*/ {expectedName}/*3*/() /*4*/
-        {{
-            await M3Async();
-        }}
-    }}
+                class C
+                {
+                    public void M1()
+                    {
+                        // Leading trivia
+                        /*1*/ async {{expectedReturn}} /*2*/ {{expectedName}}/*3*/() /*4*/
+                        {
+                            await M3Async();
+                        }
+                    }
 
-    async Task<int> M3Async()
-    {{
-        return 1;
-    }}
-}}",
+                    async Task<int> M3Async()
+                    {
+                        return 1;
+                    }
+                }
+                """,
                 index: codeFixIndex);
         }
 
@@ -1278,36 +1282,40 @@ class C
         public async Task AddAsyncKeepsTrivia(string modifiers, int codeFixIndex, string expectedReturn, string expectedName)
         {
             await TestInRegularAndScriptAsync(
-$@"using System.Threading.Tasks;
+                $$"""
+                using System.Threading.Tasks;
 
-class C
-{{
-    // Leading trivia
-    {modifiers}/*1*/ void /*2*/ M2/*3*/() /*4*/
-    {{
-        [|await M3Async();|]
-    }}
+                class C
+                {
+                    // Leading trivia
+                    {{modifiers}}/*1*/ void /*2*/ M2/*3*/() /*4*/
+                    {
+                        [|await M3Async();|]
+                    }
 
-    async Task<int> M3Async()
-    {{
-        return 1;
-    }}
-}}",
-$@"using System.Threading.Tasks;
+                    async Task<int> M3Async()
+                    {
+                        return 1;
+                    }
+                }
+                """,
+                $$"""
+                using System.Threading.Tasks;
 
-class C
-{{
-    // Leading trivia
-    {modifiers}/*1*/ async {expectedReturn} /*2*/ {expectedName}/*3*/() /*4*/
-    {{
-        await M3Async();
-    }}
+                class C
+                {
+                    // Leading trivia
+                    {{modifiers}}/*1*/ async {{expectedReturn}} /*2*/ {{expectedName}}/*3*/() /*4*/
+                    {
+                        await M3Async();
+                    }
 
-    async Task<int> M3Async()
-    {{
-        return 1;
-    }}
-}}",
+                    async Task<int> M3Async()
+                    {
+                        return 1;
+                    }
+                }
+                """,
                 index: codeFixIndex);
         }
 

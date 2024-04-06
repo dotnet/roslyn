@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,16 +20,15 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Newtonsoft.Json.Linq;
-using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {
@@ -45,23 +45,23 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
         protected class DocumentOutlineTestMocks : IAsyncDisposable
         {
-            private readonly TestWorkspace _workspace;
+            private readonly EditorTestWorkspace _workspace;
             private readonly IAsyncDisposable _disposable;
 
             internal DocumentOutlineTestMocks(
-                ILanguageServiceBroker2 languageServiceBroker,
+                LanguageServiceBrokerCallback languageServiceBrokerCallback,
                 IThreadingContext threadingContext,
-                TestWorkspace workspace,
+                EditorTestWorkspace workspace,
                 IAsyncDisposable disposable)
             {
-                LanguageServiceBroker = languageServiceBroker;
+                LanguageServiceBrokerCallback = languageServiceBrokerCallback;
                 ThreadingContext = threadingContext;
                 _workspace = workspace;
                 _disposable = disposable;
                 TextBuffer = workspace.Documents.Single().GetTextBuffer();
             }
 
-            internal ILanguageServiceBroker2 LanguageServiceBroker { get; }
+            internal LanguageServiceBrokerCallback LanguageServiceBrokerCallback { get; }
 
             internal IThreadingContext ThreadingContext { get; }
 
@@ -81,7 +81,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
         protected async Task<DocumentOutlineTestMocks> CreateMocksAsync(string code)
         {
-            var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
+            var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_composition);
             var threadingContext = workspace.GetService<IThreadingContext>();
 
             var clientCapabilities = new LSP.ClientCapabilities()
@@ -96,14 +96,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             };
 
             var testLspServer = await CreateTestLspServerAsync(workspace, new InitializationOptions { ClientCapabilities = clientCapabilities });
-            var languageServiceBrokerMock = new Mock<ILanguageServiceBroker2>(MockBehavior.Strict);
-#pragma warning disable CS0618 // Type or member is obsolete
-            languageServiceBrokerMock
-                .Setup(l => l.RequestAsync(It.IsAny<ITextBuffer>(), It.IsAny<Func<JToken, bool>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Func<ITextSnapshot, JToken>>(), It.IsAny<CancellationToken>()))
-                .Returns<ITextBuffer, Func<JToken, bool>, string, string, Func<ITextSnapshot, JToken>, CancellationToken>(RequestAsync);
-#pragma warning restore CS0618 // Type or member is obsolete
 
-            var mocks = new DocumentOutlineTestMocks(languageServiceBrokerMock.Object, threadingContext, workspace, testLspServer);
+            var mocks = new DocumentOutlineTestMocks(RequestAsync, threadingContext, workspace, testLspServer);
             return mocks;
 
             async Task<ManualInvocationResponse?> RequestAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
@@ -114,7 +108,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, InitializationOptions initializationOptions)
+        private async Task<TestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace, InitializationOptions initializationOptions)
         {
             var solution = workspace.CurrentSolution;
 

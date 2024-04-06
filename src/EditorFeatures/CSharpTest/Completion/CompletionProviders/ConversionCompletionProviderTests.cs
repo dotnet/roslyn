@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                         c.$$
                     }
                 }
-                """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+                """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                         c.fl$$
                     }
                 }
-                """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+                """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -361,7 +361,7 @@ namespace N1
                         s.$$
                     }
                 }
-                """, "int?", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+                """, "int?", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -387,7 +387,7 @@ namespace N1
                 """;
             await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
-                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                matchingFilters: [FilterSet.OperatorFilter],
                 expectedDescriptionOrNull:
                 """
                 S.explicit operator int(S value)
@@ -418,7 +418,7 @@ namespace N1
                 """;
             await VerifyItemExistsAsync(Markup, "int?", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
-                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                matchingFilters: [FilterSet.OperatorFilter],
                 expectedDescriptionOrNull:
                 """
                 S.explicit operator int?(S? value)
@@ -471,7 +471,7 @@ public class Program
                 """;
             await VerifyItemExistsAsync(Markup, "byte", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
-                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                matchingFilters: [FilterSet.OperatorFilter],
                 expectedDescriptionOrNull:
 $@"int.explicit operator byte(int value)
 {(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
@@ -492,7 +492,7 @@ $@"int.explicit operator byte(int value)
                 """;
             await VerifyItemExistsAsync(Markup, "byte?", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
-                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                matchingFilters: [FilterSet.OperatorFilter],
                 expectedDescriptionOrNull:
 $@"int.explicit operator byte?(int? value)
 {(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
@@ -534,7 +534,7 @@ $@"int.explicit operator byte?(int? value)
                 """;
             await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
-                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                matchingFilters: [FilterSet.OperatorFilter],
                 expectedDescriptionOrNull:
 $@"E.explicit operator int(E value)
 {FormatExplicitConversionDescription("E", "int")}");
@@ -556,7 +556,7 @@ $@"E.explicit operator int(E value)
                 """;
             await VerifyItemExistsAsync(Markup, "int?", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
-                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                matchingFilters: [FilterSet.OperatorFilter],
                 expectedDescriptionOrNull:
 $@"E.explicit operator int?(E? value)
 {(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}");
@@ -584,7 +584,7 @@ $@"E.explicit operator int?(E? value)
                 """;
             await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
-                matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
+                matchingFilters: [FilterSet.OperatorFilter],
                 expectedDescriptionOrNull:
 @$"B.E.explicit operator int(B.E value)
 {FormatExplicitConversionDescription("B.E", "int")}");
@@ -633,7 +633,7 @@ public class Program
                         var i = d.$$
                     }
                 }
-                """, "int", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+                """, "int", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
         }
 
         [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -651,7 +651,7 @@ public class Program
         var i = test.$$
     }}
 }}
-", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]

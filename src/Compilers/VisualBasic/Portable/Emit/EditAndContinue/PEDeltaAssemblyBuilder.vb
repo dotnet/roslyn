@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEAssemblyBuilderBase
         Implements IPEDeltaAssemblyBuilder
 
-        Private ReadOnly _previousGeneration As EmitBaseline
         Private ReadOnly _previousDefinitions As VisualBasicDefinitionMap
         Private ReadOnly _changes As SymbolChanges
         Private ReadOnly _deepTranslator As VisualBasicSymbolMatcher.DeepTranslator
@@ -38,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
-            Dim context = New EmitContext(Me, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
+            Dim previousSourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
 
             ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
@@ -46,25 +45,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
             Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, context, metadataAssembly)
+            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, metadataAssembly)
+
+            Dim previousSourceToMetadata = New VisualBasicSymbolMatcher(
+                metadataSymbols.SynthesizedTypes,
+                previousSourceAssembly,
+                metadataAssembly)
 
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
-                Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-                Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
                 matchToPrevious = New VisualBasicSymbolMatcher(
                     sourceAssembly:=sourceAssembly,
-                    sourceContext:=context,
-                    otherAssembly:=previousAssembly,
-                    otherContext:=previousContext,
+                    otherAssembly:=previousSourceAssembly,
                     previousGeneration.SynthesizedTypes,
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers,
                     otherDeletedMembersOpt:=previousGeneration.DeletedMembers)
             End If
 
-            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)
-            _previousGeneration = previousGeneration
+            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, previousSourceToMetadata, matchToMetadata, matchToPrevious, previousGeneration)
             _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
@@ -98,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
             Get
-                Return _previousGeneration
+                Return _previousDefinitions.Baseline
             End Get
         End Property
 
@@ -234,13 +233,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 anonymousDelegatesWithIndexedNames:=Nothing)
 
             ' Should contain all entries in previous generation.
-            Debug.Assert(_previousGeneration.SynthesizedTypes.IsSubsetOf(result))
+            Debug.Assert(PreviousGeneration.SynthesizedTypes.IsSubsetOf(result))
 
             Return result
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
-            Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics)
+            Return _previousDefinitions.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics)
         End Function
 
         Friend Overrides Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
@@ -248,11 +247,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray.CreateRange(_previousGeneration.SynthesizedTypes.AnonymousTypes.Keys)
+            Return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousTypes.Keys)
         End Function
 
         Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
-            Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
+            Return PreviousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
         Friend Overrides Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean

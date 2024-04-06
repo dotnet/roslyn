@@ -7,47 +7,46 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
-namespace Microsoft.CodeAnalysis.MetadataAsSource
+namespace Microsoft.CodeAnalysis.MetadataAsSource;
+
+internal partial class AbstractMetadataAsSourceService
 {
-    internal partial class AbstractMetadataAsSourceService
+    private class WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService), IFieldSymbol
     {
-        private class WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService), IFieldSymbol
-        {
-            private readonly IFieldSymbol _symbol = fieldSymbol;
+        private readonly IFieldSymbol _symbol = fieldSymbol;
 
-            public new IFieldSymbol OriginalDefinition => _symbol.OriginalDefinition;
+        public new IFieldSymbol OriginalDefinition => _symbol.OriginalDefinition;
 
-            public IFieldSymbol CorrespondingTupleField => null;
+        public IFieldSymbol CorrespondingTupleField => null;
 
-            public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
+        public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
 
-            public object ConstantValue => _symbol.ConstantValue;
+        public object ConstantValue => _symbol.ConstantValue;
 
-            public RefKind RefKind => _symbol.RefKind;
+        public RefKind RefKind => _symbol.RefKind;
 
-            public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
+        public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
 
-            public ImmutableArray<CustomModifier> CustomModifiers => _symbol.CustomModifiers;
+        public ImmutableArray<CustomModifier> CustomModifiers => _symbol.CustomModifiers;
 
-            public bool HasConstantValue => _symbol.HasConstantValue;
+        public bool HasConstantValue => _symbol.HasConstantValue;
 
-            public bool IsConst => _symbol.IsConst;
+        public bool IsConst => _symbol.IsConst;
 
-            public bool IsReadOnly => _symbol.IsReadOnly;
+        public bool IsReadOnly => _symbol.IsReadOnly;
 
-            public bool IsVolatile => _symbol.IsVolatile;
+        public bool IsVolatile => _symbol.IsVolatile;
 
-            public bool IsRequired => _symbol.IsRequired;
+        public bool IsRequired => _symbol.IsRequired;
 
-            public bool IsFixedSizeBuffer => _symbol.IsFixedSizeBuffer;
+        public bool IsFixedSizeBuffer => _symbol.IsFixedSizeBuffer;
 
-            public int FixedSize => _symbol.FixedSize;
+        public int FixedSize => _symbol.FixedSize;
 
-            public ITypeSymbol Type => _symbol.Type;
+        public ITypeSymbol Type => _symbol.Type;
 
-            public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
+        public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
 
-            public bool IsExplicitlyNamedTupleElement => _symbol.IsExplicitlyNamedTupleElement;
-        }
+        public bool IsExplicitlyNamedTupleElement => _symbol.IsExplicitlyNamedTupleElement;
     }
 }

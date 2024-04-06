@@ -11,10 +11,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
+namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
+
+internal interface IGenerateVariableService : ILanguageService
 {
-    internal interface IGenerateVariableService : ILanguageService
-    {
-        Task<ImmutableArray<CodeAction>> GenerateVariableAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<CodeAction>> GenerateVariableAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 }

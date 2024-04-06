@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     _metadataReferences = metadataReferences.ToImmutableArray();
                     _pathToIndicesMap = CreatePathToIndexMap(_metadataReferences);
-                    _indicesToRemove = new HashSet<int>();
+                    _indicesToRemove = [];
                     _projectReferences = ImmutableHashSet.CreateBuilder<ProjectReference>();
                 }
 
@@ -326,11 +326,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             private bool IsProjectLoadable(string projectPath)
-                => _projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
+                => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out _);
 
             private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
             {
-                var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var buildHost = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var outputFilePath = await buildHost.TryGetProjectOutputPathAsync(projectPath, cancellationToken).ConfigureAwait(false);
                 return outputFilePath != null
                     && builder.Contains(outputFilePath)
                     && File.Exists(outputFilePath);

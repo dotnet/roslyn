@@ -44,7 +44,13 @@ pr:
       - README.md
       - src/Compilers/*
       - src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
- 
+
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name
@@ -56,7 +62,7 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.amd64.open
+  default: windows.vs2022preview.scout.amd64.open
   values:
   - windows.vs2022.amd64.open
   - windows.vs2022.scout.amd64.open
@@ -68,64 +74,32 @@ parameters:
   default: 150
 
 stages:
-- stage: Debug_Integration
-  dependsOn: []
-  variables:
-  - name: XUNIT_LOGS
-    value: $(Build.SourcesDirectory)\artifacts\log\Debug
-  jobs:
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - job: VS_Integration_Debug_32
-      pool:
-        name: ${{ parameters.poolName }}
-        demands: ImageOverride -equals ${{ parameters.queueName }}
-      timeoutInMinutes: ${{ parameters.timeout }}
-      steps:
-        - template: eng/pipelines/test-integration-job.yml
-          parameters:
-            configuration: Debug
-            oop64bit: false
-            lspEditor: false
-
-  - job: VS_Integration_Debug_64
-    pool:
-      name: ${{ parameters.poolName }}
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-    timeoutInMinutes: ${{ parameters.timeout }}
-    steps:
-      - template: eng/pipelines/test-integration-job.yml
-        parameters:
-          configuration: Debug
-          oop64bit: true
+- template: eng/pipelines/test-integration-helix.yml
+  parameters:
+    poolName: ${{ parameters.poolName }}
+    queueName: ${{ parameters.queueName }}
+    timeout: ${{ parameters.timeout }}
+    configuration: Debug
+    testRuns:
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - oop64bit: false
           lspEditor: false
+          runName: VS_Integration_Debug_32
+      - oop64bit: true
+        lspEditor: false
+        runName: VS_Integration_Debug_64
 
-- stage: Release_Integration
-  dependsOn: []
-  variables:
-  - name: XUNIT_LOGS
-    value: $(Build.SourcesDirectory)\artifacts\log\Release
-  jobs:
-  - job: VS_Integration_Release_32
-    pool:
-      name: ${{ parameters.poolName }}
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-    timeoutInMinutes: ${{ parameters.timeout }}
-    steps:
-      - template: eng/pipelines/test-integration-job.yml
-        parameters:
-          configuration: Release
-          oop64bit: false
+- template: eng/pipelines/test-integration-helix.yml
+  parameters:
+    poolName: ${{ parameters.poolName }}
+    queueName: ${{ parameters.queueName }}
+    timeout: ${{ parameters.timeout }}
+    configuration: Release
+    testRuns:
+      - oop64bit: false
+        lspEditor: false
+        runName: VS_Integration_Release_32
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - oop64bit: true
           lspEditor: false
-
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - job: VS_Integration_Release_64
-      pool:
-        name: ${{ parameters.poolName }}
-        demands: ImageOverride -equals ${{ parameters.queueName }}
-      timeoutInMinutes: ${{ parameters.timeout }}
-      steps:
-        - template: eng/pipelines/test-integration-job.yml
-          parameters:
-            configuration: Release
-            oop64bit: true
-            lspEditor: false
+          runName: VS_Integration_Release_64

@@ -4,21 +4,20 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
+namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
+
+internal partial class AbstractSuppressionCodeFixProvider
 {
-    internal partial class AbstractSuppressionCodeFixProvider
+    internal abstract class AbstractSuppressionCodeAction : NestedSuppressionCodeAction
     {
-        internal abstract class AbstractSuppressionCodeAction : NestedSuppressionCodeAction
+        private readonly AbstractSuppressionCodeFixProvider _fixer;
+
+        protected AbstractSuppressionCodeAction(AbstractSuppressionCodeFixProvider fixer, string title)
+            : base(title)
         {
-            private readonly AbstractSuppressionCodeFixProvider _fixer;
-
-            protected AbstractSuppressionCodeAction(AbstractSuppressionCodeFixProvider fixer, string title)
-                : base(title)
-            {
-                _fixer = fixer;
-            }
-
-            protected AbstractSuppressionCodeFixProvider Fixer => _fixer;
+            _fixer = fixer;
         }
+
+        protected AbstractSuppressionCodeFixProvider Fixer => _fixer;
     }
 }

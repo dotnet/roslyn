@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return ImmutableArray.Create<Location>(); }
         }
 
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
             throw new NotImplementedException();
         }
@@ -69,6 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             get { return false; }
         }
+
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
 
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
@@ -131,5 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 #nullable enable
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
             => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
     }
 }

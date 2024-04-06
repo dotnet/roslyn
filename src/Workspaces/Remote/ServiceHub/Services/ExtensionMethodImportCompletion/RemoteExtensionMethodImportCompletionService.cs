@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var intialGetSymbolsTime = stopwatch.Elapsed - assetSyncTime;
 
                     var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, assetSyncTime, cancellationToken).ConfigureAwait(false);
+                        document, semanticModel: null, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, assetSyncTime, cancellationToken).ConfigureAwait(false);
 
                     result.GetSymbolsTime += intialGetSymbolsTime;
                     return result;

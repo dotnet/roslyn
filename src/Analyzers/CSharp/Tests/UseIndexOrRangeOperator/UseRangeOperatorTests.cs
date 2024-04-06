@@ -999,27 +999,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
         public async Task TestExpressionWithNullConditionalAccessVariations(string subStringCode, string rangeCode)
         {
             var source =
-@$"
-public class C
-{{
-    public string Prop {{ get; set; }}
-}}
-public class Test
-{{
-    public object M(C c)
-        => {subStringCode};
-}}";
+                $$"""
+                public class C
+                {
+                    public string Prop { get; set; }
+                }
+                public class Test
+                {
+                    public object M(C c)
+                        => {{subStringCode}};
+                }
+                """;
             var fixedSource =
-@$"
-public class C
-{{
-    public string Prop {{ get; set; }}
-}}
-public class Test
-{{
-    public object M(C c)
-        => {rangeCode};
-}}";
+                $$"""
+                public class C
+                {
+                    public string Prop { get; set; }
+                }
+                public class Test
+                {
+                    public object M(C c)
+                        => {{rangeCode}};
+                }
+                """;
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
