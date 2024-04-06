@@ -18,11 +18,13 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static SyntaxFactory;
+
 internal static class MethodGenerator
 {
-    private static readonly TypeParameterConstraintSyntax s_classConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint);
-    private static readonly TypeParameterConstraintSyntax s_structConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint);
-    private static readonly TypeParameterConstraintSyntax s_defaultConstraint = SyntaxFactory.DefaultConstraint();
+    private static readonly TypeParameterConstraintSyntax s_classConstraint = ClassOrStructConstraint(SyntaxKind.ClassConstraint);
+    private static readonly TypeParameterConstraintSyntax s_structConstraint = ClassOrStructConstraint(SyntaxKind.StructConstraint);
+    private static readonly TypeParameterConstraintSyntax s_defaultConstraint = DefaultConstraint();
 
     internal static BaseNamespaceDeclarationSyntax AddMethodTo(
         BaseNamespaceDeclarationSyntax destination,
@@ -117,7 +119,7 @@ internal static class MethodGenerator
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
-        var methodDeclaration = SyntaxFactory.MethodDeclaration(
+        var methodDeclaration = MethodDeclaration(
             attributeLists: GenerateAttributes(method, info, explicitInterfaceSpecifier != null),
             modifiers: GenerateModifiers(method, destination, info),
             returnType: method.GenerateReturnTypeSyntax(),
@@ -128,7 +130,7 @@ internal static class MethodGenerator
             constraintClauses: GenerateConstraintClauses(method),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
-            semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
+            semicolonToken: hasNoBody ? Token(SyntaxKind.SemicolonToken) : default);
 
         methodDeclaration = UseExpressionBodyIfDesired(info, methodDeclaration, cancellationToken);
         return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
@@ -138,7 +140,7 @@ internal static class MethodGenerator
         IMethodSymbol method, CodeGenerationDestination destination,
         CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
-        var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
+        var localFunctionDeclaration = LocalFunctionStatement(
             modifiers: GenerateModifiers(method, destination, info),
             returnType: method.GenerateReturnTypeSyntax(),
             identifier: method.Name.ToIdentifierToken(),
@@ -197,7 +199,7 @@ internal static class MethodGenerator
         if (!isExplicit)
         {
             attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
+            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, Token(SyntaxKind.ReturnKeyword)));
         }
 
         return [.. attributes];
@@ -235,7 +237,7 @@ internal static class MethodGenerator
                 _ => s_defaultConstraint
             };
 
-            listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
+            listOfClauses.Add(TypeParameterConstraintClause(
                 typeParameter.Name.ToIdentifierName(),
                 [constraint]));
         }
@@ -258,10 +260,10 @@ internal static class MethodGenerator
         if (method.ExplicitInterfaceImplementations.Any())
         {
             if (method.IsStatic)
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                tokens.Add(Token(SyntaxKind.StaticKeyword));
 
             if (CodeGenerationMethodInfo.GetIsUnsafe(method))
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                tokens.Add(Token(SyntaxKind.UnsafeKeyword));
         }
         else
         {
@@ -270,11 +272,11 @@ internal static class MethodGenerator
             {
                 if (method.IsStatic)
                 {
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(Token(SyntaxKind.StaticKeyword));
 
                     // We only generate the abstract keyword in interfaces for static abstract members
                     if (method.IsAbstract)
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        tokens.Add(Token(SyntaxKind.AbstractKeyword));
                 }
             }
             else if (destination is not CodeGenerationDestination.CompilationUnit and
@@ -283,52 +285,52 @@ internal static class MethodGenerator
                 CSharpCodeGenerationHelpers.AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (method.IsStatic)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(Token(SyntaxKind.StaticKeyword));
 
                 if (method.IsAbstract)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                    tokens.Add(Token(SyntaxKind.AbstractKeyword));
 
                 if (method.IsSealed)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
+                    tokens.Add(Token(SyntaxKind.SealedKeyword));
 
                 // Don't show the readonly modifier if the containing type is already readonly
                 // ContainingSymbol is used to guard against methods which are not members of their ContainingType (e.g. lambdas and local functions)
                 if (method.IsReadOnly && (method.ContainingSymbol as INamedTypeSymbol)?.IsReadOnly != true)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                    tokens.Add(Token(SyntaxKind.ReadOnlyKeyword));
 
                 if (method.IsOverride)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
+                    tokens.Add(Token(SyntaxKind.OverrideKeyword));
 
                 if (method.IsVirtual)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
+                    tokens.Add(Token(SyntaxKind.VirtualKeyword));
 
                 if (CodeGenerationMethodInfo.GetIsPartial(method) && !method.IsAsync)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+                    tokens.Add(Token(SyntaxKind.PartialKeyword));
             }
             else if (destination is CodeGenerationDestination.CompilationUnit)
             {
                 if (method.IsStatic)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(Token(SyntaxKind.StaticKeyword));
             }
 
             if (CodeGenerationMethodInfo.GetIsUnsafe(method))
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                tokens.Add(Token(SyntaxKind.UnsafeKeyword));
 
             if (CodeGenerationMethodInfo.GetIsNew(method))
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
+                tokens.Add(Token(SyntaxKind.NewKeyword));
         }
 
         if (destination != CodeGenerationDestination.InterfaceType)
         {
             if (CodeGenerationMethodInfo.GetIsAsyncMethod(method))
             {
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword));
+                tokens.Add(Token(SyntaxKind.AsyncKeyword));
             }
         }
 
         if (CodeGenerationMethodInfo.GetIsPartial(method) && method.IsAsync)
         {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+            tokens.Add(Token(SyntaxKind.PartialKeyword));
         }
 
         return tokens.ToSyntaxTokenListAndFree();
