@@ -201,6 +201,29 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
 
         private static void VerifyEnumToIntegerMappings(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
         {
+            // Here we are going to verify a structure like this:
+            // "map": [
+            // {
+            //     "result": "neverInclude",
+            //     "match": 1
+            // },
+            // // '0' matches to SnippetsRule.Default. Means the behavior is decided by language.
+            // // '2' matches to SnippetsRule.AlwaysInclude. It's the default behavior for C#
+            // // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
+            // // Put '2' in front, so unified settings would persist '2' to storage when 'alwaysInclude' is selected.
+            // {
+            //     "result": "alwaysInclude",
+            //     "match": 2
+            // },
+            // {
+            //     "result": "alwaysInclude",
+            //     "match": 0
+            // },
+            // {
+            //     "result": "includeAfterTypingIdentifierQuestionTab",
+            //     "match": 3
+            // }
+            // ]
             var actualMappings = ((JArray)registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].migration.enumIntegerToString.map")!)
                 .SelectAsArray(mapping => (mapping["result"]!.ToString(), int.Parse(mapping["match"]!.ToString())));
 
