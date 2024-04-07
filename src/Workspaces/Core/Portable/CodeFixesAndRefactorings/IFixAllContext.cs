@@ -4,8 +4,7 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
+using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
