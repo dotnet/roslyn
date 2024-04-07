@@ -24,16 +24,11 @@ internal sealed partial class RecoverableTextAndVersion
     private sealed partial class RecoverableText
     {
         // enforce saving in a queue so save's don't overload the thread pool.
-        private static readonly AsyncBatchingWorkQueue<(RecoverableText recoverableText, SourceText sourceText)> s_saveQueue;
-
-        static RecoverableText()
-        {
-            s_saveQueue = new AsyncBatchingWorkQueue<(RecoverableText recoverableText, SourceText sourceText)>(
-                TimeSpan.Zero,
+        private static readonly AsyncBatchingWorkQueue<(RecoverableText recoverableText, SourceText sourceText)> s_saveQueue =
+            new(TimeSpan.Zero,
                 SaveAllAsync,
                 AsynchronousOperationListenerProvider.NullListener,
                 CancellationToken.None);
-        }
 
         /// <summary>
         /// Lazily created. Access via the <see cref="Gate"/> property.
