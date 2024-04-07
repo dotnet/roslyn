@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             var projectChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            await projectChecksums.FindAsync(project.State, hintDocument: null, Flatten(projectChecksums), map, cancellationToken).ConfigureAwait(false);
+            await projectChecksums.FindAsync(project.State, AssetPath.FullLookupForTesting, Flatten(projectChecksums), map, cancellationToken).ConfigureAwait(false);
 
             foreach (var document in project.Documents.Concat(project.AdditionalDocuments).Concat(project.AnalyzerConfigDocuments))
             {

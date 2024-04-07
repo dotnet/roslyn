@@ -61,6 +61,7 @@ internal readonly struct AssetPath
             }
             else if (IncludeDocuments)
             {
+                Contract.ThrowIfNull(projectId);
                 Contract.ThrowIfNull(documentId);
             }
         }
@@ -77,9 +78,9 @@ internal readonly struct AssetPath
     [Flags]
     private enum AssetPathKind
     {
-        Solution = 1,
-        TopLevelProjects = 1 >> 1,
-        Projects = 1 >> 2,
-        Documents = 1 >> 3,
+        Solution = 1 << 0,
+        TopLevelProjects = 1 << 1,
+        Projects = 1 << 2,
+        Documents = 1 << 3,
     }
 }
