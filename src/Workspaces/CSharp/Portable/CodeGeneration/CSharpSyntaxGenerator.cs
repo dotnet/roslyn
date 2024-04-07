@@ -3439,25 +3439,25 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     }
 
     public override SyntaxNode TypeExpression(SpecialType specialType)
-        => specialType switch
+        => SyntaxFactory.PredefinedType(specialType switch
         {
-            SpecialType.System_Boolean => SyntaxFactory.PredefinedType(BoolKeyword),
-            SpecialType.System_Byte => SyntaxFactory.PredefinedType(ByteKeyword),
-            SpecialType.System_Char => SyntaxFactory.PredefinedType(CharKeyword),
-            SpecialType.System_Decimal => SyntaxFactory.PredefinedType(DecimalKeyword),
-            SpecialType.System_Double => SyntaxFactory.PredefinedType(DoubleKeyword),
-            SpecialType.System_Int16 => SyntaxFactory.PredefinedType(ShortKeyword),
-            SpecialType.System_Int32 => SyntaxFactory.PredefinedType(IntKeyword),
-            SpecialType.System_Int64 => SyntaxFactory.PredefinedType(LongKeyword),
-            SpecialType.System_Object => SyntaxFactory.PredefinedType(ObjectKeyword),
-            SpecialType.System_SByte => SyntaxFactory.PredefinedType(SByteKeyword),
-            SpecialType.System_Single => SyntaxFactory.PredefinedType(FloatKeyword),
-            SpecialType.System_String => SyntaxFactory.PredefinedType(StringKeyword),
-            SpecialType.System_UInt16 => SyntaxFactory.PredefinedType(UShortKeyword),
-            SpecialType.System_UInt32 => SyntaxFactory.PredefinedType(UIntKeyword),
-            SpecialType.System_UInt64 => SyntaxFactory.PredefinedType(ULongKeyword),
+            SpecialType.System_Boolean => BoolKeyword,
+            SpecialType.System_Byte => ByteKeyword,
+            SpecialType.System_Char => CharKeyword,
+            SpecialType.System_Decimal => DecimalKeyword,
+            SpecialType.System_Double => DoubleKeyword,
+            SpecialType.System_Int16 => ShortKeyword,
+            SpecialType.System_Int32 => IntKeyword,
+            SpecialType.System_Int64 => LongKeyword,
+            SpecialType.System_Object => ObjectKeyword,
+            SpecialType.System_SByte => SByteKeyword,
+            SpecialType.System_Single => FloatKeyword,
+            SpecialType.System_String => StringKeyword,
+            SpecialType.System_UInt16 => UShortKeyword,
+            SpecialType.System_UInt32 => UIntKeyword,
+            SpecialType.System_UInt64 => ULongKeyword,
             _ => throw new NotSupportedException("Unsupported SpecialType"),
-        };
+        });
 
     public override SyntaxNode ArrayTypeExpression(SyntaxNode type)
         => SyntaxFactory.ArrayType((TypeSyntax)type, [SyntaxFactory.ArrayRankSpecifier()]);
