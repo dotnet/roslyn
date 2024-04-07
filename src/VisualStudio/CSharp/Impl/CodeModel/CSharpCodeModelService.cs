@@ -349,26 +349,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             if (parent is AttributeSyntax attribute)
             {
                 if (attribute.ArgumentList == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-                }
+                    return [];
 
                 return attribute.ArgumentList.Arguments;
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         public override IEnumerable<SyntaxNode> GetInheritsNodes(SyntaxNode parent)
         {
             // Only VB has Inherits statements
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         public override IEnumerable<SyntaxNode> GetImplementsNodes(SyntaxNode parent)
         {
             // Only VB has Implements statements
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         private static bool IsContainerNode(SyntaxNode container)
@@ -1463,7 +1461,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return delegateDecl.ParameterList.Parameters;
             }
 
-            return SpecializedCollections.EmptyEnumerable<ParameterSyntax>();
+            return [];
         }
 
         public override bool IsExpressionBodiedProperty(SyntaxNode node)

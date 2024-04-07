@@ -361,7 +361,7 @@ End Module";
                     root = root.ReplaceToken(previousToken, CSharp.SyntaxFactory.Identifier(previousToken.LeadingTrivia, previousToken.ValueText, previousToken.TrailingTrivia));
                     root = root.ReplaceToken(nextToken, CSharp.SyntaxFactory.Token(nextToken.LeadingTrivia, CSharp.CSharpExtensions.Kind(nextToken), nextToken.TrailingTrivia));
 
-                    expectedResult = SpecializedCollections.EmptyEnumerable<TextSpan>();
+                    expectedResult = [];
 
                     return document.WithSyntaxRoot(root);
                 }
