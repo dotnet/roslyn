@@ -327,6 +327,12 @@ public partial class FixAllContext : IFixAllContext
         return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, filterSpan: null).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Gets a new <see cref="FixAllContext"/> with the given cancellationToken.
+    /// </summary>
+    public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
+        => With(cancellationToken: cancellationToken);
+
     internal FixAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
