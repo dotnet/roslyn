@@ -24,7 +24,7 @@ internal sealed partial class RecoverableTextAndVersion
     private sealed partial class RecoverableText
     {
         // enforce saving in a queue so save's don't overload the thread pool.
-        private static AsyncBatchingWorkQueue<(RecoverableText recoverableText, SourceText sourceText)> s_saveQueue;
+        private static readonly AsyncBatchingWorkQueue<(RecoverableText recoverableText, SourceText sourceText)> s_saveQueue;
 
         static RecoverableText()
         {
