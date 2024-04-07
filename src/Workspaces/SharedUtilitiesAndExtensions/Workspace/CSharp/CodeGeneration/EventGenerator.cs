@@ -12,10 +12,11 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
-
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static CodeGenerationHelpers;
+using static CSharpCodeGenerationHelpers;
+using static SyntaxFactory;
 
 internal static class EventGenerator
 {
@@ -113,12 +114,12 @@ internal static class EventGenerator
     {
         return AddFormatterAndCodeGeneratorAnnotationsTo(
             AddAnnotationsTo(@event,
-                SyntaxFactory.EventFieldDeclaration(
+                EventFieldDeclaration(
                     AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), info),
                     GenerateModifiers(@event, destination, info),
-                    SyntaxFactory.VariableDeclaration(
+                    VariableDeclaration(
                         @event.Type.GenerateTypeSyntax(),
-                        [SyntaxFactory.VariableDeclarator(@event.Name.ToIdentifierToken())]))));
+                        [VariableDeclarator(@event.Name.ToIdentifierToken())]))));
     }
 
     private static MemberDeclarationSyntax GenerateEventDeclarationWorker(
@@ -126,7 +127,7 @@ internal static class EventGenerator
     {
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(@event.ExplicitInterfaceImplementations);
 
-        return AddFormatterAndCodeGeneratorAnnotationsTo(SyntaxFactory.EventDeclaration(
+        return AddFormatterAndCodeGeneratorAnnotationsTo(EventDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), info),
             modifiers: GenerateModifiers(@event, destination, info),
             type: @event.Type.GenerateTypeSyntax(),
@@ -144,7 +145,7 @@ internal static class EventGenerator
             GenerateAccessorDeclaration(@event, @event.RemoveMethod, SyntaxKind.RemoveAccessorDeclaration, destination, info),
         };
 
-        return SyntaxFactory.AccessorList([.. accessors.WhereNotNull()]);
+        return AccessorList([.. accessors.WhereNotNull()]);
     }
 
     private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(
@@ -165,14 +166,14 @@ internal static class EventGenerator
         SyntaxKind kind,
         bool hasBody)
     {
-        return AddAnnotationsTo(accessor, SyntaxFactory.AccessorDeclaration(kind)
+        return AddAnnotationsTo(accessor, AccessorDeclaration(kind)
                             .WithBody(hasBody ? GenerateBlock(accessor) : null)
-                            .WithSemicolonToken(hasBody ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                            .WithSemicolonToken(hasBody ? default : Token(SyntaxKind.SemicolonToken)));
     }
 
     private static BlockSyntax GenerateBlock(IMethodSymbol accessor)
     {
-        return SyntaxFactory.Block(
+        return Block(
             StatementGenerator.GenerateStatements(CodeGenerationMethodInfo.GetStatements(accessor)));
     }
 
@@ -196,7 +197,7 @@ internal static class EventGenerator
         if (@event.ExplicitInterfaceImplementations.Any())
         {
             if (@event.IsStatic)
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                tokens.Add(Token(SyntaxKind.StaticKeyword));
         }
         else
         {
@@ -205,11 +206,11 @@ internal static class EventGenerator
             {
                 if (@event.IsStatic)
                 {
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(Token(SyntaxKind.StaticKeyword));
 
                     // We only generate the abstract keyword in interfaces for static abstract members
                     if (@event.IsAbstract)
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        tokens.Add(Token(SyntaxKind.AbstractKeyword));
                 }
             }
             else
@@ -217,7 +218,7 @@ internal static class EventGenerator
                 CSharpCodeGenerationHelpers.AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (@event.IsStatic)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(Token(SyntaxKind.StaticKeyword));
 
                 // An event is readonly if its accessors are readonly.
                 // If one accessor is readonly and the other one is not,
@@ -225,18 +226,18 @@ internal static class EventGenerator
                 // See https://github.com/dotnet/roslyn/issues/34213
                 // Don't show the readonly modifier if the containing type is already readonly
                 if (@event.AddMethod?.IsReadOnly == true && !@event.ContainingType.IsReadOnly)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                    tokens.Add(Token(SyntaxKind.ReadOnlyKeyword));
 
                 if (@event.IsAbstract)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                    tokens.Add(Token(SyntaxKind.AbstractKeyword));
 
                 if (@event.IsOverride)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
+                    tokens.Add(Token(SyntaxKind.OverrideKeyword));
             }
         }
 
         if (CodeGenerationEventInfo.GetIsUnsafe(@event))
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            tokens.Add(Token(SyntaxKind.UnsafeKeyword));
 
         return tokens.ToSyntaxTokenListAndFree();
     }
