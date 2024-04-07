@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,
-                AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,
@@ -181,7 +180,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,
-                AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,
@@ -219,7 +217,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,
-                AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,
@@ -257,7 +254,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,
-                AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,
@@ -289,7 +285,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var searcher = NavigateToSearcher.Create(
                 workspace.CurrentSolution,
-                AsynchronousOperationListenerProvider.NullListener,
                 callbackMock.Object,
                 pattern,
                 kinds: ImmutableHashSet<string>.Empty,

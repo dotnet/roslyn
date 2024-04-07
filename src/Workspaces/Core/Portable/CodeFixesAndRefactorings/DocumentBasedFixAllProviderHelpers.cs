@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -40,32 +42,58 @@ internal static class DocumentBasedFixAllProviderHelpers
         var workItemCount = fixAllKind == FixAllKind.CodeFix ? 3 : 2;
         progressTracker.AddItems(fixAllContexts.Length * workItemCount);
 
-        // Process each context one at a time, allowing us to dump any information we computed for each once done with it.
-        var currentSolution = solution;
-        foreach (var fixAllContext in fixAllContexts)
+        using var _1 = PooledDictionary<DocumentId, (SyntaxNode? node, SourceText? text)>.GetInstance(out var allContextsDocIdToNewRootOrText);
         {
-            Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
-                or FixAllScope.ContainingMember or FixAllScope.ContainingType);
-            currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker, getFixedDocumentsAsync).ConfigureAwait(false);
+            // First, iterate over all contexts, and collect all the changes for each of them.  We'll be making a lot of
+            // calls to the remote server to compute diagnostics and changes.  So keep a single connection alive to it
+            // so we never resync or recompute anything.
+            using var _2 = await RemoteKeepAliveSession.CreateAsync(solution, originalFixAllContext.CancellationToken).ConfigureAwait(false);
+
+            foreach (var fixAllContext in fixAllContexts)
+            {
+                Contract.ThrowIfFalse(
+                    fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+
+                // TODO: consider computing this in parallel.
+                var singleContextDocIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+
+                // Note: it is safe to blindly add the dictionary for a particular context to the full dictionary.  Each
+                // dictionary will only update documents within that context, and each context represents a distinct
+                // project, so these should all be distinct without collisions.  However, to be very safe, we use an
+                // overwriting policy here to ensure nothing causes any problems here.
+                foreach (var kvp in singleContextDocIdToNewRootOrText)
+                    allContextsDocIdToNewRootOrText[kvp.Key] = kvp.Value;
+            }
         }
 
-        return currentSolution;
-    }
+        // Next, go and insert those all into the solution so all the docs in this particular project point at
+        // the new trees (or text).  At this point though, the trees have not been cleaned up.  We don't cleanup
+        // the documents as they are created, or one at a time as we add them, as that would cause us to run
+        // cleanup on N different solution forks (which would be very expensive).  Instead, by adding all the
+        // changed documents to one solution, and then cleaning *those* we only perform cleanup semantics on one
+        // forked solution.
+        var currentSolution = solution;
+        foreach (var (docId, (newRoot, newText)) in allContextsDocIdToNewRootOrText)
+        {
+            currentSolution = newRoot != null
+                ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
+                : currentSolution.WithDocumentText(docId, newText!);
+        }
 
-    private static async Task<Solution> FixSingleContextAsync<TFixAllContext>(
-        Solution currentSolution,
-        TFixAllContext fixAllContext,
-        IProgress<CodeAnalysisProgress> progressTracker,
-        Func<TFixAllContext, IProgress<CodeAnalysisProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
-        where TFixAllContext : IFixAllContext
-    {
-        // First, compute and apply the fixes.
-        var docIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+        {
+            // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
+            // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate
+            // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
+            using var _2 = await RemoteKeepAliveSession.CreateAsync(currentSolution, originalFixAllContext.CancellationToken).ConfigureAwait(false);
 
-        // Then, cleanup the new doc roots, and apply the results to the solution.
-        currentSolution = await CleanupAndApplyChangesAsync(progressTracker, currentSolution, docIdToNewRootOrText, fixAllContext.CancellationToken).ConfigureAwait(false);
+            var finalSolution = await CleanupAndApplyChangesAsync(
+                progressTracker,
+                currentSolution,
+                allContextsDocIdToNewRootOrText,
+                originalFixAllContext.CancellationToken).ConfigureAwait(false);
 
-        return currentSolution;
+            return finalSolution;
+        }
     }
 
     /// <summary>
@@ -83,38 +111,18 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         if (docIdToNewRootOrText.Count > 0)
         {
-            // Next, go and insert those all into the solution so all the docs in this particular project point at
-            // the new trees (or text).  At this point though, the trees have not been cleaned up.  We don't cleanup
-            // the documents as they are created, or one at a time as we add them, as that would cause us to run
-            // cleanup on N different solution forks (which would be very expensive).  Instead, by adding all the
-            // changed documents to one solution, and hten cleaning *those* we only perform cleanup semantics on one
-            // forked solution.
-            foreach (var (docId, (newRoot, newText)) in docIdToNewRootOrText)
-            {
-                currentSolution = newRoot != null
-                    ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
-                    : currentSolution.WithDocumentText(docId, newText!);
-            }
 
-            // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and
-            // insert that back into the final solution.  This way we can release both the original fixed tree, and
-            // the cleaned tree (both of which can be much more expensive than just text).
+            // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and insert
+            // that back into the final solution.  This way we can release both the original fixed tree, and the cleaned
+            // tree (both of which can be much more expensive than just text).
             //
             // Do this in parallel across all the documents that were fixed.
-            using var _2 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var tasks);
 
+            using var _2 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var tasks);
             foreach (var (docId, (newRoot, _)) in docIdToNewRootOrText)
             {
                 if (newRoot != null)
-                {
-                    var dirtyDocument = currentSolution.GetRequiredDocument(docId);
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
-                        var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                        return (dirtyDocument.Id, cleanedText);
-                    }, cancellationToken));
-                }
+                    tasks.Add(GetCleanedDocumentAsync(currentSolution.GetRequiredDocument(docId), cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -128,6 +136,15 @@ internal static class DocumentBasedFixAllProviderHelpers
         }
 
         return currentSolution;
+
+        static async Task<(DocumentId docId, SourceText sourceText)> GetCleanedDocumentAsync(Document dirtyDocument, CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+
+            var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
+            var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            return (dirtyDocument.Id, cleanedText);
+        }
     }
 
     /// <summary>

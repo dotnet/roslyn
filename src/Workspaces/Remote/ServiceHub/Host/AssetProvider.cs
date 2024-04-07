@@ -31,7 +31,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private readonly IAssetSource _assetSource = assetSource;
 
     public override async ValueTask<T> GetAssetAsync<T>(
-        AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
+        AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksum == Checksum.Null);
         if (_assetCache.TryGetAsset<T>(checksum, out var asset))
@@ -41,19 +41,17 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         checksums.Add(checksum);
 
         using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var results);
-        await this.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
+        await this.SynchronizeAssetsAsync(assetPath, checksums, results, cancellationToken).ConfigureAwait(false);
 
         return (T)results[checksum];
     }
 
-    public async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
-        AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+    public override async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
+        AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
         using var _ = PooledDictionary<Checksum, object>.GetInstance(out var results);
 
-        // bulk synchronize checksums first
-        var syncer = new ChecksumSynchronizer(this);
-        await syncer.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
+        await this.SynchronizeAssetsAsync(assetPath, checksums, results, cancellationToken).ConfigureAwait(false);
 
         var result = new (Checksum checksum, T asset)[checksums.Count];
         var index = 0;
@@ -113,7 +111,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public async ValueTask SynchronizeAssetsAsync(
-        AssetHint assetHint, HashSet<Checksum> checksums, Dictionary<Checksum, object>? results, CancellationToken cancellationToken)
+        AssetPath assetPath, HashSet<Checksum> checksums, Dictionary<Checksum, object>? results, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
@@ -165,7 +163,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             if (missingChecksumsCount > 0)
             {
                 var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
-                var missingAssets = await RequestAssetsAsync(assetHint, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
+                var missingAssets = await RequestAssetsAsync(assetPath, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfTrue(missingChecksumsMemory.Length != missingAssets.Length);
 
@@ -193,7 +191,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     private async ValueTask<ImmutableArray<object>> RequestAssetsAsync(
-        AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
+        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
     {
 #if NETCOREAPP
         Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));
@@ -204,6 +202,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         if (checksums.Length == 0)
             return [];
 
-        return await _assetSource.GetAssetsAsync(_solutionChecksum, assetHint, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+        return await _assetSource.GetAssetsAsync(_solutionChecksum, assetPath, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
     }
 }

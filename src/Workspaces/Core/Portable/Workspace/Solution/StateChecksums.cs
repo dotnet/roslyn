@@ -111,7 +111,7 @@ internal sealed class SolutionCompilationStateChecksums
     public async Task FindAsync(
         SolutionCompilationState compilationState,
         ProjectCone? projectCone,
-        AssetHint assetHint,
+        AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -120,33 +120,35 @@ internal sealed class SolutionCompilationStateChecksums
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        // verify input
-        if (searchingChecksumsLeft.Remove(this.Checksum))
-            result[this.Checksum] = this;
-
-        if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
-            result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
-
-        if (searchingChecksumsLeft.Count == 0)
-            return;
-
-        if (compilationState.FrozenSourceGeneratedDocumentStates != null)
+        if (assetPath.IncludeSolution)
         {
-            Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
+            if (searchingChecksumsLeft.Remove(this.Checksum))
+                result[this.Checksum] = this;
 
-            // This could either be the checksum for the text (which we'll use our regular helper for first)...
-            await ChecksumCollection.FindAsync(compilationState.FrozenSourceGeneratedDocumentStates, assetHint.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
+                result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
 
-            // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
-            // two collections we hold onto.
-            for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
+            if (searchingChecksumsLeft.Count == 0)
+                return;
+
+            if (compilationState.FrozenSourceGeneratedDocumentStates != null)
             {
-                var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
-                if (searchingChecksumsLeft.Remove(identityChecksum))
+                Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
+
+                // This could either be the checksum for the text (which we'll use our regular helper for first)...
+                await ChecksumCollection.FindAsync(compilationState.FrozenSourceGeneratedDocumentStates, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+
+                // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
+                // two collections we hold onto.
+                for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
                 {
-                    var id = FrozenSourceGeneratedDocuments!.Value.Ids[i];
-                    Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
-                    result[identityChecksum] = state.Identity;
+                    var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
+                    if (searchingChecksumsLeft.Remove(identityChecksum))
+                    {
+                        var id = FrozenSourceGeneratedDocuments!.Value.Ids[i];
+                        Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
+                        result[identityChecksum] = state.Identity;
+                    }
                 }
             }
         }
@@ -157,13 +159,13 @@ internal sealed class SolutionCompilationStateChecksums
             // If we're not in a project cone, start the search at the top most state-checksum corresponding to the
             // entire solution.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var solutionChecksums));
-            await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await solutionChecksums.FindAsync(solutionState, projectCone, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             // Otherwise, grab the top-most state checksum for this cone and search within that.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.RootProjectId, out var solutionChecksums));
-            await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await solutionChecksums.FindAsync(solutionState, projectCone, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
     }
 }
@@ -235,7 +237,7 @@ internal sealed class SolutionStateChecksums(
     public async Task FindAsync(
         SolutionState solution,
         ProjectCone? projectCone,
-        AssetHint assetHint,
+        AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -244,39 +246,20 @@ internal sealed class SolutionStateChecksums(
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        // verify input
-        if (searchingChecksumsLeft.Remove(Checksum))
-            result[Checksum] = this;
-
-        if (searchingChecksumsLeft.Remove(Attributes))
-            result[Attributes] = solution.SolutionAttributes;
-
-        ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
-
-        if (searchingChecksumsLeft.Count == 0)
-            return;
-
-        if (assetHint.ProjectId != null)
+        if (assetPath.IncludeSolution)
         {
-            Contract.ThrowIfTrue(
-                projectCone != null && !projectCone.Contains(assetHint.ProjectId),
-                "Requesting an asset outside of the cone explicitly being asked for!");
+            if (searchingChecksumsLeft.Remove(Checksum))
+                result[Checksum] = this;
 
-            var projectState = solution.GetProjectState(assetHint.ProjectId);
-            if (projectState != null &&
-                projectState.TryGetStateChecksums(out var projectStateChecksums))
-            {
-                await projectStateChecksums.FindAsync(projectState, assetHint.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            }
+            if (searchingChecksumsLeft.Remove(Attributes))
+                result[Attributes] = solution.SolutionAttributes;
+
+            ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
         }
-        else
+
+        if (assetPath.IncludeTopLevelProjects)
         {
-            Contract.ThrowIfTrue(assetHint.DocumentId != null);
-
-            // Before doing a depth-first-search *into* each project, first run across all the project at their top
-            // level. This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums'
-            // instance that we don't unnecessarily walk all documents looking just for those.
-
+            // Caller is trying to fetch the top level ProjectStateChecksums as well. Look for those without diving deeper.
             foreach (var (projectId, projectState) in solution.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
@@ -293,23 +276,45 @@ internal sealed class SolutionStateChecksums(
                     result[projectStateChecksums.Checksum] = projectStateChecksums;
                 }
             }
+        }
 
-            // Now actually do the depth first search into each project.
+        if (searchingChecksumsLeft.Count == 0)
+            return;
 
-            foreach (var (projectId, projectState) in solution.ProjectStates)
+        if (assetPath.IncludeProjects || assetPath.IncludeDocuments)
+        {
+            if (assetPath.ProjectId is not null)
             {
-                if (searchingChecksumsLeft.Count == 0)
-                    break;
+                // Dive into this project to search for the remaining checksums.
+                Contract.ThrowIfTrue(
+                    projectCone != null && !projectCone.Contains(assetPath.ProjectId),
+                    "Requesting an asset outside of the cone explicitly being asked for!");
 
-                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
-                // are not in that cone.
-                if (projectCone != null && !projectCone.Contains(projectId))
-                    continue;
+                var projectState = solution.GetProjectState(assetPath.ProjectId);
+                if (projectState != null &&
+                    projectState.TryGetStateChecksums(out var projectStateChecksums))
+                {
+                    await projectStateChecksums.FindAsync(projectState, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                // Full search, used for test purposes.
+                foreach (var (projectId, projectState) in solution.ProjectStates)
+                {
+                    if (searchingChecksumsLeft.Count == 0)
+                        break;
 
-                // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
-                // compute the checksum tree for a subset of projects that were all that a feature needed.
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                    await projectStateChecksums.FindAsync(projectState, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                    // If we're syncing a project cone, no point at all at looking at child projects of the solution that
+                    // are not in that cone.
+                    if (projectCone != null && !projectCone.Contains(projectId))
+                        continue;
+
+                    // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
+                    // compute the checksum tree for a subset of projects that were all that a feature needed.
+                    if (projectState.TryGetStateChecksums(out var projectStateChecksums))
+                        await projectStateChecksums.FindAsync(projectState, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
     }
@@ -414,7 +419,7 @@ internal sealed class ProjectStateChecksums(
 
     public async Task FindAsync(
         ProjectState state,
-        DocumentId? hintDocument,
+        AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -427,40 +432,48 @@ internal sealed class ProjectStateChecksums(
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        if (searchingChecksumsLeft.Remove(Checksum))
+        if (assetPath.IncludeProjects)
         {
-            result[Checksum] = this;
+            if (searchingChecksumsLeft.Remove(Checksum))
+            {
+                result[Checksum] = this;
+            }
+
+            // It's normal for callers to just want to sync a single ProjectStateChecksum.  So quickly check this, without
+            // doing all the expensive linear work below if we can bail out early here.
+            if (searchingChecksumsLeft.Count == 0)
+                return;
+
+            if (searchingChecksumsLeft.Remove(Info))
+            {
+                result[Info] = state.ProjectInfo.Attributes;
+            }
+
+            if (searchingChecksumsLeft.Remove(CompilationOptions))
+            {
+                Contract.ThrowIfNull(state.CompilationOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
+                result[CompilationOptions] = state.CompilationOptions;
+            }
+
+            if (searchingChecksumsLeft.Remove(ParseOptions))
+            {
+                Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
+                result[ParseOptions] = state.ParseOptions;
+            }
+
+            ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
+            ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
+            ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
         }
 
-        // It's normal for callers to just want to sync a single ProjectStateChecksum.  So quickly check this, without
-        // doing all the expensive linear work below if we can bail out early here.
-        if (searchingChecksumsLeft.Count == 0)
-            return;
-
-        if (searchingChecksumsLeft.Remove(Info))
+        if (assetPath.IncludeDocuments)
         {
-            result[Info] = state.ProjectInfo.Attributes;
+            var hintDocument = assetPath.DocumentId;
+
+            await ChecksumCollection.FindAsync(state.DocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
-
-        if (searchingChecksumsLeft.Remove(CompilationOptions))
-        {
-            Contract.ThrowIfNull(state.CompilationOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
-            result[CompilationOptions] = state.CompilationOptions;
-        }
-
-        if (searchingChecksumsLeft.Remove(ParseOptions))
-        {
-            Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
-            result[ParseOptions] = state.ParseOptions;
-        }
-
-        ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
-        ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
-        ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
-
-        await ChecksumCollection.FindAsync(state.DocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-        await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-        await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -482,6 +495,13 @@ internal sealed class DocumentStateChecksums(
         this.DocumentId.WriteTo(writer);
         this.Info.WriteTo(writer);
         this.Text.WriteTo(writer);
+    }
+
+    public void AddAllTo(HashSet<Checksum> checksums)
+    {
+        checksums.AddIfNotNullChecksum(this.Checksum);
+        checksums.AddIfNotNullChecksum(this.Info);
+        checksums.AddIfNotNullChecksum(this.Text);
     }
 
     public static DocumentStateChecksums Deserialize(ObjectReader reader)
