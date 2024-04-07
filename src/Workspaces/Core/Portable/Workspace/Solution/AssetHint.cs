@@ -81,16 +81,16 @@ internal readonly struct AssetPath
     public static implicit operator AssetPath(DocumentId documentId) => new(AssetPathKind.Documents, forTesting: false, documentId.ProjectId, documentId);
 
     /// <summary>
-    /// Searches the requested project, and all documents underneath it.
+    /// Searches the requested project, and all documents underneath it.  Used only in tests.
     /// </summary>
     /// <param name="projectId"></param>
     /// <returns></returns>
-    public static AssetPath SolutionAndProject(ProjectId projectId)
-        => new(AssetPathKind.Solution | AssetPathKind.Projects, forTesting: false, projectId);
-
+    public static AssetPath SolutionAndProjectForTesting(ProjectId projectId)
+        => new(AssetPathKind.Solution | AssetPathKind.Projects, forTesting: true, projectId);
 
     /// <summary>
-    /// Searches the requested project, and all documents underneath it.
+    /// Searches the requested project, and all documents underneath it.  used during normal sync when bulk syncing a
+    /// project.
     /// </summary>
     /// <param name="projectId"></param>
     /// <returns></returns>
