@@ -120,33 +120,35 @@ internal sealed class SolutionCompilationStateChecksums
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        // verify input
-        if (searchingChecksumsLeft.Remove(this.Checksum))
-            result[this.Checksum] = this;
-
-        if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
-            result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
-
-        if (searchingChecksumsLeft.Count == 0)
-            return;
-
-        if (compilationState.FrozenSourceGeneratedDocumentStates != null)
+        if (assetPath.IncludeSolution)
         {
-            Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
+            if (searchingChecksumsLeft.Remove(this.Checksum))
+                result[this.Checksum] = this;
 
-            // This could either be the checksum for the text (which we'll use our regular helper for first)...
-            await ChecksumCollection.FindAsync(compilationState.FrozenSourceGeneratedDocumentStates, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
+                result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
 
-            // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
-            // two collections we hold onto.
-            for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
+            if (searchingChecksumsLeft.Count == 0)
+                return;
+
+            if (compilationState.FrozenSourceGeneratedDocumentStates != null)
             {
-                var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
-                if (searchingChecksumsLeft.Remove(identityChecksum))
+                Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
+
+                // This could either be the checksum for the text (which we'll use our regular helper for first)...
+                await ChecksumCollection.FindAsync(compilationState.FrozenSourceGeneratedDocumentStates, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+
+                // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
+                // two collections we hold onto.
+                for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
                 {
-                    var id = FrozenSourceGeneratedDocuments!.Value.Ids[i];
-                    Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
-                    result[identityChecksum] = state.Identity;
+                    var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
+                    if (searchingChecksumsLeft.Remove(identityChecksum))
+                    {
+                        var id = FrozenSourceGeneratedDocuments!.Value.Ids[i];
+                        Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
+                        result[identityChecksum] = state.Identity;
+                    }
                 }
             }
         }
@@ -253,9 +255,6 @@ internal sealed class SolutionStateChecksums(
                 result[Attributes] = solution.SolutionAttributes;
 
             ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
-
-            if (searchingChecksumsLeft.Count == 0)
-                return;
         }
 
         if (assetPath.IncludeTopLevelProjects)
@@ -277,10 +276,10 @@ internal sealed class SolutionStateChecksums(
                     result[projectStateChecksums.Checksum] = projectStateChecksums;
                 }
             }
-
-            if (searchingChecksumsLeft.Count == 0)
-                return;
         }
+
+        if (searchingChecksumsLeft.Count == 0)
+            return;
 
         if (assetPath.IncludeProjects || assetPath.IncludeDocuments)
         {
@@ -316,7 +315,6 @@ internal sealed class SolutionStateChecksums(
                     if (projectState.TryGetStateChecksums(out var projectStateChecksums))
                         await projectStateChecksums.FindAsync(projectState, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
                 }
-
             }
         }
     }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.Serialization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
@@ -18,19 +19,19 @@ internal readonly struct AssetPath
     /// <summary>
     /// Instance that will only look up solution-level data when searching for checksums.
     /// </summary>
-    public static readonly AssetPath SolutionOnly = new(kind: AssetPathKind.Solution);
+    public static readonly AssetPath SolutionOnly = new(kind: AssetPathKind.Solution, forTesting: false);
 
     /// <summary>
     /// Instance that will only look up solution-level, as well as the top level nodes for projects when searching for
     /// checksums.  It will not descend into projects.
     /// </summary>
-    public static readonly AssetPath SolutionAndTopLevelProjectsOnly = new(kind: AssetPathKind.Solution | AssetPathKind.TopLevelProjects);
+    public static readonly AssetPath SolutionAndTopLevelProjectsOnly = new(kind: AssetPathKind.Solution | AssetPathKind.TopLevelProjects, forTesting: false);
 
     /// <summary>
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
-    public static readonly AssetPath FullLookupForTesting = new(kind: AssetPathKind.Solution | AssetPathKind.TopLevelProjects | AssetPathKind.Projects | AssetPathKind.Documents);
+    public static readonly AssetPath FullLookupForTesting = new(kind: AssetPathKind.Solution | AssetPathKind.TopLevelProjects | AssetPathKind.Projects | AssetPathKind.Documents, forTesting: true);
 
     [DataMember(Order = 0)]
     private readonly AssetPathKind _kind;
@@ -39,11 +40,30 @@ internal readonly struct AssetPath
     [DataMember(Order = 2)]
     public readonly DocumentId? DocumentId;
 
-    private AssetPath(AssetPathKind kind, ProjectId? projectId = null, DocumentId? documentId = null)
+    private AssetPath(AssetPathKind kind, bool forTesting, ProjectId? projectId = null, DocumentId? documentId = null)
     {
         _kind = kind;
         ProjectId = projectId;
         DocumentId = documentId;
+
+        if (forTesting)
+        {
+            // Only tests are allowed to search everything.  And, in that case, they don't pass any doc/project along.
+            Contract.ThrowIfTrue(projectId != null);
+            Contract.ThrowIfTrue(documentId != null);
+        }
+        else
+        {
+            // Otherwise, if not in testing, if we say we're searching projects or documents, we have to supply those IDs as well.
+            if (IncludeProjects)
+            {
+                Contract.ThrowIfNull(projectId);
+            }
+            else if (IncludeDocuments)
+            {
+                Contract.ThrowIfNull(documentId);
+            }
+        }
     }
 
     public bool IncludeSolution => (_kind & AssetPathKind.Solution) == AssetPathKind.Solution;
@@ -51,9 +71,8 @@ internal readonly struct AssetPath
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) == AssetPathKind.Projects;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) == AssetPathKind.Documents;
 
-
-    public static implicit operator AssetPath(ProjectId projectId) => new(kind: AssetPathKind.Projects, projectId, documentId: null);
-    public static implicit operator AssetPath(DocumentId documentId) => new(kind: AssetPathKind.Documents, documentId.ProjectId, documentId);
+    public static implicit operator AssetPath(ProjectId projectId) => new(kind: AssetPathKind.Projects, forTesting: false, projectId, documentId: null);
+    public static implicit operator AssetPath(DocumentId documentId) => new(kind: AssetPathKind.Documents, forTesting: false, documentId.ProjectId, documentId);
 
     [Flags]
     private enum AssetPathKind
