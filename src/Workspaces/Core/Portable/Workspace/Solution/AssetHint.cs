@@ -70,12 +70,24 @@ internal readonly struct AssetPath
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) == AssetPathKind.Projects;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) == AssetPathKind.Documents;
 
-    public static implicit operator AssetPath(ProjectId projectId) => new(AssetPathKind.Solution | AssetPathKind.Projects, forTesting: false, projectId, documentId: null);
+    /// <summary>
+    /// Searches only for information about this project.
+    /// </summary>
+    public static implicit operator AssetPath(ProjectId projectId) => new(AssetPathKind.Projects, forTesting: false, projectId, documentId: null);
 
     /// <summary>
     /// Searches only for information about this document.
     /// </summary>
     public static implicit operator AssetPath(DocumentId documentId) => new(AssetPathKind.Documents, forTesting: false, documentId.ProjectId, documentId);
+
+    /// <summary>
+    /// Searches the requested project, and all documents underneath it.
+    /// </summary>
+    /// <param name="projectId"></param>
+    /// <returns></returns>
+    public static AssetPath SolutionAndProject(ProjectId projectId)
+        => new(AssetPathKind.Solution | AssetPathKind.Projects, forTesting: false, projectId);
+
 
     /// <summary>
     /// Searches the requested project, and all documents underneath it.
