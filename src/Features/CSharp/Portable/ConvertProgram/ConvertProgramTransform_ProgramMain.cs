@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static partial class ConvertProgramTransform

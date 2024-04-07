@@ -19,6 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement;
 
+using static CSharpSyntaxTokens;
 using static IntegerUtilities;
 using static SyntaxFactory;
 

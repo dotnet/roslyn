@@ -16,6 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class CSharpUseCollectionInitializerCodeFixProvider

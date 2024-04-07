@@ -30,6 +30,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature;
 
+using static CSharpSyntaxTokens;
+
 [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
 {

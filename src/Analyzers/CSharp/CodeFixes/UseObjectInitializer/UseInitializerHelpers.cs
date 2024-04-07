@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class UseInitializerHelpers

@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable), Shared]
 internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
 {

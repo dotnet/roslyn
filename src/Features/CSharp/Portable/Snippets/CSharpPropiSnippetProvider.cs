@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
+using static CSharpSyntaxTokens;
+
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

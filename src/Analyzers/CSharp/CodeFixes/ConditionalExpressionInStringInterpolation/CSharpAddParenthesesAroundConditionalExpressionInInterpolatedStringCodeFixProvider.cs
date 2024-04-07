@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConditionalExpressionInStringInterpolation;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParenthesesAroundConditionalExpressionInInterpolatedString), Shared]
 internal class CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider : CodeFixProvider
 {

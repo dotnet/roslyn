@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class ConvertNamespaceTransform

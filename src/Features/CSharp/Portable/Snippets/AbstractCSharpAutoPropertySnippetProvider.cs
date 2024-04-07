@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
@@ -20,6 +19,8 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+using static CSharpSyntaxTokens;
 
 internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider<PropertyDeclarationSyntax>
 {

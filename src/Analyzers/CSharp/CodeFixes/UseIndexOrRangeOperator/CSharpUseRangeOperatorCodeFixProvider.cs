@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 
 using static CodeFixHelpers;
 using static CSharpUseRangeOperatorDiagnosticAnalyzer;
+using static CSharpSyntaxTokens;
 using static Helpers;
 using static SyntaxFactory;
 

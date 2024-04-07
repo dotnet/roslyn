@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveAsyncModifier), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.MakeMethodSynchronous)]
 internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax, ExpressionSyntax>

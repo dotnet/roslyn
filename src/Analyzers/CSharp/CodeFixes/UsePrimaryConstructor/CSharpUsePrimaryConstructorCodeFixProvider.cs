@@ -28,6 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
 using static CSharpUsePrimaryConstructorDiagnosticAnalyzer;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePrimaryConstructor), Shared]

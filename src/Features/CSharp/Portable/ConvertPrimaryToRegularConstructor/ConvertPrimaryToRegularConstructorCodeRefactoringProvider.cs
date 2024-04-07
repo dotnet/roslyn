@@ -29,6 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertPrimaryToRegularConstructor), Shared]

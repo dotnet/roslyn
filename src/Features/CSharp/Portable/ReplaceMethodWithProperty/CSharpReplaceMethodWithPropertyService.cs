@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]

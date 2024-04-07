@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.UseObjectInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 
+using static CSharpSyntaxTokens;
 using ObjectInitializerMatch = Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]

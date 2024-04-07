@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]

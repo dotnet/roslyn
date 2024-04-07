@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToTuple), Shared]

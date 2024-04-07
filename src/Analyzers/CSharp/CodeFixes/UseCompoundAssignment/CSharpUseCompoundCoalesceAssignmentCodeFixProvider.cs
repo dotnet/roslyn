@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundCoalesceAssignment), Shared]

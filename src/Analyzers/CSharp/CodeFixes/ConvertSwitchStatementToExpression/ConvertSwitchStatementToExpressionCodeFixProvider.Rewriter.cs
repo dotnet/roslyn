@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 
 using static ConvertSwitchStatementToExpressionHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider

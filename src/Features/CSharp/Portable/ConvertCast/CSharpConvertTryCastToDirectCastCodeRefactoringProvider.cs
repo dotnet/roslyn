@@ -12,6 +12,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertCast;
 
+using static CSharpSyntaxTokens;
+
 /// <summary>
 /// Refactor:
 ///     var o = 1 as object;

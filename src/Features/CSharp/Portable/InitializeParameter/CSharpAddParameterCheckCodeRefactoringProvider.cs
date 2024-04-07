@@ -14,6 +14,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddParameterCheck), Shared]
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ChangeSignature)]
 internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :

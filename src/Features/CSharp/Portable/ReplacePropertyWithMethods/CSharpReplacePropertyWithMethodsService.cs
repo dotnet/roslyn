@@ -23,6 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]

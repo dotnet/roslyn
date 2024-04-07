@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportArgumentProvider(nameof(OutVariableArgumentProvider), LanguageNames.CSharp)]

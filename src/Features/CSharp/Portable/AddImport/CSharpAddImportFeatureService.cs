@@ -28,6 +28,7 @@ using static Microsoft.CodeAnalysis.CSharp.AddImport.AddImportDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]

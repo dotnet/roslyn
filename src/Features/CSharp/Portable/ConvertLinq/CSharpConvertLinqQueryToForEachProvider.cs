@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertLinqQueryToForEach), Shared]

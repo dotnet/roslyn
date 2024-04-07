@@ -14,6 +14,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    using static CSharpSyntaxTokens;
+
     [UseExportProvider]
     public class SyntaxComparerTests
     {

@@ -25,6 +25,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(AbstractEncapsulateFieldService), LanguageNames.CSharp), Shared]

@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 using static UseIsNullCheckHelpers;
 

@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeMethodSynchronous), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
 internal class CSharpMakeMethodSynchronousCodeFixProvider : AbstractMakeMethodSynchronousCodeFixProvider

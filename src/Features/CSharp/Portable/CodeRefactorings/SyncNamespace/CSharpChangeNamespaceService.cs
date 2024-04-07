@@ -23,6 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IChangeNamespaceService), LanguageNames.CSharp), Shared]

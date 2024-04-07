@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class ConvertToRecordEngine

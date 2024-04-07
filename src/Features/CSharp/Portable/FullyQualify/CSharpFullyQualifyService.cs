@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 
+using static CSharpSyntaxTokens;
+
 [ExportLanguageService(typeof(IFullyQualifyService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpFullyQualifyService : AbstractFullyQualifyService<SimpleNameSyntax>
 {

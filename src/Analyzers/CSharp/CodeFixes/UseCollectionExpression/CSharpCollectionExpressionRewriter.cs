@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class CSharpCollectionExpressionRewriter

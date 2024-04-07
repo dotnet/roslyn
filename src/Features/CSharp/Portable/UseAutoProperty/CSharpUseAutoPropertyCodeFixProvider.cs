@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAutoProperty), Shared]

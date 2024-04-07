@@ -19,10 +19,10 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.Suppression, LanguageNames.CSharp), Shared]

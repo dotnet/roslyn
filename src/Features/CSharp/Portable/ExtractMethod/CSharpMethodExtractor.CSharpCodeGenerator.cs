@@ -29,6 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class CSharpMethodExtractor

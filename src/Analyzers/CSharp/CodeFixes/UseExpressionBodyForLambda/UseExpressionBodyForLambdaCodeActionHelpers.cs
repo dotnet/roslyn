@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class UseExpressionBodyForLambdaCodeActionHelpers

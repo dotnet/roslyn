@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 
+using static CSharpSyntaxTokens;
 using static InitializeParameterHelpers;
 using static InitializeParameterHelpersCore;
 using static SyntaxFactory;

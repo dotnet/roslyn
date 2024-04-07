@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal abstract partial class StringSplitter

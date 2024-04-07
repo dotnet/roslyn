@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class CSharpIntroduceVariableService

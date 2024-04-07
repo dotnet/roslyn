@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider

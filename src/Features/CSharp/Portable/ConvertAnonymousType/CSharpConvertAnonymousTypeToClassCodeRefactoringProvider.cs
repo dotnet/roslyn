@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 
+using static CSharpSyntaxTokens;
+
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass), Shared]
 internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
