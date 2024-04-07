@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
                 BaseNamespaceDeclarationSyntax baseNamespace => baseNamespace.Usings,
-                _ => SpecializedCollections.EmptyEnumerable<SyntaxNode>(),
+                _ => [],
             };
 
         private static IEnumerable<SyntaxNode> GetAttributeNodes(SyntaxList<AttributeListSyntax> attributeDeclarationList)
