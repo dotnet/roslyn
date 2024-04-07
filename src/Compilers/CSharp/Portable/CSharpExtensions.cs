@@ -1640,7 +1640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If 'node' cannot be intercepted syntactically, returns null.
+        /// If <paramref name="node"/> cannot be intercepted syntactically, returns null.
         /// Otherwise, returns an instance which can be used to intercept the call denoted by <paramref name="node"/>.
         /// </summary>
         [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]

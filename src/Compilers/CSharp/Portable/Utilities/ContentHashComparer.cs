@@ -12,6 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal sealed class ContentHashComparer : IEqualityComparer<ReadOnlyMemory<byte>>
 {
+    public static ContentHashComparer Instance { get; } = new ContentHashComparer();
+
+    private ContentHashComparer() { }
+
     public bool Equals(ReadOnlyMemory<byte> x, ReadOnlyMemory<byte> y)
     {
         return x.Span.SequenceEqual(y.Span);
@@ -23,6 +27,4 @@ internal sealed class ContentHashComparer : IEqualityComparer<ReadOnlyMemory<byt
         // Therefore simply reading the first 4 bytes of it results in an adequate hash code.
         return BinaryPrimitives.ReadInt32LittleEndian(obj.Span);
     }
-
-    public static ContentHashComparer Instance { get; } = new ContentHashComparer();
 }

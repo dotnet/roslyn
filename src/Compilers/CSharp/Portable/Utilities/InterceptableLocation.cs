@@ -16,7 +16,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
-//[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 public abstract class InterceptableLocation
 {
     private protected InterceptableLocation() { }
@@ -36,6 +35,9 @@ public abstract class InterceptableLocation
     /// Gets a human-readable representation of the location, suitable for including in comments in generated code.
     /// </summary>
     public abstract string GetDisplayLocation();
+
+    public abstract override bool Equals(object? obj);
+    public abstract override int GetHashCode();
 }
 
 #pragma warning disable RSEXPERIMENTAL002 // internal usage of experimental API
@@ -45,6 +47,7 @@ public abstract class InterceptableLocation
 internal sealed class InterceptableLocation1 : InterceptableLocation
 {
     internal const int ContentHashLength = 16;
+    private static readonly UTF8Encoding s_encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
     private readonly ImmutableArray<byte> _checksum;
     private readonly string _path;
@@ -102,11 +105,10 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
         }
     }
 
-    internal static (ReadOnlyMemory<byte> checksum, int position, string displayFileName)? Decode(string? data, Location diagnosticLocation, BindingDiagnosticBag diagnostics)
+    internal static (ReadOnlyMemory<byte> checksum, int position, string displayFileName)? Decode(string? data)
     {
         if (data is null)
         {
-            diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, diagnosticLocation);
             return null;
         }
 
@@ -117,7 +119,6 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
         }
         catch (FormatException)
         {
-            diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, diagnosticLocation);
             return null;
         }
 
@@ -134,21 +135,21 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
 
         if (bytes.Length < minLength)
         {
-            diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, diagnosticLocation);
             return null;
         }
 
         var hash = bytes.AsMemory(start: hashIndex, length: hashSize);
         var position = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(start: positionIndex));
 
-        // https://learn.microsoft.com/en-us/dotnet/api/system.text.encoding.utf8?view=net-8.0#remarks states:
-        // > `Encoding.UTF8` returns a UTF8Encoding object that uses replacement fallback to replace each string that it can't encode and each byte that it can't decode with a question mark ("?") character.
-        //
-        // If these assertions are violated, it means the encoder may throw for invalid UTF-8 sequences, which we don't expect.
-        // In this case we would either need to adjust the code to start handling ArgumentException from GetString, or create a static UTF8 decoder with non-throwing behavior.
-        Debug.Assert(Encoding.UTF8.DecoderFallback is DecoderReplacementFallback);
-        Debug.Assert(Encoding.UTF8.IsReadOnly);
-        string displayFileName = Encoding.UTF8.GetString(bytes, index: displayNameIndex, count: bytes.Length - displayNameIndex);
+        string displayFileName;
+        try
+        {
+            displayFileName = s_encoding.GetString(bytes, index: displayNameIndex, count: bytes.Length - displayNameIndex);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
 
         return (hash, position, displayFileName);
     }
@@ -170,14 +171,10 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
 
     public override int GetHashCode()
     {
+        // Use only the _checksum and _position in the hash as these are the most distinctive fields of the location.
+        // i.e. if these are equal across instances, then other fields are likely to be equal as well.
         return Hash.Combine(
-           BinaryPrimitives.ReadInt32LittleEndian(_checksum.AsSpan()),
-           Hash.Combine(
-               _path.GetHashCode(),
-               Hash.Combine(
-                   _position,
-                   Hash.Combine(
-                       _lineNumberOneIndexed,
-                       _characterNumberOneIndexed))));
+            BinaryPrimitives.ReadInt32LittleEndian(_checksum.AsSpan()),
+            _position);
     }
 }

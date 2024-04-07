@@ -963,7 +963,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeInterceptsLocationChecksumBased(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, int version, string? data)
         {
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
-            var attributeNameSyntax = arguments.AttributeSyntaxOpt!.Name; // used for reporting diagnostics
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+            var attributeNameSyntax = arguments.AttributeSyntaxOpt.Name; // used for reporting diagnostics
             var attributeLocation = attributeNameSyntax.Location;
 
             if (version != 1)
@@ -972,14 +973,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (InterceptableLocation1.Decode(data, attributeLocation, diagnostics) is not var (hash, position, displayFileName))
+            if (InterceptableLocation1.Decode(data) is not var (hash, position, displayFileName))
             {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, attributeLocation);
                 return;
             }
 
             var interceptorsNamespaces = ((CSharpParseOptions)attributeNameSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
             var thisNamespaceNames = getNamespaceNames(this);
-            var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
+            var foundAnyMatch = interceptorsNamespaces.Any(static (ns, thisNamespaceNames) => isDeclaredInNamespace(thisNamespaceNames, ns), thisNamespaceNames);
             if (!foundAnyMatch)
             {
                 reportFeatureNotEnabled(diagnostics, attributeLocation, thisNamespaceNames);
@@ -987,8 +989,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
             thisNamespaceNames.Free();
-
-            var attributeData = arguments.Attribute;
 
             if (ContainingType.IsGenericType)
             {
@@ -1027,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTree? matchingTree = matchingTrees[0];
 
             var root = matchingTree.GetRoot();
-            if (position > root.EndPosition)
+            if (position < 0 || position > root.EndPosition)
             {
                 diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, attributeLocation, displayFileName);
                 return;
@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclaringCompilation.AddInterception(matchingTree.FilePath, position, attributeLocation, this);
 
             // Caller must free the returned builder.
-            ArrayBuilder<string> getNamespaceNames(SourceMethodSymbolWithAttributes @this)
+            static ArrayBuilder<string> getNamespaceNames(SourceMethodSymbolWithAttributes @this)
             {
                 var namespaceNames = ArrayBuilder<string>.GetInstance();
                 for (var containingNamespace = @this.ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
@@ -1123,9 +1123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attributeSyntax = arguments.AttributeSyntaxOpt;
             Debug.Assert(attributeSyntax is object);
             var attributeLocation = attributeSyntax.Location;
-            int filePathParameterIndex = 0;
-            int lineNumberParameterIndex = 1;
-            int characterNumberParameterIndex = 2;
+            const int filePathParameterIndex = 0;
+            const int lineNumberParameterIndex = 1;
+            const int characterNumberParameterIndex = 2;
 
             var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
             var thisNamespaceNames = getNamespaceNames();

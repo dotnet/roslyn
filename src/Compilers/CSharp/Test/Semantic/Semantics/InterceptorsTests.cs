@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -3303,8 +3302,10 @@ public class InterceptorsTests : CSharpTestBase
         );
     }
 
-    [Fact]
-    public void InterceptsLocationBadPosition_Checksum_02()
+    [Theory]
+    [InlineData(-1)] // test invalid position
+    [InlineData(99999)] // test position past end of the file
+    public void InterceptsLocationBadPosition_Checksum_02(int position)
     {
         var sourceTree = CSharpTestSource.Parse("""
             using System.Runtime.CompilerServices;
@@ -3325,9 +3326,6 @@ public class InterceptorsTests : CSharpTestBase
                 }
             }
             """, options: RegularWithInterceptors);
-
-        // test position past end of the file
-        var position = 99999;
 
         var builder = new BlobBuilder();
         builder.WriteBytes(sourceTree.GetText().GetContentHash());
@@ -6853,17 +6851,23 @@ partial struct CustomHandler
                 static void Main()
                 {
                     M();
+                    M();
                 }
             }
             """.NormalizeLineEndings(), "path/to/Program.cs", RegularWithInterceptors);
 
         var comp = CreateCompilation(tree);
         var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-        var locationSpecifier = model.GetInterceptableLocation(node)!;
+        if (tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToList() is not [var node, var otherNode])
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        var locationSpecifier = model.GetInterceptableLocation(node);
+        Assert.False(locationSpecifier!.Equals(null));
 
         // Verify behaviors of the public APIs.
-        Assert.Equal("path/to/Program.cs(7,9)", locationSpecifier.GetDisplayLocation());
+        Assert.Equal("path/to/Program.cs(7,9)", locationSpecifier!.GetDisplayLocation());
         Assert.Equal(1, locationSpecifier.Version);
         Assert.Equal(locationSpecifier, locationSpecifier);
 
@@ -6873,8 +6877,16 @@ partial struct CustomHandler
 
         // If Data changes it might be the case that 'SourceText.GetContentHash()' has changed algorithms.
         // In this case we need to adjust the SourceMethodSymbolWithAttributes.DecodeInterceptsLocationAttribute impl to remain compatible with v1 and consider introducing a v2 which uses the new content hash algorithm.
-        AssertEx.Equal("jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtLmNz", locationSpecifier.Data);
-        AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtLmNz")]""", locationSpecifier.GetInterceptsLocationAttributeSyntax());
+        AssertEx.Equal("xRCCFCvTOZMORzSr/fZQFlIAAABQcm9ncmFtLmNz", locationSpecifier.Data);
+        AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "xRCCFCvTOZMORzSr/fZQFlIAAABQcm9ncmFtLmNz")]""", locationSpecifier.GetInterceptsLocationAttributeSyntax());
+
+        var otherLocation = model.GetInterceptableLocation(otherNode)!;
+        Assert.NotEqual(locationSpecifier, otherLocation);
+        // While it is not incorrect for the HashCodes of these instances to be equal, we don't expect it in this case.
+        Assert.NotEqual(locationSpecifier.GetHashCode(), otherLocation.GetHashCode());
+        AssertEx.Equal("xRCCFCvTOZMORzSr/fZQFmAAAABQcm9ncmFtLmNz", otherLocation.Data);
+        AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "xRCCFCvTOZMORzSr/fZQFmAAAABQcm9ncmFtLmNz")]""", otherLocation.GetInterceptsLocationAttributeSyntax());
+
     }
 
     [Fact]
@@ -6926,9 +6938,9 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,6): error CS9233: Cannot intercept a call in file '�' because a matching file was not found in the compilation.
+            // Interceptors.cs(6,6): error CS9230: The data argument to InterceptsLocationAttribute is not in the correct format.
             //     [InterceptsLocation(1, "AAAAAAAAAAAAAAAAAAAAAAAAAADA")]
-            Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, "InterceptsLocation").WithArguments("�").WithLocation(6, 6));
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "InterceptsLocation").WithLocation(6, 6));
     }
 
     [Theory]
