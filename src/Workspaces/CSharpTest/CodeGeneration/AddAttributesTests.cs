@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 {
+    using static CSharpSyntaxTokens;
     using static SyntaxFactory;
 
     [UseExportProvider]

@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    using static CSharpSyntaxTokens;
     using static SyntaxFactory;
 
     [Trait(Traits.Feature, Traits.Features.Formatting)]

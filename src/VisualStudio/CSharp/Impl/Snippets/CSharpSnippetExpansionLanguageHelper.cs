@@ -27,6 +27,8 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
+    using static CSharpSyntaxTokens;
+
     [ExportLanguageService(typeof(ISnippetExpansionLanguageHelper), LanguageNames.CSharp)]
     [Shared]
     internal class CSharpSnippetExpansionLanguageHelper : AbstractSnippetExpansionLanguageHelper

@@ -21,6 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
+    using static CSharpSyntaxTokens;
     using static SyntaxFactory;
 
     [UseExportProvider]
