@@ -176,7 +176,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
                 }
                 else
                 {
-                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutTrivia());
+                    nodesAndTokens.Add(CommaToken.WithoutTrivia());
                     AddOriginallyFirstArgument(argument);
                 }
             }

@@ -107,9 +107,9 @@ internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixPro
             // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
             // So we create a new /// <inheritdoc/> comment.
             var xmlSpaceAfterTripleSlash = Token(leading: [DocumentationCommentExterior("///")], SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
-            var lessThanToken = Token(SyntaxKind.LessThanToken).WithoutTrivia();
+            var lessThanToken = LessThanToken.WithoutTrivia();
             var inheritdocTagName = XmlName("inheritdoc").WithoutTrivia();
-            var slashGreaterThanToken = Token(SyntaxKind.SlashGreaterThanToken).WithoutTrivia();
+            var slashGreaterThanToken = SlashGreaterThanToken.WithoutTrivia();
             var xmlNewLineToken = Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: newLine, valueText: newLine, trailing: default);
 
             var singleLineInheritdocComment = DocumentationCommentTrivia(
@@ -120,7 +120,7 @@ internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixPro
                     XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
                     XmlText(xmlNewLineToken),
                 ],
-                endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
+                endOfComment: EndOfDocumentationCommentToken.WithoutTrivia());
 
             sourceText ??= await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.FullSpan.Start);

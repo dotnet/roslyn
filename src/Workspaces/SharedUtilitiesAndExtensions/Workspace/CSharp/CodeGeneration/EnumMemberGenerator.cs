@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 using static CodeGenerationHelpers;
 using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class EnumMemberGenerator
@@ -34,14 +35,14 @@ internal static class EnumMemberGenerator
         else if (members.LastOrDefault().Kind() == SyntaxKind.CommaToken)
         {
             members.Add(member);
-            members.Add(Token(SyntaxKind.CommaToken));
+            members.Add(CommaToken);
         }
         else
         {
             var lastMember = members.Last();
             var trailingTrivia = lastMember.GetTrailingTrivia();
             members[members.Count - 1] = lastMember.WithTrailingTrivia();
-            members.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
+            members.Add(CommaToken.WithTrailingTrivia(trailingTrivia));
             members.Add(member);
         }
 

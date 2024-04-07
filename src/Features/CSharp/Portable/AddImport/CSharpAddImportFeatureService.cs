@@ -480,7 +480,7 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
 
         usingDirective = namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
             ? usingDirective
-            : usingDirective.WithStaticKeyword(Token(SyntaxKind.StaticKeyword));
+            : usingDirective.WithStaticKeyword(StaticKeyword);
 
         return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective, generator));
     }

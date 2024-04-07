@@ -93,7 +93,7 @@ internal static partial class ConvertProgramTransform
         // Workaround for simplification not being ready when we generate a new file.  Substitute System.String[]
         // with string[].
         if (method.ParameterList.Parameters is [{ Type: ArrayTypeSyntax arrayType }])
-            method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
+            method = method.ReplaceNode(arrayType.ElementType, PredefinedType(StringKeyword));
 
         if (oldClassDeclaration is null)
         {

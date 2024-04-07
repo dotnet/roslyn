@@ -1916,11 +1916,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (kind)
             {
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindOut:
-                    newModifiers = [SyntaxFactory.Token(SyntaxKind.OutKeyword)];
+                    newModifiers = [OutKeyword];
                     break;
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindRef:
-                    newModifiers = [SyntaxFactory.Token(SyntaxKind.RefKeyword)];
+                    newModifiers = [RefKeyword];
                     break;
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindIn:
@@ -1934,7 +1934,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         if (parameterList.Parameters.LastOrDefault() == parameter &&
                             parameter.Type is ArrayTypeSyntax)
                         {
-                            newModifiers = [SyntaxFactory.Token(SyntaxKind.ParamsKeyword)];
+                            newModifiers = [ParamsKeyword];
                             break;
                         }
 

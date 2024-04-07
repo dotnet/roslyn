@@ -56,7 +56,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
                 if (i < matches.Length - 1)
                 {
                     nodesAndTokens.Add(expression);
-                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
+                    nodesAndTokens.Add(CommaToken.WithTrailingTrivia(trailingTrivia));
                 }
                 else
                 {
@@ -131,11 +131,11 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
             {
                 return InitializerExpression(
                     SyntaxKind.ComplexElementInitializerExpression,
-                    Token(SyntaxKind.OpenBraceToken).WithoutTrivia(),
+                    OpenBraceToken.WithoutTrivia(),
                     SeparatedList(
                         arguments.Select(a => a.Expression),
                         arguments.GetSeparators()),
-                    Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
+                    CloseBraceToken.WithoutTrivia());
             }
         }
     }

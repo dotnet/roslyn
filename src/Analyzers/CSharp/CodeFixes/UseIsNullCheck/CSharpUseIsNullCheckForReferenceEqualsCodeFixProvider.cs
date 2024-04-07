@@ -48,7 +48,7 @@ internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider
             return IsPatternExpression(
                 argument,
                 UnaryPattern(
-                    Token(SyntaxKind.NotKeyword),
+                    NotKeyword,
                     s_nullLiteralPattern)).Parenthesize();
         }
         else
@@ -56,7 +56,7 @@ internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider
             return BinaryExpression(
                 SyntaxKind.IsExpression,
                 argument,
-                PredefinedType(Token(SyntaxKind.ObjectKeyword))).Parenthesize();
+                PredefinedType(ObjectKeyword)).Parenthesize();
         }
     }
 

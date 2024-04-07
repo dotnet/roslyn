@@ -335,7 +335,7 @@ internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactorin
                     innerRight.Kind() == SyntaxKind.SubtractExpression &&
                     IsLiteralOne(innerRight.Right))
                 {
-                    var newOperator = Token(SyntaxKind.LessThanToken).WithTriviaFrom(outerBinary.OperatorToken);
+                    var newOperator = LessThanToken.WithTriviaFrom(outerBinary.OperatorToken);
                     return Reduce(outerBinary.WithRight(innerRight.Left)
                                              .WithOperatorToken(newOperator));
                 }
@@ -345,7 +345,7 @@ internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactorin
                     innerLeft.Kind() == SyntaxKind.SubtractExpression &&
                     IsLiteralOne(innerLeft.Right))
                 {
-                    var newOperator = Token(SyntaxKind.GreaterThanToken).WithTriviaFrom(outerBinary.OperatorToken);
+                    var newOperator = GreaterThanToken.WithTriviaFrom(outerBinary.OperatorToken);
                     return Reduce(outerBinary.WithRight(innerLeft.Left)
                                              .WithOperatorToken(newOperator));
                 }

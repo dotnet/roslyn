@@ -78,14 +78,14 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
             typeInfo.Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
         {
             forEachStatement = ForEachStatement(
-                Token(SyntaxKind.AwaitKeyword),
-                Token(SyntaxKind.ForEachKeyword),
-                Token(SyntaxKind.OpenParenToken),
+                AwaitKeyword,
+                ForEachKeyword,
+                OpenParenToken,
                 varIdentifier,
                 Identifier(itemString),
-                Token(SyntaxKind.InKeyword),
+                InKeyword,
                 collectionIdentifier.WithoutLeadingTrivia(),
-                Token(SyntaxKind.CloseParenToken),
+                CloseParenToken,
                 Block());
         }
         else

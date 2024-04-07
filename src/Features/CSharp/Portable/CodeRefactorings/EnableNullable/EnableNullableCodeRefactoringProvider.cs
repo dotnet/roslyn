@@ -133,12 +133,12 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
 
                 if (originalNode.SettingToken.IsKind(SyntaxKind.RestoreKeyword))
                 {
-                    return rewrittenNode.WithSettingToken(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithTriviaFrom(rewrittenNode.SettingToken));
+                    return rewrittenNode.WithSettingToken(DisableKeyword.WithTriviaFrom(rewrittenNode.SettingToken));
                 }
 
                 if (originalNode.SettingToken.IsKind(SyntaxKind.EnableKeyword))
                 {
-                    return rewrittenNode.WithSettingToken(SyntaxFactory.Token(SyntaxKind.RestoreKeyword).WithTriviaFrom(rewrittenNode.SettingToken));
+                    return rewrittenNode.WithSettingToken(RestoreKeyword.WithTriviaFrom(rewrittenNode.SettingToken));
                 }
 
                 Debug.Fail("Unexpected state?");
@@ -156,7 +156,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         // Add a new '#nullable disable' to the top of each file
         if (!HasLeadingNullableDirective(root, out var leadingDirective))
         {
-            var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
+            var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(DisableKeyword.WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
 
             var existingTriviaList = firstToken.LeadingTrivia;
             var insertionIndex = GetInsertionPoint(existingTriviaList);

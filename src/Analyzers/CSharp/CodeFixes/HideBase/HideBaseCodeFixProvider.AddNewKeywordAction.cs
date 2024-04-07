@@ -41,7 +41,7 @@ internal partial class HideBaseCodeFixProvider
         {
             var syntaxFacts = CSharpSyntaxFacts.Instance;
             var modifiers = syntaxFacts.GetModifiers(node);
-            var newModifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
+            var newModifiers = modifiers.Add(NewKeyword);
 
             if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(preferredModifierOrder, out var preferredOrder) ||
                 !AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))

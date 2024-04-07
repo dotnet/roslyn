@@ -916,7 +916,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
     }
 
     protected override SyntaxToken CommaTokenWithElasticSpace()
-        => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
+        => CommaToken.WithTrailingTrivia(ElasticSpace);
 
     protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);

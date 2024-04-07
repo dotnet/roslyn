@@ -69,9 +69,9 @@ internal static class UseExpressionBodyForLambdaCodeActionHelpers
         // statements to it.  So make a multi-line block so that things are formatted properly
         // for them to do so.
         return currentDeclaration.WithBody(Block(
-            Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed),
+            OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed),
             [statement],
-            Token(SyntaxKind.CloseBraceToken)));
+            CloseBraceToken));
     }
 
     private static bool CreateReturnStatementForExpression(

@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 using static CodeGenerationHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class ExpressionGenerator
@@ -299,7 +300,7 @@ internal static class ExpressionGenerator
 
     private static ExpressionSyntax GenerateMemberAccess(params string[] names)
     {
-        ExpressionSyntax result = IdentifierName(Token(SyntaxKind.GlobalKeyword));
+        ExpressionSyntax result = IdentifierName(GlobalKeyword);
         for (var i = 0; i < names.Length; i++)
         {
             var name = IdentifierName(names[i]);

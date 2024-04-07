@@ -39,7 +39,7 @@ internal partial class CSharpIntroduceVariableService
         var newLocalName = IdentifierName(newLocalNameToken);
 
         var modifiers = isConstant
-            ? TokenList(Token(SyntaxKind.ConstKeyword))
+            ? TokenList(ConstKeyword)
             : default;
 
         var declarationStatement = LocalDeclarationStatement(
@@ -205,7 +205,7 @@ internal partial class CSharpIntroduceVariableService
         //     });
         return Block(
             declarationStatement,
-            ExpressionStatement(rewrittenBody, Token(SyntaxKind.SemicolonToken)));
+            ExpressionStatement(rewrittenBody, SemicolonToken));
     }
 
     private static TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)

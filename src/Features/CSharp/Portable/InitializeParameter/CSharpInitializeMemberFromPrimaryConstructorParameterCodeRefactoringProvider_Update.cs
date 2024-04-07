@@ -234,7 +234,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                     editor.ReplaceNode(
                         propertyDeclaration,
                         newPropertyDeclaration.WithoutTrailingTrivia()
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
+                            .WithSemicolonToken(SemicolonToken.WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
                             .WithInitializer(initializer));
                     break;
                 }

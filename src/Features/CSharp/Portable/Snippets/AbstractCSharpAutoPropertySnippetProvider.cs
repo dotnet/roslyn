@@ -54,7 +54,7 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
         // If there are no preceding accessibility modifiers create default `public` one
         if (!syntaxContext.PrecedingModifiers.Any(SyntaxFacts.IsAccessibilityModifier))
         {
-            modifiers = SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            modifiers = SyntaxTokenList.Create(PublicKeyword);
         }
 
         return SyntaxFactory.PropertyDeclaration(

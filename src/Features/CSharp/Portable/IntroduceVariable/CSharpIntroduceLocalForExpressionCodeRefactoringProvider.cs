@@ -64,7 +64,7 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         {
             var expression = expressionStatement.Expression;
             localDeclaration = localDeclaration.ReplaceNode(value, expression.WithoutLeadingTrivia());
-            semicolonToken = Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
+            semicolonToken = SemicolonToken.WithTrailingTrivia(expression.GetTrailingTrivia());
         }
 
         return localDeclaration.WithSemicolonToken(semicolonToken);
@@ -80,7 +80,7 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         {
             var expression = expressionStatement.Expression;
             deconstruction = deconstruction.ReplaceNode(binary.Right, expression.WithoutLeadingTrivia());
-            semicolonToken = Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
+            semicolonToken = SemicolonToken.WithTrailingTrivia(expression.GetTrailingTrivia());
         }
 
         return deconstruction.WithSemicolonToken(semicolonToken);

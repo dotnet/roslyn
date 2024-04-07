@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 {
                     // Retry by parsing the namespace as a name and constructing a using directive from it
                     candidateUsing = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceToImport))
-                        .WithUsingKeyword(SyntaxFactory.Token(SyntaxKind.UsingKeyword).WithTrailingTrivia(SyntaxFactory.Space));
+                        .WithUsingKeyword(UsingKeyword.WithTrailingTrivia(SyntaxFactory.Space));
                 }
 
                 if (!existingUsings.Any(u => u.IsEquivalentTo(candidateUsing, topLevel: false)))

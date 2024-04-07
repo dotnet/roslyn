@@ -38,9 +38,9 @@ internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
 
     private ArgumentListSyntax CreateArgumentList(AnonymousObjectCreationExpressionSyntax anonymousObject)
         => SyntaxFactory.ArgumentList(
-            SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonymousObject.OpenBraceToken),
+            OpenParenToken.WithTriviaFrom(anonymousObject.OpenBraceToken),
             CreateArguments(anonymousObject.Initializers),
-            SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(anonymousObject.CloseBraceToken));
+            CloseParenToken.WithTriviaFrom(anonymousObject.CloseBraceToken));
 
     private SeparatedSyntaxList<ArgumentSyntax> CreateArguments(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
         => SyntaxFactory.SeparatedList<ArgumentSyntax>(CreateArguments(OmitTrailingComma(initializers.GetWithSeparators())));

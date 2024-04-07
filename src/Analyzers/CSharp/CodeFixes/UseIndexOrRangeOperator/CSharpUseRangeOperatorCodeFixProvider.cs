@@ -96,9 +96,9 @@ internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixP
         {
             var argList = invocation.ArgumentList;
             var argumentList = BracketedArgumentList(
-                    Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
+                    OpenBracketToken.WithTriviaFrom(argList.OpenParenToken),
                     arguments,
-                    Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken));
+                    CloseBracketToken.WithTriviaFrom(argList.CloseParenToken));
             if (invocation.Expression is MemberBindingExpressionSyntax)
             {
                 // x?.Substring(...) -> x?[...]

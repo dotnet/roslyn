@@ -103,9 +103,9 @@ internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : 
     internal static SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
     {
         var blockSyntax = SyntaxFactory.Block(
-            SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
+            OpenBraceToken.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
             new SyntaxList<StatementSyntax>((StatementSyntax)statement),
-            SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+            CloseBraceToken
                 .WithTrailingTrivia(((AccessorDeclarationSyntax)accessor).SemicolonToken.TrailingTrivia));
 
         return ((AccessorDeclarationSyntax)accessor).WithBody(blockSyntax);

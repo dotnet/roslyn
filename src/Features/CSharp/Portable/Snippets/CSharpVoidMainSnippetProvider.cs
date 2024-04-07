@@ -27,7 +27,7 @@ internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethod
     public override string Description => CSharpFeaturesResources.static_void_Main;
 
     protected override TypeSyntax GenerateReturnType(SyntaxGenerator generator)
-        => SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
+        => SyntaxFactory.PredefinedType(VoidKeyword);
 
     protected override IEnumerable<StatementSyntax> GenerateInnerStatements(SyntaxGenerator generator)
         => [];

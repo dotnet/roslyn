@@ -177,7 +177,7 @@ internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCo
         {
             // In C# 9 and higher, convert to `x is not string s`.
             return isPatternExpression.WithPattern(
-                UnaryPattern(Token(SyntaxKind.NotKeyword), isPatternExpression.Pattern));
+                UnaryPattern(NotKeyword, isPatternExpression.Pattern));
         }
 
         // In C# 8 and lower, convert to `!(x is string s)`

@@ -127,7 +127,7 @@ internal static class ConvertToRecordEngine
                 documentEditor.ReplaceNode(property, property
                     .WithInitializer(
                         EqualsValueClause(IdentifierName(property.Identifier.WithoutTrivia())))
-                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
+                    .WithSemicolonToken(SemicolonToken));
             }
             else
             {
@@ -266,7 +266,7 @@ internal static class ConvertToRecordEngine
 
         // if we have a class, move trivia from class keyword to record keyword
         // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
-        var recordKeyword = Token(SyntaxKind.RecordKeyword);
+        var recordKeyword = RecordKeyword;
         recordKeyword = type.TypeKind == TypeKind.Class
             ? recordKeyword.WithTriviaFrom(typeDeclaration.Keyword)
             : recordKeyword.WithLeadingTrivia(typeDeclaration.Keyword.LeadingTrivia);
@@ -391,16 +391,16 @@ internal static class ConvertToRecordEngine
             openBrace = default;
             closeBrace = default;
             semicolon = typeDeclaration.SemicolonToken == default
-                ? Token(SyntaxKind.SemicolonToken)
+                ? SemicolonToken
                 : typeDeclaration.SemicolonToken;
         }
         else
         {
             openBrace = typeDeclaration.OpenBraceToken == default
-                ? Token(SyntaxKind.OpenBraceToken)
+                ? OpenBraceToken
                 : typeDeclaration.OpenBraceToken;
             closeBrace = typeDeclaration.CloseBraceToken == default
-                ? Token(SyntaxKind.CloseBraceToken)
+                ? CloseBraceToken
                 : typeDeclaration.CloseBraceToken;
             semicolon = default;
 
@@ -459,7 +459,7 @@ internal static class ConvertToRecordEngine
             {
                 // convert attributes attached to the property with no target into "property :" targeted attributes
                 return attributeList
-                    .WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.PropertyKeyword)))
+                    .WithTarget(AttributeTargetSpecifier(PropertyKeyword))
                     .WithoutTrivia();
             }
             else
@@ -657,7 +657,7 @@ internal static class ConvertToRecordEngine
                             .WithLeadingTrivia(DocumentationCommentExterior("/**"))
                             .WithTrailingTrivia(exteriorTrivia)))
                         .Append(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
-                        Token(SyntaxKind.EndOfDocumentationCommentToken)
+                        EndOfDocumentationCommentToken
                             .WithTrailingTrivia(DocumentationCommentExterior("*/"), ElasticCarriageReturnLineFeed));
             }
             else

@@ -23,5 +23,5 @@ internal sealed class CSharpPropiSnippetProvider() : AbstractCSharpAutoPropertyS
     public override string Description => CSharpFeaturesResources.init_only_property;
 
     protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
-        => SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        => SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SemicolonToken);
 }

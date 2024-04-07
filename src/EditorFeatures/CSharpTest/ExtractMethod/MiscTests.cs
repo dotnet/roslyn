@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.Kind() == SyntaxKind.PublicKeyword);
 
             // replace the token with new one
-            var newRoot = rootWithAnnotation.ReplaceToken(publicToken, SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+            var newRoot = rootWithAnnotation.ReplaceToken(publicToken, PrivateKeyword);
 
             // restore trivia around it
             var rootWithTriviaRestored = result.RestoreTrivia(newRoot);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.Kind() == SyntaxKind.PublicKeyword);
 
             // replace the token with new one
-            var newRoot = rootWithAnnotation.ReplaceToken(publicToken, SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+            var newRoot = rootWithAnnotation.ReplaceToken(publicToken, PrivateKeyword);
 
             // restore trivia around it
             var rootWithTriviaRestored = result.RestoreTrivia(newRoot);

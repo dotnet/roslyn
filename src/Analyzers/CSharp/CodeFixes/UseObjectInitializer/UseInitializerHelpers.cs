@@ -57,7 +57,7 @@ internal static class UseInitializerHelpers
             var last = nodesAndTokens.Last();
             nodesAndTokens.RemoveLast();
             nodesAndTokens.Add(last.WithTrailingTrivia());
-            nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(last.GetTrailingTrivia()));
+            nodesAndTokens.Add(CommaToken.WithTrailingTrivia(last.GetTrailingTrivia()));
         }
     }
 }

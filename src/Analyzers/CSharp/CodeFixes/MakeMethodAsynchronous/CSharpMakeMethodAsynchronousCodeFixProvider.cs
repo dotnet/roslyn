@@ -27,7 +27,7 @@ internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodA
     private const string CS4034 = nameof(CS4034); // The 'await' operator can only be used within an async lambda expression. Consider marking this method with the 'async' modifier.
     private const string CS0246 = nameof(CS0246); // The type or namespace name 'await' could not be found
 
-    private static readonly SyntaxToken s_asyncToken = Token(SyntaxKind.AsyncKeyword);
+    private static readonly SyntaxToken s_asyncToken = AsyncKeyword;
 
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

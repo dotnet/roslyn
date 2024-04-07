@@ -185,15 +185,15 @@ internal partial class CSharpIntroduceVariableService
     {
         if (isConstant)
         {
-            return [Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ConstKeyword)];
+            return [PrivateKeyword, ConstKeyword];
         }
         else if (inScript)
         {
-            return [Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword)];
+            return [PrivateKeyword, ReadOnlyKeyword];
         }
         else
         {
-            return [Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword)];
+            return [PrivateKeyword, StaticKeyword, ReadOnlyKeyword];
         }
     }
 }

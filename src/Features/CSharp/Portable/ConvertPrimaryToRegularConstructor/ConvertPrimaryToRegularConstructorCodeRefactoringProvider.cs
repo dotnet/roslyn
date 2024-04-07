@@ -470,7 +470,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
             var constructorDeclaration = ConstructorDeclaration(
                 [.. methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))],
-                [Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)],
+                [PublicKeyword.WithAppendedTrailingTrivia(Space)],
                 typeDeclaration.Identifier.WithoutTrivia(),
                 rewrittenParameters.WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),

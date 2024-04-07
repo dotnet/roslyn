@@ -57,7 +57,7 @@ internal sealed class CSharpFullyQualifyService : AbstractFullyQualifyService<Si
             simpleName.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword.RawKind: 0 } usingDirective)
         {
             var newUsingDirective = usingDirective
-                .WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                .WithStaticKeyword(StaticKeyword)
                 .WithName(qualifiedName);
 
             return root.ReplaceNode(usingDirective, newUsingDirective);

@@ -48,7 +48,7 @@ internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
         if (InitializeParameterHelpers.IsExpressionBody(body))
         {
             return InitializeParameterHelpers.TryConvertExpressionBodyToStatement(body,
-                semicolonToken: Token(SyntaxKind.SemicolonToken),
+                semicolonToken: SemicolonToken,
                 createReturnStatementForExpression: false,
                 statement: out var _);
         }
@@ -66,7 +66,7 @@ internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
     {
         var withBlock = options.PreferBraces.Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
         var singleLine = options.AllowEmbeddedStatementsOnSameLine.Value;
-        var closeParenToken = Token(SyntaxKind.CloseParenToken);
+        var closeParenToken = CloseParenToken;
         if (withBlock)
         {
             ifTrueStatement = Block(ifTrueStatement);
@@ -82,8 +82,8 @@ internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
 
         return IfStatement(
             attributeLists: default,
-            ifKeyword: Token(SyntaxKind.IfKeyword),
-            openParenToken: Token(SyntaxKind.OpenParenToken),
+            ifKeyword: IfKeyword,
+            openParenToken: OpenParenToken,
             condition: condition,
             closeParenToken: closeParenToken,
             statement: ifTrueStatement,

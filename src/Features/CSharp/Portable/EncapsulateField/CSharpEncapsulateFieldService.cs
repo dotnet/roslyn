@@ -75,7 +75,7 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
 
             if (makePrivate)
             {
-                var modifiers = SpecializedCollections.SingletonEnumerable(Token(SyntaxKind.PrivateKeyword))
+                var modifiers = SpecializedCollections.SingletonEnumerable(PrivateKeyword)
                                                         .Concat(fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind())));
 
                 root = root.ReplaceNode(fieldSyntax, fieldSyntax

@@ -117,9 +117,9 @@ internal static class CSharpCollectionExpressionRewriter
                 var nullTokenAnnotation = new SyntaxAnnotation();
                 var initializer = InitializerExpression(
                     SyntaxKind.CollectionInitializerExpression,
-                    Token(SyntaxKind.OpenBraceToken).WithAdditionalAnnotations(openBraceTokenAnnotation),
-                    [LiteralExpression(SyntaxKind.NullLiteralExpression, Token(SyntaxKind.NullKeyword).WithAdditionalAnnotations(nullTokenAnnotation))],
-                    Token(SyntaxKind.CloseBraceToken));
+                    OpenBraceToken.WithAdditionalAnnotations(openBraceTokenAnnotation),
+                    [LiteralExpression(SyntaxKind.NullLiteralExpression, NullKeyword.WithAdditionalAnnotations(nullTokenAnnotation))],
+                    CloseBraceToken);
 
                 // Update the doc with the new object (now with initializer).
                 var updatedRoot = document.Root.ReplaceNode(
@@ -146,9 +146,9 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // Make the collection expression with the braces on new lines, at the desired brace indentation.
                 var finalCollection = CollectionExpression(
-                    Token(SyntaxKind.OpenBracketToken).WithLeadingTrivia(endOfLine, Whitespace(openBraceIndentation)).WithTrailingTrivia(endOfLine),
+                    OpenBracketToken.WithLeadingTrivia(endOfLine, Whitespace(openBraceIndentation)).WithTrailingTrivia(endOfLine),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                    Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(Whitespace(openBraceIndentation)));
+                    CloseBracketToken.WithLeadingTrivia(Whitespace(openBraceIndentation)));
 
                 // Now, figure out what trivia to move over from the original object over to the new collection.
                 return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
@@ -167,9 +167,9 @@ internal static class CSharpCollectionExpressionRewriter
                     nodesAndTokens[^1] = RemoveTrailingWhitespace(nodesAndTokens[^1]);
 
                 var collectionExpression = CollectionExpression(
-                    Token(SyntaxKind.OpenBracketToken).WithoutTrivia(),
+                    OpenBracketToken.WithoutTrivia(),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                    Token(SyntaxKind.CloseBracketToken).WithoutTrivia());
+                    CloseBracketToken.WithoutTrivia());
                 return collectionExpression.WithTriviaFrom(expressionToReplace);
             }
         }
@@ -337,7 +337,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                     nodesAndTokens[^1] = lastNode.WithTrailingTrivia(lastNode.GetTrailingTrivia().Where(t => !trailingWhitespaceAndComments.Contains(t)));
 
-                    var commaToken = Token(SyntaxKind.CommaToken)
+                    var commaToken = CommaToken
                         .WithoutLeadingTrivia()
                         .WithTrailingTrivia(TriviaList(trailingWhitespaceAndComments).AddRange(triviaAfterComma));
 
@@ -403,7 +403,7 @@ internal static class CSharpCollectionExpressionRewriter
         {
             return useSpread
                 ? SpreadElement(
-                    Token(SyntaxKind.DotDotToken).WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
+                    DotDotToken.WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
                     expression.WithoutLeadingTrivia())
                 : ExpressionElement(expression);
         }

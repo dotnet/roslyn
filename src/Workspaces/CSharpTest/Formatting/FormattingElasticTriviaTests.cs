@@ -159,7 +159,7 @@ public class SomeAttribute : System.Attribute { }
                             SyntaxKind.StringLiteralExpression,
                             Literal("42"))),
                 initializer: null,
-                semicolonToken: Token(SyntaxKind.SemicolonToken));
+                semicolonToken: SemicolonToken);
 
             var compilation = CompilationUnit(
                 externs: default,

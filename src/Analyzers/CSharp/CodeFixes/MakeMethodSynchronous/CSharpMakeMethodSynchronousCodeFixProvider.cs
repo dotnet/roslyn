@@ -63,7 +63,7 @@ internal class CSharpMakeMethodSynchronousCodeFixProvider : AbstractMakeMethodSy
         if (returnType.OriginalDefinition.Equals(knownTypes.TaskType))
         {
             // If the return type is Task, then make the new return type "void".
-            newReturnType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(returnTypeSyntax);
+            newReturnType = SyntaxFactory.PredefinedType(VoidKeyword).WithTriviaFrom(returnTypeSyntax);
         }
         else if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
         {

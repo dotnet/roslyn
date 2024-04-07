@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -17,6 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class ITypeSymbolExtensions
@@ -154,7 +152,7 @@ internal partial class ITypeSymbolExtensions
                 };
 
                 callingConventionSyntax = FunctionPointerCallingConvention(
-                    Token(SyntaxKind.UnmanagedKeyword),
+                    UnmanagedKeyword,
                     conventionsList is object
                         ? FunctionPointerUnmanagedCallingConventionList([.. conventionsList])
                         : null);
@@ -221,13 +219,13 @@ internal partial class ITypeSymbolExtensions
         }
 
         private static IdentifierNameSyntax CreateGlobalIdentifier()
-            => IdentifierName(Token(SyntaxKind.GlobalKeyword));
+            => IdentifierName(GlobalKeyword);
 
         private static TypeSyntax? TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
         {
             if (symbol.SpecialType == SpecialType.System_Void)
             {
-                return PredefinedType(Token(SyntaxKind.VoidKeyword));
+                return PredefinedType(VoidKeyword);
             }
 
             if (symbol.IsTupleType && symbol.TupleElements.Length >= 2)

@@ -55,11 +55,11 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
 
     protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxList<StatementSyntax> statementsToSurround)
         => UsingStatement(
-            Token(SyntaxKind.UsingKeyword).WithLeadingTrivia(declarationStatement.GetLeadingTrivia()),
-            Token(SyntaxKind.OpenParenToken),
+            UsingKeyword.WithLeadingTrivia(declarationStatement.GetLeadingTrivia()),
+            OpenParenToken,
             declaration: declarationStatement.Declaration.WithoutTrivia(),
             expression: null, // Declaration already has equals token and expression
-            Token(SyntaxKind.CloseParenToken).WithTrailingTrivia(declarationStatement.GetTrailingTrivia()),
+            CloseParenToken.WithTrailingTrivia(declarationStatement.GetTrailingTrivia()),
             statement: Block(statementsToSurround));
 
     protected override bool TryCreateUsingLocalDeclaration(

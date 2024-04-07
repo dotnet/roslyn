@@ -36,14 +36,14 @@ internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProv
 
     protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
     {
-        var restoreKeyword = Token(SyntaxKind.RestoreKeyword);
+        var restoreKeyword = RestoreKeyword;
         return CreatePragmaDirectiveTrivia(restoreKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
     }
 
     protected override SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(
         Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
     {
-        var disableKeyword = Token(SyntaxKind.DisableKeyword);
+        var disableKeyword = DisableKeyword;
         return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
     }
 
@@ -163,7 +163,7 @@ internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProv
         AttributeListSyntax attributeList;
         if (isAssemblyAttribute)
         {
-            var targetSpecifier = AttributeTargetSpecifier(Token(SyntaxKind.AssemblyKeyword));
+            var targetSpecifier = AttributeTargetSpecifier(AssemblyKeyword);
             attributeList = AttributeList(targetSpecifier, attributes);
         }
         else

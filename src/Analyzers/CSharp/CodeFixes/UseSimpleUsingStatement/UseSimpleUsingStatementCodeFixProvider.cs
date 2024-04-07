@@ -177,6 +177,6 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
             usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
             modifiers: default,
             usingStatement.Declaration,
-            Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
+            SemicolonToken).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
     }
 }

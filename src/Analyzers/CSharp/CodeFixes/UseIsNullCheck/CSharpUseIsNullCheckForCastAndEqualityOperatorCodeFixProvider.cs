@@ -91,7 +91,7 @@ internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : S
             return BinaryExpression(
                 SyntaxKind.IsExpression,
                 isPattern.Expression,
-                PredefinedType(Token(SyntaxKind.ObjectKeyword))).WithTriviaFrom(isPattern);
+                PredefinedType(ObjectKeyword)).WithTriviaFrom(isPattern);
         }
     }
 
@@ -106,7 +106,7 @@ internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : S
         var castExpr = (CastExpressionSyntax)expr;
         return IsPatternExpression(
             castExpr.Expression.WithTriviaFrom(binary.Left),
-            Token(SyntaxKind.IsKeyword).WithTriviaFrom(binary.OperatorToken),
+            IsKeyword.WithTriviaFrom(binary.OperatorToken),
             ConstantPattern(nullLiteral).WithTriviaFrom(binary.Right));
     }
 }

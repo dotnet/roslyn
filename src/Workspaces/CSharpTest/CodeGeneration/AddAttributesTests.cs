@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                         IdentifierName("System.Reflection.AssemblyVersion(\"1.0.0.0\")"))])
                 .WithTarget(
                     AttributeTargetSpecifier(
-                        Token(SyntaxKind.AssemblyKeyword)));
+                        AssemblyKeyword));
 
             var syntaxRoot = await doc.GetSyntaxRootAsync();
             var editor = await DocumentEditor.CreateAsync(doc);

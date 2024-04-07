@@ -34,7 +34,7 @@ internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemove
 
     protected override SyntaxNode? ConvertToBlockBody(SyntaxNode node, ExpressionSyntax expressionBody)
     {
-        var semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+        var semicolonToken = SemicolonToken;
         if (expressionBody.TryConvertToStatement(semicolonToken, createReturnStatementForExpression: false, out var statement))
         {
             var block = SyntaxFactory.Block(statement);

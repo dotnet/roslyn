@@ -48,7 +48,7 @@ internal sealed class OutVariableArgumentProvider : ArgumentProvider
 
         var syntax = Argument(
             nameColon: null,
-            refKindKeyword: Token(SyntaxKind.OutKeyword),
+            refKindKeyword: OutKeyword,
             DeclarationExpression(
                 type: IdentifierName("var"),
                 designation: SingleVariableDesignation(Identifier(
