@@ -290,7 +290,7 @@ internal partial class CSharpSelectionValidator(
                     break;
                 }
 
-            case GlobalStatementSyntax _:
+            case GlobalStatementSyntax:
                 return true;
             case ConstructorInitializerSyntax constructorInitializer:
                 return constructorInitializer.ContainsInArgument(span);
