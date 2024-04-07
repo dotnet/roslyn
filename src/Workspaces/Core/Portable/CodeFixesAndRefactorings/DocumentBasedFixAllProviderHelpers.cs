@@ -56,6 +56,10 @@ internal static class DocumentBasedFixAllProviderHelpers
 
                 // TODO: consider computing this in parallel.
                 var singleContextDocIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+
+                // Note: it is safe to blindly add the dictionary for a particular context to the full dictionary.  Each
+                // dictionary will only update documents within that context, and each context represents a distinct
+                // project, so these should all be distinct without collisions.
                 allContextsDocIdToNewRootOrText.AddRange(singleContextDocIdToNewRootOrText);
             }
         }
