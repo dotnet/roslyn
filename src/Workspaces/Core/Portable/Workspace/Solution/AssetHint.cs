@@ -35,14 +35,19 @@ internal readonly struct AssetPath
 
     [DataMember(Order = 0)]
     private readonly AssetPathKind _kind;
+#pragma warning disable IDE0052 // Remove unread private members
     [DataMember(Order = 1)]
-    public readonly ProjectId? ProjectId;
+    private readonly bool _forTesting;
+#pragma warning restore IDE0052 // Remove unread private members
     [DataMember(Order = 2)]
+    public readonly ProjectId? ProjectId;
+    [DataMember(Order = 3)]
     public readonly DocumentId? DocumentId;
 
     private AssetPath(AssetPathKind kind, bool forTesting, ProjectId? projectId = null, DocumentId? documentId = null)
     {
         _kind = kind;
+        _forTesting = forTesting;
         ProjectId = projectId;
         DocumentId = documentId;
 
@@ -72,7 +77,7 @@ internal readonly struct AssetPath
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) == AssetPathKind.Projects;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) == AssetPathKind.Documents;
 
-    public static implicit operator AssetPath(ProjectId projectId) => new(kind: AssetPathKind.Projects, forTesting: false, projectId, documentId: null);
+    public static implicit operator AssetPath(ProjectId projectId) => new(kind: AssetPathKind.Solution | AssetPathKind.Projects, forTesting: false, projectId, documentId: null);
     public static implicit operator AssetPath(DocumentId documentId) => new(kind: AssetPathKind.Documents, forTesting: false, documentId.ProjectId, documentId);
 
     [Flags]
