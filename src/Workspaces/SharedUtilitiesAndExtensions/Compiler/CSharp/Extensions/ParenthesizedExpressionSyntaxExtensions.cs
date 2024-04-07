@@ -739,16 +739,16 @@ internal static class ParenthesizedExpressionSyntaxExtensions
     {
         switch (pattern)
         {
-            case ConstantPatternSyntax _:
-            case DiscardPatternSyntax _:
-            case DeclarationPatternSyntax _:
-            case RecursivePatternSyntax _:
-            case TypePatternSyntax _:
-            case VarPatternSyntax _:
+            case ConstantPatternSyntax:
+            case DiscardPatternSyntax:
+            case DeclarationPatternSyntax:
+            case RecursivePatternSyntax:
+            case TypePatternSyntax:
+            case VarPatternSyntax:
                 return OperatorPrecedence.Primary;
 
-            case UnaryPatternSyntax _:
-            case RelationalPatternSyntax _:
+            case UnaryPatternSyntax:
+            case RelationalPatternSyntax:
                 return OperatorPrecedence.Unary;
 
             case BinaryPatternSyntax binaryPattern:
