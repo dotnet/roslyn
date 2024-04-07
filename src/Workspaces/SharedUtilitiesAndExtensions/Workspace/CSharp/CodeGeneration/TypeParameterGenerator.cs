@@ -5,11 +5,12 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static SyntaxFactory;
 
 internal static class TypeParameterGenerator
 {
@@ -18,17 +19,17 @@ internal static class TypeParameterGenerator
     {
         return typeParameters.Length == 0
             ? null
-            : SyntaxFactory.TypeParameterList(
+            : TypeParameterList(
                 [.. typeParameters.Select(t => GenerateTypeParameter(t, info))]);
     }
 
     private static TypeParameterSyntax GenerateTypeParameter(ITypeParameterSymbol symbol, CSharpCodeGenerationContextInfo info)
     {
         var varianceKeyword =
-            symbol.Variance == VarianceKind.In ? SyntaxFactory.Token(SyntaxKind.InKeyword) :
-            symbol.Variance == VarianceKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default;
+            symbol.Variance == VarianceKind.In ? Token(SyntaxKind.InKeyword) :
+            symbol.Variance == VarianceKind.Out ? Token(SyntaxKind.OutKeyword) : default;
 
-        return SyntaxFactory.TypeParameter(
+        return TypeParameter(
             AttributeGenerator.GenerateAttributeLists(symbol.GetAttributes(), info),
             varianceKeyword,
             symbol.Name.ToIdentifierToken());

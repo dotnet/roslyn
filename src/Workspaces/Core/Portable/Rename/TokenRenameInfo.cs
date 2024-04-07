@@ -29,7 +29,7 @@ internal sealed class TokenRenameInfo(bool hasSymbols, IEnumerable<ISymbol> symb
         (
             hasSymbols: true,
             isMemberGroup: false,
-            symbols: SpecializedCollections.SingletonEnumerable(symbol)
+            symbols: [symbol]
         );
     }
 

@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
+using static SyntaxFactory;
+
 internal static partial class ExpressionSyntaxExtensions
 {
     public static ExpressionSyntax Parenthesize(
@@ -55,11 +57,11 @@ internal static partial class ExpressionSyntaxExtensions
     {
         var withoutTrivia = expression.WithoutTrivia();
         var parenthesized = includeElasticTrivia
-            ? SyntaxFactory.ParenthesizedExpression(withoutTrivia)
-            : SyntaxFactory.ParenthesizedExpression(
-                SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
+            ? ParenthesizedExpression(withoutTrivia)
+            : ParenthesizedExpression(
+                Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
                 withoutTrivia,
-                SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+                Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
 
         return parenthesized.WithTriviaFrom(expression);
     }
@@ -69,11 +71,11 @@ internal static partial class ExpressionSyntaxExtensions
     {
         var withoutTrivia = pattern.WithoutTrivia();
         var parenthesized = includeElasticTrivia
-            ? SyntaxFactory.ParenthesizedPattern(withoutTrivia)
-            : SyntaxFactory.ParenthesizedPattern(
-                SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
+            ? ParenthesizedPattern(withoutTrivia)
+            : ParenthesizedPattern(
+                Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
                 withoutTrivia,
-                SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+                Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
 
         var result = parenthesized.WithTriviaFrom(pattern);
         return addSimplifierAnnotation
@@ -86,7 +88,7 @@ internal static partial class ExpressionSyntaxExtensions
         ITypeSymbol targetType)
     {
         var parenthesized = expression.Parenthesize();
-        var castExpression = SyntaxFactory.CastExpression(
+        var castExpression = CastExpression(
             targetType.GenerateTypeSyntax(), parenthesized.WithoutTrivia()).WithTriviaFrom(parenthesized);
 
         return castExpression.WithAdditionalAnnotations(Simplifier.Annotation);

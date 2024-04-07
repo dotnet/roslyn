@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement;
 
 using static IntegerUtilities;
+using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ReverseForStatement), Shared]
 internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
@@ -334,7 +335,7 @@ internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactorin
                     innerRight.Kind() == SyntaxKind.SubtractExpression &&
                     IsLiteralOne(innerRight.Right))
                 {
-                    var newOperator = SyntaxFactory.Token(SyntaxKind.LessThanToken).WithTriviaFrom(outerBinary.OperatorToken);
+                    var newOperator = Token(SyntaxKind.LessThanToken).WithTriviaFrom(outerBinary.OperatorToken);
                     return Reduce(outerBinary.WithRight(innerRight.Left)
                                              .WithOperatorToken(newOperator));
                 }
@@ -344,7 +345,7 @@ internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactorin
                     innerLeft.Kind() == SyntaxKind.SubtractExpression &&
                     IsLiteralOne(innerLeft.Right))
                 {
-                    var newOperator = SyntaxFactory.Token(SyntaxKind.GreaterThanToken).WithTriviaFrom(outerBinary.OperatorToken);
+                    var newOperator = Token(SyntaxKind.GreaterThanToken).WithTriviaFrom(outerBinary.OperatorToken);
                     return Reduce(outerBinary.WithRight(innerLeft.Left)
                                              .WithOperatorToken(newOperator));
                 }
@@ -369,8 +370,8 @@ internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactorin
             ? SyntaxKind.GreaterThanOrEqualExpression
             : SyntaxKind.LessThanOrEqualExpression;
 
-        var newOperator = SyntaxFactory.Token(newOperatorKind).WithTriviaFrom(condition.OperatorToken);
-        return SyntaxFactory.BinaryExpression(newExpressionKind, left, newOperator, right);
+        var newOperator = Token(newOperatorKind).WithTriviaFrom(condition.OperatorToken);
+        return BinaryExpression(newExpressionKind, left, newOperator, right);
     }
 
     private static ExpressionSyntax InvertAfter(ExpressionSyntax after)
@@ -392,7 +393,7 @@ internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactorin
             _ => throw ExceptionUtilities.UnexpectedValue(opToken.Kind())
         };
 
-        var newOpToken = SyntaxFactory.Token(newKind).WithTriviaFrom(opToken);
+        var newOpToken = Token(newKind).WithTriviaFrom(opToken);
         return after.ReplaceToken(opToken, newOpToken);
     }
 }

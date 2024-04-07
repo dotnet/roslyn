@@ -90,7 +90,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                         var textChangeRange = new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength);
                         this.AccumulatedTextChanges = this.AccumulatedTextChanges == null
                             ? textChangeRange
-                            : this.AccumulatedTextChanges.Accumulate(SpecializedCollections.SingletonEnumerable(textChangeRange));
+                            : this.AccumulatedTextChanges.Accumulate([textChangeRange]);
                     }
 
                     break;

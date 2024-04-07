@@ -787,7 +787,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         if (IsWebsite(project))
         {
-            AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, documentKind, initialText, info.FilePath);
+            AddDocumentToFolder(project, info.Id, [AppCodeFolderName], info.Name, documentKind, initialText, info.FilePath);
         }
         else if (folders.Any())
         {

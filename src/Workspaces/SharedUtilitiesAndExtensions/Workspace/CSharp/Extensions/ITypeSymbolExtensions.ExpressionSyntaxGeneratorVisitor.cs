@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
+using static SyntaxFactory;
+
 internal partial class ITypeSymbolExtensions
 {
     private class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
@@ -29,7 +31,7 @@ internal partial class ITypeSymbolExtensions
         private static TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
             where TExpressionSyntax : ExpressionSyntax
         {
-            syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
+            syntax = syntax.WithPrependedLeadingTrivia(ElasticMarker).WithAppendedTrailingTrivia(ElasticMarker);
             syntax = syntax.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol));
 
             return syntax;
@@ -64,8 +66,8 @@ internal partial class ITypeSymbolExtensions
                     if (symbol.TypeKind != TypeKind.Error)
                     {
                         return AddInformationTo(
-                            SyntaxFactory.AliasQualifiedName(
-                                SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                            AliasQualifiedName(
+                                IdentifierName(Token(SyntaxKind.GlobalKeyword)),
                                 simpleNameSyntax), symbol);
                     }
                 }
@@ -90,8 +92,8 @@ internal partial class ITypeSymbolExtensions
             if (symbol.ContainingNamespace.IsGlobalNamespace)
             {
                 return AddInformationTo(
-                    SyntaxFactory.AliasQualifiedName(
-                        SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                    AliasQualifiedName(
+                        IdentifierName(Token(SyntaxKind.GlobalKeyword)),
                         syntax), symbol);
             }
             else
@@ -104,7 +106,7 @@ internal partial class ITypeSymbolExtensions
         private static MemberAccessExpressionSyntax CreateMemberAccessExpression(
             ISymbol symbol, ExpressionSyntax container, SimpleNameSyntax syntax)
         {
-            return AddInformationTo(SyntaxFactory.MemberAccessExpression(
+            return AddInformationTo(MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 container, syntax), symbol);
         }

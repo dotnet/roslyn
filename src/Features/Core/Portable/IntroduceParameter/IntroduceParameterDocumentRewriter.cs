@@ -668,9 +668,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         private async Task<IEnumerable<TExpressionSyntax>> FindMatchesAsync(CancellationToken cancellationToken)
         {
             if (!_allOccurrences)
-            {
-                return SpecializedCollections.SingletonEnumerable(_expression);
-            }
+                return [_expression];
 
             var syntaxFacts = _originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var originalSemanticModel = await _originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
