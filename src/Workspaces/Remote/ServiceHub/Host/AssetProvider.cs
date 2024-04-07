@@ -51,9 +51,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     {
         using var _ = PooledDictionary<Checksum, object>.GetInstance(out var results);
 
-        // bulk synchronize checksums first
-        var syncer = new ChecksumSynchronizer(this);
-        await syncer.SynchronizeAssetsAsync(assetPath, checksums, results, cancellationToken).ConfigureAwait(false);
+        await this.SynchronizeAssetsAsync(assetPath, checksums, results, cancellationToken).ConfigureAwait(false);
 
         var result = new (Checksum checksum, T asset)[checksums.Count];
         var index = 0;

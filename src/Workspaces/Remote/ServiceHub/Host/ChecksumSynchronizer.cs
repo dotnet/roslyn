@@ -107,14 +107,14 @@ internal sealed partial class AssetProvider
 
             async ValueTask CollectChecksumChildrenAsync(ChecksumSynchronizer @this, ChecksumsAndIds<DocumentId> collection)
             {
-                foreach (var (checksum, documentId) in collection)
+                // This GetAssetsAsync call should be fast since they were just retrieved above.  There's a small chance
+                // the asset-cache GC pass may have cleaned them up, but that should be exceedingly rare.
+                var allDocChecksums = await @this._assetProvider.GetAssetsAsync<DocumentStateChecksums>(
+                    AssetPath.ProjectAndDocuments(projectChecksum.ProjectId), collection.Checksums, cancellationToken).ConfigureAwait(false);
+                foreach (var docChecksums in allDocChecksums)
                 {
-                    // These GetAssetAsync calls should be fast since they were just retrieved above.  There's a small
-                    // chance the asset-cache GC pass may have cleaned them up, but that should be exceedingly rare.
-                    var checksumObject = await @this._assetProvider.GetAssetAsync<DocumentStateChecksums>(
-                        assetPath: documentId, checksum, cancellationToken).ConfigureAwait(false);
-                    checksums.Add(checksumObject.Info);
-                    checksums.Add(checksumObject.Text);
+                    checksums.Add(docChecksums.Info);
+                    checksums.Add(docChecksums.Text);
                 }
             }
         }
