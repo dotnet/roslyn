@@ -8,15 +8,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 internal sealed partial class SearchGraphQuery(
     string searchPattern,
-    NavigateToDocumentSupport searchScope,
-    IAsynchronousOperationListener asyncListener) : IGraphQuery
+    NavigateToDocumentSupport searchScope) : IGraphQuery
 {
     public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
@@ -33,7 +31,6 @@ internal sealed partial class SearchGraphQuery(
 
         var searcher = NavigateToSearcher.Create(
             solution,
-            asyncListener,
             callback,
             searchPattern,
             NavigateToUtilities.GetKindsProvided(solution),
