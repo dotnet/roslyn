@@ -10,29 +10,28 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
+namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+
+internal partial class CSharpUseCollectionInitializerCodeFixProvider
 {
-    internal partial class CSharpUseCollectionInitializerCodeFixProvider
+    /// <summary>
+    /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref
+    /// name="objectCreation"/> expression.
+    /// </summary>
+    private static Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
+        Document document,
+        CodeActionOptionsProvider fallbackOptions,
+        BaseObjectCreationExpressionSyntax objectCreation,
+        ImmutableArray<Match<StatementSyntax>> matches,
+        CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref
-        /// name="objectCreation"/> expression.
-        /// </summary>
-        private static Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
-            Document document,
-            CodeActionOptionsProvider fallbackOptions,
-            BaseObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<StatementSyntax>> matches,
-            CancellationToken cancellationToken)
-        {
-            return CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
-                document,
-                fallbackOptions,
-                objectCreation,
-                matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
-                static objectCreation => objectCreation.Initializer,
-                static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
-                cancellationToken);
-        }
+        return CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+            document,
+            fallbackOptions,
+            objectCreation,
+            matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
+            static objectCreation => objectCreation.Initializer,
+            static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
+            cancellationToken);
     }
 }

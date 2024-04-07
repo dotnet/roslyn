@@ -62,6 +62,11 @@
         <target state="translated">'{0}' 的專案路徑為 null</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_build_host_could_not_be_found_at_0">
+        <source>The build host could not be found at '{0}'</source>
+        <target state="translated">在 '{0}' 找不到組建主機</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">
         <source>Unable to add metadata reference '{0}'</source>
         <target state="translated">無法新增中繼資料參照 '{0}'</target>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // internal usage of experimental API
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -13,6 +15,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets a <see cref="SemanticModel"/> for the given <paramref name="tree"/> that belongs to the given <paramref name="compilation"/>.
         /// </summary>
-        public abstract SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false);
+        public abstract SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, SemanticModelOptions options = default);
     }
 }

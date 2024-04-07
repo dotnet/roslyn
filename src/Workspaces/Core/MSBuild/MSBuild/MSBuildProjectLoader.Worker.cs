@@ -176,7 +176,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     return []; // Failure should already be reported.
                 }
 
-                var (buildHost, buildHostPreferredKind) = await _buildHostProcessManager.GetBuildHostAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
+                var (buildHost, actualBuildHostKind) = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken).ConfigureAwait(false);
                 var projectFile = await DoOperationAndReportProgressAsync(
                     ProjectLoadOperation.Evaluate,
                     projectPath,
@@ -351,7 +352,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
                         // TODO: https://github.com/dotnet/roslyn/issues/4967
                         .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory)))
-                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
+                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths, Path.GetTempPath()))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
                     var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);

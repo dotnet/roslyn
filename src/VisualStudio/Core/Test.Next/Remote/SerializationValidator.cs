@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Test.Utilities;
@@ -21,15 +22,23 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     internal sealed class SerializationValidator
     {
-        private sealed class AssetProvider : AbstractAssetProvider
+        private sealed class AssetProvider(SerializationValidator validator) : AbstractAssetProvider
         {
-            private readonly SerializationValidator _validator;
+            public override async ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken)
+                => await validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
 
-            public AssetProvider(SerializationValidator validator)
-                => _validator = validator;
+            public override async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+            {
+                using var _ = ArrayBuilder<(Checksum checksum, T asset)>.GetInstance(out var result);
 
-            public override async ValueTask<T> GetAssetAsync<T>(AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
-                => await _validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
+                foreach (var checksum in checksums)
+                {
+                    var value = await GetAssetAsync<T>(assetPath, checksum, cancellationToken).ConfigureAwait(false);
+                    result.Add((checksum, value));
+                }
+
+                return result.ToImmutable();
+            }
         }
 
         internal sealed class ChecksumObjectCollection<T> : IEnumerable<T>
@@ -249,8 +258,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal void SolutionCompilationStateEqual(SolutionCompilationStateChecksums solutionObject1, SolutionCompilationStateChecksums solutionObject2)
         {
             Assert.Equal(solutionObject1.Checksum, solutionObject2.Checksum);
-            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentIdentity, solutionObject2.FrozenSourceGeneratedDocumentIdentity);
-            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentText, solutionObject2.FrozenSourceGeneratedDocumentText);
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentIdentities.HasValue, solutionObject2.FrozenSourceGeneratedDocumentIdentities.HasValue);
+            if (solutionObject1.FrozenSourceGeneratedDocumentIdentities.HasValue)
+                AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocumentIdentities.Value, solutionObject2.FrozenSourceGeneratedDocumentIdentities!.Value);
+
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocuments.HasValue, solutionObject2.FrozenSourceGeneratedDocuments.HasValue);
+            if (solutionObject1.FrozenSourceGeneratedDocuments.HasValue)
+                AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocuments.Value, solutionObject2.FrozenSourceGeneratedDocuments!.Value);
         }
 
         internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)

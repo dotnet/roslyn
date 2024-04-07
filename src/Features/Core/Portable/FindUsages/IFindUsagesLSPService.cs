@@ -7,20 +7,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.FindUsages
-{
-    internal interface IFindUsagesLSPService : ILanguageService
-    {
-        /// <summary>
-        /// Finds the references for the symbol at the specific position in the document,
-        /// pushing the results into the context instance.
-        /// </summary>
-        Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.FindUsages;
 
-        /// <summary>
-        /// Finds the implementations for the symbol at the specific position in the document,
-        /// pushing the results into the context instance.
-        /// </summary>
-        Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken);
-    }
+internal interface IFindUsagesLSPService : ILanguageService
+{
+    /// <summary>
+    /// Finds the references for the symbol at the specific position in the document,
+    /// pushing the results into the context instance.
+    /// </summary>
+    Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Finds the implementations for the symbol at the specific position in the document,
+    /// pushing the results into the context instance.
+    /// </summary>
+    Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken);
 }

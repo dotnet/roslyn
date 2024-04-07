@@ -60,6 +60,7 @@ internal sealed class ConditionalExpressionPlacementDiagnosticAnalyzer : Abstrac
             this.Descriptor,
             conditionalExpression.QuestionToken.GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: null,
             properties: null));
 

@@ -4,11 +4,10 @@
 
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal interface IPreviewFactoryService
 {
-    internal interface IPreviewFactoryService
-    {
-        SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken);
-        SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution newSolution, double zoomLevel, CancellationToken cancellationToken);
-    }
+    SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken);
+    SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution newSolution, double zoomLevel, CancellationToken cancellationToken);
 }

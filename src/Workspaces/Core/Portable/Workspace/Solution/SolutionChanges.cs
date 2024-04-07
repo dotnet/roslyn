@@ -6,78 +6,77 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public readonly struct SolutionChanges
 {
-    public readonly struct SolutionChanges
+    private readonly Solution _newSolution;
+    private readonly Solution _oldSolution;
+
+    internal SolutionChanges(Solution newSolution, Solution oldSolution)
     {
-        private readonly Solution _newSolution;
-        private readonly Solution _oldSolution;
+        _newSolution = newSolution;
+        _oldSolution = oldSolution;
+    }
 
-        internal SolutionChanges(Solution newSolution, Solution oldSolution)
+    public IEnumerable<Project> GetAddedProjects()
+    {
+        foreach (var id in _newSolution.ProjectIds)
         {
-            _newSolution = newSolution;
-            _oldSolution = oldSolution;
-        }
-
-        public IEnumerable<Project> GetAddedProjects()
-        {
-            foreach (var id in _newSolution.ProjectIds)
+            if (!_oldSolution.ContainsProject(id))
             {
-                if (!_oldSolution.ContainsProject(id))
-                {
-                    yield return _newSolution.GetRequiredProject(id);
-                }
+                yield return _newSolution.GetRequiredProject(id);
             }
         }
+    }
 
-        public IEnumerable<ProjectChanges> GetProjectChanges()
+    public IEnumerable<ProjectChanges> GetProjectChanges()
+    {
+        var old = _oldSolution;
+
+        // if the project states are different then there is a change.
+        foreach (var id in _newSolution.ProjectIds)
         {
-            var old = _oldSolution;
-
-            // if the project states are different then there is a change.
-            foreach (var id in _newSolution.ProjectIds)
+            var newState = _newSolution.GetProjectState(id);
+            var oldState = old.GetProjectState(id);
+            if (oldState != null && newState != null && newState != oldState)
             {
-                var newState = _newSolution.GetProjectState(id);
-                var oldState = old.GetProjectState(id);
-                if (oldState != null && newState != null && newState != oldState)
-                {
-                    yield return _newSolution.GetRequiredProject(id).GetChanges(_oldSolution.GetRequiredProject(id));
-                }
+                yield return _newSolution.GetRequiredProject(id).GetChanges(_oldSolution.GetRequiredProject(id));
             }
         }
+    }
 
-        public IEnumerable<Project> GetRemovedProjects()
+    public IEnumerable<Project> GetRemovedProjects()
+    {
+        foreach (var id in _oldSolution.ProjectIds)
         {
-            foreach (var id in _oldSolution.ProjectIds)
+            if (!_newSolution.ContainsProject(id))
             {
-                if (!_newSolution.ContainsProject(id))
-                {
-                    yield return _oldSolution.GetRequiredProject(id);
-                }
+                yield return _oldSolution.GetRequiredProject(id);
             }
         }
+    }
 
-        public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
+    public IEnumerable<AnalyzerReference> GetAddedAnalyzerReferences()
+    {
+        var oldAnalyzerReferences = new HashSet<AnalyzerReference>(_oldSolution.AnalyzerReferences);
+        foreach (var analyzerReference in _newSolution.AnalyzerReferences)
         {
-            var oldAnalyzerReferences = new HashSet<AnalyzerReference>(_oldSolution.AnalyzerReferences);
-            foreach (var analyzerReference in _newSolution.AnalyzerReferences)
+            if (!oldAnalyzerReferences.Contains(analyzerReference))
             {
-                if (!oldAnalyzerReferences.Contains(analyzerReference))
-                {
-                    yield return analyzerReference;
-                }
+                yield return analyzerReference;
             }
         }
+    }
 
-        public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
+    public IEnumerable<AnalyzerReference> GetRemovedAnalyzerReferences()
+    {
+        var newAnalyzerReferences = new HashSet<AnalyzerReference>(_newSolution.AnalyzerReferences);
+        foreach (var analyzerReference in _oldSolution.AnalyzerReferences)
         {
-            var newAnalyzerReferences = new HashSet<AnalyzerReference>(_newSolution.AnalyzerReferences);
-            foreach (var analyzerReference in _oldSolution.AnalyzerReferences)
+            if (!newAnalyzerReferences.Contains(analyzerReference))
             {
-                if (!newAnalyzerReferences.Contains(analyzerReference))
-                {
-                    yield return analyzerReference;
-                }
+                yield return analyzerReference;
             }
         }
     }

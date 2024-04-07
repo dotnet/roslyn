@@ -15,5 +15,5 @@ internal interface IInitializationService
     /// <summary>
     /// Called when the language server is being initialized.
     /// </summary>
-    Task OnInitializedAsync(IClientCapabilityProvider capabilityProvider, CancellationToken cancellationToken);
+    Task OnInitializedAsync(IClientRequestManager clientRequestManager, IClientCapabilityProvider capabilityProvider, CancellationToken cancellationToken);
 }

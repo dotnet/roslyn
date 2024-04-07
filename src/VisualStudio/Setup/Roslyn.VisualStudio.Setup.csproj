@@ -19,12 +19,6 @@
 
     <!-- VS Insertion -->
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
-  
-    <!-- ServiceHub AssemblyPath -->
-    <!-- Path to our servicehub entry point dll in the vsix directory relative 
-         to our servicehub.servicehub.json files in the same vsix directory -->
-    <ServiceHubAssemblyBasePath>.\</ServiceHubAssemblyBasePath>
-    <ServiceHubHostRuntime>desktop</ServiceHubHostRuntime>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
@@ -141,7 +135,7 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.csproj">
+    <ProjectReference Include="..\..\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Binary\Microsoft.CommonLanguageServerProtocol.Framework.Binary.csproj">
       <Name>Microsoft.CommonLanguageServerProtocolFramework</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -328,6 +322,19 @@
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\..\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
+      <Name>SemanticSearchRefs</Name>
+
+      <SetTargetFramework>TargetFramework=$(NetRoslyn)</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
+      <Private>false</Private>
+      <VSIXSubPath>SemanticSearchRefs</VSIXSubPath>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <Ngen>false</Ngen>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" IncludeInVsix="true" PkgDefEntry="CodeBase" />
@@ -347,7 +354,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>
     </Content>
-    <Content Include="UnifiedSettings\*.registration.json" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

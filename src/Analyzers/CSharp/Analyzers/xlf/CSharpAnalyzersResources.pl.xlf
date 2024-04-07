@@ -172,11 +172,6 @@
         <target state="translated">Usuwanie nadmiarowej dyrektywy dopuszczania wartości null</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">Usuń operatory pomijania</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Usuń niepotrzebne wyrażenie lambda</target>
@@ -457,8 +452,8 @@
         <target state="translated">Wyrażenie „new” można uprościć</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">Element „typeof” można przekonwertować na element „nameof”</target>
         <note />
       </trans-unit>

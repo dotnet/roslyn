@@ -4117,9 +4117,11 @@ index: 1);
 
                     S(dynamic y)
                     {
-                        [|object.Equals|](y, 0);
+                        [|S.Equals|](y, 0);
                         x = y;
                     }
+
+                    static bool Equals(S s, object y) => false;
                 }
                 """);
         }
@@ -4190,10 +4192,10 @@ index: 1);
 
                 class B
                 {
-                    public static void Goo(int x, object y)
-                    {
-                    }
+                    public static void Goo(int x, object y) {}
 
+                    public static void Goo(long x, object y) {}
+                
                     static void Main()
                     {
                         C<string>.D.Goo(0);
@@ -4272,10 +4274,10 @@ index: 1);
 
                 class B
                 {
-                    static void Goo(int x, object y)
-                    {
-                    }
-
+                    static void Goo(int x, object y) {}
+                    
+                    static void Goo(long x, object y) {}
+                
                     static void Goo<T>(dynamic x)
                     {
                         Console.WriteLine([|C<T>.Goo|](x, "));

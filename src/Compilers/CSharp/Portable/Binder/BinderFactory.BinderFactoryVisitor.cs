@@ -17,25 +17,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class BinderFactory
     {
-        private sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
+        internal sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
         {
             private int _position;
             private CSharpSyntaxNode _memberDeclarationOpt;
             private Symbol _memberOpt;
-            private readonly BinderFactory _factory;
+            private BinderFactory _factory;
 
-            internal BinderFactoryVisitor(BinderFactory factory)
-            {
-                _factory = factory;
-            }
-
-            internal void Initialize(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
+            internal void Initialize(BinderFactory factory, int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
             {
                 Debug.Assert((memberDeclarationOpt == null) == (memberOpt == null));
 
+                _factory = factory;
                 _position = position;
                 _memberDeclarationOpt = memberDeclarationOpt;
                 _memberOpt = memberOpt;
+            }
+
+            internal void Clear()
+            {
+                _factory = null;
+                _position = 0;
+                _memberDeclarationOpt = null;
+                _memberOpt = null;
             }
 
             private CSharpCompilation compilation
@@ -1393,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             StructuredTriviaSyntax structuredTrivia = GetEnclosingDocumentationComment(xmlSyntax);
             SyntaxTrivia containingTrivia = structuredTrivia.ParentTrivia;
-            SyntaxToken associatedToken = (SyntaxToken)containingTrivia.Token;
+            SyntaxToken associatedToken = containingTrivia.Token;
 
             CSharpSyntaxNode curr = (CSharpSyntaxNode)associatedToken.Parent;
             while (curr != null)
@@ -1401,7 +1405,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberDeclarationSyntax memberSyntax = curr as MemberDeclarationSyntax;
                 if (memberSyntax != null)
                 {
-                    // CONSIDER: require that the xml syntax precede the start of the member span?
+                    // The doc comment must be in the leading trivia of its associated member.
+                    if (!memberSyntax.GetLeadingTrivia().Contains(containingTrivia))
+                    {
+                        return null;
+                    }
+
                     return memberSyntax;
                 }
                 curr = curr.Parent;

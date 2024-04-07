@@ -10535,7 +10535,7 @@ End Class"
             Dim generator = New SingleFileTestGenerator(generatedSource, "generatedSource.vb")
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, generators:={generator})
 
-            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator)
+            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(baseDirectory:=generatedDir.Path, generator)
             ValidateWrittenSources(New Dictionary(Of String, Dictionary(Of String, String))() From
                 {{generatedDir.Path, New Dictionary(Of String, String)()}}
             )
@@ -10582,7 +10582,7 @@ End Class"
             Dim generator = New SingleFileTestGenerator(generatedSource, "generatedSource.vb")
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/generatedfilesout:" + generatedDir.Path}, generators:={generator})
 
-            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator)
+            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(baseDirectory:=generatedDir.Path, generator)
             ValidateWrittenSources(New Dictionary(Of String, Dictionary(Of String, String))() From
                 {{Path.Combine(generatedDir.Path, generatorPrefix), New Dictionary(Of String, String)() From
                     {{"generatedSource.vb", generatedSource}}

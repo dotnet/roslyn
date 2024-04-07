@@ -40,5 +40,18 @@ namespace Roslyn.Utilities
 
             return result.ToImmutableAndClear();
         }
+
+        public static ImmutableArray<T> ToImmutableAndClear<T>(this ImmutableArray<T>.Builder builder)
+        {
+            if (builder.Count == 0)
+                return ImmutableArray<T>.Empty;
+
+            if (builder.Count == builder.Capacity)
+                return builder.MoveToImmutable();
+
+            var result = builder.ToImmutable();
+            builder.Clear();
+            return result;
+        }
     }
 }

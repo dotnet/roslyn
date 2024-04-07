@@ -1511,6 +1511,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeRequiresLocationAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeParamCollectionAttribute(ParameterSymbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeParamCollectionAttribute();
+        }
+
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1723,6 +1734,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
         }
 
+        protected virtual SynthesizedAttributeData TrySynthesizeParamCollectionAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1735,17 +1752,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
         }
 
-        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute)
+        private void EnsureEmbeddableAttributeExists(
+            EmbeddableAttributes attribute,
+            BindingDiagnosticBag diagnosticsOpt = null,
+            Location locationOpt = null)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+            Debug.Assert(diagnosticsOpt is null || attribute == EmbeddableAttributes.ParamCollectionAttribute, "Don't report any errors. They should be reported during binding.");
 
             if ((GetNeedsGeneratedAttributesInternal() & attribute) != 0)
             {
                 return;
             }
 
-            // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, diagnosticsOpt: null, locationOpt: null))
+            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, diagnosticsOpt, locationOpt))
             {
                 SetNeedsGeneratedAttributes(attribute);
             }
@@ -1759,6 +1779,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureRequiresLocationAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute);
+        }
+
+        internal void EnsureParamCollectionAttributeExists(BindingDiagnosticBag diagnostics, Location location)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ParamCollectionAttribute, diagnostics, location);
         }
 
         internal void EnsureIsUnmanagedAttributeExists()

@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         try
                         {
-                            var (buildHost, _) = _applyChangesBuildHostProcessManager.GetBuildHostAsync(projectPath, CancellationToken.None).Result;
+                            var buildHost = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, CancellationToken.None).Result;
                             _applyChangesProjectFile = buildHost.LoadProjectFileAsync(projectPath, languageName, CancellationToken.None).Result;
                         }
                         catch (IOException exception)

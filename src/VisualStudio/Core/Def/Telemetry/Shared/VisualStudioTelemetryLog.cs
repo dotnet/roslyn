@@ -6,27 +6,26 @@ using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 
-namespace Microsoft.VisualStudio.LanguageServices.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
+
+internal sealed class VisualStudioTelemetryLog : ITelemetryLog
 {
-    internal sealed class VisualStudioTelemetryLog : ITelemetryLog
+    private readonly ILogger _telemetryLogger;
+    private readonly FunctionId _functionId;
+
+    public VisualStudioTelemetryLog(ILogger telemetryLogger, FunctionId functionId)
     {
-        private readonly ILogger _telemetryLogger;
-        private readonly FunctionId _functionId;
+        _telemetryLogger = telemetryLogger;
+        _functionId = functionId;
+    }
 
-        public VisualStudioTelemetryLog(ILogger telemetryLogger, FunctionId functionId)
-        {
-            _telemetryLogger = telemetryLogger;
-            _functionId = functionId;
-        }
+    public void Log(KeyValueLogMessage logMessage)
+    {
+        _telemetryLogger.Log(_functionId, logMessage);
+    }
 
-        public void Log(KeyValueLogMessage logMessage)
-        {
-            _telemetryLogger.Log(_functionId, logMessage);
-        }
-
-        public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs)
-        {
-            return new TimedTelemetryLogBlock(logMessage, minThresholdMs, telemetryLog: this);
-        }
+    public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs)
+    {
+        return new TimedTelemetryLogBlock(logMessage, minThresholdMs, telemetryLog: this);
     }
 }

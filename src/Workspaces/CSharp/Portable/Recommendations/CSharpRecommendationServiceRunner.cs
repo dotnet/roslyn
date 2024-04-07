@@ -375,7 +375,7 @@ internal partial class CSharpRecommendationService
 
                 if (symbol.IsExtensionMethod() &&
                     !Equals(enclosingNamedType, symbol.ContainingType) &&
-                    !outerTypes.Any(outerType => outerType.Equals(symbol.ContainingType)))
+                    !outerTypes.Contains(symbol.ContainingType))
                 {
                     return true;
                 }

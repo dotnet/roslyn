@@ -5,14 +5,13 @@
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Completion.Log;
 
-namespace Microsoft.CodeAnalysis.Common
+namespace Microsoft.CodeAnalysis.Common;
+
+internal static class FeaturesSessionTelemetry
 {
-    internal static class FeaturesSessionTelemetry
+    public static void Report()
     {
-        public static void Report()
-        {
-            CompletionProvidersLogger.ReportTelemetry();
-            ChangeSignatureLogger.ReportTelemetry();
-        }
+        CompletionProvidersLogger.ReportTelemetry();
+        ChangeSignatureLogger.ReportTelemetry();
     }
 }

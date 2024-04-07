@@ -6,13 +6,12 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static partial class MemberDeclarationSyntaxExtensions
 {
-    internal static partial class MemberDeclarationSyntaxExtensions
+    public static SyntaxList<AttributeListSyntax> GetAttributes(this MemberDeclarationSyntax member)
     {
-        public static SyntaxList<AttributeListSyntax> GetAttributes(this MemberDeclarationSyntax member)
-        {
-            return member != null ? member.AttributeLists : [];
-        }
+        return member != null ? member.AttributeLists : [];
     }
 }

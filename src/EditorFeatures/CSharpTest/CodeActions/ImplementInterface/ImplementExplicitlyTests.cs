@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -13,827 +12,826 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+public sealed class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-    public class ImplementExplicitlyTests : AbstractCSharpCodeActionTest
+    private const int SingleMember = 0;
+    private const int SameInterface = 1;
+    private const int AllInterfaces = 2;
+
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        => new CSharpImplementExplicitlyCodeRefactoringProvider();
+
+    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        => FlattenActions(actions);
+
+    [Fact]
+    public async Task TestSingleMember()
     {
-        private const int SingleMember = 0;
-        private const int SameInterface = 1;
-        private const int AllInterfaces = 2;
+        await TestInRegularAndScriptAsync(
+            """
+            interface IGoo { void Goo1(); void Goo2(); }
+            interface IBar { void Bar(); }
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
-            => new CSharpImplementExplicitlyCodeRefactoringProvider();
+            class C : IGoo, IBar
+            {
+                public void [||]Goo1() { }
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
+                public void Goo2() { }
 
-        [Fact]
-        public async Task TestSingleMember()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IGoo { void Goo1(); void Goo2(); }
-                interface IBar { void Bar(); }
+                public void Bar() { }
+            }
+            """,
+            """
+            interface IGoo { void Goo1(); void Goo2(); }
+            interface IBar { void Bar(); }
 
-                class C : IGoo, IBar
+            class C : IGoo, IBar
+            {
+                void IGoo.Goo1() { }
+
+                public void Goo2() { }
+
+                public void Bar() { }
+            }
+            """, index: SingleMember);
+    }
+
+    [Fact]
+    public async Task TestSameInterface()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IGoo { void Goo1(); void Goo2(); }
+            interface IBar { void Bar(); }
+
+            class C : IGoo, IBar
+            {
+                public void [||]Goo1() { }
+
+                public void Goo2() { }
+
+                public void Bar() { }
+            }
+            """,
+            """
+            interface IGoo { void Goo1(); void Goo2(); }
+            interface IBar { void Bar(); }
+
+            class C : IGoo, IBar
+            {
+                void IGoo.Goo1() { }
+
+                void IGoo.Goo2() { }
+
+                public void Bar() { }
+            }
+            """, index: SameInterface);
+    }
+
+    [Fact]
+    public async Task TestAllInterfaces()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IGoo { void Goo1(); void Goo2(); }
+            interface IBar { void Bar(); }
+
+            class C : IGoo, IBar
+            {
+                public void [||]Goo1() { }
+
+                public void Goo2() { }
+
+                public void Bar() { }
+            }
+            """,
+            """
+            interface IGoo { void Goo1(); void Goo2(); }
+            interface IBar { void Bar(); }
+
+            class C : IGoo, IBar
+            {
+                void IGoo.Goo1() { }
+
+                void IGoo.Goo2() { }
+
+                void IBar.Bar() { }
+            }
+            """, index: AllInterfaces);
+    }
+
+    [Fact]
+    public async Task TestProperty()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IGoo { int Goo1 { get; } }
+
+            class C : IGoo
+            {
+                public int [||]Goo1 { get { } }
+            }
+            """,
+            """
+            interface IGoo { int Goo1 { get; } }
+
+            class C : IGoo
+            {
+                int IGoo.Goo1 { get { } }
+            }
+            """, index: SingleMember);
+    }
+
+    [Fact]
+    public async Task TestEvent()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IGoo { event Action E; }
+
+            class C : IGoo
+            {
+                public event Action [||]E { add { } remove { } }
+            }
+            """,
+            """
+            interface IGoo { event Action E; }
+
+            class C : IGoo
+            {
+                event Action IGoo.E { add { } remove { } }
+            }
+            """, index: SingleMember);
+    }
+
+    [Fact]
+    public async Task TestNotOnExplicitMember()
+    {
+        await TestMissingAsync(
+            """
+            interface IGoo { void Goo1(); }
+
+            class C : IGoo
+            {
+                void IGoo.[||]Goo1() { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotOnUnboundImplicitImpl()
+    {
+        await TestMissingAsync(
+            """
+            interface IGoo { void Goo1(); }
+
+            class C
+            {
+                public void [||]Goo1() { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestUpdateReferences_InsideDeclarations_Explicit()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+            class C : IGoo
+            {
+                public int [||]Prop { get { return this.Prop; } set { this.Prop = value; } }
+                public int M(int i) { return this.M(i); }
+                public event Action Ev { add { this.Ev += value; } remove { this.Ev -= value; } }
+            }
+            """,
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+            class C : IGoo
+            {
+                int IGoo.Prop { get { return ((IGoo)this).Prop; } set { ((IGoo)this).Prop = value; } }
+                int IGoo.M(int i) { return ((IGoo)this).M(i); }
+                event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
+            }
+            """, index: SameInterface);
+    }
+
+    [Fact]
+    public async Task TestUpdateReferences_InsideDeclarations_Implicit()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+            class C : IGoo
+            {
+                public int [||]Prop { get { return Prop; } set { Prop = value; } }
+                public int M(int i) { return M(i); }
+                public event Action Ev { add { Ev += value; } remove { Ev -= value; } }
+            }
+            """,
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+            class C : IGoo
+            {
+                int IGoo.Prop { get { return ((IGoo)this).Prop; } set { ((IGoo)this).Prop = value; } }
+                int IGoo.M(int i) { return ((IGoo)this).M(i); }
+                event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
+            }
+            """, index: SameInterface);
+    }
+
+    [Fact]
+    public async Task TestUpdateReferences_InternalImplicit()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+
+            class C : IGoo
+            {
+                public int [||]Prop { get { } set { } }
+                public int M(int i) { }
+                public event Action Ev { add { } remove { } }
+
+                void InternalImplicit()
                 {
-                    public void [||]Goo1() { }
+                    var v = Prop;
+                    Prop = 1;
+                    Prop++;
+                    ++Prop;
 
-                    public void Goo2() { }
+                    M(0);
+                    M(M(0));
 
-                    public void Bar() { }
+                    Ev += () => {};
+
+                    var v1 = nameof(Prop);
                 }
-                """,
-                """
-                interface IGoo { void Goo1(); void Goo2(); }
-                interface IBar { void Bar(); }
+            }
+            """,
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
 
-                class C : IGoo, IBar
+            class C : IGoo
+            {
+                int IGoo.Prop { get { } set { } }
+                int IGoo.M(int i) { }
+                event Action IGoo.Ev { add { } remove { } }
+
+                void InternalImplicit()
                 {
-                    void IGoo.Goo1() { }
+                    var v = ((IGoo)this).Prop;
+                    ((IGoo)this).Prop = 1;
+                    ((IGoo)this).Prop++;
+                    ++((IGoo)this).Prop;
 
-                    public void Goo2() { }
+                    ((IGoo)this).M(0);
+                    ((IGoo)this).M(((IGoo)this).M(0));
 
-                    public void Bar() { }
+                    ((IGoo)this).Ev += () => {};
+
+                    var v1 = nameof(((IGoo)this).Prop);
                 }
-                """, index: SingleMember);
-        }
+            }
+            """, index: SameInterface);
+    }
 
-        [Fact]
-        public async Task TestSameInterface()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IGoo { void Goo1(); void Goo2(); }
-                interface IBar { void Bar(); }
+    [Fact]
+    public async Task TestUpdateReferences_InternalExplicit()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
 
-                class C : IGoo, IBar
+            class C : IGoo
+            {
+                public int [||]Prop { get { } set { } }
+                public int M(int i) { }
+                public event Action Ev { add { } remove { } }
+
+                void InternalExplicit()
                 {
-                    public void [||]Goo1() { }
+                    var v = this.Prop;
+                    this.Prop = 1;
+                    this.Prop++;
+                    ++this.Prop;
 
-                    public void Goo2() { }
+                    this.M(0);
+                    this.M(this.M(0));
 
-                    public void Bar() { }
+                    this.Ev += () => {};
+
+                    var v1 = nameof(this.Prop);
                 }
-                """,
-                """
-                interface IGoo { void Goo1(); void Goo2(); }
-                interface IBar { void Bar(); }
+            }
+            """,
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
 
-                class C : IGoo, IBar
+            class C : IGoo
+            {
+                int IGoo.Prop { get { } set { } }
+                int IGoo.M(int i) { }
+                event Action IGoo.Ev { add { } remove { } }
+
+                void InternalExplicit()
                 {
-                    void IGoo.Goo1() { }
+                    var v = ((IGoo)this).Prop;
+                    ((IGoo)this).Prop = 1;
+                    ((IGoo)this).Prop++;
+                    ++((IGoo)this).Prop;
 
-                    void IGoo.Goo2() { }
+                    ((IGoo)this).M(0);
+                    ((IGoo)this).M(((IGoo)this).M(0));
 
-                    public void Bar() { }
+                    ((IGoo)this).Ev += () => {};
+
+                    var v1 = nameof(((IGoo)this).Prop);
                 }
-                """, index: SameInterface);
-        }
+            }
+            """, index: SameInterface);
+    }
 
-        [Fact]
-        public async Task TestAllInterfaces()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IGoo { void Goo1(); void Goo2(); }
-                interface IBar { void Bar(); }
+    [Fact]
+    public async Task TestUpdateReferences_External()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
 
-                class C : IGoo, IBar
+            class C : IGoo
+            {
+                public int [||]Prop { get { } set { } }
+                public int M(int i) { }
+                public event Action Ev { add { } remove { } }
+            }
+
+            class T
+            {
+                void External(C c)
                 {
-                    public void [||]Goo1() { }
+                    var v = c.Prop;
+                    c.Prop = 1;
+                    c.Prop++;
+                    ++c.Prop;
 
-                    public void Goo2() { }
+                    c.M(0);
+                    c.M(c.M(0));
 
-                    public void Bar() { }
-                }
-                """,
-                """
-                interface IGoo { void Goo1(); void Goo2(); }
-                interface IBar { void Bar(); }
+                    c.Ev += () => {};
 
-                class C : IGoo, IBar
-                {
-                    void IGoo.Goo1() { }
-
-                    void IGoo.Goo2() { }
-
-                    void IBar.Bar() { }
-                }
-                """, index: AllInterfaces);
-        }
-
-        [Fact]
-        public async Task TestProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IGoo { int Goo1 { get; } }
-
-                class C : IGoo
-                {
-                    public int [||]Goo1 { get { } }
-                }
-                """,
-                """
-                interface IGoo { int Goo1 { get; } }
-
-                class C : IGoo
-                {
-                    int IGoo.Goo1 { get { } }
-                }
-                """, index: SingleMember);
-        }
-
-        [Fact]
-        public async Task TestEvent()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IGoo { event Action E; }
-
-                class C : IGoo
-                {
-                    public event Action [||]E { add { } remove { } }
-                }
-                """,
-                """
-                interface IGoo { event Action E; }
-
-                class C : IGoo
-                {
-                    event Action IGoo.E { add { } remove { } }
-                }
-                """, index: SingleMember);
-        }
-
-        [Fact]
-        public async Task TestNotOnExplicitMember()
-        {
-            await TestMissingAsync(
-                """
-                interface IGoo { void Goo1(); }
-
-                class C : IGoo
-                {
-                    void IGoo.[||]Goo1() { }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotOnUnboundImplicitImpl()
-        {
-            await TestMissingAsync(
-                """
-                interface IGoo { void Goo1(); }
-
-                class C
-                {
-                    public void [||]Goo1() { }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestUpdateReferences_InsideDeclarations_Explicit()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
-
-                class C : IGoo
-                {
-                    public int [||]Prop { get { return this.Prop; } set { this.Prop = value; } }
-                    public int M(int i) { return this.M(i); }
-                    public event Action Ev { add { this.Ev += value; } remove { this.Ev -= value; } }
-                }
-                """,
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
-
-                class C : IGoo
-                {
-                    int IGoo.Prop { get { return ((IGoo)this).Prop; } set { ((IGoo)this).Prop = value; } }
-                    int IGoo.M(int i) { return ((IGoo)this).M(i); }
-                    event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
-                }
-                """, index: SameInterface);
-        }
-
-        [Fact]
-        public async Task TestUpdateReferences_InsideDeclarations_Implicit()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
-
-                class C : IGoo
-                {
-                    public int [||]Prop { get { return Prop; } set { Prop = value; } }
-                    public int M(int i) { return M(i); }
-                    public event Action Ev { add { Ev += value; } remove { Ev -= value; } }
-                }
-                """,
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
-
-                class C : IGoo
-                {
-                    int IGoo.Prop { get { return ((IGoo)this).Prop; } set { ((IGoo)this).Prop = value; } }
-                    int IGoo.M(int i) { return ((IGoo)this).M(i); }
-                    event Action IGoo.Ev { add { ((IGoo)this).Ev += value; } remove { ((IGoo)this).Ev -= value; } }
-                }
-                """, index: SameInterface);
-        }
-
-        [Fact]
-        public async Task TestUpdateReferences_InternalImplicit()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
-
-                class C : IGoo
-                {
-                    public int [||]Prop { get { } set { } }
-                    public int M(int i) { }
-                    public event Action Ev { add { } remove { } }
-
-                    void InternalImplicit()
+                    new C
                     {
-                        var v = Prop;
-                        Prop = 1;
-                        Prop++;
-                        ++Prop;
+                        Prop = 1
+                    };
 
-                        M(0);
-                        M(M(0));
-
-                        Ev += () => {};
-
-                        var v1 = nameof(Prop);
-                    }
+                    var v1 = nameof(c.Prop);
                 }
-                """,
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+            }
+            """,
+            """
+            using System;
+            interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
 
-                class C : IGoo
+            class C : IGoo
+            {
+                int IGoo.Prop { get { } set { } }
+                int IGoo.M(int i) { }
+                event Action IGoo.Ev { add { } remove { } }
+            }
+
+            class T
+            {
+                void External(C c)
                 {
-                    int IGoo.Prop { get { } set { } }
-                    int IGoo.M(int i) { }
-                    event Action IGoo.Ev { add { } remove { } }
+                    var v = ((IGoo)c).Prop;
+                    ((IGoo)c).Prop = 1;
+                    ((IGoo)c).Prop++;
+                    ++((IGoo)c).Prop;
 
-                    void InternalImplicit()
+                    ((IGoo)c).M(0);
+                    ((IGoo)c).M(((IGoo)c).M(0));
+
+                    ((IGoo)c).Ev += () => {};
+
+                    new C
                     {
-                        var v = ((IGoo)this).Prop;
-                        ((IGoo)this).Prop = 1;
-                        ((IGoo)this).Prop++;
-                        ++((IGoo)this).Prop;
+                        Prop = 1
+                    };
 
-                        ((IGoo)this).M(0);
-                        ((IGoo)this).M(((IGoo)this).M(0));
+                    var v1 = nameof(((IGoo)c).Prop);
+                }
+            }
+            """, index: SameInterface);
+    }
 
-                        ((IGoo)this).Ev += () => {};
+    [Fact]
+    public async Task TestUpdateReferences_CrossLanguage()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="A1">
+                    <Document FilePath="File.cs">
+            using System;
+            public interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
 
-                        var v1 = nameof(((IGoo)this).Prop);
+            public class C : IGoo
+            {
+                public int [||]Prop { get { } set { } }
+                public int M(int i) { }
+                public event Action Ev { add { } remove { } }
+            }
+                    </Document>
+                </Project>
+                <Project Language="Visual Basic" CommonReferences="true" AssemblyName="A2">
+                    <ProjectReference>A1</ProjectReference>
+                    <Document>
+            class T
+                sub External(c1 as C)
+                    dim v = c1.Prop
+                    c1.Prop = 1
+
+                    c1.M(0)
+                    c1.M(c1.M(0))
+
+                    dim x = new C() with {
+                        .Prop = 1
                     }
-                }
-                """, index: SameInterface);
-        }
 
-        [Fact]
-        public async Task TestUpdateReferences_InternalExplicit()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+                    dim v1 = nameof(c1.Prop)
+                end sub
+            end class
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="A1">
+                    <Document FilePath="File.cs">
+            using System;
+            public interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
 
-                class C : IGoo
-                {
-                    public int [||]Prop { get { } set { } }
-                    public int M(int i) { }
-                    public event Action Ev { add { } remove { } }
+            public class C : IGoo
+            {
+                int IGoo.Prop { get { } set { } }
+                int IGoo.M(int i) { }
+                event Action IGoo.Ev { add { } remove { } }
+            }
+                    </Document>
+                </Project>
+                <Project Language="Visual Basic" CommonReferences="true" AssemblyName="A2">
+                    <ProjectReference>A1</ProjectReference>
+                    <Document>
+            class T
+                sub External(c1 as C)
+                    dim v = DirectCast(c1, IGoo).Prop
+                    DirectCast(c1, IGoo).Prop = 1
 
-                    void InternalExplicit()
-                    {
-                        var v = this.Prop;
-                        this.Prop = 1;
-                        this.Prop++;
-                        ++this.Prop;
+                    DirectCast(c1, IGoo).M(0)
+                    DirectCast(c1, IGoo).M(DirectCast(c1, IGoo).M(0))
 
-                        this.M(0);
-                        this.M(this.M(0));
-
-                        this.Ev += () => {};
-
-                        var v1 = nameof(this.Prop);
+                    dim x = new C() with {
+                        .Prop = 1
                     }
-                }
-                """,
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
 
-                class C : IGoo
+                    dim v1 = nameof(c1.Prop)
+                end sub
+            end class
+                    </Document>
+                </Project>
+            </Workspace>
+            """, index: SameInterface);
+    }
+
+    [Fact]
+    public async Task TestMemberWhichImplementsMultipleMembers()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IGoo { int M(int i); }
+            interface IBar { int M(int i); }
+
+            class C : IGoo, IBar
+            {
+                public int [||]M(int i)
                 {
-                    int IGoo.Prop { get { } set { } }
-                    int IGoo.M(int i) { }
-                    event Action IGoo.Ev { add { } remove { } }
-
-                    void InternalExplicit()
-                    {
-                        var v = ((IGoo)this).Prop;
-                        ((IGoo)this).Prop = 1;
-                        ((IGoo)this).Prop++;
-                        ++((IGoo)this).Prop;
-
-                        ((IGoo)this).M(0);
-                        ((IGoo)this).M(((IGoo)this).M(0));
-
-                        ((IGoo)this).Ev += () => {};
-
-                        var v1 = nameof(((IGoo)this).Prop);
-                    }
+                    throw new System.Exception();
                 }
-                """, index: SameInterface);
-        }
+            }
+            """,
+            """
+            interface IGoo { int M(int i); }
+            interface IBar { int M(int i); }
 
-        [Fact]
-        public async Task TestUpdateReferences_External()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
-
-                class C : IGoo
+            class C : IGoo, IBar
+            {
+                int IGoo.M(int i)
                 {
-                    public int [||]Prop { get { } set { } }
-                    public int M(int i) { }
-                    public event Action Ev { add { } remove { } }
+                    throw new System.Exception();
                 }
-
-                class T
+                int IBar.M(int i)
                 {
-                    void External(C c)
-                    {
-                        var v = c.Prop;
-                        c.Prop = 1;
-                        c.Prop++;
-                        ++c.Prop;
-
-                        c.M(0);
-                        c.M(c.M(0));
-
-                        c.Ev += () => {};
-
-                        new C
-                        {
-                            Prop = 1
-                        };
-
-                        var v1 = nameof(c.Prop);
-                    }
+                    throw new System.Exception();
                 }
-                """,
-                """
-                using System;
-                interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
+            }
+            """, index: SingleMember);
+    }
 
-                class C : IGoo
+    [Fact]
+    public async Task TestMemberWhichImplementsMultipleMembers2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IGoo { int M(int i); }
+            interface IBar { int M(int i); }
+
+            class C : IGoo, IBar
+            {
+                public int [||]M(int i)
                 {
-                    int IGoo.Prop { get { } set { } }
-                    int IGoo.M(int i) { }
-                    event Action IGoo.Ev { add { } remove { } }
+                    return this.M(1);
                 }
+            }
+            """,
+            """
+            interface IGoo { int M(int i); }
+            interface IBar { int M(int i); }
 
-                class T
+            class C : IGoo, IBar
+            {
+                int IGoo.M(int i)
                 {
-                    void External(C c)
-                    {
-                        var v = ((IGoo)c).Prop;
-                        ((IGoo)c).Prop = 1;
-                        ((IGoo)c).Prop++;
-                        ++((IGoo)c).Prop;
-
-                        ((IGoo)c).M(0);
-                        ((IGoo)c).M(((IGoo)c).M(0));
-
-                        ((IGoo)c).Ev += () => {};
-
-                        new C
-                        {
-                            Prop = 1
-                        };
-
-                        var v1 = nameof(((IGoo)c).Prop);
-                    }
+                    return ((IGoo)this).M(1);
                 }
-                """, index: SameInterface);
-        }
-
-        [Fact]
-        public async Task TestUpdateReferences_CrossLanguage()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true" AssemblyName="A1">
-                        <Document FilePath="File.cs">
-                using System;
-                public interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
-
-                public class C : IGoo
+                int IBar.M(int i)
                 {
-                    public int [||]Prop { get { } set { } }
-                    public int M(int i) { }
-                    public event Action Ev { add { } remove { } }
+                    return ((IGoo)this).M(1);
                 }
-                        </Document>
-                    </Project>
-                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="A2">
-                        <ProjectReference>A1</ProjectReference>
-                        <Document>
-                class T
-                    sub External(c1 as C)
-                        dim v = c1.Prop
-                        c1.Prop = 1
+            }
+            """, index: SingleMember);
+    }
 
-                        c1.M(0)
-                        c1.M(c1.M(0))
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
+    public async Task TestWithContraints()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IRepro
+            {
+                void A<T>(int value) where T : class;
+            }
 
-                        dim x = new C() with {
-                            .Prop = 1
-                        }
-
-                        dim v1 = nameof(c1.Prop)
-                    end sub
-                end class
-                        </Document>
-                    </Project>
-                </Workspace>
-                """,
-                """
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true" AssemblyName="A1">
-                        <Document FilePath="File.cs">
-                using System;
-                public interface IGoo { int Prop { get; set; } int M(int i); event Action Ev; }
-
-                public class C : IGoo
+            class Repro : IRepro
+            {
+                public void [||]A<T>(int value) where T : class
                 {
-                    int IGoo.Prop { get { } set { } }
-                    int IGoo.M(int i) { }
-                    event Action IGoo.Ev { add { } remove { } }
                 }
-                        </Document>
-                    </Project>
-                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="A2">
-                        <ProjectReference>A1</ProjectReference>
-                        <Document>
-                class T
-                    sub External(c1 as C)
-                        dim v = DirectCast(c1, IGoo).Prop
-                        DirectCast(c1, IGoo).Prop = 1
+            }
+            """,
+            """
+            interface IRepro
+            {
+                void A<T>(int value) where T : class;
+            }
 
-                        DirectCast(c1, IGoo).M(0)
-                        DirectCast(c1, IGoo).M(DirectCast(c1, IGoo).M(0))
-
-                        dim x = new C() with {
-                            .Prop = 1
-                        }
-
-                        dim v1 = nameof(c1.Prop)
-                    end sub
-                end class
-                        </Document>
-                    </Project>
-                </Workspace>
-                """, index: SameInterface);
-        }
-
-        [Fact]
-        public async Task TestMemberWhichImplementsMultipleMembers()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IGoo { int M(int i); }
-                interface IBar { int M(int i); }
-
-                class C : IGoo, IBar
+            class Repro : IRepro
+            {
+                void IRepro.A<T>(int value)
                 {
-                    public int [||]M(int i)
-                    {
-                        throw new System.Exception();
-                    }
                 }
-                """,
-                """
-                interface IGoo { int M(int i); }
-                interface IBar { int M(int i); }
+            }
+            """);
+    }
 
-                class C : IGoo, IBar
-                {
-                    int IGoo.M(int i)
-                    {
-                        throw new System.Exception();
-                    }
-                    int IBar.M(int i)
-                    {
-                        throw new System.Exception();
-                    }
-                }
-                """, index: SingleMember);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
+    public async Task TestWithDefaultParameterValues()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IRepro
+            {
+                void A(int value = 0);
+            }
 
-        [Fact]
-        public async Task TestMemberWhichImplementsMultipleMembers2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IGoo { int M(int i); }
-                interface IBar { int M(int i); }
+            class Repro : IRepro
+            {
+                public void [||]A(int value = 0)
+                {
+                }
+            }
+            """,
+            """
+            interface IRepro
+            {
+                void A(int value = 0);
+            }
 
-                class C : IGoo, IBar
+            class Repro : IRepro
+            {
+                void IRepro.A(int value)
                 {
-                    public int [||]M(int i)
-                    {
-                        return this.M(1);
-                    }
                 }
-                """,
-                """
-                interface IGoo { int M(int i); }
-                interface IBar { int M(int i); }
+            }
+            """);
+    }
 
-                class C : IGoo, IBar
-                {
-                    int IGoo.M(int i)
-                    {
-                        return ((IGoo)this).M(1);
-                    }
-                    int IBar.M(int i)
-                    {
-                        return ((IGoo)this).M(1);
-                    }
-                }
-                """, index: SingleMember);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
+    public async Task TestWithMismatchedDefaultParameterValues()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IRepro
+            {
+                void A(int value = 0);
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-        public async Task TestWithContraints()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IRepro
+            class Repro : IRepro
+            {
+                public void [||]A(int value = 1)
                 {
-                    void A<T>(int value) where T : class;
                 }
+            }
+            """,
+            """
+            interface IRepro
+            {
+                void A(int value = 0);
+            }
 
-                class Repro : IRepro
+            class Repro : IRepro
+            {
+                void IRepro.A(int value = 1)
                 {
-                    public void [||]A<T>(int value) where T : class
-                    {
-                    }
                 }
-                """,
-                """
-                interface IRepro
-                {
-                    void A<T>(int value) where T : class;
-                }
+            }
+            """);
+    }
 
-                class Repro : IRepro
-                {
-                    void IRepro.A<T>(int value)
-                    {
-                    }
-                }
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
+    public async Task TestWithMismatchedDefault1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IRepro
+            {
+                void A(int value);
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-        public async Task TestWithDefaultParameterValues()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IRepro
+            class Repro : IRepro
+            {
+                public void [||]A(int value = 1)
                 {
-                    void A(int value = 0);
                 }
+            }
+            """,
+            """
+            interface IRepro
+            {
+                void A(int value);
+            }
 
-                class Repro : IRepro
+            class Repro : IRepro
+            {
+                void IRepro.A(int value = 1)
                 {
-                    public void [||]A(int value = 0)
-                    {
-                    }
                 }
-                """,
-                """
-                interface IRepro
-                {
-                    void A(int value = 0);
-                }
+            }
+            """);
+    }
 
-                class Repro : IRepro
-                {
-                    void IRepro.A(int value)
-                    {
-                    }
-                }
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
+    public async Task TestWithMismatchedDefault2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IRepro
+            {
+                void A(int value = 0);
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-        public async Task TestWithMismatchedDefaultParameterValues()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IRepro
+            class Repro : IRepro
+            {
+                public void [||]A(int value)
                 {
-                    void A(int value = 0);
                 }
+            }
+            """,
+            """
+            interface IRepro
+            {
+                void A(int value = 0);
+            }
 
-                class Repro : IRepro
+            class Repro : IRepro
+            {
+                void IRepro.A(int value)
                 {
-                    public void [||]A(int value = 1)
-                    {
-                    }
                 }
-                """,
-                """
-                interface IRepro
-                {
-                    void A(int value = 0);
-                }
+            }
+            """);
+    }
 
-                class Repro : IRepro
-                {
-                    void IRepro.A(int value = 1)
-                    {
-                    }
-                }
-                """);
-        }
+    [Fact]
+    public async Task TestPreserveReadOnly()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            interface IRepro
+            {
+                void A();
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-        public async Task TestWithMismatchedDefault1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IRepro
+            class Repro : IRepro
+            {
+                public readonly void [||]A()
                 {
-                    void A(int value);
                 }
+            }
+            """,
+            """
+            interface IRepro
+            {
+                void A();
+            }
 
-                class Repro : IRepro
+            class Repro : IRepro
+            {
+                readonly void IRepro.A()
                 {
-                    public void [||]A(int value = 1)
-                    {
-                    }
                 }
-                """,
-                """
-                interface IRepro
-                {
-                    void A(int value);
-                }
+            }
+            """);
+    }
 
-                class Repro : IRepro
-                {
-                    void IRepro.A(int value = 1)
-                    {
-                    }
-                }
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
+    public async Task TestFieldEvent()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52020")]
-        public async Task TestWithMismatchedDefault2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IRepro
-                {
-                    void A(int value = 0);
-                }
+            interface IGoo { event Action E; void M(); }
 
-                class Repro : IRepro
-                {
-                    public void [||]A(int value)
-                    {
-                    }
-                }
-                """,
-                """
-                interface IRepro
-                {
-                    void A(int value = 0);
-                }
+            class C : IGoo
+            {
+                public event Action E;
+                public void [||]M() { }
+            }
+            """,
+            """
+            using System;
+            
+            interface IGoo { event Action E; void M(); }
+            
+            class C : IGoo
+            {
+                public event Action E;
+                void IGoo.M() { }
+            }
+            """, index: SameInterface);
+    }
 
-                class Repro : IRepro
-                {
-                    void IRepro.A(int value)
-                    {
-                    }
-                }
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
+    public async Task TestPropertyEvent()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
 
-        [Fact]
-        public async Task TestPreserveReadOnly()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface IRepro
-                {
-                    void A();
-                }
+            interface IGoo { event Action E; }
 
-                class Repro : IRepro
-                {
-                    public readonly void [||]A()
-                    {
-                    }
-                }
-                """,
-                """
-                interface IRepro
-                {
-                    void A();
-                }
-
-                class Repro : IRepro
-                {
-                    readonly void IRepro.A()
-                    {
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
-        public async Task TestFieldEvent()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                interface IGoo { event Action E; void M(); }
-
-                class C : IGoo
-                {
-                    public event Action E;
-                    public void [||]M() { }
-                }
-                """,
-                """
-                using System;
-                
-                interface IGoo { event Action E; void M(); }
-                
-                class C : IGoo
-                {
-                    public event Action E;
-                    void IGoo.M() { }
-                }
-                """, index: SameInterface);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
-        public async Task TestPropertyEvent()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                interface IGoo { event Action E; }
-
-                class C : IGoo
-                {
-                    public event Action [||]E { add { } remove { } };
-                }
-                """,
-                """
-                using System;
-                
-                interface IGoo { event Action E; }
-                
-                class C : IGoo
-                {
-                    event Action IGoo.E { add { } remove { } };
-                }
-                """, index: SingleMember);
-        }
+            class C : IGoo
+            {
+                public event Action [||]E { add { } remove { } };
+            }
+            """,
+            """
+            using System;
+            
+            interface IGoo { event Action E; }
+            
+            class C : IGoo
+            {
+                event Action IGoo.E { add { } remove { } };
+            }
+            """, index: SingleMember);
     }
 }

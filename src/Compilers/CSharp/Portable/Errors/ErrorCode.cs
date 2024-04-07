@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CheckedOverflow = 220,
         ERR_ConstOutOfRangeChecked = 221,
         ERR_BadVarargs = 224,
-        ERR_ParamsMustBeArray = 225,
+        ERR_ParamsMustBeCollection = 225,
         ERR_IllegalArglist = 226,
         ERR_IllegalUnsafe = 227,
         //ERR_NoAccessibleMember = 228,
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldCantHaveVoidType = 670,
         WRN_NonObsoleteOverridingObsolete = 672,
         ERR_SystemVoid = 673,
-        ERR_ExplicitParamArray = 674,
+        ERR_ExplicitParamArrayOrCollection = 674,
         WRN_BitwiseOrSignExtend = 675,
         ERR_VolatileStruct = 677,
         ERR_VolatileAndReadonly = 678,
@@ -2202,7 +2202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorLineOutOfRange = 9142,
         ERR_InterceptorCharacterOutOfRange = 9143,
         ERR_InterceptorSignatureMismatch = 9144,
-        ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
+        // ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
         ERR_InterceptorMethodMustBeOrdinary = 9146,
         ERR_InterceptorMustReferToStartOfTokenPosition = 9147,
         ERR_InterceptorMustHaveMatchingThisParameter = 9148,
@@ -2285,9 +2285,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionMissingConstructor = 9214,
         ERR_CollectionExpressionMissingAdd = 9215,
 
+        WRN_ConvertingLock = 9216,
+        ERR_BadSpecialByRefLock = 9217,
+
+        ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections = 9218,
+        ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
+        WRN_DynamicDispatchToParamsCollectionMethod = 9220,
+        WRN_DynamicDispatchToParamsCollectionIndexer = 9221,
+        WRN_DynamicDispatchToParamsCollectionConstructor = 9222,
+        ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
+        ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
+        ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
+        ERR_ParamsCollectionExpressionTree = 9226,
+        ERR_ParamsCollectionExtensionAddMethod = 9227,
+        ERR_ParamsCollectionMissingConstructor = 9228,
+
+        ERR_NoModifiersOnUsing = 9229,
+        ERR_CannotDynamicInvokeOnExpression = 9230,
+
         #endregion
+
+        // Note: you will need to do the following after adding errors:
+        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
+        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
     }
 }

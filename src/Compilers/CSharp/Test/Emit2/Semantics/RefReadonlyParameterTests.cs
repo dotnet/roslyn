@@ -5608,7 +5608,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
-    public void Invocation_Dynamic()
+    public void Invocation_Dynamic_01()
     {
         var source = """
             class C
@@ -5632,6 +5632,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                     cd.M(ref i);
                 }
                 void M2(dynamic p) => M(p);
+
+                void M(ref readonly long p) => System.Console.Write(p);
             }
             """;
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "exception2");
@@ -5671,6 +5673,73 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
               IL_0055:  ldarg.1
               IL_0056:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, C, dynamic)"
               IL_005b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Invocation_Dynamic_02()
+    {
+        var source = """
+            class C
+            {
+                void M(ref readonly int p) => System.Console.Write(p);
+                static void Main()
+                {
+                    dynamic d = 1;
+                    var c = new C();
+                    try
+                    {
+                        c.M(d);
+                    }
+                    catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                    {
+                        System.Console.Write("exception");
+                    }
+
+                    int i = 2;
+                    dynamic cd = new C();
+                    cd.M(ref i);
+                }
+                void M2(dynamic p) => M(p);
+            }
+            """;
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "12");
+
+        verifier.VerifyDiagnostics(
+            // (10,17): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
+            //             c.M(d);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "d").WithArguments("1").WithLocation(10, 17),
+            // (21,29): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
+            //     void M2(dynamic p) => M(p);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(21, 29)
+            );
+
+        verifier.VerifyIL("C.M2", """
+            {
+              // Code size       74 (0x4a)
+              .maxstack  4
+              .locals init (int V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
+              IL_0006:  brtrue.s   IL_002c
+              IL_0008:  ldc.i4.0
+              IL_0009:  ldtoken    "int"
+              IL_000e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_0013:  ldtoken    "C"
+              IL_0018:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_001d:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+              IL_0022:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+              IL_0027:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
+              IL_002c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
+              IL_0031:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
+              IL_0036:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
+              IL_003b:  ldarg.1
+              IL_003c:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+              IL_0041:  stloc.0
+              IL_0042:  ldloca.s   V_0
+              IL_0044:  call       "void C.M(ref readonly int)"
+              IL_0049:  ret
             }
             """);
     }

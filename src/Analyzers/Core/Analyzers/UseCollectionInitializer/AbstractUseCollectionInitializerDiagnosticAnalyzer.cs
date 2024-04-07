@@ -197,6 +197,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             notification,
+            context.Options,
             additionalLocations: locations,
             properties));
 
@@ -266,6 +267,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
                 s_unnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
                 NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
+                context.Options,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                 properties));

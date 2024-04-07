@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
-            ImmutableArray<Checksum> checksums,
+            ReadOnlyMemory<Checksum> checksums,
             CancellationToken cancellationToken)
         {
             using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
@@ -40,8 +41,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Debug.Assert(assetMap != null);
 
-            foreach (var checksum in checksums)
+            for (var i = 0; i < checksums.Span.Length; i++)
             {
+                var checksum = checksums.Span[i];
                 var asset = assetMap[checksum];
 
                 // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the

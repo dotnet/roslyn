@@ -24,7 +24,7 @@ using static Microsoft.CodeAnalysis.UnitTests.WorkspaceTestUtilities;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class SolutionWithSourceGeneratorTests : TestBase
+    public sealed class SolutionWithSourceGeneratorTests : TestBase
     {
         [Theory, CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
@@ -770,6 +770,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             foreach (var documentIdToTest in documentIdsToTest)
             {
                 var document = frozenSolution.GetRequiredDocument(documentIdToTest);
+                Assert.Single(document.GetLinkedDocumentIds());
+
                 Assert.Equal(document.GetLinkedDocumentIds().Single(), documentIdsToTest.Except([documentIdToTest]).Single());
                 document = document.WithText(SourceText.From("// Something else"));
 
@@ -805,6 +807,82 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We should have ran the generator, and it should not have had any trees
             Assert.True(noTreesPassed.HasValue);
             Assert.False(noTreesPassed!.Value);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task FreezingSourceGeneratedDocumentsWorks(TestHost testHost)
+        {
+            using var workspace = CreateWorkspace(testHost: testHost);
+
+            var analyzerReference = new TestGeneratorReference(
+                new SingleFileTestGenerator("// Hello, World"));
+
+            var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference);
+
+            var sourceGeneratedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+            var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
+
+            // Do some assertions with freezing that document
+            await AssertFrozen(project, sourceGeneratedDocumentIdentity);
+
+            // Now remove the generator, and ensure we can freeze it even if it's not there. This scenario exists for IDEs where 
+            // a text buffer might still be wired up to the workspace and we're invoking a feature on it. The generated document might have gone
+            // away, but we don't know that synchronously.
+            project = project.RemoveAnalyzerReference(analyzerReference);
+            await AssertFrozen(project, sourceGeneratedDocumentIdentity);
+
+            static async Task AssertFrozen(Project project, SourceGeneratedDocumentIdentity identity)
+            {
+                var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
+                    identity, DateTime.Now, SourceText.From("// Frozen Document"));
+                Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
+                var syntaxTrees = (await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+                var frozenTree = Assert.Single(syntaxTrees);
+                Assert.Equal("// Frozen Document", frozenTree.ToString());
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public async Task FreezingSourceGeneratedDocumentsInTwoProjectsWorks(TestHost testHost)
+        {
+            using var workspace = CreateWorkspace(testHost: testHost);
+
+            var analyzerReference = new TestGeneratorReference(
+                new SingleFileTestGenerator("// Hello, World"));
+
+            var solution = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference).Solution;
+            var projectId1 = solution.ProjectIds.Single();
+            var project2 = AddEmptyProject(solution, name: "TestProject2").AddAnalyzerReference(analyzerReference);
+            solution = project2.Solution;
+            var projectId2 = project2.Id;
+
+            var sourceGeneratedDocument1 = Assert.Single(await solution.GetRequiredProject(projectId1).GetSourceGeneratedDocumentsAsync());
+            var sourceGeneratedDocument2 = Assert.Single(await solution.GetRequiredProject(projectId2).GetSourceGeneratedDocumentsAsync());
+
+            // And now freeze both of them at once
+            var solutionWithFrozenDocuments = solution.WithFrozenSourceGeneratedDocuments(
+                [(sourceGeneratedDocument1.Identity, DateTime.Now, SourceText.From("// Frozen 1")), (sourceGeneratedDocument2.Identity, DateTime.Now, SourceText.From("// Frozen 2"))]);
+
+            Assert.Equal("// Frozen 1", (await (await solutionWithFrozenDocuments.GetRequiredProject(projectId1).GetSourceGeneratedDocumentsAsync()).Single().GetTextAsync()).ToString());
+            Assert.Equal("// Frozen 2", (await (await solutionWithFrozenDocuments.GetRequiredProject(projectId2).GetSourceGeneratedDocumentsAsync()).Single().GetTextAsync()).ToString());
+        }
+
+        [Theory, CombinatorialData]
+        public async Task FreezingWithSameContentDoesNotFork(TestHost testHost)
+        {
+            using var workspace = CreateWorkspace(testHost: testHost);
+
+            var analyzerReference = new TestGeneratorReference(
+                new SingleFileTestGenerator("// Hello, World"));
+
+            var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference);
+
+            var sourceGeneratedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+            var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
+
+            var frozenSolution = project.Solution.WithFrozenSourceGeneratedDocument(
+                sourceGeneratedDocumentIdentity, sourceGeneratedDocument.GenerationDateTime, SourceText.From("// Hello, World"));
+            Assert.Same(project.Solution, frozenSolution.Project.Solution);
         }
     }
 }

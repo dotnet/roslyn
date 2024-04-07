@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 using static SyntaxFactory;
 
-internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider
+internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider<ForStatementSyntax>
 {
     private static readonly string[] s_iteratorBaseNames = ["i", "j", "k"];
 
@@ -38,7 +38,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
 
     protected abstract void AddSpecificPlaceholders(MultiDictionary<string, int> placeholderBuilder, ExpressionSyntax initializer, ExpressionSyntax rightOfCondition);
 
-    protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+    protected override ForStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
     {
         var semanticModel = syntaxContext.SemanticModel;
         var compilation = semanticModel.Compilation;
@@ -81,13 +81,15 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         }
     }
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(ForStatementSyntax forStatement, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var result);
         var placeholderBuilder = new MultiDictionary<string, int>();
-        GetPartsOfForStatement(node, out var declaration, out var condition, out var incrementor, out var _);
+        var declaration = forStatement.Declaration;
+        var condition = forStatement.Condition;
+        var incrementor = forStatement.Incrementors.Single();
 
-        var variableDeclarator = ((VariableDeclarationSyntax)declaration!).Variables.Single();
+        var variableDeclarator = declaration!.Variables.Single();
         var declaratorIdentifier = variableDeclarator.Identifier;
         placeholderBuilder.Add(declaratorIdentifier.ValueText, declaratorIdentifier.SpanStart);
 
@@ -106,25 +108,16 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         return result.ToImmutableAndClear();
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForStatementSyntax>(
-            caretTarget,
+    protected override int GetTargetCaretPosition(ForStatementSyntax forStatement, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            forStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ForStatementSyntax forStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            forStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-
-    private static void GetPartsOfForStatement(SyntaxNode node, out SyntaxNode? declaration, out SyntaxNode? condition, out SyntaxNode? incrementor, out SyntaxNode? statement)
-    {
-        var forStatement = (ForStatementSyntax)node;
-        declaration = forStatement.Declaration;
-        condition = forStatement.Condition;
-        incrementor = forStatement.Incrementors.Single();
-        statement = forStatement.Statement;
-    }
 }

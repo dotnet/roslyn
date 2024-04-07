@@ -29,6 +29,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.DocumentName, null);
         }
 
+        public static string? GetDisplayPath(this ITableEntry tableEntry)
+        {
+            return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.DisplayPath, null);
+        }
+
         public static int? GetLine(this ITableEntry tableEntry)
         {
             return tableEntry.GetValueOrNull<int>(StandardTableKeyNames.Line);

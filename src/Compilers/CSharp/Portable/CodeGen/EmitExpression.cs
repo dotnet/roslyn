@@ -238,6 +238,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitModuleVersionIdStringLoad();
                     break;
 
+                case BoundKind.ThrowIfModuleCancellationRequested:
+                    Debug.Assert(!used);
+                    EmitThrowIfModuleCancellationRequested(expression.Syntax);
+                    break;
+
+                case BoundKind.ModuleCancellationTokenExpression:
+                    Debug.Assert(used);
+                    EmitModuleCancellationTokenLoad(expression.Syntax);
+                    break;
+
                 case BoundKind.InstrumentationPayloadRoot:
                     Debug.Assert(used);
                     EmitInstrumentationPayloadRootLoad((BoundInstrumentationPayloadRoot)expression);
@@ -2284,9 +2294,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var containingType = method.ContainingType;
-            // overrides in structs that are special types can be called directly.
-            // we can assume that special types will not be removing overrides
-            return containingType.SpecialType != SpecialType.None;
+            // Overrides in structs of some special types can be called directly.
+            // We can assume that these special types will not be removing overrides.
+            // This pattern can probably be applied to all special types,
+            // but that would introduce a silent change every time a new special type is added,
+            // so we constrain the check to a fixed range of types
+            return containingType.SpecialType.CanOptimizeBehavior();
         }
 
         /// <summary>
@@ -3571,7 +3584,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitModuleVersionIdToken(BoundModuleVersionId node)
         {
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(
+                _module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag),
+                node.Syntax,
+                _diagnostics.DiagnosticBag);
+        }
+
+        private void EmitThrowIfModuleCancellationRequested(SyntaxNode syntax)
+        {
+            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+            _builder.EmitOpCode(ILOpCode.Ldsflda);
+            _builder.EmitToken(
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
+
+            var throwMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_CancellationToken__ThrowIfCancellationRequested);
+
+            // BoundThrowIfModuleCancellationRequested should not be created if the method doesn't exist.
+            Debug.Assert(throwMethod != null);
+
+            _builder.EmitOpCode(ILOpCode.Call, -1);
+            _builder.EmitToken(
+                _module.Translate(throwMethod, syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
+        }
+
+        private void EmitModuleCancellationTokenLoad(SyntaxNode syntax)
+        {
+            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
         }
 
         private void EmitModuleVersionIdStringLoad()

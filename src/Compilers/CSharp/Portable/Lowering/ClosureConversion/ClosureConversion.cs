@@ -1181,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var newPrologue = (BoundStatement)Visit(newInstrumentation.Prologue);
                 var newEpilogue = (BoundStatement)Visit(newInstrumentation.Epilogue);
-                newInstrumentation = newInstrumentation.Update(newInstrumentation.Local, newPrologue, newEpilogue);
+                newInstrumentation = newInstrumentation.Update(newInstrumentation.Locals, newPrologue, newEpilogue);
             }
 
             // TODO: we may not need to update if there was nothing to rewrite.

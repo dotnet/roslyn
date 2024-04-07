@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="syntaxNode">The syntax node to perform lookup on</param>
         /// <param name="diagnostics">Populated with invocation errors, and warnings of near misses</param>
         /// <returns>The <see cref="MethodSymbol"/> of the Dispose method if one is found, otherwise null.</returns>
-        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, BindingDiagnosticBag diagnostics)
+        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, BindingDiagnosticBag diagnostics, out bool isExpanded)
         {
             Debug.Assert(expr is object);
             Debug.Assert(expr.Type is object);
@@ -758,7 +758,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
                                                     syntaxNode,
                                                     diagnostics,
-                                                    out var disposeMethod);
+                                                    out var disposeMethod,
+                                                    out isExpanded);
 
             if (disposeMethod?.IsExtensionMethod == true)
             {
@@ -1335,14 +1336,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             const string methodName = "GetPinnableReference";
 
-            var result = PerformPatternMethodLookup(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
+            var result = PerformPatternMethodLookup(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol, out bool isExpanded);
 
             if (patternMethodSymbol is null)
             {
                 return null;
             }
 
-            if (HasOptionalOrVariableParameters(patternMethodSymbol) ||
+            if (isExpanded || HasOptionalParameters(patternMethodSymbol) ||
                 patternMethodSymbol.ReturnsVoid ||
                 !patternMethodSymbol.RefKind.IsManagedReference() ||
                 !(patternMethodSymbol.ParameterCount == 0 || patternMethodSymbol.IsStatic && patternMethodSymbol.ParameterCount == 1))
@@ -4009,13 +4010,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="result">The method symbol that was looked up, or null</param>
         /// <returns>A <see cref="PatternLookupResult"/> value with the outcome of the lookup</returns>
         internal PatternLookupResult PerformPatternMethodLookup(BoundExpression receiver, string methodName,
-                                                                SyntaxNode syntaxNode, BindingDiagnosticBag diagnostics, out MethodSymbol result)
+                                                                SyntaxNode syntaxNode, BindingDiagnosticBag diagnostics, out MethodSymbol result, out bool isExpanded)
         {
             var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
             try
             {
                 result = null;
+                isExpanded = false;
 
                 var boundAccess = BindInstanceMemberAccess(
                        syntaxNode,
@@ -4050,7 +4052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     analyzedArguments,
                     bindingDiagnostics,
                     queryClause: null,
-                    allowUnexpandedForm: false,
+                    ignoreNormalFormIfHasValidParamsParameter: true,
                     anyApplicableCandidates: out _);
 
                 analyzedArguments.Free();
@@ -4079,6 +4081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Success!
                 result = patternMethodSymbol;
+                isExpanded = call.Expanded;
                 return PatternLookupResult.Success;
             }
             finally

@@ -183,7 +183,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             // Set the properties in a batch; if we set the property directly we'll be taking a synchronous lock here and
             // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
-            project.StartBatch();
+            var disposableBatchScope = await project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+            await using var _ = disposableBatchScope.ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(commandLineArgs))
             {
@@ -196,8 +197,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
 
             project.BinOutputPath = binOutputPath;
-
-            await project.EndBatchAsync().ConfigureAwait(false);
 
             return project;
         }

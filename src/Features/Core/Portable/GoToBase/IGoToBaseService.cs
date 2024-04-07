@@ -8,14 +8,13 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.GoToBase
+namespace Microsoft.CodeAnalysis.GoToBase;
+
+internal interface IGoToBaseService : ILanguageService
 {
-    internal interface IGoToBaseService : ILanguageService
-    {
-        /// <summary>
-        /// Finds the base members overridden or implemented by the symbol at the specific position in the document,
-        /// pushing the results into the context instance.
-        /// </summary>
-        Task FindBasesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// Finds the base members overridden or implemented by the symbol at the specific position in the document,
+    /// pushing the results into the context instance.
+    /// </summary>
+    Task FindBasesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken);
 }

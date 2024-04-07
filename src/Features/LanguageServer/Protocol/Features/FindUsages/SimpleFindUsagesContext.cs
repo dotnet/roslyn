@@ -7,8 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }
 
-        public override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
+        public override ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
         {
             Message = message;
             return default;

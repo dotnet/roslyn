@@ -10,7 +10,6 @@
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
-    <ExcludeFromVerticalBuild>false</ExcludeFromVerticalBuild>
   </PropertyGroup>
   <ItemGroup>
     <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->

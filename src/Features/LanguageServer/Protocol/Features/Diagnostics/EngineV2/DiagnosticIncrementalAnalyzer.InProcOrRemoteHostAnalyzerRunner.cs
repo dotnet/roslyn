@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,11 +13,9 @@ using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -26,13 +23,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class InProcOrRemoteHostAnalyzerRunner
     {
+        private readonly bool _enabled;
         private readonly IAsynchronousOperationListener _asyncOperationListener;
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
         public InProcOrRemoteHostAnalyzerRunner(
+            bool enabled,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             IAsynchronousOperationListener? operationListener = null)
         {
+            _enabled = enabled;
             AnalyzerInfoCache = analyzerInfoCache;
             _asyncOperationListener = operationListener ?? AsynchronousOperationListenerProvider.NullListener;
         }
@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
         {
+            if (!_enabled)
+                return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+
             var result = await AnalyzeCoreAsync().ConfigureAwait(false);
             Debug.Assert(getTelemetryInfo || result.TelemetryInfo.IsEmpty);
             return result;
@@ -87,24 +90,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
+            if (!_enabled)
+                return [];
+
             var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-            if (!options.RunSourceGeneratorsInSameProcessOnly)
+            var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            if (remoteHostClient != null)
             {
-                var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient != null)
-                {
-                    var result = await remoteHostClient.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
-                        project.Solution,
-                        invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
+                var result = await remoteHostClient.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                    project.Solution,
+                    invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
-                    if (!result.HasValue)
-                        return [];
+                if (!result.HasValue)
+                    return [];
 
-                    return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                }
+                return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             }
 
             return await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);

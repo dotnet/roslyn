@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -101,10 +102,10 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
             await presenterContext.SetSearchTitleAsync(_state.SearchTitle, cancellationToken).ConfigureAwait(false);
 
         if (_state.Message != null)
-            await presenterContext.ReportMessageAsync(_state.Message, cancellationToken).ConfigureAwait(false);
+            await presenterContext.ReportNoResultsAsync(_state.Message, cancellationToken).ConfigureAwait(false);
 
         if (_state.InformationalMessage != null)
-            await presenterContext.ReportInformationalMessageAsync(_state.InformationalMessage, cancellationToken).ConfigureAwait(false);
+            await presenterContext.ReportMessageAsync(_state.InformationalMessage, NotificationSeverity.Information, cancellationToken).ConfigureAwait(false);
 
         foreach (var definition in _state.Definitions)
             await presenterContext.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
@@ -148,12 +149,12 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
 
     #region IFindUsagesContext
 
-    async ValueTask IFindUsagesContext.ReportMessageAsync(string message, CancellationToken cancellationToken)
+    async ValueTask IFindUsagesContext.ReportNoResultsAsync(string message, CancellationToken cancellationToken)
     {
         using var _ = await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false);
         if (IsSwapped)
         {
-            await _streamingPresenterContext.ReportMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            await _streamingPresenterContext.ReportNoResultsAsync(message, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -161,12 +162,12 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
         }
     }
 
-    async ValueTask IFindUsagesContext.ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+    async ValueTask IFindUsagesContext.ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
     {
         using var _ = await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false);
         if (IsSwapped)
         {
-            await _streamingPresenterContext.ReportInformationalMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            await _streamingPresenterContext.ReportMessageAsync(message, severity, cancellationToken).ConfigureAwait(false);
         }
         else
         {

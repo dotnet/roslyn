@@ -65,19 +65,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
         public async Task ValidateCSharpTemplateProjects(string templateName)
         {
-            var ignoredDiagnostics = templateName switch
-            {
-                "blazor" or "blazorwasm" or "blazorwasm-empty" =>
-                    [
-                        // The type or namespace name {'csharp_blazor_project'|'App'} could not be found
-                        // (are you missing a using directive or an assembly reference?)
-                        // Bug: https://github.com/dotnet/roslyn/issues/72015
-                        "CS0246",
-                    ],
-                _ => Array.Empty<string>(),
-            };
-
-            await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp, ignoredDiagnostics);
+            await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
         }
 
         [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]

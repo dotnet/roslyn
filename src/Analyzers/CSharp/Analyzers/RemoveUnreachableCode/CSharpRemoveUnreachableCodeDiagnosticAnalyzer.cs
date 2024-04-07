@@ -124,6 +124,7 @@ internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInUn
             Descriptor,
             firstStatementLocation,
             NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: [],
             additionalUnnecessaryLocations: additionalLocations));
 
@@ -142,6 +143,7 @@ internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInUn
                 Descriptor,
                 location,
                 NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                context.Options,
                 additionalLocations,
                 additionalUnnecessaryLocations,
                 s_subsequentSectionProperties));

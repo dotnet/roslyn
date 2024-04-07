@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -40,8 +41,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override VSInternalWorkspaceDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
             => CreateReport(identifier, diagnostics: null, resultId: null);
 
-        protected override VSInternalWorkspaceDiagnosticReport[] CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-            => CreateReport(identifier, diagnostics: null, resultId);
+        protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, [NotNullWhen(true)] out VSInternalWorkspaceDiagnosticReport[]? report)
+        {
+            // Skip reporting 'unchanged' document reports for workspace pull diagnostics.  There are often a ton of
+            // these and we can save a lot of memory not serializing/deserializing all of this.
+            report = null;
+            return false;
+        }
 
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();

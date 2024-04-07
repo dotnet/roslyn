@@ -10,43 +10,42 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
-namespace Microsoft.CodeAnalysis.CSharp.Organizing
+namespace Microsoft.CodeAnalysis.CSharp.Organizing;
+
+internal partial class CSharpOrganizingService
 {
-    internal partial class CSharpOrganizingService
+    private class Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, CancellationToken cancellationToken) : CSharpSyntaxRewriter
     {
-        private class Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, CancellationToken cancellationToken) : CSharpSyntaxRewriter
+        private readonly Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> _nodeToOrganizersGetter = treeOrganizer.GetNodeToOrganizers(organizers.ToList());
+        private readonly SemanticModel _semanticModel = semanticModel;
+        private readonly CancellationToken _cancellationToken = cancellationToken;
+
+        public override SyntaxNode DefaultVisit(SyntaxNode node)
         {
-            private readonly Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> _nodeToOrganizersGetter = treeOrganizer.GetNodeToOrganizers(organizers.ToList());
-            private readonly SemanticModel _semanticModel = semanticModel;
-            private readonly CancellationToken _cancellationToken = cancellationToken;
+            _cancellationToken.ThrowIfCancellationRequested();
+            return node;
+        }
 
-            public override SyntaxNode DefaultVisit(SyntaxNode node)
+        public override SyntaxNode Visit(SyntaxNode node)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
+
+            if (node == null)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
-                return node;
+                return null;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            // First, recurse into our children, updating them.
+            node = base.Visit(node);
+
+            // Now, try to update this new node itself.
+            var organizers = _nodeToOrganizersGetter(node);
+            foreach (var organizer in organizers)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                if (node == null)
-                {
-                    return null;
-                }
-
-                // First, recurse into our children, updating them.
-                node = base.Visit(node);
-
-                // Now, try to update this new node itself.
-                var organizers = _nodeToOrganizersGetter(node);
-                foreach (var organizer in organizers)
-                {
-                    node = organizer.OrganizeNode(_semanticModel, node, _cancellationToken);
-                }
-
-                return node;
+                node = organizer.OrganizeNode(_semanticModel, node, _cancellationToken);
             }
+
+            return node;
         }
     }
 }

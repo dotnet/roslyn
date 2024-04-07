@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
@@ -80,15 +81,15 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteInheritanceMarginService), null),
             (typeof(IRemoteUnusedReferenceAnalysisService), null),
             (typeof(IRemoteProcessTelemetryService), null),
-            (typeof(IRemoteCompilationAvailableService), null),
             (typeof(IRemoteLegacySolutionEventsAggregationService), null),
             (typeof(IRemoteStackTraceExplorerService), null),
             (typeof(IRemoteUnitTestingSearchService), null),
             (typeof(IRemoteSourceGenerationService), null),
+            (typeof(IRemoteSemanticSearchService), typeof(IRemoteSemanticSearchService.ICallback)),
         });
 
         internal readonly RemoteSerializationOptions Options;
-        private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC, ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC)> _descriptors;
+        private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC)> _descriptors;
         private readonly string _componentName;
         private readonly Func<string, string> _featureDisplayNameProvider;
 
@@ -114,17 +115,15 @@ namespace Microsoft.CodeAnalysis.Remote
             return interfaceName.Substring(InterfaceNamePrefix.Length, interfaceName.Length - InterfaceNamePrefix.Length - InterfaceNameSuffix.Length);
         }
 
-        private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
+        private (ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
             var simpleName = GetSimpleName(serviceInterface);
-            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
-            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
             var descriptorCoreClr64 = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, SuffixCoreClr + Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
             var descriptorCoreClr64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(_componentName, simpleName, SuffixCoreClr + Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
 
-            return (descriptor64, descriptor64ServerGC, descriptorCoreClr64, descriptorCoreClr64ServerGC);
+            return (descriptorCoreClr64, descriptorCoreClr64ServerGC);
         }
 
         public static bool IsCurrentProcessRunningOnCoreClr()
@@ -132,17 +131,20 @@ namespace Microsoft.CodeAnalysis.Remote
                !RuntimeInformation.FrameworkDescription.StartsWith(".NET Native");
 
         public ServiceDescriptor GetServiceDescriptorForServiceFactory(Type serviceType)
-            => GetServiceDescriptor(serviceType, RemoteProcessConfiguration.ServerGC | (IsCurrentProcessRunningOnCoreClr() ? RemoteProcessConfiguration.Core : 0));
+            => GetServiceDescriptor(serviceType, RemoteProcessConfiguration.ServerGC);
 
         public ServiceDescriptor GetServiceDescriptor(Type serviceType, RemoteProcessConfiguration configuration)
         {
-            var (descriptor64, descriptor64ServerGC, descriptorCoreClr64, descriptorCoreClr64ServerGC) = _descriptors[serviceType];
-            return (configuration & (RemoteProcessConfiguration.Core | RemoteProcessConfiguration.ServerGC)) switch
+            if (!_descriptors.TryGetValue(serviceType, out var descriptor))
             {
-                0 => descriptor64,
-                RemoteProcessConfiguration.Core => descriptorCoreClr64,
-                RemoteProcessConfiguration.ServerGC => descriptor64ServerGC,
-                RemoteProcessConfiguration.Core | RemoteProcessConfiguration.ServerGC => descriptorCoreClr64ServerGC,
+                throw ExceptionUtilities.UnexpectedValue(serviceType);
+            }
+
+            var (descriptorCoreClr64, descriptorCoreClr64ServerGC) = descriptor;
+            return (configuration & RemoteProcessConfiguration.ServerGC) switch
+            {
+                0 => descriptorCoreClr64,
+                RemoteProcessConfiguration.ServerGC => descriptorCoreClr64ServerGC,
                 _ => throw ExceptionUtilities.Unreachable()
             };
         }
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Remote
             internal TestAccessor(ServiceDescriptors serviceDescriptors)
                 => _serviceDescriptors = serviceDescriptors;
 
-            public ImmutableDictionary<Type, (ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC, ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC)> Descriptors
+            public ImmutableDictionary<Type, (ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC)> Descriptors
                 => _serviceDescriptors._descriptors;
         }
     }

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.SpellCheck
+namespace Microsoft.CodeAnalysis.SpellCheck;
+
+internal enum SpellCheckKind
 {
-    internal enum SpellCheckKind
-    {
-        Identifier,
-        Comment,
-        String,
-    }
+    Identifier,
+    Comment,
+    String,
 }

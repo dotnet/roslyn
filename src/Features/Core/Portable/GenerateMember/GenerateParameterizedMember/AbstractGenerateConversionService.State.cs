@@ -9,97 +9,96 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
+
+internal partial class AbstractGenerateConversionService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
-    internal partial class AbstractGenerateConversionService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
+    protected new class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
     {
-        protected new class State : AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>.State
+        public static async Task<State> GenerateConversionStateAsync(
+           TService service,
+           SemanticDocument document,
+           SyntaxNode interfaceNode,
+           CancellationToken cancellationToken)
         {
-            public static async Task<State> GenerateConversionStateAsync(
-               TService service,
-               SemanticDocument document,
-               SyntaxNode interfaceNode,
-               CancellationToken cancellationToken)
+            var state = new State();
+            if (!await state.TryInitializeConversionAsync(service, document, interfaceNode, cancellationToken).ConfigureAwait(false))
             {
-                var state = new State();
-                if (!await state.TryInitializeConversionAsync(service, document, interfaceNode, cancellationToken).ConfigureAwait(false))
-                {
-                    return null;
-                }
-
-                return state;
+                return null;
             }
 
-            private Task<bool> TryInitializeConversionAsync(
-                TService service,
-                SemanticDocument document,
-                SyntaxNode node,
-                CancellationToken cancellationToken)
-            {
-                if (service.IsImplicitConversionGeneration(node))
-                {
-                    if (!TryInitializeImplicitConversion(service, document, node, cancellationToken))
-                    {
-                        return SpecializedTasks.False;
-                    }
-                }
-                else if (service.IsExplicitConversionGeneration(node))
-                {
-                    if (!TryInitializeExplicitConversion(service, document, node, cancellationToken))
-                    {
-                        return SpecializedTasks.False;
-                    }
-                }
+            return state;
+        }
 
-                return TryFinishInitializingStateAsync(service, document, cancellationToken);
+        private Task<bool> TryInitializeConversionAsync(
+            TService service,
+            SemanticDocument document,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
+        {
+            if (service.IsImplicitConversionGeneration(node))
+            {
+                if (!TryInitializeImplicitConversion(service, document, node, cancellationToken))
+                {
+                    return SpecializedTasks.False;
+                }
+            }
+            else if (service.IsExplicitConversionGeneration(node))
+            {
+                if (!TryInitializeExplicitConversion(service, document, node, cancellationToken))
+                {
+                    return SpecializedTasks.False;
+                }
             }
 
-            private bool TryInitializeExplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
+            return TryFinishInitializingStateAsync(service, document, cancellationToken);
+        }
+
+        private bool TryInitializeExplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            MethodKind = MethodKind.Conversion;
+            if (!service.TryInitializeExplicitConversionState(
+                document, node, ClassInterfaceModuleStructTypes, cancellationToken,
+                out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
             {
-                MethodKind = MethodKind.Conversion;
-                if (!service.TryInitializeExplicitConversionState(
-                    document, node, ClassInterfaceModuleStructTypes, cancellationToken,
-                    out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
-                {
-                    return false;
-                }
-
-                ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
-                if (ContainingType == null)
-                {
-                    return false;
-                }
-
-                IdentifierToken = identifierToken;
-                TypeToGenerateIn = typeToGenerateIn;
-                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
-                location = node.GetLocation();
-                MethodGenerationKind = MethodGenerationKind.ExplicitConversion;
-                return true;
+                return false;
             }
 
-            private bool TryInitializeImplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
+            ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+            if (ContainingType == null)
             {
-                MethodKind = MethodKind.Conversion;
-                if (!service.TryInitializeImplicitConversionState(
-                    document, node, ClassInterfaceModuleStructTypes, cancellationToken,
-                    out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
-                {
-                    return false;
-                }
-
-                ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
-                if (ContainingType == null)
-                {
-                    return false;
-                }
-
-                IdentifierToken = identifierToken;
-                TypeToGenerateIn = typeToGenerateIn;
-                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
-                MethodGenerationKind = MethodGenerationKind.ImplicitConversion;
-                return true;
+                return false;
             }
+
+            IdentifierToken = identifierToken;
+            TypeToGenerateIn = typeToGenerateIn;
+            SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+            location = node.GetLocation();
+            MethodGenerationKind = MethodGenerationKind.ExplicitConversion;
+            return true;
+        }
+
+        private bool TryInitializeImplicitConversion(TService service, SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            MethodKind = MethodKind.Conversion;
+            if (!service.TryInitializeImplicitConversionState(
+                document, node, ClassInterfaceModuleStructTypes, cancellationToken,
+                out var identifierToken, out var methodSymbol, out var typeToGenerateIn))
+            {
+                return false;
+            }
+
+            ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+            if (ContainingType == null)
+            {
+                return false;
+            }
+
+            IdentifierToken = identifierToken;
+            TypeToGenerateIn = typeToGenerateIn;
+            SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+            MethodGenerationKind = MethodGenerationKind.ImplicitConversion;
+            return true;
         }
     }
 }

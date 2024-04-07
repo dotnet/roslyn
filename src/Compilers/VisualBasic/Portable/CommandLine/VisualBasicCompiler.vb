@@ -297,8 +297,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Private Protected Overrides Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver
-            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
+        Private Protected Overrides Function CreateGeneratorDriver(baseDirectory As String, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver
+            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider, driverOptions:=New GeneratorDriverOptions() With {.BaseDirectory = baseDirectory})
         End Function
 
         Private Protected Overrides Sub DiagnoseBadAccesses(consoleOutput As TextWriter, errorLogger As ErrorLogger, compilation As Compilation, diagnostics As ImmutableArray(Of Diagnostic))

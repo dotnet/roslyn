@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -101,6 +102,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _containingPublicSemanticModel.IgnoresAccessibility;
+            }
+        }
+
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
+        public sealed override bool NullableAnalysisIsDisabled
+        {
+            get
+            {
+                return _containingPublicSemanticModel.NullableAnalysisIsDisabled;
             }
         }
 
@@ -1900,7 +1910,20 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
+#if !DEBUG
+            // In release mode, when the semantic model options include DisableNullableAnalysis,
+            // we want to completely avoid doing any work for nullable analysis.
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
+            if (NullableAnalysisIsDisabled)
+#pragma warning restore RSEXPERIMENTAL001
+            {
+                return;
+            }
+#endif
+
             bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled();
+            // When 'isNullableAnalysisEnabled' is false but 'Compilation.IsNullableAnalysisEnabledAlways' is true here,
+            // we still need to perform a nullable analysis whose results are discarded for debug verification purposes.
             if (!isNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
@@ -2029,7 +2052,12 @@ done:
         /// </summary>
         protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
 
-        protected abstract bool IsNullableAnalysisEnabled();
+        protected abstract bool IsNullableAnalysisEnabledCore();
+
+        protected bool IsNullableAnalysisEnabled()
+#pragma warning disable RSEXPERIMENTAL001 // internal use of experimental API
+            => !NullableAnalysisIsDisabled && IsNullableAnalysisEnabledCore();
+#pragma warning restore RSEXPERIMENTAL001
 #nullable disable
 
         /// <summary>

@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
 
@@ -21,7 +20,8 @@ internal static class CompletionOptionsStorage
                 // If the option is null (i.e. default) or 'true', then we want to trigger completion.
                 // Only if the option is false do we not want to trigger.
                 LanguageNames.VisualBasic => options.GetOption(TriggerOnDeletion, language) is not false,
-                _ => throw ExceptionUtilities.Unreachable()
+                // Other languages might want to get completion options, like Razor, just forward the call to option service when it happens.
+                _ => options.GetOption(TriggerOnDeletion, language),
             },
             TriggerInArgumentLists = options.GetOption(TriggerInArgumentLists, language),
             EnterKeyBehavior = options.GetOption(EnterKeyBehavior, language),

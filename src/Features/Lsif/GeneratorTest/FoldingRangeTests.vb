@@ -54,7 +54,7 @@ using System.Linq;|}", "imports", "...")>
                     </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
 
                 Dim annotatedLocations = Await AbstractLanguageServerProtocolTests.GetAnnotatedLocationsAsync(workspace, workspace.CurrentSolution)
-                Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range, collapsedText)).OrderBy(Function(range) range.StartLine).ToArray()
+                Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range, collapsedText)).OrderByDescending(Function(range) range.StartLine).ToArray()
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(workspace)

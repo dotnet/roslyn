@@ -245,7 +245,7 @@ End Class";
         }
 
         private static InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner()
-            => new(new DiagnosticAnalyzerInfoCache());
+            => new(enabled: true, new DiagnosticAnalyzerInfoCache());
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, IdeAnalyzerOptions ideOptions, CancellationToken cancellationToken = default)
         {
@@ -313,18 +313,6 @@ End Class";
                     c.ReportDiagnostic(Diagnostic.Create(_supportedDiagnostics[0], c.Tree.GetLocation(TextSpan.FromBounds(0, 1))));
                 });
             }
-        }
-
-        private class MyUpdateSource : AbstractHostDiagnosticUpdateSource
-        {
-            private readonly Workspace _workspace;
-
-            public MyUpdateSource(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
-
-            public override Workspace Workspace => _workspace;
         }
     }
 }

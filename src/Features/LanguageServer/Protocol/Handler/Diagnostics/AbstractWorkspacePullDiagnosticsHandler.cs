@@ -18,6 +18,7 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+
 internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsParams, TReport, TReturn>
     : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, IDisposable
     where TDiagnosticsParams : IPartialResultParams<TReport>

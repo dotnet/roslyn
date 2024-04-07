@@ -11186,7 +11186,7 @@ static class Extensions
                 //     static void F2(params scoped object[] args) { }
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "params scoped object[] args").WithLocation(4, 20));
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "scoped params System.Object[] args", RefKind.None, ScopedKind.ScopedValue);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "params scoped System.Object[] args", RefKind.None, ScopedKind.ScopedValue);
         }
 
         [Theory]

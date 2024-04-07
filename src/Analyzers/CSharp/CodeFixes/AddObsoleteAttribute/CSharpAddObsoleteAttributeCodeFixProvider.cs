@@ -10,27 +10,26 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
-{
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddObsoleteAttribute), Shared]
-    internal class CSharpAddObsoleteAttributeCodeFixProvider
-        : AbstractAddObsoleteAttributeCodeFixProvider
-    {
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            [
-                "CS0612",
-                "CS0618",
-                "CS0672",
-                "CS1062",
-                "CS1064"
-,  // The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer element is obsolete"
-            ];
+namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAddObsoleteAttributeCodeFixProvider()
-            : base(CSharpSyntaxFacts.Instance, CSharpCodeFixesResources.Add_Obsolete)
-        {
-        }
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddObsoleteAttribute), Shared]
+internal class CSharpAddObsoleteAttributeCodeFixProvider
+    : AbstractAddObsoleteAttributeCodeFixProvider
+{
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+        [
+            "CS0612",
+            "CS0618",
+            "CS0672",
+            "CS1062",
+            "CS1064"
+,  // The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer element is obsolete"
+        ];
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpAddObsoleteAttributeCodeFixProvider()
+        : base(CSharpSyntaxFacts.Instance, CSharpCodeFixesResources.Add_Obsolete)
+    {
     }
 }

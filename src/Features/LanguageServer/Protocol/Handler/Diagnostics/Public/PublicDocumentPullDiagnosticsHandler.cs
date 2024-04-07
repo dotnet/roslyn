@@ -66,11 +66,14 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
             Items = [],
         });
 
-    protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-        => new(new RelatedUnchangedDocumentDiagnosticReport
+    protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, out DocumentDiagnosticPartialReport report)
+    {
+        report = new RelatedUnchangedDocumentDiagnosticReport
         {
             ResultId = resultId
-        });
+        };
+        return true;
+    }
 
     protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {

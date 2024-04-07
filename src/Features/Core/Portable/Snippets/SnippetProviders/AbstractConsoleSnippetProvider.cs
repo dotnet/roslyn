@@ -16,136 +16,96 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Snippets
+namespace Microsoft.CodeAnalysis.Snippets;
+
+internal abstract class AbstractConsoleSnippetProvider<
+    TExpressionStatementSyntax,
+    TExpressionSyntax,
+    TArgumentListSyntax> : AbstractStatementSnippetProvider<TExpressionStatementSyntax>
+    where TExpressionStatementSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
+    where TArgumentListSyntax : SyntaxNode
 {
-    internal abstract class AbstractConsoleSnippetProvider : AbstractStatementSnippetProvider
+    public sealed override string Identifier => CommonSnippetIdentifiers.ConsoleWriteLine;
+
+    public sealed override string Description => FeaturesResources.console_writeline;
+
+    public sealed override ImmutableArray<string> AdditionalFilterTexts { get; } = ["WriteLine"];
+
+    protected abstract TExpressionSyntax GetExpression(TExpressionStatementSyntax expressionStatement);
+    protected abstract TArgumentListSyntax GetArgumentList(TExpressionSyntax expression);
+    protected abstract SyntaxToken GetOpenParenToken(TArgumentListSyntax argumentList);
+
+    protected sealed override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {
-        protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
+        var consoleSymbol = GetConsoleSymbolFromMetaDataName(context.SyntaxContext.SemanticModel.Compilation);
+        if (consoleSymbol is null)
+            return false;
 
-        public override string Identifier => "cw";
+        return base.IsValidSnippetLocation(in context, cancellationToken);
+    }
 
-        public override string Description => FeaturesResources.console_writeline;
+    protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var generator = SyntaxGenerator.GetGenerator(document);
 
-        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ["WriteLine"];
+        var invocation = generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), nameof(Console.WriteLine)));
+        var expressionStatement = generator.ExpressionStatement(invocation);
 
-        protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
-        {
-            var consoleSymbol = GetConsoleSymbolFromMetaDataName(context.SyntaxContext.SemanticModel.Compilation);
-            if (consoleSymbol is null)
-            {
-                return false;
-            }
+        var change = new TextChange(TextSpan.FromBounds(position, position), expressionStatement.ToFullString());
+        return Task.FromResult(change);
+    }
 
-            return base.IsValidSnippetLocation(in context, cancellationToken);
-        }
+    /// <summary>
+    /// Tries to get the location after the open parentheses in the argument list.
+    /// If it can't, then we default to the end of the snippet's span.
+    /// </summary>
+    protected sealed override int GetTargetCaretPosition(TExpressionStatementSyntax caretTarget, SourceText sourceText)
+    {
+        var invocationExpression = GetExpression(caretTarget);
+        if (invocationExpression is null)
+            return caretTarget.Span.End;
 
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        {
-            return syntaxFacts.IsExpressionStatement;
-        }
+        var argumentListNode = GetArgumentList(invocationExpression);
+        if (argumentListNode is null)
+            return caretTarget.Span.End;
 
-        protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
+        var openParenToken = GetOpenParenToken(argumentListNode);
+        return openParenToken.Span.End;
+    }
 
-            // We know symbol is not null at this point since it was checked when determining
-            // if we are in a valid location to insert the snippet.
-            var declaration = GetAsyncSupportingDeclaration(token);
-            var isAsync = declaration is not null && generator.GetModifiers(declaration).IsAsync;
+    protected sealed override async Task<SyntaxNode> AnnotateNodesToReformatAsync(
+        Document document, int position, CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position);
+        Contract.ThrowIfNull(snippetExpressionNode);
 
-            var invocation = isAsync
-                ? generator.AwaitExpression(generator.InvocationExpression(
-                    generator.MemberAccessExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), generator.IdentifierName(nameof(Console.Out))), nameof(Console.Out.WriteLineAsync))))
-                : generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), nameof(Console.WriteLine)));
-            var expressionStatement = generator.ExpressionStatement(invocation);
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var consoleSymbol = GetConsoleSymbolFromMetaDataName(compilation);
+        var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(FindSnippetAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
+        return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
+    }
 
-            // Need to normalize the whitespace for the asynchronous case because it doesn't insert a space following the await
-            return new TextChange(TextSpan.FromBounds(position, position), expressionStatement.NormalizeWhitespace().ToFullString());
-        }
+    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TExpressionStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        => [];
 
-        /// <summary>
-        /// Tries to get the location after the open parentheses in the argument list.
-        /// If it can't, then we default to the end of the snippet's span.
-        /// </summary>
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
-            if (invocationExpression is null)
-            {
-                return caretTarget.Span.End;
-            }
+    private static INamedTypeSymbol? GetConsoleSymbolFromMetaDataName(Compilation compilation)
+        => compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
 
-            var argumentListNode = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
-            if (argumentListNode is null)
-            {
-                return caretTarget.Span.End;
-            }
+    protected sealed override TExpressionStatementSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
+    {
+        var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
+        var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<TExpressionStatementSyntax>();
+        if (nearestExpressionStatement is null)
+            return null;
 
-            syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
-            return openParenToken.Span.End;
-        }
+        // Checking to see if that expression statement that we found is
+        // starting at the same position as the position we inserted
+        // the Console WriteLine expression statement.
+        if (nearestExpressionStatement.SpanStart != position)
+            return null;
 
-        protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
-            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsExpressionStatement);
-            Contract.ThrowIfNull(snippetExpressionNode);
-
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var consoleSymbol = GetConsoleSymbolFromMetaDataName(compilation);
-            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
-            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
-        }
-
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            return [];
-        }
-
-        private static SyntaxToken? GetOpenParenToken(SyntaxNode node, ISyntaxFacts syntaxFacts)
-        {
-            var invocationExpression = node.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
-            if (invocationExpression is null)
-            {
-                return null;
-            }
-
-            var argumentListNode = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
-            if (argumentListNode is null)
-            {
-                return null;
-            }
-
-            syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
-
-            return openParenToken;
-        }
-
-        private static INamedTypeSymbol? GetConsoleSymbolFromMetaDataName(Compilation compilation)
-            => compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
-
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
-        {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(isCorrectContainer);
-            if (nearestExpressionStatement is null)
-            {
-                return null;
-            }
-
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the Console WriteLine expression statement.
-            if (nearestExpressionStatement.SpanStart != position)
-            {
-                return null;
-            }
-
-            return nearestExpressionStatement;
-        }
+        return nearestExpressionStatement;
     }
 }

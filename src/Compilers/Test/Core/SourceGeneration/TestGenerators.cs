@@ -100,6 +100,17 @@ namespace Roslyn.Test.Utilities.TestGenerators
         {
         }
 
+        public CallbackGenerator(Func<(string hintName, string? source)> computeSource)
+            : this(onInit: static _ => { }, onExecute: static _ => { }, () =>
+            {
+                var (hint, source) = computeSource();
+                return ImmutableArray.Create((hint, string.IsNullOrWhiteSpace(source)
+                    ? null
+                    : SourceText.From(source, Encoding.UTF8)));
+            })
+        {
+        }
+
         public void Initialize(GeneratorInitializationContext context)
             => onInit(context);
 

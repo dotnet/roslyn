@@ -16,6 +16,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -30,6 +31,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
@@ -3458,6 +3460,34 @@ public class C : A {
         }
 
         [Fact]
+        public async Task TestFreezingTwiceGivesSameDocument()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            var documentToFreeze = project.AddDocument("DocumentToFreeze.cs", SourceText.From(""));
+            var frozenDocument = documentToFreeze.WithFrozenPartialSemantics(CancellationToken.None);
+
+            // Because we had no compilation produced yet, we expect that only the DocumentToFreeze is in the compilation
+            Assert.NotSame(frozenDocument, documentToFreeze);
+            var tree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
+            Assert.Equal("DocumentToFreeze.cs", tree.FilePath);
+
+            // Versions should be different
+            Assert.NotEqual(
+                await documentToFreeze.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.NotEqual(
+                await documentToFreeze.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+
+            var frozenDocument2 = frozenDocument.WithFrozenPartialSemantics(CancellationToken.None);
+            Assert.Same(frozenDocument, frozenDocument2);
+        }
+
+        [Fact]
         public async Task TestFrozenPartialProjectHasDifferentSemanticVersions_ChangedDoc1()
         {
             using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
@@ -3618,45 +3648,52 @@ public class C : A {
         public async Task TestFrozenPartialSemanticsHandlesDocumentWithSamePathBeingRemovedAndAdded()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
-            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+            var originalProject = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
 
             // Fetch the compilation to ensure further changes produce in progress states
-            var originalCompilation = await project.GetCompilationAsync();
-            project = project.RemoveDocument(project.DocumentIds.Single())
+            var originalCompilation = await originalProject.GetCompilationAsync();
+            var forkedProject = originalProject.RemoveDocument(originalProject.DocumentIds.Single())
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
 
-            // Freeze semantics -- with the new document; this should still give us a project with a single document, the previous
-            // tree having been removed.
-            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = forkedProject.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
-            Assert.Single(frozenDocument.Project.Documents);
-            var singleTree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
-            Assert.Same(await frozenDocument.GetSyntaxTreeAsync(), singleTree);
+            // There will be two documents.  That's because freezing the solution ends up jumping back to hte point in
+            // time before the remove/add happened (so the original doc is there).  Then, the new doc is added as a
+            // sibling. That they have the same path is not relevant.  They have different IDs and thus are considered
+            // different.
+            Assert.Equal(2, frozenDocument.Project.Documents.Count());
+            var frozenCompilation = await frozenDocument.Project.GetCompilationAsync();
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await frozenDocument.GetSyntaxTreeAsync()));
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await originalProject.Documents.Single().GetSyntaxTreeAsync()));
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesRemoveAndAddWithNullPathAndDifferentNames()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
-            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+            var originalProject = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: null).Project;
 
             // Fetch the compilation to ensure further changes produce in progress states
-            var originalCompilation = await project.GetCompilationAsync();
-            project = project.RemoveDocument(project.DocumentIds.Single())
+            var originalCompilation = await originalProject.GetCompilationAsync();
+            var forkedProject = originalProject.RemoveDocument(originalProject.DocumentIds.Single())
                 .AddDocument("RegularDocument2.cs", "// Source File", filePath: null).Project;
 
-            // Freeze semantics -- with the new document; this should still give us a project with two documents: the new
-            // one will be added, and the old one will stay around since the name differed.
-            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+            var frozenDocument = forkedProject.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
+            // There will be two documents.  That's because freezing the solution ends up jumping back to hte point in
+            // time before the remove/add happened (so the original doc is there).  Then, the new doc is added as a
+            // sibling. That they have the same path is not relevant.  They have different IDs and thus are considered
+            // different.
+            // There will be two documents.  That's because freezing the solution ends up jumping back to hte point in
+            // time before the remove/add happened (so the original doc is there).  Then, the new doc is added as a
+            // sibling. That they have the same path is not relevant.  They have different IDs and thus are considered
+            // different.
             Assert.Equal(2, frozenDocument.Project.Documents.Count());
-            var treesInCompilation = (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees;
-            Assert.Equal(2, treesInCompilation.Count());
-
-            foreach (var document in frozenDocument.Project.Documents)
-                Assert.Contains(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None), treesInCompilation);
+            var frozenCompilation = await frozenDocument.Project.GetCompilationAsync();
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await frozenDocument.GetSyntaxTreeAsync()));
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await originalProject.Documents.Single().GetSyntaxTreeAsync()));
         }
 
         [Fact]
@@ -4507,6 +4544,224 @@ class C
             var regularDocumentId = solution.Projects.Single().DocumentIds.Single();
 
             Assert.Single(solution.GetRelatedDocumentIds(regularDocumentId));
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSolution1()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            // Because we froze before ever even looking at anything semantics related, we should have no documents in
+            // this project.
+            var frozenSolution = project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+            var frozenProject = frozenSolution.Projects.Single();
+            Assert.Empty(frozenProject.Documents);
+
+            var frozenCompilation = await frozenProject.GetCompilationAsync();
+            Assert.Empty(frozenCompilation.SyntaxTrees);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSolution2()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            await project.GetCompilationAsync();
+
+            // Because we froze after looking at anything semantics related, we should have the documents in this
+            // project.
+            var frozenSolution = project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+            var frozenProject = frozenSolution.Projects.Single();
+            Assert.Single(frozenProject.Documents);
+
+            var frozenCompilation = await frozenProject.GetCompilationAsync();
+            Assert.Single(frozenCompilation.SyntaxTrees);
+            Assert.True(frozenCompilation.ContainsSyntaxTree(await frozenProject.Documents.Single().GetSyntaxTreeAsync()));
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSolution3()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            var project2 = project1.Solution.AddProject("CSharpProject2", "CSharpProject2", LanguageNames.CSharp);
+            project1 = project2.Solution.GetProject(project1.Id).AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
+            project2 = project1.Solution.GetProject(project2.Id).AddDocument("Doc2", SourceText.From("class Doc2 { }")).Project;
+            project1 = project2.Solution.GetProject(project1.Id);
+
+            // Getting compilation from one should not affect frozen-ness of other project.
+            await project1.GetCompilationAsync();
+
+            var frozenSolution = project1.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+            var frozenProject1 = frozenSolution.GetProject(project1.Id);
+            Assert.Single(frozenProject1.Documents);
+
+            var frozenProject2 = frozenSolution.GetProject(project2.Id);
+            Assert.Empty(frozenProject2.Documents);
+
+            var frozenCompilation1 = await frozenProject1.GetCompilationAsync();
+            Assert.Single(frozenCompilation1.SyntaxTrees);
+            Assert.True(frozenCompilation1.ContainsSyntaxTree(await frozenProject1.Documents.Single().GetSyntaxTreeAsync()));
+
+            var frozenCompilation2 = await frozenProject2.GetCompilationAsync();
+            Assert.Empty(frozenCompilation2.SyntaxTrees);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSolution4()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            var project2 = project1.Solution.AddProject("CSharpProject2", "CSharpProject2", LanguageNames.CSharp);
+            project1 = project2.Solution.GetProject(project1.Id).AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
+            project2 = project1.Solution.GetProject(project2.Id).AddDocument("Doc2", SourceText.From("class Doc2 { }")).Project;
+
+            project2 = project2.AddProjectReference(new(project1.Id));
+            project1 = project2.Solution.GetProject(project1.Id);
+
+            // Getting compilation from project1 should not affect project 2.
+            await project1.GetCompilationAsync();
+
+            var frozenSolution = project1.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+            var frozenProject1 = frozenSolution.GetProject(project1.Id);
+            Assert.Single(frozenProject1.Documents);
+
+            var frozenCompilation1 = await frozenProject1.GetCompilationAsync();
+            Assert.Single(frozenCompilation1.SyntaxTrees);
+            Assert.True(frozenCompilation1.ContainsSyntaxTree(await frozenProject1.Documents.Single().GetSyntaxTreeAsync()));
+
+            var frozenProject2 = frozenSolution.GetProject(project2.Id);
+            Assert.Empty(frozenProject2.Documents);
+
+            var frozenCompilation2 = await frozenProject2.GetCompilationAsync();
+            Assert.Empty(frozenCompilation2.SyntaxTrees);
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSolution5()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            var project2 = project1.Solution.AddProject("CSharpProject2", "CSharpProject2", LanguageNames.CSharp);
+            project1 = project2.Solution.GetProject(project1.Id).AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
+            project2 = project1.Solution.GetProject(project2.Id).AddDocument("Doc2", SourceText.From("class Doc2 { }")).Project;
+
+            project2 = project2.AddProjectReference(new(project1.Id));
+            project1 = project2.Solution.GetProject(project1.Id);
+
+            // Getting compilation from project2 should affect project 1 as there's a ptp relationship with it.
+            await project2.GetCompilationAsync();
+
+            var frozenSolution = project1.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+            var frozenProject1 = frozenSolution.GetProject(project1.Id);
+            Assert.Single(frozenProject1.Documents);
+
+            var frozenCompilation1 = await frozenProject1.GetCompilationAsync();
+            Assert.Single(frozenCompilation1.SyntaxTrees);
+            Assert.True(frozenCompilation1.ContainsSyntaxTree(await frozenProject1.Documents.Single().GetSyntaxTreeAsync()));
+
+            var frozenProject2 = frozenSolution.GetProject(project2.Id);
+            Assert.Single(frozenProject2.Documents);
+
+            var frozenCompilation2 = await frozenProject2.GetCompilationAsync();
+            Assert.Single(frozenCompilation2.SyntaxTrees);
+            Assert.True(frozenCompilation2.ContainsSyntaxTree(await frozenProject2.Documents.Single().GetSyntaxTreeAsync()));
+
+            Assert.Single(frozenCompilation2.References.Where(r => r is CompilationReference c && c.Compilation == frozenCompilation1));
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSolution6()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            project1 = project1.AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
+
+            // If we freeze after getting the compilation, we should see those documents then show up in frozen
+            // compilation as well.
+            var compilation1 = await project1.GetCompilationAsync();
+            var syntaxTree1 = await project1.Documents.Single().GetSyntaxTreeAsync();
+
+            var frozenSolution = project1.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+
+            var forkedProject1 = frozenSolution.WithDocumentText(project1.Documents.Single().Id, SourceText.From("class Doc2 { }")).GetProject(project1.Id);
+            var forkedDocument1 = forkedProject1.Documents.Single();
+            var forkedSyntaxTree1 = await forkedDocument1.GetSyntaxTreeAsync();
+
+            Assert.NotEqual(syntaxTree1, forkedSyntaxTree1);
+
+            var forkedCompilation1 = await forkedProject1.GetCompilationAsync();
+            Assert.NotEqual(compilation1, forkedCompilation1);
+            Assert.True(forkedCompilation1.ContainsSyntaxTree(forkedSyntaxTree1));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestFrozenPartialSolution7(bool freeze)
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            project1 = project1.AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
+
+            var invokeIndex = 1;
+            project1 = project1.AddAnalyzerReference(new TestGeneratorReference(new CallbackGenerator(() =>
+            {
+                var index = invokeIndex++;
+                return ("hintname" + index, "// source" + index);
+            })));
+
+            var compilation1 = await project1.GetCompilationAsync();
+            var syntaxTree1 = await project1.Documents.Single().GetSyntaxTreeAsync();
+            var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
+
+            Assert.Single(generatedDocuments);
+            Assert.Equal("// source1", generatedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+
+            var frozenSolution = freeze
+                ? project1.Solution.WithFrozenPartialCompilations(CancellationToken.None)
+                : project1.Solution;
+
+            var forkedProject1 = frozenSolution.WithDocumentText(project1.Documents.Single().Id, SourceText.From("class Doc2 { }")).GetProject(project1.Id);
+            var forkedDocument1 = forkedProject1.Documents.Single();
+            var forkedSyntaxTree1 = await forkedDocument1.GetSyntaxTreeAsync();
+            var forkedGeneratedDocuments = await forkedProject1.GetSourceGeneratedDocumentsAsync();
+
+            Assert.Single(forkedGeneratedDocuments);
+            Assert.NotEqual(syntaxTree1, forkedSyntaxTree1);
+
+            var forkedCompilation1 = await forkedProject1.GetCompilationAsync();
+
+            Assert.NotEqual(compilation1, forkedCompilation1);
+            Assert.True(forkedCompilation1.ContainsSyntaxTree(forkedSyntaxTree1));
+
+            Assert.NotSame(generatedDocuments.Single(), forkedGeneratedDocuments.Single());
+            if (freeze)
+            {
+                Assert.Equal("// source1", forkedGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+            }
+            else
+            {
+                Assert.Equal("// source2", forkedGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+            }
+        }
+
+        [Fact]
+        public async Task TestFrozenPartialSolutionOtherLanguage()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("TypeScript", "TypeScript", "TypeScript");
+            project = project.AddDocument("Extra.ts", SourceText.From("class Extra { }")).Project;
+
+            // Freeze should have no impact on non-c#/vb projects.
+            var frozenSolution = project.Solution.WithFrozenPartialCompilations(CancellationToken.None);
+            var frozenProject = frozenSolution.Projects.Single();
+            Assert.Single(frozenProject.Documents);
+
+            var frozenCompilation = await frozenProject.GetCompilationAsync();
+            Assert.Null(frozenCompilation);
         }
     }
 }

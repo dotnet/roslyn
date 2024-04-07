@@ -15,17 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-        {
-            if (id is not LiveDiagnosticUpdateArgsId argsId)
-            {
-                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
-            }
-
-            var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);
-            return new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics).GetSpecificDiagnosticsAsync(argsId.Analyzer, argsId.Kind, cancellationToken);
-        }
-
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
@@ -90,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return GetDiagnosticData();
                     }
 
-                    var documentIds = (DocumentId != null) ? SpecializedCollections.SingletonEnumerable(DocumentId) : project.DocumentIds;
+                    var documentIds = DocumentId != null ? [DocumentId] : project.DocumentIds;
 
                     // return diagnostics specific to one project or document
                     var includeProjectNonLocalResult = DocumentId == null;
@@ -257,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var project = Solution.GetProject(ProjectId);
                     if (project != null)
                     {
-                        await AppendDiagnosticsAsync(project, SpecializedCollections.EmptyEnumerable<DocumentId>(), includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
+                        await AppendDiagnosticsAsync(project, documentIds: [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
                     }
 
                     return GetDiagnosticData();

@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Debugging
-{
-    internal readonly struct DebugDataTipInfo(TextSpan span, string text)
-    {
-        public readonly TextSpan Span = span;
-        public readonly string Text = text;
+namespace Microsoft.CodeAnalysis.Debugging;
 
-        public bool IsDefault
-            => Span.Length == 0 && Span.Start == 0 && Text == null;
-    }
+internal readonly struct DebugDataTipInfo(TextSpan span, string text)
+{
+    public readonly TextSpan Span = span;
+    public readonly string Text = text;
+
+    public bool IsDefault
+        => Span.Length == 0 && Span.Start == 0 && Text == null;
 }

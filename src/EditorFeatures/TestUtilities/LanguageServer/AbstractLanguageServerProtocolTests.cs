@@ -397,10 +397,6 @@ namespace Roslyn.Test.Utilities
 
             workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);
 
-            // solution crawler is currently required in order to create incremental analyzer that provides diagnostics
-            var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            solutionCrawlerRegistrationService.Register(workspace);
-
             return workspace;
         }
 
@@ -742,9 +738,6 @@ namespace Roslyn.Test.Utilities
             {
                 TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(TestWorkspace);
                 TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(GetManagerAccessor().GetLspMiscellaneousFilesWorkspace());
-
-                var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)TestWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                solutionCrawlerRegistrationService.Unregister(TestWorkspace);
 
                 // Some tests will manually call shutdown and exit, so attempting to call this during dispose
                 // will fail as the server's jsonrpc instance will be disposed of.

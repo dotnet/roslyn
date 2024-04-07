@@ -191,6 +191,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                 Descriptor,
                 initializer.OpenBraceToken.GetLocation(),
                 option.Notification,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
                 properties: changesSemantics ? ChangesSemantics : null));
         }
@@ -205,6 +206,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             notification,
+            context.Options,
             additionalLocations: locations,
             properties: properties));
 
@@ -219,6 +221,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties: properties));

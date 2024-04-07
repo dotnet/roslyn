@@ -4,14 +4,12 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -49,14 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public MockStreamingFindUsagesPresenter(FindUsagesContext context)
                 => _context = context;
 
-            public (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences)
-                => (_context, CancellationToken.None);
-
             public void ClearAll()
             {
             }
 
-            public (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+            public (FindUsagesContext, CancellationToken) StartSearch(string title, StreamingFindUsagesPresenterOptions options)
                 => (_context, CancellationToken.None);
         }
 

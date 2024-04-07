@@ -188,6 +188,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                 _diagnosticAnalyzer.Descriptor,
                 _primaryConstructorDeclaration.Identifier.GetLocation(),
                 _styleOption.Notification,
+                context.Options,
                 ImmutableArray.Create(_primaryConstructorDeclaration.GetLocation()),
                 properties));
 

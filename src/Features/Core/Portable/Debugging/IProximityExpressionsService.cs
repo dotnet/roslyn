@@ -9,11 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Debugging
+namespace Microsoft.CodeAnalysis.Debugging;
+
+internal interface IProximityExpressionsService : ILanguageService
 {
-    internal interface IProximityExpressionsService : ILanguageService
-    {
-        Task<IList<string>> GetProximityExpressionsAsync(Document document, int position, CancellationToken cancellationToken);
-        Task<bool> IsValidAsync(Document document, int position, string expressionValue, CancellationToken cancellationToken);
-    }
+    Task<IList<string>> GetProximityExpressionsAsync(Document document, int position, CancellationToken cancellationToken);
+    Task<bool> IsValidAsync(Document document, int position, string expressionValue, CancellationToken cancellationToken);
 }

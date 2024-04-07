@@ -1485,10 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions.GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
 
             var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
-                isMethodGroupConversion: true, returnRefKind: delegateRefKind,
+                options: OverloadResolution.Options.IsMethodGroupConversion |
+                         (isFunctionPointerResolution ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
+                returnRefKind: delegateRefKind,
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
                 returnType: null,
-                isFunctionPointerResolution: isFunctionPointerResolution, callingConventionInfo: in callingConventionInfo);
+                callingConventionInfo: in callingConventionInfo);
 
             TypeWithAnnotations type = default;
 

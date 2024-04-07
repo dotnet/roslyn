@@ -22,10 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Fakes
         {
         }
 
-        public (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences)
-            => (new SimpleFindUsagesContext(), CancellationToken.None);
-
-        public (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+        public (FindUsagesContext, CancellationToken) StartSearch(string title, StreamingFindUsagesPresenterOptions options)
             => (new SimpleFindUsagesContext(), CancellationToken.None);
     }
 }

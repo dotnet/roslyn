@@ -7,85 +7,102 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial class SolutionCompilationState
 {
-    internal partial class SolutionCompilationState
+    /// <summary>
+    /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker and updates it
+    /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
+    /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
+    /// </summary>
+    private class GeneratedFileReplacingCompilationTracker : ICompilationTracker
     {
+        private readonly TextDocumentStates<SourceGeneratedDocumentState> _replacementDocumentStates;
+
+        private AsyncLazy<Checksum>? _lazyDependentChecksum;
+
         /// <summary>
-        /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker and updates it
-        /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
-        /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
+        /// The lazily-produced compilation that has the generated document updated. This is initialized by call to
+        /// <see cref="GetCompilationAsync"/>.
         /// </summary>
-        private class GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState) : ICompilationTracker
+        [DisallowNull]
+        private Compilation? _compilationWithReplacements;
+
+        public ICompilationTracker UnderlyingTracker { get; }
+        public ProjectState ProjectState => UnderlyingTracker.ProjectState;
+
+        public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
+
+        /// <summary>
+        /// Intentionally not readonly as this is a mutable struct.
+        /// </summary>
+        private SkeletonReferenceCache _skeletonReferenceCache;
+
+        public GeneratedFileReplacingCompilationTracker(
+            ICompilationTracker underlyingTracker,
+            TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
         {
-            private AsyncLazy<Checksum>? _lazyDependentChecksum;
+            this.UnderlyingTracker = underlyingTracker;
+            _replacementDocumentStates = replacementDocumentStates;
+            _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
+        }
 
-            /// <summary>
-            /// The lazily-produced compilation that has the generated document updated. This is initialized by call to
-            /// <see cref="GetCompilationAsync"/>.
-            /// </summary>
-            [DisallowNull]
-            private Compilation? _compilationWithReplacement;
-
-            public ICompilationTracker UnderlyingTracker { get; } = underlyingTracker;
-            public SkeletonReferenceCache SkeletonReferenceCache { get; } = underlyingTracker.SkeletonReferenceCache.Clone();
-            public ProjectState ProjectState => UnderlyingTracker.ProjectState;
-
-            public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
-
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
+        public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+        {
+            if (_compilationWithReplacements == null)
             {
-                if (_compilationWithReplacement == null)
-                {
-                    // We don't have a compilation yet, so this couldn't have came from us
-                    return false;
-                }
-                else
-                {
-                    return UnrootedSymbolSet.Create(_compilationWithReplacement).ContainsAssemblyOrModuleOrDynamic(symbol, primary);
-                }
+                // We don't have a compilation yet, so this couldn't have came from us
+                referencedThrough = null;
+                return false;
+            }
+            else
+            {
+                return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
+            }
+        }
+
+        public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
+        {
+            // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
+            // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
+            // https://github.com/dotnet/roslyn/issues/49533.
+            throw new NotImplementedException();
+        }
+
+        public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
+        {
+            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(create, forceRegeneration, cancellationToken);
+            return underlyingTracker == this.UnderlyingTracker
+                ? this
+                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
+        }
+
+        public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            // Fast path if we've definitely already done this before
+            if (_compilationWithReplacements != null)
+            {
+                return _compilationWithReplacements;
             }
 
-            public ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate)
+            var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken).ConfigureAwait(false);
+            var newCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
+
+            foreach (var (id, replacementState) in _replacementDocumentStates.States)
             {
-                // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
-                // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
-                // https://github.com/dotnet/roslyn/issues/49533.
-                throw new NotImplementedException();
-            }
+                underlyingSourceGeneratedDocuments.TryGetState(id, out var existingState);
 
-            public ICompilationTracker FreezePartialStateWithTree(SolutionCompilationState compilationState, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
-            {
-                // Because we override SourceGeneratedDocument.WithFrozenPartialSemantics directly, we shouldn't be able to get here.
-                throw ExceptionUtilities.Unreachable();
-            }
-
-            public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-            {
-                // Fast path if we've definitely already done this before
-                if (_compilationWithReplacement != null)
-                {
-                    return _compilationWithReplacement;
-                }
-
-                var underlyingCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
-                var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken).ConfigureAwait(false);
-
-                underlyingSourceGeneratedDocuments.TryGetState(replacementDocumentState.Id, out var existingState);
-
-                Compilation newCompilation;
-
-                var newSyntaxTree = await replacementDocumentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var replacementSyntaxTree = await replacementState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 if (existingState != null)
                 {
                     // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
                     // is stale. Replace the syntax tree so we have a tree that matches the text.
                     var existingSyntaxTree = await existingState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    newCompilation = underlyingCompilation.ReplaceSyntaxTree(existingSyntaxTree, newSyntaxTree);
+                    newCompilation = newCompilation.ReplaceSyntaxTree(existingSyntaxTree, replacementSyntaxTree);
                 }
                 else
                 {
@@ -93,60 +110,68 @@ namespace Microsoft.CodeAnalysis
                     // an edit which would cause this file to no longer exist, but they're still operating on an open representation
                     // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
                     // semantically correct operation, but working on stale snapshots never has that guarantee.
-                    newCompilation = underlyingCompilation.AddSyntaxTrees(newSyntaxTree);
+                    newCompilation = newCompilation.AddSyntaxTrees(replacementSyntaxTree);
                 }
-
-                Interlocked.CompareExchange(ref _compilationWithReplacement, newCompilation, null);
-
-                return _compilationWithReplacement;
             }
 
-            public Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-                => UnderlyingTracker.GetDependentVersionAsync(compilationState, cancellationToken);
+            Interlocked.CompareExchange(ref _compilationWithReplacements, newCompilation, null);
 
-            public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-                => UnderlyingTracker.GetDependentSemanticVersionAsync(compilationState, cancellationToken);
+            return _compilationWithReplacements;
+        }
 
-            public Task<Checksum> GetDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        public Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            => UnderlyingTracker.GetDependentVersionAsync(compilationState, cancellationToken);
+
+        public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            => UnderlyingTracker.GetDependentSemanticVersionAsync(compilationState, cancellationToken);
+
+        public Task<Checksum> GetDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            if (_lazyDependentChecksum == null)
             {
-                if (_lazyDependentChecksum == null)
-                {
-                    var tmp = compilationState; // temp. local to avoid a closure allocation for the fast path
-                    // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
-                }
-
-                return _lazyDependentChecksum.GetValueAsync(cancellationToken);
+                var tmp = compilationState; // temp. local to avoid a closure allocation for the fast path
+                // note: solution is captured here, but it will go away once GetValueAsync executes.
+                Interlocked.CompareExchange(
+                    ref _lazyDependentChecksum,
+                    AsyncLazy.Create(static (arg, c) =>
+                        arg.self.ComputeDependentChecksumAsync(arg.tmp, c),
+                        arg: (self: this, tmp)),
+                    null);
             }
 
-            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-                => Checksum.Create(
-                    await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
-                    await replacementDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
+            return _lazyDependentChecksum.GetValueAsync(cancellationToken);
+        }
 
-            public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
+        private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            => Checksum.Create(
+                await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
+                (await _replacementDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
+
+        public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
+        {
+            // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
+            // So this method should only be called if:
+            //
+            // 1. Project A has a open source generated document, and this CompilationTracker represents A
+            // 2. Project B references that A, and is being frozen for partial semantics.
+            //
+            // We generally don't use partial semantics in a different project than the open file, so this isn't a scenario we need to support.
+            throw new NotImplementedException();
+        }
+
+        public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
+            SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            var newStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
+                compilationState, cancellationToken).ConfigureAwait(false);
+
+            foreach (var (id, replacementState) in _replacementDocumentStates.States)
             {
-                // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
-                // So this method should only be called if:
-                //
-                // 1. Project A has a open source generated document, and this CompilationTracker represents A
-                // 2. Project B references that A, and is being frozen for partial semantics.
-                //
-                // We generally don't use partial semantics in a different project than the open file, so this isn't a scenario we need to support.
-                throw new NotImplementedException();
-            }
-
-            public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
-            {
-                var underlyingGeneratedDocumentStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
-                    compilationState, cancellationToken).ConfigureAwait(false);
-
-                if (underlyingGeneratedDocumentStates.Contains(replacementDocumentState.Id))
+                if (newStates.Contains(id))
                 {
                     // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
                     // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    return underlyingGeneratedDocumentStates.SetState(replacementDocumentState.Id, replacementDocumentState);
+                    newStates = newStates.SetState(id, replacementState);
                 }
                 else
                 {
@@ -154,43 +179,58 @@ namespace Microsoft.CodeAnalysis
                     // an edit which would cause this file to no longer exist, but they're still operating on an open representation
                     // of that file. To ensure that this snapshot is still usable, we'll just add this document back in. This is not a
                     // semantically correct operation, but working on stale snapshots never has that guarantee.
-                    return underlyingGeneratedDocumentStates.AddRange([replacementDocumentState]);
+                    newStates = newStates.AddRange([replacementState]);
                 }
             }
 
-            public Task<bool> HasSuccessfullyLoadedAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
-            {
-                return UnderlyingTracker.HasSuccessfullyLoadedAsync(compilationState, cancellationToken);
-            }
+            return newStates;
+        }
 
-            public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
-            {
-                compilation = _compilationWithReplacement;
-                return compilation != null;
-            }
+        public Task<bool> HasSuccessfullyLoadedAsync(
+            SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            return UnderlyingTracker.HasSuccessfullyLoadedAsync(compilationState, cancellationToken);
+        }
 
-            public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
-            {
-                if (documentId == replacementDocumentState.Id)
-                {
-                    return replacementDocumentState;
-                }
-                else
-                {
-                    return UnderlyingTracker.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
-                }
-            }
+        public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
+        {
+            compilation = _compilationWithReplacements;
+            return compilation != null;
+        }
 
-            public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
+        {
+            if (_replacementDocumentStates.TryGetState(documentId, out var replacementState))
             {
-                // We can directly return the diagnostics from the underlying tracker; this is because
-                // a generated document cannot have any diagnostics that are produced by a generator:
-                // a generator cannot add diagnostics to it's own file outputs, and generators don't see the
-                // outputs of each other.
-                return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(compilationState, cancellationToken);
+                return replacementState;
+            }
+            else
+            {
+                return UnderlyingTracker.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
             }
         }
+
+        public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
+            SolutionCompilationState compilationState, CancellationToken cancellationToken)
+        {
+            // We can directly return the diagnostics from the underlying tracker; this is because
+            // a generated document cannot have any diagnostics that are produced by a generator:
+            // a generator cannot add diagnostics to it's own file outputs, and generators don't see the
+            // outputs of each other.
+            return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(compilationState, cancellationToken);
+        }
+
+        public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState solution, CancellationToken cancellationToken)
+        {
+            // The provided run result would be out of sync with the replaced documents.
+            // Currently this is only used by razor to get the HostOutputs, which should never be used here.
+            throw new NotImplementedException();
+        }
+
+        public SkeletonReferenceCache GetClonedSkeletonReferenceCache()
+            => _skeletonReferenceCache.Clone();
+
+        public Task<MetadataReference?> GetOrBuildSkeletonReferenceAsync(SolutionCompilationState compilationState, MetadataReferenceProperties properties, CancellationToken cancellationToken)
+            => _skeletonReferenceCache.GetOrBuildReferenceAsync(this, compilationState, properties, cancellationToken);
     }
 }

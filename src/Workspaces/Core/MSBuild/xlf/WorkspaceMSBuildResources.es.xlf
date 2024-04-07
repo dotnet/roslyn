@@ -62,6 +62,11 @@
         <target state="translated">La ruta de acceso del proyecto para '{0}' era null</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_build_host_could_not_be_found_at_0">
+        <source>The build host could not be found at '{0}'</source>
+        <target state="translated">No se encontró el host de compilación en '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">
         <source>Unable to add metadata reference '{0}'</source>
         <target state="translated">No se puede agregar la referencia de metadatos '{0}'</target>

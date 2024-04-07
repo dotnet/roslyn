@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         StateMachineInstanceId,
         MaximumMethodDefIndex,
         InstrumentationPayloadRoot,
+        ThrowIfModuleCancellationRequested,
+        ModuleCancellationTokenExpression,
         ModuleVersionId,
         ModuleVersionIdString,
         SourceDocumentIndex,
@@ -2225,31 +2227,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBlockInstrumentation : BoundNode
     {
-        public BoundBlockInstrumentation(SyntaxNode syntax, LocalSymbol local, BoundStatement prologue, BoundStatement epilogue, bool hasErrors = false)
+        public BoundBlockInstrumentation(SyntaxNode syntax, OneOrMany<LocalSymbol> locals, BoundStatement? prologue, BoundStatement? epilogue, bool hasErrors = false)
             : base(BoundKind.BlockInstrumentation, syntax, hasErrors || prologue.HasErrors() || epilogue.HasErrors())
         {
 
-            RoslynDebug.Assert(local is object, "Field 'local' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(prologue is object, "Field 'prologue' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(epilogue is object, "Field 'epilogue' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.Local = local;
+            this.Locals = locals;
             this.Prologue = prologue;
             this.Epilogue = epilogue;
         }
 
-        public LocalSymbol Local { get; }
-        public BoundStatement Prologue { get; }
-        public BoundStatement Epilogue { get; }
+        public OneOrMany<LocalSymbol> Locals { get; }
+        public BoundStatement? Prologue { get; }
+        public BoundStatement? Epilogue { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBlockInstrumentation(this);
 
-        public BoundBlockInstrumentation Update(LocalSymbol local, BoundStatement prologue, BoundStatement epilogue)
+        public BoundBlockInstrumentation Update(OneOrMany<LocalSymbol> locals, BoundStatement? prologue, BoundStatement? epilogue)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(local, this.Local) || prologue != this.Prologue || epilogue != this.Epilogue)
+            if (!locals.SequenceEqual(Locals) || prologue != this.Prologue || epilogue != this.Epilogue)
             {
-                var result = new BoundBlockInstrumentation(this.Syntax, local, prologue, epilogue, this.HasErrors);
+                var result = new BoundBlockInstrumentation(this.Syntax, locals, prologue, epilogue, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2484,6 +2484,76 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analysisKind != this.AnalysisKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundInstrumentationPayloadRoot(this.Syntax, analysisKind, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundThrowIfModuleCancellationRequested : BoundExpression
+    {
+        public BoundThrowIfModuleCancellationRequested(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ThrowIfModuleCancellationRequested, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundThrowIfModuleCancellationRequested(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.ThrowIfModuleCancellationRequested, syntax, type)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public new TypeSymbol Type => base.Type!;
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitThrowIfModuleCancellationRequested(this);
+
+        public BoundThrowIfModuleCancellationRequested Update(TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundThrowIfModuleCancellationRequested(this.Syntax, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class ModuleCancellationTokenExpression : BoundExpression
+    {
+        public ModuleCancellationTokenExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ModuleCancellationTokenExpression, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public ModuleCancellationTokenExpression(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.ModuleCancellationTokenExpression, syntax, type)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public new TypeSymbol Type => base.Type!;
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitModuleCancellationTokenExpression(this);
+
+        public ModuleCancellationTokenExpression Update(TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new ModuleCancellationTokenExpression(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6329,10 +6399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionExpression : BoundCollectionExpressionBase
     {
-        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? collectionBuilderInvocationPlaceholder, BoundExpression? collectionBuilderInvocationConversion, bool wasTargetTyped, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionExpression, syntax, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderInvocationPlaceholder.HasErrors() || collectionBuilderInvocationConversion.HasErrors() || elements.HasErrors())
+        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? collectionBuilderInvocationPlaceholder, BoundExpression? collectionBuilderInvocationConversion, bool wasTargetTyped, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionExpression, syntax, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderInvocationPlaceholder.HasErrors() || collectionBuilderInvocationConversion.HasErrors() || unconvertedCollectionExpression.HasErrors() || elements.HasErrors())
         {
 
+            RoslynDebug.Assert(unconvertedCollectionExpression is object, "Field 'unconvertedCollectionExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
@@ -6343,6 +6414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CollectionBuilderInvocationPlaceholder = collectionBuilderInvocationPlaceholder;
             this.CollectionBuilderInvocationConversion = collectionBuilderInvocationConversion;
             this.WasTargetTyped = wasTargetTyped;
+            this.UnconvertedCollectionExpression = unconvertedCollectionExpression;
         }
 
         public new TypeSymbol Type => base.Type!;
@@ -6353,15 +6425,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundValuePlaceholder? CollectionBuilderInvocationPlaceholder { get; }
         public BoundExpression? CollectionBuilderInvocationConversion { get; }
         public bool WasTargetTyped { get; }
+        public BoundUnconvertedCollectionExpression UnconvertedCollectionExpression { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpression(this);
 
-        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? collectionBuilderInvocationPlaceholder, BoundExpression? collectionBuilderInvocationConversion, bool wasTargetTyped, ImmutableArray<BoundNode> elements, TypeSymbol type)
+        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? collectionBuilderInvocationPlaceholder, BoundExpression? collectionBuilderInvocationConversion, bool wasTargetTyped, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type)
         {
-            if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(collectionBuilderMethod, this.CollectionBuilderMethod) || collectionBuilderInvocationPlaceholder != this.CollectionBuilderInvocationPlaceholder || collectionBuilderInvocationConversion != this.CollectionBuilderInvocationConversion || wasTargetTyped != this.WasTargetTyped || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(collectionBuilderMethod, this.CollectionBuilderMethod) || collectionBuilderInvocationPlaceholder != this.CollectionBuilderInvocationPlaceholder || collectionBuilderInvocationConversion != this.CollectionBuilderInvocationConversion || wasTargetTyped != this.WasTargetTyped || unconvertedCollectionExpression != this.UnconvertedCollectionExpression || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, wasTargetTyped, elements, type, this.HasErrors);
+                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, wasTargetTyped, unconvertedCollectionExpression, elements, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8839,6 +8912,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitMaximumMethodDefIndex((BoundMaximumMethodDefIndex)node, arg);
                 case BoundKind.InstrumentationPayloadRoot:
                     return VisitInstrumentationPayloadRoot((BoundInstrumentationPayloadRoot)node, arg);
+                case BoundKind.ThrowIfModuleCancellationRequested:
+                    return VisitThrowIfModuleCancellationRequested((BoundThrowIfModuleCancellationRequested)node, arg);
+                case BoundKind.ModuleCancellationTokenExpression:
+                    return VisitModuleCancellationTokenExpression((ModuleCancellationTokenExpression)node, arg);
                 case BoundKind.ModuleVersionId:
                     return VisitModuleVersionId((BoundModuleVersionId)node, arg);
                 case BoundKind.ModuleVersionIdString:
@@ -9245,6 +9322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitStateMachineInstanceId(BoundStateMachineInstanceId node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitModuleCancellationTokenExpression(ModuleCancellationTokenExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitModuleVersionId(BoundModuleVersionId node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitModuleVersionIdString(BoundModuleVersionIdString node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSourceDocumentIndex(BoundSourceDocumentIndex node, A arg) => this.DefaultVisit(node, arg);
@@ -9478,6 +9557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitModuleCancellationTokenExpression(ModuleCancellationTokenExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitModuleVersionId(BoundModuleVersionId node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitModuleVersionIdString(BoundModuleVersionIdString node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSourceDocumentIndex(BoundSourceDocumentIndex node) => this.DefaultVisit(node);
@@ -9883,6 +9964,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitStateMachineInstanceId(BoundStateMachineInstanceId node) => null;
         public override BoundNode? VisitMaximumMethodDefIndex(BoundMaximumMethodDefIndex node) => null;
         public override BoundNode? VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node) => null;
+        public override BoundNode? VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node) => null;
+        public override BoundNode? VisitModuleCancellationTokenExpression(ModuleCancellationTokenExpression node) => null;
         public override BoundNode? VisitModuleVersionId(BoundModuleVersionId node) => null;
         public override BoundNode? VisitModuleVersionIdString(BoundModuleVersionIdString node) => null;
         public override BoundNode? VisitSourceDocumentIndex(BoundSourceDocumentIndex node) => null;
@@ -10998,9 +11081,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node)
         {
-            BoundStatement prologue = (BoundStatement)this.Visit(node.Prologue);
-            BoundStatement epilogue = (BoundStatement)this.Visit(node.Epilogue);
-            return node.Update(node.Local, prologue, epilogue);
+            BoundStatement? prologue = (BoundStatement?)this.Visit(node.Prologue);
+            BoundStatement? epilogue = (BoundStatement?)this.Visit(node.Epilogue);
+            return node.Update(node.Locals, prologue, epilogue);
         }
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
@@ -11031,6 +11114,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.AnalysisKind, type);
+        }
+        public override BoundNode? VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(type);
+        }
+        public override BoundNode? VisitModuleCancellationTokenExpression(ModuleCancellationTokenExpression node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(type);
         }
         public override BoundNode? VisitModuleVersionId(BoundModuleVersionId node)
         {
@@ -11635,9 +11728,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = node.CollectionCreation;
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
             BoundExpression? collectionBuilderInvocationConversion = node.CollectionBuilderInvocationConversion;
+            BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, node.CollectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, elements, type);
+            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, node.CollectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, unconvertedCollectionExpression, elements, type);
         }
         public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
         {
@@ -12830,14 +12924,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitBlockInstrumentation(BoundBlockInstrumentation node)
-        {
-            LocalSymbol local = GetUpdatedSymbol(node, node.Local);
-            BoundStatement prologue = (BoundStatement)this.Visit(node.Prologue);
-            BoundStatement epilogue = (BoundStatement)this.Visit(node.Epilogue);
-            return node.Update(local, prologue, epilogue);
-        }
-
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             MethodSymbol method = GetUpdatedSymbol(node, node.Method);
@@ -12923,6 +13009,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundInstrumentationPayloadRoot updatedNode = node.Update(node.AnalysisKind, infoAndType.Type!);
+            updatedNode.TopLevelNullability = infoAndType.Info;
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundThrowIfModuleCancellationRequested updatedNode = node.Update(infoAndType.Type!);
+            updatedNode.TopLevelNullability = infoAndType.Info;
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitModuleCancellationTokenExpression(ModuleCancellationTokenExpression node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
+
+            ModuleCancellationTokenExpression updatedNode = node.Update(infoAndType.Type!);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -13865,17 +13975,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = node.CollectionCreation;
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
             BoundExpression? collectionBuilderInvocationConversion = node.CollectionBuilderInvocationConversion;
+            BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             BoundCollectionExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, elements, infoAndType.Type!);
+                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, unconvertedCollectionExpression, elements, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, elements, node.Type);
+                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderInvocationPlaceholder, collectionBuilderInvocationConversion, node.WasTargetTyped, unconvertedCollectionExpression, elements, node.Type);
             }
             return updatedNode;
         }
@@ -15278,7 +15389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitBlockInstrumentation(BoundBlockInstrumentation node, object? arg) => new TreeDumperNode("blockInstrumentation", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("local", node.Local, null),
+            new TreeDumperNode("locals", node.Locals, null),
             new TreeDumperNode("prologue", null, new TreeDumperNode[] { Visit(node.Prologue, null) }),
             new TreeDumperNode("epilogue", null, new TreeDumperNode[] { Visit(node.Epilogue, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -15327,6 +15438,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node, object? arg) => new TreeDumperNode("instrumentationPayloadRoot", null, new TreeDumperNode[]
         {
             new TreeDumperNode("analysisKind", node.AnalysisKind, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node, object? arg) => new TreeDumperNode("throwIfModuleCancellationRequested", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitModuleCancellationTokenExpression(ModuleCancellationTokenExpression node, object? arg) => new TreeDumperNode("moduleCancellationTokenExpression", null, new TreeDumperNode[]
+        {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -16272,6 +16397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("collectionBuilderInvocationPlaceholder", null, new TreeDumperNode[] { Visit(node.CollectionBuilderInvocationPlaceholder, null) }),
             new TreeDumperNode("collectionBuilderInvocationConversion", null, new TreeDumperNode[] { Visit(node.CollectionBuilderInvocationConversion, null) }),
             new TreeDumperNode("wasTargetTyped", node.WasTargetTyped, null),
+            new TreeDumperNode("unconvertedCollectionExpression", null, new TreeDumperNode[] { Visit(node.UnconvertedCollectionExpression, null) }),
             new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
         {
-            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), RemoteProcessConfiguration.ServerGC | (ServiceDescriptors.IsCurrentProcessRunningOnCoreClr() ? RemoteProcessConfiguration.Core : 0));
+            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), RemoteProcessConfiguration.ServerGC);
             var callbackDispatcher = (descriptor.ClientInterface != null) ? _callbackDispatchers.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(
@@ -208,11 +208,12 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
                 RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
-                RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
                 RegisterRemoteBrokeredService(new RemoteLegacySolutionEventsAggregationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteUnitTestingSearchService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSourceGenerationService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSemanticSearchService.Factory());
+                RegisterRemoteBrokeredService(new RemoteProcessTelemetryService.Factory());
             }
 
             public void Dispose()

@@ -4480,6 +4480,68 @@ public class ConvertToRecordCodeRefactoringTests
         await TestRefactoringAsync(initialMarkup, fixedMarkup);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72067")]
+    public async Task TestMovePropertiesAndRefactorInitializer_SourceGeneratedDocuments()
+    {
+        await new RefactoringTestWithGenerator
+        {
+            TestCode = """
+                namespace N
+                {
+                    public class [|C|]
+                    {
+                        public int P { get; init; }
+                        public bool B { get; init; }
+                    }
+                }
+                """,
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    namespace N
+                    {
+                        public record C(int P, bool B);
+                    }
+                    """
+                },
+                ExpectedDiagnostics =
+                {
+                    // Microsoft.CodeAnalysis.CSharp.Features.UnitTests\Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord.ConvertToRecordCodeRefactoringTests+ConvertToRecordTestGenerator\file.cs(7,24): error CS7036: There is no argument given that corresponds to the required parameter 'P' of 'C.C(int, bool)'
+                    DiagnosticResult.CompilerError("CS7036").WithSpan(@"Microsoft.CodeAnalysis.CSharp.Features.UnitTests\Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRecord.ConvertToRecordCodeRefactoringTests+ConvertToRecordTestGenerator\file.cs", 7, 24, 7, 25).WithArguments("P", "N.C.C(int, bool)"),
+                }
+            }
+        }.RunAsync();
+    }
+
+    private sealed class ConvertToRecordTestGenerator : ISourceGenerator
+    {
+        public void Initialize(GeneratorInitializationContext context) { }
+
+        public void Execute(GeneratorExecutionContext context)
+        {
+            context.AddSource(
+                "file.cs",
+                """
+                namespace N
+                {
+                    public static class D
+                    {
+                        public static C GetC()
+                        {
+                            return new C
+                            {
+                                P = 0,
+                                B = false
+                            };
+                        }
+                    }
+                }
+                """);
+        }
+    }
+
     #region selection
 
     [Fact]
@@ -4620,37 +4682,31 @@ public class ConvertToRecordCodeRefactoringTests
 
     #endregion
 
-    private static void AddSolutionTransform(List<Func<Solution, ProjectId, Solution>> solutionTransforms)
-    {
-        solutionTransforms.Add((solution, projectId) =>
-        {
-            var project = solution.GetProject(projectId)!;
-
-            var compilationOptions = (CSharpCompilationOptions)project.CompilationOptions!;
-            // enable nullable
-            compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
-            solution = solution
-                .WithProjectCompilationOptions(projectId, compilationOptions)
-                .WithProjectMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Net60));
-
-            return solution;
-        });
-    }
-
     private class RefactoringTest : VerifyCSRefactoring.Test
     {
         public RefactoringTest()
         {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
             LanguageVersion = LanguageVersion.CSharp10;
-            AddSolutionTransform(SolutionTransforms);
             MarkupOptions = MarkupOptions.UseFirstDescriptor;
         }
 
-        protected override Workspace CreateWorkspaceImpl()
+        protected override CompilationOptions CreateCompilationOptions()
         {
-            var workspace = new AdhocWorkspace();
+            var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
 
-            return workspace;
+            // enable nullable
+            compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
+
+            return compilationOptions;
+        }
+    }
+
+    private class RefactoringTestWithGenerator : RefactoringTest
+    {
+        protected override IEnumerable<Type> GetSourceGenerators()
+        {
+            yield return typeof(ConvertToRecordTestGenerator);
         }
     }
 
@@ -4674,8 +4730,18 @@ public class ConvertToRecordCodeRefactoringTests
     {
         public CodeFixTest()
         {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
             LanguageVersion = LanguageVersion.CSharp10;
-            AddSolutionTransform(SolutionTransforms);
+        }
+
+        protected override CompilationOptions CreateCompilationOptions()
+        {
+            var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
+
+            // enable nullable
+            compilationOptions = compilationOptions.WithNullableContextOptions(NullableContextOptions.Enable);
+
+            return compilationOptions;
         }
     }
 

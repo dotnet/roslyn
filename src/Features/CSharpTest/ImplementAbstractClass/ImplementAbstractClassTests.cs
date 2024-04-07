@@ -1007,6 +1007,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 """);
         }
 
+        [Fact]
+        public async Task TestParamsCollection()
+        {
+            await TestAllOptionsOffAsync(
+                """
+                using System.Collections.Generic;
+
+                class A
+                {
+                    public virtual void Goo(int x, params IEnumerable<int> y)
+                    {
+                    }
+                }
+
+                abstract class B : A
+                {
+                    public abstract override void Goo(int x, IEnumerable<int> y = null);
+                }
+
+                class [|C|] : B
+                {
+                }
+                """,
+                """
+                using System.Collections.Generic;
+                
+                class A
+                {
+                    public virtual void Goo(int x, params IEnumerable<int> y)
+                    {
+                    }
+                }
+
+                abstract class B : A
+                {
+                    public abstract override void Goo(int x, IEnumerable<int> y = null);
+                }
+
+                class C : B
+                {
+                    public override void Goo(int x, params IEnumerable<int> y)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """);
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545636")]
         public async Task TestNullPointerType()
         {

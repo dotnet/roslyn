@@ -34,7 +34,8 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    Exec-Script (Join-Path $PSScriptRoot "build.ps1") "-restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog"
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
+    Test-LastExitCode
   }
 
   Subst-TempDir
@@ -63,6 +64,10 @@ try {
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +
+
+  # Semantic Search reference assemblies can't be reconstructed from source.
+  # The assemblies are not marked with ReferenceAssemblyAttribute attribute.
+  " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot/`"" +

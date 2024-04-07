@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +15,11 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// Queues requests to be executed in the proper order.
 /// </summary>
 /// <typeparam name="TRequestContext">The type of the RequestContext to be used by the handler.</typeparam>
+#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
 public interface IRequestExecutionQueue<TRequestContext> : IAsyncDisposable
+#else
+internal interface IRequestExecutionQueue<TRequestContext> : IAsyncDisposable
+#endif
 {
     /// <summary>
     /// Queue a request.

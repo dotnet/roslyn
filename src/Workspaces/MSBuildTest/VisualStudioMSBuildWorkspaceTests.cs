@@ -3099,7 +3099,7 @@ class C { }";
 
             await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
 
-            var (buildHost, _) = await buildHostProcessManager.GetBuildHostAsync(projectFilePath, CancellationToken.None);
+            var buildHost = await buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, CancellationToken.None);
             var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
             var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 

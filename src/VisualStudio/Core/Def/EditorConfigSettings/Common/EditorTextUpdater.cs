@@ -4,36 +4,34 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+
+internal class EditorTextUpdater
 {
-    internal class EditorTextUpdater
+    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+    private readonly IVsTextLines _textLines;
+
+    public EditorTextUpdater(IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+                             IVsTextLines textLines)
     {
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-        private readonly IVsTextLines _textLines;
+        _editorAdaptersFactoryService = editorAdaptersFactoryService;
+        _textLines = textLines;
+    }
 
-        public EditorTextUpdater(IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-                                 IVsTextLines textLines)
+    public void UpdateText(IReadOnlyList<TextChange> changes)
+    {
+        var buffer = _editorAdaptersFactoryService.GetDocumentBuffer(_textLines);
+        if (buffer is null)
         {
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            _textLines = textLines;
+            return;
         }
 
-        public void UpdateText(IReadOnlyList<TextChange> changes)
-        {
-            var buffer = _editorAdaptersFactoryService.GetDocumentBuffer(_textLines);
-            if (buffer is null)
-            {
-                return;
-            }
-
-            TextEditApplication.UpdateText(changes.ToImmutableArray(), buffer, EditOptions.DefaultMinimalChange);
-        }
+        TextEditApplication.UpdateText(changes.ToImmutableArray(), buffer, EditOptions.DefaultMinimalChange);
     }
 }

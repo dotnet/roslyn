@@ -402,6 +402,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             Descriptor,
             fieldNode.GetLocation(),
             result.Notification,
+            context.Options,
             additionalLocations: additionalLocations,
             properties: null);
 

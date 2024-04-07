@@ -16,55 +16,68 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.CodeMapper;
 
+using MapCodeAsyncDelegateType = Func<Document, ImmutableArray<string>, ImmutableArray<(Document Document, TextSpan TextSpan)>, Dictionary<string, object>, CancellationToken, Task<ImmutableArray<TextChange>?>>;
+
 [ExportLanguageService(typeof(IMapCodeService), language: LanguageNames.CSharp), Shared]
 internal sealed class CSharpMapCodeService : IMapCodeService
 {
-    private const string CodeMapperDllName = "Microsoft.VisualStudio.Conversations.CodeMappers.CSharp, Version=0.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
-    private const string MapCodeServiceTypeFullName = "Microsoft.VisualStudio.Conversations.CodeMappers.CSharp.CSharpMapCodeService";
-    private const string MapCodeAsyncMethodName = "MapCodeAsync";
-
-    private readonly ICSharpCopilotMapCodeService? _service;
+    private readonly ICSharpCopilotMapCodeService _service;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpMapCodeService([Import(AllowDefault = true)] ICSharpCopilotMapCodeService? service)
     {
-        _service = service;
+        _service = service ?? new ReflectionWrapper();
     }
 
     public Task<ImmutableArray<TextChange>?> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<(Document, TextSpan)> focusLocations, CancellationToken cancellationToken)
     {
         var options = new Dictionary<string, object>();
-        if (_service is not null)
-        {
-            return _service.MapCodeAsync(document, contents, focusLocations, options, cancellationToken);
-        }
+        return _service.MapCodeAsync(document, contents, focusLocations, options, cancellationToken);
+    }
 
-        return TryLoadAndInvokeViaReflectionAsync();
+    private sealed class ReflectionWrapper : ICSharpCopilotMapCodeService
+    {
+        private const string CodeMapperDllName = "Microsoft.VisualStudio.Copilot.CodeMappers.CSharp, Version=0.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+        private const string MapCodeServiceTypeFullName = "Microsoft.VisualStudio.Conversations.CodeMappers.CSharp.CSharpMapCodeService";
+        private const string MapCodeAsyncMethodName = "MapCodeAsync";
 
-        // The implementation of ICSharpCopilotMapCodeService is in Copilot Chat repo, which can't reference the EA package
-        // since it's shipped as a separate vsix and needs to maintain compatibility for older VS versions. So we try to call
-        // the service via reflection here until they can move to newer Roslyn version.
-        // https://github.com/dotnet/roslyn/issues/69967
-        Task<ImmutableArray<TextChange>?> TryLoadAndInvokeViaReflectionAsync()
+        // Create and cache the delegate to ensure we use a singleton and better performance.
+        private readonly Lazy<MapCodeAsyncDelegateType?> _lazyMapCodeAsyncDelegate = new(CreateDelegate, LazyThreadSafetyMode.PublicationOnly);
+
+        private static MapCodeAsyncDelegateType? CreateDelegate()
         {
             try
             {
                 var assembly = Assembly.Load(CodeMapperDllName);
                 var type = assembly.GetType(MapCodeServiceTypeFullName);
-                if (type?.GetMethod(MapCodeAsyncMethodName, BindingFlags.Instance | BindingFlags.Public) is MethodInfo method)
-                {
-                    var instance = Activator.CreateInstance(type);
-                    return (Task<ImmutableArray<TextChange>?>)method.Invoke(instance, [document, contents, focusLocations, options, cancellationToken])!;
-                }
+                if (type is null)
+                    return null;
+
+                var serviceInstance = Activator.CreateInstance(type);
+                if (serviceInstance is null)
+                    return null;
+
+                if (type.GetMethod(MapCodeAsyncMethodName, [typeof(Document), typeof(ImmutableArray<string>), typeof(ImmutableArray<(Document Document, TextSpan TextSpan)>), typeof(Dictionary<string, object>), typeof(CancellationToken)]) is not MethodInfo mapCodeAsyncMethod)
+                    return null;
+
+                return (MapCodeAsyncDelegateType)Delegate.CreateDelegate(typeof(MapCodeAsyncDelegateType), serviceInstance, mapCodeAsyncMethod);
+
             }
             catch
             {
                 // Catch all here since failure is expected if user has no copilot chat or an older version of it installed.
             }
 
-            return Task.FromResult<ImmutableArray<TextChange>?>(null);
+            return null;
+        }
+
+        public async Task<ImmutableArray<TextChange>?> MapCodeAsync(Document document, ImmutableArray<string> contents, ImmutableArray<(Document document, TextSpan textSpan)> prioritizedFocusLocations, Dictionary<string, object> options, CancellationToken cancellationToken)
+        {
+            if (_lazyMapCodeAsyncDelegate.Value is null)
+                return null;
+
+            return await _lazyMapCodeAsyncDelegate.Value(document, contents, prioritizedFocusLocations, options, cancellationToken).ConfigureAwait(false);
         }
     }
-
 }

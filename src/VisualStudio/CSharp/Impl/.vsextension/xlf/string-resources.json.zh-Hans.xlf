@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# 交互窗口</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharpLanguageServiceExtension.OpenSemanticSearchWindow.DisplayName">
         <source>C# Semantic Search</source>
-        <target state="new">C# Semantic Search</target>
+        <target state="translated">C# 语义搜索</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharpLanguageServiceExtension.ResetInteractiveWindowFromProject.DisplayName">
         <source>Initialize Interactive with Project</source>
-        <target state="new">Initialize Interactive with Project</target>
+        <target state="translated">对交互窗口进行项目初始化</target>
         <note />
       </trans-unit>
     </body>

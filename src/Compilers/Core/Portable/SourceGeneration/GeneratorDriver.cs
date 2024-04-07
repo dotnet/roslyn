@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
             var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps, parseOptionsChanged: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions, runtime: TimeSpan.Zero, parseOptionsChanged: true);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -341,8 +341,7 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(generatedSources.Length);
-            var type = generator.GetGeneratorType();
-            var prefix = GetFilePathPrefixForGenerator(generator);
+            var prefix = GetFilePathPrefixForGenerator(this._state.BaseDirectory, generator);
             foreach (var source in generatedSources)
             {
                 var tree = ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken);
@@ -410,10 +409,10 @@ namespace Microsoft.CodeAnalysis
             return filteredDiagnostics.ToImmutableAndFree();
         }
 
-        internal static string GetFilePathPrefixForGenerator(ISourceGenerator generator)
+        internal static string GetFilePathPrefixForGenerator(string? baseDirectory, ISourceGenerator generator)
         {
             var type = generator.GetGeneratorType();
-            return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
+            return Path.Combine(baseDirectory ?? "", type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
         private static ImmutableArray<IIncrementalGenerator> GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, string sourceExtension)

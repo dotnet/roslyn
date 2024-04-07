@@ -4,123 +4,178 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial class SolutionCompilationState
 {
-    internal partial class SolutionCompilationState
+    /// <summary>
+    /// Checksum representing the full checksum tree for this solution compilation state.  Includes the checksum for
+    /// <see cref="SolutionState"/>, as well as the checksums for <see cref="FrozenSourceGeneratedDocumentStates"/>
+    /// if present.
+    /// </summary>
+    private readonly AsyncLazy<SolutionCompilationStateChecksums> _lazyChecksums;
+
+    /// <summary>
+    /// Mapping from project-id to the checksums needed to synchronize it over to an OOP host.  Lock this specific
+    /// field before reading/writing to it.
+    /// </summary>
+    private readonly Dictionary<ProjectId, AsyncLazy<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)>> _lazyProjectChecksums = [];
+
+    public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionCompilationStateChecksums? stateChecksums)
+        => _lazyChecksums.TryGetValue(out stateChecksums);
+
+    public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionCompilationStateChecksums? stateChecksums)
     {
-        /// <summary>
-        /// Checksum representing the full checksum tree for this solution compilation state.  Includes the checksum for
-        /// <see cref="SolutionState"/>, as well as the checksums for <see cref="FrozenSourceGeneratedDocumentState"/>
-        /// if present.
-        /// </summary>
-        private readonly AsyncLazy<SolutionCompilationStateChecksums> _lazyChecksums;
-
-        /// <summary>
-        /// Mapping from project-id to the checksums needed to synchronize it over to an OOP host.  Lock this specific
-        /// field before reading/writing to it.
-        /// </summary>
-        private readonly Dictionary<ProjectId, AsyncLazy<SolutionCompilationStateChecksums>> _lazyProjectChecksums = [];
-
-        public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionCompilationStateChecksums? stateChecksums)
-            => _lazyChecksums.TryGetValue(out stateChecksums);
-
-        public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionCompilationStateChecksums? stateChecksums)
+        AsyncLazy<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)>? lazyChecksums;
+        lock (_lazyProjectChecksums)
         {
-            AsyncLazy<SolutionCompilationStateChecksums>? checksums;
-            lock (_lazyProjectChecksums)
+            if (!_lazyProjectChecksums.TryGetValue(projectId, out lazyChecksums) ||
+                lazyChecksums == null)
             {
-                if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums) ||
-                    checksums == null)
+                stateChecksums = null;
+                return false;
+            }
+        }
+
+        if (!lazyChecksums.TryGetValue(out var checksumsAndCone))
+        {
+            stateChecksums = null;
+            return false;
+        }
+
+        stateChecksums = checksumsAndCone.checksums;
+        return true;
+    }
+
+    public Task<SolutionCompilationStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
+        => _lazyChecksums.GetValueAsync(cancellationToken);
+
+    public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+    {
+        var collection = await GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+        return collection.Checksum;
+    }
+
+    /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
+    public async Task<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)> GetStateChecksumsAsync(
+        ProjectId projectId,
+        CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(projectId);
+
+        AsyncLazy<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)>? checksums;
+        lock (_lazyProjectChecksums)
+        {
+            if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
+            {
+                checksums = AsyncLazy.Create(static async (arg, cancellationToken) =>
                 {
-                    stateChecksums = null;
-                    return false;
-                }
+                    var (checksum, projectCone) = await arg.self.ComputeChecksumsAsync(arg.projectId, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(projectCone);
+                    return (checksum, projectCone);
+                }, arg: (self: this, projectId));
+
+                _lazyProjectChecksums.Add(projectId, checksums);
             }
-
-            return checksums.TryGetValue(out stateChecksums);
         }
 
-        public Task<SolutionCompilationStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
-            => _lazyChecksums.GetValueAsync(cancellationToken);
+        var collection = await checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        return collection;
+    }
 
-        public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+    /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
+    public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
+    {
+        var (checksums, _) = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return checksums.Checksum;
+    }
+
+    private async Task<(SolutionCompilationStateChecksums checksums, ProjectCone? projectCone)> ComputeChecksumsAsync(
+        ProjectId? projectId,
+        CancellationToken cancellationToken)
+    {
+        try
         {
-            var collection = await GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            return collection.Checksum;
-        }
-
-        /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-        public async Task<SolutionCompilationStateChecksums> GetStateChecksumsAsync(
-            ProjectId projectId,
-            CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(projectId);
-
-            AsyncLazy<SolutionCompilationStateChecksums>? checksums;
-            lock (_lazyProjectChecksums)
+            using (Logger.LogBlock(FunctionId.SolutionCompilationState_ComputeChecksumsAsync, this.SolutionState.FilePath, cancellationToken))
             {
-                if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
+                Checksum solutionStateChecksum;
+                ProjectCone? projectCone;
+
+                if (projectId is null)
                 {
-                    checksums = Compute(projectId);
-                    _lazyProjectChecksums.Add(projectId, checksums);
+                    solutionStateChecksum = await this.SolutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    projectCone = null;
                 }
-            }
-
-            var collection = await checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return collection;
-
-            // Extracted as a local function to prevent delegate allocations when not needed.
-            AsyncLazy<SolutionCompilationStateChecksums> Compute(ProjectId projectId)
-                => AsyncLazy.Create(c => ComputeChecksumsAsync(projectId, c));
-        }
-
-        /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-        public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-            return checksums.Checksum;
-        }
-
-        private async Task<SolutionCompilationStateChecksums> ComputeChecksumsAsync(
-            ProjectId? projectId,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                using (Logger.LogBlock(FunctionId.SolutionCompilationState_ComputeChecksumsAsync, this.SolutionState.FilePath, cancellationToken))
+                else
                 {
-                    var solutionStateChecksum = projectId == null
-                        ? await this.SolutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
-                        : await this.SolutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
-
-                    var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
-                    var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
-
-                    if (FrozenSourceGeneratedDocumentState != null)
-                    {
-                        var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
-                        frozenSourceGeneratedDocumentIdentityChecksum = serializer.CreateChecksum(FrozenSourceGeneratedDocumentState.Identity, cancellationToken);
-                        frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
-                    }
-
-                    return new SolutionCompilationStateChecksums(
-                        solutionStateChecksum,
-                        frozenSourceGeneratedDocumentIdentityChecksum,
-                        frozenSourceGeneratedDocumentTextChecksum);
+                    var stateChecksums = await this.SolutionState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                    solutionStateChecksum = stateChecksums.Checksum;
+                    projectCone = stateChecksums.ProjectCone;
                 }
+
+                ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
+                ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
+                ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
+
+                if (FrozenSourceGeneratedDocumentStates != null)
+                {
+                    var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
+                    var identityChecksums = FrozenSourceGeneratedDocumentStates
+                        .SelectAsArray(static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+                    frozenSourceGeneratedDocumentIdentities = new ChecksumCollection(identityChecksums);
+                    frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
+                    frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
+                }
+
+                var versionMapChecksum = ChecksumCache.GetOrCreate(
+                    this.SourceGeneratorExecutionVersionMap,
+                    static (map, @this) => GetVersionMapChecksum(@this),
+                    this);
+
+                var compilationStateChecksums = new SolutionCompilationStateChecksums(
+                    solutionStateChecksum,
+                    versionMapChecksum,
+                    frozenSourceGeneratedDocumentIdentities,
+                    frozenSourceGeneratedDocuments,
+                    frozenSourceGeneratedDocumentGenerationDateTimes);
+                return (compilationStateChecksums, projectCone);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        static Checksum GetVersionMapChecksum(SolutionCompilationState @this)
+        {
+            // We want the projects in sorted order so we can generate the checksum for the
+            // source-generation-execution-map consistently.
+            var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(@this.SolutionState.ProjectIds);
+
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksums);
+
+            foreach (var projectId in sortedProjectIds)
             {
-                throw ExceptionUtilities.Unreachable();
+                var projectState = @this.SolutionState.GetRequiredProjectState(projectId);
+                if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
+                    continue;
+
+                checksums.Add(projectId.Checksum);
+                checksums.Add(Checksum.Create(@this.SourceGeneratorExecutionVersionMap[projectId], static (v, w) => v.WriteTo(w)));
             }
+
+            return Checksum.Create(checksums);
         }
     }
 }

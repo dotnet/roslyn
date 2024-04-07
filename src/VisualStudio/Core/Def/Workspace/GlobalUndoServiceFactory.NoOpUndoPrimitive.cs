@@ -6,25 +6,24 @@
 
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation;
+
+internal partial class GlobalUndoServiceFactory
 {
-    internal partial class GlobalUndoServiceFactory
+    /// <summary>
+    /// no op undo primitive
+    /// </summary>
+    private class NoOpUndoPrimitive : ITextUndoPrimitive
     {
-        /// <summary>
-        /// no op undo primitive
-        /// </summary>
-        private class NoOpUndoPrimitive : ITextUndoPrimitive
-        {
-            public ITextUndoTransaction Parent { get; set; }
+        public ITextUndoTransaction Parent { get; set; }
 
-            public bool CanRedo { get { return true; } }
-            public bool CanUndo { get { return true; } }
+        public bool CanRedo { get { return true; } }
+        public bool CanUndo { get { return true; } }
 
-            public void Do() { }
-            public void Undo() { }
+        public void Do() { }
+        public void Undo() { }
 
-            public bool CanMerge(ITextUndoPrimitive older) => true;
-            public ITextUndoPrimitive Merge(ITextUndoPrimitive older) => older;
-        }
+        public bool CanMerge(ITextUndoPrimitive older) => true;
+        public ITextUndoPrimitive Merge(ITextUndoPrimitive older) => older;
     }
 }
