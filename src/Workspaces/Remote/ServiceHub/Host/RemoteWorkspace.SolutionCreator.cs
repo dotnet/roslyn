@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 newChecksumsToSync.AddRange(newDocumentIdToChecksum.Values);
 
                 var documentStateChecksums = await _assetProvider.GetAssetsAsync<DocumentStateChecksums>(
-                    assetPath: project.Id, newChecksumsToSync, cancellationToken).ConfigureAwait(false);
+                    assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (checksum, documentStateChecksum) in documentStateChecksums)
                 {

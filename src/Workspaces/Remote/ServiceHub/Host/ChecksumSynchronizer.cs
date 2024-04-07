@@ -93,26 +93,26 @@ internal sealed partial class AssetProvider
 
             // First synchronize all the top-level info about this project.
             await _assetProvider.SynchronizeAssetsAsync(
-                assetPath: projectChecksum.ProjectId, checksums, results: null, cancellationToken).ConfigureAwait(false);
+                assetPath: AssetPath.ProjectAndDocuments(projectChecksum.ProjectId), checksums, results: null, cancellationToken).ConfigureAwait(false);
 
             checksums.Clear();
 
             // Then synchronize the info about all the documents within.
-            await CollectChecksumChildrenAsync(this, projectChecksum.Documents.Checksums).ConfigureAwait(false);
-            await CollectChecksumChildrenAsync(this, projectChecksum.AdditionalDocuments.Checksums).ConfigureAwait(false);
-            await CollectChecksumChildrenAsync(this, projectChecksum.AnalyzerConfigDocuments.Checksums).ConfigureAwait(false);
+            await CollectChecksumChildrenAsync(this, projectChecksum.Documents).ConfigureAwait(false);
+            await CollectChecksumChildrenAsync(this, projectChecksum.AdditionalDocuments).ConfigureAwait(false);
+            await CollectChecksumChildrenAsync(this, projectChecksum.AnalyzerConfigDocuments).ConfigureAwait(false);
 
             await _assetProvider.SynchronizeAssetsAsync(
-                assetPath: projectChecksum.ProjectId, checksums, results: null, cancellationToken).ConfigureAwait(false);
+                assetPath: AssetPath.ProjectAndDocuments(projectChecksum.ProjectId), checksums, results: null, cancellationToken).ConfigureAwait(false);
 
-            async ValueTask CollectChecksumChildrenAsync(ChecksumSynchronizer @this, ChecksumCollection collection)
+            async ValueTask CollectChecksumChildrenAsync(ChecksumSynchronizer @this, ChecksumsAndIds<DocumentId> collection)
             {
-                foreach (var checksum in collection)
+                foreach (var (checksum, documentId) in collection)
                 {
                     // These GetAssetAsync calls should be fast since they were just retrieved above.  There's a small
                     // chance the asset-cache GC pass may have cleaned them up, but that should be exceedingly rare.
                     var checksumObject = await @this._assetProvider.GetAssetAsync<DocumentStateChecksums>(
-                        assetPath: projectChecksum.ProjectId, checksum, cancellationToken).ConfigureAwait(false);
+                        assetPath: documentId, checksum, cancellationToken).ConfigureAwait(false);
                     checksums.Add(checksumObject.Info);
                     checksums.Add(checksumObject.Text);
                 }

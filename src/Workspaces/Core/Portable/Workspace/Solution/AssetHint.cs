@@ -19,19 +19,19 @@ internal readonly struct AssetPath
     /// <summary>
     /// Instance that will only look up solution-level data when searching for checksums.
     /// </summary>
-    public static readonly AssetPath SolutionOnly = new(kind: AssetPathKind.Solution, forTesting: false);
+    public static readonly AssetPath SolutionOnly = new(AssetPathKind.Solution, forTesting: false);
 
     /// <summary>
     /// Instance that will only look up solution-level, as well as the top level nodes for projects when searching for
     /// checksums.  It will not descend into projects.
     /// </summary>
-    public static readonly AssetPath SolutionAndTopLevelProjectsOnly = new(kind: AssetPathKind.Solution | AssetPathKind.TopLevelProjects, forTesting: false);
+    public static readonly AssetPath SolutionAndTopLevelProjectsOnly = new(AssetPathKind.Solution | AssetPathKind.TopLevelProjects, forTesting: false);
 
     /// <summary>
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
-    public static readonly AssetPath FullLookupForTesting = new(kind: AssetPathKind.Solution | AssetPathKind.TopLevelProjects | AssetPathKind.Projects | AssetPathKind.Documents, forTesting: true);
+    public static readonly AssetPath FullLookupForTesting = new(AssetPathKind.Solution | AssetPathKind.TopLevelProjects | AssetPathKind.Projects | AssetPathKind.Documents, forTesting: true);
 
     [DataMember(Order = 0)]
     private readonly AssetPathKind _kind;
@@ -60,15 +60,8 @@ internal readonly struct AssetPath
         else
         {
             // Otherwise, if not in testing, if we say we're searching projects or documents, we have to supply those IDs as well.
-            if (IncludeProjects)
-            {
+            if (IncludeProjects || IncludeDocuments)
                 Contract.ThrowIfNull(projectId);
-            }
-            else if (IncludeDocuments)
-            {
-                Contract.ThrowIfNull(projectId);
-                Contract.ThrowIfNull(documentId);
-            }
         }
     }
 
@@ -77,8 +70,20 @@ internal readonly struct AssetPath
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) == AssetPathKind.Projects;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) == AssetPathKind.Documents;
 
-    public static implicit operator AssetPath(ProjectId projectId) => new(kind: AssetPathKind.Solution | AssetPathKind.Projects, forTesting: false, projectId, documentId: null);
-    public static implicit operator AssetPath(DocumentId documentId) => new(kind: AssetPathKind.Documents, forTesting: false, documentId.ProjectId, documentId);
+    public static implicit operator AssetPath(ProjectId projectId) => new(AssetPathKind.Solution | AssetPathKind.Projects, forTesting: false, projectId, documentId: null);
+
+    /// <summary>
+    /// Searches only for information about this document.
+    /// </summary>
+    public static implicit operator AssetPath(DocumentId documentId) => new(AssetPathKind.Documents, forTesting: false, documentId.ProjectId, documentId);
+
+    /// <summary>
+    /// Searches the requested project, and all documents underneath it.
+    /// </summary>
+    /// <param name="projectId"></param>
+    /// <returns></returns>
+    public static AssetPath ProjectAndDocuments(ProjectId projectId)
+        => new(AssetPathKind.Projects | AssetPathKind.Documents, forTesting: false, projectId);
 
     [Flags]
     private enum AssetPathKind
