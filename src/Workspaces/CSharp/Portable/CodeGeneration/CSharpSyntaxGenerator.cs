@@ -1109,7 +1109,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                 break;
         }
 
-        return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+        return [];
     }
 
     public override SyntaxNode InsertAttributeArguments(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributeArguments)
@@ -1212,7 +1212,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         {
             CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
             BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Usings,
-            _ => SpecializedCollections.EmptyReadOnlyList<SyntaxNode>(),
+            _ => [],
         };
 
     public override SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
@@ -1241,7 +1241,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             EnumDeclarationSyntax @enum => @enum.Members,
             BaseNamespaceDeclarationSyntax @namespace => @namespace.Members,
             CompilationUnitSyntax compilationUnit => compilationUnit.Members,
-            _ => SpecializedCollections.EmptyReadOnlyList<SyntaxNode>(),
+            _ => [],
         });
 
     private static ImmutableArray<SyntaxNode> Flatten(IEnumerable<SyntaxNode> declarations)
@@ -2128,8 +2128,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         return list != null
             ? list.Parameters
             : declaration is SimpleLambdaExpressionSyntax simpleLambda
-                ? new[] { simpleLambda.Parameter }
-                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+                ? [simpleLambda.Parameter]
+                : [];
     }
 
     public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2148,7 +2148,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override IReadOnlyList<SyntaxNode> GetSwitchSections(SyntaxNode switchStatement)
     {
         var statement = switchStatement as SwitchStatementSyntax;
-        return statement?.Sections ?? SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+        return statement?.Sections ?? [];
     }
 
     public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
@@ -2456,7 +2456,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         return declaration;
     }
 
-    private static readonly IReadOnlyList<SyntaxNode> s_EmptyList = SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+    private static readonly IReadOnlyList<SyntaxNode> s_EmptyList = [];
 
     public override IReadOnlyList<SyntaxNode> GetStatements(SyntaxNode declaration)
     {
@@ -2671,7 +2671,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         }
         else
         {
-            return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+            return [];
         }
     }
 
@@ -2970,7 +2970,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             SyntaxKind.LocalDeclarationStatement => ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables,
             SyntaxKind.VariableDeclaration => ((VariableDeclarationSyntax)declaration).Variables,
             SyntaxKind.AttributeList => ((AttributeListSyntax)declaration).Attributes,
-            _ => SpecializedCollections.EmptyReadOnlyList<SyntaxNode>(),
+            _ => [],
         };
 
     public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
