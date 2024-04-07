@@ -73,11 +73,8 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
 
             if (makePrivate)
             {
-                var modifiers = SpecializedCollections.SingletonEnumerable(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                                                        .Concat(fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind())));
-
                 root = root.ReplaceNode(fieldSyntax, fieldSyntax
-                    .WithModifiers([.. modifiers])
+                    .WithModifiers([SyntaxFactory.Token(SyntaxKind.PrivateKeyword), .. fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind()))])
                     .WithAdditionalAnnotations(Formatter.Annotation)
                     .WithLeadingTrivia(fieldSyntax.GetLeadingTrivia())
                     .WithTrailingTrivia(fieldSyntax.GetTrailingTrivia()));

@@ -478,7 +478,7 @@ internal static class BreakpointSpans
         => CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
 
     internal static IEnumerable<SyntaxToken> GetActiveTokensForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
-        => SpecializedCollections.SingletonEnumerable(constructorInitializer.ThisOrBaseKeyword).Concat(constructorInitializer.ArgumentList.DescendantTokens());
+        => [constructorInitializer.ThisOrBaseKeyword, .. constructorInitializer.ArgumentList.DescendantTokens()];
 
     internal static TextSpan CreateSpanForImplicitPrimaryConstructorInitializer(TypeDeclarationSyntax typeDeclaration)
     {

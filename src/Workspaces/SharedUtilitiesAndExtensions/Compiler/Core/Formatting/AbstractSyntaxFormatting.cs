@@ -43,7 +43,7 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
         {
             spansToFormat = node.FullSpan.IsEmpty
                 ? SpecializedCollections.EmptyReadOnlyList<TextSpan>()
-                : SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
+                : [node.FullSpan];
         }
         else
         {

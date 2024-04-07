@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analyzer == FileContentLoadAnalyzer.Instance)
             {
                 return loadDiagnostic != null
-                    ? SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, textDocument))
+                    ? [DiagnosticData.Create(loadDiagnostic, textDocument)]
                     : [];
             }
 

@@ -34,7 +34,7 @@ internal static class FormattingExtensions
     }
 
     public static IEnumerable<AbstractFormattingRule> Concat(this AbstractFormattingRule rule, IEnumerable<AbstractFormattingRule> rules)
-        => SpecializedCollections.SingletonEnumerable(rule).Concat(rules);
+        => [rule, .. rules];
 
     public static void AddRange<T>(this IList<T> list, IEnumerable<T> values)
     {
