@@ -277,7 +277,7 @@ internal static partial class ClassifierHelper
             // and the syntactic portion after the last semantic part.
 
             var firstSemanticPart = tempBuffer[0];
-            var lastSemanticPart = tempBuffer[^1];
+            var lastSemanticPart = tempBuffer[tempBuffer.Count - 1];
 
             var firstSemanticPartSpan = getSpan(firstSemanticPart);
             var lastSemanticPartSpan = getSpan(lastSemanticPart);
