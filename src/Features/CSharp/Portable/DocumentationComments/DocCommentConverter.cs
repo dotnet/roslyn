@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
-using static SyntaxFactory;
-
 internal class DocCommentConverter : CSharpSyntaxRewriter
 {
     private readonly IDocumentationCommentFormattingService _formattingService;
@@ -60,8 +58,8 @@ internal class DocCommentConverter : CSharpSyntaxRewriter
 
                     if (commentLines.Count > 0)
                     {
-                        newLeadingTrivia.Add(Comment("//"));
-                        newLeadingTrivia.Add(ElasticCarriageReturnLineFeed);
+                        newLeadingTrivia.Add(SyntaxFactory.Comment("//"));
+                        newLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
 
                         newLeadingTrivia.AddRange(commentLines);
                     }
@@ -90,14 +88,14 @@ internal class DocCommentConverter : CSharpSyntaxRewriter
         {
             if (!string.IsNullOrWhiteSpace(line))
             {
-                yield return Comment("// " + line);
+                yield return SyntaxFactory.Comment("// " + line);
             }
             else
             {
-                yield return Comment("//");
+                yield return SyntaxFactory.Comment("//");
             }
 
-            yield return ElasticCarriageReturnLineFeed;
+            yield return SyntaxFactory.ElasticCarriageReturnLineFeed;
         }
     }
 }
