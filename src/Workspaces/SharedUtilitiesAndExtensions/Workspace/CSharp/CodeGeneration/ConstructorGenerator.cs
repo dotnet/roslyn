@@ -17,6 +17,8 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static SyntaxFactory;
+
 internal static class ConstructorGenerator
 {
     private static MemberDeclarationSyntax? LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
@@ -52,14 +54,14 @@ internal static class ConstructorGenerator
 
         var hasNoBody = !info.Context.GenerateMethodBodies;
 
-        var declaration = SyntaxFactory.ConstructorDeclaration(
+        var declaration = ConstructorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(constructor.GetAttributes(), info),
             modifiers: GenerateModifiers(constructor, info),
             identifier: CodeGenerationConstructorInfo.GetTypeName(constructor).ToIdentifierToken(),
             parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, isExplicit: false, info: info),
             initializer: GenerateConstructorInitializer(constructor),
             body: hasNoBody ? null : GenerateBlock(constructor),
-            semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
+            semicolonToken: hasNoBody ? Token(SyntaxKind.SemicolonToken) : default);
 
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -97,11 +99,11 @@ internal static class ConstructorGenerator
 
         return arguments == null
             ? null
-            : SyntaxFactory.ConstructorInitializer(kind).WithArgumentList(GenerateArgumentList(arguments));
+            : ConstructorInitializer(kind).WithArgumentList(GenerateArgumentList(arguments));
     }
 
     private static ArgumentListSyntax GenerateArgumentList(ImmutableArray<SyntaxNode> arguments)
-        => SyntaxFactory.ArgumentList([.. arguments.Select(ArgumentGenerator.GenerateArgument)]);
+        => ArgumentList([.. arguments.Select(ArgumentGenerator.GenerateArgument)]);
 
     private static BlockSyntax GenerateBlock(
         IMethodSymbol constructor)
@@ -110,7 +112,7 @@ internal static class ConstructorGenerator
             ? default
             : StatementGenerator.GenerateStatements(CodeGenerationConstructorInfo.GetStatements(constructor));
 
-        return SyntaxFactory.Block(statements);
+        return Block(statements);
     }
 
     private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CSharpCodeGenerationContextInfo info)
@@ -119,7 +121,7 @@ internal static class ConstructorGenerator
 
         if (constructor.IsStatic)
         {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            tokens.Add(Token(SyntaxKind.StaticKeyword));
         }
         else
         {
@@ -128,7 +130,7 @@ internal static class ConstructorGenerator
 
         if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))
         {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            tokens.Add(Token(SyntaxKind.UnsafeKeyword));
         }
 
         return tokens.ToSyntaxTokenListAndFree();
