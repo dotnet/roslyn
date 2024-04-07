@@ -59,7 +59,7 @@ internal class NavInfo : IVsNavInfo, IVsNavInfo2
         _basePresentationNodes = CreateNodes(expandDottedNames: false);
 
         _symbolType = _basePresentationNodes.Length > 0
-            ? _basePresentationNodes[_basePresentationNodes.Length - 1].ListType
+            ? _basePresentationNodes[^1].ListType
             : 0;
     }
 
