@@ -36,6 +36,10 @@ internal readonly struct AssetPath
     [DataMember(Order = 0)]
     private readonly AssetPathKind _kind;
 #pragma warning disable IDE0052 // Remove unread private members
+    /// <summary>
+    /// Indicates if this was a full-search done by a test utility.  Useful when debugging tests to know what sort of
+    /// caller was doing the search.
+    /// </summary>
     [DataMember(Order = 1)]
     private readonly bool _forTesting;
 #pragma warning restore IDE0052 // Remove unread private members
@@ -50,19 +54,6 @@ internal readonly struct AssetPath
         _forTesting = forTesting;
         ProjectId = projectId;
         DocumentId = documentId;
-
-        if (forTesting)
-        {
-            // Only tests are allowed to search everything.  And, in that case, they don't pass any doc/project along.
-            Contract.ThrowIfTrue(projectId != null);
-            Contract.ThrowIfTrue(documentId != null);
-        }
-        else
-        {
-            // Otherwise, if not in testing, if we say we're searching projects or documents, we have to supply those IDs as well.
-            if (IncludeProjects || IncludeDocuments)
-                Contract.ThrowIfNull(projectId);
-        }
     }
 
     public bool IncludeSolution => (_kind & AssetPathKind.Solution) == AssetPathKind.Solution;
