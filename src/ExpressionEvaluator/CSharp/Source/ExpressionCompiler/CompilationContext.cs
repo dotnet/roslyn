@@ -1239,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (name == MetadataReferenceProperties.GlobalAlias)
             {
-                syntax = SyntaxFactory.IdentifierName(GlobalKeyword);
+                syntax = SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
                 return true;
             }
 
