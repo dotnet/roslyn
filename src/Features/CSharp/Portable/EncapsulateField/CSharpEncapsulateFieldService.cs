@@ -25,6 +25,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 
+using static SyntaxFactory;
+
 [ExportLanguageService(typeof(AbstractEncapsulateFieldService), LanguageNames.CSharp), Shared]
 internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
 {
@@ -49,12 +51,12 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
 
         var tempAnnotation = new SyntaxAnnotation();
         var escapedName = originalFieldName.EscapeIdentifier();
-        var newIdentifier = SyntaxFactory.Identifier(
-                leading: [SyntaxFactory.ElasticMarker],
+        var newIdentifier = Identifier(
+                leading: [ElasticMarker],
                 contextualKind: SyntaxKind.IdentifierName,
                 text: escapedName,
                 valueText: originalFieldName,
-                trailing: [SyntaxFactory.ElasticMarker])
+                trailing: [ElasticMarker])
             .WithTrailingTrivia(declarator.Identifier.TrailingTrivia)
             .WithLeadingTrivia(declarator.Identifier.LeadingTrivia);
 
@@ -74,7 +76,7 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
             if (makePrivate)
             {
                 root = root.ReplaceNode(fieldSyntax, fieldSyntax
-                    .WithModifiers([SyntaxFactory.Token(SyntaxKind.PrivateKeyword), .. fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind()))])
+                    .WithModifiers([Token(SyntaxKind.PrivateKeyword), .. fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind()))])
                     .WithAdditionalAnnotations(Formatter.Annotation)
                     .WithLeadingTrivia(fieldSyntax.GetLeadingTrivia())
                     .WithTrailingTrivia(fieldSyntax.GetTrailingTrivia()));

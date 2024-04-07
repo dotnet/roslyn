@@ -22,6 +22,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
+using static SyntaxFactory;
+
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -53,7 +55,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         var semanticModel = syntaxContext.SemanticModel;
         var position = syntaxContext.Position;
 
-        var varIdentifier = SyntaxFactory.IdentifierName("var");
+        var varIdentifier = IdentifierName("var");
         var collectionIdentifier = (ExpressionSyntax?)inlineExpressionInfo?.Node;
 
         if (collectionIdentifier is null)
@@ -63,8 +65,8 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
                 (isAsync ? symbolType.CanBeAsynchronouslyEnumerated(semanticModel.Compilation) : symbolType.CanBeEnumerated()) &&
                 symbol.Kind is SymbolKind.Local or SymbolKind.Field or SymbolKind.Parameter or SymbolKind.Property);
             collectionIdentifier = enumerationSymbol is null
-                ? SyntaxFactory.IdentifierName("collection")
-                : SyntaxFactory.IdentifierName(enumerationSymbol.Name);
+                ? IdentifierName("collection")
+                : IdentifierName(enumerationSymbol.Name);
         }
 
         var itemString = NameGenerator.GenerateUniqueName(
@@ -75,24 +77,24 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         if (inlineExpressionInfo is { TypeInfo: var typeInfo } &&
             typeInfo.Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
         {
-            forEachStatement = SyntaxFactory.ForEachStatement(
-                SyntaxFactory.Token(SyntaxKind.AwaitKeyword),
-                SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
-                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+            forEachStatement = ForEachStatement(
+                Token(SyntaxKind.AwaitKeyword),
+                Token(SyntaxKind.ForEachKeyword),
+                Token(SyntaxKind.OpenParenToken),
                 varIdentifier,
-                SyntaxFactory.Identifier(itemString),
-                SyntaxFactory.Token(SyntaxKind.InKeyword),
+                Identifier(itemString),
+                Token(SyntaxKind.InKeyword),
                 collectionIdentifier.WithoutLeadingTrivia(),
-                SyntaxFactory.Token(SyntaxKind.CloseParenToken),
-                SyntaxFactory.Block());
+                Token(SyntaxKind.CloseParenToken),
+                Block());
         }
         else
         {
-            forEachStatement = SyntaxFactory.ForEachStatement(
+            forEachStatement = ForEachStatement(
                 varIdentifier,
                 itemString,
                 collectionIdentifier.WithoutLeadingTrivia(),
-                SyntaxFactory.Block());
+                Block());
         }
 
         return forEachStatement.NormalizeWhitespace();
