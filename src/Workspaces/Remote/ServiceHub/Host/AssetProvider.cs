@@ -46,7 +46,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         return (T)results[checksum];
     }
 
-    public async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
+    public override async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
         AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
         using var _ = PooledDictionary<Checksum, object>.GetInstance(out var results);

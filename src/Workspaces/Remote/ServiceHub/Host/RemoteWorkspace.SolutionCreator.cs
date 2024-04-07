@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
                     {
-                        solution = solution.WithAnalyzerReferences(await _assetProvider.CreateCollectionAsync<AnalyzerReference>(
+                        solution = solution.WithAnalyzerReferences(await _assetProvider.GetAssetsAsync<AnalyzerReference>(
                             assetPath: AssetPath.SolutionOnly, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                     }
 
@@ -323,21 +323,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed project references
                 if (oldProjectChecksums.ProjectReferences.Checksum != newProjectChecksums.ProjectReferences.Checksum)
                 {
-                    project = project.WithProjectReferences(await _assetProvider.CreateCollectionAsync<ProjectReference>(
+                    project = project.WithProjectReferences(await _assetProvider.GetAssetsAsync<ProjectReference>(
                         assetPath: project.Id, newProjectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false));
                 }
 
                 // changed metadata references
                 if (oldProjectChecksums.MetadataReferences.Checksum != newProjectChecksums.MetadataReferences.Checksum)
                 {
-                    project = project.WithMetadataReferences(await _assetProvider.CreateCollectionAsync<MetadataReference>(
+                    project = project.WithMetadataReferences(await _assetProvider.GetAssetsAsync<MetadataReference>(
                         assetPath: project.Id, newProjectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false));
                 }
 
                 // changed analyzer references
                 if (oldProjectChecksums.AnalyzerReferences.Checksum != newProjectChecksums.AnalyzerReferences.Checksum)
                 {
-                    project = project.WithAnalyzerReferences(await _assetProvider.CreateCollectionAsync<AnalyzerReference>(
+                    project = project.WithAnalyzerReferences(await _assetProvider.GetAssetsAsync<AnalyzerReference>(
                         assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                 }
 

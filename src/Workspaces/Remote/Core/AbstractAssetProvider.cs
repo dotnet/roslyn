@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ internal abstract class AbstractAssetProvider
     /// return data of type T whose checksum is the given checksum
     /// </summary>
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
+    public abstract ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken);
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
@@ -34,7 +36,7 @@ internal abstract class AbstractAssetProvider
         foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
             projects.Add(await CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken).ConfigureAwait(false));
 
-        var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(AssetPath.SolutionOnly, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(AssetPath.SolutionOnly, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
         return SolutionInfo.Create(
             solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects.ToImmutableAndClear(), analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
@@ -52,9 +54,9 @@ internal abstract class AbstractAssetProvider
             await GetAssetAsync<CompilationOptions>(assetPath: projectId, projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
         var parseOptions = await GetAssetAsync<ParseOptions>(assetPath: projectId, projectChecksums.ParseOptions, cancellationToken).ConfigureAwait(false);
 
-        var projectReferences = await CreateCollectionAsync<ProjectReference>(assetPath: projectId, projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
-        var metadataReferences = await CreateCollectionAsync<MetadataReference>(assetPath: projectId, projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
-        var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(assetPath: projectId, projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var projectReferences = await GetAssetsAsync<ProjectReference>(assetPath: projectId, projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
+        var metadataReferences = await GetAssetsAsync<MetadataReference>(assetPath: projectId, projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
+        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(assetPath: projectId, projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
         var documentInfos = await CreateDocumentInfosAsync(projectChecksums.Documents).ConfigureAwait(false);
         var additionalDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments).ConfigureAwait(false);
@@ -102,17 +104,13 @@ internal abstract class AbstractAssetProvider
         return new DocumentInfo(attributes, textLoader, documentServiceProvider: null);
     }
 
-    public async Task<ImmutableArray<T>> CreateCollectionAsync<T>(
+    public async Task<ImmutableArray<T>> GetAssetsAsync<T>(
         AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
-        using var _ = ArrayBuilder<T>.GetInstance(checksums.Count, out var assets);
+        using var _ = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
+        checksumSet.AddAll(checksums.Children);
 
-        foreach (var checksum in checksums)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            assets.Add(await GetAssetAsync<T>(assetPath, checksum, cancellationToken).ConfigureAwait(false));
-        }
-
-        return assets.ToImmutableAndClear();
+        var results = await this.GetAssetsAsync<T>(assetPath, checksumSet, cancellationToken).ConfigureAwait(false);
+        return results.SelectAsArray(static t => t.asset);
     }
 }
