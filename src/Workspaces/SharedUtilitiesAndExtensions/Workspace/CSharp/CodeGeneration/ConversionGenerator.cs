@@ -103,15 +103,8 @@ internal static class ConversionGenerator
     private static SyntaxTokenList GenerateModifiers(CodeGenerationDestination destination)
     {
         // If these appear in interfaces they must be static abstract
-        if (destination is CodeGenerationDestination.InterfaceType)
-        {
-            return [
-                StaticKeyword,
-                AbstractKeyword];
-        }
-
-        return [
-            PublicKeyword,
-            StaticKeyword];
+        return destination is CodeGenerationDestination.InterfaceType
+            ? ([StaticKeyword, AbstractKeyword])
+            : ([PublicKeyword, StaticKeyword]);
     }
 }
