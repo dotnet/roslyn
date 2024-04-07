@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             => null;
 
         public IEnumerable<string> Names
-            => SpecializedCollections.SingletonEnumerable(CommandName);
+            => [CommandName];
 
         public string CommandLine
             => "[" + NoConfigParameterName + "] [" + PlatformNames + "]";

@@ -222,7 +222,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
     {
         // For a standard tagger, the spans to tag is the span of the entire snapshot.
-        return SpecializedCollections.SingletonEnumerable(subjectBuffer.CurrentSnapshot.GetFullSpan());
+        return [subjectBuffer.CurrentSnapshot.GetFullSpan()];
     }
 
     /// <summary>

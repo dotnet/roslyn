@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return GetDiagnosticData();
                     }
 
-                    var documentIds = (DocumentId != null) ? SpecializedCollections.SingletonEnumerable(DocumentId) : project.DocumentIds;
+                    var documentIds = DocumentId != null ? [DocumentId] : project.DocumentIds;
 
                     // return diagnostics specific to one project or document
                     var includeProjectNonLocalResult = DocumentId == null;

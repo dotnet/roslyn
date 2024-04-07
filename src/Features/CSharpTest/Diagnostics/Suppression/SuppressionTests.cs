@@ -457,7 +457,7 @@ class Class
                         diagnosticService,
                         SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),
                         SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
-                        SpecializedCollections.SingletonEnumerable(suppressionProviderFactory));
+                        [suppressionProviderFactory]);
                     var document = GetDocumentAndSelectSpan(workspace, out var span);
                     var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None);
                     Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());

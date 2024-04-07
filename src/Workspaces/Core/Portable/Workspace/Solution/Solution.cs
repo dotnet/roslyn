@@ -535,8 +535,7 @@ public partial class Solution
     public Solution AddProjectReference(ProjectId projectId, ProjectReference projectReference)
     {
         return AddProjectReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                projectReference ?? throw new ArgumentNullException(nameof(projectReference))));
+            [projectReference ?? throw new ArgumentNullException(nameof(projectReference))]);
     }
 
     /// <summary>
@@ -627,8 +626,7 @@ public partial class Solution
     public Solution AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
     {
         return AddMetadataReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                metadataReference ?? throw new ArgumentNullException(nameof(metadataReference))));
+            [metadataReference ?? throw new ArgumentNullException(nameof(metadataReference))]);
     }
 
     /// <summary>
@@ -708,8 +706,7 @@ public partial class Solution
     public Solution AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
     {
         return AddAnalyzerReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+            [analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
     }
 
     /// <summary>
@@ -791,8 +788,7 @@ public partial class Solution
     public Solution AddAnalyzerReference(AnalyzerReference analyzerReference)
     {
         return AddAnalyzerReferences(
-            SpecializedCollections.SingletonEnumerable(
-                analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+            [analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
     }
 
     /// <summary>
