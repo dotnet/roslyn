@@ -32,7 +32,7 @@ internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethod
     protected override IEnumerable<StatementSyntax> GenerateInnerStatements(SyntaxGenerator generator)
         => [];
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax methodDeclaration, SourceText sourceText)
+    protected override int GetTargetCaretPosition(MethodDeclarationSyntax methodDeclaration, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             methodDeclaration,
             static d => d.Body!,
