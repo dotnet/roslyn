@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (elements.Length > 0 &&
-                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, elementType, addMethods: out _, BindingDiagnosticBag.Discarded))
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }

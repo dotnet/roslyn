@@ -2301,6 +2301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCollectionMissingConstructor = 9228,
 
         ERR_NoModifiersOnUsing = 9229,
+        ERR_CannotDynamicInvokeOnExpression = 9230,
 
         ERR_InterceptsLocationDataInvalidFormat = 9230,
         ERR_InterceptsLocationUnsupportedVersion = 9231,
@@ -2310,7 +2311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        // Note: you will need to do the following after adding errors:
+        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
+        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
     }
 }

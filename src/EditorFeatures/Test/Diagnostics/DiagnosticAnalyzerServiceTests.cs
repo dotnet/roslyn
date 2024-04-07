@@ -43,14 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static readonly TestComposition s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
         private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
-        {
-            var workspace = new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
-
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
-
-            return workspace;
-        }
+            => new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
 
         private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
             => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
@@ -247,57 +240,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         }
 
         [Fact]
-        public async Task TestSynchronizeWithBuild()
-        {
-            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
-
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new NoNameAnalyzer()));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
-
-            var language = NoCompilationConstants.LanguageName;
-
-            var project = workspace.AddProject(
-                           ProjectInfo.Create(
-                               ProjectId.CreateNewId(),
-                               VersionStamp.Create(),
-                               "NoNameProject",
-                               "NoNameProject",
-                               language));
-
-            var filePath = "NoNameDoc.other";
-            var document = workspace.AddDocument(
-                DocumentInfo.Create(
-                    DocumentId.CreateNewId(project.Id),
-                    "Empty",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create(), filePath)),
-                    filePath: filePath));
-
-            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-            var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
-            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-
-            // cause analysis
-            var location = Location.Create(document.FilePath, textSpan: default, lineSpan: default);
-            var properties = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
-
-            await analyzer.GetTestAccessor().TextDocumentOpenAsync(document);
-
-            var diagnostics = await service.SynchronizeWithBuildAsync(
-                workspace,
-                ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
-                    document.Project.Id,
-                    ImmutableArray.Create(DiagnosticData.Create(document.Project.Solution, Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location, properties), document.Project))),
-                onBuildCompleted: true,
-                CancellationToken.None);
-
-            // two should have been called.
-            Assert.NotEmpty(diagnostics);
-
-            Assert.True(diagnostics.Any(d => d.Id == NoNameAnalyzer.s_syntaxRule.Id));
-        }
-
-        [Fact]
         public void TestHostAnalyzerOrdering()
         {
             using var workspace = CreateWorkspace();
@@ -478,8 +420,6 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple)
         {
             using var workspace = CreateWorkspace();
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var globalOptions = GetGlobalOptions(workspace);
 
@@ -564,8 +504,6 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var analyzerReference = new AnalyzerImageReference(analyzers.ToImmutableArray());
 
             using var workspace = EditorTestWorkspace.CreateCSharp("class A {}", composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
 
@@ -676,8 +614,6 @@ class A
                 typeof(TestDocumentTrackingService));
 
             using var workspace = new EditorTestWorkspace(composition);
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, isSourceGenerated);
@@ -921,8 +857,6 @@ class A
         internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis, bool analyzeProject, TestHost testHost)
         {
             using var workspace = EditorTestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.WithTestHostParts(testHost));
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var globalOptions = workspace.GetService<IGlobalOptionService>();
 

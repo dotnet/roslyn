@@ -22,13 +22,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -45,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
 #else
     using OptionsCollectionAlias = OptionsCollection;
-    using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 #endif
 
     [UseExportProvider]
@@ -299,8 +295,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var ps = parameters ?? TestParameters.Default;
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
 
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
-
             var (actions, _) = await GetCodeActionsAsync(workspace, ps);
             var offeredActions = Environment.NewLine + string.Join(Environment.NewLine, actions.Select(action => action.Title));
 
@@ -493,8 +487,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                workspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
-
                 // Ideally this check would always run, but there are several hundred tests that would need to be
                 // updated with {|Unnecessary:|} spans.
                 if (unnecessarySpans.Any())
@@ -707,8 +699,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var expectedWorkspace = TestWorkspace.Create(expectedText, composition: composition))
             {
-                expectedWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
-
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());
                 foreach (var project in newSolution.Projects)

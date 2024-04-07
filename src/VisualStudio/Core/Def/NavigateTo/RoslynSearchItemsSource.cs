@@ -60,14 +60,17 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             }
         }
 
-        private async Task PerformSearchWorkerAsync(ISearchQuery searchQuery, ISearchCallback searchCallback, CancellationToken cancellationToken)
+        private async Task PerformSearchWorkerAsync(
+            ISearchQuery searchQuery,
+            ISearchCallback searchCallback,
+            CancellationToken cancellationToken)
         {
             var searchValue = searchQuery.QueryString.Trim();
             if (string.IsNullOrWhiteSpace(searchValue))
                 return;
 
-            var includeTypeResults = searchQuery.FiltersStates.Any(f => f is { Key: "Types", Value: "True" });
-            var includeMembersResults = searchQuery.FiltersStates.Any(f => f is { Key: "Members", Value: "True" });
+            var includeTypeResults = searchQuery.FiltersStates.TryGetValue("Types", out var typesValue) && typesValue == "True";
+            var includeMembersResults = searchQuery.FiltersStates.TryGetValue("Members", out var membersValue) && membersValue == "True";
 
             var kinds = (includeTypeResults, includeMembersResults) switch
             {
@@ -76,8 +79,12 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 _ => s_allKinds,
             };
 
-            // TODO(cyrusn): New aiosp doesn't seem to support only searching current document.
-            var searchCurrentDocument = false;
+            var searchScope = searchQuery switch
+            {
+                ICodeSearchQuery { Scope: SearchScopes.CurrentDocument } => NavigateToSearchScope.Document,
+                ICodeSearchQuery { Scope: SearchScopes.CurrentProject } => NavigateToSearchScope.Project,
+                _ => NavigateToSearchScope.Solution,
+            };
 
             // Create a nav-to callback that will take results and translate them to aiosp results for the
             // callback passed to us.
@@ -90,7 +97,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 kinds,
                 provider._threadingContext.DisposalToken);
 
-            await searcher.SearchAsync(searchCurrentDocument, cancellationToken).ConfigureAwait(false);
+            await searcher.SearchAsync(searchScope, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -355,7 +355,7 @@ internal partial class SolutionCompilationState
                     .ReplaceAdditionalTexts(this.NewProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
                     .WithUpdatedParseOptions(this.NewProjectState.ParseOptions!)
                     .WithUpdatedAnalyzerConfigOptions(this.NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider)
-                    .ReplaceGenerators(this.NewProjectState.SourceGenerators.ToImmutableArray());
+                    .ReplaceGenerators(GetSourceGenerators(this.NewProjectState));
 
                 return generatorDriver;
             }

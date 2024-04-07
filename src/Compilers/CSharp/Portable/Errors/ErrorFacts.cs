@@ -2431,6 +2431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
                 case ErrorCode.ERR_ParamsCollectionMissingConstructor:
                 case ErrorCode.ERR_NoModifiersOnUsing:
+                case ErrorCode.ERR_CannotDynamicInvokeOnExpression:
                 case ErrorCode.ERR_InterceptsLocationDataInvalidFormat:
                 case ErrorCode.ERR_InterceptsLocationUnsupportedVersion:
                 case ErrorCode.ERR_InterceptsLocationDuplicateFile:

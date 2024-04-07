@@ -34,7 +34,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
-        IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
+        [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
         VisualStudioCopilotOptionService copilotOptionService,
         IDiagnosticsRefresher diagnosticsRefresher,
         SVsServiceProvider serviceProvider,

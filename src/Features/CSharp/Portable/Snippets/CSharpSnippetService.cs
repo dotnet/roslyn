@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportLanguageService(typeof(ISnippetService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> snippetProviders) : AbstractSnippetService(snippetProviders)
+internal sealed class CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> snippetProviders) : AbstractSnippetService(snippetProviders)
 {
 }

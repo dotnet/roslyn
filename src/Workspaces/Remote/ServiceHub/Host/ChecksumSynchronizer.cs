@@ -49,8 +49,8 @@ internal sealed partial class AssetProvider
                 {
                     using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
+                    checksums.Add(solutionCompilationChecksumObject.SourceGeneratorExecutionVersionMap);
                     solutionChecksumObject.AddAllTo(checksums);
-                    checksums.Remove(solutionChecksumObject.Checksum);
                     await _assetProvider.SynchronizeAssetsAsync(assetHint: AssetHint.None, checksums, results: null, cancellationToken).ConfigureAwait(false);
                 }
             }

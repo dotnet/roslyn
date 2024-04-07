@@ -119,7 +119,12 @@
       </trans-unit>
       <trans-unit id="AssemblyNameAndVersionDisplay">
         <source>{0} ({1})</source>
-        <target state="new">{0} ({1})</target>
+        <target state="translated">{0} ({1})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Run_generators_after_any_change">
+        <source>Automatic. Run generators after any change</source>
+        <target state="new">Automatic. Run generators after any change</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
@@ -145,6 +150,11 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">Geri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Balanced_Run_generators_after_saving_or_building">
+        <source>Balanced. Run generators after saving or building</source>
+        <target state="new">Balanced. Run generators after saving or building</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -500,6 +510,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Ayarlardan .editorconfig dosyası oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generator_running">
+        <source>Generator running...</source>
+        <target state="new">Generator running...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Definition">
@@ -1202,6 +1217,11 @@
         <target state="translated">Projede 'System.HashCode' bulunmasını gerektirir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rerun_generator">
+        <source>Rerun generator</source>
+        <target state="new">Rerun generator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">Visual Studio varsayılan tuş eşlemesine sıfırla</target>
@@ -1210,6 +1230,11 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">Değişiklikleri Gözden Geçir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Roslyn_save_command_handler">
+        <source>Roslyn save command handler</source>
+        <target state="new">Roslyn save command handler</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
@@ -1245,6 +1270,16 @@
       <trans-unit id="Search_Settings">
         <source>Search Settings</source>
         <target state="translated">Arama Ayarları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_cancelled">
+        <source>Search canceled</source>
+        <target state="new">Search canceled</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
+        <source>Search found no results: no C# or Visual Basic projects are opened</source>
+        <target state="new">Search found no results: no C# or Visual Basic projects are opened</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1285,6 +1320,16 @@
       <trans-unit id="Select_members_colon">
         <source>Select members:</source>
         <target state="translated">Üye seçin:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_0">
+        <source>Semantic Search ({0})</source>
+        <target state="new">Semantic Search ({0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_results">
+        <source>Semantic Search Results</source>
+        <target state="new">Semantic Search Results</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
@@ -1360,6 +1405,16 @@
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Bazı renk düzeni renkleri, Ortam &gt; Yazı Tipleri ve Renkler seçenek sayfasında yapılan değişiklikler tarafından geçersiz kılınıyor. Tüm özelleştirmeleri geri döndürmek için Yazı Tipleri ve Renkler sayfasında `Varsayılanları Kullan` seçeneğini belirleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_Generators">
+        <source>Source Generators</source>
+        <target state="new">Source Generators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_generator_execution_requires_restart">
+        <source>Source generator execution (requires restart):</source>
+        <target state="new">Source generator execution (requires restart):</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">

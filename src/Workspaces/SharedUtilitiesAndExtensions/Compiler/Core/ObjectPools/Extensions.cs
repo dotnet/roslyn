@@ -50,6 +50,13 @@ internal static class SharedPoolExtensions
         return pooledObject;
     }
 
+    public static PooledObject<HashSet<TItem>> GetPooledObject<TItem>(this ObjectPool<HashSet<TItem>> pool, out HashSet<TItem> list)
+    {
+        var pooledObject = PooledObject<HashSet<TItem>>.Create(pool);
+        list = pooledObject.Object;
+        return pooledObject;
+    }
+
     public static PooledObject<T> GetPooledObject<T>(this ObjectPool<T> pool) where T : class
         => new(pool, p => p.Allocate(), (p, o) => p.Free(o));
 

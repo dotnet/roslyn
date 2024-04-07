@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
                     FileName = FileName
                 };
 
-                return SpecializedCollections.SingletonEnumerable(new CSharpExtractClassCodeRefactoringProvider(service));
+                return [new CSharpExtractClassCodeRefactoringProvider(service)];
             }
 
             protected override Task<Workspace> CreateWorkspaceImplAsync()

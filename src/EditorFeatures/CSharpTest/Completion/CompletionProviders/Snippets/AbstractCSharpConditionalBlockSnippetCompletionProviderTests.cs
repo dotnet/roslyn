@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact]
-        public async Task InsertSnippettInLocalFunctionTest()
+        public async Task InsertSnippetInLocalFunctionTest()
         {
             var markupBeforeCommit = """
                 class Program

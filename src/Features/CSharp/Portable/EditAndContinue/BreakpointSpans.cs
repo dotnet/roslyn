@@ -472,7 +472,7 @@ internal static class BreakpointSpans
         => CreateSpan(constructor.Modifiers, constructor.Identifier, constructor.ParameterList.CloseParenToken);
 
     internal static IEnumerable<SyntaxToken> GetActiveTokensForImplicitConstructorInitializer(ConstructorDeclarationSyntax constructor)
-        => constructor.Modifiers.Concat(SpecializedCollections.SingletonEnumerable(constructor.Identifier)).Concat(constructor.ParameterList.DescendantTokens());
+        => constructor.Modifiers.Concat([constructor.Identifier]).Concat(constructor.ParameterList.DescendantTokens());
 
     internal static TextSpan CreateSpanForExplicitConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
         => CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
@@ -851,9 +851,7 @@ internal static class BreakpointSpans
     internal static IEnumerable<SyntaxToken> GetActiveTokensForVariableDeclarator(VariableDeclaratorSyntax variableDeclarator, SyntaxTokenList modifiers, SyntaxToken semicolon)
     {
         if (variableDeclarator.Initializer == null || modifiers.Any(SyntaxKind.ConstKeyword))
-        {
-            return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
-        }
+            return [];
 
         // [|int F = 1;|]
         var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;

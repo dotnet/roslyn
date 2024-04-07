@@ -24,12 +24,12 @@
       </trans-unit>
       <trans-unit id="Apply_0">
         <source>Apply '{0}'</source>
-        <target state="new">Apply '{0}'</target>
+        <target state="translated">‘{0}’ 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_Copilot_suggestion">
         <source>Apply Copilot suggestion</source>
-        <target state="new">Apply Copilot suggestion</target>
+        <target state="translated">Copilot 제안 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Apply_fix_from">
         <source>Apply fix from</source>
-        <target state="new">Apply fix from</target>
+        <target state="translated">다음에서 수정 사항 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
         <source>Warning: AI suggestions might be inaccurate.</source>
-        <target state="new">Warning: AI suggestions might be inaccurate.</target>
+        <target state="translated">경고: AI 제안은 정확하지 않을 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
@@ -266,6 +266,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">비동기 using 선언</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="new">do-while loop</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
