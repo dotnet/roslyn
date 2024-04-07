@@ -59,8 +59,10 @@ internal static class DocumentBasedFixAllProviderHelpers
 
                 // Note: it is safe to blindly add the dictionary for a particular context to the full dictionary.  Each
                 // dictionary will only update documents within that context, and each context represents a distinct
-                // project, so these should all be distinct without collisions.
-                allContextsDocIdToNewRootOrText.AddRange(singleContextDocIdToNewRootOrText);
+                // project, so these should all be distinct without collisions.  However, to be very safe, we use an
+                // overwriting policy here to ensure nothing causes any problems here.
+                foreach (var kvp in singleContextDocIdToNewRootOrText)
+                    allContextsDocIdToNewRootOrText[kvp.Key] = kvp.Value;
             }
         }
 
