@@ -275,10 +275,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override IEnumerable<SyntaxNode> GetOptionNodes(SyntaxNode parent)
-        {
             // Only VB has Option statements
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-        }
+            => [];
 
         public override IEnumerable<SyntaxNode> GetImportNodes(SyntaxNode parent)
             => parent switch
