@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            return SpecializedCollections.EmptyList<ClassificationSpan>();
+            return [];
         }
     }
 }
