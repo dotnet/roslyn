@@ -4868,7 +4868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PreprocessingSymbolInfo.None;
 
             static bool isPreprocessorDirectiveAcceptingPreprocessingSymbols(SyntaxKind kind)
-            {
+                => kind is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.DefineDirectiveTrivia or SyntaxKind.UndefDirectiveTrivia;
                 switch (kind)
                 {
                     case SyntaxKind.IfDirectiveTrivia:
