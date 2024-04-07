@@ -341,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return GetAttributeNodes(accessor.AttributeLists);
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         public override IEnumerable<SyntaxNode> GetAttributeArgumentNodes(SyntaxNode parent)
