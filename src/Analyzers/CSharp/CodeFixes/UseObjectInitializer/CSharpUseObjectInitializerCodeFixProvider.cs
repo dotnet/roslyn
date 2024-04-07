@@ -79,10 +79,7 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider :
             if (i < matches.Length - 1)
             {
                 nodesAndTokens.Add(newAssignment);
-                var commaToken = CommaToken
-                    .WithTriviaFrom(expressionStatement.SemicolonToken);
-
-                nodesAndTokens.Add(commaToken);
+                nodesAndTokens.Add(CommaToken.WithTriviaFrom(expressionStatement.SemicolonToken));
             }
             else
             {
