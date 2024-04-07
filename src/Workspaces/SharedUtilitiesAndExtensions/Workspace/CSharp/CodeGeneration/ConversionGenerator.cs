@@ -13,6 +13,8 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static SyntaxFactory;
+
 internal static class ConversionGenerator
 {
     internal static TypeDeclarationSyntax AddConversionTo(
@@ -54,25 +56,25 @@ internal static class ConversionGenerator
         }
 
         var keyword = method.MetadataName == WellKnownMemberNames.ImplicitConversionName
-            ? SyntaxFactory.Token(SyntaxKind.ImplicitKeyword)
-            : SyntaxFactory.Token(SyntaxKind.ExplicitKeyword);
+            ? Token(SyntaxKind.ImplicitKeyword)
+            : Token(SyntaxKind.ExplicitKeyword);
 
         var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
-            ? SyntaxFactory.Token(SyntaxKind.CheckedKeyword)
+            ? Token(SyntaxKind.CheckedKeyword)
             : default;
 
-        var declaration = SyntaxFactory.ConversionOperatorDeclaration(
+        var declaration = ConversionOperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
             modifiers: GenerateModifiers(destination),
             implicitOrExplicitKeyword: keyword,
             explicitInterfaceSpecifier: null,
-            operatorKeyword: SyntaxFactory.Token(SyntaxKind.OperatorKeyword),
+            operatorKeyword: Token(SyntaxKind.OperatorKeyword),
             checkedKeyword: checkedToken,
             type: method.ReturnType.GenerateTypeSyntax(),
             parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
-            semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+            semicolonToken: hasNoBody ? Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
 
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -103,12 +105,12 @@ internal static class ConversionGenerator
         if (destination is CodeGenerationDestination.InterfaceType)
         {
             return [
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword),
-                SyntaxFactory.Token(SyntaxKind.AbstractKeyword)];
+                Token(SyntaxKind.StaticKeyword),
+                Token(SyntaxKind.AbstractKeyword)];
         }
 
         return [
-            SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-            SyntaxFactory.Token(SyntaxKind.StaticKeyword)];
+            Token(SyntaxKind.PublicKeyword),
+            Token(SyntaxKind.StaticKeyword)];
     }
 }
