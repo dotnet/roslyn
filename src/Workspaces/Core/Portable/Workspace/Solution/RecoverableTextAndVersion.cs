@@ -192,10 +192,10 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
             // make sure write is done before setting _storage field
             Interlocked.CompareExchange(ref _storage, storage, null);
 
-            // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete, we
-            // want to keep it around to service future requests.  Once we do clear out this value, then all future
-            // request will either retrieve the value from the weak reference (if anyone else is holding onto it), or
-            // will recover from underlying storage.
+            // Only set _initialValue to null once writing to the storage service completes fully. If the save did not
+            // complete, we want to keep it around to service future requests.  Once we do clear out this value, then
+            // all future request will either retrieve the value from the weak reference (if anyone else is holding onto
+            // it), or will recover from underlying storage.
             _initialValue = null;
         }
 
