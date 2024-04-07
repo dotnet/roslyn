@@ -25,10 +25,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource;
 
+using static SyntaxFactory;
+
 internal partial class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
 {
     private static readonly AbstractFormattingRule s_memberSeparationRule = new FormattingRule();
-    public static readonly CSharpMetadataAsSourceService Instance = new CSharpMetadataAsSourceService();
+    public static readonly CSharpMetadataAsSourceService Instance = new();
 
     private CSharpMetadataAsSourceService()
     {
@@ -39,18 +41,18 @@ internal partial class CSharpMetadataAsSourceService : AbstractMetadataAsSourceS
         var assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly);
         var assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(symbolCompilation, symbol.ContainingAssembly);
 
-        var regionTrivia = SyntaxFactory.RegionDirectiveTrivia(true)
-            .WithTrailingTrivia(new[] { SyntaxFactory.Space, SyntaxFactory.PreprocessingMessage(assemblyInfo) });
+        var regionTrivia = RegionDirectiveTrivia(true)
+            .WithTrailingTrivia(new[] { Space, PreprocessingMessage(assemblyInfo) });
 
         var oldRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = oldRoot.WithPrependedLeadingTrivia(
-            SyntaxFactory.Trivia(regionTrivia),
-            SyntaxFactory.CarriageReturnLineFeed,
-            SyntaxFactory.Comment("// " + assemblyPath),
-            SyntaxFactory.CarriageReturnLineFeed,
-            SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
-            SyntaxFactory.CarriageReturnLineFeed,
-            SyntaxFactory.CarriageReturnLineFeed);
+            Trivia(regionTrivia),
+            CarriageReturnLineFeed,
+            Comment("// " + assemblyPath),
+            CarriageReturnLineFeed,
+            Trivia(EndRegionDirectiveTrivia(true)),
+            CarriageReturnLineFeed,
+            CarriageReturnLineFeed);
 
         return document.WithSyntaxRoot(newRoot);
     }
@@ -140,9 +142,9 @@ internal partial class CSharpMetadataAsSourceService : AbstractMetadataAsSourceS
         var keyword = enable ? SyntaxKind.EnableKeyword : SyntaxKind.DisableKeyword;
         return
         [
-            SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(keyword), isActive: enable)),
-            SyntaxFactory.ElasticCarriageReturnLineFeed,
-            SyntaxFactory.ElasticCarriageReturnLineFeed,
+            Trivia(NullableDirectiveTrivia(Token(keyword), isActive: enable)),
+            ElasticCarriageReturnLineFeed,
+            ElasticCarriageReturnLineFeed,
         ];
     }
 
