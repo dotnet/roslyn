@@ -2456,38 +2456,26 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         return declaration;
     }
 
-    private static readonly IReadOnlyList<SyntaxNode> s_EmptyList = [];
-
     public override IReadOnlyList<SyntaxNode> GetStatements(SyntaxNode declaration)
     {
-        switch (declaration.Kind())
+        var result = declaration.Kind() switch
         {
-            case SyntaxKind.MethodDeclaration:
-                return ((MethodDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.OperatorDeclaration:
-                return ((OperatorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.ConversionOperatorDeclaration:
-                return ((ConversionOperatorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.ConstructorDeclaration:
-                return ((ConstructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.DestructorDeclaration:
-                return ((DestructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.LocalFunctionStatement:
-                return ((LocalFunctionStatementSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.AnonymousMethodExpression:
-                return (((AnonymousMethodExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
-            case SyntaxKind.ParenthesizedLambdaExpression:
-                return (((ParenthesizedLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
-            case SyntaxKind.SimpleLambdaExpression:
-                return (((SimpleLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
-            case SyntaxKind.GetAccessorDeclaration:
-            case SyntaxKind.SetAccessorDeclaration:
-            case SyntaxKind.AddAccessorDeclaration:
-            case SyntaxKind.RemoveAccessorDeclaration:
-                return ((AccessorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            default:
-                return s_EmptyList;
-        }
+            SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.ConstructorDeclaration => ((ConstructorDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).Body?.Statements,
+            SyntaxKind.AnonymousMethodExpression => (((AnonymousMethodExpressionSyntax)declaration).Body as BlockSyntax)?.Statements,
+            SyntaxKind.ParenthesizedLambdaExpression => (((ParenthesizedLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements,
+            SyntaxKind.SimpleLambdaExpression => (((SimpleLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements,
+            SyntaxKind.GetAccessorDeclaration or
+            SyntaxKind.SetAccessorDeclaration or
+            SyntaxKind.AddAccessorDeclaration or
+            SyntaxKind.RemoveAccessorDeclaration => ((AccessorDeclarationSyntax)declaration).Body?.Statements,
+            _ => [],
+        };
+        return result ?? [];
     }
 
     public override SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
@@ -2529,7 +2517,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration)
     {
         var list = GetAccessorList(declaration);
-        return list?.Accessors ?? s_EmptyList;
+        return list?.Accessors ?? [];
     }
 
     public override SyntaxNode InsertAccessors(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> accessors)
@@ -2633,13 +2621,13 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override IReadOnlyList<SyntaxNode> GetGetAccessorStatements(SyntaxNode declaration)
     {
         var accessor = GetAccessor(declaration, SyntaxKind.GetAccessorDeclaration);
-        return accessor?.Body?.Statements ?? s_EmptyList;
+        return accessor?.Body?.Statements ?? [];
     }
 
     public override IReadOnlyList<SyntaxNode> GetSetAccessorStatements(SyntaxNode declaration)
     {
         var accessor = GetAccessor(declaration, SyntaxKind.SetAccessorDeclaration);
-        return accessor?.Body?.Statements ?? s_EmptyList;
+        return accessor?.Body?.Statements ?? [];
     }
 
     public override SyntaxNode WithGetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
