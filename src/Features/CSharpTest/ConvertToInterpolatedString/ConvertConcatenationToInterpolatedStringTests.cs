@@ -1007,31 +1007,48 @@ public class ConvertConcatenationToInterpolatedStringTests
             """);
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
-    [InlineData(LanguageVersion.CSharp9)]
-    [InlineData(LanguageVersion.Preview)]
-    public async Task TestConcatenationWithConstMember(
-        LanguageVersion languageVersion)
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
+    public async Task TestConcatenationWithConstMemberCSharp9()
     {
-        await new VerifyCS.Test
-        {
-            LanguageVersion = languageVersion,
-            TestCode = """
+        // lang=c#-test
+        var code = """
             class C
             {
                 const string Hello = "Hello";
                 const string World = "World";
                 const string Message = Hello + " " + [||]World;
             }
-            """,
+            """;
+        await new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestCode = code,
+            FixedCode = code,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
+    public async Task TestConcatenationWithConstMember()
+    {
+        await new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            TestCode = """
+                class C
+                {
+                    const string Hello = "Hello";
+                    const string World = "World";
+                    const string Message = Hello + " " + [||]World;
+                }
+                """,
             FixedCode = """
-            class C
-            {
-                const string Hello = "Hello";
-                const string World = "World";
-                const string Message = $"{Hello} {World}";
-            }
-            """,
+                class C
+                {
+                    const string Hello = "Hello";
+                    const string World = "World";
+                    const string Message = $"{Hello} {World}";
+                }
+                """,
         }.RunAsync();
     }
 
