@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
             // Now remove and confirm that we don't have any files
-            project = project.WithAnalyzerReferences(SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
+            project = project.WithAnalyzerReferences([]);
 
             Assert.Empty((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }

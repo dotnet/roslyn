@@ -632,7 +632,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 outcome,
                 conflictResolutionFinishedComputing,
                 previewChanges,
-                SpecializedCollections.EmptyList<InlineRenameReplacementKind>()));
+                replacementKinds: []));
         }
     }
 
