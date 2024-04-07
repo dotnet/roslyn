@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     return classifications.Where(c => c.Span.IntersectsWith(span)).ToList();
                 }
 
-                return SpecializedCollections.EmptyList<ClassificationSpan>();
+                return [];
             }
         }
     }
