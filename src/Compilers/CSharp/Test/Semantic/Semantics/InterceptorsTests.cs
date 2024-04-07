@@ -6884,6 +6884,8 @@ partial struct CustomHandler
         Assert.NotEqual(locationSpecifier, otherLocation);
         // While it is not incorrect for the HashCodes of these instances to be equal, we don't expect it in this case.
         Assert.NotEqual(locationSpecifier.GetHashCode(), otherLocation.GetHashCode());
+
+        Assert.Equal("path/to/Program.cs(8,9)", otherLocation.GetDisplayLocation());
         AssertEx.Equal("xRCCFCvTOZMORzSr/fZQFmAAAABQcm9ncmFtLmNz", otherLocation.Data);
         AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "xRCCFCvTOZMORzSr/fZQFmAAAABQcm9ncmFtLmNz")]""", otherLocation.GetInterceptsLocationAttributeSyntax());
 
