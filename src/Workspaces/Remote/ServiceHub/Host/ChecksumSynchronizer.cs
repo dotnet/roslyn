@@ -16,7 +16,7 @@ internal sealed partial class AssetProvider
     private readonly struct ChecksumSynchronizer(AssetProvider assetProvider)
     {
         // make sure there is always only 1 bulk synchronization
-        private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
+        // private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
         private readonly AssetProvider _assetProvider = assetProvider;
 
@@ -25,7 +25,7 @@ internal sealed partial class AssetProvider
             using var _1 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
 
             SolutionStateChecksums stateChecksums;
-            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            // using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // first, get top level solution state for the given solution checksum
                 var compilationStateChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
@@ -58,7 +58,7 @@ internal sealed partial class AssetProvider
 
         public async ValueTask SynchronizeProjectAssetsAsync(ProjectStateChecksums projectChecksum, CancellationToken cancellationToken)
         {
-            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            // using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 await SynchronizeProjectAssets_NoLockAsync(projectChecksum, cancellationToken).ConfigureAwait(false);
             }
