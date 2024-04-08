@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await _assetProvider.GetAssetsAsync<ProjectStateChecksums, Dictionary<ProjectId, ProjectStateChecksums>>(
                     assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, newChecksumsToSync,
-                    static (checksum, _, newProjectStateChecksum, newProjectIdToStateChecksums) =>
+                    static (checksum, newProjectStateChecksum, newProjectIdToStateChecksums) =>
                     {
                         Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
                         newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await _assetProvider.GetAssetsAsync<DocumentStateChecksums, Dictionary<DocumentId, DocumentStateChecksums>>(
                     assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync,
-                    static (checksum, _, documentStateChecksum, newDocumentIdToStateChecksums) =>
+                    static (checksum, documentStateChecksum, newDocumentIdToStateChecksums) =>
                     {
                         Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);
                         newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);

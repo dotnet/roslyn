@@ -238,20 +238,20 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             {
                 var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
 
-                var indexExpectation = 0;
-                await RequestAssetsAsync(assetPath, missingChecksumsMemory, static (int index, T missingAsset) =>
-                {
-                    Contract.ThrowIfTrue(indexExpectation != index);
+                await RequestAssetsAsync(
+                    assetPath, missingChecksumsMemory,
+                    static (
+                        int index,
+                        T missingAsset,
+                        (AssetProvider assetProvider, Checksum[] missingChecksums, Action<Checksum, T, TArg>? callback, TArg? arg) tuple) =>
+                    {
+                        var missingChecksum = tuple.missingChecksums[index];
 
-                    var missingChecksum = missingChecksums[index];
-
-                    AddResult(missingChecksum, missingAsset);
-                    _assetCache.GetOrAdd(missingChecksum, missingAsset!);
-
-                    indexExpectation++;
-                }, cancellationToken).ConfigureAwait(false);
-
-                Contract.ThrowIfTrue(indexExpectation != missingChecksumsCount);
+                        tuple.callback?.Invoke(missingChecksum, missingAsset, tuple.arg!);
+                        tuple.assetProvider._assetCache.GetOrAdd(missingChecksum, missingAsset!);
+                    },
+                    (this, missingChecksums, callback, arg),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             if (usePool)
@@ -259,15 +259,10 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         }
 
         return;
-
-        void AddResult(Checksum checksum, T result)
-        {
-            callback?.Invoke(checksum, result);
-        }
     }
 
     private async ValueTask RequestAssetsAsync<T, TArg>(
-        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, Action<T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, Action<int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
 #if NETCOREAPP
         Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));

@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing;
 /// </summary>
 internal sealed class SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map) : IAssetSource
 {
-    public ValueTask GetAssetsAsync<T>(
-        Checksum solutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService deserializerService, Action<int, T> callback, CancellationToken cancellationToken)
+    public ValueTask GetAssetsAsync<T, TArg>(
+        Checksum solutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService deserializerService, Action<int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
         var index = 0;
         foreach (var checksum in checksums.Span)
@@ -38,7 +38,7 @@ internal sealed class SimpleAssetSource(ISerializerService serializerService, IR
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
             var asset = deserializerService.Deserialize(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
             Contract.ThrowIfNull(asset);
-            callback(index, (T)asset);
+            callback(index, (T)asset, arg);
             index++;
         }
 
