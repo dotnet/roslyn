@@ -6501,6 +6501,51 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long[] a, long[] b) => Console.Write(a.Length);
+                    static public void Test1(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+
+                    static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    static public void Test2(this Program p, long[] a, long[] b) => Console.Write(a.Length);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of 'Action<long[], long[]>'
+                    //         x1();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x1").WithArguments("arg1", "System.Action<long[], long[]>").WithLocation(10, 9),
+                    // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of 'Action<long[], long[]>'
+                    //         x2();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x2").WithArguments("arg1", "System.Action<long[], long[]>").WithLocation(11, 9),
+                    // (18,45): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     static public void Test1(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(18, 45),
+                    // (20,45): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(20, 45));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
         public void OverloadResolution_CandidateOrdering_ParamsArray_CustomDelegateType()
         {
             var source = """
