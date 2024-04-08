@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         errorArg = expressionType;
                         // CONSIDER: we could use an explicit error type instead of the unsafe type.
                     }
-                    else if (expressionType.IsRestrictedType())
+                    else if (expressionType.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                     {
                         errorArg = expressionType;
                     }

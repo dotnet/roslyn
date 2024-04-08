@@ -1878,7 +1878,7 @@ next:;
 
                     if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier)
                     {
-                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                         {
                             diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
                         }

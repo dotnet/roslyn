@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is { IsValueType: true }
                    && !type.IsNullableType()
                    && !type.IsPointerOrFunctionPointer()
-                   && !type.IsRestrictedType();
+                   && !type.IsRestrictedType(); // PROTOTYPE(RefStructInterfaces): Add a test for 'allows ref struct' type parameters? 
         }
 
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return ignoreSpanLikeTypes ?
                         false :
-                        (type.IsRefLikeType || type is TypeParameterSymbol { AllowByRefLike: true }); // PROTOTYPE(RefStructInterfaces): Audit call sites of IsRestrictedType with ignoreSpanLikeTypes == false.
+                        (type.IsRefLikeType || type is TypeParameterSymbol { AllowByRefLike: true });
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)

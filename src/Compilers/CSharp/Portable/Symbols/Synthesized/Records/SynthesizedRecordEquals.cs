@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.GetFirstLocationOrNone(), parameterType);
                             foundBadField = true;
                         }
-                        else if (parameterType.IsRestrictedType())
+                        else if (parameterType.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                         {
                             // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
                             foundBadField = true;

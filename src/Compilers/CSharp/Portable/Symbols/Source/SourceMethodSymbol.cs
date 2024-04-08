@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, getLocation(parameter, location));
                 }
-                else if (parameter.Type.IsRestrictedType())
+                else if (parameter.Type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                 {
                     diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, getLocation(parameter, location), parameter.Type);
                 }
