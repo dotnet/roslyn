@@ -9633,9 +9633,8 @@ class C2
                 );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))] // IOperation validation is suppressed due to https://github.com/dotnet/roslyn/issues/72931
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/72931")]
         public void SingleCandidate_ResultIsDynamic_Property_MemberInitializer_CollectionInitializer_01()
         {
             string source = @"
@@ -9864,8 +9863,9 @@ class C2
             CompileAndVerify(comp3).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))] // IOperation validation is suppressed due to https://github.com/dotnet/roslyn/issues/72931
         [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72931")]
         public void SingleCandidate_RefReturning_Property_MemberInitializer_CollectionInitializer()
         {
             string source = @"
