@@ -71,7 +71,7 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
 
         var formattedDoc = await Formatter.FormatAsync(
             docWithAssemblyInfo,
-            SpecializedCollections.SingletonEnumerable(node.FullSpan),
+            [node.FullSpan],
             options.CleanupOptions.FormattingOptions,
             GetFormattingRules(docWithAssemblyInfo),
             cancellationToken).ConfigureAwait(false);

@@ -55,7 +55,7 @@ internal sealed class RenamedSpansTracker
     {
         var documentReplacementSpans = _documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans)
             ? modifiedSpans.Where(pair => pair.oldSpan.Start < startingPosition)
-            : SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
+            : [];
 
         var adjustedStartingPosition = startingPosition;
         foreach (var (oldSpan, newSpan) in documentReplacementSpans)
@@ -65,7 +65,7 @@ internal sealed class RenamedSpansTracker
 
         var documentComplexifiedSpans = _documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans)
             ? complexifiedSpans.Where(c => c.OriginalSpan.Start <= startingPosition)
-            : SpecializedCollections.EmptyEnumerable<MutableComplexifiedSpan>();
+            : [];
 
         var appliedTextSpans = new HashSet<TextSpan>();
         foreach (var c in documentComplexifiedSpans.Reverse())

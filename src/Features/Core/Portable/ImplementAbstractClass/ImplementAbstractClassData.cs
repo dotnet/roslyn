@@ -55,7 +55,7 @@ internal sealed class ImplementAbstractClassData(
             return null;
 
         var unimplementedMembers = classType.GetAllUnimplementedMembers(
-            SpecializedCollections.SingletonEnumerable(abstractClassType),
+            [abstractClassType],
             includeMembersRequiringExplicitImplementation: false,
             cancellationToken);
 

@@ -86,7 +86,7 @@ public abstract partial class Workspace : IDisposable
 
         var emptyOptions = new SolutionOptionSet(_legacyOptions);
 
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
+        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: []);
 
         _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             // Idle processing speed

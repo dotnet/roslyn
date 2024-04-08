@@ -4545,5 +4545,420 @@ class C2 : C1
 
             CompileAndVerify(comp, expectedOutput: "int").VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        public void RefStructReceiver01()
+        {
+            var code = """
+                var s = new S();
+                dynamic d = null;
+
+                s.M(d);
+
+                ref struct S
+                {
+                    public void M<T>(T t) { }
+                }
+                """;
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (4,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // s.M(d);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 1)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        [InlineData("object")]
+        [InlineData("dynamic")]
+        public void RefStructReceiver02(string argType)
+        {
+            var code = $$"""
+                var s = new S();
+                dynamic d = "Hello world";
+
+                s.M(d);
+
+                ref struct S
+                {
+                    public void M({{argType}} o) => System.Console.WriteLine(o);
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: "Hello world", targetFramework: TargetFramework.StandardAndCSharp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+                {
+                  // Code size       23 (0x17)
+                  .maxstack  2
+                  .locals init (S V_0, //s
+                                  object V_1) //d
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldstr      "Hello world"
+                  IL_000d:  stloc.1
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  ldloc.1
+                  IL_0011:  call       "void S.M({{argType}})"
+                  IL_0016:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        [InlineData("string")]
+        [InlineData("int")]
+        public void RefStructReceiver03(string argType)
+        {
+            var code = $$"""
+                var s = new S();
+                dynamic d = "Hello world";
+
+                try
+                {
+                    s.M(d);
+                }
+                catch
+                {
+                    System.Console.WriteLine("Caught exception");
+                }
+
+                ref struct S
+                {
+                    public void M({{argType}} o) => System.Console.WriteLine(o);
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: argType == "string" ? "Hello world" : "Caught exception", targetFramework: TargetFramework.StandardAndCSharp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+                {
+                  // Code size      101 (0x65)
+                  .maxstack  4
+                  .locals init (S V_0, //s
+                                object V_1) //d
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldstr      "Hello world"
+                  IL_000d:  stloc.1
+                  .try
+                  {
+                    IL_000e:  ldloca.s   V_0
+                    IL_0010:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
+                    IL_0015:  brtrue.s   IL_003b
+                    IL_0017:  ldc.i4.0
+                    IL_0018:  ldtoken    "{{argType}}"
+                    IL_001d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                    IL_0022:  ldtoken    "Program"
+                    IL_0027:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                    IL_002c:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                    IL_0031:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                    IL_0036:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
+                    IL_003b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
+                    IL_0040:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
+                    IL_0045:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
+                    IL_004a:  ldloc.1
+                    IL_004b:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                    IL_0050:  call       "void S.M({{argType}})"
+                    IL_0055:  leave.s    IL_0064
+                  }
+                  catch object
+                  {
+                    IL_0057:  pop
+                    IL_0058:  ldstr      "Caught exception"
+                    IL_005d:  call       "void System.Console.WriteLine(string)"
+                    IL_0062:  leave.s    IL_0064
+                  }
+                  IL_0064:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        [InlineData("object")]
+        [InlineData("dynamic")]
+        public void RefStructReceiver04(string argType)
+        {
+            var code = $$"""
+                var s = new S();
+                dynamic d = "Hello world";
+
+                s.M(d);
+
+                ref struct S
+                {
+                    public void M({{argType}} o) => System.Console.WriteLine(o);
+                    public void M(string s) => System.Console.WriteLine(s);
+                }
+                """;
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (4,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // s.M(d);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 1)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        [InlineData("object")]
+        [InlineData("dynamic")]
+        public void RefStructReceiver05(string argType)
+        {
+            var code = $$"""
+                var s = new S();
+                dynamic d = "Hello world";
+
+                s.M(d);
+
+                ref struct S
+                {
+                    public void M({{argType}} o) => System.Console.WriteLine(o);
+                    public void M<T>(T t) => System.Console.WriteLine(t);
+                }
+                """;
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (4,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // s.M(d);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 1)
+            );
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        [InlineData("object")]
+        [InlineData("dynamic")]
+        public void RefStructReceiver06(string argType)
+        {
+            var code = $$"""
+                var s = new S();
+                dynamic d = "Hello world";
+
+                _ = s[d];
+                s[d] = 1;
+
+                ref struct S
+                {
+                    public int this[{{argType}} o]
+                    {
+                        get
+                        {
+                            System.Console.WriteLine(o);
+                            return 0;
+                        }
+                        set => System.Console.WriteLine(o);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: """
+                Hello world
+                Hello world
+                """, targetFramework: TargetFramework.StandardAndCSharp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  3
+                  .locals init (S V_0, //s
+                                object V_1) //d
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldstr      "Hello world"
+                  IL_000d:  stloc.1
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  ldloc.1
+                  IL_0011:  call       "int S.this[{{argType}}].get"
+                  IL_0016:  pop
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldloc.1
+                  IL_001a:  ldc.i4.1
+                  IL_001b:  call       "void S.this[{{argType}}].set"
+                  IL_0020:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        [InlineData("string")]
+        [InlineData("int")]
+        public void RefStructReceiver07(string argType)
+        {
+            var code = $$"""
+                dynamic d = "Hello world";
+
+                get();
+                set();
+
+                void get()
+                {
+                    var s = new S();
+                    try
+                    {
+                        _ = s[d];
+                    }
+                    catch
+                    {
+                        System.Console.WriteLine("Caught exception");
+                    }
+                }
+
+                void set()
+                {
+                    var s = new S();
+                    try
+                    {
+                        s[d] = 1;
+                    }
+                    catch
+                    {
+                        System.Console.WriteLine("Caught exception");
+                    }
+                }
+
+                ref struct S
+                {
+                    public int this[{{argType}} o]
+                    {
+                        get
+                        {
+                            System.Console.WriteLine(o);
+                            return 0;
+                        }
+                        set => System.Console.WriteLine(o);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: argType == "string"
+                ? """
+                  Hello world
+                  Hello world
+                  """
+                : """
+                  Caught exception
+                  Caught exception
+                  """, targetFramework: TargetFramework.StandardAndCSharp);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__get|0_0(ref Program.<>c__DisplayClass0_0)", $$"""
+                {
+                  // Code size      101 (0x65)
+                  .maxstack  4
+                  .locals init (S V_0) //s
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_0
+                    IL_000a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
+                    IL_000f:  brtrue.s   IL_0035
+                    IL_0011:  ldc.i4.0
+                    IL_0012:  ldtoken    "{{argType}}"
+                    IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                    IL_001c:  ldtoken    "Program"
+                    IL_0021:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                    IL_0026:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                    IL_002b:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                    IL_0030:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
+                    IL_0035:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
+                    IL_003a:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
+                    IL_003f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
+                    IL_0044:  ldarg.0
+                    IL_0045:  ldfld      "dynamic Program.<>c__DisplayClass0_0.d"
+                    IL_004a:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                    IL_004f:  call       "int S.this[{{argType}}].get"
+                    IL_0054:  pop
+                    IL_0055:  leave.s    IL_0064
+                  }
+                  catch object
+                  {
+                    IL_0057:  pop
+                    IL_0058:  ldstr      "Caught exception"
+                    IL_005d:  call       "void System.Console.WriteLine(string)"
+                    IL_0062:  leave.s    IL_0064
+                  }
+                  IL_0064:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.<<Main>$>g__set|0_1(ref Program.<>c__DisplayClass0_0)", $$"""
+                {
+                  // Code size      101 (0x65)
+                  .maxstack  4
+                  .locals init (S V_0) //s
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_0
+                    IL_000a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
+                    IL_000f:  brtrue.s   IL_0035
+                    IL_0011:  ldc.i4.0
+                    IL_0012:  ldtoken    "{{argType}}"
+                    IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                    IL_001c:  ldtoken    "Program"
+                    IL_0021:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                    IL_0026:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                    IL_002b:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                    IL_0030:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
+                    IL_0035:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
+                    IL_003a:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
+                    IL_003f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
+                    IL_0044:  ldarg.0
+                    IL_0045:  ldfld      "dynamic Program.<>c__DisplayClass0_0.d"
+                    IL_004a:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                    IL_004f:  ldc.i4.1
+                    IL_0050:  call       "void S.this[{{argType}}].set"
+                    IL_0055:  leave.s    IL_0064
+                  }
+                  catch object
+                  {
+                    IL_0057:  pop
+                    IL_0058:  ldstr      "Caught exception"
+                    IL_005d:  call       "void System.Console.WriteLine(string)"
+                    IL_0062:  leave.s    IL_0064
+                  }
+                  IL_0064:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        [InlineData("object")]
+        [InlineData("dynamic")]
+        public void RefStructReceiver08(string argType)
+        {
+            var code = $$"""
+                var s = new S();
+                dynamic d = "Hello world";
+
+                _ = s[d];
+                s[d] = 1;
+
+                ref struct S
+                {
+                    public int this[{{argType}} o]
+                    {
+                        get => 0;
+                        set => System.Console.WriteLine(o);
+                    }
+
+                    public int this[string s]
+                    {
+                        get => 0;
+                        set => System.Console.WriteLine(s);
+                    }
+                }
+                """;
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (4,5): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // _ = s[d];
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 5),
+                // (5,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // s[d] = 1;
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(5, 1)
+            );
+        }
     }
 }

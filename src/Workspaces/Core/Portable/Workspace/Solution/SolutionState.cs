@@ -311,8 +311,7 @@ internal sealed partial class SolutionState
                 if (projectReference.ProjectId == projectId)
                 {
                     newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(
-                        newState.Key,
-                        SpecializedCollections.SingletonReadOnlyList(projectReference));
+                        newState.Key, [projectReference]);
 
                     break;
                 }

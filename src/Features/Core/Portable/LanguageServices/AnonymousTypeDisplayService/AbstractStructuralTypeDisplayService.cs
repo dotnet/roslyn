@@ -32,17 +32,14 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
         SemanticModel semanticModel,
         int position)
     {
-        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
-
         var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable();
 
-        parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null,
-            SyntaxFactsService.GetText(SyntaxFactsService.SyntaxKinds.DelegateKeyword)));
-        parts.AddRange(Space());
-        parts.AddRange(MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(
-            semanticModel, position, s_delegateDisplay)));
-
-        return parts.ToImmutable();
+        return
+        [
+            new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null, SyntaxFactsService.GetText(SyntaxFactsService.SyntaxKinds.DelegateKeyword)),
+            .. Space(),
+            .. MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(semanticModel, position, s_delegateDisplay))
+        ];
     }
 
     private static ImmutableArray<SymbolDisplayPart> MassageDelegateParts(

@@ -102,9 +102,7 @@ internal partial class CSharpMethodExtractor
                 if (tokenPair.PreviousToken == body.OpenBraceToken &&
                     tokenPair.NextToken == body.CloseBraceToken)
                 {
-                    return (location == TriviaLocation.AfterBeginningOfSpan)
-                        ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
-                        : SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+                    return location == TriviaLocation.AfterBeginningOfSpan ? [SyntaxFactory.ElasticMarker] : [];
                 }
             }
             else
@@ -112,17 +110,15 @@ internal partial class CSharpMethodExtractor
                 if (tokenPair.PreviousToken == expressionBody.ArrowToken &&
                     tokenPair.NextToken.GetPreviousToken() == semicolonToken)
                 {
-                    return (location == TriviaLocation.AfterBeginningOfSpan)
-                        ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
-                        : SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+                    return location == TriviaLocation.AfterBeginningOfSpan ? [SyntaxFactory.ElasticMarker] : [];
                 }
             }
 
             triviaMap.TryGetValue(tokenPair.PreviousToken, out var previousTriviaPair);
-            var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+            var trailingTrivia = previousTriviaPair.TrailingTrivia ?? [];
 
             triviaMap.TryGetValue(tokenPair.NextToken, out var nextTriviaPair);
-            var leadingTrivia = nextTriviaPair.LeadingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+            var leadingTrivia = nextTriviaPair.LeadingTrivia ?? [];
 
             var list = trailingTrivia.Concat(leadingTrivia);
 
@@ -166,7 +162,7 @@ internal partial class CSharpMethodExtractor
                 return tokenPair.NextToken.LeadingTrivia;
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+            return [];
         }
 
         private static IEnumerable<SyntaxTrivia> AppendTrailingTrivia(PreviousNextTokenPair tokenPair)
@@ -177,7 +173,7 @@ internal partial class CSharpMethodExtractor
                 return tokenPair.PreviousToken.TrailingTrivia;
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+            return [];
         }
     }
 }

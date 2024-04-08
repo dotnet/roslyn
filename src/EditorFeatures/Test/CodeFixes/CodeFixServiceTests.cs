@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
             var fixService = new CodeFixService(
-                diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
+                diagnosticService, logger, fixers, configurationProviders: []);
 
             var reference = new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -349,10 +349,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
 
             var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
-#if false
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
-#endif
 
             if (additionalDocument != null)
             {
@@ -370,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var configurationFixProviders = includeConfigurationFixProviders
                 ? workspace.ExportProvider.GetExports<IConfigurationFixProvider, CodeChangeProviderMetadata>()
-                : SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>();
+                : [];
 
             var fixService = new CodeFixService(
                 diagnosticService,
@@ -415,10 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         }
 
         private static IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> CreateFixers()
-        {
-            return SpecializedCollections.SingletonEnumerable(
-                new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(() => new MockFixer(), new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
-        }
+            => [new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(() => new MockFixer(), new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp))];
 
         internal class MockFixer : CodeFixProvider
         {
@@ -772,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var vsixFixers = vsixFixer != null
                 ? SpecializedCollections.SingletonEnumerable(new Lazy<CodeFixProvider, CodeChangeProviderMetadata>(() => vsixFixer, new CodeChangeProviderMetadata(name: nameof(VsixCodeFixProvider), languages: LanguageNames.CSharp)))
-                : SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>();
+                : [];
 
             using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
@@ -780,7 +773,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
             var fixService = new CodeFixService(
-                diagnosticService, logger, vsixFixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
+                diagnosticService, logger, vsixFixers, configurationProviders: []);
 
             diagnosticAnalyzer ??= new MockAnalyzerReference.MockDiagnosticAnalyzer();
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(diagnosticAnalyzer);

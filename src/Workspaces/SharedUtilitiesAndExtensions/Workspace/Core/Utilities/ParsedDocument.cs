@@ -73,9 +73,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
         Contract.ThrowIfFalse(Id == oldDocument.Id);
 
         if (Text == oldDocument.Text || SyntaxTree == oldDocument.SyntaxTree)
-        {
-            return SpecializedCollections.EmptyEnumerable<TextChange>();
-        }
+            return [];
 
         var textChanges = Text.GetTextChanges(oldDocument.Text);
 

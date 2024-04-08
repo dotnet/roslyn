@@ -26,9 +26,7 @@ internal static class SymbolContainment
     {
         var progressionLanguageService = document.GetLanguageService<IProgressionLanguageService>();
         if (progressionLanguageService == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-        }
+            return [];
 
         var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);

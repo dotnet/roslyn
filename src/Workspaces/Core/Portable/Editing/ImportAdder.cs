@@ -20,7 +20,7 @@ public static class ImportAdder
     private static async ValueTask<IEnumerable<TextSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return SpecializedCollections.SingletonEnumerable(root.FullSpan);
+        return [root.FullSpan];
     }
 
     private static async ValueTask<IEnumerable<TextSpan>> GetSpansAsync(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)

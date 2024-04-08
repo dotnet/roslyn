@@ -321,7 +321,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var availableInnerTypeParameters = _service.GetTypeParameters(_state, _semanticDocument.SemanticModel, _cancellationToken);
             var availableOuterTypeParameters = !_intoNamespace && _state.TypeToGenerateInOpt != null
                 ? _state.TypeToGenerateInOpt.GetAllTypeParameters()
-                : SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
+                : [];
 
             return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
         }

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 mockDebuggerService,
                 mockCompilationOutputsProvider,
                 NullPdbMatchingSourceTextProvider.Instance,
-                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
+                initialDocumentStates: [],
                 reportDiagnostics: true);
 
             if (initialState != CommittedSolution.DocumentState.None)

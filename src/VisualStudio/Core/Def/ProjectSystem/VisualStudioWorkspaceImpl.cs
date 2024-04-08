@@ -794,7 +794,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         if (IsWebsite(project))
         {
-            AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, documentKind, initialText, info.FilePath);
+            AddDocumentToFolder(project, info.Id, [AppCodeFolderName], info.Name, documentKind, initialText, info.FilePath);
         }
         else if (folders.Any())
         {
@@ -845,9 +845,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private static IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
     {
         if (projectItems == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<ProjectItem>();
-        }
+            return [];
 
         var items = projectItems.OfType<ProjectItem>();
         return items.Concat(items.SelectMany(i => GetAllItems(i.ProjectItems)));
