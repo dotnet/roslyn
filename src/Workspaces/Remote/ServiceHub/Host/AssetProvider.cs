@@ -239,18 +239,20 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             {
                 var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
 
-                var lastIndexNotification = -1;
+                var currentIndex = 0;
                 await RequestAssetsAsync(assetPath, missingChecksumsMemory, (int index, T missingAsset) =>
                 {
-                    lastIndexNotification = index;
+                    Contract.ThrowIfTrue(currentIndex != index);
 
                     var missingChecksum = missingChecksums[index];
 
                     AddResult(missingChecksum, missingAsset);
                     _assetCache.GetOrAdd(missingChecksum, missingAsset!);
+
+                    currentIndex++;
                 }, cancellationToken).ConfigureAwait(false);
 
-                Contract.ThrowIfTrue(lastIndexNotification != missingChecksumsCount - 1);
+                Contract.ThrowIfTrue(currentIndex != missingChecksumsCount);
             }
 
             if (usePool)
