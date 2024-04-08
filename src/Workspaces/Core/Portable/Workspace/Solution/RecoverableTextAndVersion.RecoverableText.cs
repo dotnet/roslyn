@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,8 +24,11 @@ internal sealed partial class RecoverableTextAndVersion
     private sealed partial class RecoverableText
     {
         // enforce saving in a queue so save's don't overload the thread pool.
-        private static Task s_latestTask = Task.CompletedTask;
-        private static readonly NonReentrantLock s_taskGuard = new();
+        private static readonly AsyncBatchingWorkQueue<(RecoverableText recoverableText, SourceText sourceText)> s_saveQueue =
+            new(TimeSpan.Zero,
+                SaveAllAsync,
+                AsynchronousOperationListenerProvider.NullListener,
+                CancellationToken.None);
 
         /// <summary>
         /// Lazily created. Access via the <see cref="Gate"/> property.
@@ -136,27 +140,16 @@ internal sealed partial class RecoverableTextAndVersion
             if (!_saved)
             {
                 _saved = true;
-                using (s_taskGuard.DisposableWait())
-                {
-                    // force all save tasks to be in sequence so we don't hog all the threads.
-                    s_latestTask = s_latestTask.SafeContinueWithFromAsync(async _ =>
-                    {
-                        // Now defer to our subclass to actually save the instance to secondary storage.
-                        await SaveAsync(instance, CancellationToken.None).ConfigureAwait(false);
 
-                        // Only set _initialValue to null if the saveTask completed successfully. If the save did not complete,
-                        // we want to keep it around to service future requests.  Once we do clear out this value, then all
-                        // future request will either retrieve the value from the weak reference (if anyone else is holding onto
-                        // it), or will recover from underlying storage.
-                        _initialValue = null;
-                    },
-                    CancellationToken.None,
-                    // Ensure we run continuations asynchronously so that we don't start running the continuation while
-                    // holding s_taskGuard.
-                    TaskContinuationOptions.RunContinuationsAsynchronously,
-                    TaskScheduler.Default);
-                }
+                s_saveQueue.AddWork((this, instance));
             }
+        }
+
+        private static async ValueTask SaveAllAsync(
+            ImmutableSegmentedList<(RecoverableText recoverableText, SourceText sourceText)> list, CancellationToken cancellationToken)
+        {
+            foreach (var (recoverableText, sourceText) in list)
+                await recoverableText.SaveAsync(sourceText, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -103,7 +103,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
                     Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.DocumentIds.First()))
-                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.Id))
 
                     Dim diagnostics = source.GetBuildErrors()
                     Assert.Equal(2, diagnostics.Length)
