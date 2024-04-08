@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_visited is { } && _visited.Count <= MaxTrackVisited)
             {
-                Debug.Assert(_visited.Contains(expr));
+                Debug.Assert(_visited.Contains(expr), $"Expected {expr} `{expr.Syntax}` to be visited.");
             }
         }
 #endif

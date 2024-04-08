@@ -8531,5 +8531,16 @@ public struct Vec4
                 //         return new R(1) | new R(2);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(18, 22));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72873")]
+        public void Utf8Addition()
+        {
+            var code = """
+                using System;
+                ReadOnlySpan<byte> x = "Hello"u8 + " "u8 + "World!"u8;
+                Console.WriteLine(x.Length);
+                """;
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
     }
 }
