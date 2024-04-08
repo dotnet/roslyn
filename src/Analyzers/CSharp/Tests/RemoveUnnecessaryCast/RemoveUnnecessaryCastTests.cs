@@ -13794,7 +13794,7 @@ public class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72933")]
-    public async Task RemoveCollectionExprCastToArray()
+    public async Task RemoveCollectionExpressionCastToArray()
     {
         await new VerifyCS.Test
         {
