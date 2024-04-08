@@ -132,16 +132,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 throw new ArgumentException($"Request is over {MaximumRequestSize >> 20}MB in length");
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Read the full request
-            var requestBuffer = new byte[length];
-            await ReadAllAsync(inStream, requestBuffer, length, cancellationToken).ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
             // Parse the request into the Request data structure.
-            using var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode);
+            using var reader = new BinaryReader(inStream, Encoding.Unicode, leaveOpen: true);
             var requestId = reader.ReadString();
             var language = (RequestLanguage)reader.ReadUInt32();
             var compilerHash = reader.ReadString();

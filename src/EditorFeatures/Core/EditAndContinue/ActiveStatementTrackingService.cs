@@ -259,7 +259,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
                 var newSpan = newSpans[i];
 
                 Contract.ThrowIfFalse(oldSpan.Flags == newSpan.Flags);
-                Contract.ThrowIfFalse(oldSpan.Ordinal == newSpan.Ordinal);
+                Contract.ThrowIfFalse(oldSpan.Id == newSpan.Id);
 
                 var newTextSpan = snapshot.GetTextSpan(newSpan.LineSpan).ToSpan();
                 if (oldSpan.Span.GetSpan(snapshot).Span != newTextSpan)
@@ -272,7 +272,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
 
                     lazyBuilder[i] = new ActiveStatementTrackingSpan(
                         snapshot.CreateTrackingSpan(newTextSpan, SpanTrackingMode.EdgeExclusive),
-                        newSpan.Ordinal,
+                        newSpan.Id,
                         newSpan.Flags,
                         newSpan.UnmappedDocumentId);
                 }
@@ -316,7 +316,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
                     var snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
                     if (snapshot != null && snapshot.TextBuffer == documentSpans.First().Span.TextBuffer)
                     {
-                        return documentSpans.SelectAsArray(s => new ActiveStatementSpan(s.Ordinal, s.Span.GetSpan(snapshot).ToLinePositionSpan(), s.Flags, s.UnmappedDocumentId));
+                        return documentSpans.SelectAsArray(s => new ActiveStatementSpan(s.Id, s.Span.GetSpan(snapshot).ToLinePositionSpan(), s.Flags, s.UnmappedDocumentId));
                     }
                 }
             }

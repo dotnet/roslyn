@@ -1071,9 +1071,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
     {
         if (root is not CompilationUnitSyntax compilationUnit)
-        {
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-        }
+            return [];
 
         var constructors = new List<SyntaxNode>();
         AppendConstructors(compilationUnit.Members, constructors, cancellationToken);
@@ -1681,12 +1679,21 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         expression = assignment.Right;
     }
 
-    public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
+    public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxToken keyword, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
     {
         var objectCreationExpression = (ObjectCreationExpressionSyntax)node;
+        keyword = objectCreationExpression.NewKeyword;
         type = objectCreationExpression.Type;
         argumentList = objectCreationExpression.ArgumentList;
         initializer = objectCreationExpression.Initializer;
+    }
+
+    public void GetPartsOfImplicitObjectCreationExpression(SyntaxNode node, out SyntaxToken keyword, out SyntaxNode argumentList, out SyntaxNode? initializer)
+    {
+        var implicitObjectCreationExpression = (ImplicitObjectCreationExpressionSyntax)node;
+        keyword = implicitObjectCreationExpression.NewKeyword;
+        argumentList = implicitObjectCreationExpression.ArgumentList;
+        initializer = implicitObjectCreationExpression.Initializer;
     }
 
     public void GetPartsOfParameter(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode? @default)

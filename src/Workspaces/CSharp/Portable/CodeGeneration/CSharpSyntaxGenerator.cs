@@ -462,14 +462,10 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         else
         {
             if (getAccessorStatements == null && hasGetter)
-            {
-                getAccessorStatements = SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-            }
+                getAccessorStatements = [];
 
             if (setAccessorStatements == null && hasSetter)
-            {
-                setAccessorStatements = SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-            }
+                setAccessorStatements = [];
         }
 
         if (hasGetter)
@@ -545,8 +541,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         }
         else
         {
-            addAccessorStatements ??= SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-            removeAccessorStatements ??= SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            addAccessorStatements ??= [];
+            removeAccessorStatements ??= [];
         }
 
         accessors.Add(AccessorDeclaration(SyntaxKind.AddAccessorDeclaration, addAccessorStatements));
@@ -672,7 +668,9 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         => accessorList?.WithAccessors([.. accessorList.Accessors.Select(WithoutBody)]);
 
     private static AccessorDeclarationSyntax WithoutBody(AccessorDeclarationSyntax accessor)
-        => accessor.Body != null ? accessor.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : accessor;
+        => accessor.Body != null ? accessor.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null)
+            : accessor.ExpressionBody != null ? accessor.WithExpressionBody(null)
+            : accessor;
 
     private protected override SyntaxNode ClassDeclaration(
         bool isRecord,
@@ -800,7 +798,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                     return ((MethodDeclarationSyntax)member)
                              .WithModifiers(default)
                              .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                             .WithBody(null);
+                             .WithBody(null)
+                             .WithExpressionBody(null);
 
                 case SyntaxKind.OperatorDeclaration:
                     var operatorDeclaration = (OperatorDeclarationSyntax)member;
@@ -1110,7 +1109,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                 break;
         }
 
-        return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+        return [];
     }
 
     public override SyntaxNode InsertAttributeArguments(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributeArguments)
@@ -1213,7 +1212,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         {
             CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
             BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Usings,
-            _ => SpecializedCollections.EmptyReadOnlyList<SyntaxNode>(),
+            _ => [],
         };
 
     public override SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
@@ -1242,7 +1241,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             EnumDeclarationSyntax @enum => @enum.Members,
             BaseNamespaceDeclarationSyntax @namespace => @namespace.Members,
             CompilationUnitSyntax compilationUnit => compilationUnit.Members,
-            _ => SpecializedCollections.EmptyReadOnlyList<SyntaxNode>(),
+            _ => [],
         });
 
     private static ImmutableArray<SyntaxNode> Flatten(IEnumerable<SyntaxNode> declarations)
@@ -2129,8 +2128,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         return list != null
             ? list.Parameters
             : declaration is SimpleLambdaExpressionSyntax simpleLambda
-                ? new[] { simpleLambda.Parameter }
-                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+                ? [simpleLambda.Parameter]
+                : [];
     }
 
     public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2149,7 +2148,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override IReadOnlyList<SyntaxNode> GetSwitchSections(SyntaxNode switchStatement)
     {
         var statement = switchStatement as SwitchStatementSyntax;
-        return statement?.Sections ?? SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+        return statement?.Sections ?? [];
     }
 
     public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
@@ -2457,38 +2456,26 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         return declaration;
     }
 
-    private static readonly IReadOnlyList<SyntaxNode> s_EmptyList = SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
-
     public override IReadOnlyList<SyntaxNode> GetStatements(SyntaxNode declaration)
     {
-        switch (declaration.Kind())
+        var result = declaration.Kind() switch
         {
-            case SyntaxKind.MethodDeclaration:
-                return ((MethodDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.OperatorDeclaration:
-                return ((OperatorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.ConversionOperatorDeclaration:
-                return ((ConversionOperatorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.ConstructorDeclaration:
-                return ((ConstructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.DestructorDeclaration:
-                return ((DestructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.LocalFunctionStatement:
-                return ((LocalFunctionStatementSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            case SyntaxKind.AnonymousMethodExpression:
-                return (((AnonymousMethodExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
-            case SyntaxKind.ParenthesizedLambdaExpression:
-                return (((ParenthesizedLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
-            case SyntaxKind.SimpleLambdaExpression:
-                return (((SimpleLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
-            case SyntaxKind.GetAccessorDeclaration:
-            case SyntaxKind.SetAccessorDeclaration:
-            case SyntaxKind.AddAccessorDeclaration:
-            case SyntaxKind.RemoveAccessorDeclaration:
-                return ((AccessorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
-            default:
-                return s_EmptyList;
-        }
+            SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.OperatorDeclaration => ((OperatorDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.ConversionOperatorDeclaration => ((ConversionOperatorDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.ConstructorDeclaration => ((ConstructorDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).Body?.Statements,
+            SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).Body?.Statements,
+            SyntaxKind.AnonymousMethodExpression => (((AnonymousMethodExpressionSyntax)declaration).Body as BlockSyntax)?.Statements,
+            SyntaxKind.ParenthesizedLambdaExpression => (((ParenthesizedLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements,
+            SyntaxKind.SimpleLambdaExpression => (((SimpleLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements,
+            SyntaxKind.GetAccessorDeclaration or
+            SyntaxKind.SetAccessorDeclaration or
+            SyntaxKind.AddAccessorDeclaration or
+            SyntaxKind.RemoveAccessorDeclaration => ((AccessorDeclarationSyntax)declaration).Body?.Statements,
+            _ => [],
+        };
+        return result ?? [];
     }
 
     public override SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
@@ -2530,7 +2517,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration)
     {
         var list = GetAccessorList(declaration);
-        return list?.Accessors ?? s_EmptyList;
+        return list?.Accessors ?? [];
     }
 
     public override SyntaxNode InsertAccessors(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> accessors)
@@ -2634,13 +2621,13 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override IReadOnlyList<SyntaxNode> GetGetAccessorStatements(SyntaxNode declaration)
     {
         var accessor = GetAccessor(declaration, SyntaxKind.GetAccessorDeclaration);
-        return accessor?.Body?.Statements ?? s_EmptyList;
+        return accessor?.Body?.Statements ?? [];
     }
 
     public override IReadOnlyList<SyntaxNode> GetSetAccessorStatements(SyntaxNode declaration)
     {
         var accessor = GetAccessor(declaration, SyntaxKind.SetAccessorDeclaration);
-        return accessor?.Body?.Statements ?? s_EmptyList;
+        return accessor?.Body?.Statements ?? [];
     }
 
     public override SyntaxNode WithGetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
@@ -2672,7 +2659,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         }
         else
         {
-            return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+            return [];
         }
     }
 
@@ -2971,7 +2958,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             SyntaxKind.LocalDeclarationStatement => ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables,
             SyntaxKind.VariableDeclaration => ((VariableDeclarationSyntax)declaration).Variables,
             SyntaxKind.AttributeList => ((AttributeListSyntax)declaration).Attributes,
-            _ => SpecializedCollections.EmptyReadOnlyList<SyntaxNode>(),
+            _ => [],
         };
 
     public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)

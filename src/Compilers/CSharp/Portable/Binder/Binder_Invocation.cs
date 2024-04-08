@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#nullable enable
         private BoundExpression BindDynamicInvocation(
             SyntaxNode node,
             BoundExpression expression,
@@ -388,21 +389,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
         {
-            //
-            // !!! ATTENTION !!!
-            //
-            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
-            // this function should be kept in sync with local function
-            // HasCollectionExpressionApplicableAddMethod.bindDynamicInvocation
-            //
-
             CheckNamedArgumentsForDynamicInvocation(arguments, diagnostics);
 
             bool hasErrors = false;
+            BoundExpression? receiver;
             if (expression.Kind == BoundKind.MethodGroup)
             {
                 BoundMethodGroup methodGroup = (BoundMethodGroup)expression;
-                BoundExpression receiver = methodGroup.ReceiverOpt;
+                receiver = methodGroup.ReceiverOpt;
 
                 // receiver is null if we are calling a static method declared on an outer class via its simple name:
                 if (receiver != null)
@@ -422,6 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // the runtime binder would ignore the receiver, but in a ctor initializer we can't read "this" before 
                                 // the base constructor is called. We need to handle this as a type qualified static method call.
                                 // Also applicable to things like field initializers, which run before the ctor initializer.
+                                Debug.Assert(ContainingType is not null);
                                 expression = methodGroup.Update(
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,
@@ -464,12 +459,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 expression = BindToNaturalType(expression, diagnostics);
+
+                if (expression is BoundDynamicMemberAccess memberAccess)
+                {
+                    receiver = memberAccess.Receiver;
+                }
+                else
+                {
+                    receiver = expression;
+                }
             }
 
             ImmutableArray<BoundExpression> argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
             var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause);
+            hasErrors &= ReportBadDynamicArguments(node, receiver, argArray, refKindsArray, diagnostics, queryClause);
 
             return new BoundDynamicInvocation(
                 node,
@@ -481,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
         }
+#nullable disable
 
         private void CheckNamedArgumentsForDynamicInvocation(AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
         {
@@ -527,15 +532,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns true if there were errors.
+#nullable enable
         private static bool ReportBadDynamicArguments(
             SyntaxNode node,
+            BoundExpression? receiver,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKinds,
             BindingDiagnosticBag diagnostics,
-            CSharpSyntaxNode queryClause)
+            CSharpSyntaxNode? queryClause)
         {
             bool hasErrors = false;
             bool reportedBadQuery = false;
+
+            if (receiver != null && !IsLegalDynamicOperand(receiver))
+            {
+                // Cannot perform a dynamic invocation on an expression with type '{0}'.
+                Debug.Assert(receiver.Type is not null);
+                Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnExpression, receiver.Syntax, receiver.Type);
+                hasErrors = true;
+            }
 
             if (!refKinds.IsDefault)
             {
@@ -584,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Lambdas,anonymous methods and method groups are the typeless expressions that
                         // are not usable as dynamic arguments; if we get here then the expression must have a type.
-                        Debug.Assert((object)arg.Type != null);
+                        Debug.Assert((object?)arg.Type != null);
                         // error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation
 
                         Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, arg.Syntax, arg.Type);
@@ -594,6 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return hasErrors;
         }
+#nullable disable
 
         private BoundExpression BindDelegateInvocation(
             SyntaxNode node,
@@ -891,6 +907,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<MethodSymbol> methodResolutionResult,
             MethodSymbol singleCandidate)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.canEarlyBindSingleCandidateInvocationWithDynamicArgument
+            //
+
             if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && singleCandidate.IsGenericMethod)
             {
                 // If we call an unconstructed generic function with a
@@ -1221,12 +1245,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
-            this.CheckAndCoerceArguments(methodResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: invokedAsExtensionMethod);
+            ImmutableArray<int> argsToParams;
+            this.CheckAndCoerceArguments(node, methodResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: invokedAsExtensionMethod, out argsToParams);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            var argsToParams = methodResult.Result.ArgsToParamsOpt;
 
-            BindDefaultArgumentsAndParamsCollection(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -1487,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter;
         }
 
-        internal void BindDefaultArgumentsAndParamsCollection(
+        internal void BindDefaultArguments(
             SyntaxNode node,
             ImmutableArray<ParameterSymbol> parameters,
             ArrayBuilder<BoundExpression> argumentsBuilder,
@@ -1500,12 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             Symbol? attributedMember = null)
         {
-            int firstParamsArgument = -1;
             int paramsIndex = parameters.Length - 1;
-            var paramsArgsBuilder = expanded ? ArrayBuilder<BoundExpression>.GetInstance() : null;
-
-            Debug.Assert(!argumentsBuilder.Any(a => a.IsParamsArrayOrCollection));
-
             var visitedParameters = BitVector.Create(parameters.Length);
             for (var i = 0; i < argumentsBuilder.Count; i++)
             {
@@ -1516,22 +1535,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (expanded && parameter.Ordinal == paramsIndex)
                     {
-                        Debug.Assert(paramsArgsBuilder is not null);
-                        Debug.Assert(paramsArgsBuilder.Count == 0);
-
-                        firstParamsArgument = i;
-                        paramsArgsBuilder.Add(argumentsBuilder[i]);
-
-                        for (int remainingArgument = i + 1; remainingArgument < argumentsBuilder.Count; ++remainingArgument)
-                        {
-                            if (GetCorrespondingParameter(remainingArgument, parameters, argsToParamsOpt, expanded: true)?.Ordinal != paramsIndex)
-                            {
-                                break;
-                            }
-
-                            paramsArgsBuilder.Add(argumentsBuilder[remainingArgument]);
-                            i++;
-                        }
+                        expanded = false; // For the reminder of the method treat this as non-expanded case
+                        Debug.Assert(argumentsBuilder[i].IsParamsArrayOrCollection);
+                        Debug.Assert(i + 1 == argumentsBuilder.Count ||
+                                     GetCorrespondingParameter(i + 1, parameters, argsToParamsOpt, expanded: true)?.Ordinal != paramsIndex);
                     }
                 }
             }
@@ -1550,7 +1557,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == argumentsBuilder.Count);
                 Debug.Assert(namesBuilder is null || namesBuilder.Count == 0 || namesBuilder.Count == argumentsBuilder.Count);
                 Debug.Assert(argsToParamsOpt.IsDefault || argsToParamsOpt.Length == argumentsBuilder.Count);
-                Debug.Assert(paramsArgsBuilder is null);
                 defaultArguments = default;
                 return;
             }
@@ -1560,146 +1566,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 argsToParamsBuilder = ArrayBuilder<int>.GetInstance(argsToParamsOpt.Length);
                 argsToParamsBuilder.AddRange(argsToParamsOpt);
-            }
-
-            BoundExpression? collection = null;
-
-            if (expanded)
-            {
-                Debug.Assert(paramsArgsBuilder is not null);
-                ImmutableArray<BoundExpression> collectionArgs = paramsArgsBuilder.ToImmutableAndFree();
-                int collectionArgsLength = collectionArgs.Length;
-
-                TypeSymbol collectionType = parameters[paramsIndex].Type;
-
-                if (collectionType is ArrayTypeSymbol { IsSZArray: true })
-                {
-                    TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                    BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(collectionArgsLength), int32Type) { WasCompilerGenerated = true };
-
-                    collection = new BoundArrayCreation(
-                                node,
-                                ImmutableArray.Create(arraySize),
-                                new BoundArrayInitialization(node, isInferred: false, collectionArgs) { WasCompilerGenerated = true },
-                                collectionType)
-                    { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
-                }
-                else
-                {
-                    if (Compilation.SourceModule != parameters[paramsIndex].ContainingModule)
-                    {
-                        MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, node);
-                    }
-
-                    var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    Conversion conversion = Conversions.ClassifyImplicitConversionFromExpression(unconvertedCollection, collectionType, ref useSiteInfo);
-                    diagnostics.Add(node, useSiteInfo);
-
-                    BoundCollectionExpression converted;
-                    if (!conversion.Exists)
-                    {
-                        Debug.Assert(false); // Add test if this code path is reachable
-                        GenerateImplicitConversionErrorForCollectionExpression(unconvertedCollection, collectionType, diagnostics);
-                        converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
-                    }
-                    else
-                    {
-                        Debug.Assert(conversion.IsCollectionExpression);
-
-                        bool infiniteRecursion = false;
-                        if (conversion.GetCollectionExpressionTypeKind(out _, out MethodSymbol? constructor, out bool isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                            isExpanded)
-                        {
-                            Debug.Assert(constructor is not null);
-
-                            // Check for infinite recursion through the constructor
-                            var constructorSet = PooledHashSet<MethodSymbol>.GetInstance();
-                            constructorSet.Add(constructor.OriginalDefinition);
-
-                            BoundUnconvertedCollectionExpression? emptyCollection = null;
-
-                            while (true)
-                            {
-                                var paramsType = constructor.Parameters[^1].Type;
-                                if (!paramsType.IsSZArray())
-                                {
-                                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                                    emptyCollection ??= new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(ImmutableArray<BoundExpression>.Empty)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
-                                    Conversion nextConversion = Conversions.ClassifyImplicitConversionFromExpression(emptyCollection, paramsType, ref discardedUseSiteInfo);
-
-                                    if (nextConversion.Exists &&
-                                        nextConversion.GetCollectionExpressionTypeKind(out _, out constructor, out isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                                        isExpanded)
-                                    {
-                                        Debug.Assert(constructor is not null);
-
-                                        if (constructorSet.Add(constructor.OriginalDefinition))
-                                        {
-                                            continue;
-                                        }
-
-                                        infiniteRecursion = true;
-                                    }
-                                }
-
-                                break;
-                            }
-
-                            constructorSet.Free();
-                        }
-
-                        if (infiniteRecursion)
-                        {
-                            Debug.Assert(constructor is not null);
-                            Error(diagnostics, ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, node, collectionType, constructor.OriginalDefinition);
-                            converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
-                        }
-                        else
-                        {
-                            converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
-                        }
-                    }
-
-                    collection = new BoundConversion(
-                                     node,
-                                     converted,
-                                     conversion,
-                                     @checked: CheckOverflowAtRuntime,
-                                     explicitCastInCode: false,
-                                     conversionGroupOpt: null,
-                                     constantValueOpt: null,
-                                     type: collectionType)
-                    { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
-                }
-
-                Debug.Assert(collection.IsParamsArrayOrCollection);
-
-                if (collectionArgsLength != 0)
-                {
-                    Debug.Assert(firstParamsArgument != -1);
-                    Debug.Assert(!haveDefaultArguments || collectionArgsLength == 1);
-                    Debug.Assert(collectionArgsLength == 1 || firstParamsArgument + collectionArgsLength == argumentsBuilder.Count);
-
-                    for (var i = firstParamsArgument + collectionArgsLength - 1; i != firstParamsArgument; i--)
-                    {
-                        argumentsBuilder.RemoveAt(i);
-                        argsToParamsBuilder?.RemoveAt(i);
-
-                        if (argumentRefKindsBuilder is { Count: > 0 })
-                        {
-                            argumentRefKindsBuilder.RemoveAt(i);
-                        }
-
-                        if (namesBuilder is { Count: > 0 })
-                        {
-                            namesBuilder.RemoveAt(i);
-                        }
-                    }
-
-                    argumentsBuilder[firstParamsArgument] = collection;
-                    collection = null;
-                }
             }
 
             // only proceed with binding default arguments if we know there is some parameter that has not been matched by an explicit argument
@@ -1750,11 +1616,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments = default;
             }
 
-            if (collection is not null)
+            if (expanded)
             {
-                Debug.Assert(expanded);
-                Debug.Assert(firstParamsArgument == -1);
-
+                // Create an empty collection
+                BoundExpression collection = CreateParamsCollection(node, parameters[paramsIndex], collectionArgs: ImmutableArray<BoundExpression>.Empty, diagnostics);
                 argumentsBuilder.Add(collection);
                 argsToParamsBuilder?.Add(paramsIndex);
 
@@ -1898,6 +1763,116 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : argsToParamsOpt.IndexOf(parameterIndex);
             }
 
+        }
+
+        private BoundExpression CreateParamsCollection(SyntaxNode node, ParameterSymbol paramsParameter, ImmutableArray<BoundExpression> collectionArgs, BindingDiagnosticBag diagnostics)
+        {
+            TypeSymbol collectionType = paramsParameter.Type;
+            BoundExpression collection;
+
+            if (collectionType is ArrayTypeSymbol { IsSZArray: true })
+            {
+                TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+                BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(collectionArgs.Length), int32Type) { WasCompilerGenerated = true };
+
+                collection = new BoundArrayCreation(
+                            node,
+                            ImmutableArray.Create(arraySize),
+                            new BoundArrayInitialization(node, isInferred: false, collectionArgs) { WasCompilerGenerated = true },
+                            collectionType)
+                { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+            }
+            else
+            {
+                if (Compilation.SourceModule != paramsParameter.ContainingModule)
+                {
+                    MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, node);
+                }
+
+                var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                Conversion conversion = Conversions.ClassifyImplicitConversionFromExpression(unconvertedCollection, collectionType, ref useSiteInfo);
+                diagnostics.Add(node, useSiteInfo);
+
+                BoundCollectionExpression converted;
+                if (!conversion.Exists)
+                {
+                    Debug.Assert(false); // Add test if this code path is reachable
+                    GenerateImplicitConversionErrorForCollectionExpression(unconvertedCollection, collectionType, diagnostics);
+                    converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
+                }
+                else
+                {
+                    Debug.Assert(conversion.IsCollectionExpression);
+
+                    bool infiniteRecursion = false;
+                    if (conversion.GetCollectionExpressionTypeKind(out _, out MethodSymbol? constructor, out bool isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                        isExpanded)
+                    {
+                        Debug.Assert(constructor is not null);
+
+                        // Check for infinite recursion through the constructor
+                        var constructorSet = PooledHashSet<MethodSymbol>.GetInstance();
+                        constructorSet.Add(constructor.OriginalDefinition);
+
+                        BoundUnconvertedCollectionExpression? emptyCollection = null;
+
+                        while (true)
+                        {
+                            var paramsType = constructor.Parameters[^1].Type;
+                            if (!paramsType.IsSZArray())
+                            {
+                                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                                emptyCollection ??= new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(ImmutableArray<BoundExpression>.Empty)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+                                Conversion nextConversion = Conversions.ClassifyImplicitConversionFromExpression(emptyCollection, paramsType, ref discardedUseSiteInfo);
+
+                                if (nextConversion.Exists &&
+                                    nextConversion.GetCollectionExpressionTypeKind(out _, out constructor, out isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                                    isExpanded)
+                                {
+                                    Debug.Assert(constructor is not null);
+
+                                    if (constructorSet.Add(constructor.OriginalDefinition))
+                                    {
+                                        continue;
+                                    }
+
+                                    infiniteRecursion = true;
+                                }
+                            }
+
+                            break;
+                        }
+
+                        constructorSet.Free();
+                    }
+
+                    if (infiniteRecursion)
+                    {
+                        Debug.Assert(constructor is not null);
+                        Error(diagnostics, ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, node, collectionType, constructor.OriginalDefinition);
+                        converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
+                    }
+                    else
+                    {
+                        converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
+                    }
+                }
+
+                collection = new BoundConversion(
+                                 node,
+                                 converted,
+                                 conversion,
+                                 @checked: CheckOverflowAtRuntime,
+                                 explicitCastInCode: false,
+                                 conversionGroupOpt: null,
+                                 constantValueOpt: null,
+                                 type: collectionType)
+                { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+            }
+
+            Debug.Assert(collection.IsParamsArrayOrCollection);
+            return collection;
         }
 
 #nullable disable
@@ -2516,7 +2491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodsBuilder.Free();
 
             MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
-            CheckAndCoerceArguments(methodResult, analyzedArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false);
+            CheckAndCoerceArguments(node, methodResult, analyzedArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false, argsToParamsOpt: out _);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

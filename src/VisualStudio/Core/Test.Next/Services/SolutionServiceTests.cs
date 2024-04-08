@@ -448,7 +448,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Now freeze with some content
             var documentIdentity = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).First().Identity;
             var frozenText1 = SourceText.From("// Hello, World!");
-            var frozenSolution1 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText1).Project.Solution;
+            var frozenSolution1 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, DateTime.Now, frozenText1).Project.Solution;
 
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, frozenSolution1);
             solutionChecksum = await frozenSolution1.CompilationState.GetChecksumAsync(CancellationToken.None);
@@ -457,7 +457,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Try freezing with some different content from the original solution
             var frozenText2 = SourceText.From("// Hello, World! A second time!");
-            var frozenSolution2 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText2).Project.Solution;
+            var frozenSolution2 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, DateTime.Now, frozenText2).Project.Solution;
 
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, frozenSolution2);
             solutionChecksum = await frozenSolution2.CompilationState.GetChecksumAsync(CancellationToken.None);

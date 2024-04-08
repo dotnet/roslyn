@@ -2430,6 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
                 case ErrorCode.ERR_ParamsCollectionMissingConstructor:
                 case ErrorCode.ERR_NoModifiersOnUsing:
+                case ErrorCode.ERR_CannotDynamicInvokeOnExpression:
                 case ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics:
                 case ErrorCode.ERR_RefStructConstraintAlreadySpecified:
                 case ErrorCode.ERR_AllowsClauseMustBeLast:

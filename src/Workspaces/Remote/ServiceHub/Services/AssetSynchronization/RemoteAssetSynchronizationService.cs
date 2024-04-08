@@ -65,10 +65,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
                     // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
                     // the entire document.
-                    var newText = new SerializableSourceText(text.WithChanges(textChanges));
-                    var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
+                    var newText = text.WithChanges(textChanges);
+                    var newSerializableText = new SerializableSourceText(newText, newText.GetContentHash());
+                    var newChecksum = serializer.CreateChecksum(newSerializableText, cancellationToken);
 
-                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newText);
+                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newSerializableText);
                 }
 
                 return;

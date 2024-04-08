@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -278,8 +279,10 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // compute line starts given changes and line starts already computed from previous text
-            var lineStarts = ArrayBuilder<int>.GetInstance(oldLineInfo.Count);
-            lineStarts.Add(0);
+            var lineStarts = new SegmentedList<int>(capacity: oldLineInfo.Count)
+            {
+                0
+            };
 
             // position in the original document
             var position = 0;
@@ -299,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Text
                     {
                         // remove last added line start (it was due to previous CR)
                         // a new line start including the LF will be added next
-                        lineStarts.RemoveLast();
+                        lineStarts.RemoveAt(lineStarts.Count - 1);
                     }
 
                     var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, change.Span.Start));
@@ -328,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Text
                     {
                         // remove last added line start (it was due to previous CR)
                         // a new line start including the LF will be added next
-                        lineStarts.RemoveLast();
+                        lineStarts.RemoveAt(lineStarts.Count - 1);
                     }
 
                     // Skip first line (it is always at offset 0 and corresponds to the previous line)
@@ -351,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     // remove last added line start (it was due to previous CR)
                     // a new line start including the LF will be added next
-                    lineStarts.RemoveLast();
+                    lineStarts.RemoveAt(lineStarts.Count - 1);
                 }
 
                 var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, oldText.Length));
@@ -361,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            return new LineInfo(this, lineStarts.ToArrayAndFree());
+            return new LineInfo(this, lineStarts);
         }
 
         internal static class TestAccessor

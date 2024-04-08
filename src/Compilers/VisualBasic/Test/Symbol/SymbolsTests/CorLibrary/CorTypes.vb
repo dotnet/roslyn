@@ -4,7 +4,9 @@
 
 Imports Basic.Reference.Assemblies
 Imports CompilationCreationTestHelpers
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
@@ -260,6 +262,711 @@ End Namespace
             Assert.Null(c4TestClass)
 
             Assert.Same(c1TestClassT, c4.GetTypeByMetadataName("System.TestClass`1"))
+        End Sub
+
+        <Fact>
+        Public Sub System_Type__WellKnownVsSpecial_01()
+            Dim source =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Program
+    shared Sub Main()
+        Dim x = GetType(Program)
+        System.Console.WriteLine(x)
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilation(source, options:=TestOptions.DebugExe)
+            comp.MakeMemberMissing(WellKnownMember.System_Type__GetTypeFromHandle)
+
+            Assert.False(comp.GetSpecialType(InternalSpecialType.System_Type).IsErrorType())
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of GetTypeExpressionSyntax)().Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            Assert.Equal(InternalSpecialType.System_Type, DirectCast(model.GetTypeInfo(node).Type, TypeSymbol).ExtendedSpecialType)
+
+            CompileAndVerify(comp, expectedOutput:="Program")
+
+            comp = CreateCompilation(source, options:=TestOptions.DebugExe)
+            comp.MakeMemberMissing(SpecialMember.System_Type__GetTypeFromHandle)
+            comp.AssertTheseEmitDiagnostics(
+ <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
+        Dim x = GetType(Program)
+                ~~~~~~~~~~~~~~~~
+</expected>
+            )
+        End Sub
+
+        <Fact>
+        Public Sub System_Type__WellKnownVsSpecial_02()
+            Dim corLib_v1 = "
+namespace System
+{
+    public class Object
+    {}
+
+    public class Void
+    {}
+
+    public class ValueType
+    {}
+
+    public struct RuntimeTypeHandle
+    {}
+
+    public struct Int32
+    {}
+
+    public struct Boolean
+    {}
+
+    public class Attribute
+    {}
+
+    public class Enum
+    {}
+
+    public enum AttributeTargets
+    {
+    }
+
+    public class AttributeUsageAttribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn){}
+        public bool AllowMultiple => false;
+        public bool Inherited => false;
+    }
+}
+"
+            Dim corLib_v1_Comp = CreateCSharpCompilation(corLib_v1, referencedAssemblies:={}, assemblyName:="corLib")
+
+            Dim typeLib_v1 = "
+namespace System
+{
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null;
+    }
+}
+"
+            Dim corLib_v1_Ref = corLib_v1_Comp.EmitToImageReference()
+
+            Dim typeLib_v1_Comp = CreateCSharpCompilation(typeLib_v1, referencedAssemblies:={corLib_v1_Ref}, assemblyName:="typeLib")
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+public class Test
+    shared Function [TypeOf]() as System.Type
+        Return GetType(Test)
+    End Function
+End Class
+]]></file>
+</compilation>
+            Dim typeLib_v1_Ref = typeLib_v1_Comp.EmitToImageReference()
+
+            Dim comp1 = CreateEmptyCompilation(source1, references:={corLib_v1_Ref, typeLib_v1_Ref})
+
+            Assert.True(comp1.GetSpecialType(InternalSpecialType.System_Type).IsErrorType())
+            comp1.MakeMemberMissing(SpecialMember.System_Type__GetTypeFromHandle)
+
+            Dim tree = comp1.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of GetTypeExpressionSyntax)().Single()
+            Dim model = comp1.GetSemanticModel(tree)
+
+            Assert.Equal(CType(0, ExtendedSpecialType), DirectCast(model.GetTypeInfo(node).Type, TypeSymbol).ExtendedSpecialType)
+
+            Dim comp1Ref = comp1.EmitToImageReference()
+
+            Dim corLib_v2 = "
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Object))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(void))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.ValueType))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.RuntimeTypeHandle))]
+"
+            Dim corLib_v2_Comp = CreateCSharpCompilation(
+                                     corLib_v2,
+                                     referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                                     assemblyName:="corLib")
+
+            Dim typeLib_v2 = "
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Type))]
+"
+
+            Dim typeLib_v2_Comp = CreateCSharpCompilation(
+                                       typeLib_v2,
+                                       referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                                       assemblyName:="typeLib")
+
+            Dim source2 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Program
+    shared Sub Main()
+        System.Console.WriteLine(Test.TypeOf())
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilation(source2,
+                                         references:={corLib_v2_Comp.EmitToImageReference(), typeLib_v2_Comp.EmitToImageReference(), comp1Ref},
+                                         options:=TestOptions.DebugExe)
+            CompileAndVerify(comp, expectedOutput:="Test")
+
+            comp1 = CreateEmptyCompilation(source1, references:={corLib_v1_Ref, typeLib_v1_Ref})
+
+            comp1.MakeMemberMissing(WellKnownMember.System_Type__GetTypeFromHandle)
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Type.GetTypeFromHandle' is not defined.
+        Return GetType(Test)
+               ~~~~~~~~~~~~~
+</expected>
+            )
+        End Sub
+
+        <Fact>
+        Public Sub CreateDelegate__MethodInfoVsDelegate_01()
+            Dim source =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Program
+    shared Sub Main()
+        Dim x As System.Linq.Expressions.Expression(Of System.Func(Of System.Action))= Function() AddressOf C1.M1
+        System.Console.WriteLine(x)
+    End Sub
+End Class
+
+class C1
+    public Shared Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.Mscorlib40AndSystemCore, options:=TestOptions.DebugExe)
+            comp.MakeMemberMissing(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate)
+            comp.MakeMemberMissing(SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle2)
+            comp.MakeMemberMissing(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle)
+            comp.MakeMemberMissing(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2)
+
+            CompileAndVerify(comp, expectedOutput:="() => Convert(CreateDelegate(System.Action, null, Void M1(), False)" +
+                                      If(ExecutionConditionUtil.IsMonoOrCoreClr, ", Action", "") +
+                                      ")")
+
+            comp = CreateCompilation(source, targetFramework:=TargetFramework.Mscorlib40AndSystemCore, options:=TestOptions.DebugExe)
+            comp.MakeMemberMissing(SpecialMember.System_Delegate__CreateDelegate4)
+            comp.AssertTheseEmitDiagnostics(
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Delegate.CreateDelegate' is not defined.
+        Dim x As System.Linq.Expressions.Expression(Of System.Func(Of System.Action))= Function() AddressOf C1.M1
+                                                                                                  ~~~~~~~~~~~~~~~
+</expected>
+            )
+
+            comp = CreateCompilation(source, targetFramework:=TargetFramework.Mscorlib40AndSystemCore, options:=TestOptions.DebugExe)
+            comp.MakeMemberMissing(SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle)
+            comp.AssertTheseEmitDiagnostics(
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+        Dim x As System.Linq.Expressions.Expression(Of System.Func(Of System.Action))= Function() AddressOf C1.M1
+                                                                                                  ~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+        Dim x As System.Linq.Expressions.Expression(Of System.Func(Of System.Action))= Function() AddressOf C1.M1
+                                                                                                  ~~~~~~~~~~~~~~~
+</expected>
+            )
+        End Sub
+
+        <Fact>
+        Public Sub CreateDelegate__MethodInfoVsDelegate_02()
+            Dim source =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Program
+    shared Sub Main()
+        Dim x As System.Linq.Expressions.Expression(Of System.Func(Of System.Action))= Function() AddressOf C1(Of Integer).M1
+        System.Console.WriteLine(x)
+    End Sub
+End Class
+
+class C1(Of T)
+    public Shared Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilation(source, options:=TestOptions.DebugExe)
+            comp.MakeMemberMissing(SpecialMember.System_Delegate__CreateDelegate)
+            comp.MakeMemberMissing(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle)
+            comp.MakeMemberMissing(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2)
+
+            CompileAndVerify(
+                comp, expectedOutput:="() => Convert(Void M1().CreateDelegate(System.Action, null)" +
+                                       If(ExecutionConditionUtil.IsMonoOrCoreClr, ", Action", "") +
+                                      ")")
+
+            comp = CreateCompilation(source, options:=TestOptions.DebugExe)
+            comp.MakeMemberMissing(SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle2)
+            comp.AssertTheseEmitDiagnostics(
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+        Dim x As System.Linq.Expressions.Expression(Of System.Func(Of System.Action))= Function() AddressOf C1(Of Integer).M1
+                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>
+            )
+        End Sub
+
+        <Fact>
+        Public Sub GetMethodFromHandle_WellKnown_01()
+            Dim corLib_v1 = "
+namespace System
+{
+    public class Object
+    {}
+
+    public class Void
+    {}
+
+    public class ValueType
+    {}
+
+    public struct RuntimeTypeHandle
+    {}
+
+    public struct RuntimeMethodHandle
+    {}
+
+    public struct Int32
+    {}
+
+    public abstract class Delegate
+    {}
+
+    public abstract class MulticastDelegate : Delegate
+    {}
+
+    public delegate void Action();
+
+    public delegate TResult Func<out TResult>();
+
+    public struct Nullable<T>
+    {}
+
+    public struct IntPtr
+    {}
+
+    public struct Boolean
+    {}
+
+    public class Attribute
+    {}
+
+    public class Enum
+    {}
+
+    public enum AttributeTargets
+    {
+    }
+
+    public class AttributeUsageAttribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn){}
+        public bool AllowMultiple => false;
+        public bool Inherited => false;
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IEnumerable<T>
+    {}
+}
+"
+            Dim corLib_v1_Comp = CreateCSharpCompilation(corLib_v1, referencedAssemblies:={}, assemblyName:="corLib")
+
+            Dim typeLib_v1 = "
+namespace System
+{
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null;
+    }
+}
+namespace System.Reflection
+{
+    public abstract partial class MethodBase
+    {
+        public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle) => null;
+    }
+
+    public abstract partial class MethodInfo : MethodBase
+    {
+        public virtual Delegate CreateDelegate(Type delegateType) => null;
+        public virtual Delegate CreateDelegate(Type delegateType, object target) => null;
+    }
+}
+
+namespace System.Linq.Expressions
+{
+    public abstract class Expression
+    {
+        public static ConstantExpression Constant (object value) => null;
+        public static ConstantExpression Constant (object value, Type type) => null;
+
+        public static MethodCallExpression Call (Expression instance, System.Reflection.MethodInfo method, Expression[] arguments) => null;
+
+        public static UnaryExpression Convert (Expression expression, Type type) => null;
+        public static UnaryExpression Convert (Expression expression, Type type, System.Reflection.MethodInfo method) => null;
+
+        public static Expression<TDelegate> Lambda<TDelegate> (Expression body, ParameterExpression[] parameters) => null;
+    }
+
+    public abstract class LambdaExpression : Expression
+    {}
+
+    public abstract class Expression<T> : LambdaExpression
+    {}
+
+    public class ConstantExpression : Expression
+    {}
+
+    public class ParameterExpression : Expression
+    {}
+
+    public class MethodCallExpression : Expression
+    {}
+
+    public sealed class UnaryExpression : Expression
+    {}
+}
+"
+            Dim corLib_v1_Ref = corLib_v1_Comp.EmitToImageReference()
+
+            Dim typeLib_v1_Comp = CreateCSharpCompilation(typeLib_v1, referencedAssemblies:={corLib_v1_Ref}, assemblyName:="typeLib")
+
+            typeLib_v1_Comp.VerifyDiagnostics()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+public class Test
+    shared Function Expression() As System.Linq.Expressions.Expression(Of System.Func(Of System.Action))
+        return Function() AddressOf C1.M1
+    End Function
+End Class
+
+class C1
+    public Shared Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim typeLib_v1_Ref = typeLib_v1_Comp.EmitToImageReference()
+            Dim comp1 = CreateEmptyCompilation(source1, references:={corLib_v1_Ref, typeLib_v1_Ref})
+
+            comp1.MakeMemberMissing(SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle)
+            comp1.MakeMemberMissing(SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle2)
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2)
+
+            Dim comp1Ref = comp1.EmitToImageReference()
+
+            Dim corLib_v2 = "
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Object))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(void))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.ValueType))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.RuntimeTypeHandle))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.RuntimeMethodHandle))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Int32))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Action))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Func<>))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Nullable<>))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<>))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Delegate))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.MulticastDelegate))]
+"
+            Dim corLib_v2_Comp = CreateCSharpCompilation(
+                                     corLib_v2,
+                                     referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                                     assemblyName:="corLib")
+
+            Dim typeLib_v2 = "
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Type))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Reflection.MethodBase))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Reflection.MethodInfo))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.Expression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.LambdaExpression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.Expression<>))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.ConstantExpression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.ParameterExpression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.MethodCallExpression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.UnaryExpression))]
+"
+
+            Dim typeLib_v2_Comp = CreateCSharpCompilation(
+                                      typeLib_v2,
+                                      referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                                      assemblyName:="typeLib")
+
+            Dim source2 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Program
+    shared Sub Main()
+        System.Console.WriteLine(Test.Expression())
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilation(source2, references:={corLib_v2_Comp.EmitToImageReference(), typeLib_v2_Comp.EmitToImageReference(), comp1Ref}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:="() => Convert(Void M1().CreateDelegate(System.Action, null)" +
+                                                   If(ExecutionConditionUtil.IsMonoOrCoreClr, ", Action", "") +
+                                                   ")")
+
+            comp1 = CreateEmptyCompilation(
+                source1, references:={corLib_v1_Ref, typeLib_v1_Ref})
+
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle)
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+        return Function() AddressOf C1.M1
+                          ~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+        return Function() AddressOf C1.M1
+                          ~~~~~~~~~~~~~~~
+</expected>
+            )
+        End Sub
+
+        <Fact>
+        Public Sub GetMethodFromHandle_WellKnown_02()
+            Dim corLib_v1 = "
+namespace System
+{
+    public class Object
+    {}
+
+    public class Void
+    {}
+
+    public class ValueType
+    {}
+
+    public struct RuntimeTypeHandle
+    {}
+
+    public struct RuntimeMethodHandle
+    {}
+
+    public struct Int32
+    {}
+
+    public abstract class Delegate
+    {}
+
+    public abstract class MulticastDelegate : Delegate
+    {}
+
+    public delegate void Action();
+
+    public delegate TResult Func<out TResult>();
+
+    public struct Nullable<T>
+    {}
+
+    public struct IntPtr
+    {}
+
+    public struct Boolean
+    {}
+
+    public class Attribute
+    {}
+
+    public class Enum
+    {}
+
+    public enum AttributeTargets
+    {
+    }
+
+    public class AttributeUsageAttribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn){}
+        public bool AllowMultiple => false;
+        public bool Inherited => false;
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IEnumerable<T>
+    {}
+}
+"
+            Dim corLib_v1_Comp = CreateCSharpCompilation(corLib_v1, referencedAssemblies:={}, assemblyName:="corLib")
+
+            Dim typeLib_v1 = "
+namespace System
+{
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null;
+    }
+}
+namespace System.Reflection
+{
+    public abstract partial class MethodBase
+    {
+        public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle) => null;
+        public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle, RuntimeTypeHandle declaringType) => null;
+    }
+
+    public abstract partial class MethodInfo : MethodBase
+    {
+        public virtual Delegate CreateDelegate(Type delegateType) => null;
+        public virtual Delegate CreateDelegate(Type delegateType, object target) => null;
+    }
+}
+
+namespace System.Linq.Expressions
+{
+    public abstract class Expression
+    {
+        public static ConstantExpression Constant (object value) => null;
+        public static ConstantExpression Constant (object value, Type type) => null;
+
+        public static MethodCallExpression Call (Expression instance, System.Reflection.MethodInfo method, Expression[] arguments) => null;
+
+        public static UnaryExpression Convert (Expression expression, Type type) => null;
+        public static UnaryExpression Convert (Expression expression, Type type, System.Reflection.MethodInfo method) => null;
+
+        public static Expression<TDelegate> Lambda<TDelegate> (Expression body, ParameterExpression[] parameters) => null;
+    }
+
+    public abstract class LambdaExpression : Expression
+    {}
+
+    public abstract class Expression<T> : LambdaExpression
+    {}
+
+    public class ConstantExpression : Expression
+    {}
+
+    public class ParameterExpression : Expression
+    {}
+
+    public class MethodCallExpression : Expression
+    {}
+
+    public sealed class UnaryExpression : Expression
+    {}
+}
+"
+            Dim corLib_v1_Ref = corLib_v1_Comp.EmitToImageReference()
+
+            Dim typeLib_v1_Comp = CreateCSharpCompilation(typeLib_v1, referencedAssemblies:={corLib_v1_Ref}, assemblyName:="typeLib")
+
+            typeLib_v1_Comp.VerifyDiagnostics()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+public class Test
+    shared Function Expression() As System.Linq.Expressions.Expression(Of System.Func(Of System.Action))
+        return Function() AddressOf C1(Of Integer).M1
+    End Function
+End Class
+
+class C1(Of T)
+    public Shared Sub M1()
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim typeLib_v1_Ref = typeLib_v1_Comp.EmitToImageReference()
+            Dim comp1 = CreateEmptyCompilation(source1, references:={corLib_v1_Ref, typeLib_v1_Ref})
+
+            comp1.MakeMemberMissing(SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle)
+            comp1.MakeMemberMissing(SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle2)
+
+            Dim comp1Ref = comp1.EmitToImageReference()
+
+            Dim corLib_v2 = "
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Object))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(void))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.ValueType))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.RuntimeTypeHandle))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.RuntimeMethodHandle))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Int32))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Action))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Func<>))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Nullable<>))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<>))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Delegate))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.MulticastDelegate))]
+"
+            Dim corLib_v2_Comp = CreateCSharpCompilation(
+                                     corLib_v2,
+                                     referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                                     assemblyName:="corLib")
+
+            Dim typeLib_v2 = "
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Type))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Reflection.MethodBase))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Reflection.MethodInfo))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.Expression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.LambdaExpression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.Expression<>))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.ConstantExpression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.ParameterExpression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.MethodCallExpression))]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Linq.Expressions.UnaryExpression))]
+"
+
+            Dim typeLib_v2_Comp = CreateCSharpCompilation(
+                                      typeLib_v2,
+                                      referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                                      assemblyName:="typeLib")
+
+            Dim source2 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+class Program
+    shared Sub Main()
+        System.Console.WriteLine(Test.Expression())
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp = CreateCompilation(source2, references:={corLib_v2_Comp.EmitToImageReference(), typeLib_v2_Comp.EmitToImageReference(), comp1Ref}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:="() => Convert(Void M1().CreateDelegate(System.Action, null)" +
+                                                   If(ExecutionConditionUtil.IsMonoOrCoreClr, ", Action", "") +
+                                                   ")")
+
+            comp1 = CreateEmptyCompilation(
+                source1, references:={corLib_v1_Ref, typeLib_v1_Ref})
+
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2)
+            comp1.AssertTheseEmitDiagnostics(
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+        return Function() AddressOf C1(Of Integer).M1
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>
+            )
         End Sub
 
     End Class

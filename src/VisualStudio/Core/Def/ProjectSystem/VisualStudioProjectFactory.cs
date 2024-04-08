@@ -33,7 +33,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly IThreadingContext _threadingContext;
     private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
     private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
-    private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
     private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
     private readonly IVsService<SVsSolution, IVsSolution2> _solution2;
 
@@ -43,14 +42,12 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         IThreadingContext threadingContext,
         VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
-        HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
         IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
         IVsService<SVsSolution, IVsSolution2> solution2)
     {
         _threadingContext = threadingContext;
         _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
         _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
-        _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
         _solution2 = solution2;
     }
@@ -68,6 +65,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
         _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+        _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
         // Since we're on the UI thread here anyways, use that as an opportunity to grab the
@@ -96,7 +94,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
-        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _hostDiagnosticUpdateSource, vsixAnalyzerProvider);
+        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, HostDiagnosticUpdateSource.Instance, vsixAnalyzerProvider);
         var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo);
 
         _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);

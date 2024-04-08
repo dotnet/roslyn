@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             => new RemoteSourceGenerationService(arguments);
     }
 
-    public ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>> GetSourceGenerationInfoAsync(
+    public ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>> GetSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -29,12 +30,12 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>.GetInstance(documentStates.Ids.Count, out var result);
+            using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>.GetInstance(documentStates.Ids.Count, out var result);
 
             foreach (var (id, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
-                result.Add((state.Identity, state.GetContentIdentity()));
+                result.Add((state.Identity, state.GetContentIdentity(), state.GenerationDateTime));
             }
 
             return result.ToImmutableAndClear();
@@ -60,6 +61,14 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             }
 
             return result.ToImmutableAndClear();
+        }, cancellationToken);
+    }
+
+    public ValueTask<bool> HasGeneratorsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, async solution =>
+        {
+            return await solution.CompilationState.HasSourceGeneratorsAsync(projectId, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }

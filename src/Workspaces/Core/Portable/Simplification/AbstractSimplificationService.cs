@@ -152,7 +152,7 @@ internal abstract class AbstractSimplificationService<TExpressionSyntax, TStatem
                     computeReplacementNode: (o, n) => TransformReducedNode(reducedNodesMap[o], n),
                     tokens: reducedTokensMap.Keys,
                     computeReplacementToken: (o, n) => reducedTokensMap[o],
-                    trivia: SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
+                    trivia: [],
                     computeReplacementTrivia: null);
 
                 document = document.WithSyntaxRoot(root);

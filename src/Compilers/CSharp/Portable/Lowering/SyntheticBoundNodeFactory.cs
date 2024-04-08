@@ -859,7 +859,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression StaticCall(SpecialMember method, params BoundExpression[] args)
         {
             MethodSymbol methodSymbol = SpecialMethod(method);
-            Binder.ReportUseSite(methodSymbol, Diagnostics, Syntax);
             Debug.Assert(methodSymbol.IsStatic);
             return Call(null, methodSymbol, args);
         }
@@ -1283,35 +1282,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Typeof(WellKnownType type)
+        public BoundExpression Typeof(WellKnownType type, TypeSymbol systemType)
         {
-            return Typeof(WellKnownType(type));
+            return Typeof(WellKnownType(type), systemType);
         }
 
-        public BoundExpression Typeof(TypeSymbol type)
+        public BoundExpression Typeof(TypeSymbol type, TypeSymbol systemType)
         {
+            Debug.Assert(systemType.ExtendedSpecialType == InternalSpecialType.System_Type ||
+                         systemType.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions));
+
+            MethodSymbol getTypeFromHandle;
+
+            if (systemType.ExtendedSpecialType == InternalSpecialType.System_Type)
+            {
+                getTypeFromHandle = SpecialMethod(CodeAnalysis.SpecialMember.System_Type__GetTypeFromHandle);
+            }
+            else
+            {
+                getTypeFromHandle = WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle);
+            }
+
+            Debug.Assert(TypeSymbol.Equals(systemType, getTypeFromHandle.ReturnType, TypeCompareKind.AllIgnoreOptions));
+
             return new BoundTypeOfOperator(
                 Syntax,
                 Type(type),
-                WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
-                WellKnownType(CodeAnalysis.WellKnownType.System_Type))
+                getTypeFromHandle,
+                systemType)
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression Typeof(TypeWithAnnotations type)
+        public BoundExpression Typeof(TypeWithAnnotations type, TypeSymbol systemType)
         {
-            return Typeof(type.Type);
+            return Typeof(type.Type, systemType);
         }
 
-        public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeWithAnnotations> typeArguments)
+        public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeWithAnnotations> typeArguments, TypeSymbol systemType)
         {
-            return typeArguments.SelectAsArray(Typeof);
+            return typeArguments.SelectAsArray(Typeof, systemType);
         }
 
         public BoundExpression TypeofDynamicOperationContextType()
         {
             Debug.Assert(this.CompilationState is { DynamicOperationContextType: { } });
-            return Typeof(this.CompilationState.DynamicOperationContextType);
+            return Typeof(this.CompilationState.DynamicOperationContextType, WellKnownType(CodeAnalysis.WellKnownType.System_Type));
         }
 
         public BoundExpression Sizeof(TypeSymbol type)
@@ -1321,11 +1336,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression ConstructorInfo(MethodSymbol ctor)
         {
+            NamedTypeSymbol constructorInfo = WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo);
+
             var result = new BoundMethodInfo(
                 Syntax,
                 ctor,
-                GetMethodFromHandleMethod(ctor.ContainingType),
-                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
+                GetMethodFromHandleMethod(ctor.ContainingType, constructorInfo),
+                constructorInfo)
             { WasCompilerGenerated = true };
 
 #if DEBUG
@@ -1417,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression MethodInfo(MethodSymbol method)
+        public BoundExpression MethodInfo(MethodSymbol method, TypeSymbol systemReflectionMethodInfo)
         {
             // The least overridden virtual method is only called for value type receivers
             // in special circumstances. These circumstances are exactly the checks performed by
@@ -1431,8 +1448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = new BoundMethodInfo(
                 Syntax,
                 method,
-                GetMethodFromHandleMethod(method.ContainingType),
-                WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_MethodInfo))
+                GetMethodFromHandleMethod(method.ContainingType, systemReflectionMethodInfo),
+                systemReflectionMethodInfo)
             { WasCompilerGenerated = true };
 
 #if DEBUG
@@ -1452,12 +1469,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        private MethodSymbol GetMethodFromHandleMethod(NamedTypeSymbol methodContainer)
+        private MethodSymbol GetMethodFromHandleMethod(NamedTypeSymbol methodContainer, TypeSymbol systemReflectionMethodOrConstructorInfo)
         {
-            return WellKnownMethod(
-                (methodContainer.AllTypeArgumentCount() == 0 && !methodContainer.IsAnonymousType) ?
-                CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle :
-                CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2);
+            Debug.Assert(systemReflectionMethodOrConstructorInfo.ExtendedSpecialType == InternalSpecialType.System_Reflection_MethodInfo ||
+                         systemReflectionMethodOrConstructorInfo.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Reflection_MethodInfo), TypeCompareKind.AllIgnoreOptions) ||
+                         systemReflectionMethodOrConstructorInfo.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo), TypeCompareKind.AllIgnoreOptions));
+
+            bool isNotInGenericType = (methodContainer.AllTypeArgumentCount() == 0 && !methodContainer.IsAnonymousType);
+
+            if (systemReflectionMethodOrConstructorInfo.ExtendedSpecialType == InternalSpecialType.System_Reflection_MethodInfo)
+            {
+                return SpecialMethod(
+                    isNotInGenericType ?
+                        CodeAnalysis.SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle :
+                        CodeAnalysis.SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle2);
+            }
+            else
+            {
+                return WellKnownMethod(
+                    isNotInGenericType ?
+                        CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle :
+                        CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2);
+            }
         }
 
         private MethodSymbol GetFieldFromHandleMethod(NamedTypeSymbol fieldContainer)

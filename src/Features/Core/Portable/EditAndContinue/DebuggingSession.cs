@@ -592,6 +592,10 @@ internal sealed class DebuggingSession : IDisposable
         _ = RetrievePendingUpdate();
     }
 
+    /// <summary>
+    /// Returns <see cref="ActiveStatementSpan"/>s for each document of <paramref name="documentIds"/>,
+    /// or default if not in a break state.
+    /// </summary>
     public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         try
@@ -725,7 +729,7 @@ internal sealed class DebuggingSession : IDisposable
                                     unmappedDocumentId = null;
                                 }
 
-                                return new ActiveStatementSpan(activeStatement.Ordinal, span, activeStatement.Flags, unmappedDocumentId);
+                                return new ActiveStatementSpan(activeStatement.Id, span, activeStatement.Flags, unmappedDocumentId);
                             });
                     }
                 }
@@ -734,6 +738,7 @@ internal sealed class DebuggingSession : IDisposable
             documentIndicesByMappedPath.FreeValues();
             activeStatementsInChangedDocuments.FreeValues();
 
+            Debug.Assert(spans.Count == documentIds.Length);
             return spans.ToImmutable();
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -802,10 +807,10 @@ internal sealed class DebuggingSession : IDisposable
                 {
                     foreach (var activeStatement in analysis.ActiveStatements)
                     {
-                        var i = adjustedMappedSpans.FindIndex((s, ordinal) => s.Ordinal == ordinal, activeStatement.Ordinal);
+                        var i = adjustedMappedSpans.FindIndex(static (s, id) => s.Id == id, activeStatement.Id);
                         if (i >= 0)
                         {
-                            adjustedMappedSpans[i] = new ActiveStatementSpan(activeStatement.Ordinal, activeStatement.Span, activeStatement.Flags, unmappedDocumentId);
+                            adjustedMappedSpans[i] = new ActiveStatementSpan(activeStatement.Id, activeStatement.Span, activeStatement.Flags, unmappedDocumentId);
                         }
                     }
                 }
