@@ -21,7 +21,7 @@ internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSo
         AssetPath assetPath,
         ReadOnlyMemory<Checksum> checksums,
         ISerializerService serializerService,
-        Action<T, TArg> assetCallback,
+        Action<int, T, TArg> assetCallback,
         TArg arg,
         CancellationToken cancellationToken)
     {

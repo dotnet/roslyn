@@ -112,14 +112,14 @@ internal abstract class AbstractAssetProvider
         using var _ = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
         checksumSet.AddAll(checksums.Children);
 
-        var results = new T[checksumSet.Count];
+        var results = ImmutableArray.CreateBuilder<T>(checksumSet.Count);
 
-        await this.GetAssetsAsync<T, VoidResult>(
+        await this.GetAssetsAsync<T, ImmutableArray<T>.Builder>(
             assetPath, checksumSet,
-            (checksum, asset, results) => results[index] = asset,
+            static (checksum, asset, results) => results.Add(asset),
             results,
             cancellationToken).ConfigureAwait(false);
 
-        return ImmutableCollectionsMarshal.AsImmutableArray(results);
+        return results.MoveToImmutable();
     }
 }
