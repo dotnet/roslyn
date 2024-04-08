@@ -12,6 +12,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         Private Shared ReadOnly s_onboardedOptions As ImmutableArray(Of IOption2) = ImmutableArray.Create(Of IOption2)(
                 CompletionOptionsStorage.TriggerOnTypingLetters,
                 CompletionOptionsStorage.TriggerOnDeletion,
+                CompletionOptionsStorage.TriggerInArgumentLists,
+                CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems,
+                CompletionViewOptionsStorage.ShowCompletionItemFilters,
                 CompletionOptionsStorage.SnippetsBehavior)
 
         ' Summary:
@@ -31,7 +34,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         Private Shared ReadOnly s_unifiedSettingsStorage As New Dictionary(Of String, UnifiedSettingsStorage)() From {
             {"dotnet_trigger_completion_on_typing_letters", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionOnTypingLetters")},
             {"dotnet_trigger_completion_on_deletion", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionOnDeletion")},
-            {"dotnet_snippets_behavior", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.snippetsBehavior")}
+            {"dotnet_snippets_behavior", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.snippetsBehavior")},
+            {"dotnet_trigger_completion_in_argument_lists", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionInArgumentLists")},
+            {"dotnet_highlight_matching_portions_of_completion_list_items", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.highlightMatchingPortionsOfCompletionListItems")},
+            {"dotnet_show_completion_item_filters", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.showCompletionItemFilters")}
         }
 
         Friend NotInheritable Class UnifiedSettingsStorage

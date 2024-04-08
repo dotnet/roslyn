@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
-Imports Castle.DynamicProxy.Internal
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Options
@@ -16,9 +15,8 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
     Partial Public Class UnifiedSettingsTests
-
         <Fact>
-        Public Async Function IntellisensePageSettingsTest() As Task
+        Public Async Function CSharpIntellisensePageSettingsTest() As Task
             Dim registrationFileStream = GetType(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("csharpSettings.registration.json")
             Using reader As New StreamReader(registrationFileStream)
                 Dim registrationFile = Await reader.ReadToEndAsync().ConfigureAwait(False)
