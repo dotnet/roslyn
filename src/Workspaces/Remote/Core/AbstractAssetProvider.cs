@@ -24,7 +24,7 @@ internal abstract class AbstractAssetProvider
     /// return data of type T whose checksum is the given checksum
     /// </summary>
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
-    public abstract ValueTask GetAssetsAsync<T>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T> callback, CancellationToken cancellationToken);
+    public abstract ValueTask GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, int, T, TArg> callback, TArg arg, CancellationToken cancellationToken);
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
@@ -113,15 +113,12 @@ internal abstract class AbstractAssetProvider
         checksumSet.AddAll(checksums.Children);
 
         var results = new T[checksumSet.Count];
-        var index = 0;
 
-        await this.GetAssetsAsync<T>(assetPath, checksumSet, (_, asset) =>
-        {
-            results[index] = asset;
-            index++;
-        },
-        cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfTrue(index != checksumSet.Count);
+        await this.GetAssetsAsync<T, T[]>(
+            assetPath, checksumSet,
+            static (checksum, index, asset, results) => results[index] = asset,
+            results,
+            cancellationToken).ConfigureAwait(false);
 
         return ImmutableCollectionsMarshal.AsImmutableArray(results);
     }

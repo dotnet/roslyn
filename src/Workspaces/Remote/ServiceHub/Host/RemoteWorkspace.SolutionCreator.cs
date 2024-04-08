@@ -218,12 +218,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
 
-                await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
-                    assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, newChecksumsToSync, (checksum, newProjectStateChecksum) =>
+                await _assetProvider.GetAssetsAsync<ProjectStateChecksums, Dictionary<ProjectId, ProjectStateChecksums>>(
+                    assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, newChecksumsToSync,
+                    static (checksum, _, newProjectStateChecksum, newProjectIdToStateChecksums) =>
                     {
                         Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
                         newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
                     },
+                    arg: newProjectIdToStateChecksums,
                     cancellationToken).ConfigureAwait(false);
 
                 // Now that we've collected the old and new project state checksums, we can actually process them to
@@ -502,12 +504,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newDocumentIdToChecksum.Values);
 
-                await _assetProvider.GetAssetsAsync<DocumentStateChecksums>(
-                    assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync, (checksum, documentStateChecksum) =>
+                await _assetProvider.GetAssetsAsync<DocumentStateChecksums, Dictionary<DocumentId, DocumentStateChecksums>>(
+                    assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync,
+                    static (checksum, _, documentStateChecksum, newDocumentIdToStateChecksums) =>
                     {
                         Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);
                         newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
                     },
+                    arg: newDocumentIdToStateChecksums,
                     cancellationToken).ConfigureAwait(false);
 
                 // If more than two documents changed during a single update, perform a bulk synchronization on the
