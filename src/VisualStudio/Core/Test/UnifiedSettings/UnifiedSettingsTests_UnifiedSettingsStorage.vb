@@ -15,7 +15,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             {"dotnet_show_completion_item_filters", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.showCompletionItemFilters")},
             {"csharp_complete_statement_on_semicolon", New UnifiedSettingsStorage("textEditor.csharp.intellisense.completeStatementOnSemicolon")},
             {"dotnet_snippets_behavior", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.snippetsBehavior")},
-            {"dotnet_return_key_completion_behavior", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.returnKeyCompletionBehavior")}
+            {"dotnet_return_key_completion_behavior", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.returnKeyCompletionBehavior")},
+            {"dotnet_show_name_completion_suggestions", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.showNameCompletionSuggestions")},
+            {"dotnet_show_completion_items_from_unimported_namespaces", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.showCompletionItemsFromUnimportedNamespaces")},
+            {"dotnet_enable_argument_completion_snippets", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.enableArgumentCompletionSnippets")},
+            {"dotnet_show_new_snippet_experience", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.showNewSnippetExperience")}
         }
 
         Friend NotInheritable Class UnifiedSettingsStorage
