@@ -1274,6 +1274,42 @@ class C
         }
 
         [Fact]
+        public void RefReadonlyInIterator_ForEach_02()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                foreach (var i in new C().M()) System.Console.Write(i);
+
+                class C
+                {
+                    int[] arr = new[] { 4, 5 };
+                    public IEnumerable<int> M()
+                    {
+                        ref readonly int[] x = ref arr;
+
+                        foreach (var i in x)
+                        {
+                            System.Console.Write(i);
+                            yield return 1;
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,28): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly int[] x = ref arr;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 28));
+
+            var expectedOutput = "4151";
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void RefReadonlyInSwitchCaseInIterator_01()
         {
             var comp = CreateCompilation(@"
