@@ -195,9 +195,7 @@ public abstract partial class Workspace
         using (_stateLock.DisposableWait())
         {
             if (_projectToOpenDocumentsMap.Count == 0)
-            {
-                return SpecializedCollections.EmptyEnumerable<DocumentId>();
-            }
+                return [];
 
             if (projectId != null)
             {
@@ -206,7 +204,7 @@ public abstract partial class Workspace
                     return documentIds;
                 }
 
-                return SpecializedCollections.EmptyEnumerable<DocumentId>();
+                return [];
             }
 
             return _projectToOpenDocumentsMap.SelectManyAsArray(kvp => kvp.Value);

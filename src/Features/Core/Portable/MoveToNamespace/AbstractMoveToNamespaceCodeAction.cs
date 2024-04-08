@@ -60,7 +60,7 @@ internal abstract partial class AbstractMoveToNamespaceCodeAction(
             }
         }
 
-        return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+        return [];
     }
 
     private static ImmutableArray<CodeActionOperation> CreateRenameOperations(MoveToNamespaceResult moveToNamespaceResult)

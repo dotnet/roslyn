@@ -383,7 +383,7 @@ internal static class ISyntaxFactsExtensions
         => syntaxFacts.IsWord(token) || syntaxFacts.IsNumericLiteral(token);
 
     public static bool SpansPreprocessorDirective(this ISyntaxFacts service, SyntaxNode node)
-        => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
+        => service.SpansPreprocessorDirective([node]);
 
     public static bool SpansPreprocessorDirective(this ISyntaxFacts service, params SyntaxNode[] nodes)
         => service.SpansPreprocessorDirective((IEnumerable<SyntaxNode>)nodes);

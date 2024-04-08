@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             if (!list.Any())
             {
-                yield return SpecializedCollections.EmptyEnumerable<int>();
+                yield return [];
                 yield break;
             }
 
@@ -286,9 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         private static IEnumerable<IEnumerable<int>> GetSubsets(IEnumerable<int> list)
         {
             if (!list.Any())
-            {
-                return SpecializedCollections.SingletonEnumerable(SpecializedCollections.EmptyEnumerable<int>());
-            }
+                return [[]];
 
             var firstElement = list.Take(1);
 

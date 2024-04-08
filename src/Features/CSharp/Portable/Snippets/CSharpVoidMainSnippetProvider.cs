@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
@@ -27,26 +26,22 @@ internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethod
 
     public override string Description => CSharpFeaturesResources.static_void_Main;
 
-    protected override SyntaxNode GenerateReturnType(SyntaxGenerator generator)
+    protected override TypeSyntax GenerateReturnType(SyntaxGenerator generator)
         => SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
 
-    protected override IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator)
-        => SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+    protected override IEnumerable<StatementSyntax> GenerateInnerStatements(SyntaxGenerator generator)
+        => [];
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<MethodDeclarationSyntax>(
-            caretTarget,
+    protected override int GetTargetCaretPosition(MethodDeclarationSyntax methodDeclaration, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            methodDeclaration,
             static d => d.Body!,
             sourceText);
-    }
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<MethodDeclarationSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            methodDeclaration,
             static m => m.Body!,
             cancellationToken);
-    }
 }

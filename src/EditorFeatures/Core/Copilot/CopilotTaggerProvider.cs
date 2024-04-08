@@ -64,10 +64,7 @@ internal sealed class CopilotTaggerProvider(
         Contract.ThrowIfNull(textView);
 
         // We only care about the cases where we have caret.
-        if (textView.GetCaretPoint(subjectBuffer) is { } caret)
-            return SpecializedCollections.SingletonEnumerable(new SnapshotSpan(caret, 0));
-
-        return SpecializedCollections.EmptyEnumerable<SnapshotSpan>();
+        return textView.GetCaretPoint(subjectBuffer) is { } caret ? [new SnapshotSpan(caret, 0)] : [];
     }
 
     protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)

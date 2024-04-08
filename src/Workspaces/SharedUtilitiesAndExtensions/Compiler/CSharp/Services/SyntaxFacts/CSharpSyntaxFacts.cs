@@ -1071,9 +1071,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
     {
         if (root is not CompilationUnitSyntax compilationUnit)
-        {
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-        }
+            return [];
 
         var constructors = new List<SyntaxNode>();
         AppendConstructors(compilationUnit.Members, constructors, cancellationToken);

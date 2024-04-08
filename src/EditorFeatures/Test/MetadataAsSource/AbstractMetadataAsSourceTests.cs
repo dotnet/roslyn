@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
         internal static async Task GenerateAndVerifySourceAsync(
             string metadataSource, string symbolName, string projectLanguage, string expected, bool signaturesOnly = true, bool includeXmlDocComments = false, string languageVersion = null, string metadataLanguageVersion = null, string metadataCommonReferences = null)
         {
-            using var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion, metadataCommonReferences: metadataCommonReferences);
+            using var context = TestContext.Create(projectLanguage, [metadataSource], includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion, metadataCommonReferences: metadataCommonReferences);
             await context.GenerateAndVerifySourceAsync(symbolName, expected, signaturesOnly: signaturesOnly);
         }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var metadataSource = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C { }";
             var symbolName = "C";
 
-            using var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource));
+            using var context = TestContext.Create(projectLanguage, [metadataSource]);
             var metadataSymbol = await context.ResolveSymbolAsync(symbolName);
             var metadataSymbolId = metadataSymbol.GetSymbolKey();
             var generatedFile = await context.GenerateSourceAsync(symbolName);
