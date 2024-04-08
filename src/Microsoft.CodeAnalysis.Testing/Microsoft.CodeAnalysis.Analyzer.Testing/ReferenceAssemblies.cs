@@ -460,16 +460,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                 }
 
-                // Prefer assemblies from the reference assembly package to ones otherwise provided
-                if (ReferenceAssemblyPackage is not null)
-                {
-                    var referenceAssemblies = new HashSet<string>(resolvedAssemblies.Where(resolved => resolved.StartsWith(referenceAssemblyInstalledPath!)));
-
-                    // Suppression due to https://github.com/dotnet/roslyn/issues/44735
-                    var referenceAssemblyNames = new HashSet<string>(referenceAssemblies.Select((Func<string, string>)Path.GetFileNameWithoutExtension!));
-                    resolvedAssemblies.RemoveWhere(resolved => referenceAssemblyNames.Contains(Path.GetFileNameWithoutExtension(resolved)) && !referenceAssemblies.Contains(resolved));
-                }
-
                 // Add the facade assemblies
                 if (ReferenceAssemblyPackage is not null)
                 {
