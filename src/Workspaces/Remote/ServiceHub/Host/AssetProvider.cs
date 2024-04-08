@@ -47,6 +47,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             called = true;
             result = asset;
         }, default, cancellationToken).ConfigureAwait(false);
+
+        Contract.ThrowIfFalse(called);
         Contract.ThrowIfNull((object?)result);
 
         return result;
