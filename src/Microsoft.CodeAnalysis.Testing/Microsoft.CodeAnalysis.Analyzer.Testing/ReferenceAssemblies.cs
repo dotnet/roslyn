@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     var assembliesToRemove = new List<string>();
                     foreach (var assemblyNameGroup in assembliesByName)
                     {
-                        var assembliesByPrecedence = assemblyNameGroup.OrderBy(GetFrameworkNameFromPath, comparer).ToArray();
+                        var assembliesByPrecedence = assemblyNameGroup.OrderBy(GetFrameworkNameFromPath, comparer).ThenByDescending(GetFrameworkNameFromPath, new NuGetFrameworkSorter()).ToArray();
                         for (var i = 1; i < assembliesByPrecedence.Length; i++)
                         {
                             // We want to keep the last reference listed for the most recent supported target framework.
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             // In this example, the Microsoft.NETCore.App.Ref package is resolved first, so by taking
                             // the last net6.0 assembly, we ensure the assembly from System.Collections.Immutable 8.0.0
                             // is resolved.
-                            if (comparer.Compare(GetFrameworkNameFromPath(assembliesByPrecedence[0]), GetFrameworkNameFromPath(assembliesByPrecedence[i])) == 0)
+                            if (Equals(GetFrameworkNameFromPath(assembliesByPrecedence[0]), GetFrameworkNameFromPath(assembliesByPrecedence[i])))
                             {
                                 assembliesToRemove.Add(assembliesByPrecedence[i - 1]);
                             }
