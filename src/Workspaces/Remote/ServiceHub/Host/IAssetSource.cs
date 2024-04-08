@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -15,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal interface IAssetSource
 {
-    ValueTask<ImmutableArray<T>> GetAssetsAsync<T>(
-        Checksum solutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+    ValueTask GetAssetsAsync<T>(
+        Checksum solutionChecksum,
+        AssetPath assetPath,
+        ReadOnlyMemory<Checksum> checksums,
+        ISerializerService serializerService,
+        Action<int, T> callback,
+        CancellationToken cancellationToken);
 }
