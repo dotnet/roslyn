@@ -20,18 +20,6 @@ internal sealed partial class AssetProvider
 
         private readonly AssetProvider _assetProvider = assetProvider;
 
-        public async ValueTask SynchronizeAssetsAsync(
-            AssetPath assetPath,
-            HashSet<Checksum> checksums,
-            Dictionary<Checksum, object>? results,
-            CancellationToken cancellationToken)
-        {
-            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await _assetProvider.SynchronizeAssetsAsync(assetPath, checksums, results, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
         public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             using var _1 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
