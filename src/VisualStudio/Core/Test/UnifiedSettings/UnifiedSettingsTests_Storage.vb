@@ -19,7 +19,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         ' But in unified settings we always use the correct value for language.
         ' Use this dictionary to indicate that value in unit test.
         Private Shared ReadOnly s_optionsToDefaultValue As ImmutableDictionary(Of IOption2, Object) = ImmutableDictionary(Of IOption2, Object).Empty.
-                Add(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude)
+                Add(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude).
+                Add(CompletionOptionsStorage.TriggerOnDeletion, False)
 
         ' Summary:
         ' The default value of some enum options is overridden at runtime. And it's not shown in the unified settings page.
@@ -29,8 +30,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
 
         Private Shared ReadOnly s_unifiedSettingsStorage As New Dictionary(Of String, UnifiedSettingsStorage)() From {
             {"dotnet_trigger_completion_on_typing_letters", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionOnTypingLetters")},
-            {"dotnet_trigger_completion_on_deletion", New UnifiedSettingsStorage("textEditor.%LANGUAGE%..intellisense.triggerCompletionOnDeletion")},
-            {"dotnet_snippets_behavior", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionOnTypingLetters")}
+            {"dotnet_trigger_completion_on_deletion", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionOnDeletion")},
+            {"dotnet_snippets_behavior", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.snippetsBehavior")}
         }
 
         Friend NotInheritable Class UnifiedSettingsStorage

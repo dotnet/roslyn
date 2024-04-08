@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
+Imports Castle.DynamicProxy.Internal
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Options
@@ -18,7 +19,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
 
         <Fact>
         Public Async Function IntellisensePageSettingsTest() As Task
-            Dim x = GetType(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceNames()
             Dim registrationFileStream = GetType(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("csharpSettings.registration.json")
             Using reader As New StreamReader(registrationFileStream)
                 Dim registrationFile = Await reader.ReadToEndAsync().ConfigureAwait(False)
@@ -52,8 +52,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         Private Shared Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
             ' Verify default value
             Dim actualDefaultValue = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').default")
-            Dim expectedDefaultValue = [option].Definition.DefaultValue?.ToString()
-            Assert.Equal(actualDefaultValue.ToString(), expectedDefaultValue)
+            Dim perLangDefaultValue As Object = Nothing
+            Assert.Equal(If(s_optionsToDefaultValue.TryGetValue([option], perLangDefaultValue),
+                            perLangDefaultValue.ToString().ToCamelCase(),
+                            [option].Definition.DefaultValue?.ToString().ToCamelCase()), actualDefaultValue.ToString().ToCamelCase())
 
             VerifyMigration(registrationJsonObject, unifiedSettingPath, [option])
         End Sub
@@ -61,10 +63,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         Private Shared Sub VerifyEnum(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
             Dim actualDefaultValue = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').default")
             Dim perLangDefaultValue As Object = Nothing
-            Assert.Equal(actualDefaultValue.ToString(),
-                         If(s_optionsToDefaultValue.TryGetValue([option], perLangDefaultValue),
+            Assert.Equal(If(s_optionsToDefaultValue.TryGetValue([option], perLangDefaultValue),
                             perLangDefaultValue.ToString().ToCamelCase(),
-                            [option].Definition.DefaultValue?.ToString()))
+                            [option].Definition.DefaultValue?.ToString()), actualDefaultValue.ToString().ToCamelCase())
 
             Dim actualEnumValues = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').enum").SelectAsArray(Function(token) token.ToString())
             Dim possibleEnumValues As ImmutableArray(Of Object) = ImmutableArray(Of Object).Empty
@@ -82,18 +83,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
                 ' Enum is string in json
                 Assert.Equal("string", actualType.ToString())
             Else
-                Dim expectedTypeName = ConvertTypeNameToJsonType([option].Definition.Type.Name)
+                Dim expectedTypeName = ConvertTypeNameToJsonType([option].Definition.Type)
                 Assert.Equal(expectedTypeName, actualType.ToString())
             End If
         End Sub
 
-        Private Shared Function ConvertTypeNameToJsonType(TypeName As String) As String
-            Select Case TypeName
-                Case "Boolean"
-                    Return "boolean"
-                Case Else
-                    Return TypeName
-            End Select
+        Private Shared Function ConvertTypeNameToJsonType(optionType As Type) As String
+            Dim underlyingType = Nullable.GetUnderlyingType(optionType)
+            ' If the type is Nullable type, its mapping type in unified setting page would be the normal type
+            ' These options would need to change to non-nullable form
+            ' See https://github.com/dotnet/roslyn/issues/69367
+            If underlyingType Is Nothing Then
+                Return optionType.Name.ToCamelCase()
+            Else
+                Return underlyingType.Name.ToCamelCase()
+            End If
         End Function
 
         Private Shared Sub VerifyEnumMigration(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
@@ -140,7 +144,60 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         End Sub
 
         Private Shared Sub VerifyEnumToIntegerMappings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
-            ' Mapping verification omitted for brevity
+            ' Here we are going to verify a structure like this:
+            ' "map": [
+            ' {
+            '     "result": "neverInclude",
+            '     "match": 1
+            ' },
+            ' // '0' matches to SnippetsRule.Default. Means the behavior is decided by language.
+            ' // '2' matches to SnippetsRule.AlwaysInclude. It's the default behavior for C#
+            ' // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
+            ' // Put '2' in front, so unified settings would persist '2' to storage when 'alwaysInclude' is selected.
+            ' {
+            '     "result": "alwaysInclude",
+            '     "match": 2
+            ' },
+            ' {
+            '     "result": "alwaysInclude",
+            '     "match": 0
+            ' },
+            ' {
+            '     "result": "includeAfterTypingIdentifierQuestionTab",
+            '     "match": 3
+            ' }
+            ' ]
+            Dim actualMappings = CType(registrationJsonObject.SelectToken(String.Format("$.properties['{0}'].migration.enumIntegerToString.map", unifiedSettingPath)), JArray).Select(Function(mapping) ( mapping("result").ToString(), Integer.Parse(mapping("match").ToString()))).ToArray()
+
+            Dim enumValues = [option].Type.GetEnumValues().Cast(Of Object).ToDictionary(
+                keySelector:=Function(enumValue) enumValue.ToString().ToCamelCase(),
+                elementSelector:=Function(enumValue)
+                                     Dim actualDefaultValue As Object = Nothing
+                                     If s_optionsToDefaultValue.TryGetValue([option], actualDefaultValue) AndAlso actualDefaultValue.Equals(enumValue) Then
+                                         Return New Integer() {CInt(enumValue), CInt([option].DefaultValue)}
+                                     End If
+
+                                     Return New Integer() {CInt(enumValue)}
+                                 End Function
+                )
+
+            For Each tuple In actualMappings
+                Dim result = tuple.Item1
+                Dim match = tuple.Item2
+                Dim acceptableValues = enumValues(result)
+                Assert.Contains(match, acceptableValues)
+            Next
+
+            ' If the default value of the enum is a stub value, verify the real value mapping is put in font of the default value mapping.
+            ' It makes sure the default value would be converted to the real value by unified settings engine.
+            Dim realDefaultValue As Object = Nothing
+            If s_optionsToDefaultValue.TryGetValue([option], realDefaultValue) Then
+                Dim indexOfTheRealDefaultMapping = Array.IndexOf(actualMappings, (realDefaultValue.ToString().ToCamelCase(), CInt(realDefaultValue)))
+                Assert.NotEqual(-1, indexOfTheRealDefaultMapping)
+                Dim indexOfTheDefaultMapping = Array.IndexOf(actualMappings, (realDefaultValue.ToString().ToCamelCase(), CInt([option].DefaultValue)))
+                Assert.NotEqual(-1, indexOfTheDefaultMapping)
+                Assert.True(indexOfTheRealDefaultMapping < indexOfTheDefaultMapping)
+            End If
         End Sub
     End Class
 End Namespace
