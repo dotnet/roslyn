@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static ImmutableArray<T> ReadData<T>(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<T>.GetInstance(objectCount, out var results);
+            var results = new T[objectCount];
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
@@ -104,10 +105,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize(kind, reader, cancellationToken);
                 Contract.ThrowIfNull(result);
-                results.Add((T)result);
+                results[i] = (T)result;
             }
 
-            return results.ToImmutableAndClear();
+            return ImmutableCollectionsMarshal.AsImmutableArray(results);
         }
     }
 }
