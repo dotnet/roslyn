@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
                         refEscapeScope >= GetRefEscape(initializer, _localScopeDepth));
 
-                    if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true)
+                    if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true) // PROTOTYPE(RefStructInterfaces): adjust?
                     {
                         ValidateEscape(initializer, valEscapeScope, isByRef: false, _diagnostics);
                     }
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
             {
-                return typeExpression.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                return typeExpression.Type.IsRefLikeType ? valEscape : CallingMethodScope; // PROTOTYPE(RefStructInterfaces): adjust?
             }
         }
 
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol is null
                     ? valEscape
-                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : CallingMethodScope;
+                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : CallingMethodScope; // PROTOTYPE(RefStructInterfaces): adjust?
             }
         }
 
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member is null) return valEscape;
                 valEscape = getMemberValEscape(member.Receiver, valEscape);
-                return member.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                return member.Type.IsRefLikeType ? valEscape : CallingMethodScope; // PROTOTYPE(RefStructInterfaces): adjust?
             }
         }
 

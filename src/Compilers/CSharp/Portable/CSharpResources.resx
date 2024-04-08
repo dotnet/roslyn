@@ -3855,7 +3855,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</value>
   </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
-    <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
+    <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</value>
   </data>
   <data name="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync" xml:space="preserve">
     <value>Security attribute '{0}' cannot be applied to an Async method.</value>
@@ -7925,5 +7925,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike" xml:space="preserve">
     <value>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</value>
+  </data>
+  <data name="ERR_BadAllowByRefLikeEnumerator" xml:space="preserve">
+    <value>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</value>
   </data>
 </root>

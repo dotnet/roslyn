@@ -2309,6 +2309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NotRefStructConstraintNotSatisfied = 9504,
         ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember = 9505,
         ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike = 9506,
+        ERR_BadAllowByRefLikeEnumerator = 9507,
 
         #endregion
 

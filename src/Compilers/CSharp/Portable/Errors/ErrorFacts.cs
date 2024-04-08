@@ -2437,6 +2437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_NotRefStructConstraintNotSatisfied:
                 case ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember:
                 case ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike:
+                case ErrorCode.ERR_BadAllowByRefLikeEnumerator:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

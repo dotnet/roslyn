@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
         {
-            return type.IsErrorType() || type.IsRefLikeType;
+            return type.IsErrorType() || type.IsRefLikeType; // PROTOTYPE(RefStructInterfaces): adjust?
         }
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
@@ -1388,7 +1388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return ignoreSpanLikeTypes ?
                         false :
-                        type.IsRefLikeType;
+                        (type.IsRefLikeType || type is TypeParameterSymbol { AllowByRefLike: true }); // PROTOTYPE(RefStructInterfaces): Audit call sites of IsRestrictedType with ignoreSpanLikeTypes == false.
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)

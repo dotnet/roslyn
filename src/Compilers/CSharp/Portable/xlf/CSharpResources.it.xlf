@@ -187,6 +187,11 @@
         <target state="translated">I parametri di un operatore unario deve essere il tipo che lo contiene o il relativo parametro di tipo vincolato ad esso.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAllowByRefLikeEnumerator">
+        <source>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</source>
+        <target state="new">foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
         <target state="translated">Non è possibile passare l'argomento {0} con la parola chiave 'ref' nella versione del linguaggio {1}. Per passare gli argomenti 'ref' ai parametri 'in', eseguire l'aggiornamento alla versione del linguaggio {2} o versione successiva.</target>
@@ -10640,8 +10645,8 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
-        <target state="translated">L'istruzione foreach non può funzionare con enumeratori di tipo '{0}' in metodi async o iterator perché '{0}' è uno struct ref.</target>
+        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
+        <target state="needs-review-translation">L'istruzione foreach non può funzionare con enumeratori di tipo '{0}' in metodi async o iterator perché '{0}' è uno struct ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">

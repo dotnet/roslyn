@@ -233,15 +233,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Interface binding
-                TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
+                NamedTypeSymbol disposableInterface = getDisposableInterface(hasAwait);
                 Debug.Assert((object)disposableInterface != null);
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
-                Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
+                bool implementsIDisposable = implementsInterface(fromExpression, disposableInterface, ref useSiteInfo);
 
                 diagnostics.Add(syntax, useSiteInfo);
 
-                if (iDisposableConversion.IsImplicit)
+                if (implementsIDisposable)
                 {
                     if (hasAwait)
                     {
@@ -254,12 +254,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type is null || !type.IsErrorType())
                 {
                     // Retry with a different assumption about whether the `using` is async
-                    TypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
+                    NamedTypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    Conversion alternateConversion = classifyConversion(fromExpression, alternateInterface, ref discardedUseSiteInfo);
+                    bool implementsAlternateIDisposable = implementsInterface(fromExpression, alternateInterface, ref discardedUseSiteInfo);
 
-                    bool wrongAsync = alternateConversion.IsImplicit;
-                    ErrorCode errorCode = wrongAsync
+                    ErrorCode errorCode = implementsAlternateIDisposable
                         ? (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDispWrongAsync : ErrorCode.ERR_NoConvToIDispWrongAsync)
                         : (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp);
 
@@ -269,28 +268,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            bool implementsInterface(bool fromExpression, NamedTypeSymbol targetInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 var conversions = originalBinder.Conversions;
                 if (fromExpression)
                 {
                     Debug.Assert(expressionOpt is { });
-                    var result = conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo);
-
-                    Debug.Assert(expressionOpt.Type?.IsDynamic() != true || result.Kind == ConversionKind.ImplicitDynamic);
-                    return result;
+                    return conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(expressionOpt, targetInterface, ref useSiteInfo);
                 }
                 else
                 {
                     Debug.Assert(declarationTypeOpt is { });
-                    var result = conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
-
-                    Debug.Assert(!declarationTypeOpt.IsDynamic() || result.Kind == ConversionKind.ImplicitDynamic);
-                    return result;
+                    return conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(declarationTypeOpt, targetInterface, ref useSiteInfo);
                 }
             }
 
-            TypeSymbol getDisposableInterface(bool isAsync)
+            NamedTypeSymbol getDisposableInterface(bool isAsync)
             {
                 return isAsync
                     ? originalBinder.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)

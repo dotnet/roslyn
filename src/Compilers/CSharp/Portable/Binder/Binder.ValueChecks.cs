@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal MixableDestination(ParameterSymbol parameter, BoundExpression argument)
             {
-                Debug.Assert(parameter.RefKind.IsWritableReference() && parameter.Type.IsRefLikeType);
+                Debug.Assert(parameter.RefKind.IsWritableReference() && parameter.Type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
                 Debug.Assert(GetParameterValEscapeLevel(parameter).HasValue);
                 Argument = argument;
                 Parameter = parameter;
@@ -1887,7 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check receiver if ref-like
-            if (receiver?.Type?.IsRefLikeType == true)
+            if (receiver?.Type?.IsRefLikeType == true) // PROTOTYPE(RefStructInterfaces): adjust?
             {
                 escapeScope = Math.Max(escapeScope, GetValEscape(receiver, scopeOfTheContainingExpression));
             }
@@ -1930,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
                 //
                 if (!returnsRefToRefStruct
-                    || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape))
+                    || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape)) // PROTOTYPE(RefStructInterfaces): adjust?
                 {
                     uint argEscape = isArgumentRefEscape ?
                         GetRefEscape(argument, scopeOfTheContainingExpression) :
@@ -1959,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol p => p.GetMethod,
                 _ => null
             };
-            return method is { RefKind: not RefKind.None, ReturnType.IsRefLikeType: true };
+            return method is { RefKind: not RefKind.None, ReturnType.IsRefLikeType: true }; // PROTOTYPE(RefStructInterfaces): adjust?
         }
 
         /// <summary>
@@ -2054,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check receiver if ref-like
-            if (receiver?.Type?.IsRefLikeType == true)
+            if (receiver?.Type?.IsRefLikeType == true) // PROTOTYPE(RefStructInterfaces): adjust?
             {
                 return CheckValEscape(receiver.Syntax, receiver, escapeFrom, escapeTo, false, diagnostics);
             }
@@ -2100,7 +2100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
                 //
                 if (!returnsRefToRefStruct
-                    || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape))
+                    || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape)) // PROTOTYPE(RefStructInterfaces): adjust?
                 {
                     bool valid = isArgumentRefEscape ?
                         CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics) :
@@ -2222,7 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isMixableParameter([NotNullWhen(true)] ParameterSymbol? parameter) =>
                 parameter is not null &&
-                parameter.Type.IsRefLikeType &&
+                parameter.Type.IsRefLikeType && // PROTOTYPE(RefStructInterfaces): adjust?
                 parameter.RefKind.IsWritableReference();
 
             static bool isMixableArgument(BoundExpression argument)
@@ -2346,9 +2346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return method.ContainingType.IsRefLikeType;
                         }
 
-                        return method.ReturnType.IsRefLikeType;
+                        return method.ReturnType.IsRefLikeType; // PROTOTYPE(RefStructInterfaces): adjust?
                     case PropertySymbol property:
-                        return property.Type.IsRefLikeType;
+                        return property.Type.IsRefLikeType; // PROTOTYPE(RefStructInterfaces): adjust?
                     default:
                         return false;
                 }
@@ -2408,7 +2408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         escapeValues.Add(new EscapeValue(parameter: null, argument, EscapeLevel.ReturnOnly, isRefEscape: true));
                     }
 
-                    if (argument.Type?.IsRefLikeType == true)
+                    if (argument.Type?.IsRefLikeType == true) // PROTOTYPE(RefStructInterfaces): adjust?
                     {
                         escapeValues.Add(new EscapeValue(parameter: null, argument, EscapeLevel.CallingMethod, isRefEscape: false));
                     }
@@ -2416,7 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (parameter.Type.IsRefLikeType && parameter.RefKind != RefKind.Out && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
+                if (parameter.Type.IsRefLikeType && parameter.RefKind != RefKind.Out && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel) // PROTOTYPE(RefStructInterfaces): adjust?
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, valEscapeLevel, isRefEscape: false));
                 }
@@ -2531,7 +2531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsRefLikeType == true && !IsReceiverRefReadOnly(symbol))
+            if (receiverType?.IsRefLikeType == true && !IsReceiverRefReadOnly(symbol)) // PROTOTYPE(RefStructInterfaces): adjust?
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
@@ -2562,7 +2562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (refKind.IsWritableReference()
                         && !argument.IsDiscardExpression()
-                        && argument.Type?.IsRefLikeType == true)
+                        && argument.Type?.IsRefLikeType == true) // PROTOTYPE(RefStructInterfaces): adjust?
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -3789,7 +3789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsRefLikeType != true)
+            if (expr.Type?.IsRefLikeType != true) // PROTOTYPE(RefStructInterfaces): adjust?
             {
                 return CallingMethodScope;
             }
@@ -3874,7 +3874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType) // PROTOTYPE(RefStructInterfaces): adjust?
                     {
                         // Already an error state.
                         return CallingMethodScope;
@@ -4371,7 +4371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsRefLikeType != true)
+            if (expr.Type?.IsRefLikeType != true) // PROTOTYPE(RefStructInterfaces): adjust?
             {
                 return true;
             }
@@ -4474,7 +4474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType) // PROTOTYPE(RefStructInterfaces): adjust?
                     {
                         // Already an error state.
                         return true;

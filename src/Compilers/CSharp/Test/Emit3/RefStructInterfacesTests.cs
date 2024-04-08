@@ -5,10 +5,13 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -5946,6 +5949,10460 @@ class Program
         }
 
         [Fact]
+        public void Using_01()
+        {
+            var src = @"
+ref struct S2 : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        using (new S2())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (S2 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S2""
+  .try
+  {
+    IL_0008:  ldc.i4.s   123
+    IL_000a:  call       ""void System.Console.Write(int)""
+    IL_000f:  leave.s    IL_0019
+  }
+  finally
+  {
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""void S2.Dispose()""
+    IL_0018:  endfinally
+  }
+  IL_0019:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S2()')
+              Value:
+                IObjectCreationOperation (Constructor: S2..ctor()) (OperationKind.ObjectCreation, Type: S2) (Syntax: 'new S2()')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation ( void S2.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S2()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S2()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+        }
+
+        [Fact]
+        public void Using_02()
+        {
+            var src = @"
+ref struct S2 : System.IDisposable
+{
+    void System.IDisposable.Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        using (new S2())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (S2 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S2""
+  .try
+  {
+    IL_0008:  ldc.i4.s   123
+    IL_000a:  call       ""void System.Console.Write(int)""
+    IL_000f:  leave.s    IL_001f
+  }
+  finally
+  {
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  constrained. ""S2""
+    IL_0019:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001e:  endfinally
+  }
+  IL_001f:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S2()')
+              Value:
+                IObjectCreationOperation (Constructor: S2..ctor()) (OperationKind.ObjectCreation, Type: S2) (Syntax: 'new S2()')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S2()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S2()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+        }
+
+        [Fact]
+        public void Using_03()
+        {
+            var src = @"
+ref struct S2 : System.IDisposable
+{
+    void System.IDisposable.Dispose() => throw null;
+
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        using (var x = new S2())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (S2 V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S2""
+  .try
+  {
+    IL_0008:  ldc.i4.s   123
+    IL_000a:  call       ""void System.Console.Write(int)""
+    IL_000f:  leave.s    IL_0019
+  }
+  finally
+  {
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""void S2.Dispose()""
+    IL_0018:  endfinally
+  }
+  IL_0019:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [S2 x]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: S2, IsImplicit) (Syntax: 'x = new S2()')
+              Left:
+                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 'x = new S2()')
+              Right:
+                IObjectCreationOperation (Constructor: S2..ctor()) (OperationKind.ObjectCreation, Type: S2) (Syntax: 'new S2()')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation ( void S2.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x = new S2()')
+                  Instance Receiver:
+                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 'x = new S2()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+        }
+
+        [Fact]
+        public void Using_04()
+        {
+            var src = @"
+ref struct S2 : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S2());
+    }
+
+    static void Test<T>(T t) where T : System.IDisposable, allows ref struct
+    {
+        using (t)
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            // The code boxes type parameter that allows ref struct, however 'box' followed by 'brfalse' is
+            // documented as a valid sequence at https://github.com/dotnet/runtime/blob/main/docs/design/features/byreflike-generics.md#special-il-sequences
+            //
+            //  IL_000b:  ldloc.0
+            //  IL_000c:  box        ""T""
+            //  IL_0011:  brfalse.s  IL_0020
+
+            verifier.VerifyIL("C.Test<T>(T)",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  .try
+  {
+    IL_0002:  ldc.i4.s   123
+    IL_0004:  call       ""void System.Console.Write(int)""
+    IL_0009:  leave.s    IL_0021
+  }
+  finally
+  {
+    IL_000b:  ldloc.0
+    IL_000c:  box        ""T""
+    IL_0011:  brfalse.s  IL_0020
+    IL_0013:  ldloca.s   V_0
+    IL_0015:  constrained. ""T""
+    IL_001b:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0020:  endfinally
+  }
+  IL_0021:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B6]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B6] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+        }
+
+        [Fact]
+        public void Using_05()
+        {
+            var src = @"
+ref struct S2 : System.IDisposable
+{
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S2());
+    }
+
+    static void Test<T>(T t) where T : struct, System.IDisposable, allows ref struct
+    {
+        using (t)
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.Passes :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<T>(T)",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  .try
+  {
+    IL_0002:  ldc.i4.s   123
+    IL_0004:  call       ""void System.Console.Write(int)""
+    IL_0009:  leave.s    IL_0019
+  }
+  finally
+  {
+    IL_000b:  ldloca.s   V_0
+    IL_000d:  constrained. ""T""
+    IL_0013:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0018:  endfinally
+  }
+  IL_0019:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Write(123);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... .Write(123)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '123')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: T, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+        }
+
+        [Fact]
+        public void Using_06()
+        {
+            var src = @"
+interface IMyDisposable
+{
+    void Dispose();
+}
+
+ref struct S2 : IMyDisposable
+{
+    public void Dispose()
+    {
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S2(), null);
+    }
+
+    static void Test<T>(T t, IMyDisposable s) where T : IMyDisposable, allows ref struct
+    {
+        using (t)
+        {
+        }
+
+        using (s)
+        {
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            // PROTOTYPE(RefStructInterfaces): Should we adjust wording for the error? Ref struct implement interfaces, but not convertible to them.  
+            comp.VerifyDiagnostics(
+                // (23,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using (t)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "t").WithArguments("T").WithLocation(23, 16),
+                // (27,16): error CS1674: 'IMyDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using (s)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s").WithArguments("IMyDisposable").WithLocation(27, 16)
+                );
+        }
+
+        [Fact]
+        public void Foreach_IEnumerableT_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+ref struct S : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator<int> Get123()
+    {
+        yield return 123;
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S""
+  IL_0009:  call       ""System.Collections.Generic.IEnumerator<int> S.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001c
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_0017:  call       ""void System.Console.Write(int)""
+    IL_001c:  ldloc.0
+    IL_001d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0022:  brtrue.s   IL_0011
+    IL_0024:  leave.s    IL_0030
+  }
+  finally
+  {
+    IL_0026:  ldloc.0
+    IL_0027:  brfalse.s  IL_002f
+    IL_0029:  ldloc.0
+    IL_002a:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002f:  endfinally
+  }
+  IL_0030:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation ( System.Collections.Generic.IEnumerator<System.Int32> S.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> S.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> S.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Foreach_IEnumerableT_02()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+ref struct S : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator<int> Get123()
+    {
+        yield return 123;
+    }
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S""
+  IL_0009:  call       ""System.Collections.Generic.IEnumerator<int> S.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001c
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_0017:  call       ""void System.Console.Write(int)""
+    IL_001c:  ldloc.0
+    IL_001d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0022:  brtrue.s   IL_0011
+    IL_0024:  leave.s    IL_0030
+  }
+  finally
+  {
+    IL_0026:  ldloc.0
+    IL_0027:  brfalse.s  IL_002f
+    IL_0029:  ldloc.0
+    IL_002a:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002f:  endfinally
+  }
+  IL_0030:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation ( System.Collections.Generic.IEnumerator<System.Int32> S.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> S.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> S.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Foreach_IEnumerableT_03()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+ref struct S : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator<int> Get123()
+    {
+        yield return 123;
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => Get123();
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S""
+  IL_0009:  constrained. ""S""
+  IL_000f:  callvirt   ""System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()""
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_0022
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  ldloc.0
+    IL_0023:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0028:  brtrue.s   IL_0017
+    IL_002a:  leave.s    IL_0036
+  }
+  finally
+  {
+    IL_002c:  ldloc.0
+    IL_002d:  brfalse.s  IL_0035
+    IL_002f:  ldloc.0
+    IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation (virtual System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerableT_04(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+ref struct S : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator<int> Get123()
+    {
+        yield return 123;
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S());
+    }
+
+    static void Test<T>(T t) where T : " + (addStructConstraint ? "struct, " : "") + @"IEnumerable<int>, allows ref struct
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<T>(T)",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_001b
+    IL_0010:  ldloc.0
+    IL_0011:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_0016:  call       ""void System.Console.Write(int)""
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0021:  brtrue.s   IL_0010
+    IL_0023:  leave.s    IL_002f
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  brfalse.s  IL_002e
+    IL_0028:  ldloc.0
+    IL_0029:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002e:  endfinally
+  }
+  IL_002f:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerableT_05(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+interface IMyEnumerable<T>
+{
+    IEnumerator<T> GetEnumerator();
+}
+
+ref struct S : IMyEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator<int> Get123()
+    {
+        yield return 123;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S());
+    }
+
+    static void Test<T>(T t) where T : " + (addStructConstraint ? "struct, " : "") + @"IMyEnumerable<int>, allows ref struct
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<T>(T)",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""System.Collections.Generic.IEnumerator<int> IMyEnumerable<int>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_001b
+    IL_0010:  ldloc.0
+    IL_0011:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_0016:  call       ""void System.Console.Write(int)""
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0021:  brtrue.s   IL_0010
+    IL_0023:  leave.s    IL_002f
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  brfalse.s  IL_002e
+    IL_0028:  ldloc.0
+    IL_0029:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002e:  endfinally
+  }
+  IL_002f:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual System.Collections.Generic.IEnumerator<System.Int32> IMyEnumerable<System.Int32>.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> IMyEnumerable<System.Int32>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> IMyEnumerable<System.Int32>.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerableT_06(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+interface IMyEnumerable1<T>
+{
+    IEnumerator<int> GetEnumerator();
+}
+
+
+interface IMyEnumerable2<T>
+{
+    IEnumerator<int> GetEnumerator();
+}
+
+ref struct S : IMyEnumerable1<int>, IMyEnumerable2<int>
+{
+    public IEnumerator<int> GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator<int> Get123()
+    {
+        yield return 123;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S());
+    }
+
+    static void Test<T>(T t) where T : " + (addStructConstraint ? "struct, " : "") + @"IMyEnumerable1<int>, IMyEnumerable2<int>, allows ref struct
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (37,27): warning CS0278: 'T' does not implement the 'collection' pattern. 'IMyEnumerable1<int>.GetEnumerator()' is ambiguous with 'IMyEnumerable2<int>.GetEnumerator()'.
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "t").WithArguments("T", "collection", "IMyEnumerable1<int>.GetEnumerator()", "IMyEnumerable2<int>.GetEnumerator()").WithLocation(37, 27),
+                // (37,27): error CS1579: foreach statement cannot operate on variables of type 'T' because 'T' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "t").WithArguments("T", "GetEnumerator").WithLocation(37, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            Assert.Null(info.GetEnumeratorMethod);
+            Assert.Null(info.ElementType);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.Null(op.Info);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerableT_07(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+interface IMyEnumerable1<T>
+{
+    IEnumerator<int> GetEnumerator();
+}
+
+interface IMyEnumerable2<T>
+{
+    IEnumerator<int> GetEnumerator();
+}
+
+ref struct S : IMyEnumerable1<int>, IMyEnumerable2<int>, IEnumerable<int>
+{
+    IEnumerator<int> IMyEnumerable1<int>.GetEnumerator() => throw null;
+    IEnumerator<int> IMyEnumerable2<int>.GetEnumerator() => throw null;
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator<int> Get123()
+    {
+        yield return 123;
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S());
+    }
+
+    static void Test<T>(T t) where T : " + (addStructConstraint ? "struct, " : "") + @"IMyEnumerable1<int>, IMyEnumerable2<int>, IEnumerable<int>, allows ref struct
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics(
+                // (41,27): warning CS0278: 'T' does not implement the 'collection' pattern. 'IMyEnumerable1<int>.GetEnumerator()' is ambiguous with 'IMyEnumerable2<int>.GetEnumerator()'.
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "t").WithArguments("T", "collection", "IMyEnumerable1<int>.GetEnumerator()", "IMyEnumerable2<int>.GetEnumerator()").WithLocation(41, 27)
+                );
+
+            verifier.VerifyIL("C.Test<T>(T)",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_001b
+    IL_0010:  ldloc.0
+    IL_0011:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_0016:  call       ""void System.Console.Write(int)""
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0021:  brtrue.s   IL_0010
+    IL_0023:  leave.s    IL_002f
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  brfalse.s  IL_002e
+    IL_0028:  ldloc.0
+    IL_0029:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002e:  endfinally
+  }
+  IL_002f:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator<System.Int32>, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_01(bool s1IsRefStruct)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator<int>
+{
+    bool stop;
+    public int Current => 123;
+    object System.Collections.IEnumerator.Current => Current;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001d
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""int S2.Current.get""
+    IL_0018:  call       ""void System.Console.Write(int)""
+    IL_001d:  ldloca.s   V_0
+    IL_001f:  call       ""bool S2.MoveNext()""
+    IL_0024:  brtrue.s   IL_0011
+    IL_0026:  leave.s    IL_0030
+  }
+  finally
+  {
+    IL_0028:  ldloca.s   V_0
+    IL_002a:  call       ""void S2.Dispose()""
+    IL_002f:  endfinally
+  }
+  IL_0030:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 S2.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation ( void S2.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void S2.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            AssertEx.Equal("void S2.Dispose()", op.Info.PatternDisposeMethod.ToTestDisplayString());
+            Assert.True(op.Info.DisposeArguments.IsEmpty);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_02(bool s1IsRefStruct)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator<int>
+{
+    bool stop;
+    public int Current => 123;
+    object System.Collections.IEnumerator.Current => Current;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+
+    int IEnumerator<int>.Current => throw null;
+    bool System.Collections.IEnumerator.MoveNext() => throw null;
+
+    void System.IDisposable.Dispose() => throw null;
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001d
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""int S2.Current.get""
+    IL_0018:  call       ""void System.Console.Write(int)""
+    IL_001d:  ldloca.s   V_0
+    IL_001f:  call       ""bool S2.MoveNext()""
+    IL_0024:  brtrue.s   IL_0011
+    IL_0026:  leave.s    IL_0030
+  }
+  finally
+  {
+    IL_0028:  ldloca.s   V_0
+    IL_002a:  call       ""void S2.Dispose()""
+    IL_002f:  endfinally
+  }
+  IL_0030:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 S2.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation ( void S2.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void S2.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            AssertEx.Equal("void S2.Dispose()", op.Info.PatternDisposeMethod.ToTestDisplayString());
+            Assert.True(op.Info.DisposeArguments.IsEmpty);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_03(bool s1IsRefStruct, bool currentIsPublic, bool moveNextIsPublic, bool disposeIsPublic)
+        {
+            if (currentIsPublic && moveNextIsPublic)
+            {
+                return;
+            }
+
+            var src = @"
+using System.Collections.Generic;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator<int>
+{
+    bool stop;
+
+    " + (currentIsPublic ? "public int " : "int IEnumerator<int>.") + @"Current => 123;
+
+    object System.Collections.IEnumerator.Current => 123;
+
+    " + (moveNextIsPublic ? "public bool " : "bool System.Collections.IEnumerator.") + @"MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    " + (disposeIsPublic ? "public void " : "void System.IDisposable.") + @"Dispose()
+    {
+        System.Console.Write('D');
+    }
+
+    public void Reset() { }
+}
+
+class C
+{
+    static void Main()
+    {
+#line 100
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            if (!currentIsPublic)
+            {
+                comp.VerifyDiagnostics(
+                    // (100,27): error CS0117: 'S2' does not contain a definition for 'Current'
+                    //         foreach (var i in new S1())
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "new S1()").WithArguments("S2", "Current").WithLocation(100, 27),
+                    // (100,27): error CS0202: foreach requires that the return type 'S2' of 'S1.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                    //         foreach (var i in new S1())
+                    Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new S1()").WithArguments("S2", "S1.GetEnumerator()").WithLocation(100, 27)
+                    );
+            }
+            else
+            {
+                Assert.False(moveNextIsPublic);
+
+                comp.VerifyDiagnostics(
+                    // (100,27): error CS0117: 'S2' does not contain a definition for 'MoveNext'
+                    //         foreach (var i in new S1())
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "new S1()").WithArguments("S2", "MoveNext").WithLocation(100, 27),
+                    // (100,27): error CS0202: foreach requires that the return type 'S2' of 'S1.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                    //         foreach (var i in new S1())
+                    Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new S1()").WithArguments("S2", "S1.GetEnumerator()").WithLocation(100, 27)
+                    );
+            }
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+          Children(1):
+              IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1, IsInvalid) (Syntax: 'new S1()')
+                Arguments(0)
+                Initializer:
+                  null
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+          Children(1):
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+                Children(0)
+    Next (Regular) Block[B3]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [var i]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (2)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+              Left:
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsImplicit) (Syntax: 'var')
+              Right:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+                  Children(1):
+                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+                        Children(0)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+              Expression:
+                IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                  Children(2):
+                      IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'System.Console')
+                      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: var) (Syntax: 'i')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            Assert.Null(info.ElementType);
+            Assert.Null(info.MoveNextMethod);
+            Assert.Null(info.CurrentProperty);
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.Null(op.Info);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_04(bool s1IsRefStruct, bool addExplicitImplementationOfCurrentAndMoveNext)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator<int>
+{
+    bool stop;
+    public int Current => 123;
+    object System.Collections.IEnumerator.Current => Current;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+" +
+(addExplicitImplementationOfCurrentAndMoveNext ?
+@"
+    int IEnumerator<int>.Current => throw null;
+    bool System.Collections.IEnumerator.MoveNext() => throw null;
+"
+:
+"") +
+@"
+    void System.IDisposable.Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001d
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""int S2.Current.get""
+    IL_0018:  call       ""void System.Console.Write(int)""
+    IL_001d:  ldloca.s   V_0
+    IL_001f:  call       ""bool S2.MoveNext()""
+    IL_0024:  brtrue.s   IL_0011
+    IL_0026:  leave.s    IL_0036
+  }
+  finally
+  {
+    IL_0028:  ldloca.s   V_0
+    IL_002a:  constrained. ""S2""
+    IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 S2.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_05(bool s1IsRefStruct, bool addStructConstraintToTEnumerable)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IEnumerator<int>, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator<int>
+{
+    bool stop;
+    public int Current => 123;
+    object System.Collections.IEnumerator.Current => Current;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : IEnumerator<int>, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<TEnumerable, TEnumerator>(TEnumerable)",
+@"
+{
+  // Code size       74 (0x4a)
+  .maxstack  1
+  .locals init (TEnumerator V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""TEnumerable""
+  IL_0008:  callvirt   ""TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_0022
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""TEnumerator""
+    IL_0018:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""TEnumerator""
+    IL_002a:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_002f:  brtrue.s   IL_0010
+    IL_0031:  leave.s    IL_0049
+  }
+  finally
+  {
+    IL_0033:  ldloc.0
+    IL_0034:  box        ""TEnumerator""
+    IL_0039:  brfalse.s  IL_0048
+    IL_003b:  ldloca.s   V_0
+    IL_003d:  constrained. ""TEnumerator""
+    IL_0043:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0048:  endfinally
+  }
+  IL_0049:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()) (OperationKind.Invocation, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: TEnumerable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: TEnumerable) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_06(bool s1IsRefStruct, bool addStructConstraintToTEnumerable)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IEnumerator<int>, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator<int>
+{
+    bool stop;
+    public int Current => 123;
+    object System.Collections.IEnumerator.Current => Current;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : struct, IEnumerator<int>, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<TEnumerable, TEnumerator>(TEnumerable)",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  1
+  .locals init (TEnumerator V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""TEnumerable""
+  IL_0008:  callvirt   ""TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_0022
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""TEnumerator""
+    IL_0018:  callvirt   ""int System.Collections.Generic.IEnumerator<int>.Current.get""
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""TEnumerator""
+    IL_002a:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_002f:  brtrue.s   IL_0010
+    IL_0031:  leave.s    IL_0041
+  }
+  finally
+  {
+    IL_0033:  ldloca.s   V_0
+    IL_0035:  constrained. ""TEnumerator""
+    IL_003b:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0040:  endfinally
+  }
+  IL_0041:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()) (OperationKind.Invocation, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: TEnumerable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: TEnumerable) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_07(bool s1IsRefStruct, bool addStructConstraintToTEnumerable)
+        {
+            var src = @"
+interface IMyEnumerator<T> : System.IDisposable
+{
+    T Current {get;}
+    bool MoveNext();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IMyEnumerator<int>, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IMyEnumerator<int>
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : IMyEnumerator<int>, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<TEnumerable, TEnumerator>(TEnumerable)",
+@"
+{
+  // Code size       74 (0x4a)
+  .maxstack  1
+  .locals init (TEnumerator V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""TEnumerable""
+  IL_0008:  callvirt   ""TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_0022
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""TEnumerator""
+    IL_0018:  callvirt   ""int IMyEnumerator<int>.Current.get""
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""TEnumerator""
+    IL_002a:  callvirt   ""bool IMyEnumerator<int>.MoveNext()""
+    IL_002f:  brtrue.s   IL_0010
+    IL_0031:  leave.s    IL_0049
+  }
+  finally
+  {
+    IL_0033:  ldloc.0
+    IL_0034:  box        ""TEnumerator""
+    IL_0039:  brfalse.s  IL_0048
+    IL_003b:  ldloca.s   V_0
+    IL_003d:  constrained. ""TEnumerator""
+    IL_0043:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0048:  endfinally
+  }
+  IL_0049:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()) (OperationKind.Invocation, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: TEnumerable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: TEnumerable) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean IMyEnumerator<System.Int32>.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 IMyEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean IMyEnumerator<System.Int32>.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 IMyEnumerator<System.Int32>.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean IMyEnumerator<System.Int32>.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 IMyEnumerator<System.Int32>.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_08(bool s1IsRefStruct, bool addStructConstraintToTEnumerable)
+        {
+            var src = @"
+interface IMyEnumerator1<T>
+{
+    T Current {get;}
+    bool MoveNext();
+}
+
+interface IMyEnumerator2<T>
+{
+    T Current {get;}
+    bool MoveNext();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IMyEnumerator1<int>, IMyEnumerator2<int>, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IMyEnumerator1<int>, IMyEnumerator2<int>
+{
+    bool stop;
+    public int Current => 123;
+
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : IMyEnumerator1<int>, IMyEnumerator2<int>, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (60,27): error CS0202: foreach requires that the return type 'TEnumerator' of 'IGetEnumerator<TEnumerator>.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "t").WithArguments("TEnumerator", "IGetEnumerator<TEnumerator>.GetEnumerator()").WithLocation(60, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            Assert.Null(info.ElementType);
+            Assert.Null(info.MoveNextMethod);
+            Assert.Null(info.CurrentProperty);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.Null(op.Info);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumeratorT_09(bool s1IsRefStruct, bool addStructConstraintToTEnumerable)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+interface IMyEnumerator1<T>
+{
+    T Current {get;}
+    bool MoveNext();
+}
+
+interface IMyEnumerator2<T>
+{
+    T Current {get;}
+    bool MoveNext();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IMyEnumerator1<int>, IMyEnumerator2<int>, IEnumerator<int>, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IMyEnumerator1<int>, IMyEnumerator2<int>, IEnumerator<int>
+{
+    bool stop;
+    public int Current => 123;
+    object System.Collections.IEnumerator.Current => Current;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : IMyEnumerator1<int>, IMyEnumerator2<int>, IEnumerator<int>, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (62,27): error CS0202: foreach requires that the return type 'TEnumerator' of 'IGetEnumerator<TEnumerator>.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "t").WithArguments("TEnumerator", "IGetEnumerator<TEnumerator>.GetEnumerator()").WithLocation(62, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            Assert.Null(info.ElementType);
+            Assert.Null(info.MoveNextMethod);
+            Assert.Null(info.CurrentProperty);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.Null(op.Info);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IDisposable_01(bool s1IsRefStruct)
+        {
+            var src = @"
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : System.IDisposable
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001d
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""int S2.Current.get""
+    IL_0018:  call       ""void System.Console.Write(int)""
+    IL_001d:  ldloca.s   V_0
+    IL_001f:  call       ""bool S2.MoveNext()""
+    IL_0024:  brtrue.s   IL_0011
+    IL_0026:  leave.s    IL_0030
+  }
+  finally
+  {
+    IL_0028:  ldloca.s   V_0
+    IL_002a:  call       ""void S2.Dispose()""
+    IL_002f:  endfinally
+  }
+  IL_0030:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 S2.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation ( void S2.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void S2.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            AssertEx.Equal("void S2.Dispose()", op.Info.PatternDisposeMethod.ToTestDisplayString());
+            Assert.True(op.Info.DisposeArguments.IsEmpty);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IDisposable_02(bool s1IsRefStruct)
+        {
+            var src = @"
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : System.IDisposable
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+
+    void System.IDisposable.Dispose() => throw null;
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001d
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""int S2.Current.get""
+    IL_0018:  call       ""void System.Console.Write(int)""
+    IL_001d:  ldloca.s   V_0
+    IL_001f:  call       ""bool S2.MoveNext()""
+    IL_0024:  brtrue.s   IL_0011
+    IL_0026:  leave.s    IL_0030
+  }
+  finally
+  {
+    IL_0028:  ldloca.s   V_0
+    IL_002a:  call       ""void S2.Dispose()""
+    IL_002f:  endfinally
+  }
+  IL_0030:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 S2.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation ( void S2.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void S2.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            AssertEx.Equal("void S2.Dispose()", op.Info.PatternDisposeMethod.ToTestDisplayString());
+            Assert.True(op.Info.DisposeArguments.IsEmpty);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IDisposable_03(bool s1IsRefStruct)
+        {
+            var src = @"
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : System.IDisposable
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    void System.IDisposable.Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001d
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  call       ""int S2.Current.get""
+    IL_0018:  call       ""void System.Console.Write(int)""
+    IL_001d:  ldloca.s   V_0
+    IL_001f:  call       ""bool S2.MoveNext()""
+    IL_0024:  brtrue.s   IL_0011
+    IL_0026:  leave.s    IL_0036
+  }
+  finally
+  {
+    IL_0028:  ldloca.s   V_0
+    IL_002a:  constrained. ""S2""
+    IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 S2.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IDisposable_04(bool s1IsRefStruct, bool addStructConstraintToTEnumerable)
+        {
+            var src = @"
+interface ICustomEnumerator
+{
+    int Current {get;}
+    bool MoveNext();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, System.IDisposable, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : ICustomEnumerator, System.IDisposable
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : ICustomEnumerator, System.IDisposable, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<TEnumerable, TEnumerator>(TEnumerable)",
+@"
+{
+  // Code size       74 (0x4a)
+  .maxstack  1
+  .locals init (TEnumerator V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""TEnumerable""
+  IL_0008:  callvirt   ""TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_0022
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""TEnumerator""
+    IL_0018:  callvirt   ""int ICustomEnumerator.Current.get""
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""TEnumerator""
+    IL_002a:  callvirt   ""bool ICustomEnumerator.MoveNext()""
+    IL_002f:  brtrue.s   IL_0010
+    IL_0031:  leave.s    IL_0049
+  }
+  finally
+  {
+    IL_0033:  ldloc.0
+    IL_0034:  box        ""TEnumerator""
+    IL_0039:  brfalse.s  IL_0048
+    IL_003b:  ldloca.s   V_0
+    IL_003d:  constrained. ""TEnumerator""
+    IL_0043:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0048:  endfinally
+  }
+  IL_0049:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()) (OperationKind.Invocation, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: TEnumerable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: TEnumerable) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean ICustomEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 ICustomEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean ICustomEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 ICustomEnumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean ICustomEnumerator.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 ICustomEnumerator.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IDisposable_05(bool s1IsRefStruct, bool addStructConstraintToTEnumerable)
+        {
+            var src = @"
+interface ICustomEnumerator
+{
+    int Current {get;}
+    bool MoveNext();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, System.IDisposable, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : ICustomEnumerator, System.IDisposable
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : struct, ICustomEnumerator, System.IDisposable, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<TEnumerable, TEnumerator>(TEnumerable)",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  1
+  .locals init (TEnumerator V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""TEnumerable""
+  IL_0008:  callvirt   ""TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_0022
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""TEnumerator""
+    IL_0018:  callvirt   ""int ICustomEnumerator.Current.get""
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""TEnumerator""
+    IL_002a:  callvirt   ""bool ICustomEnumerator.MoveNext()""
+    IL_002f:  brtrue.s   IL_0010
+    IL_0031:  leave.s    IL_0041
+  }
+  finally
+  {
+    IL_0033:  ldloca.s   V_0
+    IL_0035:  constrained. ""TEnumerator""
+    IL_003b:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0040:  endfinally
+  }
+  IL_0041:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()) (OperationKind.Invocation, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: TEnumerable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: TEnumerable) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation (virtual System.Boolean ICustomEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 ICustomEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B5] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean ICustomEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 ICustomEnumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean ICustomEnumerator.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 ICustomEnumerator.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IDisposable_06(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+interface ICustomEnumerator
+{
+    int Current {get;}
+    bool MoveNext();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+interface IMyDisposable
+{
+    void Dispose();
+}
+
+ref struct S2 : ICustomEnumerator, IMyDisposable
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"ICustomEnumerator, IMyDisposable, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (58,27): error CS9507: foreach statement cannot operate on enumerators of type 'TEnumerator' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.ERR_BadAllowByRefLikeEnumerator, "t").WithArguments("TEnumerator").WithLocation(58, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean ICustomEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 ICustomEnumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean ICustomEnumerator.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 ICustomEnumerator.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.False(op.Info.NeedsDispose);
+            Assert.False(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IDisposable_07(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+interface ICustomEnumerator
+{
+    int Current {get;}
+    bool MoveNext();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : ICustomEnumerator, System.IDisposable
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"ICustomEnumerator, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (53,27): error CS9507: foreach statement cannot operate on enumerators of type 'TEnumerator' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.ERR_BadAllowByRefLikeEnumerator, "t").WithArguments("TEnumerator").WithLocation(53, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean ICustomEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32 ICustomEnumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean ICustomEnumerator.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Int32 ICustomEnumerator.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.False(op.Info.NeedsDispose);
+            Assert.False(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Fact]
+        public void Foreach_Pattern_01()
+        {
+            var src = @"
+ref struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_Pattern_02()
+        {
+            var src = @"
+struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2
+{
+    bool stop;
+    public int Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AwaitUsing_01()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+
+ref struct S2 : IAsyncDisposable
+{
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await using (new S2())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (18,22): error CS9104: A using statement resource of type 'S2' cannot be used in async methods or async lambda expressions.
+                //         await using (new S2())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new S2()").WithArguments("S2").WithLocation(18, 22)
+                );
+        }
+
+        [Fact]
+        public void AwaitUsing_03()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+
+ref struct S2 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await using (new S2())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (18,22): error CS9104: A using statement resource of type 'S2' cannot be used in async methods or async lambda expressions.
+                //         await using (new S2())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new S2()").WithArguments("S2").WithLocation(18, 22)
+                );
+        }
+
+        [Fact]
+        public void AwaitUsing_04()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+
+ref struct S2 : IAsyncDisposable
+{
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S2>();
+    }
+
+    static async Task Test<T>() where T : IAsyncDisposable, new(), allows ref struct
+    {
+        await using (new T())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (23,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
+                //         await using (new T())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(23, 22)
+                );
+        }
+
+        [Fact]
+        public void AwaitUsing_06()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+interface IMyAsyncDisposable
+{
+    ValueTask DisposeAsync();
+}
+
+ref struct S2 : IMyAsyncDisposable
+{
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S2>();
+    }
+
+    static async Task Test<T>() where T : IMyAsyncDisposable, new(), allows ref struct
+    {
+        await using (new T())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (27,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
+                //         await using (new T())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(27, 22)
+                );
+        }
+
+        [Fact]
+        public void AwaitUsing_07()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+interface IMyAsyncDisposable1
+{
+    ValueTask DisposeAsync();
+}
+
+interface IMyAsyncDisposable2
+{
+    ValueTask DisposeAsync();
+}
+
+ref struct S2 : IMyAsyncDisposable1, IMyAsyncDisposable2
+{
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S2>();
+    }
+
+    static async Task Test<T>() where T : IMyAsyncDisposable1, IMyAsyncDisposable2, new(), allows ref struct
+    {
+        await using (new T())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (32,22): error CS0121: The call is ambiguous between the following methods or properties: 'IMyAsyncDisposable1.DisposeAsync()' and 'IMyAsyncDisposable2.DisposeAsync()'
+                //         await using (new T())
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new T()").WithArguments("IMyAsyncDisposable1.DisposeAsync()", "IMyAsyncDisposable2.DisposeAsync()").WithLocation(32, 22),
+                // (32,22): error CS8410: 'T': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                //         await using (new T())
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new T()").WithArguments("T").WithLocation(32, 22),
+                // (32,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
+                //         await using (new T())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(32, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72819")]
+        public void AwaitUsing_08()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+
+interface IMyAsyncDisposable1
+{
+    ValueTask DisposeAsync();
+}
+
+interface IMyAsyncDisposable2
+{
+    ValueTask DisposeAsync();
+}
+
+ref struct S2 : IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable
+{
+    ValueTask IMyAsyncDisposable1.DisposeAsync() => throw null;
+    ValueTask IMyAsyncDisposable2.DisposeAsync() => throw null;
+
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S2>();
+    }
+
+    static async Task Test<T>() where T : IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable, new(), allows ref struct
+    {
+        await using (new T())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            // PROTOTYPE(RefStructInterfaces): The failure is likely unexpected, but is not specific to `allow ref struct` scenario. See https://github.com/dotnet/roslyn/issues/72819. 
+            comp.VerifyDiagnostics(
+                // (36,22): error CS0121: The call is ambiguous between the following methods or properties: 'IMyAsyncDisposable1.DisposeAsync()' and 'IMyAsyncDisposable2.DisposeAsync()'
+                //         await using (new T())
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new T()").WithArguments("IMyAsyncDisposable1.DisposeAsync()", "IMyAsyncDisposable2.DisposeAsync()").WithLocation(36, 22),
+                // (36,22): error CS9104: A using statement resource of type 'T' cannot be used in async methods or async lambda expressions.
+                //         await using (new T())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "new T()").WithArguments("T").WithLocation(36, 22)
+                );
+        }
+
+        [Fact]
+        public void AwaitForeach_IAsyncEnumerableT_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+ref struct S : IAsyncEnumerable<int>
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return Get123();
+    }
+
+    async static IAsyncEnumerator<int> Get123()
+    {
+        await Task.Yield();
+        yield return 123;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+@"
+{
+  // Code size      405 (0x195)
+  .maxstack  3
+  .locals init (int V_0,
+                S V_1,
+                System.Threading.CancellationToken V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter<bool> V_3,
+                System.Threading.Tasks.ValueTask<bool> V_4,
+                object V_5,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_6,
+                System.Threading.Tasks.ValueTask V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_003c
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_0111
+    IL_0011:  ldarg.0
+    IL_0012:  ldloca.s   V_1
+    IL_0014:  dup
+    IL_0015:  initobj    ""S""
+    IL_001b:  ldloca.s   V_2
+    IL_001d:  initobj    ""System.Threading.CancellationToken""
+    IL_0023:  ldloc.2
+    IL_0024:  call       ""System.Collections.Generic.IAsyncEnumerator<int> S.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_0029:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_002e:  ldarg.0
+    IL_002f:  ldnull
+    IL_0030:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_0035:  ldarg.0
+    IL_0036:  ldc.i4.0
+    IL_0037:  stfld      ""int C.<Main>d__0.<>7__wrap3""
+    IL_003c:  nop
+    .try
+    {
+      IL_003d:  ldloc.0
+      IL_003e:  brfalse.s  IL_0093
+      IL_0040:  br.s       IL_0052
+      IL_0042:  ldarg.0
+      IL_0043:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+      IL_0048:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
+      IL_004d:  call       ""void System.Console.Write(int)""
+      IL_0052:  ldarg.0
+      IL_0053:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+      IL_0058:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
+      IL_005d:  stloc.s    V_4
+      IL_005f:  ldloca.s   V_4
+      IL_0061:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> System.Threading.Tasks.ValueTask<bool>.GetAwaiter()""
+      IL_0066:  stloc.3
+      IL_0067:  ldloca.s   V_3
+      IL_0069:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.IsCompleted.get""
+      IL_006e:  brtrue.s   IL_00af
+      IL_0070:  ldarg.0
+      IL_0071:  ldc.i4.0
+      IL_0072:  dup
+      IL_0073:  stloc.0
+      IL_0074:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_0079:  ldarg.0
+      IL_007a:  ldloc.3
+      IL_007b:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_0080:  ldarg.0
+      IL_0081:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_0086:  ldloca.s   V_3
+      IL_0088:  ldarg.0
+      IL_0089:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Main>d__0)""
+      IL_008e:  leave      IL_0194
+      IL_0093:  ldarg.0
+      IL_0094:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_0099:  stloc.3
+      IL_009a:  ldarg.0
+      IL_009b:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00a0:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
+      IL_00a6:  ldarg.0
+      IL_00a7:  ldc.i4.m1
+      IL_00a8:  dup
+      IL_00a9:  stloc.0
+      IL_00aa:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00af:  ldloca.s   V_3
+      IL_00b1:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
+      IL_00b6:  brtrue.s   IL_0042
+      IL_00b8:  leave.s    IL_00c6
+    }
+    catch object
+    {
+      IL_00ba:  stloc.s    V_5
+      IL_00bc:  ldarg.0
+      IL_00bd:  ldloc.s    V_5
+      IL_00bf:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+      IL_00c4:  leave.s    IL_00c6
+    }
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_00cc:  brfalse.s  IL_0135
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_00d4:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_00d9:  stloc.s    V_7
+    IL_00db:  ldloca.s   V_7
+    IL_00dd:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_00e2:  stloc.s    V_6
+    IL_00e4:  ldloca.s   V_6
+    IL_00e6:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_00eb:  brtrue.s   IL_012e
+    IL_00ed:  ldarg.0
+    IL_00ee:  ldc.i4.1
+    IL_00ef:  dup
+    IL_00f0:  stloc.0
+    IL_00f1:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00f6:  ldarg.0
+    IL_00f7:  ldloc.s    V_6
+    IL_00f9:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0104:  ldloca.s   V_6
+    IL_0106:  ldarg.0
+    IL_0107:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_010c:  leave      IL_0194
+    IL_0111:  ldarg.0
+    IL_0112:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0117:  stloc.s    V_6
+    IL_0119:  ldarg.0
+    IL_011a:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_011f:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0125:  ldarg.0
+    IL_0126:  ldc.i4.m1
+    IL_0127:  dup
+    IL_0128:  stloc.0
+    IL_0129:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_012e:  ldloca.s   V_6
+    IL_0130:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0135:  ldarg.0
+    IL_0136:  ldfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_013b:  stloc.s    V_5
+    IL_013d:  ldloc.s    V_5
+    IL_013f:  brfalse.s  IL_0158
+    IL_0141:  ldloc.s    V_5
+    IL_0143:  isinst     ""System.Exception""
+    IL_0148:  dup
+    IL_0149:  brtrue.s   IL_014e
+    IL_014b:  ldloc.s    V_5
+    IL_014d:  throw
+    IL_014e:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_0153:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_0158:  ldarg.0
+    IL_0159:  ldnull
+    IL_015a:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_015f:  ldarg.0
+    IL_0160:  ldnull
+    IL_0161:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_0166:  leave.s    IL_0181
+  }
+  catch System.Exception
+  {
+    IL_0168:  stloc.s    V_8
+    IL_016a:  ldarg.0
+    IL_016b:  ldc.i4.s   -2
+    IL_016d:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0172:  ldarg.0
+    IL_0173:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0178:  ldloc.s    V_8
+    IL_017a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_017f:  leave.s    IL_0194
+  }
+  IL_0181:  ldarg.0
+  IL_0182:  ldc.i4.s   -2
+  IL_0184:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_0189:  ldarg.0
+  IL_018a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_018f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0194:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation ( System.Collections.Generic.IAsyncEnumerator<System.Int32> S.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: token) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'await forea ... }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'new S()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                      Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new S()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                      Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> S.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> S.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal(1, op.Info.GetEnumeratorArguments.Length);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AwaitForeach_IAsyncEnumerableT_02()
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+ref struct S : IAsyncEnumerable<int>
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return Get123();
+    }
+
+    async static IAsyncEnumerator<int> Get123()
+    {
+        await Task.Yield();
+        yield return 123;
+    }
+
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+@"
+{
+  // Code size      405 (0x195)
+  .maxstack  3
+  .locals init (int V_0,
+                S V_1,
+                System.Threading.CancellationToken V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter<bool> V_3,
+                System.Threading.Tasks.ValueTask<bool> V_4,
+                object V_5,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_6,
+                System.Threading.Tasks.ValueTask V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_003c
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_0111
+    IL_0011:  ldarg.0
+    IL_0012:  ldloca.s   V_1
+    IL_0014:  dup
+    IL_0015:  initobj    ""S""
+    IL_001b:  ldloca.s   V_2
+    IL_001d:  initobj    ""System.Threading.CancellationToken""
+    IL_0023:  ldloc.2
+    IL_0024:  call       ""System.Collections.Generic.IAsyncEnumerator<int> S.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_0029:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_002e:  ldarg.0
+    IL_002f:  ldnull
+    IL_0030:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_0035:  ldarg.0
+    IL_0036:  ldc.i4.0
+    IL_0037:  stfld      ""int C.<Main>d__0.<>7__wrap3""
+    IL_003c:  nop
+    .try
+    {
+      IL_003d:  ldloc.0
+      IL_003e:  brfalse.s  IL_0093
+      IL_0040:  br.s       IL_0052
+      IL_0042:  ldarg.0
+      IL_0043:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+      IL_0048:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
+      IL_004d:  call       ""void System.Console.Write(int)""
+      IL_0052:  ldarg.0
+      IL_0053:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+      IL_0058:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
+      IL_005d:  stloc.s    V_4
+      IL_005f:  ldloca.s   V_4
+      IL_0061:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> System.Threading.Tasks.ValueTask<bool>.GetAwaiter()""
+      IL_0066:  stloc.3
+      IL_0067:  ldloca.s   V_3
+      IL_0069:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.IsCompleted.get""
+      IL_006e:  brtrue.s   IL_00af
+      IL_0070:  ldarg.0
+      IL_0071:  ldc.i4.0
+      IL_0072:  dup
+      IL_0073:  stloc.0
+      IL_0074:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_0079:  ldarg.0
+      IL_007a:  ldloc.3
+      IL_007b:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_0080:  ldarg.0
+      IL_0081:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_0086:  ldloca.s   V_3
+      IL_0088:  ldarg.0
+      IL_0089:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Main>d__0)""
+      IL_008e:  leave      IL_0194
+      IL_0093:  ldarg.0
+      IL_0094:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_0099:  stloc.3
+      IL_009a:  ldarg.0
+      IL_009b:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00a0:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
+      IL_00a6:  ldarg.0
+      IL_00a7:  ldc.i4.m1
+      IL_00a8:  dup
+      IL_00a9:  stloc.0
+      IL_00aa:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00af:  ldloca.s   V_3
+      IL_00b1:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
+      IL_00b6:  brtrue.s   IL_0042
+      IL_00b8:  leave.s    IL_00c6
+    }
+    catch object
+    {
+      IL_00ba:  stloc.s    V_5
+      IL_00bc:  ldarg.0
+      IL_00bd:  ldloc.s    V_5
+      IL_00bf:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+      IL_00c4:  leave.s    IL_00c6
+    }
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_00cc:  brfalse.s  IL_0135
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_00d4:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_00d9:  stloc.s    V_7
+    IL_00db:  ldloca.s   V_7
+    IL_00dd:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_00e2:  stloc.s    V_6
+    IL_00e4:  ldloca.s   V_6
+    IL_00e6:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_00eb:  brtrue.s   IL_012e
+    IL_00ed:  ldarg.0
+    IL_00ee:  ldc.i4.1
+    IL_00ef:  dup
+    IL_00f0:  stloc.0
+    IL_00f1:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00f6:  ldarg.0
+    IL_00f7:  ldloc.s    V_6
+    IL_00f9:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0104:  ldloca.s   V_6
+    IL_0106:  ldarg.0
+    IL_0107:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_010c:  leave      IL_0194
+    IL_0111:  ldarg.0
+    IL_0112:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0117:  stloc.s    V_6
+    IL_0119:  ldarg.0
+    IL_011a:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_011f:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0125:  ldarg.0
+    IL_0126:  ldc.i4.m1
+    IL_0127:  dup
+    IL_0128:  stloc.0
+    IL_0129:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_012e:  ldloca.s   V_6
+    IL_0130:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0135:  ldarg.0
+    IL_0136:  ldfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_013b:  stloc.s    V_5
+    IL_013d:  ldloc.s    V_5
+    IL_013f:  brfalse.s  IL_0158
+    IL_0141:  ldloc.s    V_5
+    IL_0143:  isinst     ""System.Exception""
+    IL_0148:  dup
+    IL_0149:  brtrue.s   IL_014e
+    IL_014b:  ldloc.s    V_5
+    IL_014d:  throw
+    IL_014e:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_0153:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_0158:  ldarg.0
+    IL_0159:  ldnull
+    IL_015a:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_015f:  ldarg.0
+    IL_0160:  ldnull
+    IL_0161:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_0166:  leave.s    IL_0181
+  }
+  catch System.Exception
+  {
+    IL_0168:  stloc.s    V_8
+    IL_016a:  ldarg.0
+    IL_016b:  ldc.i4.s   -2
+    IL_016d:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0172:  ldarg.0
+    IL_0173:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_0178:  ldloc.s    V_8
+    IL_017a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_017f:  leave.s    IL_0194
+  }
+  IL_0181:  ldarg.0
+  IL_0182:  ldc.i4.s   -2
+  IL_0184:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_0189:  ldarg.0
+  IL_018a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_018f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0194:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation ( System.Collections.Generic.IAsyncEnumerator<System.Int32> S.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: token) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'await forea ... }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'new S()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                      Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new S()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                      Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> S.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> S.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal(1, op.Info.GetEnumeratorArguments.Length);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AwaitForeach_IAsyncEnumerableT_03()
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+ref struct S : IAsyncEnumerable<int>
+{
+    async static IAsyncEnumerator<int> Get123()
+    {
+        await Task.Yield();
+        yield return 123;
+    }
+
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => Get123();
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+@"
+{
+  // Code size      411 (0x19b)
+  .maxstack  3
+  .locals init (int V_0,
+                S V_1,
+                System.Threading.CancellationToken V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter<bool> V_3,
+                System.Threading.Tasks.ValueTask<bool> V_4,
+                object V_5,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_6,
+                System.Threading.Tasks.ValueTask V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0042
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_0117
+    IL_0011:  ldarg.0
+    IL_0012:  ldloca.s   V_1
+    IL_0014:  dup
+    IL_0015:  initobj    ""S""
+    IL_001b:  ldloca.s   V_2
+    IL_001d:  initobj    ""System.Threading.CancellationToken""
+    IL_0023:  ldloc.2
+    IL_0024:  constrained. ""S""
+    IL_002a:  callvirt   ""System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_002f:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_0034:  ldarg.0
+    IL_0035:  ldnull
+    IL_0036:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_003b:  ldarg.0
+    IL_003c:  ldc.i4.0
+    IL_003d:  stfld      ""int C.<Main>d__0.<>7__wrap3""
+    IL_0042:  nop
+    .try
+    {
+      IL_0043:  ldloc.0
+      IL_0044:  brfalse.s  IL_0099
+      IL_0046:  br.s       IL_0058
+      IL_0048:  ldarg.0
+      IL_0049:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+      IL_004e:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
+      IL_0053:  call       ""void System.Console.Write(int)""
+      IL_0058:  ldarg.0
+      IL_0059:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+      IL_005e:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
+      IL_0063:  stloc.s    V_4
+      IL_0065:  ldloca.s   V_4
+      IL_0067:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> System.Threading.Tasks.ValueTask<bool>.GetAwaiter()""
+      IL_006c:  stloc.3
+      IL_006d:  ldloca.s   V_3
+      IL_006f:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.IsCompleted.get""
+      IL_0074:  brtrue.s   IL_00b5
+      IL_0076:  ldarg.0
+      IL_0077:  ldc.i4.0
+      IL_0078:  dup
+      IL_0079:  stloc.0
+      IL_007a:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_007f:  ldarg.0
+      IL_0080:  ldloc.3
+      IL_0081:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_0086:  ldarg.0
+      IL_0087:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_008c:  ldloca.s   V_3
+      IL_008e:  ldarg.0
+      IL_008f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Main>d__0)""
+      IL_0094:  leave      IL_019a
+      IL_0099:  ldarg.0
+      IL_009a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_009f:  stloc.3
+      IL_00a0:  ldarg.0
+      IL_00a1:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00a6:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
+      IL_00ac:  ldarg.0
+      IL_00ad:  ldc.i4.m1
+      IL_00ae:  dup
+      IL_00af:  stloc.0
+      IL_00b0:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00b5:  ldloca.s   V_3
+      IL_00b7:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
+      IL_00bc:  brtrue.s   IL_0048
+      IL_00be:  leave.s    IL_00cc
+    }
+    catch object
+    {
+      IL_00c0:  stloc.s    V_5
+      IL_00c2:  ldarg.0
+      IL_00c3:  ldloc.s    V_5
+      IL_00c5:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+      IL_00ca:  leave.s    IL_00cc
+    }
+    IL_00cc:  ldarg.0
+    IL_00cd:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_00d2:  brfalse.s  IL_013b
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_00da:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_00df:  stloc.s    V_7
+    IL_00e1:  ldloca.s   V_7
+    IL_00e3:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_00e8:  stloc.s    V_6
+    IL_00ea:  ldloca.s   V_6
+    IL_00ec:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_00f1:  brtrue.s   IL_0134
+    IL_00f3:  ldarg.0
+    IL_00f4:  ldc.i4.1
+    IL_00f5:  dup
+    IL_00f6:  stloc.0
+    IL_00f7:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldloc.s    V_6
+    IL_00ff:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0104:  ldarg.0
+    IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_010a:  ldloca.s   V_6
+    IL_010c:  ldarg.0
+    IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_0112:  leave      IL_019a
+    IL_0117:  ldarg.0
+    IL_0118:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_011d:  stloc.s    V_6
+    IL_011f:  ldarg.0
+    IL_0120:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0125:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_012b:  ldarg.0
+    IL_012c:  ldc.i4.m1
+    IL_012d:  dup
+    IL_012e:  stloc.0
+    IL_012f:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0134:  ldloca.s   V_6
+    IL_0136:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_013b:  ldarg.0
+    IL_013c:  ldfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_0141:  stloc.s    V_5
+    IL_0143:  ldloc.s    V_5
+    IL_0145:  brfalse.s  IL_015e
+    IL_0147:  ldloc.s    V_5
+    IL_0149:  isinst     ""System.Exception""
+    IL_014e:  dup
+    IL_014f:  brtrue.s   IL_0154
+    IL_0151:  ldloc.s    V_5
+    IL_0153:  throw
+    IL_0154:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_0159:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_015e:  ldarg.0
+    IL_015f:  ldnull
+    IL_0160:  stfld      ""object C.<Main>d__0.<>7__wrap2""
+    IL_0165:  ldarg.0
+    IL_0166:  ldnull
+    IL_0167:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>7__wrap1""
+    IL_016c:  leave.s    IL_0187
+  }
+  catch System.Exception
+  {
+    IL_016e:  stloc.s    V_8
+    IL_0170:  ldarg.0
+    IL_0171:  ldc.i4.s   -2
+    IL_0173:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0178:  ldarg.0
+    IL_0179:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_017e:  ldloc.s    V_8
+    IL_0180:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0185:  leave.s    IL_019a
+  }
+  IL_0187:  ldarg.0
+  IL_0188:  ldc.i4.s   -2
+  IL_018a:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_018f:  ldarg.0
+  IL_0190:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_0195:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_019a:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: cancellationToken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new S()')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'new S()')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'new S()')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                      Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new S()')
+                      Instance Receiver:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'new S()')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'new S()')
+                      Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal(1, op.Info.GetEnumeratorArguments.Length);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerableT_04(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+ref struct S : IAsyncEnumerable<int>
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return Get123();
+    }
+
+    async static IAsyncEnumerator<int> Get123()
+    {
+        await Task.Yield();
+        yield return 123;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S>();
+    }
+
+    static async Task Test<T>() where T : " + (addStructConstraint ? "struct, " : "") + @"IAsyncEnumerable<int>, allows ref struct
+    {
+        await foreach (var i in default(T))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+@"
+{
+  // Code size      411 (0x19b)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1,
+                System.Threading.CancellationToken V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter<bool> V_3,
+                System.Threading.Tasks.ValueTask<bool> V_4,
+                object V_5,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_6,
+                System.Threading.Tasks.ValueTask V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0042
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_0117
+    IL_0011:  ldarg.0
+    IL_0012:  ldloca.s   V_1
+    IL_0014:  dup
+    IL_0015:  initobj    ""T""
+    IL_001b:  ldloca.s   V_2
+    IL_001d:  initobj    ""System.Threading.CancellationToken""
+    IL_0023:  ldloc.2
+    IL_0024:  constrained. ""T""
+    IL_002a:  callvirt   ""System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_002f:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_0034:  ldarg.0
+    IL_0035:  ldnull
+    IL_0036:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_003b:  ldarg.0
+    IL_003c:  ldc.i4.0
+    IL_003d:  stfld      ""int C.<Test>d__1<T>.<>7__wrap3""
+    IL_0042:  nop
+    .try
+    {
+      IL_0043:  ldloc.0
+      IL_0044:  brfalse.s  IL_0099
+      IL_0046:  br.s       IL_0058
+      IL_0048:  ldarg.0
+      IL_0049:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+      IL_004e:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
+      IL_0053:  call       ""void System.Console.Write(int)""
+      IL_0058:  ldarg.0
+      IL_0059:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+      IL_005e:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
+      IL_0063:  stloc.s    V_4
+      IL_0065:  ldloca.s   V_4
+      IL_0067:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> System.Threading.Tasks.ValueTask<bool>.GetAwaiter()""
+      IL_006c:  stloc.3
+      IL_006d:  ldloca.s   V_3
+      IL_006f:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.IsCompleted.get""
+      IL_0074:  brtrue.s   IL_00b5
+      IL_0076:  ldarg.0
+      IL_0077:  ldc.i4.0
+      IL_0078:  dup
+      IL_0079:  stloc.0
+      IL_007a:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+      IL_007f:  ldarg.0
+      IL_0080:  ldloc.3
+      IL_0081:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_0086:  ldarg.0
+      IL_0087:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+      IL_008c:  ldloca.s   V_3
+      IL_008e:  ldarg.0
+      IL_008f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Test>d__1<T>)""
+      IL_0094:  leave      IL_019a
+      IL_0099:  ldarg.0
+      IL_009a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_009f:  stloc.3
+      IL_00a0:  ldarg.0
+      IL_00a1:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_00a6:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
+      IL_00ac:  ldarg.0
+      IL_00ad:  ldc.i4.m1
+      IL_00ae:  dup
+      IL_00af:  stloc.0
+      IL_00b0:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+      IL_00b5:  ldloca.s   V_3
+      IL_00b7:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
+      IL_00bc:  brtrue.s   IL_0048
+      IL_00be:  leave.s    IL_00cc
+    }
+    catch object
+    {
+      IL_00c0:  stloc.s    V_5
+      IL_00c2:  ldarg.0
+      IL_00c3:  ldloc.s    V_5
+      IL_00c5:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+      IL_00ca:  leave.s    IL_00cc
+    }
+    IL_00cc:  ldarg.0
+    IL_00cd:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_00d2:  brfalse.s  IL_013b
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_00da:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_00df:  stloc.s    V_7
+    IL_00e1:  ldloca.s   V_7
+    IL_00e3:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_00e8:  stloc.s    V_6
+    IL_00ea:  ldloca.s   V_6
+    IL_00ec:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_00f1:  brtrue.s   IL_0134
+    IL_00f3:  ldarg.0
+    IL_00f4:  ldc.i4.1
+    IL_00f5:  dup
+    IL_00f6:  stloc.0
+    IL_00f7:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldloc.s    V_6
+    IL_00ff:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_0104:  ldarg.0
+    IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_010a:  ldloca.s   V_6
+    IL_010c:  ldarg.0
+    IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Test>d__1<T>)""
+    IL_0112:  leave      IL_019a
+    IL_0117:  ldarg.0
+    IL_0118:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_011d:  stloc.s    V_6
+    IL_011f:  ldarg.0
+    IL_0120:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_0125:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_012b:  ldarg.0
+    IL_012c:  ldc.i4.m1
+    IL_012d:  dup
+    IL_012e:  stloc.0
+    IL_012f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0134:  ldloca.s   V_6
+    IL_0136:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_013b:  ldarg.0
+    IL_013c:  ldfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_0141:  stloc.s    V_5
+    IL_0143:  ldloc.s    V_5
+    IL_0145:  brfalse.s  IL_015e
+    IL_0147:  ldloc.s    V_5
+    IL_0149:  isinst     ""System.Exception""
+    IL_014e:  dup
+    IL_014f:  brtrue.s   IL_0154
+    IL_0151:  ldloc.s    V_5
+    IL_0153:  throw
+    IL_0154:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_0159:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_015e:  ldarg.0
+    IL_015f:  ldnull
+    IL_0160:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_0165:  ldarg.0
+    IL_0166:  ldnull
+    IL_0167:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_016c:  leave.s    IL_0187
+  }
+  catch System.Exception
+  {
+    IL_016e:  stloc.s    V_8
+    IL_0170:  ldarg.0
+    IL_0171:  ldc.i4.s   -2
+    IL_0173:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0178:  ldarg.0
+    IL_0179:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_017e:  ldloc.s    V_8
+    IL_0180:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0185:  leave.s    IL_019a
+  }
+  IL_0187:  ldarg.0
+  IL_0188:  ldc.i4.s   -2
+  IL_018a:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_018f:  ldarg.0
+  IL_0190:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+  IL_0195:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_019a:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'default(T)')
+              Value:
+                IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 'default(T)')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: T) (Syntax: 'default(T)')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: cancellationToken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'await forea ... }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'default(T)')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                      Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'default(T)')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'default(T)')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'default(T)')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                      Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal(1, op.Info.GetEnumeratorArguments.Length);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerableT_05(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface IMyAsyncEnumerable<T>
+{
+    IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken cancellationToken = default);
+}
+
+ref struct S : IMyAsyncEnumerable<int>
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return Get123();
+    }
+
+    async static IAsyncEnumerator<int> Get123()
+    {
+        await Task.Yield();
+        yield return 123;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S>();
+    }
+
+    static async Task Test<T>() where T : " + (addStructConstraint ? "struct, " : "") + @"IMyAsyncEnumerable<int>, allows ref struct
+    {
+        await foreach (var i in default(T))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+@"
+{
+  // Code size      411 (0x19b)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1,
+                System.Threading.CancellationToken V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter<bool> V_3,
+                System.Threading.Tasks.ValueTask<bool> V_4,
+                object V_5,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_6,
+                System.Threading.Tasks.ValueTask V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0042
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_0117
+    IL_0011:  ldarg.0
+    IL_0012:  ldloca.s   V_1
+    IL_0014:  dup
+    IL_0015:  initobj    ""T""
+    IL_001b:  ldloca.s   V_2
+    IL_001d:  initobj    ""System.Threading.CancellationToken""
+    IL_0023:  ldloc.2
+    IL_0024:  constrained. ""T""
+    IL_002a:  callvirt   ""System.Collections.Generic.IAsyncEnumerator<int> IMyAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_002f:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_0034:  ldarg.0
+    IL_0035:  ldnull
+    IL_0036:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_003b:  ldarg.0
+    IL_003c:  ldc.i4.0
+    IL_003d:  stfld      ""int C.<Test>d__1<T>.<>7__wrap3""
+    IL_0042:  nop
+    .try
+    {
+      IL_0043:  ldloc.0
+      IL_0044:  brfalse.s  IL_0099
+      IL_0046:  br.s       IL_0058
+      IL_0048:  ldarg.0
+      IL_0049:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+      IL_004e:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
+      IL_0053:  call       ""void System.Console.Write(int)""
+      IL_0058:  ldarg.0
+      IL_0059:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+      IL_005e:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
+      IL_0063:  stloc.s    V_4
+      IL_0065:  ldloca.s   V_4
+      IL_0067:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> System.Threading.Tasks.ValueTask<bool>.GetAwaiter()""
+      IL_006c:  stloc.3
+      IL_006d:  ldloca.s   V_3
+      IL_006f:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.IsCompleted.get""
+      IL_0074:  brtrue.s   IL_00b5
+      IL_0076:  ldarg.0
+      IL_0077:  ldc.i4.0
+      IL_0078:  dup
+      IL_0079:  stloc.0
+      IL_007a:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+      IL_007f:  ldarg.0
+      IL_0080:  ldloc.3
+      IL_0081:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_0086:  ldarg.0
+      IL_0087:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+      IL_008c:  ldloca.s   V_3
+      IL_008e:  ldarg.0
+      IL_008f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Test>d__1<T>)""
+      IL_0094:  leave      IL_019a
+      IL_0099:  ldarg.0
+      IL_009a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_009f:  stloc.3
+      IL_00a0:  ldarg.0
+      IL_00a1:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_00a6:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
+      IL_00ac:  ldarg.0
+      IL_00ad:  ldc.i4.m1
+      IL_00ae:  dup
+      IL_00af:  stloc.0
+      IL_00b0:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+      IL_00b5:  ldloca.s   V_3
+      IL_00b7:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
+      IL_00bc:  brtrue.s   IL_0048
+      IL_00be:  leave.s    IL_00cc
+    }
+    catch object
+    {
+      IL_00c0:  stloc.s    V_5
+      IL_00c2:  ldarg.0
+      IL_00c3:  ldloc.s    V_5
+      IL_00c5:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+      IL_00ca:  leave.s    IL_00cc
+    }
+    IL_00cc:  ldarg.0
+    IL_00cd:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_00d2:  brfalse.s  IL_013b
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_00da:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_00df:  stloc.s    V_7
+    IL_00e1:  ldloca.s   V_7
+    IL_00e3:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_00e8:  stloc.s    V_6
+    IL_00ea:  ldloca.s   V_6
+    IL_00ec:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_00f1:  brtrue.s   IL_0134
+    IL_00f3:  ldarg.0
+    IL_00f4:  ldc.i4.1
+    IL_00f5:  dup
+    IL_00f6:  stloc.0
+    IL_00f7:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldloc.s    V_6
+    IL_00ff:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_0104:  ldarg.0
+    IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_010a:  ldloca.s   V_6
+    IL_010c:  ldarg.0
+    IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Test>d__1<T>)""
+    IL_0112:  leave      IL_019a
+    IL_0117:  ldarg.0
+    IL_0118:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_011d:  stloc.s    V_6
+    IL_011f:  ldarg.0
+    IL_0120:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_0125:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_012b:  ldarg.0
+    IL_012c:  ldc.i4.m1
+    IL_012d:  dup
+    IL_012e:  stloc.0
+    IL_012f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0134:  ldloca.s   V_6
+    IL_0136:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_013b:  ldarg.0
+    IL_013c:  ldfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_0141:  stloc.s    V_5
+    IL_0143:  ldloc.s    V_5
+    IL_0145:  brfalse.s  IL_015e
+    IL_0147:  ldloc.s    V_5
+    IL_0149:  isinst     ""System.Exception""
+    IL_014e:  dup
+    IL_014f:  brtrue.s   IL_0154
+    IL_0151:  ldloc.s    V_5
+    IL_0153:  throw
+    IL_0154:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_0159:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_015e:  ldarg.0
+    IL_015f:  ldnull
+    IL_0160:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_0165:  ldarg.0
+    IL_0166:  ldnull
+    IL_0167:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_016c:  leave.s    IL_0187
+  }
+  catch System.Exception
+  {
+    IL_016e:  stloc.s    V_8
+    IL_0170:  ldarg.0
+    IL_0171:  ldc.i4.s   -2
+    IL_0173:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0178:  ldarg.0
+    IL_0179:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_017e:  ldloc.s    V_8
+    IL_0180:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0185:  leave.s    IL_019a
+  }
+  IL_0187:  ldarg.0
+  IL_0188:  ldc.i4.s   -2
+  IL_018a:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_018f:  ldarg.0
+  IL_0190:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+  IL_0195:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_019a:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'default(T)')
+              Value:
+                IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.Int32> IMyAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 'default(T)')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: T) (Syntax: 'default(T)')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: cancellationToken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'await forea ... }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'default(T)')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                      Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'default(T)')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'default(T)')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'default(T)')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                      Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> IMyAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> IMyAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal(1, op.Info.GetEnumeratorArguments.Length);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerableT_06(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface IMyAsyncEnumerable1<T>
+{
+    IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken cancellationToken = default);
+}
+
+interface IMyAsyncEnumerable2<T>
+{
+    IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken cancellationToken = default);
+}
+
+ref struct S : IMyAsyncEnumerable1<int>, IMyAsyncEnumerable2<int>
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return Get123();
+    }
+
+    async static IAsyncEnumerator<int> Get123()
+    {
+        await Task.Yield();
+        yield return 123;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S>();
+    }
+
+    static async Task Test<T>() where T : " + (addStructConstraint ? "struct, " : "") + @"IMyAsyncEnumerable1<int>, IMyAsyncEnumerable2<int>, allows ref struct
+    {
+        await foreach (var i in default(T))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (39,33): warning CS0278: 'T' does not implement the 'collection' pattern. 'IMyAsyncEnumerable1<int>.GetAsyncEnumerator(CancellationToken)' is ambiguous with 'IMyAsyncEnumerable2<int>.GetAsyncEnumerator(CancellationToken)'.
+                //         await foreach (var i in default(T))
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "default(T)").WithArguments("T", "collection", "IMyAsyncEnumerable1<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", "IMyAsyncEnumerable2<int>.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(39, 33),
+                // (39,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'T' because 'T' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in default(T))
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "default(T)").WithArguments("T", "GetAsyncEnumerator").WithLocation(39, 33)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            Assert.Null(info.GetEnumeratorMethod);
+            Assert.Null(info.ElementType);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.Null(op.Info);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerableT_07(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface IMyAsyncEnumerable1<T>
+{
+    IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken cancellationToken = default);
+}
+
+interface IMyAsyncEnumerable2<T>
+{
+    IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken cancellationToken = default);
+}
+
+ref struct S : IMyAsyncEnumerable1<int>, IMyAsyncEnumerable2<int>, IAsyncEnumerable<int>
+{
+    IAsyncEnumerator<int> IMyAsyncEnumerable1<int>.GetAsyncEnumerator(CancellationToken token) => throw null;
+    IAsyncEnumerator<int> IMyAsyncEnumerable2<int>.GetAsyncEnumerator(CancellationToken token) => throw null;
+
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return Get123();
+    }
+
+    async static IAsyncEnumerator<int> Get123()
+    {
+        await Task.Yield();
+        yield return 123;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S>();
+    }
+
+    static async Task Test<T>() where T : " + (addStructConstraint ? "struct, " : "") + @"IMyAsyncEnumerable1<int>, IMyAsyncEnumerable2<int>, IAsyncEnumerable<int>, allows ref struct
+    {
+        await foreach (var i in default(T))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics(
+                // (42,33): warning CS0278: 'T' does not implement the 'collection' pattern. 'IMyAsyncEnumerable1<int>.GetAsyncEnumerator(CancellationToken)' is ambiguous with 'IMyAsyncEnumerable2<int>.GetAsyncEnumerator(CancellationToken)'.
+                //         await foreach (var i in default(T))
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "default(T)").WithArguments("T", "collection", "IMyAsyncEnumerable1<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", "IMyAsyncEnumerable2<int>.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(42, 33)
+                );
+
+            verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+@"
+{
+  // Code size      411 (0x19b)
+  .maxstack  3
+  .locals init (int V_0,
+                T V_1,
+                System.Threading.CancellationToken V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter<bool> V_3,
+                System.Threading.Tasks.ValueTask<bool> V_4,
+                object V_5,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_6,
+                System.Threading.Tasks.ValueTask V_7,
+                System.Exception V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0042
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_0117
+    IL_0011:  ldarg.0
+    IL_0012:  ldloca.s   V_1
+    IL_0014:  dup
+    IL_0015:  initobj    ""T""
+    IL_001b:  ldloca.s   V_2
+    IL_001d:  initobj    ""System.Threading.CancellationToken""
+    IL_0023:  ldloc.2
+    IL_0024:  constrained. ""T""
+    IL_002a:  callvirt   ""System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_002f:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_0034:  ldarg.0
+    IL_0035:  ldnull
+    IL_0036:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_003b:  ldarg.0
+    IL_003c:  ldc.i4.0
+    IL_003d:  stfld      ""int C.<Test>d__1<T>.<>7__wrap3""
+    IL_0042:  nop
+    .try
+    {
+      IL_0043:  ldloc.0
+      IL_0044:  brfalse.s  IL_0099
+      IL_0046:  br.s       IL_0058
+      IL_0048:  ldarg.0
+      IL_0049:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+      IL_004e:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
+      IL_0053:  call       ""void System.Console.Write(int)""
+      IL_0058:  ldarg.0
+      IL_0059:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+      IL_005e:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
+      IL_0063:  stloc.s    V_4
+      IL_0065:  ldloca.s   V_4
+      IL_0067:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> System.Threading.Tasks.ValueTask<bool>.GetAwaiter()""
+      IL_006c:  stloc.3
+      IL_006d:  ldloca.s   V_3
+      IL_006f:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.IsCompleted.get""
+      IL_0074:  brtrue.s   IL_00b5
+      IL_0076:  ldarg.0
+      IL_0077:  ldc.i4.0
+      IL_0078:  dup
+      IL_0079:  stloc.0
+      IL_007a:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+      IL_007f:  ldarg.0
+      IL_0080:  ldloc.3
+      IL_0081:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_0086:  ldarg.0
+      IL_0087:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+      IL_008c:  ldloca.s   V_3
+      IL_008e:  ldarg.0
+      IL_008f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Test>d__1<T>)""
+      IL_0094:  leave      IL_019a
+      IL_0099:  ldarg.0
+      IL_009a:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_009f:  stloc.3
+      IL_00a0:  ldarg.0
+      IL_00a1:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Test>d__1<T>.<>u__1""
+      IL_00a6:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
+      IL_00ac:  ldarg.0
+      IL_00ad:  ldc.i4.m1
+      IL_00ae:  dup
+      IL_00af:  stloc.0
+      IL_00b0:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+      IL_00b5:  ldloca.s   V_3
+      IL_00b7:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
+      IL_00bc:  brtrue.s   IL_0048
+      IL_00be:  leave.s    IL_00cc
+    }
+    catch object
+    {
+      IL_00c0:  stloc.s    V_5
+      IL_00c2:  ldarg.0
+      IL_00c3:  ldloc.s    V_5
+      IL_00c5:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+      IL_00ca:  leave.s    IL_00cc
+    }
+    IL_00cc:  ldarg.0
+    IL_00cd:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_00d2:  brfalse.s  IL_013b
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_00da:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_00df:  stloc.s    V_7
+    IL_00e1:  ldloca.s   V_7
+    IL_00e3:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_00e8:  stloc.s    V_6
+    IL_00ea:  ldloca.s   V_6
+    IL_00ec:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_00f1:  brtrue.s   IL_0134
+    IL_00f3:  ldarg.0
+    IL_00f4:  ldc.i4.1
+    IL_00f5:  dup
+    IL_00f6:  stloc.0
+    IL_00f7:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldloc.s    V_6
+    IL_00ff:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_0104:  ldarg.0
+    IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_010a:  ldloca.s   V_6
+    IL_010c:  ldarg.0
+    IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Test>d__1<T>)""
+    IL_0112:  leave      IL_019a
+    IL_0117:  ldarg.0
+    IL_0118:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_011d:  stloc.s    V_6
+    IL_011f:  ldarg.0
+    IL_0120:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Test>d__1<T>.<>u__2""
+    IL_0125:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_012b:  ldarg.0
+    IL_012c:  ldc.i4.m1
+    IL_012d:  dup
+    IL_012e:  stloc.0
+    IL_012f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0134:  ldloca.s   V_6
+    IL_0136:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_013b:  ldarg.0
+    IL_013c:  ldfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_0141:  stloc.s    V_5
+    IL_0143:  ldloc.s    V_5
+    IL_0145:  brfalse.s  IL_015e
+    IL_0147:  ldloc.s    V_5
+    IL_0149:  isinst     ""System.Exception""
+    IL_014e:  dup
+    IL_014f:  brtrue.s   IL_0154
+    IL_0151:  ldloc.s    V_5
+    IL_0153:  throw
+    IL_0154:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_0159:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_015e:  ldarg.0
+    IL_015f:  ldnull
+    IL_0160:  stfld      ""object C.<Test>d__1<T>.<>7__wrap2""
+    IL_0165:  ldarg.0
+    IL_0166:  ldnull
+    IL_0167:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Test>d__1<T>.<>7__wrap1""
+    IL_016c:  leave.s    IL_0187
+  }
+  catch System.Exception
+  {
+    IL_016e:  stloc.s    V_8
+    IL_0170:  ldarg.0
+    IL_0171:  ldc.i4.s   -2
+    IL_0173:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+    IL_0178:  ldarg.0
+    IL_0179:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+    IL_017e:  ldloc.s    V_8
+    IL_0180:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0185:  leave.s    IL_019a
+  }
+  IL_0187:  ldarg.0
+  IL_0188:  ldc.i4.s   -2
+  IL_018a:  stfld      ""int C.<Test>d__1<T>.<>1__state""
+  IL_018f:  ldarg.0
+  IL_0190:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Test>d__1<T>.<>t__builder""
+  IL_0195:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_019a:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'default(T)')
+              Value:
+                IInvocationOperation (virtual System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])) (OperationKind.Invocation, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 'default(T)')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: T) (Syntax: 'default(T)')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: cancellationToken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'default(T)')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'default(T)')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IAwaitOperation (OperationKind.Await, Type: System.Boolean, IsImplicit) (Syntax: 'await forea ... }')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask<System.Boolean>, IsImplicit) (Syntax: 'default(T)')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                      Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Int32 i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'default(T)')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'default(T)')
+                  Expression:
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'default(T)')
+                      Instance Receiver:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'default(T)')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.Int32>, IsImplicit) (Syntax: 'default(T)')
+                      Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)])", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal(1, op.Info.GetEnumeratorArguments.Length);
+            AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AwaitForeach_Pattern()
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+ref struct S
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return Get123();
+    }
+
+    async static IAsyncEnumerator<int> Get123()
+    {
+        await Task.Yield();
+        yield return 123;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerator_01(bool s1IsRefStruct)
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IAsyncEnumerator<int>
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in new S1())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerator_03(bool s1IsRefStruct)
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IAsyncEnumerator<int>
+{
+    public int Current => throw null;
+    public ValueTask<bool> MoveNextAsync() => throw null;
+
+    int IAsyncEnumerator<int>.Current => throw null;
+
+    ValueTask System.IAsyncDisposable.DisposeAsync() => throw null;
+
+    ValueTask<bool> IAsyncEnumerator<int>.MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (30,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in new S1())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(30, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerator_05(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IAsyncEnumerator<int>, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IAsyncEnumerator<int>
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"IAsyncEnumerator<int>, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (39,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(39, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerator_07(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System.Threading;
+using System.Threading.Tasks;
+
+interface IMyAsyncEnumerator<T>
+{
+    T Current {get;}
+
+    ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IMyAsyncEnumerator<int>, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IMyAsyncEnumerator<int>
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"IMyAsyncEnumerator<int>, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (45,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(45, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerator_08(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System.Threading;
+using System.Threading.Tasks;
+
+interface IMyAsyncEnumerator1<T>
+{
+    T Current {get;}
+
+    ValueTask<bool> MoveNextAsync();
+}
+
+interface IMyAsyncEnumerator2<T>
+{
+    T Current {get;}
+
+    ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IMyAsyncEnumerator1<int>, IMyAsyncEnumerator2<int>, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IMyAsyncEnumerator1<int>, IMyAsyncEnumerator2<int> 
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"IMyAsyncEnumerator1<int>, IMyAsyncEnumerator2<int>, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (52,33): error CS8412: Asynchronous foreach requires that the return type 'TEnumerator' of 'IGetEnumerator<TEnumerator>.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "default(TEnumerable)").WithArguments("TEnumerator", "IGetEnumerator<TEnumerator>.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(52, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncEnumerator_09(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface IMyAsyncEnumerator1<T>
+{
+    T Current {get;}
+
+    ValueTask<bool> MoveNextAsync();
+}
+
+interface IMyAsyncEnumerator2<T>
+{
+    T Current {get;}
+
+    ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IMyAsyncEnumerator1<int>, IMyAsyncEnumerator2<int>, IAsyncEnumerator<int>, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IMyAsyncEnumerator1<int>, IMyAsyncEnumerator2<int>, IAsyncEnumerator<int> 
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"IMyAsyncEnumerator1<int>, IMyAsyncEnumerator2<int>, IAsyncEnumerator<int>, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (53,33): error CS8412: Asynchronous foreach requires that the return type 'TEnumerator' of 'IGetEnumerator<TEnumerator>.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "default(TEnumerable)").WithArguments("TEnumerator", "IGetEnumerator<TEnumerator>.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(53, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncDisposable_01(bool s1IsRefStruct)
+        {
+            var src = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IAsyncDisposable
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in new S1())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask S2.DisposeAsync()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask S2.DisposeAsync()", op.Info.PatternDisposeMethod.ToTestDisplayString());
+            Assert.True(op.Info.DisposeArguments.IsEmpty);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncDisposable_02(bool s1IsRefStruct)
+        {
+            var src = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IAsyncDisposable
+{
+    public int Current => throw null;
+
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null;
+    public ValueTask DisposeAsync() => throw null;
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in new S1())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask S2.DisposeAsync()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask S2.DisposeAsync()", op.Info.PatternDisposeMethod.ToTestDisplayString());
+            Assert.True(op.Info.DisposeArguments.IsEmpty);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncDisposable_03(bool s1IsRefStruct)
+        {
+            var src = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IAsyncDisposable
+{
+    public int Current => throw null;
+
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in new S1())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncDisposable_04(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface ICustomEnumerator
+{
+    public int Current {get;}
+
+    public ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : ICustomEnumerator, IAsyncDisposable
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"ICustomEnumerator, IAsyncDisposable, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (46,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(46, 15)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()", op.Info.PatternDisposeMethod.ToTestDisplayString());
+            Assert.True(op.Info.DisposeArguments.IsEmpty);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncDisposable_06(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System.Threading;
+using System.Threading.Tasks;
+
+interface ICustomEnumerator
+{
+    public int Current {get;}
+
+    public ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+interface IMyAsyncDisposable
+{
+    ValueTask DisposeAsync();
+}
+
+ref struct S2 : ICustomEnumerator, IMyAsyncDisposable
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"ICustomEnumerator, IMyAsyncDisposable, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (50,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(50, 15)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask IMyAsyncDisposable.DisposeAsync()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.False(op.Info.KnownToImplementIDisposable);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask IMyAsyncDisposable.DisposeAsync()", op.Info.PatternDisposeMethod.ToTestDisplayString());
+            Assert.True(op.Info.DisposeArguments.IsEmpty);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncDisposable_07(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System.Threading;
+using System.Threading.Tasks;
+
+interface ICustomEnumerator
+{
+    public int Current {get;}
+
+    public ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+interface IMyAsyncDisposable1
+{
+    ValueTask DisposeAsync();
+}
+
+interface IMyAsyncDisposable2
+{
+    ValueTask DisposeAsync();
+}
+
+ref struct S2 : ICustomEnumerator, IMyAsyncDisposable1, IMyAsyncDisposable2
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"ICustomEnumerator, IMyAsyncDisposable1, IMyAsyncDisposable2, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (55,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(55, 15)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            Assert.False(op.Info.NeedsDispose);
+            Assert.False(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncDisposable_08(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface ICustomEnumerator
+{
+    public int Current {get;}
+
+    public ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+interface IMyAsyncDisposable1
+{
+    ValueTask DisposeAsync();
+}
+
+interface IMyAsyncDisposable2
+{
+    ValueTask DisposeAsync();
+}
+
+ref struct S2 : ICustomEnumerator, IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable
+{
+    ValueTask IMyAsyncDisposable1.DisposeAsync() => throw null;
+    ValueTask IMyAsyncDisposable2.DisposeAsync() => throw null;
+
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"ICustomEnumerator, IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (59,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(59, 15)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            AssertEx.Equal("System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AwaitForeach_IAsyncDisposable_09(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+interface ICustomEnumerator
+{
+    public int Current {get;}
+
+    public ValueTask<bool> MoveNextAsync();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : ICustomEnumerator, allows ref struct 
+{
+    TEnumerator GetAsyncEnumerator(CancellationToken token = default);
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetAsyncEnumerator(CancellationToken token = default)
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : ICustomEnumerator, IAsyncDisposable
+{
+    public int Current => throw null;
+
+    public ValueTask DisposeAsync() => throw null;
+
+    public ValueTask<bool> MoveNextAsync() => throw null;
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S1, S2>();
+    }
+
+    static async Task Test<TEnumerable, TEnumerator>()
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"ICustomEnumerator, allows ref struct 
+    {
+        await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (46,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                //         await foreach (var i in default(TEnumerable))
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(46, 15)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.True(op.Info.IsAsynchronous);
+            Assert.False(op.Info.NeedsDispose);
+            Assert.False(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Fact]
+        public void Foreach_IEnumerable_01()
+        {
+            var src = @"
+using System.Collections;
+
+ref struct S : IEnumerable
+{
+    public IEnumerator GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator Get123()
+    {
+        yield return 123;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (System.Collections.IEnumerator V_0,
+                S V_1,
+                System.IDisposable V_2)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S""
+  IL_0009:  call       ""System.Collections.IEnumerator S.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001c
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0017:  call       ""void System.Console.Write(object)""
+    IL_001c:  ldloc.0
+    IL_001d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0022:  brtrue.s   IL_0011
+    IL_0024:  leave.s    IL_0037
+  }
+  finally
+  {
+    IL_0026:  ldloc.0
+    IL_0027:  isinst     ""System.IDisposable""
+    IL_002c:  stloc.2
+    IL_002d:  ldloc.2
+    IL_002e:  brfalse.s  IL_0036
+    IL_0030:  ldloc.2
+    IL_0031:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0036:  endfinally
+  }
+  IL_0037:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation ( System.Collections.IEnumerator S.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Object i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Object System.Collections.IEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        CaptureIds: [1]
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+                  Value:
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ExplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator S.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator S.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Foreach_IEnumerable_02()
+        {
+            var src = @"
+using System.Collections;
+
+ref struct S : IEnumerable
+{
+    public IEnumerator GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator Get123()
+    {
+        yield return 123;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (System.Collections.IEnumerator V_0,
+                S V_1,
+                System.IDisposable V_2)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S""
+  IL_0009:  call       ""System.Collections.IEnumerator S.GetEnumerator()""
+  IL_000e:  stloc.0
+  .try
+  {
+    IL_000f:  br.s       IL_001c
+    IL_0011:  ldloc.0
+    IL_0012:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0017:  call       ""void System.Console.Write(object)""
+    IL_001c:  ldloc.0
+    IL_001d:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0022:  brtrue.s   IL_0011
+    IL_0024:  leave.s    IL_0037
+  }
+  finally
+  {
+    IL_0026:  ldloc.0
+    IL_0027:  isinst     ""System.IDisposable""
+    IL_002c:  stloc.2
+    IL_002d:  ldloc.2
+    IL_002e:  brfalse.s  IL_0036
+    IL_0030:  ldloc.2
+    IL_0031:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0036:  endfinally
+  }
+  IL_0037:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation ( System.Collections.IEnumerator S.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Object i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Object System.Collections.IEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        CaptureIds: [1]
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+                  Value:
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ExplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator S.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator S.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Foreach_IEnumerable_03()
+        {
+            var src = @"
+using System.Collections;
+
+ref struct S : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator Get123()
+    {
+        yield return 123;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+      // Code size       62 (0x3e)
+      .maxstack  2
+      .locals init (System.Collections.IEnumerator V_0,
+                    S V_1,
+                    System.IDisposable V_2)
+      IL_0000:  ldloca.s   V_1
+      IL_0002:  dup
+      IL_0003:  initobj    ""S""
+      IL_0009:  constrained. ""S""
+      IL_000f:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
+      IL_0014:  stloc.0
+      .try
+      {
+        IL_0015:  br.s       IL_0022
+        IL_0017:  ldloc.0
+        IL_0018:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+        IL_001d:  call       ""void System.Console.Write(object)""
+        IL_0022:  ldloc.0
+        IL_0023:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+        IL_0028:  brtrue.s   IL_0017
+        IL_002a:  leave.s    IL_003d
+      }
+      finally
+      {
+        IL_002c:  ldloc.0
+        IL_002d:  isinst     ""System.IDisposable""
+        IL_0032:  stloc.2
+        IL_0033:  ldloc.2
+        IL_0034:  brfalse.s  IL_003c
+        IL_0036:  ldloc.2
+        IL_0037:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_003c:  endfinally
+      }
+      IL_003d:  ret
+    }
+    ");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+              Value:
+                IInvocationOperation (virtual System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Object i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Object System.Collections.IEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        CaptureIds: [1]
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S()')
+                  Value:
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ExplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'new S()')
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'new S()')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new S()')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'new S()')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerable_04(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections;
+
+ref struct S : IEnumerable
+{
+    public IEnumerator GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator Get123()
+    {
+        yield return 123;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S());
+    }
+
+    static void Test<T>(T t) where T : " + (addStructConstraint ? "struct, " : "") + @"IEnumerable, allows ref struct
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<T>(T)",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  1
+  .locals init (System.Collections.IEnumerator V_0,
+                System.IDisposable V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_001b
+    IL_0010:  ldloc.0
+    IL_0011:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0016:  call       ""void System.Console.Write(object)""
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0021:  brtrue.s   IL_0010
+    IL_0023:  leave.s    IL_0036
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  isinst     ""System.IDisposable""
+    IL_002b:  stloc.1
+    IL_002c:  ldloc.1
+    IL_002d:  brfalse.s  IL_0035
+    IL_002f:  ldloc.1
+    IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Object i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Object System.Collections.IEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        CaptureIds: [1]
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+                  Value:
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ExplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerable_05(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections;
+
+interface IMyEnumerable
+{
+    IEnumerator GetEnumerator();
+}
+
+ref struct S : IMyEnumerable
+{
+    public IEnumerator GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator Get123()
+    {
+        yield return 123;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S());
+    }
+
+    static void Test<T>(T t) where T : " + (addStructConstraint ? "struct, " : "") + @"IMyEnumerable, allows ref struct
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test<T>(T)",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  1
+  .locals init (System.Collections.IEnumerator V_0,
+                System.IDisposable V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""System.Collections.IEnumerator IMyEnumerable.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_001b
+    IL_0010:  ldloc.0
+    IL_0011:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0016:  call       ""void System.Console.Write(object)""
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0021:  brtrue.s   IL_0010
+    IL_0023:  leave.s    IL_0036
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  isinst     ""System.IDisposable""
+    IL_002b:  stloc.1
+    IL_002c:  ldloc.1
+    IL_002d:  brfalse.s  IL_0035
+    IL_002f:  ldloc.1
+    IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual System.Collections.IEnumerator IMyEnumerable.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Object i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Object System.Collections.IEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        CaptureIds: [1]
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+                  Value:
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ExplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator IMyEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator IMyEnumerable.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerable_06(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections;
+
+interface IMyEnumerable1
+{
+    IEnumerator GetEnumerator();
+}
+
+interface IMyEnumerable2
+{
+    IEnumerator GetEnumerator();
+}
+
+ref struct S : IMyEnumerable1, IMyEnumerable2
+{
+    public IEnumerator GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator Get123()
+    {
+        yield return 123;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S());
+    }
+
+    static void Test<T>(T t) where T : " + (addStructConstraint ? "struct, " : "") + @"IMyEnumerable1, IMyEnumerable2, allows ref struct
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (36,27): warning CS0278: 'T' does not implement the 'collection' pattern. 'IMyEnumerable1.GetEnumerator()' is ambiguous with 'IMyEnumerable2.GetEnumerator()'.
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "t").WithArguments("T", "collection", "IMyEnumerable1.GetEnumerator()", "IMyEnumerable2.GetEnumerator()").WithLocation(36, 27),
+                // (36,27): error CS1579: foreach statement cannot operate on variables of type 'T' because 'T' does not contain a public instance or extension definition for 'GetEnumerator'
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "t").WithArguments("T", "GetEnumerator").WithLocation(36, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            Assert.Null(info.GetEnumeratorMethod);
+            Assert.Null(info.ElementType);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.Null(op.Info);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerable_07(bool addStructConstraint)
+        {
+            var src = @"
+using System.Collections;
+
+interface IMyEnumerable1
+{
+    IEnumerator GetEnumerator();
+}
+
+interface IMyEnumerable2
+{
+    IEnumerator GetEnumerator();
+}
+
+ref struct S : IMyEnumerable1, IMyEnumerable2, IEnumerable
+{
+    IEnumerator IMyEnumerable1.GetEnumerator() => throw null;
+    IEnumerator IMyEnumerable2.GetEnumerator() => throw null;
+
+    public IEnumerator GetEnumerator()
+    {
+        return Get123();
+    }
+
+    static IEnumerator Get123()
+    {
+        yield return 123;
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S());
+    }
+
+    static void Test<T>(T t) where T : " + (addStructConstraint ? "struct, " : "") + @"IMyEnumerable1, IMyEnumerable2, IEnumerable, allows ref struct
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics(
+                // (39,27): warning CS0278: 'T' does not implement the 'collection' pattern. 'IMyEnumerable1.GetEnumerator()' is ambiguous with 'IMyEnumerable2.GetEnumerator()'.
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "t").WithArguments("T", "collection", "IMyEnumerable1.GetEnumerator()", "IMyEnumerable2.GetEnumerator()").WithLocation(39, 27)
+                );
+
+            verifier.VerifyIL("C.Test<T>(T)",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  1
+  .locals init (System.Collections.IEnumerator V_0,
+                System.IDisposable V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_001b
+    IL_0010:  ldloc.0
+    IL_0011:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_0016:  call       ""void System.Console.Write(object)""
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0021:  brtrue.s   IL_0010
+    IL_0023:  leave.s    IL_0036
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  isinst     ""System.IDisposable""
+    IL_002b:  stloc.1
+    IL_002c:  ldloc.1
+    IL_002d:  brfalse.s  IL_0035
+    IL_002f:  ldloc.1
+    IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+              Value:
+                IInvocationOperation (virtual System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual System.Boolean System.Collections.IEnumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+            Next (Regular) Block[B3]
+                Entering: {R4}
+        .locals {R4}
+        {
+            Locals: [System.Object i]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                      Left:
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Right:
+                        IPropertyReferenceOperation: System.Object System.Collections.IEnumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                      Expression:
+                        IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                          Instance Receiver:
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        CaptureIds: [1]
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 't')
+                  Value:
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ExplicitReference)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 't')
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 't')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 't')
+                  Instance Receiver:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 't')
+                  Arguments(0)
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", op.Info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.GetEnumeratorArguments);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerator_01(bool s1IsRefStruct)
+        {
+            var src = @"
+using System.Collections;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator
+{
+    bool stop;
+    public object Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_001d
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S2.Current.get""
+  IL_0018:  call       ""void System.Console.Write(object)""
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""bool S2.MoveNext()""
+  IL_0024:  brtrue.s   IL_0011
+  IL_0026:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+              Arguments(0)
+            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+    .locals {R2}
+    {
+        Locals: [System.Object i]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                  Left:
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                  Right:
+                    IPropertyReferenceOperation: System.Object S2.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Object S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.False(op.Info.NeedsDispose);
+            Assert.False(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerator_02(bool s1IsRefStruct)
+        {
+            var src = @"
+using System.Collections;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator
+{
+    bool stop;
+    public object Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+
+    object System.Collections.IEnumerator.Current => throw null;
+    bool System.Collections.IEnumerator.MoveNext() => throw null;
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_001d
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S2.Current.get""
+  IL_0018:  call       ""void System.Console.Write(object)""
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""bool S2.MoveNext()""
+  IL_0024:  brtrue.s   IL_0011
+  IL_0026:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+              Arguments(0)
+            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+    .locals {R2}
+    {
+        Locals: [System.Object i]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                  Left:
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                  Right:
+                    IPropertyReferenceOperation: System.Object S2.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Object S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.False(op.Info.NeedsDispose);
+            Assert.False(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerator_03(bool s1IsRefStruct, bool currentIsPublic, bool moveNextIsPublic)
+        {
+            if (currentIsPublic && moveNextIsPublic)
+            {
+                return;
+            }
+
+            var src = @"
+using System.Collections;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator
+{
+    bool stop;
+
+    " + (currentIsPublic ? "public object " : "object IEnumerator.") + @"Current => 123;
+
+    " + (moveNextIsPublic ? "public bool " : "bool System.Collections.IEnumerator.") + @"MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void Reset() { }
+}
+
+class C
+{
+    static void Main()
+    {
+#line 100
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            if (!currentIsPublic)
+            {
+                comp.VerifyDiagnostics(
+                    // (100,27): error CS0117: 'S2' does not contain a definition for 'Current'
+                    //         foreach (var i in new S1())
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "new S1()").WithArguments("S2", "Current").WithLocation(100, 27),
+                    // (100,27): error CS0202: foreach requires that the return type 'S2' of 'S1.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                    //         foreach (var i in new S1())
+                    Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new S1()").WithArguments("S2", "S1.GetEnumerator()").WithLocation(100, 27)
+                    );
+            }
+            else
+            {
+                Assert.False(moveNextIsPublic);
+
+                comp.VerifyDiagnostics(
+                    // (100,27): error CS0117: 'S2' does not contain a definition for 'MoveNext'
+                    //         foreach (var i in new S1())
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "new S1()").WithArguments("S2", "MoveNext").WithLocation(100, 27),
+                    // (100,27): error CS0202: foreach requires that the return type 'S2' of 'S1.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                    //         foreach (var i in new S1())
+                    Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new S1()").WithArguments("S2", "S1.GetEnumerator()").WithLocation(100, 27)
+                    );
+            }
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+          Children(1):
+              IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1, IsInvalid) (Syntax: 'new S1()')
+                Arguments(0)
+                Initializer:
+                  null
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+          Children(1):
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+                Children(0)
+    Next (Regular) Block[B3]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [var i]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (2)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+              Left:
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsImplicit) (Syntax: 'var')
+              Right:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+                  Children(1):
+                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'new S1()')
+                        Children(0)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+              Expression:
+                IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                  Children(2):
+                      IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'System.Console')
+                      ILocalReferenceOperation: i (OperationKind.LocalReference, Type: var) (Syntax: 'i')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            Assert.Null(info.ElementType);
+            Assert.Null(info.MoveNextMethod);
+            Assert.Null(info.CurrentProperty);
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.Null(op.Info);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerator_04(bool s1IsRefStruct, bool addExplicitImplementationOfCurrentAndMoveNext)
+        {
+            var src = @"
+using System.Collections;
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator
+{
+    bool stop;
+    public object Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+" +
+(addExplicitImplementationOfCurrentAndMoveNext ?
+@"
+    object IEnumerator.Current => throw null;
+    bool System.Collections.IEnumerator.MoveNext() => throw null;
+"
+:
+"") +
+@"
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (S2 V_0,
+                S1 V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""S1""
+  IL_0009:  call       ""S2 S1.GetEnumerator()""
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_001d
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""object S2.Current.get""
+  IL_0018:  call       ""void System.Console.Write(object)""
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""bool S2.MoveNext()""
+  IL_0024:  brtrue.s   IL_0011
+  IL_0026:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Main").Single();
+
+            VerifyFlowGraph(comp, node, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new S1()')
+              Value:
+                IInvocationOperation ( S2 S1.GetEnumerator()) (OperationKind.Invocation, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: 'new S1()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: S1..ctor()) (OperationKind.ObjectCreation, Type: S1) (Syntax: 'new S1()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( System.Boolean S2.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new S1()')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+              Arguments(0)
+            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+    .locals {R2}
+    {
+        Locals: [System.Object i]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                  Left:
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                  Right:
+                    IPropertyReferenceOperation: System.Object S2.Current { get; } (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'var')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S2, IsImplicit) (Syntax: 'new S1()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(i);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Object? value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(i)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+""");
+
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object S2.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            Assert.Null(info.DisposeMethod);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean S2.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Object S2.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.False(op.Info.NeedsDispose);
+            Assert.False(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerator_05(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System.Collections;
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IEnumerator, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IEnumerator, System.IDisposable
+{
+    bool stop;
+    public object Current => 123;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"IEnumerator, System.IDisposable, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    Verification.FailsILVerify with { ILVerifyMessage = "[GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }" } :
+                    Verification.Skipped).VerifyDiagnostics();
+
+            if (addStructConstraintToTEnumerator)
+            {
+                verifier.VerifyIL("C.Test<TEnumerable, TEnumerator>(TEnumerable)",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  1
+  .locals init (TEnumerator V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""TEnumerable""
+  IL_0008:  callvirt   ""TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_0022
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""TEnumerator""
+    IL_0018:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_001d:  call       ""void System.Console.Write(object)""
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""TEnumerator""
+    IL_002a:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_002f:  brtrue.s   IL_0010
+    IL_0031:  leave.s    IL_0041
+  }
+  finally
+  {
+    IL_0033:  ldloca.s   V_0
+    IL_0035:  constrained. ""TEnumerator""
+    IL_003b:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0040:  endfinally
+  }
+  IL_0041:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("C.Test<TEnumerable, TEnumerator>(TEnumerable)",
+@"
+{
+  // Code size       74 (0x4a)
+  .maxstack  1
+  .locals init (TEnumerator V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""TEnumerable""
+  IL_0008:  callvirt   ""TEnumerator IGetEnumerator<TEnumerator>.GetEnumerator()""
+  IL_000d:  stloc.0
+  .try
+  {
+    IL_000e:  br.s       IL_0022
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""TEnumerator""
+    IL_0018:  callvirt   ""object System.Collections.IEnumerator.Current.get""
+    IL_001d:  call       ""void System.Console.Write(object)""
+    IL_0022:  ldloca.s   V_0
+    IL_0024:  constrained. ""TEnumerator""
+    IL_002a:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_002f:  brtrue.s   IL_0010
+    IL_0031:  leave.s    IL_0049
+  }
+  finally
+  {
+    IL_0033:  ldloc.0
+    IL_0034:  box        ""TEnumerator""
+    IL_0039:  brfalse.s  IL_0048
+    IL_003b:  ldloca.s   V_0
+    IL_003d:  constrained. ""TEnumerator""
+    IL_0043:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0048:  endfinally
+  }
+  IL_0049:  ret
+}
+");
+            }
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            AssertEx.Equal("System.Object", info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Object System.Collections.IEnumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.False(op.Info.IsAsynchronous);
+            AssertEx.Equal("System.Object", op.Info.ElementType.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", op.Info.MoveNextMethod.ToTestDisplayString());
+            Assert.Empty(op.Info.MoveNextArguments);
+            AssertEx.Equal("System.Object System.Collections.IEnumerator.Current { get; }", op.Info.CurrentProperty.ToTestDisplayString());
+            Assert.True(op.Info.CurrentArguments.IsDefault);
+            Assert.True(op.Info.NeedsDispose);
+            Assert.True(op.Info.KnownToImplementIDisposable);
+            Assert.Null(op.Info.PatternDisposeMethod);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Foreach_IEnumerator_09(bool s1IsRefStruct, bool addStructConstraintToTEnumerable, bool addStructConstraintToTEnumerator)
+        {
+            var src = @"
+using System.Collections;
+
+interface IMyEnumerator1<T>
+{
+    T Current {get;}
+    bool MoveNext();
+}
+
+interface IMyEnumerator2<T>
+{
+    T Current {get;}
+    bool MoveNext();
+}
+
+interface IGetEnumerator<TEnumerator> where TEnumerator : IMyEnumerator1<int>, IMyEnumerator2<int>, IEnumerator, allows ref struct 
+{
+    TEnumerator GetEnumerator();
+}
+
+" + (s1IsRefStruct ? "ref " : "") + @"struct S1 : IGetEnumerator<S2>
+{
+    public S2 GetEnumerator()
+    {
+        return new S2();
+    }
+}
+
+ref struct S2 : IMyEnumerator1<int>, IMyEnumerator2<int>, IEnumerator
+{
+    bool stop;
+    public int Current => 123;
+    object System.Collections.IEnumerator.Current => Current;
+    public bool MoveNext()
+    {
+        if (!stop)
+        {
+            stop = true;
+            return true;
+        }
+
+        return false;
+    }
+    public void Reset() { }
+    public void Dispose()
+    {
+        System.Console.Write('D');
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test<S1, S2>(new S1());
+    }
+
+    static void Test<TEnumerable, TEnumerator>(TEnumerable t)
+        where TEnumerable : " + (addStructConstraintToTEnumerable ? "struct, " : "") + @"IGetEnumerator<TEnumerator>, allows ref struct
+        where TEnumerator : " + (addStructConstraintToTEnumerator ? "struct, " : "") + @"IMyEnumerator1<int>, IMyEnumerator2<int>, IEnumerator, allows ref struct 
+    {
+        foreach (var i in t)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (62,27): error CS0202: foreach requires that the return type 'TEnumerator' of 'IGetEnumerator<TEnumerator>.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach (var i in t)
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "t").WithArguments("TEnumerator", "IGetEnumerator<TEnumerator>.GetEnumerator()").WithLocation(62, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Test").Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.False(info.IsAsynchronous);
+            Assert.Null(info.ElementType);
+            Assert.Null(info.MoveNextMethod);
+            Assert.Null(info.CurrentProperty);
+
+            var op = (Operations.ForEachLoopOperation)model.GetOperation(foreachSyntax);
+            Assert.Null(op.Info);
+        }
+
+        [Fact]
         public void ConstraintsCheck_01()
         {
             var src = @"
@@ -6184,8 +16641,13 @@ public class Helper
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): The boxing should be disallowed.
             comp.VerifyDiagnostics(
+                // (6,16): error CS0029: Cannot implicitly convert type 'T' to 'object'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "object").WithLocation(6, 16),
+                // (11,16): error CS0030: Cannot convert type 'T' to 'object'
+                //         return (object)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)x").WithArguments("T", "object").WithLocation(11, 16)
                 );
         }
 
@@ -6212,13 +16674,125 @@ public class Helper
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): The boxing should be disallowed.
             comp.VerifyDiagnostics(
+                // (10,16): error CS0029: Cannot implicitly convert type 'T' to 'I1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "I1").WithLocation(10, 16),
+                // (15,16): error CS0030: Cannot convert type 'T' to 'I1'
+                //         return (I1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(I1)x").WithArguments("T", "I1").WithLocation(15, 16)
+                );
+        }
+
+        [Fact]
+        public void IllegalBoxing_03()
+        {
+            var src = @"
+public interface I1
+{
+}
+
+public class Helper
+{
+    static U Test1<T, U>(T x)
+        where T : U, allows ref struct
+    {
+        return x;
+    }
+    static U Test2<T, U>(T x)
+        where T : U, allows ref struct
+    {
+        return (U)x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (11,16): error CS0029: Cannot implicitly convert type 'T' to 'U'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "U").WithLocation(11, 16),
+                // (16,16): error CS0030: Cannot convert type 'T' to 'U'
+                //         return (U)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)x").WithArguments("T", "U").WithLocation(16, 16)
                 );
         }
 
         [Fact]
         public void Unboxing_01()
+        {
+            var src = @"
+public interface I1
+{
+}
+
+ref struct S : I1
+{
+}
+
+public class Helper
+{
+    static S Test1(I1 x)
+    {
+        return x;
+    }
+
+    static S Test2(I1 x)
+    {
+        return (S)x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (14,16): error CS0029: Cannot implicitly convert type 'I1' to 'S'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I1", "S").WithLocation(14, 16),
+                // (19,16): error CS0030: Cannot convert type 'I1' to 'S'
+                //         return (S)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S)x").WithArguments("I1", "S").WithLocation(19, 16)
+                );
+        }
+
+        [Fact]
+        public void Unboxing_02()
+        {
+            var src = @"
+public interface I1
+{
+}
+
+ref struct S : I1
+{
+}
+
+public class Helper
+{
+    static S Test1<T>(T x)
+        where T : I1, allows ref struct
+    {
+        return x;
+    }
+    static S Test2<T>(T x)
+        where T : I1, allows ref struct
+    {
+        return (S)x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (15,16): error CS0029: Cannot implicitly convert type 'T' to 'S'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "S").WithLocation(15, 16),
+                // (20,16): error CS0030: Cannot convert type 'T' to 'S'
+                //         return (S)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S)x").WithArguments("T", "S").WithLocation(20, 16)
+                );
+        }
+
+        [Fact]
+        public void Unboxing_03()
         {
             var src = @"
 public interface I1
@@ -6249,4 +16823,6 @@ public class Helper
                 );
         }
     }
+
+    // PROTOTYPE(RefStructInterfaces): New T() - System.Security.VerificationException : Method System.Activator.CreateInstance: type argument 'S' violates the constraint of type parameter 'T'.
 }

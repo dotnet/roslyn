@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return ScopedKind.ScopedRef;
                 }
-                else if (HasParamsModifier && Type.IsRefLikeType)
+                else if (HasParamsModifier && Type.IsRefLikeType) // PROTOTYPE(RefStructInterfaces): adjust?
                 {
                     return ScopedKind.ScopedValue;
                 }
