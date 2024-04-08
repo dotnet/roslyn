@@ -41,7 +41,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
         var called = false;
         T? result = default;
-        await this.SynchronizeAssetsAsync<T, VoidResult>(assetPath, checksums, (_, _, asset, _) =>
+        await this.SynchronizeAssetsAsync<T, VoidResult>(assetPath, checksums, (_, asset, _) =>
         {
             Contract.ThrowIfTrue(called);
             called = true;
@@ -53,7 +53,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public override async ValueTask GetAssetsAsync<T, TArg>(
-        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
         await this.SynchronizeAssetsAsync(assetPath, checksums, callback, arg, cancellationToken).ConfigureAwait(false);
     }
@@ -106,7 +106,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
                 assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, checksums,
-                static (checksum, index, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
+                static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
 
             // fourth, get all projects and documents in the solution 
@@ -185,7 +185,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public async ValueTask SynchronizeAssetsAsync<T, TArg>(
-        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, int, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
@@ -210,7 +210,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             {
                 if (_assetCache.TryGetAsset<T>(checksum, out var existing))
                 {
-                    AddResult(checksum, existing);
+                    callback?.Invoke(checksum, existing, arg!);
                 }
                 else
                 {
@@ -267,7 +267,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     private async ValueTask RequestAssetsAsync<T, TArg>(
-        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, Action<int, T, TArg> callback, CancellationToken cancellationToken)
+        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, Action<T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
 #if NETCOREAPP
         Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));
@@ -278,6 +278,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         if (checksums.Length == 0)
             return;
 
-        await _assetSource.GetAssetsAsync(_solutionChecksum, assetPath, checksums, _serializerService, callback, cancellationToken).ConfigureAwait(false);
+        await _assetSource.GetAssetsAsync(_solutionChecksum, assetPath, checksums, _serializerService, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 }
