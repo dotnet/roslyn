@@ -456,7 +456,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         _taskQueue.AddWork(cancellationToken =>
         {
             if (state.CancellationToken.IsCancellationRequested)
-                return;
+                return Task.CompletedTask;
 
             foreach (var kv in documentErrorMap)
                 state.AddErrors(kv.Key, kv.Value);
