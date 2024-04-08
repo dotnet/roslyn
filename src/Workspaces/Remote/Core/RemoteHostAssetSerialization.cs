@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ValueTask<ImmutableArray<object>> ReadDataAsync(
+        public static ValueTask<ImmutableArray<T>> ReadDataAsync<T>(
             PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
@@ -78,17 +79,17 @@ namespace Microsoft.CodeAnalysis.Remote
             using var _ = FlowControlHelper.TrySuppressFlow();
             return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
 
-            static async ValueTask<ImmutableArray<object>> ReadDataSuppressedFlowAsync(
+            static async ValueTask<ImmutableArray<T>> ReadDataSuppressedFlowAsync(
                 PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
             {
                 using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-                return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+                return ReadData<T>(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
             }
         }
 
-        public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ImmutableArray<T> ReadData<T>(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<object>.GetInstance(objectCount, out var results);
+            var results = new T[objectCount];
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
@@ -104,10 +105,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize(kind, reader, cancellationToken);
                 Contract.ThrowIfNull(result);
-                results.Add(result);
+                results[i] = (T)result;
             }
 
-            return results.ToImmutableAndClear();
+            return ImmutableCollectionsMarshal.AsImmutableArray(results);
         }
     }
 }
