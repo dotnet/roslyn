@@ -3789,9 +3789,11 @@ public class P
                 var comp = CreateCompilationWithMscorlibAndSpan(source, options: options);
                 comp.VerifyDiagnostics();
                 comp.VerifyEmitDiagnostics(
-                    // (9,66): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                    //         await Async1(F1(), G(F2(), stackalloc int[] { 1, 2, 3 }, await F3()));
-                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await F3()").WithArguments("System.Span<int>").WithLocation(9, 66)
+                    // (8,5): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                    //     {
+                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"{
+        await Async1(F1(), G(F2(), stackalloc int[] { 1, 2, 3 }, await F3()));
+    }").WithArguments("System.Span<int>").WithLocation(8, 5)
                     );
             }
         }

@@ -1418,9 +1418,9 @@ public class Program
 
             var expectedDiagnostics = new[]
             {
-                // (17,39): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                // (17,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         TakesSpan(default(Span<int>), await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(17, 39)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(Span<int>)").WithArguments("System.Span<int>").WithLocation(17, 19)
             };
 
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
@@ -1468,9 +1468,9 @@ public class Program
 
             var expectedDiagnostics = new[]
             {
-                // (14,45): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                // (14,22): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         TakesSpan(s: default(Span<int>), i: await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(Span<int>)").WithArguments("System.Span<int>").WithLocation(14, 22)
             };
 
             comp.VerifyEmitDiagnostics(expectedDiagnostics);

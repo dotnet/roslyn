@@ -79,15 +79,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (variable is LocalSymbol local)
                     {
-                        if (local.SynthesizedKind is SynthesizedLocalKind.Spill)
+                        foreach (var syntax in kvp.Value)
                         {
-                            reportLocalAcrossAwaitError(diagnostics, local, local.GetFirstLocation());
-                        }
-                        else
-                        {
-                            foreach (var syntax in kvp.Value)
+                            if (local.TypeWithAnnotations.IsRestrictedType())
                             {
-                                reportLocalAcrossAwaitError(diagnostics, local, syntax.Location);
+                                // CS4007: Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.
+                                diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, syntax.Location, local.TypeWithAnnotations);
+                            }
+                            else
+                            {
+                                Debug.Assert(local.RefKind != RefKind.None);
+                                // CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                                diagnostics.Add(ErrorCode.ERR_RefLocalAcrossAwait, syntax.Location);
                             }
                         }
                     }
@@ -128,21 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             walker.Free();
 
             return variablesToHoist;
-
-            static void reportLocalAcrossAwaitError(DiagnosticBag diagnostics, LocalSymbol local, Location location)
-            {
-                if (local.TypeWithAnnotations.IsRestrictedType())
-                {
-                    // CS4007: Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.
-                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, location, local.TypeWithAnnotations);
-                }
-                else
-                {
-                    Debug.Assert(local.RefKind != RefKind.None);
-                    // CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                    diagnostics.Add(ErrorCode.ERR_RefLocalAcrossAwait, location);
-                }
-            }
         }
 
         private static bool HoistInDebugBuild(Symbol symbol)

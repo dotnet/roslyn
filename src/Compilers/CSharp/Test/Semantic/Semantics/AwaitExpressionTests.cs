@@ -243,7 +243,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (8,27): error CS4007: Instance of type 'System.TypedReference' cannot be preserved across 'await' or 'yield' boundary.
                 //         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await Task.FromResult(0)").WithArguments("System.TypedReference").WithLocation(8, 55));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new TypedReference()").WithArguments("System.TypedReference").WithLocation(8, 27));
         }
 
         [Fact]

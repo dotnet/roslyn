@@ -4691,9 +4691,12 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (24,22): error CS4007: Instance of type 'System.ReadOnlySpan<Buffer10<int>>' cannot be preserved across 'await' or 'yield' boundary.
-                //            [Get01()][await FromResult(Get02(x))];
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(Get02(x))").WithArguments("System.ReadOnlySpan<Buffer10<int>>").WithLocation(24, 22)
+                // (20,12): error CS4007: Instance of type 'System.ReadOnlySpan<Buffer10<int>>' cannot be preserved across 'await' or 'yield' boundary.
+                //         => MemoryMarshal.CreateReadOnlySpan(
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"MemoryMarshal.CreateReadOnlySpan(
+                ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(
+                        ref Unsafe.AsRef(in GetC(x).F)),
+                10)").WithArguments("System.ReadOnlySpan<Buffer10<int>>").WithLocation(20, 12)
                 );
         }
 
@@ -4743,9 +4746,12 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (24,13): error CS4007: Instance of type 'System.ReadOnlySpan<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //            [await FromResult(Get02(x))];
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await FromResult(Get02(x))").WithArguments("System.ReadOnlySpan<int>").WithLocation(24, 13)
+                // (20,12): error CS4007: Instance of type 'System.ReadOnlySpan<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         => MemoryMarshal.CreateReadOnlySpan(
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"MemoryMarshal.CreateReadOnlySpan(
+                ref Unsafe.As<Buffer10<int>, int>(
+                        ref Unsafe.AsRef(in GetC(x).F[Get01()])),
+                10)").WithArguments("System.ReadOnlySpan<int>").WithLocation(20, 12)
                 );
         }
 
