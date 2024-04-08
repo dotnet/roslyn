@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -152,6 +153,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             }
             else
             {
+                if (state.CancellationToken.IsCancellationRequested is true)
+                    return;
+
                 // We are going to clear the diagnostics for the current project.
                 // Additionally, we clear errors for all projects that transitively depend on this project.
                 // Otherwise, fixing errors in core projects in dependency chain will leave back stale diagnostics in dependent projects.
@@ -307,6 +311,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             if (inProgressState == null)
                 return;
 
+            if (inProgressState.CancellationToken.IsCancellationRequested)
+                return;
+
             // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
             OnBuildProgressChanged(inProgressState);
 
@@ -328,31 +335,48 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     /// </summary>
     private async Task SyncBuildErrorsAndReportOnBuildCompletedAsync(InProgressState inProgressState, CancellationToken cancellationToken)
     {
-        var solution = inProgressState.Solution;
-        var allLiveErrors = inProgressState.GetLiveErrors();
+        // Allow the queue to be canceled, or this particular item to be canceled. Because we're creating a specialized
+        // token here, we need to wrap with our own try/catch to make sure that token doesn't bubble out.
+        using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(inProgressState.CancellationToken, cancellationToken);
 
-        // Raise events for build only errors
-        using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-        var buildErrors = GetBuildErrors().Except(allLiveErrors).GroupBy(k => k.DocumentId);
-        foreach (var group in buildErrors)
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (group.Key == null)
-            {
-                foreach (var projectGroup in group.GroupBy(g => g.ProjectId))
-                {
-                    Contract.ThrowIfNull(projectGroup.Key);
-                    argsBuilder.Add(CreateArgsToReportBuildErrors(projectGroup.Key, solution, projectGroup.ToImmutableArray()));
-                }
-
-                continue;
-            }
-
-            argsBuilder.Add(CreateArgsToReportBuildErrors(group.Key, solution, group.ToImmutableArray()));
+            await SyncBuildErrorsAndReportOnBuildCompletedWorkerAsync(inProgressState, linkedTokenSource.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException ex) when (ExceptionUtilities.IsCurrentOperationBeingCancelled(ex, linkedTokenSource.Token))
+        {
         }
 
-        await ProcessAndRaiseDiagnosticsUpdatedAsync(argsBuilder.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
+        return;
+
+        async Task SyncBuildErrorsAndReportOnBuildCompletedWorkerAsync(InProgressState inProgressState, CancellationToken cancellationToken)
+        {
+            var solution = inProgressState.Solution;
+            var allLiveErrors = inProgressState.GetLiveErrors();
+
+            // Raise events for build only errors
+            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
+            var buildErrors = GetBuildErrors().Except(allLiveErrors).GroupBy(k => k.DocumentId);
+            foreach (var group in buildErrors)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (group.Key == null)
+                {
+                    foreach (var projectGroup in group.GroupBy(g => g.ProjectId))
+                    {
+                        Contract.ThrowIfNull(projectGroup.Key);
+                        argsBuilder.Add(CreateArgsToReportBuildErrors(projectGroup.Key, solution, projectGroup.ToImmutableArray()));
+                    }
+
+                    continue;
+                }
+
+                argsBuilder.Add(CreateArgsToReportBuildErrors(group.Key, solution, group.ToImmutableArray()));
+            }
+
+            await ProcessAndRaiseDiagnosticsUpdatedAsync(argsBuilder.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private static DiagnosticsUpdatedArgs CreateArgsToReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
@@ -397,7 +421,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         _taskQueue.AddWork(cancellationToken =>
         {
-            state.AddError(projectId, diagnostic);
+            if (!state.CancellationToken.IsCancellationRequested)
+                state.AddError(projectId, diagnostic);
+
             return Task.CompletedTask;
         });
     }
@@ -411,7 +437,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         _taskQueue.AddWork(cancellationToken =>
         {
-            state.AddError(documentId, diagnostic);
+            if (!state.CancellationToken.IsCancellationRequested)
+                state.AddError(documentId, diagnostic);
+
             return Task.CompletedTask;
         });
     }
@@ -427,6 +455,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         _taskQueue.AddWork(cancellationToken =>
         {
+            if (state.CancellationToken.IsCancellationRequested)
+                return;
+
             foreach (var kv in documentErrorMap)
                 state.AddErrors(kv.Key, kv.Value);
 
