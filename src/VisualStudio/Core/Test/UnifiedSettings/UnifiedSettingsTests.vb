@@ -14,7 +14,18 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
-    Partial Public Class UnifiedSettingsTests
+    Partial Public MustInherit Class UnifiedSettingsTests
+        Friend MustOverride ReadOnly Property OnboardedOptions As ImmutableArray(Of IOption2)
+
+        ' The default value of some enum options is overridden at runtime. It uses different default value for C# and VB.
+        ' But in unified settings we always use the correct value for language.
+        ' Use this dictionary to indicate that value in unit test.
+        Friend MustOverride ReadOnly Property OptionsToDefaultValue As ImmutableDictionary(Of IOption2, Object)
+
+        ' The default value of some enum options is overridden at runtime. And it's not shown in the unified settings page.
+        ' Use this dictionary to list all the possible enum values in settings page.
+        Friend MustOverride ReadOnly Property EnumOptionsToValues As ImmutableDictionary(Of IOption2, ImmutableArray(Of Object))
+
         <Fact>
         Public Async Function CSharpIntellisensePageSettingsTest() As Task
             Dim registrationFileStream = GetType(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("csharpSettings.registration.json")
@@ -27,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
                 Dim optionPageId = registrationJsonObject.SelectToken("$.categories('textEditor.csharp.intellisense').legacyOptionPageId")
                 Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, optionPageId.ToString())
 
-                For Each onboardedOption In s_onboardedOptions
+                For Each onboardedOption In OnboardedOptions
                     Dim optionName = onboardedOption.Definition.ConfigName
                     Dim settingStorage As UnifiedSettingsStorage = Nothing
                     If s_unifiedSettingsStorage.TryGetValue(optionName, settingStorage) Then
@@ -47,27 +58,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             End Using
         End Function
 
-        Private Shared Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
+        Private Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
             ' Verify default value
             Dim actualDefaultValue = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').default")
             Dim perLangDefaultValue As Object = Nothing
-            Assert.Equal(If(s_optionsToDefaultValue.TryGetValue([option], perLangDefaultValue),
+            Assert.Equal(If(OptionsToDefaultValue.TryGetValue([option], perLangDefaultValue),
                             perLangDefaultValue.ToString().ToCamelCase(),
                             [option].Definition.DefaultValue?.ToString().ToCamelCase()), actualDefaultValue.ToString().ToCamelCase())
 
             VerifyMigration(registrationJsonObject, unifiedSettingPath, [option])
         End Sub
 
-        Private Shared Sub VerifyEnum(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
+        Private Sub VerifyEnum(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
             Dim actualDefaultValue = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').default")
             Dim perLangDefaultValue As Object = Nothing
-            Assert.Equal(If(s_optionsToDefaultValue.TryGetValue([option], perLangDefaultValue),
+            Assert.Equal(If(OptionsToDefaultValue.TryGetValue([option], perLangDefaultValue),
                             perLangDefaultValue.ToString().ToCamelCase(),
                             [option].Definition.DefaultValue?.ToString()), actualDefaultValue.ToString().ToCamelCase())
 
             Dim actualEnumValues = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').enum").SelectAsArray(Function(token) token.ToString())
             Dim possibleEnumValues As ImmutableArray(Of Object) = ImmutableArray(Of Object).Empty
-            Dim expectedEnumValues = If(s_enumOptionsToValues.TryGetValue([option], possibleEnumValues),
+            Dim expectedEnumValues = If(EnumOptionsToValues.TryGetValue([option], possibleEnumValues),
                                          possibleEnumValues.SelectAsArray(Function(value) value.ToString().ToCamelCase()),
                                          [option].Type.GetEnumValues().Cast(Of String).SelectAsArray(Function(value) value.ToCamelCase()))
             AssertEx.Equal(actualEnumValues, expectedEnumValues)
@@ -98,7 +109,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             End If
         End Function
 
-        Private Shared Sub VerifyEnumMigration(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
+        Private Sub VerifyEnumMigration(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
             Dim actualMigration = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').migration")
             Dim migrationProperty = DirectCast(actualMigration.Children().Single(), JProperty)
             Dim migrationType = migrationProperty.Name
@@ -141,7 +152,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             End If
         End Sub
 
-        Private Shared Sub VerifyEnumToIntegerMappings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
+        Private Sub VerifyEnumToIntegerMappings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
             ' Here we are going to verify a structure like this:
             ' "map": [
             ' {
@@ -165,13 +176,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             '     "match": 3
             ' }
             ' ]
-            Dim actualMappings = CType(registrationJsonObject.SelectToken(String.Format("$.properties['{0}'].migration.enumIntegerToString.map", unifiedSettingPath)), JArray).Select(Function(mapping) ( mapping("result").ToString(), Integer.Parse(mapping("match").ToString()))).ToArray()
+            Dim actualMappings = CType(registrationJsonObject.SelectToken(String.Format("$.properties['{0}'].migration.enumIntegerToString.map", unifiedSettingPath)), JArray).Select(Function(mapping) (mapping("result").ToString(), Integer.Parse(mapping("match").ToString()))).ToArray()
 
             Dim enumValues = [option].Type.GetEnumValues().Cast(Of Object).ToDictionary(
                 keySelector:=Function(enumValue) enumValue.ToString().ToCamelCase(),
                 elementSelector:=Function(enumValue)
                                      Dim actualDefaultValue As Object = Nothing
-                                     If s_optionsToDefaultValue.TryGetValue([option], actualDefaultValue) AndAlso actualDefaultValue.Equals(enumValue) Then
+                                     If OptionsToDefaultValue.TryGetValue([option], actualDefaultValue) AndAlso actualDefaultValue.Equals(enumValue) Then
                                          ' This value is the real default value at runtime.
                                          ' So map it to both default value and its own value.
                                          ' Like 'alwaysInclude' in the above example, it would map to both 0 and 2.
@@ -192,7 +203,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             ' If the default value of the enum is a stub value, verify the real value mapping is put in font of the default value mapping.
             ' It makes sure the default value would be converted to the real value by unified settings engine.
             Dim realDefaultValue As Object = Nothing
-            If s_optionsToDefaultValue.TryGetValue([option], realDefaultValue) Then
+            If OptionsToDefaultValue.TryGetValue([option], realDefaultValue) Then
                 Dim indexOfTheRealDefaultMapping = Array.IndexOf(actualMappings, (realDefaultValue.ToString().ToCamelCase(), CInt(realDefaultValue)))
                 Assert.NotEqual(-1, indexOfTheRealDefaultMapping)
                 Dim indexOfTheDefaultMapping = Array.IndexOf(actualMappings, (realDefaultValue.ToString().ToCamelCase(), CInt([option].DefaultValue)))
