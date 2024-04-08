@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static ValueTask<ImmutableArray<T>> ReadDataAsync<T>(
-            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ValueTask ReadDataAsync<T>(
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<int, T> callback, CancellationToken cancellationToken)
         {
             // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
             // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
@@ -77,20 +77,19 @@ namespace Microsoft.CodeAnalysis.Remote
             // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
             // same thread where SuppressFlow was originally run.
             using var _ = FlowControlHelper.TrySuppressFlow();
-            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
+            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, callback, cancellationToken);
 
-            static async ValueTask<ImmutableArray<T>> ReadDataSuppressedFlowAsync(
-                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+            static async ValueTask ReadDataSuppressedFlowAsync(
+                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<int, T> callback, CancellationToken cancellationToken)
             {
                 using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-                return ReadData<T>(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+                ReadData<T>(stream, solutionChecksum, objectCount, serializerService, callback, cancellationToken);
             }
         }
 
-        public static ImmutableArray<T> ReadData<T>(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static void ReadData<T>(
+            Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<int, T> callback, CancellationToken cancellationToken)
         {
-            var results = new T[objectCount];
-
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
             // Ensure that no invariants were broken and that both sides of the communication channel are talking about
@@ -105,10 +104,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize(kind, reader, cancellationToken);
                 Contract.ThrowIfNull(result);
-                results[i] = (T)result;
+                callback(i, (T)result);
             }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(results);
         }
     }
 }
