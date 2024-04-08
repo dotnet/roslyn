@@ -75,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         End Sub
 
         Private Shared Sub VerifyType(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
-            Dim actualType = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').type")
+            Dim actualType = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].type")
             Dim expectedType = [option].Definition.Type
             If expectedType.IsEnum Then
                 ' Enum is string in json
@@ -172,6 +172,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
                 elementSelector:=Function(enumValue)
                                      Dim actualDefaultValue As Object = Nothing
                                      If s_optionsToDefaultValue.TryGetValue([option], actualDefaultValue) AndAlso actualDefaultValue.Equals(enumValue) Then
+                                         ' This value is the real default value at runtime.
+                                         ' So map it to both default value and its own value.
+                                         ' Like 'alwaysInclude' in the above example, it would map to both 0 and 2.
                                          Return New Integer() {CInt(enumValue), CInt([option].DefaultValue)}
                                      End If
 
