@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource initialSource, SolutionServices services) : ITextAndVersionSource
 {
-
     // Starts as ITextAndVersionSource and is replaced with RecoverableText when the TextAndVersion value is requested.
     // At that point the initial source is no longer referenced and can be garbage collected.
     private object _initialSourceOrRecoverableText = initialSource;
@@ -192,6 +191,12 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
 
             // make sure write is done before setting _storage field
             Interlocked.CompareExchange(ref _storage, storage, null);
+
+            // Only set _initialValue to null once writing to the storage service completes fully. If the save did not
+            // complete, we want to keep it around to service future requests.  Once we do clear out this value, then
+            // all future request will either retrieve the value from the weak reference (if anyone else is holding onto
+            // it), or will recover from underlying storage.
+            _initialValue = null;
         }
 
         public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
