@@ -16,6 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 /// <summary>
@@ -181,7 +182,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
 
         expressionBody = GetExpressionBody(declaration);
         if (expressionBody?.TryConvertToBlock(
-            Token(SyntaxKind.SemicolonToken), false, block: out _) != true)
+            SemicolonToken, false, block: out _) != true)
         {
             fixesError = false;
             return false;

@@ -13,6 +13,7 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class ConversionGenerator
@@ -56,11 +57,11 @@ internal static class ConversionGenerator
         }
 
         var keyword = method.MetadataName == WellKnownMemberNames.ImplicitConversionName
-            ? Token(SyntaxKind.ImplicitKeyword)
-            : Token(SyntaxKind.ExplicitKeyword);
+            ? ImplicitKeyword
+            : ExplicitKeyword;
 
         var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
-            ? Token(SyntaxKind.CheckedKeyword)
+            ? CheckedKeyword
             : default;
 
         var declaration = ConversionOperatorDeclaration(
@@ -68,13 +69,13 @@ internal static class ConversionGenerator
             modifiers: GenerateModifiers(destination),
             implicitOrExplicitKeyword: keyword,
             explicitInterfaceSpecifier: null,
-            operatorKeyword: Token(SyntaxKind.OperatorKeyword),
+            operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedToken,
             type: method.ReturnType.GenerateTypeSyntax(),
             parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
-            semicolonToken: hasNoBody ? Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+            semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());
 
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -102,15 +103,8 @@ internal static class ConversionGenerator
     private static SyntaxTokenList GenerateModifiers(CodeGenerationDestination destination)
     {
         // If these appear in interfaces they must be static abstract
-        if (destination is CodeGenerationDestination.InterfaceType)
-        {
-            return [
-                Token(SyntaxKind.StaticKeyword),
-                Token(SyntaxKind.AbstractKeyword)];
-        }
-
-        return [
-            Token(SyntaxKind.PublicKeyword),
-            Token(SyntaxKind.StaticKeyword)];
+        return destination is CodeGenerationDestination.InterfaceType
+            ? ([StaticKeyword, AbstractKeyword])
+            : ([PublicKeyword, StaticKeyword]);
     }
 }

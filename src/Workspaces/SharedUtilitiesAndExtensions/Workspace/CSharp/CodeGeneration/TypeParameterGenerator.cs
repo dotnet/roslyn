@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class TypeParameterGenerator
@@ -26,8 +27,8 @@ internal static class TypeParameterGenerator
     private static TypeParameterSyntax GenerateTypeParameter(ITypeParameterSymbol symbol, CSharpCodeGenerationContextInfo info)
     {
         var varianceKeyword =
-            symbol.Variance == VarianceKind.In ? Token(SyntaxKind.InKeyword) :
-            symbol.Variance == VarianceKind.Out ? Token(SyntaxKind.OutKeyword) : default;
+            symbol.Variance == VarianceKind.In ? InKeyword :
+            symbol.Variance == VarianceKind.Out ? OutKeyword : default;
 
         return TypeParameter(
             AttributeGenerator.GenerateAttributeLists(symbol.GetAttributes(), info),

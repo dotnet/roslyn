@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertLinqQueryToForEach), Shared]
@@ -198,7 +199,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                                         InvocationExpression(
                                             MemberAccessExpression(
                                                 SyntaxKind.SimpleMemberAccessExpression,
-                                                PredefinedType(Token(SyntaxKind.ObjectKeyword)),
+                                                PredefinedType(ObjectKeyword),
                                                 IdentifierName(nameof(object.Equals))),
                                             ArgumentList([
                                                 Argument(joinClause.LeftExpression),
@@ -591,7 +592,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                         SyntaxKind.OpenBraceToken,
                         [EndOfLine(Environment.NewLine)]),
                     [.. statements],
-                    Token(SyntaxKind.CloseBraceToken)),
+                    CloseBraceToken),
                 expressionBody: null);
 
             var localFunctionInvocation = InvocationExpression(IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);

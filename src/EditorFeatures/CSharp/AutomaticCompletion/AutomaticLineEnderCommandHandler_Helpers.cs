@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class AutomaticLineEnderCommandHandler
@@ -396,7 +396,7 @@ internal partial class AutomaticLineEnderCommandHandler
                 (_, _) => objectCreationNodeWithCorrectInitializer.WithoutTrailingTrivia(),
                 tokens: [nextToken],
                 computeReplacementToken: (_, _) =>
-                    Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(objectCreationNodeWithCorrectInitializer.GetTrailingTrivia()),
+                    SemicolonToken.WithTrailingTrivia(objectCreationNodeWithCorrectInitializer.GetTrailingTrivia()),
                 trivia: [],
                 computeReplacementTrivia: (_, syntaxTrivia) => syntaxTrivia);
             return (replacementContainerNode, objectCreationNodeContainer);
@@ -887,7 +887,7 @@ internal partial class AutomaticLineEnderCommandHandler
         BaseTypeDeclarationSyntax baseTypeDeclarationNode,
         SyntaxFormattingOptions formattingOptions)
         => baseTypeDeclarationNode.WithOpenBraceToken(GetOpenBrace(formattingOptions))
-            .WithCloseBraceToken(Token(SyntaxKind.CloseBraceToken));
+            .WithCloseBraceToken(CloseBraceToken);
 
     /// <summary>
     /// Add an empty initializer to <param name="objectCreationExpressionNode"/>.
@@ -1009,7 +1009,7 @@ internal partial class AutomaticLineEnderCommandHandler
             VariableDeclaration(
                 propertyDeclarationNode.Type,
                 [VariableDeclarator(propertyDeclarationNode.Identifier)]),
-            Token(SyntaxKind.SemicolonToken));
+            SemicolonToken);
 
     /// <summary>
     /// Convert <param name="eventDeclarationNode"/> to EventFieldDeclaration.

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal abstract partial class StringSplitter
@@ -62,11 +63,11 @@ internal abstract partial class StringSplitter
             var leftExpression = InterpolatedStringExpression(
                 _interpolatedStringExpression.StringStartToken,
                 [.. beforeSplitContents],
-                Token(SyntaxKind.InterpolatedStringEndToken)
+                InterpolatedStringEndToken
                              .WithTrailingTrivia(ElasticSpace));
 
             var rightExpression = InterpolatedStringExpression(
-                Token(SyntaxKind.InterpolatedStringStartToken),
+                InterpolatedStringStartToken,
                 [.. afterSplitContents],
                 _interpolatedStringExpression.StringEndToken);
 

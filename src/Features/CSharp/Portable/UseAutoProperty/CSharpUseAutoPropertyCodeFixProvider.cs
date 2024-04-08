@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAutoProperty), Shared]
@@ -58,7 +59,7 @@ internal class CSharpUseAutoPropertyCodeFixProvider
         if (NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor))
         {
             var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                           .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+                           .WithSemicolonToken(SemicolonToken);
             var generator = SyntaxGenerator.GetGenerator(project);
 
             if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
@@ -77,7 +78,7 @@ internal class CSharpUseAutoPropertyCodeFixProvider
         if (fieldInitializer != null)
         {
             updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
-                                             .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+                                             .WithSemicolonToken(SemicolonToken);
         }
 
         return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
@@ -167,7 +168,7 @@ internal class CSharpUseAutoPropertyCodeFixProvider
         if (accessorList == null)
         {
             var getter = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                      .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+                                      .WithSemicolonToken(SemicolonToken);
             return AccessorList([getter]);
         }
 
@@ -180,7 +181,7 @@ internal class CSharpUseAutoPropertyCodeFixProvider
         {
             yield return accessor.WithBody(null)
                                  .WithExpressionBody(null)
-                                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+                                 .WithSemicolonToken(SemicolonToken);
         }
     }
 }

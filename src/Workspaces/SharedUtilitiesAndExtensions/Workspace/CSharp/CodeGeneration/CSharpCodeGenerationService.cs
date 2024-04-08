@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService<CSharpCodeGenerationContextInfo>
@@ -614,7 +615,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
     {
         if (anonymousFunctionSyntax.ExpressionBody is ExpressionSyntax expressionBody)
         {
-            var semicolonToken = Token(SyntaxKind.SemicolonToken);
+            var semicolonToken = SemicolonToken;
             if (expressionBody.TryConvertToStatement(semicolonToken, createReturnStatementForExpression: false, out var statement))
             {
                 var block = Block(statement);
