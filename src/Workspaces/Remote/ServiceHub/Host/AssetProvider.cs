@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -21,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
     : AbstractAssetProvider
 {
+    private static readonly SharedStopwatch s_start = SharedStopwatch.StartNew();
+
     private const int PooledChecksumArraySize = 256;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
@@ -238,7 +242,19 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             if (missingChecksumsCount > 0)
             {
                 var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+
+                var stopwatch = SharedStopwatch.StartNew();
                 var missingAssets = await RequestAssetsAsync<T>(assetPath, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
+                var time = stopwatch.Elapsed;
+                var totalTime = s_start.Elapsed;
+
+                IOUtilities.PerformIO(() =>
+                {
+                    lock (this)
+                    {
+                        File.AppendAllText(@"c:\temp\sync\synclog.txt", $"{missingChecksumsCount},{checksums.Count},{time},{totalTime},{typeof(T).Name}\r\n");
+                    }
+                });
 
                 Contract.ThrowIfTrue(missingChecksumsMemory.Length != missingAssets.Length);
 
