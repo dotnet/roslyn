@@ -248,7 +248,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     var missingAsset = missingAssets[i];
 
                     AddResult(missingChecksum, missingAsset);
-                    _assetCache.GetOrAdd(missingChecksum, missingAsset);
+                    _assetCache.GetOrAdd(missingChecksum, missingAsset!);
                 }
             }
 
