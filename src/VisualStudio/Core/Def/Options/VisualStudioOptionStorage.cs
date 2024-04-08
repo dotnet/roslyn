@@ -476,11 +476,6 @@ internal abstract class VisualStudioOptionStorage
         }
     }
 
-    public static readonly IReadOnlyDictionary<string, UnifiedSettingsStorage> UnifiedSettingsStorages = new Dictionary<string, UnifiedSettingsStorage>()
-    {
-        { "dotnet_trigger_completion_on_typing_letters", new UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionOnTypingLetters") },
-        { "dotnet_snippets_behavior", new UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.snippetsBehavior") }
-    };
 
     #endregion
 }
