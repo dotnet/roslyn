@@ -16,7 +16,7 @@ internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSo
 {
     private readonly ServiceBrokerClient _client = client;
 
-    public async ValueTask<ImmutableArray<object>> GetAssetsAsync(
+    public async ValueTask<ImmutableArray<T>> GetAssetsAsync<T>(
         Checksum solutionChecksum,
         AssetPath assetPath,
         ReadOnlyMemory<Checksum> checksums,
@@ -31,7 +31,7 @@ internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSo
             SolutionAssetProvider.ServiceDescriptor,
             (callback, cancellationToken) => callback.InvokeAsync(
                 (proxy, pipeWriter, cancellationToken) => proxy.WriteAssetsAsync(pipeWriter, solutionChecksum, assetPath, checksums, cancellationToken),
-                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums.Length, serializerService, cancellationToken),
+                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync<T>(pipeReader, solutionChecksum, checksums.Length, serializerService, cancellationToken),
                 cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
