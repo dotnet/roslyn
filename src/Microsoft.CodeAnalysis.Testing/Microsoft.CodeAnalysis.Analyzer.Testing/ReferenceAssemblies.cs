@@ -460,6 +460,53 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                 }
 
+                // Prefer newer assemblies when more than one have the same name
+                if (ReferenceAssemblyPackage is not null)
+                {
+                    var comparer = new FrameworkPrecedenceSorter(DefaultFrameworkNameProvider.Instance, allEquivalent: false);
+                    var assembliesByName = resolvedAssemblies.GroupBy(Path.GetFileNameWithoutExtension, StringComparer.OrdinalIgnoreCase);
+                    var assembliesToRemove = new List<string>();
+                    foreach (var assemblyNameGroup in assembliesByName)
+                    {
+                        var assembliesByPrecedence = assemblyNameGroup.OrderBy(GetFrameworkNameFromPath, comparer).ToArray();
+                        for (var i = 1; i < assembliesByPrecedence.Length; i++)
+                        {
+                            // We want to keep the last reference listed for the most recent supported target framework.
+                            // Typically, if more than one item has the most recent supported target framework, it will
+                            // be a case where the reference assembly package provides the assembly and a newer version
+                            // is provided explicitly. For example:
+                            //
+                            // Microsoft.NETCore.App.Ref 6.0.0 provides System.Collections.Immutable in the net6.0 folder
+                            // System.Collections.Immutable 8.0.0 provides System.Collections.Immutable in the net6.0 folder
+                            //
+                            // In this example, the Microsoft.NETCore.App.Ref package is resolved first, so by taking
+                            // the last net6.0 assembly, we ensure the assembly from System.Collections.Immutable 8.0.0
+                            // is resolved.
+                            if (comparer.Compare(GetFrameworkNameFromPath(assembliesByPrecedence[0]), GetFrameworkNameFromPath(assembliesByPrecedence[i])) == 0)
+                            {
+                                assembliesToRemove.Add(assembliesByPrecedence[i - 1]);
+                            }
+                            else
+                            {
+                                assembliesToRemove.Add(assembliesByPrecedence[i]);
+                            }
+                        }
+
+                        static NuGetFramework GetFrameworkNameFromPath(string path)
+                        {
+                            var frameworkFolder = Path.GetFileName(Path.GetDirectoryName(path));
+                            if (frameworkFolder is null)
+                            {
+                                return NuGetFramework.UnsupportedFramework;
+                            }
+
+                            return NuGetFramework.ParseFolder(frameworkFolder);
+                        }
+                    }
+
+                    resolvedAssemblies.ExceptWith(assembliesToRemove);
+                }
+
                 // Add the facade assemblies
                 if (ReferenceAssemblyPackage is not null)
                 {
