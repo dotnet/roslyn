@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,7 +24,7 @@ internal abstract class AbstractAssetProvider
     /// return data of type T whose checksum is the given checksum
     /// </summary>
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
-    public abstract ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken);
+    public abstract ValueTask GetAssetsAsync<T>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T> callback, CancellationToken cancellationToken);
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
@@ -110,7 +112,17 @@ internal abstract class AbstractAssetProvider
         using var _ = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
         checksumSet.AddAll(checksums.Children);
 
-        var results = await this.GetAssetsAsync<T>(assetPath, checksumSet, cancellationToken).ConfigureAwait(false);
-        return results.SelectAsArray(static t => t.asset);
+        var results = new T[checksumSet.Count];
+        var index = 0;
+
+        await this.GetAssetsAsync<T>(assetPath, checksumSet, (_, asset) =>
+        {
+            results[index] = asset;
+            index++;
+        },
+        cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfTrue(index != checksumSet.Count);
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(results);
     }
 }
