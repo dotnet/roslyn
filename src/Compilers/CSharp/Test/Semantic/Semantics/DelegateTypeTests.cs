@@ -12824,6 +12824,52 @@ class Program
         }
 
         [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_LeastOverriddenMethod()
+        {
+            var source = """
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+
+                public class D : C
+                {
+                    public override void M(int x) { }
+                }
+
+                public abstract class C
+                {
+                    public abstract void M(int x = 42);
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new D().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D().M").WithLocation(1, 9));
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_MostOverriddenMethod()
+        {
+            var source = """
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+
+                public class D : C
+                {
+                    public override void M(int x = 42) { }
+                }
+
+                public abstract class C
+                {
+                    public abstract void M(int x);
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new D().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D().M").WithLocation(1, 9));
+        }
+
+        [Fact]
         public void SynthesizedDelegateTypes_ParamsArray_DifferentElementTypes()
         {
             var source = """
@@ -12838,6 +12884,48 @@ class Program
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.String]
                 """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod()
+        {
+            var source = """
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+
+                public class D : C
+                {
+                    public override void M(int[] xs) { }
+                }
+
+                public abstract class C
+                {
+                    public abstract void M(params int[] xs);
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_MostOverriddenMethod()
+        {
+            var source = """
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+
+                public class D : C
+                {
+                    public override void M(params int[] xs) { }
+                }
+
+                public abstract class C
+                {
+                    public abstract void M(int[] xs);
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: "System.Action`1[System.Int32[]]").VerifyDiagnostics();
         }
 
         [Fact]
