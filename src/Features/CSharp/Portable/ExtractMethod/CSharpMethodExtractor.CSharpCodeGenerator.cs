@@ -29,6 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class CSharpMethodExtractor
@@ -626,7 +627,7 @@ internal partial class CSharpMethodExtractor
             // Hierarchy being checked for to see if a using keyword is needed is
             // Token -> VariableDeclarator -> VariableDeclaration -> LocalDeclaration
             var usingKeyword = originalIdentifierToken.Parent?.Parent?.Parent is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
-                ? Token(SyntaxKind.UsingKeyword)
+                ? UsingKeyword
                 : default;
 
             var equalsValueClause = initialValue == null ? null : EqualsValueClause(value: initialValue);

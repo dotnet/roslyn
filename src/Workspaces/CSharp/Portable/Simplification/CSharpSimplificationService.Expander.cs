@@ -24,6 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class CSharpSimplificationService
@@ -915,7 +916,7 @@ internal partial class CSharpSimplificationService
                 {
                     return rewrittenNode.CopyAnnotationsTo(
                         AliasQualifiedName(
-                            IdentifierName(Token(SyntaxKind.GlobalKeyword)),
+                            IdentifierName(GlobalKeyword),
                             (SimpleNameSyntax)rewrittenNode.WithLeadingTrivia(null))
                                 .WithLeadingTrivia(rewrittenNode.GetLeadingTrivia()));
                 }
