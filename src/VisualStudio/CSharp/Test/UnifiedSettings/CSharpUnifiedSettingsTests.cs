@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings;
 
@@ -17,15 +18,18 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             CompletionOptionsStorage.TriggerInArgumentLists,
             CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems,
             CompletionViewOptionsStorage.ShowCompletionItemFilters,
-            CompletionOptionsStorage.SnippetsBehavior
+            CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon,
+            CompletionOptionsStorage.SnippetsBehavior,
+            CompletionOptionsStorage.EnterKeyBehavior
         );
 
         internal override ImmutableDictionary<IOption2, object> OptionsToDefaultValue => ImmutableDictionary<IOption2, object>.Empty.
             Add(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude).
+            Add(CompletionOptionsStorage.EnterKeyBehavior, EnterKeyRule.Never).
             Add(CompletionOptionsStorage.TriggerOnDeletion, false);
 
         internal override ImmutableDictionary<IOption2, ImmutableArray<object>> EnumOptionsToValues => ImmutableDictionary<IOption2, ImmutableArray<object>>.Empty.
-                Add(CompletionOptionsStorage.SnippetsBehavior, ImmutableArray.Create<object>(
-                    SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab));
+                Add(CompletionOptionsStorage.SnippetsBehavior, ImmutableArray.Create<object>(SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)).
+                Add(CompletionOptionsStorage.EnterKeyBehavior, ImmutableArray.Create<object>(EnterKeyRule.Never, EnterKeyRule.AfterFullyTypedWord, EnterKeyRule.Always));
     }
 }
