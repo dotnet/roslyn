@@ -20,11 +20,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-#pragma warning disable CA1200 // Avoid using cref tags with a prefix
-
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-
-using ProjectErrorMap = ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>;
 
 /// <summary>
 /// Diagnostic source for warnings and errors reported from explicit build command invocations in Visual Studio.
@@ -520,13 +516,16 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         {
             if (args.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated)
             {
-                RoslynDebug.AssertNotNull(args.Solution);
-                _buildOnlyDiagnosticsService.AddBuildOnlyDiagnostics(args.Solution, args.ProjectId, args.DocumentId, args.Diagnostics);
+                Contract.ThrowIfNull(args.Solution);
+                if (args.DocumentId != null)
+                    _buildOnlyDiagnosticsService.AddBuildOnlyDiagnostics(args.DocumentId, args.Diagnostics);
             }
             else if (args.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
             {
-                RoslynDebug.AssertNotNull(args.Solution);
-                _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(args.Solution, args.ProjectId, args.DocumentId);
+                Contract.ThrowIfNull(args.Solution);
+                var project = args.Solution.GetProject(args.ProjectId);
+                if (project != null)
+                    _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(project, args.DocumentId);
             }
         }
     }

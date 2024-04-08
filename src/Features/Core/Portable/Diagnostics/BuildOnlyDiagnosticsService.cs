@@ -12,14 +12,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 [ExportWorkspaceServiceFactory(typeof(IBuildOnlyDiagnosticsService), ServiceLayer.Default), Shared]
-internal sealed class BuildOnlyDiagnosticsServiceFactory : IWorkspaceServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class BuildOnlyDiagnosticsServiceFactory() : IWorkspaceServiceFactory
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public BuildOnlyDiagnosticsServiceFactory()
-    {
-    }
-
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new BuildOnlyDiagnosticsService(workspaceServices.Workspace);
 
@@ -27,7 +23,6 @@ internal sealed class BuildOnlyDiagnosticsServiceFactory : IWorkspaceServiceFact
     {
         private readonly object _gate = new();
         private readonly Dictionary<DocumentId, ImmutableArray<DiagnosticData>> _documentDiagnostics = [];
-        private readonly Dictionary<ProjectId, ImmutableArray<DiagnosticData>> _projectDiagnostics = [];
 
         public BuildOnlyDiagnosticsService(Workspace workspace)
         {
@@ -61,18 +56,12 @@ internal sealed class BuildOnlyDiagnosticsServiceFactory : IWorkspaceServiceFact
             }
         }
 
-        public void AddBuildOnlyDiagnostics(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> diagnostics)
+        public void AddBuildOnlyDiagnostics(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
         {
             lock (_gate)
             {
                 if (documentId != null)
-                {
                     _documentDiagnostics[documentId] = diagnostics;
-                }
-                else if (projectId != null)
-                {
-                    _projectDiagnostics[projectId] = diagnostics;
-                }
             }
         }
 
@@ -81,7 +70,6 @@ internal sealed class BuildOnlyDiagnosticsServiceFactory : IWorkspaceServiceFact
             lock (_gate)
             {
                 _documentDiagnostics.Clear();
-                _projectDiagnostics.Clear();
             }
         }
 
@@ -103,43 +91,24 @@ internal sealed class BuildOnlyDiagnosticsServiceFactory : IWorkspaceServiceFact
 
             lock (_gate)
             {
-                _projectDiagnostics.Remove(project.Id);
                 foreach (var documentId in project.DocumentIds)
                     _documentDiagnostics.Remove(documentId);
             }
         }
 
-        public void ClearBuildOnlyDiagnostics(Solution solution, ProjectId? projectId, DocumentId? documentId)
+        public void ClearBuildOnlyDiagnostics(Project project, DocumentId? documentId)
         {
             if (documentId != null)
                 ClearDiagnostics(documentId);
             else
-                ClearDiagnostics(solution.GetProject(projectId));
+                ClearDiagnostics(project);
         }
 
         public ImmutableArray<DiagnosticData> GetBuildOnlyDiagnostics(DocumentId documentId)
         {
             lock (_gate)
             {
-                if (_documentDiagnostics.TryGetValue(documentId, out var diagnostics))
-                {
-                    return diagnostics;
-                }
-
-                return [];
-            }
-        }
-
-        public ImmutableArray<DiagnosticData> GetBuildOnlyDiagnostics(ProjectId projectId)
-        {
-            lock (_gate)
-            {
-                if (_projectDiagnostics.TryGetValue(projectId, out var diagnostics))
-                {
-                    return diagnostics;
-                }
-
-                return [];
+                return _documentDiagnostics.TryGetValue(documentId, out var diagnostics) ? diagnostics : [];
             }
         }
     }
