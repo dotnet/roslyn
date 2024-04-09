@@ -4372,7 +4372,7 @@ class C
 
             Assert.Equal(2, solution.ProjectIds.Count);
 
-            Assert.True(solution.GetProject(projectId1).ProjectReferences.Contains(p => p.ProjectId == projectId2));
+            Assert.True(solution.GetProject(projectId2).ProjectReferences.Contains(p => p.ProjectId == projectId1));
 
             var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
             var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
