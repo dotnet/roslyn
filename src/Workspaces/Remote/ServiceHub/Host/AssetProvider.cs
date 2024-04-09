@@ -242,8 +242,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             {
                 var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
 
-                var stopwatch = SharedStopwatch.StartNew();
-
                 await RequestAssetsAsync(
                     assetPath, missingChecksumsMemory,
                     static (
