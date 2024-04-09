@@ -13086,21 +13086,23 @@ implicit extension E for C
     public void ExtensionMemberLookup_ColorColor_Static_Property()
     {
         var src = """
+C.M(null);
+
 class C
 {
-    void M(C C)
+    public static void M(C C)
     {
-        _ = C.Property;
+        System.Console.Write(C.Property.ToString());
     }
 }
 
 implicit extension E for C
 {
-    public static int Property => throw null;
+    public static int Property => 42;
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -31508,6 +31510,45 @@ implicit extension E for object
     }
 
     [Fact]
+    public void ExtensionMemberLookup_Property_OnBase_DerivedType()
+    {
+        var src = """
+class Base { }
+
+class Derived : Base
+{
+    public void M()
+    {
+        base.Property1 = 1;
+        _ = base.Property1;
+        base.Property2 = 1;
+        _ = base.Property2;
+    }
+}
+
+implicit extension E for Base
+{
+    public static int Property1 { get => throw null; set => throw null; }
+    public int Property2 { get => throw null; set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (7,14): error CS0117: 'Base' does not contain a definition for 'Property1'
+            //         base.Property1 = 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property1").WithArguments("Base", "Property1").WithLocation(7, 14),
+            // (8,18): error CS0117: 'Base' does not contain a definition for 'Property1'
+            //         _ = base.Property1;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property1").WithArguments("Base", "Property1").WithLocation(8, 18),
+            // (9,14): error CS0117: 'Base' does not contain a definition for 'Property2'
+            //         base.Property2 = 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property2").WithArguments("Base", "Property2").WithLocation(9, 14),
+            // (10,18): error CS0117: 'Base' does not contain a definition for 'Property2'
+            //         _ = base.Property2;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property2").WithArguments("Base", "Property2").WithLocation(10, 18));
+    }
+
+    [Fact]
     public void Obsolete_Field_Static()
     {
         var src = """
@@ -31699,7 +31740,7 @@ implicit extension E for object
     }
 
     [Fact]
-    public void TypeOrInstanceReceiver_NamedType()
+    public void ExtensionMemberLookup_MemberAccessOnNestedType()
     {
         var src = """
 object.Nested.M();
@@ -31752,17 +31793,14 @@ implicit extension E for int
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // 1.Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1.Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.Int32 E.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal("System.Int32 E.Property { set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -32004,21 +32042,19 @@ implicit extension E for (int, int)
 
 implicit extension E for (int, int)
 {
-    public int Property { set => throw null; }
+    public int Property { set { System.Console.Write($"set(value)"); }}
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // (1, 2).Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "(1, 2).Property").WithLocation(1, 1));
+        comp.VerifyDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(1)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 2).Property");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.Int32 E.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal("System.Int32 E.Property { set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -32172,5 +32208,457 @@ implicit extension E for string
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Property""");
         Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PropertyAccess_ReturnNotLValue()
+    {
+        var src = """
+object.Property.field = 1;
+
+public struct S
+{
+    public int field;
+}
+implicit extension E for object
+{
+    public static S Property { get => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS1612: Cannot modify the return value of 'E.Property' because it is not a variable
+            // object.Property.field = 1;
+            Diagnostic(ErrorCode.ERR_ReturnNotLValue, "object.Property").WithArguments("E.Property").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void PropertyAccess_RefProperty()
+    {
+        var src = """
+localFuncRef(ref object.Property);
+localFuncOut(out object.Property);
+
+void localFuncRef(ref int i) => throw null;
+void localFuncOut(out int i) => throw null;
+
+implicit extension E for object
+{
+    public static int Property { get => throw null; set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,18): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+            // localFuncRef(ref object.Property);
+            Diagnostic(ErrorCode.ERR_RefProperty, "object.Property").WithLocation(1, 18),
+            // (2,18): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+            // localFuncOut(out object.Property);
+            Diagnostic(ErrorCode.ERR_RefProperty, "object.Property").WithLocation(2, 18));
+    }
+
+    [Fact]
+    public void PropertyAccess_AssignReadonlyNotField()
+    {
+        var src = """
+object.Property = 1;
+
+implicit extension E for object
+{
+    public static ref readonly int Property { get => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8331: Cannot assign to property 'Property' or use it as the right hand side of a ref assignment because it is a readonly variable
+            // object.Property = 1;
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "object.Property").WithArguments("property", "Property").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void PropertyAccess_AssgReadonlyProp()
+    {
+        var src = """
+object.Property = 1;
+
+implicit extension E for object
+{
+    public static int Property { get => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0200: Property or indexer 'E.Property' cannot be assigned to -- it is read only
+            // object.Property = 1;
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "object.Property").WithArguments("E.Property").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void PropertyAccess_InitOnlyProperty_Static()
+    {
+        var src = """
+object.Property = 1;
+
+implicit extension E for object
+{
+    public static int Property { init => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (5,34): error CS8856: The 'init' accessor is not valid on static members
+            //     public static int Property { init => throw null; }
+            Diagnostic(ErrorCode.ERR_BadInitAccessor, "init").WithLocation(5, 34));
+    }
+
+    [Fact]
+    public void PropertyAccess_InitOnlyProperty_Instance()
+    {
+        var src = """
+new object().Property = 1;
+
+implicit extension E for object
+{
+    public int Property { init => throw null; }
+}
+""";
+        // PROTOTYPE(instance) confirm whether init-only accessors should be allowed in extensions
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8852: Init-only property or indexer 'E.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+            // new object().Property = 1;
+            Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "new object().Property").WithArguments("E.Property").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void PropertyAccess_InitOnlyProperty_Instance_ObjectInitializer()
+    {
+        var src = """
+_ = new object() { Property = 1 };
+
+implicit extension E for object
+{
+    public int Property { init => throw null; }
+}
+""";
+        // PROTOTYPE(instance) need to decide whether extensions apply in object initializers
+        // PROTOTYPE(instance) confirm whether init-only accessors should be allowed in extensions
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS0117: 'object' does not contain a definition for 'Property'
+            // _ = new object() { Property = 1 };
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("object", "Property").WithLocation(1, 20));
+    }
+
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    public void PropertyAccess_InitOnlyProperty_Instance_InConstructor()
+    {
+        var src = """
+implicit extension E for object
+{
+    E()
+    {
+        this.Property = 1;
+        Property = 2;
+    }
+    public int Property { init => throw null; }
+}
+""";
+        // PROTOTYPE(instance) confirm whether init-only accessors should be allowed in extensions
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+    }
+
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    public void PropertyAccess_InitOnlyProperty_Instance_InInitAccessor()
+    {
+        var src = """
+implicit extension E for object
+{
+    public int InitializingProperty
+    {
+        init
+        {
+            this.Property = 1;
+            Property = 2;
+        }
+    }
+
+    public int Property { init => throw null; }
+}
+""";
+        // PROTOTYPE(instance) confirm whether init-only accessors should be allowed in extensions
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_Static_InaccessibleSetter()
+    {
+        var src = """
+object.Property = 1;
+
+implicit extension E for object
+{
+    public static int Property { get => throw null; private set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0272: The property or indexer 'E.Property' cannot be used in this context because the set accessor is inaccessible
+            // object.Property = 1;
+            Diagnostic(ErrorCode.ERR_InaccessibleSetter, "object.Property").WithArguments("E.Property").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void PropertyAccess_Static_FromExtensionType()
+    {
+        var src = """
+object.M();
+
+implicit extension E for object
+{
+    public static void M()
+    {
+        Property = 1;
+        Property += 2;
+        E.Property = 3;
+        E.Property += 4;
+        object.Property = 5;
+        object.Property += 6;
+    }
+
+    public static int Property { get { System.Console.Write("get "); return 10; } set { System.Console.Write($"set({value}) "); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(1) get set(12) set(3) get set(14) set(5) get set(16)"),
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    public void PropertyAccess_Instance_FromExtensionType()
+    {
+        var src = """
+new object().M();
+
+implicit extension E for object
+{
+    public void M()
+    {
+        Property = 1;
+        Property += 2;
+        this.Property = 3;
+        this.Property += 4;
+    }
+
+    public int Property { get { System.Console.Write("get "); return 10; } set { System.Console.Write($"set({value}) "); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set(1) get set(12) set(3) get set(14)"),
+        //    verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EventAccess_Static()
+    {
+        var src = """
+object.Event += () => { System.Console.Write("ran"); };
+object.M();
+
+implicit extension E for object
+{
+    public static void M()
+    {
+        _event();
+    }
+    private static System.Action _event;
+    public static event System.Action Event
+    {
+        add { _event += value; }
+        remove { _event -= value; }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Event");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void EventAccess_Static_Struct()
+    {
+        var src = """
+int.Event += () => { System.Console.Write("ran"); };
+int.M();
+
+implicit extension E for int
+{
+    public static void M()
+    {
+        _event();
+    }
+    private static System.Action _event;
+    public static event System.Action Event
+    {
+        add { _event += value; }
+        remove { _event -= value; }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.Event");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void EventAccess_Instance_Struct()
+    {
+        var src = """
+1.Event += () => {};
+
+implicit extension E for int
+{
+    public event System.Action Event { add { } remove { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Event");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void EventAccess_Static_Struct_FieldEvent_AssignOutsideExtensionType()
+    {
+        var src = """
+int.Event = null;
+
+implicit extension E for int
+{
+    public static event System.Action Event;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0070: The event 'E.Event' can only appear on the left hand side of += or -= (except when used from within the type 'E')
+            // int.Event = null;
+            Diagnostic(ErrorCode.ERR_BadEventUsage, "Event").WithArguments("E.Event", "E").WithLocation(1, 5));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.Event");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void EventAccess_Static_Struct_FieldEvent_AssignInsideExtensionType()
+    {
+        var src = """
+int.M();
+
+implicit extension E for int
+{
+    public static void M()
+    {
+        Event = () => { System.Console.Write("ran"); };
+        Event();
+    }
+
+    public static event System.Action Event;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var eventAccess = GetSyntax<AssignmentExpressionSyntax>(tree, """Event = () => { System.Console.Write("ran"); }""").Left;
+        Assert.Equal("event System.Action E.Event", model.GetSymbolInfo(eventAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void EventAccess_Instance_Struct_StaticFieldEventOnProperty()
+    {
+        var src = """
+C.Property.Event = null;
+
+class C
+{
+    public static int Property { get; set; }
+}
+
+implicit extension E for int
+{
+    public static event System.Action Event;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0176: Member 'E.Event' cannot be accessed with an instance reference; qualify it with a type name instead
+            // C.Property.Event = null;
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "C.Property.Event").WithArguments("E.Event").WithLocation(1, 1),
+            // (10,39): warning CS0414: The field 'E.Event' is assigned but its value is never used
+            //     public static event System.Action Event;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Event").WithArguments("E.Event").WithLocation(10, 39));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property.Event");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void EventAccess_Instance_Struct_InstanceFieldEventOnProperty()
+    {
+        var src = """
+class C
+{
+    public static int Property { get; set; }
+}
+
+implicit extension E for int
+{
+    void M()
+    {
+        C.Property.Event = null;
+    }
+
+    public event System.Action Event;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (13,32): error CS9313: 'E.Event': cannot declare instance members with state in extension types.
+            //     public event System.Action Event;
+            Diagnostic(ErrorCode.ERR_StateInExtension, "Event").WithArguments("E.Event").WithLocation(13, 32),
+            // (13,32): warning CS0414: The field 'E.Event' is assigned but its value is never used
+            //     public event System.Action Event;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Event").WithArguments("E.Event").WithLocation(13, 32));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property.Event");
+        Assert.Equal("event System.Action E.Event", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 }
