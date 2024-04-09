@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -380,6 +381,42 @@ internal sealed partial class SolutionState
         var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
         var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
         var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
+
+        return this.Branch(
+            solutionAttributes: newSolutionAttributes,
+            projectIds: newProjectIds,
+            idToProjectStateMap: newStateMap,
+            dependencyGraph: newDependencyGraph);
+    }
+
+    /// <summary>
+    /// Create a new solution instance without the projects specified.
+    /// </summary>
+    public SolutionState RemoveProjects(ArrayBuilder<ProjectId> projectIds)
+    {
+        if (projectIds.Count == 0)
+            return this;
+
+        if (projectIds.Count == 1)
+            return RemoveProject(projectIds.First());
+
+        foreach (var projectId in projectIds)
+            CheckContainsProject(projectId);
+
+        // changed project list so, increment version.
+        var newSolutionAttributes = _solutionAttributes.With(version: this.Version.GetNewerVersion());
+
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsSet);
+        projectIdsSet.AddRange(projectIds);
+
+        var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
+
+        var newStateMapBuilder = _projectIdToProjectStateMap.ToBuilder();
+        foreach (var projectId in projectIds)
+            newStateMapBuilder.Remove(projectId);
+        var newStateMap = newStateMapBuilder.ToImmutable();
+
+        var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
 
         return this.Branch(
             solutionAttributes: newSolutionAttributes,

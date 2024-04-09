@@ -359,6 +359,55 @@ internal sealed partial class SolutionCompilationState
             sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
     }
 
+    /// <inheritdoc cref="SolutionState.RemoveProjects"/>
+    public SolutionCompilationState RemoveProjects(ArrayBuilder<ProjectId> projectIds)
+    {
+        if (projectIds.Count == 0)
+            return this;
+
+        if (projectIds.Count == 1)
+            return RemoveProject(projectIds.First());
+
+        var originalDependencyGraph = this.SolutionState.GetProjectDependencyGraph();
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var dependentProjects);
+
+        // Determine the set of projects that depend on the projects being removed.
+        foreach (var projectId in projectIds)
+        {
+            foreach (var dependentProject in originalDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
+                dependentProjects.Add(dependentProject);
+        }
+
+        // Now go and remove the projects from teh solution-state itself.
+        var newSolutionState = this.SolutionState.RemoveProjects(projectIds);
+
+        // Now for each compilation tracker.
+        // 1. remove the compilation tracker if we're removing the project.
+        // 2. fork teh compilation tracker if it depended on a removed project.
+        // 3. do nothing for the rest.
+        var newTrackerMap = CreateCompilationTrackerMap(
+            // Can reuse the compilation tracker for a project, unless it is some project that had a dependency on one
+            // of the projects removed.
+            static (projectId, dependentProjects) => !dependentProjects.Contains(projectId),
+            dependentProjects,
+            static (trackerMap, projectIds) =>
+            {
+                foreach (var projectId in projectIds)
+                    trackerMap.Remove(projectId);
+            },
+            projectIds,
+            skipEmptyCallback: true);
+
+        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        foreach (var projectId in projectIds)
+            versionMapBuilder.Remove(projectId);
+
+        return this.Branch(
+            newSolutionState,
+            projectIdToTrackerMap: newTrackerMap,
+            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
+    }
+
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
     public SolutionCompilationState WithProjectAssemblyName(
         ProjectId projectId, string assemblyName)

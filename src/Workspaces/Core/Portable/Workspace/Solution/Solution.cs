@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -355,6 +356,10 @@ public partial class Solution
     /// </summary>
     public Solution RemoveProject(ProjectId projectId)
         => WithCompilationState(_compilationState.RemoveProject(projectId));
+
+
+    internal Solution RemoveProjects(ArrayBuilder<ProjectId> projectIds)
+        => WithCompilationState(_compilationState.RemoveProjects(projectIds));
 
     /// <summary>
     /// Creates a new solution instance with the project specified updated to have the new
