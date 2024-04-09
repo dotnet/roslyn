@@ -345,21 +345,35 @@ public partial class Solution
     public Solution AddProject(ProjectId projectId, string name, string assemblyName, string language)
         => this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
 
-    /// <inheritdoc cref="SolutionCompilationState.AddProject"/>
+    /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
     public Solution AddProject(ProjectInfo projectInfo)
-        => WithCompilationState(_compilationState.AddProject(projectInfo));
+    {
+        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(1, out var projectInfos);
+        projectInfos.Add(projectInfo);
+        return AddProjects(projectInfos);
+    }
 
     /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
-    internal Solution AddProjects(ArrayBuilder<ProjectInfo> projectInfo)
-        => WithCompilationState(_compilationState.AddProjects(projectInfo));
+    internal Solution AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
+    {
+        Contract.ThrowIfTrue(projectInfos.Select(i => i.Id).Distinct().Count() != projectInfos.Count, "Duplicate ProjectId provided");
+        return WithCompilationState(_compilationState.AddProjects(projectInfos));
+    }
 
-    /// <inheritdoc cref="SolutionCompilationState.RemoveProject"/>
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     public Solution RemoveProject(ProjectId projectId)
-        => WithCompilationState(_compilationState.RemoveProject(projectId));
+    {
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(1, out var projectIds);
+        projectIds.Add(projectId);
+        return RemoveProjects(projectIds);
+    }
 
     /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     internal Solution RemoveProjects(ArrayBuilder<ProjectId> projectIds)
-        => WithCompilationState(_compilationState.RemoveProjects(projectIds));
+    {
+        Contract.ThrowIfTrue(projectIds.Distinct().Count() != projectIds.Count, "Duplicate ProjectId provided");
+        return WithCompilationState(_compilationState.RemoveProjects(projectIds));
+    }
 
     /// <summary>
     /// Creates a new solution instance with the project specified updated to have the new

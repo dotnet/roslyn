@@ -316,34 +316,11 @@ internal sealed partial class SolutionCompilationState
 
     public SourceGeneratorExecutionVersionMap SourceGeneratorExecutionVersionMap => _sourceGeneratorExecutionVersionMap;
 
-    /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
-    public SolutionCompilationState AddProject(ProjectInfo projectInfo)
-    {
-        var newSolutionState = this.SolutionState.AddProject(projectInfo);
-        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => { }, /* unused */ 0, skipEmptyCallback: true);
-
-        var sourceGeneratorExecutionVersionMap = _sourceGeneratorExecutionVersionMap;
-        if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
-        {
-            var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
-            versionMapBuilder.Add(projectInfo.Id, new());
-            sourceGeneratorExecutionVersionMap = new(versionMapBuilder.ToImmutable());
-        }
-
-        return Branch(
-            newSolutionState,
-            projectIdToTrackerMap: newTrackerMap,
-            sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
-    }
-
     /// <inheritdoc cref="SolutionState.AddProjects(ArrayBuilder{ProjectInfo})"/>
     public SolutionCompilationState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
     {
         if (projectInfos.Count == 0)
             return this;
-
-        if (projectInfos.Count == 1)
-            return AddProject(projectInfos.First());
 
         var newSolutionState = this.SolutionState.AddProjects(projectInfos);
 
@@ -377,37 +354,11 @@ internal sealed partial class SolutionCompilationState
             sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
     }
 
-    /// <inheritdoc cref="SolutionState.RemoveProject(ProjectId)"/>
-    public SolutionCompilationState RemoveProject(ProjectId projectId)
-    {
-        var newSolutionState = this.SolutionState.RemoveProject(projectId);
-        var newTrackerMap = CreateCompilationTrackerMap(
-            projectId,
-            newSolutionState.GetProjectDependencyGraph(),
-            static (trackerMap, projectId) =>
-            {
-                trackerMap.Remove(projectId);
-            },
-            projectId,
-            skipEmptyCallback: true);
-
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
-        versionMapBuilder.Remove(projectId);
-
-        return this.Branch(
-            newSolutionState,
-            projectIdToTrackerMap: newTrackerMap,
-            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
-    }
-
     /// <inheritdoc cref="SolutionState.RemoveProjects"/>
     public SolutionCompilationState RemoveProjects(ArrayBuilder<ProjectId> projectIds)
     {
         if (projectIds.Count == 0)
             return this;
-
-        if (projectIds.Count == 1)
-            return RemoveProject(projectIds.First());
 
         var originalDependencyGraph = this.SolutionState.GetProjectDependencyGraph();
         using var _ = PooledHashSet<ProjectId>.GetInstance(out var dependentProjects);
