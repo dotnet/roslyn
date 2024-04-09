@@ -273,7 +273,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                         File.AppendAllText(s_logFile, $"{missingChecksumsCount},{checksums.Count},{time},{totalTime},{typeof(T).Name}\r\n");
                     }
                 });
-
             }
 
             if (usePool)
