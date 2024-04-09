@@ -10154,7 +10154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeArguments = node.TypeArgumentsOpt;
             if (node.ResultKind == LookupResultKind.Viable)
             {
-                foreach (var memberMethod in node.Methods)
+                ImmutableArray<MethodSymbol> methods = OverloadResolution.WithoutLessDerivedMembers(node.Methods);
+                foreach (var memberMethod in methods)
                 {
                     switch (node.ReceiverOpt)
                     {

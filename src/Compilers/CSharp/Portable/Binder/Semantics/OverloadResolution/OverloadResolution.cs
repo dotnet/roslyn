@@ -1260,7 +1260,7 @@ outerDefault:
         /// <paramref name="members"/> are all in a type that derives from the type containing
         /// <paramref name="member"/>.</param>
         private static bool MemberGroupContainsMoreDerivedOverride<TMember>(
-            ArrayBuilder<TMember> members,
+            IReadOnlyList<TMember> members,
             TMember member,
             bool checkOverrideContainingType,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1286,6 +1286,42 @@ outerDefault:
 
             return false;
         }
+
+#nullable enable
+        internal static ImmutableArray<TMember> WithoutLessDerivedMembers<TMember>(ImmutableArray<TMember> members) where TMember : Symbol
+        {
+            if (members.Length < 2)
+            {
+                return members;
+            }
+
+            ArrayBuilder<TMember>? result = null;
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            for (int i = 0; i < members.Length; i++)
+            {
+                var member = members[i];
+                if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteInfo))
+                {
+                    if (result is null)
+                    {
+                        // Allocate the result array only if we actually filter some member out.
+                        result = ArrayBuilder<TMember>.GetInstance(capacity: members.Length);
+                        for (int j = 0; j < i; j++)
+                        {
+                            result.Add(members[j]);
+                        }
+                    }
+                }
+                else
+                {
+                    result?.Add(member);
+                }
+            }
+
+            return result?.ToImmutableAndFree() ?? members;
+        }
+#nullable disable
 
         private static bool MemberGroupHidesByName<TMember>(ArrayBuilder<TMember> members, TMember member, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
