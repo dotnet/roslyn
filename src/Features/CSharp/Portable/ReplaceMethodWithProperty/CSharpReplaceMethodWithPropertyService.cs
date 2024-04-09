@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
@@ -137,7 +138,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
         if (setMethodDeclaration?.Modifiers.Any(SyntaxKind.UnsafeKeyword) == true
             && !property.Modifiers.Any(SyntaxKind.UnsafeKeyword))
         {
-            property = property.AddModifiers(Token(SyntaxKind.UnsafeKeyword));
+            property = property.AddModifiers(UnsafeKeyword);
         }
 
         property = SetLeadingTrivia(

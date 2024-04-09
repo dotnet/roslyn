@@ -13,11 +13,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// </summary>
 internal interface IBuildOnlyDiagnosticsService : IWorkspaceService
 {
-    void AddBuildOnlyDiagnostics(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> diagnostics);
+    void AddBuildOnlyDiagnostics(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics);
 
-    void ClearBuildOnlyDiagnostics(Solution solution, ProjectId? projectId, DocumentId? documentId);
+    void ClearBuildOnlyDiagnostics(Project project, DocumentId? documentId);
 
     ImmutableArray<DiagnosticData> GetBuildOnlyDiagnostics(DocumentId documentId);
-
-    ImmutableArray<DiagnosticData> GetBuildOnlyDiagnostics(ProjectId projectId);
 }

@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForToForEach), Shared]
 internal class CSharpConvertForToForEachCodeRefactoringProvider :
     AbstractConvertForToForEachCodeRefactoringProvider<
@@ -117,11 +119,11 @@ internal class CSharpConvertForToForEachCodeRefactoringProvider :
         typeNode ??= iterationVariableType.GenerateTypeSyntax();
 
         return SyntaxFactory.ForEachStatement(
-            SyntaxFactory.Token(SyntaxKind.ForEachKeyword).WithTriviaFrom(forStatement.ForKeyword),
+            ForEachKeyword.WithTriviaFrom(forStatement.ForKeyword),
             forStatement.OpenParenToken,
             typeNode,
             foreachIdentifier,
-            SyntaxFactory.Token(SyntaxKind.InKeyword),
+            InKeyword,
             collectionExpression,
             forStatement.CloseParenToken,
             forStatement.Statement);

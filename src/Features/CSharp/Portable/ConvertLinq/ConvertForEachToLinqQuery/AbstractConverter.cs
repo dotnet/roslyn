@@ -18,6 +18,7 @@ using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.Syn
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo) : IConverter<ForEachStatementSyntax, StatementSyntax>
@@ -72,7 +73,7 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
             case SyntaxKind.VariableDeclarator:
                 var variable = (VariableDeclaratorSyntax)node.Node;
                 return LetClause(
-                            Token(SyntaxKind.LetKeyword),
+                            LetKeyword,
                             variable.Identifier,
                             variable.Initializer.EqualsToken,
                             variable.Initializer.Value)
@@ -84,7 +85,7 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
             case SyntaxKind.IfStatement:
                 var ifStatement = (IfStatementSyntax)node.Node;
                 return WhereClause(
-                            Token(SyntaxKind.WhereKeyword)
+                            WhereKeyword
                                 .WithCommentsFrom(ifStatement.IfKeyword.LeadingTrivia, ifStatement.IfKeyword.TrailingTrivia),
                             ifStatement.Condition.WithCommentsFrom(ifStatement.OpenParenToken, ifStatement.CloseParenToken))
                         .WithCommentsFrom(node.ExtraLeadingComments, node.ExtraTrailingComments);
@@ -98,7 +99,7 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
         IEnumerable<SyntaxTrivia> extraLeadingTrivia,
         IEnumerable<SyntaxTrivia> extraTrailingTrivia)
         => FromClause(
-                fromKeyword: Token(SyntaxKind.FromKeyword)
+                fromKeyword: FromKeyword
                                 .WithCommentsFrom(
                                     forEachStatement.ForEachKeyword.LeadingTrivia,
                                     forEachStatement.ForEachKeyword.TrailingTrivia,

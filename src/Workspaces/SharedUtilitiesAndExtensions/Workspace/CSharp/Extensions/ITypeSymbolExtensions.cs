@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static partial class ITypeSymbolExtensions
@@ -76,7 +77,7 @@ internal static partial class ITypeSymbolExtensions
         var underlyingType = GenerateTypeSyntax(symbol)
             .WithPrependedLeadingTrivia(ElasticMarker)
             .WithAdditionalAnnotations(Simplifier.Annotation);
-        var refKeyword = Token(SyntaxKind.RefKeyword);
+        var refKeyword = RefKeyword;
         return RefType(refKeyword, underlyingType);
     }
 
@@ -86,8 +87,8 @@ internal static partial class ITypeSymbolExtensions
         var underlyingType = GenerateTypeSyntax(symbol)
             .WithPrependedLeadingTrivia(ElasticMarker)
             .WithAdditionalAnnotations(Simplifier.Annotation);
-        var refKeyword = Token(SyntaxKind.RefKeyword);
-        var readOnlyKeyword = Token(SyntaxKind.ReadOnlyKeyword);
+        var refKeyword = RefKeyword;
+        var readOnlyKeyword = ReadOnlyKeyword;
         return RefType(refKeyword, readOnlyKeyword, underlyingType);
     }
 
