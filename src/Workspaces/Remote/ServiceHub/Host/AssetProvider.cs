@@ -103,7 +103,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
 
             await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
-                assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, checksums,
+                assetPath: AssetPath.SolutionAndTopLevelProjectsOnly,
+                checksums,
                 static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
 
