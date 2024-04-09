@@ -39,19 +39,15 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
         checksums.Add(checksum);
 
-        var called = false;
-        T? result = default;
-        await this.SynchronizeAssetsAsync<T, VoidResult>(assetPath, checksums, (_, asset, _) =>
-        {
-            Contract.ThrowIfTrue(called);
-            called = true;
-            result = asset;
-        }, default, cancellationToken).ConfigureAwait(false);
+        using var _2 = ArrayBuilder<T>.GetInstance(1, out var builder);
+        await this.SynchronizeAssetsAsync<T, ArrayBuilder<T>>(
+            assetPath, checksums,
+            static (_, asset, builder) => builder.Add(asset),
+            builder, cancellationToken).ConfigureAwait(false);
 
-        Contract.ThrowIfFalse(called);
-        Contract.ThrowIfNull((object?)result);
+        Contract.ThrowIfTrue(builder.Count != 1);
 
-        return result;
+        return builder[0];
     }
 
     public override async ValueTask GetAssetsAsync<T, TArg>(
