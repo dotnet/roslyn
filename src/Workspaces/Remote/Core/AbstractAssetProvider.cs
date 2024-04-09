@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -22,7 +23,7 @@ internal abstract class AbstractAssetProvider
     /// return data of type T whose checksum is the given checksum
     /// </summary>
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
-    public abstract ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken);
+    public abstract ValueTask GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken);
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
@@ -107,10 +108,17 @@ internal abstract class AbstractAssetProvider
     public async Task<ImmutableArray<T>> GetAssetsAsync<T>(
         AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
-        using var _ = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
         checksumSet.AddAll(checksums.Children);
 
-        var results = await this.GetAssetsAsync<T>(assetPath, checksumSet, cancellationToken).ConfigureAwait(false);
-        return results.SelectAsArray(static t => t.asset);
+        using var _2 = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
+
+        await this.GetAssetsAsync<T, ArrayBuilder<T>>(
+            assetPath, checksumSet,
+            static (checksum, asset, builder) => builder.Add(asset),
+            builder,
+            cancellationToken).ConfigureAwait(false);
+
+        return builder.ToImmutableAndClear();
     }
 }

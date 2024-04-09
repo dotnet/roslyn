@@ -49,28 +49,21 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
         checksums.Add(checksum);
 
-        using var _2 = PooledDictionary<Checksum, T>.GetInstance(out var results);
-        await this.SynchronizeAssetsAsync(assetPath, checksums, results, cancellationToken).ConfigureAwait(false);
+        using var _2 = ArrayBuilder<T>.GetInstance(1, out var builder);
+        await this.SynchronizeAssetsAsync<T, ArrayBuilder<T>>(
+            assetPath, checksums,
+            static (_, asset, builder) => builder.Add(asset),
+            builder, cancellationToken).ConfigureAwait(false);
 
-        return results[checksum];
+        Contract.ThrowIfTrue(builder.Count != 1);
+
+        return builder[0];
     }
 
-    public override async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
-        AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+    public override async ValueTask GetAssetsAsync<T, TArg>(
+        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
-        using var _ = PooledDictionary<Checksum, T>.GetInstance(out var results);
-
-        await this.SynchronizeAssetsAsync(assetPath, checksums, results, cancellationToken).ConfigureAwait(false);
-
-        var result = new (Checksum checksum, T asset)[checksums.Count];
-        var index = 0;
-        foreach (var (checksum, assetObject) in results)
-        {
-            result[index] = (checksum, assetObject);
-            index++;
-        }
-
-        return ImmutableCollectionsMarshal.AsImmutableArray(result);
+        await this.SynchronizeAssetsAsync(assetPath, checksums, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -98,17 +91,15 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
         async ValueTask SynchronizeSolutionAssetsWorkerAsync()
         {
-            using var _1 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
-
             // first, get top level solution state for the given solution checksum
             var compilationStateChecksums = await this.GetAssetAsync<SolutionCompilationStateChecksums>(
                 assetPath: AssetPath.SolutionOnly, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            using var _2 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+            using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
             // second, get direct children of the solution compilation state.
             compilationStateChecksums.AddAllTo(checksums);
-            await this.SynchronizeAssetsAsync<object>(assetPath: AssetPath.SolutionOnly, checksums, results: null, cancellationToken).ConfigureAwait(false);
+            await this.SynchronizeAssetsAsync<object, VoidResult>(assetPath: AssetPath.SolutionOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
 
             // third, get direct children of the solution state.
             var stateChecksums = await this.GetAssetAsync<SolutionStateChecksums>(
@@ -118,7 +109,14 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             // the project states and we want to get that all in one batch.
             checksums.Clear();
             stateChecksums.AddAllTo(checksums);
-            await this.SynchronizeAssetsAsync(assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, checksums, checksumToObjects, cancellationToken).ConfigureAwait(false);
+
+            using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
+
+            await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
+                assetPath: AssetPath.SolutionAndTopLevelProjectsOnly,
+                checksums,
+                static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
+                arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
 
             // fourth, get all projects and documents in the solution 
             foreach (var (projectChecksum, _) in stateChecksums.Projects)
@@ -161,8 +159,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             AddAll(checksums, projectChecksums.AnalyzerConfigDocuments.Checksums);
 
             // First synchronize all the top-level info about this project.
-            await this.SynchronizeAssetsAsync<object>(
-                assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, results: null, cancellationToken).ConfigureAwait(false);
+            await this.SynchronizeAssetsAsync<object, VoidResult>(
+                assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
 
             checksums.Clear();
 
@@ -171,8 +169,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             await CollectChecksumChildrenAsync(checksums, projectChecksums.AdditionalDocuments).ConfigureAwait(false);
             await CollectChecksumChildrenAsync(checksums, projectChecksums.AnalyzerConfigDocuments).ConfigureAwait(false);
 
-            await this.SynchronizeAssetsAsync<object>(
-                assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, results: null, cancellationToken).ConfigureAwait(false);
+            await this.SynchronizeAssetsAsync<object, VoidResult>(
+                assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask CollectChecksumChildrenAsync(HashSet<Checksum> checksums, ChecksumsAndIds<DocumentId> collection)
@@ -195,8 +193,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         }
     }
 
-    public async ValueTask SynchronizeAssetsAsync<T>(
-        AssetPath assetPath, HashSet<Checksum> checksums, Dictionary<Checksum, T>? results, CancellationToken cancellationToken)
+    public async ValueTask SynchronizeAssetsAsync<T, TArg>(
+        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
@@ -221,7 +219,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             {
                 if (_assetCache.TryGetAsset<T>(checksum, out var existing))
                 {
-                    AddResult(checksum, existing);
+                    callback?.Invoke(checksum, existing, arg!);
                 }
                 else
                 {
@@ -248,9 +246,23 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             if (missingChecksumsCount > 0)
             {
                 var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
-
                 var stopwatch = SharedStopwatch.StartNew();
-                var missingAssets = await RequestAssetsAsync<T>(assetPath, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
+
+                await RequestAssetsAsync(
+                    assetPath, missingChecksumsMemory,
+                    static (
+                        int index,
+                        T missingAsset,
+                        (AssetProvider assetProvider, Checksum[] missingChecksums, Action<Checksum, T, TArg>? callback, TArg? arg) tuple) =>
+                    {
+                        var missingChecksum = tuple.missingChecksums[index];
+
+                        tuple.callback?.Invoke(missingChecksum, missingAsset, tuple.arg!);
+                        tuple.assetProvider._assetCache.GetOrAdd(missingChecksum, missingAsset!);
+                    },
+                    (this, missingChecksums, callback, arg),
+                    cancellationToken).ConfigureAwait(false);
+
                 var time = stopwatch.Elapsed;
                 var totalTime = s_start.Elapsed;
 
@@ -262,16 +274,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     }
                 });
 
-                Contract.ThrowIfTrue(missingChecksumsMemory.Length != missingAssets.Length);
-
-                for (int i = 0, n = missingAssets.Length; i < n; i++)
-                {
-                    var missingChecksum = missingChecksums[i];
-                    var missingAsset = missingAssets[i];
-
-                    AddResult(missingChecksum, missingAsset);
-                    _assetCache.GetOrAdd(missingChecksum, missingAsset!);
-                }
             }
 
             if (usePool)
@@ -279,16 +281,10 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         }
 
         return;
-
-        void AddResult(Checksum checksum, T result)
-        {
-            if (results != null)
-                results[checksum] = result;
-        }
     }
 
-    private async ValueTask<ImmutableArray<T>> RequestAssetsAsync<T>(
-        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
+    private async ValueTask RequestAssetsAsync<T, TArg>(
+        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, Action<int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
 #if NETCOREAPP
         Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));
@@ -297,8 +293,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 #endif
 
         if (checksums.Length == 0)
-            return [];
+            return;
 
-        return await _assetSource.GetAssetsAsync<T>(_solutionChecksum, assetPath, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+        await _assetSource.GetAssetsAsync(_solutionChecksum, assetPath, checksums, _serializerService, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 }
