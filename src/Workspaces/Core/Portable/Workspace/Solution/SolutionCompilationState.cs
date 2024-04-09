@@ -336,7 +336,7 @@ internal sealed partial class SolutionCompilationState
             sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
     }
 
-    /// <inheritdoc cref="SolutionState.AddProjects"/>
+    /// <inheritdoc cref="SolutionState.AddProjects(ArrayBuilder{ProjectInfo})"/>
     public SolutionCompilationState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
     {
         if (projectInfos.Count == 0)
@@ -345,17 +345,32 @@ internal sealed partial class SolutionCompilationState
         if (projectInfos.Count == 1)
             return AddProject(projectInfos.First());
 
-        var newSolutionState = this.SolutionState.AddProject(projectInfo);
-        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => { }, /* unused */ 0, skipEmptyCallback: true);
+        var newSolutionState = this.SolutionState.AddProjects(projectInfos);
 
-        var sourceGeneratorExecutionVersionMap = _sourceGeneratorExecutionVersionMap;
-        if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
+        // When adding a project, we might add a project that an *existing* project now has a reference to.  That's
+        // because we allow existing projects to have 'dangling' project references.  As such, we have to ensure we do
+        // not reuse compilation trackers for any of those projects.
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var dependentProjects);
+        var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
+        foreach (var projectInfo in projectInfos)
+            dependentProjects.AddRange(newDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectInfo.Id));
+
+        var newTrackerMap = CreateCompilationTrackerMap(
+            static (projectId, dependentProjects) => !dependentProjects.Contains(projectId),
+            dependentProjects,
+            // We don't need to do anything here.  Compilation trackers are created on demand.  So we'll just keep the
+            // tracker map as-is, and have the trackers for these new projects be created when needed.
+            modifyNewTrackerInfo: static (_, _) => { }, argModifyNewTrackerInfo: default(VoidResult),
+            skipEmptyCallback: true);
+
+        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        foreach (var projectInfo in projectInfos)
         {
-            var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
-            versionMapBuilder.Add(projectInfo.Id, new());
-            sourceGeneratorExecutionVersionMap = new(versionMapBuilder.ToImmutable());
+            if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
+                versionMapBuilder.Add(projectInfo.Id, new());
         }
 
+        var sourceGeneratorExecutionVersionMap = new SourceGeneratorExecutionVersionMap(versionMapBuilder.ToImmutable());
         return Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap,
