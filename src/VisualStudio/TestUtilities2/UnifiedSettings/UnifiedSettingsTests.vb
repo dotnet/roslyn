@@ -28,18 +28,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         ' Use this dictionary to list all the possible enum values in settings page.
         Friend MustOverride ReadOnly Property EnumOptionsToValues As ImmutableDictionary(Of IOption2, ImmutableArray(Of Object))
 
-        Protected Sub TestIntelliSensePageSettings(registrationJsonObject As JObject)
+        Protected Sub TestUnifiedSettingsCategory(registrationJsonObject As JObject, categoryBasePath As String, languageName As String)
+            Dim actualAllSettings = registrationJsonObject.SelectToken($"$.properties").Children.OfType(Of JProperty).
+                Where(Function(setting) setting.Name.StartsWith(categoryBasePath)).
+                Select(Function(setting) setting.Name).
+                OrderBy(Function(name) name).
+                ToArray()
+
+            Dim expectedAllSettings = OnboardedOptions.Select(Function(onboardedOption) s_unifiedSettingsStorage(onboardedOption.Definition.ConfigName).GetUnifiedSettingsPath(languageName)).
+                OrderBy(Function(name) name).
+                ToArray()
+            Assert.Equal(expectedAllSettings, actualAllSettings)
+
             For Each onboardedOption In OnboardedOptions
                 Dim optionName = onboardedOption.Definition.ConfigName
                 Dim settingStorage As UnifiedSettingsStorage = Nothing
                 If s_unifiedSettingsStorage.TryGetValue(optionName, settingStorage) Then
-                    Dim unifiedSettingsPath = settingStorage.GetUnifiedSettingsPath(LanguageNames.CSharp)
+                    Dim unifiedSettingsPath = settingStorage.GetUnifiedSettingsPath(languageName)
                     VerifyType(registrationJsonObject, unifiedSettingsPath, onboardedOption)
                     If onboardedOption.Type.IsEnum Then
                         ' Enum settings contains special setup.
-                        VerifyEnum(registrationJsonObject, unifiedSettingsPath, onboardedOption)
+                        VerifyEnum(registrationJsonObject, unifiedSettingsPath, onboardedOption, languageName)
                     Else
-                        VerifySettings(registrationJsonObject, unifiedSettingsPath, onboardedOption)
+                        VerifySettings(registrationJsonObject, unifiedSettingsPath, onboardedOption, languageName)
                     End If
                 Else
                     ' Can't find the option in the storage dictionary
@@ -48,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             Next
         End Sub
 
-        Private Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
+        Private Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2, languageName As String)
             ' Verify default value
             Dim actualDefaultValue = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').default")
             Dim perLangDefaultValue As Object = Nothing
@@ -56,10 +67,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
                             perLangDefaultValue.ToString().ToCamelCase(),
                             [option].Definition.DefaultValue?.ToString().ToCamelCase()), actualDefaultValue.ToString().ToCamelCase())
 
-            VerifyMigration(registrationJsonObject, unifiedSettingPath, [option])
+            VerifyMigration(registrationJsonObject, unifiedSettingPath, [option], languageName)
         End Sub
 
-        Private Sub VerifyEnum(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
+        Private Sub VerifyEnum(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2, languageName As String)
             Dim actualDefaultValue = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').default")
             Dim perLangDefaultValue As Object = Nothing
             Assert.Equal(If(OptionsToDefaultValue.TryGetValue([option], perLangDefaultValue),
@@ -72,7 +83,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
                                          possibleEnumValues.SelectAsArray(Function(value) value.ToString().ToCamelCase()),
                                          [option].Type.GetEnumValues().Cast(Of String).SelectAsArray(Function(value) value.ToCamelCase()))
             AssertEx.Equal(expectedEnumValues, actualEnumValues)
-            VerifyEnumMigration(registrationJsonObject, unifiedSettingPath, [option])
+            VerifyEnumMigration(registrationJsonObject, unifiedSettingPath, [option], languageName)
         End Sub
 
         Private Shared Sub VerifyType(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
@@ -99,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             End If
         End Function
 
-        Private Sub VerifyEnumMigration(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
+        Private Sub VerifyEnumMigration(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2, languageName As String)
             Dim actualMigration = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').migration")
             Dim migrationProperty = DirectCast(actualMigration.Children().Single(), JProperty)
             Dim migrationType = migrationProperty.Name
@@ -107,11 +118,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
 
             ' Verify input node and map node
             Dim input = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').migration.enumIntegerToString.input")
-            VerifyInput(input, [option])
+            VerifyInput(input, [option], languageName)
             VerifyEnumToIntegerMappings(registrationJsonObject, unifiedSettingPath, [option])
         End Sub
 
-        Private Shared Sub VerifyMigration(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
+        Private Shared Sub VerifyMigration(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2, languageName As String)
             Dim actualMigration = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').migration")
             ' Get the single property under migration
             Dim migrationProperty = DirectCast(actualMigration.Children().Single(), JProperty)
@@ -119,7 +130,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             If migrationType = "pass" Then
                 ' Verify input node
                 Dim input = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').migration.pass.input")
-                VerifyInput(input, [option])
+                VerifyInput(input, [option], languageName)
             Else
                 ' Need adding more migration types if new type is added
                 Throw ExceptionUtilities.UnexpectedValue(migrationType)
@@ -127,7 +138,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         End Sub
 
         ' Verify input property under migration
-        Private Shared Sub VerifyInput(input As JToken, [option] As IOption2)
+        Private Shared Sub VerifyInput(input As JToken, [option] As IOption2, languageName As String)
             Dim store = input.SelectToken("store").ToString()
             Dim path = input.SelectToken("path").ToString()
             Dim configName = [option].Definition.ConfigName
@@ -135,12 +146,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             If TypeOf visualStudioStorage Is VisualStudioOptionStorage.RoamingProfileStorage Then
                 Dim roamingProfileStorage = DirectCast(visualStudioStorage, VisualStudioOptionStorage.RoamingProfileStorage)
                 Assert.Equal("SettingsManager", store)
-                Assert.Equal(roamingProfileStorage.Key.Replace("%LANGUAGE%", "CSharp"), path)
+                Assert.Equal(roamingProfileStorage.Key.Replace("%LANGUAGE%", GetSubstituteLanguage(languageName)), path)
             Else
                 ' Not supported yet
                 Throw ExceptionUtilities.Unreachable
             End If
         End Sub
+
+        Private Shared Function GetSubstituteLanguage(languageName As String) As String
+            Select Case languageName
+                Case LanguageNames.CSharp
+                    Return "CSharp"
+                Case LanguageNames.VisualBasic
+                    Return "VisualBasic"
+                Case Else
+                    Return languageName
+            End Select
+        End Function
 
         Private Sub VerifyEnumToIntegerMappings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
             ' Here we are going to verify a structure like this:

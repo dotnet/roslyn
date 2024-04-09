@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Options;
@@ -56,7 +57,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             Assert.Equal("C#", actual: categoriesTitle.ToString());
             var optionPageId = registrationJsonObject.SelectToken("$.categories['textEditor.csharp.intellisense'].legacyOptionPageId");
             Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, optionPageId!.ToString());
-            TestIntelliSensePageSettings(registrationJsonObject);
+            TestUnifiedSettingsCategory(registrationJsonObject, categoryBasePath: "textEditor.csharp.intellisense", languageName: LanguageNames.CSharp);
         }
     }
 }
