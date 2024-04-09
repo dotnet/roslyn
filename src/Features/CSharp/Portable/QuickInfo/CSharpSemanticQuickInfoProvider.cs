@@ -103,11 +103,11 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             case ILocalSymbol { HasConstantValue: true }: return default;
 
             // Symbols with useful quick info
-            case IFieldSymbol _:
-            case ILocalSymbol _:
-            case IParameterSymbol _:
-            case IPropertySymbol _:
-            case IRangeVariableSymbol _:
+            case IFieldSymbol:
+            case ILocalSymbol:
+            case IParameterSymbol:
+            case IPropertySymbol:
+            case IRangeVariableSymbol:
                 break;
 
             default:

@@ -157,7 +157,7 @@ internal sealed class CodeGenerationContext
         AfterThisLocation = afterThisLocation;
         BeforeThisLocation = beforeThisLocation;
         AddImports = addImports;
-        AdditionalImports = additionalImports ?? SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
+        AdditionalImports = additionalImports ?? [];
         GenerateMembers = generateMembers;
         MergeNestedNamespaces = mergeNestedNamespaces;
         MergeAttributes = mergeAttributes;

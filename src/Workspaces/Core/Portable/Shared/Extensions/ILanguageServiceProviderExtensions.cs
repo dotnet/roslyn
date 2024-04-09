@@ -19,9 +19,7 @@ internal static class ILanguageServiceProviderExtensions
         where TMetadata : ILanguageMetadata
     {
         if (items == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<Lazy<T, TMetadata>>();
-        }
+            return [];
 
         return items.Where(lazy => lazy.Metadata.Language == serviceProvider.Language);
     }

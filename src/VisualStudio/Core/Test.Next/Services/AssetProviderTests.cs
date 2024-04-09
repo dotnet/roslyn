@@ -53,11 +53,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), new Dictionary<Checksum, object>() { { checksum, data } });
 
             var provider = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            var stored = await provider.GetAssetAsync<object>(assetHint: AssetHint.None, checksum, CancellationToken.None);
+            var stored = await provider.GetAssetAsync<object>(AssetPath.FullLookupForTesting, checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
-            var stored2 = await provider.GetAssetsAsync<object>(assetHint: AssetHint.None, [checksum], CancellationToken.None);
-            Assert.Equal(1, stored2.Length);
+            var stored2 = new List<(Checksum, object)>();
+            await provider.GetAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum> { checksum }, (checksum, asset, _) => stored2.Add((checksum, asset)), default, CancellationToken.None);
+            Assert.Equal(1, stored2.Count);
 
             Assert.Equal(checksum, stored2[0].Item1);
             Assert.Equal(data, stored2[0].Item2);
@@ -83,7 +84,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeAssetsAsync(assetHint: AssetHint.None, new HashSet<Checksum>(map.Keys), results: null, CancellationToken.None);
+            await service.SynchronizeAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum>(map.Keys), callback: null, arg: default, CancellationToken.None);
 
             foreach (var kv in map)
             {

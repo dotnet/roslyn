@@ -20,11 +20,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-#pragma warning disable CA1200 // Avoid using cref tags with a prefix
-
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-
-using ProjectErrorMap = ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>;
 
 /// <summary>
 /// Diagnostic source for warnings and errors reported from explicit build command invocations in Visual Studio.
@@ -99,18 +95,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
 
     /// <summary>
-    /// Event generated from the serialized <see cref="_taskQueue"/> whenever the build progress in Visual Studio changes.
-    /// Events are guaranteed to be generated in a serial fashion, but may be invoked on any thread.
-    /// </summary>
-    public event EventHandler<BuildProgress>? BuildProgressChanged;
-
-    /// <summary>
-    /// Event generated from the serialized <see cref="_taskQueue"/> whenever build-only diagnostics are reported during a build in Visual Studio.
-    /// These diagnostics are not supported from intellisense and only get refreshed during actual build.
-    /// </summary>
-    public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-
-    /// <summary>
     /// Indicates if a build is currently in progress inside Visual Studio.
     /// </summary>
     public bool IsInProgress => GetBuildInProgressState() != null;
@@ -139,14 +123,12 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
         => GetBuildInProgressState()?.IsSupportedDiagnosticId(projectId, id) ?? false;
 
-    private void OnBuildProgressChanged(InProgressState? state, BuildProgress buildProgress)
+    private void OnBuildProgressChanged(InProgressState? state)
     {
         if (state != null)
         {
             _lastBuiltResult = state.GetBuildErrors();
         }
-
-        RaiseBuildProgressChanged(buildProgress);
     }
 
     public void ClearErrors(ProjectId projectId)
@@ -216,7 +198,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
             state?.MarkErrorsCleared(projectId);
 
-            OnBuildProgressChanged(state, BuildProgress.Updated);
+            OnBuildProgressChanged(state);
         }
     }
 
@@ -345,7 +327,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             }
 
             // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
-            OnBuildProgressChanged(inProgressState, BuildProgress.Updated);
+            OnBuildProgressChanged(inProgressState);
 
             // We are about to update live analyzer data using one from build.
             // pause live analyzer
@@ -354,7 +336,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 SyncBuildErrorsAndReportOnBuildCompleted(inProgressState);
 
             // Mark build as complete.
-            OnBuildProgressChanged(inProgressState, BuildProgress.Done);
+            OnBuildProgressChanged(inProgressState);
             return Task.CompletedTask;
         }, GetApplicableCancellationToken(inProgressState));
     }
@@ -506,7 +488,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
                 // between build and diagnostic service, but this at least make us to consistent inside of our code.
                 _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution, _activeCancellationSeriesDoNotAccessDirectly.CreateNext(_disposalToken));
-                OnBuildProgressChanged(_stateDoNotAccessDirectly, BuildProgress.Started);
+                OnBuildProgressChanged(_stateDoNotAccessDirectly);
             }
 
             return _stateDoNotAccessDirectly;
@@ -534,33 +516,22 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         {
             if (args.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated)
             {
-                RoslynDebug.AssertNotNull(args.Solution);
-                _buildOnlyDiagnosticsService.AddBuildOnlyDiagnostics(args.Solution, args.ProjectId, args.DocumentId, args.Diagnostics);
+                Contract.ThrowIfNull(args.Solution);
+                if (args.DocumentId != null)
+                    _buildOnlyDiagnosticsService.AddBuildOnlyDiagnostics(args.DocumentId, args.Diagnostics);
             }
             else if (args.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
             {
-                RoslynDebug.AssertNotNull(args.Solution);
-                _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(args.Solution, args.ProjectId, args.DocumentId);
+                Contract.ThrowIfNull(args.Solution);
+                var project = args.Solution.GetProject(args.ProjectId);
+                if (project != null)
+                    _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(project, args.DocumentId);
             }
         }
-
-        DiagnosticsUpdated?.Invoke(this, argsCollection);
     }
-
-    private void RaiseBuildProgressChanged(BuildProgress progress)
-        => BuildProgressChanged?.Invoke(this, progress);
-
-    public bool SupportGetDiagnostics { get { return false; } }
 
     internal TestAccessor GetTestAccessor()
         => new(this);
-
-    internal enum BuildProgress
-    {
-        Started,
-        Updated,
-        Done
-    }
 
     internal readonly struct TestAccessor(ExternalErrorDiagnosticUpdateSource instance)
     {
@@ -895,7 +866,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 if (!_projectsWithErrors.Add(projectId))
                     return;
 
-                _owner.OnBuildProgressChanged(this, BuildProgress.Updated);
+                _owner.OnBuildProgressChanged(this);
             }
         }
 

@@ -61,7 +61,7 @@ internal class CSharpDecompiledSourceService : IDecompiledSourceService
         // Apply formatting rules
         var formattedDoc = await Formatter.FormatAsync(
              document,
-             SpecializedCollections.SingletonEnumerable(node.FullSpan),
+             [node.FullSpan],
              options,
              CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
              cancellationToken).ConfigureAwait(false);

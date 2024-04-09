@@ -23,9 +23,7 @@ internal sealed class SupportedPlatformData(Solution solution, List<ProjectId> i
     public IList<SymbolDisplayPart> ToDisplayParts()
     {
         if (InvalidProjects == null || InvalidProjects.Count == 0)
-        {
-            return SpecializedCollections.EmptyList<SymbolDisplayPart>();
-        }
+            return [];
 
         var builder = new List<SymbolDisplayPart>();
         builder.AddLineBreak();

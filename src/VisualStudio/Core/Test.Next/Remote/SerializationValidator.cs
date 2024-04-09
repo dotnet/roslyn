@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Test.Utilities;
@@ -21,15 +22,19 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     internal sealed class SerializationValidator
     {
-        private sealed class AssetProvider : AbstractAssetProvider
+        private sealed class AssetProvider(SerializationValidator validator) : AbstractAssetProvider
         {
-            private readonly SerializationValidator _validator;
+            public override async ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken)
+                => await validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
 
-            public AssetProvider(SerializationValidator validator)
-                => _validator = validator;
-
-            public override async ValueTask<T> GetAssetAsync<T>(AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
-                => await _validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
+            public override async ValueTask GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken) where TArg : default
+            {
+                foreach (var checksum in checksums)
+                {
+                    var value = await GetAssetAsync<T>(assetPath, checksum, cancellationToken).ConfigureAwait(false);
+                    callback?.Invoke(checksum, value, arg!);
+                }
+            }
         }
 
         internal sealed class ChecksumObjectCollection<T> : IEnumerable<T>

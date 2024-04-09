@@ -212,12 +212,12 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
         {
             var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                assetHint: AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                AssetPath.SolutionOnly, solutionChecksum, cancellationToken).ConfigureAwait(false);
             var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+                AssetPath.SolutionOnly, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
             var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
-                assetHint: AssetHint.None, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+                AssetPath.SolutionOnly, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 
             // if either solution id or file path changed, then we consider it as new solution
             return currentSolution.Id == newSolutionInfo.Id && currentSolution.FilePath == newSolutionInfo.FilePath;

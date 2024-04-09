@@ -33,12 +33,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             var operation = await GetChangeSolutionOperationAsync(isPreview: true, cancellationToken).ConfigureAwait(false);
-            if (operation is null)
-            {
-                return [];
-            }
-
-            return SpecializedCollections.SingletonEnumerable(operation);
+            return operation is null ? [] : [operation];
         }
 
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(

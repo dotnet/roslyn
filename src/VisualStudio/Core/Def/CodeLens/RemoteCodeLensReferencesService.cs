@@ -160,7 +160,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
             }
 
             var span = new TextSpan(descriptor.SpanStart, descriptor.SpanLength);
-            var results = await spanMapper.MapSpansAsync(document, SpecializedCollections.SingletonEnumerable(span), cancellationToken).ConfigureAwait(false);
+            var results = await spanMapper.MapSpansAsync(document, [span], cancellationToken).ConfigureAwait(false);
 
             // external component violated contracts. the mapper should preserve input order/count. 
             // since we gave in 1 span, it should return 1 span back

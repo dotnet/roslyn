@@ -327,6 +327,11 @@
         <target state="translated">메서드 그룹 '{0}'을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다(&amp;M).</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">대리자 형식을 유추할 수 없습니다.</target>

@@ -94,9 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             where TMetadata : ILanguageMetadata
         {
             if (items == null)
-            {
-                return SpecializedCollections.EmptyList<T>();
-            }
+                return [];
 
             return items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).
                 Select(lazy => lazy.Value).ToList();

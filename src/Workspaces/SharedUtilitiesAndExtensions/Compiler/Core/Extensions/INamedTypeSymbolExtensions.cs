@@ -388,7 +388,7 @@ internal static partial class INamedTypeSymbolExtensions
         // implement.  By definition they must contain all the necessary methods.
         var baseType = classOrStructType.BaseType;
         var alreadyImplementedInterfaces = baseType == null || allowReimplementation
-            ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
+            ? []
             : baseType.AllInterfaces;
 
         cancellationToken.ThrowIfCancellationRequested();

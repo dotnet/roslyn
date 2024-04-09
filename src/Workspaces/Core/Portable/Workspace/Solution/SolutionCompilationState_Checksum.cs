@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -136,8 +138,14 @@ internal partial class SolutionCompilationState
                     frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
+                var versionMapChecksum = ChecksumCache.GetOrCreate(
+                    this.SourceGeneratorExecutionVersionMap,
+                    static (map, @this) => GetVersionMapChecksum(@this),
+                    this);
+
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
+                    versionMapChecksum,
                     frozenSourceGeneratedDocumentIdentities,
                     frozenSourceGeneratedDocuments,
                     frozenSourceGeneratedDocumentGenerationDateTimes);
@@ -147,6 +155,27 @@ internal partial class SolutionCompilationState
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
             throw ExceptionUtilities.Unreachable();
+        }
+
+        static Checksum GetVersionMapChecksum(SolutionCompilationState @this)
+        {
+            // We want the projects in sorted order so we can generate the checksum for the
+            // source-generation-execution-map consistently.
+            var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(@this.SolutionState.ProjectIds);
+
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksums);
+
+            foreach (var projectId in sortedProjectIds)
+            {
+                var projectState = @this.SolutionState.GetRequiredProjectState(projectId);
+                if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
+                    continue;
+
+                checksums.Add(projectId.Checksum);
+                checksums.Add(Checksum.Create(@this.SourceGeneratorExecutionVersionMap[projectId], static (v, w) => v.WriteTo(w)));
+            }
+
+            return Checksum.Create(checksums);
         }
     }
 }

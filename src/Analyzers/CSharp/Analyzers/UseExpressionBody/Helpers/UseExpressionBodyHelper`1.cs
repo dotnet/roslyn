@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,6 +15,9 @@ using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 /// <summary>
 /// Helper class that allows us to share lots of logic between the diagnostic analyzer and the
@@ -160,7 +162,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         if (getAccessor?.ExpressionBody != null &&
             BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
         {
-            arrowExpression = SyntaxFactory.ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
+            arrowExpression = ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
             semicolonToken = getAccessor.SemicolonToken;
             return true;
         }
@@ -180,7 +182,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
 
         expressionBody = GetExpressionBody(declaration);
         if (expressionBody?.TryConvertToBlock(
-            SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, block: out _) != true)
+            SemicolonToken, false, block: out _) != true)
         {
             fixesError = false;
             return false;
@@ -296,13 +298,13 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
             CreateReturnStatementForExpression(semanticModel, declaration),
             out var block);
 
-        var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
+        var accessor = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
         accessor = block != null
             ? accessor.WithBody(block)
             : accessor.WithExpressionBody(expressionBody)
                       .WithSemicolonToken(semicolonToken);
 
-        return WithAccessorList(declaration, SyntaxFactory.AccessorList([accessor]));
+        return WithAccessorList(declaration, AccessorList([accessor]));
     }
 
     protected virtual TDeclaration WithAccessorList(TDeclaration declaration, AccessorListSyntax accessorListSyntax)

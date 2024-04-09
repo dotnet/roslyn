@@ -480,9 +480,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         {
             string includeUsingsOrImports = null;
             if (!areFoldersValidIdentifiers)
-            {
-                folders = SpecializedCollections.EmptyList<string>();
-            }
+                folders = [];
 
             // Now actually create the symbol that we want to add to the root namespace.  The
             // symbol may either be a named type (if we're not generating into a namespace) or

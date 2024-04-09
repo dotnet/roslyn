@@ -16,6 +16,9 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal static class FieldGenerator
 {
     private static MemberDeclarationSyntax? LastField(
@@ -91,15 +94,15 @@ internal static class FieldGenerator
         }
 
         var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
-            ? SyntaxFactory.EqualsValueClause(initializerNode)
+            ? EqualsValueClause(initializerNode)
             : GenerateEqualsValue(info.Generator, field);
 
-        var fieldDeclaration = SyntaxFactory.FieldDeclaration(
+        var fieldDeclaration = FieldDeclaration(
             AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), info),
             GenerateModifiers(field, info),
-            SyntaxFactory.VariableDeclaration(
+            VariableDeclaration(
                 field.Type.GenerateTypeSyntax(),
-                [AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer))]));
+                [AddAnnotationsTo(field, VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer))]));
 
         return AddFormatterAndCodeGeneratorAnnotationsTo(
             ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, info, cancellationToken));
@@ -110,7 +113,7 @@ internal static class FieldGenerator
         if (field.HasConstantValue)
         {
             var canUseFieldReference = field.Type != null && !field.Type.Equals(field.ContainingType);
-            return SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(generator, field.Type, field.ConstantValue, canUseFieldReference));
+            return EqualsValueClause(ExpressionGenerator.GenerateExpression(generator, field.Type, field.ConstantValue, canUseFieldReference));
         }
 
         return null;
@@ -123,29 +126,29 @@ internal static class FieldGenerator
         CSharpCodeGenerationHelpers.AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
         if (field.IsConst)
         {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword));
+            tokens.Add(ConstKeyword);
         }
         else
         {
             if (field.IsStatic)
             {
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                tokens.Add(StaticKeyword);
             }
 
             if (field.IsReadOnly)
             {
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                tokens.Add(ReadOnlyKeyword);
             }
 
             if (field.IsRequired)
             {
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
+                tokens.Add(RequiredKeyword);
             }
         }
 
         if (CodeGenerationFieldInfo.GetIsUnsafe(field))
         {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            tokens.Add(UnsafeKeyword);
         }
 
         return tokens.ToSyntaxTokenListAndFree();

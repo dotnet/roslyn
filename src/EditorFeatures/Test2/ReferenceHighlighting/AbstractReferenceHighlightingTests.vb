@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(
-                    document, snapshot, New SnapshotPoint(snapshot, caretPosition))
+                    document, snapshot, frozenPartialSemantics:=False, New SnapshotPoint(snapshot, caretPosition))
                 Await tagProducer.GetTestAccessor().ProduceTagsAsync(context)
 
                 Dim producedTags = From tag In context.TagSpans

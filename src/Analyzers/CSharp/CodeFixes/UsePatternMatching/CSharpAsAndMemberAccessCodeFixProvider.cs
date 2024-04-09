@@ -20,6 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternMatchingAsAndMemberAccess), Shared]
@@ -67,11 +68,11 @@ internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBase
 
         // { X.Y: pattern }
         var propertyPattern = PropertyPatternClause(
-            Token(SyntaxKind.OpenBraceToken).WithoutTrivia().WithAppendedTrailingTrivia(Space),
+            OpenBraceToken.WithoutTrivia().WithAppendedTrailingTrivia(Space),
             [Subpattern(
                 CreateExpressionColon(conditionalAccessExpression),
                 CreatePattern(binaryExpression, isPatternExpression).WithTrailingTrivia(Space))],
-            Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
+            CloseBraceToken.WithoutTrivia());
 
         // T { X.Y: pattern }
         var newPattern = RecursivePattern(
@@ -83,7 +84,7 @@ internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBase
         // is T { X.Y: pattern }
         var newIsExpression = IsPatternExpression(
             asExpression.Left,
-            Token(SyntaxKind.IsKeyword).WithTriviaFrom(asExpression.OperatorToken),
+            IsKeyword.WithTriviaFrom(asExpression.OperatorToken),
             newPattern);
 
         var toReplace = parent.WalkUpParentheses();
@@ -100,7 +101,7 @@ internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBase
             if (whenNotNull is MemberBindingExpressionSyntax { Name: IdentifierNameSyntax identifierName })
                 return NameColon(identifierName);
 
-            return ExpressionColon(RewriteMemberBindingToExpression(whenNotNull), Token(SyntaxKind.ColonToken));
+            return ExpressionColon(RewriteMemberBindingToExpression(whenNotNull), ColonToken);
         }
 
         static ExpressionSyntax RewriteMemberBindingToExpression(ExpressionSyntax expression)
