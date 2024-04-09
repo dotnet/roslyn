@@ -53,7 +53,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             var registrationFile = await reader.ReadToEndAsync().ConfigureAwait(false);
             var registrationJsonObject = JObject.Parse(registrationFile, new JsonLoadSettings() { CommentHandling = CommentHandling.Ignore });
             var categoriesTitle = registrationJsonObject.SelectToken($"$.categories['textEditor.csharp'].title")!;
-            Assert.Equal("C#", categoriesTitle.ToString());
+            Assert.Equal("C#", actual: categoriesTitle.ToString());
             var optionPageId = registrationJsonObject.SelectToken("$.categories['textEditor.csharp.intellisense'].legacyOptionPageId");
             Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, optionPageId!.ToString());
             TestIntelliSensePageSettings(registrationJsonObject);
