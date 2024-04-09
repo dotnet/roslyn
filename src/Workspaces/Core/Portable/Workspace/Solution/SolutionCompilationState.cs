@@ -336,6 +336,32 @@ internal sealed partial class SolutionCompilationState
             sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
     }
 
+    /// <inheritdoc cref="SolutionState.AddProjects"/>
+    public SolutionCompilationState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
+    {
+        if (projectInfos.Count == 0)
+            return this;
+
+        if (projectInfos.Count == 1)
+            return AddProject(projectInfos.First());
+
+        var newSolutionState = this.SolutionState.AddProject(projectInfo);
+        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => { }, /* unused */ 0, skipEmptyCallback: true);
+
+        var sourceGeneratorExecutionVersionMap = _sourceGeneratorExecutionVersionMap;
+        if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
+        {
+            var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+            versionMapBuilder.Add(projectInfo.Id, new());
+            sourceGeneratorExecutionVersionMap = new(versionMapBuilder.ToImmutable());
+        }
+
+        return Branch(
+            newSolutionState,
+            projectIdToTrackerMap: newTrackerMap,
+            sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
+    }
+
     /// <inheritdoc cref="SolutionState.RemoveProject(ProjectId)"/>
     public SolutionCompilationState RemoveProject(ProjectId projectId)
     {

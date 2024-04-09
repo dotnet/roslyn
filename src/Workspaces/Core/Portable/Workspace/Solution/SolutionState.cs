@@ -326,10 +326,62 @@ internal sealed partial class SolutionState
             dependencyGraph: newDependencyGraph);
     }
 
+    private SolutionState AddProjects(ArrayBuilder<ProjectState> projectStates)
+    {
+        if (projectStates.Count == 0)
+            return this;
+
+        if (projectStates.Count == 1)
+            return AddProject(projectStates.First());
+
+        // changed project list so, increment version.
+        var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
+
+        using var _1 = ArrayBuilder<ProjectId>.GetInstance(ProjectIds.Count + projectStates.Count, out var newProjectIdsBuilder);
+        using var _2 = PooledHashSet<ProjectId>.GetInstance(out var addedProjectIds);
+        var newStateMapBuilder = _projectIdToProjectStateMap.ToBuilder();
+
+        newProjectIdsBuilder.AddRange(ProjectIds);
+
+        foreach (var projectState in projectStates)
+        {
+            addedProjectIds.Add(projectState.Id);
+            newProjectIdsBuilder.Add(projectState.Id);
+            newStateMapBuilder.Add(projectState.Id, projectState);
+        }
+
+        var newProjectIds = newProjectIdsBuilder.ToBoxedImmutableArray();
+        var newStateMap = newStateMapBuilder.ToImmutable();
+
+        var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
+
+        return Branch(
+            solutionAttributes: newSolutionAttributes,
+            projectIds: newProjectIds,
+            idToProjectStateMap: newStateMap,
+            dependencyGraph: newDependencyGraph);
+    }
+
     /// <summary>
     /// Create a new solution instance that includes a project with the specified project information.
     /// </summary>
     public SolutionState AddProject(ProjectInfo projectInfo)
+        => this.AddProject(CreateProjectState(projectInfo));
+
+    /// <summary>
+    /// Create a new solution instance that includes projects with the specified project information.
+    /// </summary>
+    public SolutionState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
+    {
+        using var _ = ArrayBuilder<ProjectState>.GetInstance(projectInfos.Count, out var projectStates);
+        foreach (var projectInfo in projectInfos)
+            projectStates.Add(CreateProjectState(projectInfo));
+
+        Contract.ThrowIfTrue(projectInfos.Select(i => i.Id).Distinct().Count() != projectInfos.Count);
+        return this.AddProjects(projectStates);
+    }
+
+    private ProjectState CreateProjectState(ProjectInfo projectInfo)
     {
         if (projectInfo == null)
         {
@@ -359,8 +411,7 @@ internal sealed partial class SolutionState
         }
 
         var newProject = new ProjectState(languageServices, projectInfo);
-
-        return this.AddProject(newProject);
+        return newProject;
     }
 
     /// <summary>

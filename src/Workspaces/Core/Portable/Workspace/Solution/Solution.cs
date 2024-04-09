@@ -345,19 +345,19 @@ public partial class Solution
     public Solution AddProject(ProjectId projectId, string name, string assemblyName, string language)
         => this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
 
-    /// <summary>
-    /// Create a new solution instance that includes a project with the specified project information.
-    /// </summary>
+    /// <inheritdoc cref="SolutionCompilationState.AddProject"/>
     public Solution AddProject(ProjectInfo projectInfo)
         => WithCompilationState(_compilationState.AddProject(projectInfo));
 
-    /// <summary>
-    /// Create a new solution instance without the project specified.
-    /// </summary>
+    /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
+    internal Solution AddProjects(ArrayBuilder<ProjectInfo> projectInfo)
+        => WithCompilationState(_compilationState.AddProjects(projectInfo));
+
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProject"/>
     public Solution RemoveProject(ProjectId projectId)
         => WithCompilationState(_compilationState.RemoveProject(projectId));
 
-
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     internal Solution RemoveProjects(ArrayBuilder<ProjectId> projectIds)
         => WithCompilationState(_compilationState.RemoveProjects(projectIds));
 
