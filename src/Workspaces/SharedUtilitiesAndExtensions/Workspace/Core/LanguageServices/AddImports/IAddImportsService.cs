@@ -47,6 +47,6 @@ internal static class IAddImportServiceExtensions
         CancellationToken cancellationToken)
     {
         return service.AddImports(compilation, root, contextLocation,
-            SpecializedCollections.SingletonEnumerable(newImport), generator, options, cancellationToken);
+            [newImport], generator, options, cancellationToken);
     }
 }

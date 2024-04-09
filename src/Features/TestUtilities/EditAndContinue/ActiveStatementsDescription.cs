@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public readonly ActiveStatementsMap OldStatementsMap;
         public readonly ImmutableArray<SourceFileSpan> NewMappedSpans;
         public readonly ImmutableArray<ImmutableArray<SourceFileSpan>> NewMappedRegions;
-        public readonly ImmutableArray<LinePositionSpan> OldUnmappedTrackingSpans;
+        public readonly ImmutableArray<ActiveStatementLineSpan> OldUnmappedTrackingSpans;
 
         private ActiveStatementsDescription()
         {
@@ -61,12 +61,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             newMappedRegions.ZeroInit(activeStatementCount);
 
             // initialize with deleted spans (they will retain their file path):
-            foreach (var oldStatement in OldStatements)
+            for (var i = 0; i < OldStatements.Length; i++)
             {
+                var oldStatement = OldStatements[i];
                 if (oldStatement.Statement != null)
                 {
-                    newMappedSpans[oldStatement.Statement.Ordinal] = new SourceFileSpan(oldStatement.Statement.FilePath, default);
-                    newMappedRegions[oldStatement.Statement.Ordinal] = [];
+                    newMappedSpans[i] = new SourceFileSpan(oldStatement.Statement.FilePath, default);
+                    newMappedRegions[i] = [];
                 }
             }
 
@@ -86,8 +87,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // edits the source and we get their positions when analyzing the new source.
             // The EnC analyzer uses old tracking spans as hints to find matching nodes.
             var newText = newTree.GetText();
-            OldUnmappedTrackingSpans = SourceMarkers.GetTrackingSpans(newMarkedSource, activeStatementCount).
-                SelectAsArray(s => newText.Lines.GetLinePositionSpan(s));
+            OldUnmappedTrackingSpans = SourceMarkers.GetTrackingSpans(newMarkedSource).
+                SelectAsArray(s => new ActiveStatementLineSpan(new ActiveStatementId(s.id), newText.Lines.GetLinePositionSpan(s.span)));
         }
 
         internal static ImmutableArray<UnmappedActiveStatement> CreateActiveStatementMapFromMarkers(
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     var unmappedActiveStatement = new UnmappedActiveStatement(
                         unmappedSpan,
                         new ActiveStatement(
-                            ordinal,
+                            new ActiveStatementId(ordinal),
                             statementFlags,
                             mappedSpan,
                             instructionId: default),
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 sourceIndex++;
             }
 
-            activeStatements.Sort((x, y) => x.Statement.Ordinal.CompareTo(y.Statement.Ordinal));
+            activeStatements.Sort((x, y) => x.Statement.Id.Ordinal.CompareTo(y.Statement.Id.Ordinal));
             return activeStatements.ToImmutable();
         }
 
@@ -167,11 +168,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 new ManagedActiveStatementDebugInfo(
                     new ManagedInstructionId(
                         new ManagedMethodId(
-                            (modules != null) ? modules[statement.Ordinal] : moduleId,
+                            (modules != null) ? modules[statement.Id.Ordinal] : moduleId,
                             new ManagedModuleMethodId(
-                                token: 0x06000000 | (methodRowIds != null ? methodRowIds[statement.Ordinal] : statement.Ordinal + 1),
-                                version: (methodVersions != null) ? methodVersions[statement.Ordinal] : 1)),
-                        ilOffset: (ilOffsets != null) ? ilOffsets[statement.Ordinal] : 0),
+                                token: 0x06000000 | (methodRowIds != null ? methodRowIds[statement.Id.Ordinal] : statement.Id.Ordinal + 1),
+                                version: (methodVersions != null) ? methodVersions[statement.Id.Ordinal] : 1)),
+                        ilOffset: (ilOffsets != null) ? ilOffsets[statement.Id.Ordinal] : 0),
                     documentName: statement.FilePath,
                     sourceSpan: statement.Span.ToSourceSpan(),
                     flags: statement.Flags));

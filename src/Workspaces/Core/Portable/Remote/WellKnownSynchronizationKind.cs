@@ -22,13 +22,13 @@ internal enum WellKnownSynchronizationKind
     ProjectAttributes,
     DocumentAttributes,
     SourceGeneratedDocumentIdentity,
+    SourceGeneratorExecutionVersionMap,
 
     CompilationOptions,
     ParseOptions,
     ProjectReference,
     MetadataReference,
     AnalyzerReference,
-    SourceText,
 
     SerializableSourceText,
 }

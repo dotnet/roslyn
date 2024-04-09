@@ -57,10 +57,10 @@ internal class FindLiteralsSearchEngine
                 _longValue = BitConverter.DoubleToInt64Bits(f);
                 _searchKind = SearchKind.NumericLiterals;
                 break;
-            case decimal _: // unsupported
+            case decimal: // unsupported
                 _searchKind = SearchKind.None;
                 break;
-            case char _:
+            case char:
                 _longValue = IntegerUtilities.ToInt64(value);
                 _searchKind = SearchKind.CharacterLiterals;
                 break;

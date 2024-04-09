@@ -265,7 +265,7 @@ lSelect:
 #If DEBUG Then
                     If node.Kind = BoundKind.GetType Then
                         Dim gt = DirectCast(node, BoundGetType)
-                        node = gt.Update(gt.SourceType.MemberwiseClone(Of BoundTypeExpression)(), gt.Type)
+                        node = gt.Update(gt.SourceType.MemberwiseClone(Of BoundTypeExpression)(), gt.GetTypeFromHandle, gt.Type)
                     Else
                         node = node.MemberwiseClone(Of BoundExpression)()
                     End If

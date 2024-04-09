@@ -61,11 +61,9 @@ internal class ExtractClassWithDialogCodeAction(
     protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
         object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
+        // If user click cancel button, options will be null and hit this branch
         if (options is not ExtractClassOptions extractClassOptions)
-        {
-            // If user click cancel button, options will be null and hit this branch
-            return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-        }
+            return [];
 
         // Map the symbols we're removing to annotations
         // so we can find them easily

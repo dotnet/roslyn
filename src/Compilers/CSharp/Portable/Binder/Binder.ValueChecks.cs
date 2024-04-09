@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    BindDefaultArgumentsAndParamsCollection(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, namesBuilder, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+                    BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, namesBuilder, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
 
                     if (namesBuilder is object)
                     {

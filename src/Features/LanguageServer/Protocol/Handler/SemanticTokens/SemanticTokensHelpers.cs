@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
             document = document.WithFrozenPartialSemantics(cancellationToken);
-            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
+            options = options with { FrozenPartialSemantics = true };
 
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole
@@ -320,16 +320,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 if (classificationType == ClassificationTypeNames.StaticSymbol)
                 {
                     // 4. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                    modifierBits = TokenModifiers.Static;
+                    modifierBits |= TokenModifiers.Static;
                 }
                 else if (classificationType == ClassificationTypeNames.ReassignedVariable)
                 {
                     // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                    modifierBits = TokenModifiers.ReassignedVariable;
+                    modifierBits |= TokenModifiers.ReassignedVariable;
+                }
+                else if (classificationType == ClassificationTypeNames.ObsoleteSymbol)
+                {
+                    // 6. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits |= TokenModifiers.Deprecated;
                 }
                 else
                 {
-                    // 6. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
+                    // 7. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
                     // from integer to LSP token types).
                     tokenTypeIndex = GetTokenTypeIndex(classificationType);
                 }

@@ -547,6 +547,9 @@ Do you want to proceed?</value>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="Run" xml:space="preserve">
+    <value>Run</value>
+  </data>
   <data name="Changes" xml:space="preserve">
     <value>Changes</value>
   </data>
@@ -922,5 +925,8 @@ Do you want to proceed?</value>
   </data>
   <data name="Roslyn_Test_Code_Markup" xml:space="preserve">
     <value>Roslyn Test Code Markup</value>
+  </data>
+  <data name="Obsolete_symbol" xml:space="preserve">
+    <value>Obsolete symbol</value>
   </data>
 </root>

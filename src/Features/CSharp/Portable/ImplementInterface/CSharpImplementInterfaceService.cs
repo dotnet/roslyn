@@ -59,7 +59,7 @@ internal class CSharpImplementInterfaceService : AbstractImplementInterfaceServi
                         {
                             classOrStructDecl = interfaceNode.Parent.Parent.Parent as TypeDeclarationSyntax;
                             classOrStructType = model.GetDeclaredSymbol(classOrStructDecl, cancellationToken) as INamedTypeSymbol;
-                            interfaceTypes = SpecializedCollections.SingletonEnumerable(interfaceType);
+                            interfaceTypes = [interfaceType];
 
                             return interfaceTypes != null && classOrStructType != null;
                         }

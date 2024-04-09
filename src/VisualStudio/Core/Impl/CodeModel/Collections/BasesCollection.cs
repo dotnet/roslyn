@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             }
             else
             {
-                return SpecializedCollections.SingletonEnumerable<ITypeSymbol>(symbol.BaseType);
+                return [symbol.BaseType];
             }
         }
 

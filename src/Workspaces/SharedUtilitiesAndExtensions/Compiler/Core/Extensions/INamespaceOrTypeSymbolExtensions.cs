@@ -24,7 +24,7 @@ internal static partial class INamespaceOrTypeSymbolExtensions
     public static IEnumerable<IPropertySymbol> GetIndexers(this INamespaceOrTypeSymbol? symbol)
     {
         return symbol == null
-            ? SpecializedCollections.EmptyEnumerable<IPropertySymbol>()
+            ? []
             : symbol.GetMembers(WellKnownMemberNames.Indexer).OfType<IPropertySymbol>().Where(p => p.IsIndexer);
     }
 

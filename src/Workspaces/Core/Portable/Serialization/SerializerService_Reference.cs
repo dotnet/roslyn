@@ -472,13 +472,15 @@ internal partial class SerializerService
         }
         else
         {
-            var service2 = (ITemporaryStorageService2)_storageService;
+            var service2 = (TemporaryStorageService)_storageService;
 
             var name = reader.ReadRequiredString();
             var offset = reader.ReadInt64();
             var size = reader.ReadInt64();
 
+#pragma warning disable CA1416 // Validate platform compatibility
             var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
+#pragma warning restore CA1416 // Validate platform compatibility
             var length = size;
 
             return (storage, length);

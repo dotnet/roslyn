@@ -99,18 +99,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     public DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _diagnosticService.AnalyzerInfoCache;
 
     /// <summary>
-    /// Event generated from the serialized <see cref="_taskQueue"/> whenever the build progress in Visual Studio changes.
-    /// Events are guaranteed to be generated in a serial fashion, but may be invoked on any thread.
-    /// </summary>
-    public event EventHandler<BuildProgress>? BuildProgressChanged;
-
-    /// <summary>
-    /// Event generated from the serialized <see cref="_taskQueue"/> whenever build-only diagnostics are reported during a build in Visual Studio.
-    /// These diagnostics are not supported from intellisense and only get refreshed during actual build.
-    /// </summary>
-    public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-
-    /// <summary>
     /// Indicates if a build is currently in progress inside Visual Studio.
     /// </summary>
     public bool IsInProgress => GetBuildInProgressState() != null;
@@ -139,14 +127,12 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
         => GetBuildInProgressState()?.IsSupportedDiagnosticId(projectId, id) ?? false;
 
-    private void OnBuildProgressChanged(InProgressState? state, BuildProgress buildProgress)
+    private void OnBuildProgressChanged(InProgressState? state)
     {
         if (state != null)
         {
             _lastBuiltResult = state.GetBuildErrors();
         }
-
-        RaiseBuildProgressChanged(buildProgress);
     }
 
     public void ClearErrors(ProjectId projectId)
@@ -156,13 +142,13 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         // Update the state to clear diagnostics and raise corresponding diagnostic updated events
         // on a serialized task queue.
-        _taskQueue.ScheduleTask(nameof(ClearErrors), async () =>
+        _taskQueue.ScheduleTask(nameof(ClearErrors), () =>
         {
             if (state == null)
             {
                 // TODO: Is it possible that ClearErrors can be invoked while the build is not in progress?
                 // We fallback to current solution in the workspace and clear errors for the project.
-                await ClearErrorsCoreAsync(projectId, _workspace.CurrentSolution, state).ConfigureAwait(false);
+                ClearErrorsCore(projectId, _workspace.CurrentSolution, state);
             }
             else
             {
@@ -174,12 +160,12 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 // If so, we don't need to clear diagnostics for it again.
                 if (state.WereProjectErrorsCleared(projectId))
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 var solution = state.Solution;
 
-                await ClearErrorsCoreAsync(projectId, solution, state).ConfigureAwait(false);
+                ClearErrorsCore(projectId, solution, state);
 
                 var transitiveProjectIds = solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(projectId);
                 foreach (var projectId in transitiveProjectIds)
@@ -189,14 +175,16 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                         continue;
                     }
 
-                    await ClearErrorsCoreAsync(projectId, solution, state).ConfigureAwait(false);
+                    ClearErrorsCore(projectId, solution, state);
                 }
             }
+
+            return Task.CompletedTask;
         }, GetApplicableCancellationToken(state));
 
         return;
 
-        async ValueTask ClearErrorsCoreAsync(ProjectId projectId, Solution solution, InProgressState? state)
+        void ClearErrorsCore(ProjectId projectId, Solution solution, InProgressState? state)
         {
             Debug.Assert(state == null || !state.WereProjectErrorsCleared(projectId));
 
@@ -212,11 +200,9 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 ProcessAndRaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
             }
 
-            await SetLiveErrorsForProjectAsync(projectId, ImmutableArray<DiagnosticData>.Empty, GetApplicableCancellationToken(state)).ConfigureAwait(false);
-
             state?.MarkErrorsCleared(projectId);
 
-            OnBuildProgressChanged(state, BuildProgress.Updated);
+            OnBuildProgressChanged(state);
         }
     }
 
@@ -336,25 +322,26 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         var inProgressState = ClearInProgressState();
 
         // Enqueue build/live sync in the queue.
-        _taskQueue.ScheduleTask("OnSolutionBuild", async () =>
+        _taskQueue.ScheduleTask("OnSolutionBuild", () =>
         {
             // nothing to do
             if (inProgressState == null)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
-            OnBuildProgressChanged(inProgressState, BuildProgress.Updated);
+            OnBuildProgressChanged(inProgressState);
 
             // We are about to update live analyzer data using one from build.
             // pause live analyzer
             using var operation = _notificationService.Start("BuildDone");
-            if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
-                await SyncBuildErrorsAndReportOnBuildCompletedAsync(diagnosticService, inProgressState).ConfigureAwait(false);
+            if (_diagnosticService is DiagnosticAnalyzerService)
+                SyncBuildErrorsAndReportOnBuildCompleted(inProgressState);
 
             // Mark build as complete.
-            OnBuildProgressChanged(inProgressState, BuildProgress.Done);
+            OnBuildProgressChanged(inProgressState);
+            return Task.CompletedTask;
         }, GetApplicableCancellationToken(inProgressState));
     }
 
@@ -363,11 +350,11 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     /// It raises diagnostic update events for both the Build-only diagnostics and Build + Intellisense diagnostics
     /// in the error list.
     /// </summary>
-    private ValueTask SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
+    private void SyncBuildErrorsAndReportOnBuildCompleted(InProgressState inProgressState)
     {
         var solution = inProgressState.Solution;
         var cancellationToken = inProgressState.CancellationToken;
-        var (allLiveErrors, pendingLiveErrorsToSync) = inProgressState.GetLiveErrors();
+        var allLiveErrors = inProgressState.GetLiveErrors();
 
         // Raise events for build only errors
         using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
@@ -391,27 +378,24 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         }
 
         ProcessAndRaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
-
-        // Report pending live errors
-        return diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, onBuildCompleted: true, cancellationToken);
     }
 
-    private DiagnosticsUpdatedArgs CreateArgsToReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
+    private static DiagnosticsUpdatedArgs CreateArgsToReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
     {
         if (item is ProjectId projectId)
         {
-            return CreateDiagnosticsCreatedArgs(projectId, solution, projectId, documentId: null, buildErrors);
+            return CreateDiagnosticsCreatedArgs(solution, projectId, documentId: null, buildErrors);
         }
 
         RoslynDebug.Assert(item is DocumentId);
         var documentId = (DocumentId)(object)item;
-        return CreateDiagnosticsCreatedArgs(documentId, solution, documentId.ProjectId, documentId, buildErrors);
+        return CreateDiagnosticsCreatedArgs(solution, documentId.ProjectId, documentId, buildErrors);
     }
 
-    private void AddArgsToClearBuildOnlyProjectErrors(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, Solution solution, ProjectId? projectId)
+    private static void AddArgsToClearBuildOnlyProjectErrors(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, Solution solution, ProjectId? projectId)
     {
         // Remove all project errors
-        builder.Add(CreateDiagnosticsRemovedArgs(projectId, solution, projectId, documentId: null));
+        builder.Add(CreateDiagnosticsRemovedArgs(solution, projectId, documentId: null));
 
         var project = solution.GetProject(projectId);
         if (project == null)
@@ -426,8 +410,8 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         }
     }
 
-    private void AddArgsToClearBuildOnlyDocumentErrors(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, Solution solution, ProjectId? projectId, DocumentId? documentId)
-        => builder.Add(CreateDiagnosticsRemovedArgs(documentId, solution, projectId, documentId));
+    private static void AddArgsToClearBuildOnlyDocumentErrors(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, Solution solution, ProjectId? projectId, DocumentId? documentId)
+        => builder.Add(CreateDiagnosticsRemovedArgs(solution, projectId, documentId));
 
     public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
     {
@@ -436,10 +420,10 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         // Capture state that will be processed in background thread.
         var state = GetOrCreateInProgressState();
 
-        _taskQueue.ScheduleTask("Project New Errors", async () =>
+        _taskQueue.ScheduleTask("Project New Errors", () =>
         {
-            await ReportPreviousProjectErrorsIfRequiredAsync(projectId, state).ConfigureAwait(false);
             state.AddError(projectId, diagnostic);
+            return Task.CompletedTask;
         }, state.CancellationToken);
     }
 
@@ -450,10 +434,10 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         // Capture state that will be processed in background thread.
         var state = GetOrCreateInProgressState();
 
-        _taskQueue.ScheduleTask("Document New Errors", async () =>
+        _taskQueue.ScheduleTask("Document New Errors", () =>
         {
-            await ReportPreviousProjectErrorsIfRequiredAsync(documentId.ProjectId, state).ConfigureAwait(false);
             state.AddError(documentId, diagnostic);
+            return Task.CompletedTask;
         }, state.CancellationToken);
     }
 
@@ -466,53 +450,14 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         // Capture state that will be processed in background thread
         var state = GetOrCreateInProgressState();
 
-        _taskQueue.ScheduleTask("Project New Errors", async () =>
+        _taskQueue.ScheduleTask("Project New Errors", () =>
         {
-            await ReportPreviousProjectErrorsIfRequiredAsync(projectId, state).ConfigureAwait(false);
-
             foreach (var kv in documentErrorMap)
                 state.AddErrors(kv.Key, kv.Value);
 
             state.AddErrors(projectId, projectErrors);
+            return Task.CompletedTask;
         }, state.CancellationToken);
-    }
-
-    /// <summary>
-    /// This method is invoked from all <see cref="M:AddNewErrors"/> overloads before it adds the new errors to the in progress state.
-    /// It checks if build reported errors for a different project then the previous callback to report errors.
-    /// This provides a good checkpoint to de-dupe build and live errors for lastProjectId and
-    /// raise diagnostic updated events for that project.
-    /// This ensures that error list keeps getting refreshed while a build is in progress, as opposed to doing all the work
-    /// and a single refresh when the build completes.
-    /// </summary>
-    private ValueTask ReportPreviousProjectErrorsIfRequiredAsync(ProjectId projectId, InProgressState state)
-    {
-        if (state.TryGetLastProjectWithReportedErrors() is ProjectId lastProjectId &&
-            lastProjectId != projectId)
-        {
-            return SetLiveErrorsForProjectAsync(lastProjectId, state);
-        }
-
-        return default;
-    }
-
-    private async ValueTask SetLiveErrorsForProjectAsync(ProjectId projectId, InProgressState state)
-    {
-        var diagnostics = state.GetLiveErrorsForProject(projectId);
-        await SetLiveErrorsForProjectAsync(projectId, diagnostics, state.CancellationToken).ConfigureAwait(false);
-        state.MarkLiveErrorsReported(projectId);
-    }
-
-    private ValueTask SetLiveErrorsForProjectAsync(ProjectId projectId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
-    {
-        if (_diagnosticService is DiagnosticAnalyzerService diagnosticAnalyzerService)
-        {
-            // make those errors live errors
-            var map = ProjectErrorMap.Empty.Add(projectId, diagnostics);
-            return diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, onBuildCompleted: false, cancellationToken);
-        }
-
-        return default;
     }
 
     private CancellationToken GetApplicableCancellationToken(InProgressState? state)
@@ -547,21 +492,21 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
                 // between build and diagnostic service, but this at least make us to consistent inside of our code.
                 _stateDoNotAccessDirectly = new InProgressState(this, _workspace.CurrentSolution, _activeCancellationSeriesDoNotAccessDirectly.CreateNext(_disposalToken));
-                OnBuildProgressChanged(_stateDoNotAccessDirectly, BuildProgress.Started);
+                OnBuildProgressChanged(_stateDoNotAccessDirectly);
             }
 
             return _stateDoNotAccessDirectly;
         }
     }
 
-    private DiagnosticsUpdatedArgs CreateDiagnosticsCreatedArgs(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> items)
+    private static DiagnosticsUpdatedArgs CreateDiagnosticsCreatedArgs(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> items)
     {
-        return DiagnosticsUpdatedArgs.DiagnosticsCreated(CreateArgumentKey(id), _workspace, solution, projectId, documentId, items);
+        return DiagnosticsUpdatedArgs.DiagnosticsCreated(solution, projectId, documentId, items);
     }
 
-    private DiagnosticsUpdatedArgs CreateDiagnosticsRemovedArgs(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId)
+    private static DiagnosticsUpdatedArgs CreateDiagnosticsRemovedArgs(Solution solution, ProjectId? projectId, DocumentId? documentId)
     {
-        return DiagnosticsUpdatedArgs.DiagnosticsRemoved(CreateArgumentKey(id), _workspace, solution, projectId, documentId);
+        return DiagnosticsUpdatedArgs.DiagnosticsRemoved(solution, projectId, documentId);
     }
 
     private void ProcessAndRaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
@@ -584,26 +529,10 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(args.Solution, args.ProjectId, args.DocumentId);
             }
         }
-
-        DiagnosticsUpdated?.Invoke(this, argsCollection);
     }
-
-    private static ArgumentKey CreateArgumentKey(object? id) => new(id);
-
-    private void RaiseBuildProgressChanged(BuildProgress progress)
-        => BuildProgressChanged?.Invoke(this, progress);
-
-    public bool SupportGetDiagnostics { get { return false; } }
 
     internal TestAccessor GetTestAccessor()
         => new(this);
-
-    internal enum BuildProgress
-    {
-        Started,
-        Updated,
-        Done
-    }
 
     internal readonly struct TestAccessor(ExternalErrorDiagnosticUpdateSource instance)
     {
@@ -659,20 +588,10 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         private readonly HashSet<ProjectId> _projectsWithErrorsCleared = [];
 
         /// <summary>
-        /// Set of projects for which we have reported all intellisense/live diagnostics.
-        /// </summary>
-        private readonly HashSet<ProjectId> _projectsWithAllLiveErrorsReported = [];
-
-        /// <summary>
         /// Set of projects which have at least one project or document diagnostic in
         /// <see cref="_projectMap"/> and/or <see cref="_documentMap"/>.
         /// </summary>
         private readonly HashSet<ProjectId> _projectsWithErrors = [];
-
-        /// <summary>
-        /// Last project for which build reported an error through one of the <see cref="M:AddError"/> methods.
-        /// </summary>
-        private ProjectId? _lastProjectWithReportedErrors;
 
         /// <summary>
         /// Counter to help order the diagnostics in error list based on the order in which they were reported during build.
@@ -695,7 +614,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         private static ImmutableHashSet<string> GetOrCreateDiagnosticIds(
             ProjectId projectId,
             Dictionary<ProjectId, ImmutableHashSet<string>> diagnosticIdMap,
-            Func<ImmutableHashSet<string>> computeDiagosticIds)
+            Func<ImmutableHashSet<string>> computeDiagnosticIds)
         {
             lock (diagnosticIdMap)
             {
@@ -705,7 +624,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 }
             }
 
-            var computedIds = computeDiagosticIds();
+            var computedIds = computeDiagnosticIds();
 
             lock (diagnosticIdMap)
             {
@@ -755,30 +674,18 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         public bool WereProjectErrorsCleared(ProjectId projectId)
             => _projectsWithErrorsCleared.Contains(projectId);
 
-        public void MarkLiveErrorsReported(ProjectId projectId)
-            => _projectsWithAllLiveErrorsReported.Add(projectId);
-
-        public ProjectId? TryGetLastProjectWithReportedErrors()
-            => _lastProjectWithReportedErrors;
-
-        public (ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync) GetLiveErrors()
+        public ImmutableArray<DiagnosticData> GetLiveErrors()
         {
             var allLiveErrorsBuilder = ImmutableArray.CreateBuilder<DiagnosticData>();
-            var pendingLiveErrorsToSyncBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<DiagnosticData>>();
             foreach (var projectId in GetProjectsWithErrors())
             {
                 CancellationToken.ThrowIfCancellationRequested();
 
                 var errors = GetLiveErrorsForProject(projectId);
                 allLiveErrorsBuilder.AddRange(errors);
-
-                if (!_projectsWithAllLiveErrorsReported.Contains(projectId))
-                {
-                    pendingLiveErrorsToSyncBuilder.Add(projectId, errors);
-                }
             }
 
-            return (allLiveErrorsBuilder.ToImmutable(), pendingLiveErrorsToSyncBuilder.ToImmutable());
+            return allLiveErrorsBuilder.ToImmutable();
 
             // Local functions.
             IEnumerable<ProjectId> GetProjectsWithErrors()
@@ -957,43 +864,16 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 RoslynDebug.Assert(key is DocumentId or ProjectId);
                 var projectId = (key is DocumentId documentId) ? documentId.ProjectId : (ProjectId)(object)key;
 
-                // New errors reported for project, need to refresh live errors.
-                _projectsWithAllLiveErrorsReported.Remove(projectId);
-
                 if (!_projectsWithErrors.Add(projectId))
-                {
                     return;
-                }
 
-                // this will make build only error list to be updated per project rather than per solution.
-                // basically this will make errors up to last project to show up in error list
-                _lastProjectWithReportedErrors = projectId;
-                _owner.OnBuildProgressChanged(this, BuildProgress.Updated);
+                _owner.OnBuildProgressChanged(this);
             }
         }
 
         private static Dictionary<DiagnosticData, int> GetErrorSet<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key)
             where T : notnull
             => map.GetOrAdd(key, _ => new Dictionary<DiagnosticData, int>(DiagnosticDataComparer.Instance));
-    }
-
-    private sealed class ArgumentKey : BuildToolId.Base<object>
-    {
-        public ArgumentKey(object? key) : base(key)
-        {
-        }
-
-        public override string BuildTool
-        {
-            get { return PredefinedBuildTools.Build; }
-        }
-
-        public override bool Equals(object? obj)
-            => obj is ArgumentKey &&
-               base.Equals(obj);
-
-        public override int GetHashCode()
-            => base.GetHashCode();
     }
 
     private sealed class DiagnosticDataComparer : IEqualityComparer<DiagnosticData>

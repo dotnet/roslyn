@@ -152,7 +152,7 @@ internal sealed class RemoteDebuggingSessionProxy(Workspace workspace, IDisposab
         diagnosticService.RequestDiagnosticRefresh();
 
         // report emit/apply diagnostics:
-        diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData, rudeEdits);
+        diagnosticUpdateSource.ReportDiagnostics(solution, diagnosticData, rudeEdits);
 
         return (moduleUpdates, diagnosticData, rudeEdits, syntaxError);
     }

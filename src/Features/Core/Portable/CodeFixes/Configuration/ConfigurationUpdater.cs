@@ -203,7 +203,7 @@ internal sealed partial class ConfigurationUpdater
         Project project,
         CancellationToken cancellationToken)
     => ConfigureCodeStyleOptionsAsync(
-            SpecializedCollections.SingletonEnumerable((optionName, optionValue, isPerLanguage)),
+            [(optionName, optionValue, isPerLanguage)],
             diagnostic.Severity.ToEditorConfigString(),
             diagnostic, project, configurationKind: ConfigurationKind.OptionValue, cancellationToken);
 

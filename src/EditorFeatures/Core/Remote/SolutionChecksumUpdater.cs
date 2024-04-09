@@ -139,6 +139,7 @@ internal sealed class SolutionChecksumUpdater
 
     private async ValueTask SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
     {
+        var solution = _workspace.CurrentSolution;
         var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
         if (client == null)
             return;
@@ -146,7 +147,7 @@ internal sealed class SolutionChecksumUpdater
         using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
         {
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                _workspace.CurrentSolution,
+                solution,
                 (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }

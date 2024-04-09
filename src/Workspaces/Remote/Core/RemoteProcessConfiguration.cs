@@ -4,19 +4,13 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Remote
-{
-    [Flags]
-    internal enum RemoteProcessConfiguration
-    {
-        /// <summary>
-        /// Remote host runs on .NET 6+.
-        /// </summary>
-        Core = 1,
+namespace Microsoft.CodeAnalysis.Remote;
 
-        /// <summary>
-        /// Remote host uses server GC.
-        /// </summary>
-        ServerGC = 1 << 1,
-    }
+[Flags]
+internal enum RemoteProcessConfiguration
+{
+    /// <summary>
+    /// Remote host uses server GC.
+    /// </summary>
+    ServerGC = 1,
 }

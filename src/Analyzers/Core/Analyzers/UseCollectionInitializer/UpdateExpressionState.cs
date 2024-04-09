@@ -71,7 +71,7 @@ internal readonly struct UpdateExpressionState<
 
     public IEnumerable<TStatementSyntax> GetSubsequentStatements()
         => ContainingStatement is null
-            ? SpecializedCollections.EmptyEnumerable<TStatementSyntax>()
+            ? []
             : UseCollectionInitializerHelpers.GetSubsequentStatements(SyntaxFacts, ContainingStatement);
 
     /// <summary>

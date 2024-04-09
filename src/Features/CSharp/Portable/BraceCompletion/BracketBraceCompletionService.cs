@@ -74,7 +74,7 @@ internal class BracketBraceCompletionService : AbstractCurlyBraceOrBracketComple
                 // For list patterns we format brackets as though they are a block, so ensure the close bracket
                 // is aligned with the open bracket
                 AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracketPair.openBracket,
-                    SpecializedCollections.SingletonEnumerable(bracketPair.closeBracket), AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
+                    [bracketPair.closeBracket], AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
             }
         }
     }

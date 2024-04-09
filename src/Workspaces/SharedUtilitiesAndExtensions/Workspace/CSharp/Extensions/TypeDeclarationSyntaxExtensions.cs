@@ -92,7 +92,7 @@ internal static class TypeDeclarationSyntaxExtensions
         if (typeNode.BaseList != null)
             return typeNode.BaseList.Types;
 
-        return SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
+        return [];
     }
 
     private static SyntaxToken EnsureToken(SyntaxToken token, SyntaxKind kind, bool prependNewLineIfMissing = false, bool appendNewLineIfMissing = false)

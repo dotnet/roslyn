@@ -21,6 +21,8 @@ using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty;
 
+using static SyntaxFactory;
+
 [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
 internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService<MethodDeclarationSyntax>, IReplaceMethodWithPropertyService
 {
@@ -96,10 +98,10 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
                     block: out var block))
             {
                 var accessor =
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                    AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                  .WithBody(block);
 
-                var accessorList = SyntaxFactory.AccessorList([accessor]);
+                var accessorList = AccessorList([accessor]);
                 return propertyDeclaration.WithAccessorList(accessorList)
                                           .WithExpressionBody(null)
                                           .WithSemicolonToken(default);
@@ -126,7 +128,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
             nameToken = nameToken.WithAdditionalAnnotations(WarningAnnotation.Create(warning));
         }
 
-        var property = SyntaxFactory.PropertyDeclaration(
+        var property = PropertyDeclaration(
             getMethodDeclaration.AttributeLists, getMethodDeclaration.Modifiers,
             getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
             nameToken, accessorList: null);
@@ -135,13 +137,13 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
         if (setMethodDeclaration?.Modifiers.Any(SyntaxKind.UnsafeKeyword) == true
             && !property.Modifiers.Any(SyntaxKind.UnsafeKeyword))
         {
-            property = property.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            property = property.AddModifiers(Token(SyntaxKind.UnsafeKeyword));
         }
 
         property = SetLeadingTrivia(
             CSharpSyntaxFacts.Instance, getAndSetMethods, property);
 
-        var accessorList = SyntaxFactory.AccessorList([getAccessor]);
+        var accessorList = AccessorList([getAccessor]);
         if (setAccessor != null)
         {
             accessorList = accessorList.AddAccessors(setAccessor);
@@ -155,7 +157,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
     private static SyntaxToken GetPropertyName(SyntaxToken identifier, string propertyName, bool nameChanged)
     {
         return nameChanged
-            ? SyntaxFactory.Identifier(propertyName)
+            ? Identifier(propertyName)
             : identifier;
     }
 
@@ -206,7 +208,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
     {
         var getMethodDeclaration = getAndSetMethods.GetMethodDeclaration as MethodDeclarationSyntax;
 
-        var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
+        var accessor = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
 
         if (getMethodDeclaration.ExpressionBody != null)
         {
@@ -245,7 +247,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
         }
 
         var getMethod = getAndSetMethods.GetMethod;
-        var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration);
+        var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration);
 
         if (getMethod.DeclaredAccessibility != setMethod.DeclaredAccessibility)
         {
@@ -292,7 +294,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
         {
             if (_parameter.Equals(_semanticModel.GetSymbolInfo(node).Symbol))
             {
-                return SyntaxFactory.IdentifierName("value").WithTriviaFrom(node);
+                return IdentifierName("value").WithTriviaFrom(node);
             }
 
             return node;
@@ -336,7 +338,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
                 // But also add a simplification annotation so we can remove the parens if possible.
                 var argumentExpression = currentInvocation.ArgumentList.Arguments[0].Expression.Parenthesize();
 
-                var expression = SyntaxFactory.AssignmentExpression(
+                var expression = AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression, currentInvocation.Expression, argumentExpression);
 
                 return expression.Parenthesize();
@@ -367,7 +369,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
         var newName = nameNode;
         if (nameChanged)
         {
-            newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName));
+            newName = IdentifierName(Identifier(propertyName));
         }
 
         newName = newName.WithTriviaFrom(invocation is null ? nameToken.Parent : invocation);

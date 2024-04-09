@@ -383,7 +383,7 @@ internal static class ISyntaxFactsExtensions
         => syntaxFacts.IsWord(token) || syntaxFacts.IsNumericLiteral(token);
 
     public static bool SpansPreprocessorDirective(this ISyntaxFacts service, SyntaxNode node)
-        => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
+        => service.SpansPreprocessorDirective([node]);
 
     public static bool SpansPreprocessorDirective(this ISyntaxFacts service, params SyntaxNode[] nodes)
         => service.SpansPreprocessorDirective((IEnumerable<SyntaxNode>)nodes);
@@ -595,7 +595,7 @@ internal static class ISyntaxFactsExtensions
 
     public static SyntaxNode GetTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
     {
-        syntaxFacts.GetPartsOfObjectCreationExpression(node, out var type, out _, out _);
+        syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out var type, out _, out _);
         return type;
     }
 
@@ -648,7 +648,7 @@ internal static class ISyntaxFactsExtensions
         if (!syntaxFacts.IsObjectCreationExpression(parent))
             return false;
 
-        syntaxFacts.GetPartsOfObjectCreationExpression(parent, out var type, out _, out _);
+        syntaxFacts.GetPartsOfObjectCreationExpression(parent, out _, out var type, out _, out _);
         return type == node;
     }
 
