@@ -520,6 +520,13 @@ namespace Roslyn.Test.Utilities
                }
            };
 
+        internal static JsonMessageFormatter CreateJsonMessageFormatter()
+        {
+            var messageFormatter = new JsonMessageFormatter();
+            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
+            return messageFormatter;
+        }
+
         internal sealed class TestLspServer : IAsyncDisposable
         {
             public readonly EditorTestWorkspace TestWorkspace;
@@ -565,13 +572,6 @@ namespace Roslyn.Test.Utilities
                 Assert.False(workspaceWaiter.HasPendingWork);
             }
 
-            private static JsonMessageFormatter CreateJsonMessageFormatter()
-            {
-                var messageFormatter = new JsonMessageFormatter();
-                LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
-                return messageFormatter;
-            }
-
             internal static async Task<TestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
@@ -613,20 +613,15 @@ namespace Roslyn.Test.Utilities
             private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, EditorTestWorkspace workspace, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
             {
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
-                var servicesProvider = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
+                var factory = workspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
 
-                var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, CreateJsonMessageFormatter()))
+                var jsonMessageFormatter = CreateJsonMessageFormatter();
+                var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
-                var languageServer = new RoslynLanguageServer(
-                    servicesProvider, jsonRpc,
-                    capabilitiesProvider,
-                    logger,
-                    workspace.Services.HostServices,
-                    ProtocolConstants.RoslynLspLanguages,
-                    serverKind);
+                var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializer, capabilitiesProvider, serverKind, logger, workspace.Services.HostServices);
 
                 jsonRpc.StartListening();
                 return languageServer;
@@ -644,6 +639,16 @@ namespace Roslyn.Test.Utilities
                 // If creating the LanguageServer threw we might timeout without this.
                 var result = await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(methodName, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return result;
+            }
+
+            public Task ExecuteNotificationAsync<RequestType>(string methodName, RequestType request) where RequestType : class
+            {
+                return _clientRpc.NotifyWithParameterObjectAsync(methodName, request);
+            }
+
+            public Task ExecuteNotification0Async(string methodName)
+            {
+                return _clientRpc.NotifyWithParameterObjectAsync(methodName);
             }
 
             public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
