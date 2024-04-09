@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal interface IAssetSource
 {
-    ValueTask GetAssetsAsync<T>(
+    /// <param name="callback">Will be called back once per checksum in <paramref name="checksums"/> in the exact order of that array.</param>
+    ValueTask GetAssetsAsync<T, TArg>(
         Checksum solutionChecksum,
         AssetPath assetPath,
         ReadOnlyMemory<Checksum> checksums,
         ISerializerService serializerService,
-        Action<int, T> callback,
+        Action<int, T, TArg> callback,
+        TArg arg,
         CancellationToken cancellationToken);
 }

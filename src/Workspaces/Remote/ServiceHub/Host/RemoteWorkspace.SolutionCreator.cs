@@ -218,14 +218,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
 
-                var newProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
-                    assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, newChecksumsToSync, cancellationToken).ConfigureAwait(false);
-
-                foreach (var (checksum, newProjectStateChecksum) in newProjectStateChecksums)
-                {
-                    Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
-                    newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
-                }
+                await _assetProvider.GetAssetsAsync<ProjectStateChecksums, Dictionary<ProjectId, ProjectStateChecksums>>(
+                    assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, newChecksumsToSync,
+                    static (checksum, newProjectStateChecksum, newProjectIdToStateChecksums) =>
+                    {
+                        Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
+                        newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
+                    },
+                    arg: newProjectIdToStateChecksums,
+                    cancellationToken).ConfigureAwait(false);
 
                 // Now that we've collected the old and new project state checksums, we can actually process them to
                 // determine what to remove, what to add, and what to change.
@@ -503,14 +504,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newDocumentIdToChecksum.Values);
 
-                var documentStateChecksums = await _assetProvider.GetAssetsAsync<DocumentStateChecksums>(
-                    assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync, cancellationToken).ConfigureAwait(false);
-
-                foreach (var (checksum, documentStateChecksum) in documentStateChecksums)
-                {
-                    Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);
-                    newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
-                }
+                await _assetProvider.GetAssetsAsync<DocumentStateChecksums, Dictionary<DocumentId, DocumentStateChecksums>>(
+                    assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync,
+                    static (checksum, documentStateChecksum, newDocumentIdToStateChecksums) =>
+                    {
+                        Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);
+                        newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
+                    },
+                    arg: newDocumentIdToStateChecksums,
+                    cancellationToken).ConfigureAwait(false);
 
                 // If more than two documents changed during a single update, perform a bulk synchronization on the
                 // project to avoid large numbers of small synchronization calls during document updates.
