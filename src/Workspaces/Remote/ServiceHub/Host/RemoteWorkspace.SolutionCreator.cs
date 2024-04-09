@@ -245,12 +245,21 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // Note: it's common to see a whole lot of project-infos change.  So attempt to collect that in one go
                 // if we can.
-                using var _ = PooledHashSet<Checksum>.GetInstance(out var projectInfoChecksums);
-                foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
-                    projectInfoChecksums.Add(newProjectChecksums.Info);
+                {
+                    using var _ = PooledHashSet<Checksum>.GetInstance(out var projectItemChecksums);
+                    foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
+                        projectItemChecksums.Add(newProjectChecksums.Info);
 
-                await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
-                    assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, projectInfoChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
+                        assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+
+                    projectItemChecksums.Clear();
+                    foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
+                        projectItemChecksums.Add(newProjectChecksums.CompilationOptions);
+
+                    await _assetProvider.GetAssetsAsync<CompilationOptions, VoidResult>(
+                        assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                }
 
                 // added project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
