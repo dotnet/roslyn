@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
-                TextDocument = new LSP.TextDocumentClientCapabilities
+                TextDocument = new LSP.VSInternalTextDocumentClientCapabilities
                 {
                     Completion = new LSP.VSInternalCompletionSetting
                     {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
-                TextDocument = new LSP.TextDocumentClientCapabilities
+                TextDocument = new LSP.VSInternalTextDocumentClientCapabilities
                 {
                     Completion = new LSP.VSInternalCompletionSetting
                     {
@@ -561,7 +561,7 @@ class A
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
-                TextDocument = new LSP.TextDocumentClientCapabilities
+                TextDocument = new LSP.VSInternalTextDocumentClientCapabilities
                 {
                     Completion = new LSP.VSInternalCompletionSetting
                     {

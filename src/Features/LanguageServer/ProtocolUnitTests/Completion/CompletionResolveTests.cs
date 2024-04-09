@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
-                TextDocument = new TextDocumentClientCapabilities()
+                TextDocument = new LSP.VSInternalTextDocumentClientCapabilities()
                 {
                     Completion = new VSInternalCompletionSetting()
                     {
@@ -138,7 +138,7 @@ class B : A
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
-                TextDocument = new LSP.TextDocumentClientCapabilities
+                TextDocument = new LSP.VSInternalTextDocumentClientCapabilities
                 {
                     Completion = new CompletionSetting
                     {
