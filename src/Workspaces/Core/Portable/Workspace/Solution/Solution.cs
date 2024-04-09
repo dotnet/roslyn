@@ -356,7 +356,7 @@ public partial class Solution
     /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
     internal Solution AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
     {
-        Contract.ThrowIfTrue(projectInfos.Select(i => i.Id).Distinct().Count() != projectInfos.Count, "Duplicate ProjectId provided");
+        Contract.ThrowIfTrue(projectInfos.HasDuplicates(static p => p.Id), "Duplicate ProjectId provided");
         return WithCompilationState(_compilationState.AddProjects(projectInfos));
     }
 
@@ -371,7 +371,7 @@ public partial class Solution
     /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     internal Solution RemoveProjects(ArrayBuilder<ProjectId> projectIds)
     {
-        Contract.ThrowIfTrue(projectIds.Distinct().Count() != projectIds.Count, "Duplicate ProjectId provided");
+        Contract.ThrowIfTrue(projectIds.HasDuplicates(), "Duplicate ProjectId provided");
         return WithCompilationState(_compilationState.RemoveProjects(projectIds));
     }
 
