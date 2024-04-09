@@ -75,7 +75,7 @@ class A
 }";
             _testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
             {
-                TextDocument = new LSP.TextDocumentClientCapabilities
+                TextDocument = new LSP.VSInternalTextDocumentClientCapabilities
                 {
                     Completion = new LSP.CompletionSetting
                     {
