@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -13,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// </summary>
 internal interface IBuildOnlyDiagnosticsService : IWorkspaceService
 {
-    void AddBuildOnlyDiagnostics(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics);
+    Task AddBuildOnlyDiagnosticsAsync(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken);
 
-    void ClearBuildOnlyDiagnostics(Project project, DocumentId? documentId);
+    Task ClearBuildOnlyDiagnosticsAsync(Project project, DocumentId? documentId, CancellationToken cancellationToken);
 
-    ImmutableArray<DiagnosticData> GetBuildOnlyDiagnostics(DocumentId documentId);
+    ValueTask<ImmutableArray<DiagnosticData>> GetBuildOnlyDiagnosticsAsync(DocumentId documentId, CancellationToken cancellationToken);
 }
