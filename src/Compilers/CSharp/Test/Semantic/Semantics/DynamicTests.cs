@@ -13,11 +13,32 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests
+    public partial class DynamicTests : CompilingTestBase
     {
+        private static void TestTypes(string source)
+        {
+            SyntaxBinderTests.TestTypes(source);
+        }
+
+        private static void TestOperatorKinds(string source)
+        {
+            SyntaxBinderTests.TestOperatorKinds(source);
+        }
+
+        private static void TestDynamicMemberAccessCore(string source)
+        {
+            SyntaxBinderTests.TestDynamicMemberAccessCore(source);
+        }
+
+        private static void TestCompoundAssignment(string source)
+        {
+            SyntaxBinderTests.TestCompoundAssignment(source);
+        }
+
         #region Conversions
 
         [Fact]
@@ -3018,7 +3039,7 @@ class C1
                 // (43,55): warning CS1981: Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object' and will succeed for all non-null values
                 //         Expression<Func<dynamic, dynamic>> e18 = x => d is dynamic; // ok, warning
                 Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "d is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(43, 55),
-                // (46,59): error CS8386: Invalid object creation
+                // (46,59): error CS8382: Invalid object creation
                 //         Expression<Func<dynamic, dynamic>> e21 = x => new dynamic();
                 Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(46, 59),
                 // (25,52): error CS1963: An expression tree may not contain a dynamic operation
@@ -3033,18 +3054,12 @@ class C1
                 // (27,69): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Z").WithLocation(27, 69),
-                // (28,46): error CS1963: An expression tree may not contain a dynamic operation
+                // (28,44): error CS1963: An expression tree may not contain a dynamic operation
                 // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 46),
-                // (28,53): error CS1963: An expression tree may not contain a dynamic operation
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d }").WithLocation(28, 44),
+                // (28,51): error CS1963: An expression tree may not contain a dynamic operation
                 // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 53),
-                // (28,56): error CS1963: An expression tree may not contain a dynamic operation
-                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 56),
-                // (28,59): error CS1963: An expression tree may not contain a dynamic operation
-                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 59),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d, d, d }").WithLocation(28, 51),
                 // (29,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo()").WithLocation(29, 54),
@@ -3066,6 +3081,15 @@ class C1
                 // (33,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e8 = x => -x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "-x").WithLocation(33, 54),
+                // (34,54): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e9 = x => f(d);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d)").WithLocation(34, 54),
+                // (36,55): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e11 = x => f((dynamic)1);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f((dynamic)1)").WithLocation(36, 55),
+                // (37,55): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e12 = x => f(d ?? null);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d ?? null)").WithLocation(37, 55),
                 // (38,55): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e13 = x => d ? 1 : 2;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(38, 55),
@@ -4399,13 +4423,24 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput:
 @"
 True
 True
 ").VerifyDiagnostics();
+
+            comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (10,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 15),
+                // (10,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 28)
+                );
         }
 
         [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
@@ -4544,6 +4579,449 @@ class C2 : C1
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
 
             CompileAndVerify(comp, expectedOutput: "int").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        [CombinatorialData]
+        public void SingleCandidate_LocalFunction([CombinatorialValues(0, 12, 13)] int version)
+        {
+            var parseOptions = version switch { 12 => TestOptions.Regular12, 13 => TestOptions.RegularNext, _ => TestOptions.RegularPreview };
+
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        dynamic d = 1;
+        var e = test4(d);
+        System.Console.WriteLine(e);        
+
+        static int test4(int x) => x;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: parseOptions);
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("System.Int32 e", symbolInfo.Symbol.ToTestDisplayString());
+
+            CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_CSharp12_01()
+        {
+            string source1 = @"
+#nullable enable
+
+public class C
+{
+    public static C M(I1 i1, dynamic value)
+    {
+        var result = i1.Test(""name"", value);
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+public interface I1
+{
+    object Test(string name, object value);
+}
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T)!;
+}
+";
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp1.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic? result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            AssertEx.Equal(@"i1.Test(""name"", value)", call.ToString());
+            symbolInfo = model.GetSymbolInfo(call);
+            AssertEx.Equal("System.Object I1.Test(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(call);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_CSharp12_02()
+        {
+            string source1 = @"
+#nullable enable
+
+public class C
+{
+    public static C M(I1 i1, dynamic value)
+    {
+        var result = i1.Test(""name"", value);
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+public interface I1
+{
+    int Test(string name, object value);
+}
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T)!;
+}
+";
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp1.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic? result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            AssertEx.Equal(@"i1.Test(""name"", value)", call.ToString());
+            symbolInfo = model.GetSymbolInfo(call);
+            AssertEx.Equal("System.Int32 I1.Test(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(call);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_Extension_CSharp12()
+        {
+            string source1 = @"
+public class C
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        var result = new C().Test(""name"", d);
+        System.Console.Write(result);        
+    }
+}
+
+static class Extensions
+{
+    public static int Test(this C c, string name, object value) => 123;
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var model = comp1.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            Assert.Equal(OperationKind.Invalid, model.GetOperation(call).Kind);
+
+            comp1.VerifyDiagnostics(
+                // (7,22): error CS1973: 'C' has no applicable method named 'Test' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+                //         var result = new C().Test("name", d);
+                Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, @"new C().Test(""name"", d)").WithArguments("C", "Test").WithLocation(7, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_ParamArray_CSharp12()
+        {
+            string source1 = @"
+public class C
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        var result = Test(""name"", d);
+        System.Console.Write(result);        
+    }
+
+    static int Test(string name, object value, params int[] list) => 123;
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp1.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            AssertEx.Equal(@"Test(""name"", d)", call.ToString());
+            symbolInfo = model.GetSymbolInfo(call);
+            AssertEx.Equal(@"System.Int32 C.Test(System.String name, System.Object value, params System.Int32[] list)", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(call);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_Delegate_CSharp12()
+        {
+            string source = @"
+public class C
+{
+    static C M(Test i1, dynamic value)
+    {
+        var result = i1(""name"", value);
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+delegate object Test(string name, object value);
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T);
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            AssertEx.Equal(@"i1(""name"", value)", call.ToString());
+            symbolInfo = model.GetSymbolInfo(call);
+            AssertEx.Equal("System.Object Test.Invoke(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(call);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_ParamArray_Delegate_CSharp12()
+        {
+            string source1 = @"
+public class C
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        var result = Test(""name"", d);
+        System.Console.Write(result);        
+    }
+
+    static D Test = (string name, object value, params int[] list) => 123;
+    delegate int D(string name, object value, params int[] list);
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp1.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            AssertEx.Equal(@"Test(""name"", d)", call.ToString());
+            symbolInfo = model.GetSymbolInfo(call);
+            AssertEx.Equal(@"System.Int32 C.D.Invoke(System.String name, System.Object value, params System.Int32[] list)", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(call);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_Property_CSharp12_01()
+        {
+            string source = @"
+#nullable enable
+
+public class C
+{
+    public static C M(I1 i1, dynamic value)
+    {
+        var result = i1[""name"", value];
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+public interface I1
+{
+    object this[string name, object value] {get;}
+}
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T)!;
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic? result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("System.Object I1.this[System.String name, System.Object value] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_Property_CSharp12_02()
+        {
+            string source = @"
+#nullable enable
+
+public class C
+{
+    public static C M(I1 i1, dynamic value)
+    {
+        var result = i1[""name"", value];
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+public interface I1
+{
+    int this[string name, object value] {get;}
+}
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T)!;
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic? result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("System.Int32 I1.this[System.String name, System.Object value] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_ParamArray_Property_CSharp12()
+        {
+            string source1 = @"
+public class C
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        var result = new C()[""name"", d];
+        System.Console.Write(result);        
+    }
+
+    int this[string name, object value, params int[] list] => 123;
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            // This is surprising, but this scenario used to successfully bind dynamically before (unlike a call).
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp1.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("System.Int32 C.this[System.String name, System.Object value, params System.Int32[] list] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
         }
     }
 }

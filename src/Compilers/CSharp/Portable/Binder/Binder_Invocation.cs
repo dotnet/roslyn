@@ -638,9 +638,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
                 }
-                else
+                // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for expanded non-array params cases.
+                else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 || IsMemberWithExpandedNonArrayParamsCollection(applicable))
                 {
                     result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
+                }
+                else
+                {
+                    result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
                 }
             }
             else
@@ -680,6 +685,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        private bool IsMemberWithExpandedNonArrayParamsCollection<TMember>(MemberResolutionResult<TMember> candidate)
+            where TMember : Symbol
+        {
+            return candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
+                   !candidate.Member.GetParameters().Last().Type.IsSZArray();
         }
 
         private BoundExpression BindMethodGroupInvocation(
@@ -975,23 +987,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
-            resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
+            // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for local functions or expanded non-array params cases.
+            if (Compilation.LanguageVersion > LanguageVersion.CSharp12 ||
+                singleCandidate.MethodKind == MethodKind.LocalFunction ||
+                IsMemberWithExpandedNonArrayParamsCollection(methodResolutionResult))
+            {
+                var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
+                resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
 
-            BoundExpression result = BindInvocationExpressionContinued(
-                node: syntax,
-                expression: expression,
-                methodName: methodName,
-                result: resultWithSingleCandidate,
-                analyzedArguments: resolution.AnalyzedArguments,
-                methodGroup: resolution.MethodGroup,
-                delegateTypeOpt: null,
-                diagnostics: diagnostics,
-                queryClause: queryClause);
+                BoundExpression result = BindInvocationExpressionContinued(
+                    node: syntax,
+                    expression: expression,
+                    methodName: methodName,
+                    result: resultWithSingleCandidate,
+                    analyzedArguments: resolution.AnalyzedArguments,
+                    methodGroup: resolution.MethodGroup,
+                    delegateTypeOpt: null,
+                    diagnostics: diagnostics,
+                    queryClause: queryClause);
 
-            resultWithSingleCandidate.Free();
+                resultWithSingleCandidate.Free();
 
-            return result;
+                return result;
+            }
+
+            return null;
         }
 
         private ImmutableArray<MemberResolutionResult<TMethodOrPropertySymbol>> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
