@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -26,12 +28,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public RoslynLanguageServer(
             AbstractLspServiceProvider lspServiceProvider,
             JsonRpc jsonRpc,
+            JsonSerializer serializer,
             ICapabilitiesProvider capabilitiesProvider,
             AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
-            : base(jsonRpc, logger)
+            : base(jsonRpc, serializer, logger)
         {
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;
@@ -106,6 +109,72 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             OnInitialized();
             return Task.CompletedTask;
+        }
+
+        protected override string GetLanguageForRequest(string methodName, JToken? parameters)
+        {
+            if (parameters == null)
+            {
+                _logger.LogInformation("No request parameters given, using default language handler");
+                return LanguageServerConstants.DefaultLanguageName;
+            }
+
+            // For certain requests like text syncing we'll always use the default language handler
+            // as we do not want languages to be able to override them.
+            if (ShouldUseDefaultLanguage(methodName))
+            {
+                return LanguageServerConstants.DefaultLanguageName;
+            }
+
+            var lspWorkspaceManager = GetLspServices().GetRequiredService<LspWorkspaceManager>();
+
+            // All general LSP spec document params have the following json structure
+            // { "textDocument": { "uri": "<uri>" ... } ... }
+            //
+            // We can easily identify the URI for the request by looking for this structure
+            var textDocumentToken = parameters["textDocument"] ?? parameters["_vs_textDocument"];
+            if (textDocumentToken is not null)
+            {
+                var uriToken = textDocumentToken["uri"];
+                Contract.ThrowIfNull(uriToken, "textDocument does not have a uri property");
+                var uri = uriToken.ToObject<Uri>(_jsonSerializer);
+                Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
+                var language = lspWorkspaceManager.GetLanguageForUri(uri);
+                _logger.LogInformation($"Using {language} from request text document");
+                return language;
+            }
+
+            // All the LSP resolve params have the following known json structure
+            // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
+            //
+            // We can deserialize the data object using our unified DocumentResolveData.
+            var dataToken = parameters["data"];
+            if (dataToken is not null)
+            {
+                var data = dataToken.ToObject<DocumentResolveData>(_jsonSerializer);
+                Contract.ThrowIfNull(data, "Failed to document resolve data object");
+                var language = lspWorkspaceManager.GetLanguageForUri(data.TextDocument.Uri);
+                _logger.LogInformation($"Using {language} from data text document");
+                return language;
+            }
+
+            // This request is not for a textDocument and is not a resolve request.
+            _logger.LogInformation("Request did not contain a textDocument, using default language handler");
+            return LanguageServerConstants.DefaultLanguageName;
+
+            static bool ShouldUseDefaultLanguage(string methodName)
+                => methodName switch
+                {
+                    Methods.InitializeName => true,
+                    Methods.InitializedName => true,
+                    Methods.TextDocumentDidOpenName => true,
+                    Methods.TextDocumentDidChangeName => true,
+                    Methods.TextDocumentDidCloseName => true,
+                    Methods.TextDocumentDidSaveName => true,
+                    Methods.ShutdownName => true,
+                    Methods.ExitName => true,
+                    _ => false,
+                };
         }
     }
 }
