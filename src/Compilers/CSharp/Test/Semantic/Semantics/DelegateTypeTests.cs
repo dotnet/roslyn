@@ -12827,6 +12827,8 @@ class Program
         public void SynthesizedDelegateTypes_DefaultParameterValues_LeastOverriddenMethod()
         {
             var source = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
                 var d = new D().M;
                 System.Console.WriteLine(d.GetType());
 
@@ -12840,16 +12842,22 @@ class Program
                     public abstract void M(int x = 42);
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,9): error CS8917: The delegate type could not be inferred.
-                // var d = new D().M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D().M").WithLocation(1, 9));
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                System.Action`1[System.Int32]
+                """).VerifyDiagnostics();
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.Equal(42, cm.Parameters.Single().ExplicitDefaultValue);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().HasExplicitDefaultValue);
         }
 
         [Fact]
         public void SynthesizedDelegateTypes_DefaultParameterValues_MostOverriddenMethod()
         {
             var source = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
                 var d = new D().M;
                 System.Console.WriteLine(d.GetType());
 
@@ -12863,10 +12871,14 @@ class Program
                     public abstract void M(int x);
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (1,9): error CS8917: The delegate type could not be inferred.
-                // var d = new D().M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D().M").WithLocation(1, 9));
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                System.Action`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Int32]
+                """).VerifyDiagnostics();
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().HasExplicitDefaultValue);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.Equal(42, dm.Parameters.Single().ExplicitDefaultValue);
         }
 
         [Fact]
@@ -12890,6 +12902,8 @@ class Program
         public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod()
         {
             var source = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
                 var d = new D().M;
                 System.Console.WriteLine(d.GetType());
 
@@ -12903,14 +12917,80 @@ class Program
                     public abstract void M(params int[] xs);
                 }
                 """;
-            CompileAndVerify(source,
-                expectedOutput: "<>f__AnonymousDelegate0`1[System.Int32]").VerifyDiagnostics();
+            var verifier = CompileAndVerify(source,
+                expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Int32]
+                """).VerifyDiagnostics();
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.True(dm.Parameters.Single().IsParams);
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Different()
+        {
+            var source1a = """
+                public abstract class C
+                {
+                    public abstract void M(int[] xs);
+                }
+                """;
+            var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1aRef = comp1a.EmitToImageReference();
+
+            var source2 = """
+                public class D : C
+                {
+                    public override void M(int[] xs) { }
+                }
+                """;
+            var comp2 = CreateCompilation(source2, [comp1aRef]).VerifyDiagnostics();
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var source3 = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+                """;
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1aRef],
+                expectedOutput: """
+                System.Action`1[System.Int32[]]
+                System.Action`1[System.Int32[]]
+                """).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().IsParams);
+
+            var source1b = """
+                public abstract class C
+                {
+                    public abstract void M(params int[] xs);
+                }
+                """;
+            var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+            verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
+                expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                System.Action`1[System.Int32[]]
+                """).VerifyDiagnostics();
+
+            cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().IsParams);
         }
 
         [Fact]
         public void SynthesizedDelegateTypes_ParamsArray_MostOverriddenMethod()
         {
             var source = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
                 var d = new D().M;
                 System.Console.WriteLine(d.GetType());
 
@@ -12924,8 +13004,81 @@ class Program
                     public abstract void M(int[] xs);
                 }
                 """;
-            CompileAndVerify(source,
-                expectedOutput: "System.Action`1[System.Int32[]]").VerifyDiagnostics();
+            var verifier = CompileAndVerify(source,
+                expectedOutput: """
+                System.Action`1[System.Int32[]]
+                System.Action`1[System.Int32[]]
+                """).VerifyDiagnostics();
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().IsParams);
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_MostOverriddenMethod_Different()
+        {
+            var source1a = """
+                public abstract class C
+                {
+                    public abstract void M(int[] xs);
+                }
+                """;
+            var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1aRef = comp1a.EmitToImageReference();
+
+            var source2a = """
+                public class D : C
+                {
+                    public override void M(int[] xs) { }
+                }
+                """;
+            var comp2a = CreateCompilation(source2a, [comp1aRef], assemblyName: "Lib2").VerifyDiagnostics();
+            var comp2aRef = comp2a.EmitToImageReference();
+
+            var source3 = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+                """;
+            var verifier = CompileAndVerify(source3, [comp1aRef, comp2aRef],
+                expectedOutput: """
+                System.Action`1[System.Int32[]]
+                System.Action`1[System.Int32[]]
+                """).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().IsParams);
+
+            var source1b = """
+                public abstract class C
+                {
+                    public abstract void M(params int[] xs);
+                }
+                """;
+            var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1bRef = comp1b.EmitToImageReference();
+
+            var source2b = """
+                public class D : C
+                {
+                    public override void M(params int[] xs) { }
+                }
+                """;
+            var comp2b = CreateCompilation(source2b, [comp1bRef], assemblyName: "Lib2").VerifyDiagnostics();
+            verifier = CompileAndVerify(source3, [comp1aRef, comp2b.EmitToImageReference()],
+                expectedOutput: """
+                System.Action`1[System.Int32[]]
+                <>f__AnonymousDelegate0`1[System.Int32]
+                """).VerifyDiagnostics();
+
+            cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().IsParams);
+            dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.True(dm.Parameters.Single().IsParams);
         }
 
         [Fact]
