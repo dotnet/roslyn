@@ -16,7 +16,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         ' Onboarded options in Unified Settings registration file
         Friend MustOverride ReadOnly Property OnboardedOptions As ImmutableArray(Of IOption2)
 
-        ' The default value of some enum options is overridden at runtime. It uses different default value for C# and VB.
+        ' The default value of some enum options is overridden at runtime.
+        ' It could be
+        ' 1: Option has different default value for C# and VB.
+        ' 2: Option is in experiment, so it is set to null and override to a value.
         ' But in unified settings we always use the correct value for language.
         ' Use this dictionary to indicate that value in unit test.
         Friend MustOverride ReadOnly Property OptionsToDefaultValue As ImmutableDictionary(Of IOption2, Object)
@@ -68,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             Dim expectedEnumValues = If(EnumOptionsToValues.TryGetValue([option], possibleEnumValues),
                                          possibleEnumValues.SelectAsArray(Function(value) value.ToString().ToCamelCase()),
                                          [option].Type.GetEnumValues().Cast(Of String).SelectAsArray(Function(value) value.ToCamelCase()))
-            AssertEx.Equal(actualEnumValues, expectedEnumValues)
+            AssertEx.Equal(expectedEnumValues, actualEnumValues)
             VerifyEnumMigration(registrationJsonObject, unifiedSettingPath, [option])
         End Sub
 
