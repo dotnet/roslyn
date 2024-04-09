@@ -262,6 +262,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // added project
+                var projectInfoTasks = new List<Task<ProjectInfo>>();
+
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
                     if (!oldProjectIdToStateChecksums.ContainsKey(projectId))
@@ -269,11 +271,18 @@ namespace Microsoft.CodeAnalysis.Remote
                         // bulk sync added project assets fully since we'll definitely need that data, and we won't want
                         // to make tons of intermediary calls for it.
 
-                        await _assetProvider.SynchronizeProjectAssetsAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
-                        var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
-                        solution = solution.AddProject(projectInfo);
+                        var @this = this;
+                        projectInfoTasks.Add(Task.Run(async () =>
+                        {
+                            await @this._assetProvider.SynchronizeProjectAssetsAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
+                            var projectInfo = await @this._assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
+                            return projectInfo;
+                        }, cancellationToken));
                     }
                 }
+
+                foreach (var projectInfoTask in projectInfoTasks)
+                    solution = solution.AddProject(await projectInfoTask.ConfigureAwait(false));
 
                 // remove all project references from projects that changed. this ensures exceptions will not occur for
                 // cyclic references during an incremental update.

@@ -118,11 +118,17 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
 
             // fourth, get all projects and documents in the solution 
+            var tasks = new List<Task>();
             foreach (var (projectChecksum, _) in stateChecksums.Projects)
             {
                 var projectStateChecksums = (ProjectStateChecksums)checksumToObjects[projectChecksum];
-                await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
+                tasks.Add(Task.Run(async () =>
+                {
+                    await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
+                }, cancellationToken));
             }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 
