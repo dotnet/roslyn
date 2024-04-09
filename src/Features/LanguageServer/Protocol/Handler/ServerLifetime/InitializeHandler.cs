@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [Method(Methods.InitializeName)]
-internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, InitializeResult>
+internal class InitializeHandler : ILspServiceRequestHandler<VSInternalInitializeParams, InitializeResult>
 {
     public InitializeHandler()
     {
@@ -21,7 +21,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
 
-    public Task<InitializeResult> HandleRequestAsync(InitializeParams request, RequestContext context, CancellationToken cancellationToken)
+    public Task<InitializeResult> HandleRequestAsync(VSInternalInitializeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var clientCapabilitiesManager = context.GetRequiredLspService<IInitializeManager>();
         var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();

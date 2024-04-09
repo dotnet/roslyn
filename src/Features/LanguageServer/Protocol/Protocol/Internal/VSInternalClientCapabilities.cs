@@ -8,11 +8,22 @@ namespace Roslyn.LanguageServer.Protocol
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Extension class for ClientCapabilities with fields specific to Visual Studio.
+    /// Extension class for <see cref="ClientCapabilities"/> with fields specific to Visual Studio.
     /// </summary>
     [DataContract]
     internal class VSInternalClientCapabilities : ClientCapabilities
     {
+        /// <summary>
+        /// Gets or sets the text document capabilities from the Visual Studio client.
+        /// </summary>
+        [DataMember(Name = "textDocument")]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public VSInternalTextDocumentClientCapabilities? VSInternalTextDocument
+        {
+            get => TextDocument as VSInternalTextDocumentClientCapabilities;
+            set => TextDocument = value;
+        }
+
         /// <summary>
         /// Gets or sets a value indicating whether client supports Visual Studio extensions.
         /// </summary>
