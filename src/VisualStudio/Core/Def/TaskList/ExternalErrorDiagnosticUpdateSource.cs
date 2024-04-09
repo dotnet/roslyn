@@ -153,7 +153,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             }
             else
             {
-                if (state.CancellationToken.IsCancellationRequested is true)
+                if (state.CancellationToken.IsCancellationRequested)
                     return;
 
                 // We are going to clear the diagnostics for the current project.
