@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -28,25 +29,23 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
             // TODO: Hookup an option changed handler for changes to BackgroundAnalysisScopeOption
             //       to dynamically register/unregister the non-local document diagnostic source.
 
+            var sources = _diagnosticSourceManager.GetSourceNames(isDocument: true);
             await _clientLanguageServerManager.SendRequestAsync(
                 methodName: Methods.ClientRegisterCapabilityName,
                 @params: new RegistrationParams()
                 {
-                    Registrations =
-                    [
-                        new Registration
-                        {
-                            Id = _nonLocalDiagnosticsSourceRegistrationId,
-                            Method = Methods.TextDocumentDiagnosticName,
-                            RegisterOptions = new DiagnosticRegistrationOptions
-                            {
-                                Identifier = DocumentNonLocalDiagnosticIdentifier.ToString()
-                            }
-                        }
-                    ]
+                    Registrations = sources.Select(FromSourceName).ToArray()
                 },
                 cancellationToken).ConfigureAwait(false);
         }
+
+        Registration FromSourceName(string sourceName)
+            => new()
+            {
+                Id = sourceName,
+                Method = Methods.TextDocumentDiagnosticName,
+                RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName }
+            };
 
         bool IsFsaEnabled()
         {

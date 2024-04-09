@@ -16,14 +16,14 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
 {
     protected Project Project => project;
 
-    public static AbstractProjectDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
-        => new FullSolutionAnalysisDiagnosticSource(project, shouldIncludeAnalyzer);
+    public static AbstractProjectDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+        => new FullSolutionAnalysisDiagnosticSource(project, diagnosticAnalyzerService, shouldIncludeAnalyzer);
 
     public static AbstractProjectDiagnosticSource CreateForCodeAnalysisDiagnostics(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(project, codeAnalysisService);
 
     public abstract bool IsLiveSource();
-    public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
+    public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken);
 
     public ProjectOrDocumentId GetId() => new(Project.Id);
     public Project GetProject() => Project;
@@ -33,7 +33,8 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             : null;
     public string ToDisplayString() => Project.Name;
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) : AbstractProjectDiagnosticSource(project)
+    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) 
+        : AbstractProjectDiagnosticSource(project)
     {
         /// <summary>
         /// This is a normal project source that represents live/fresh diagnostics that should supersede everything else.
@@ -42,7 +43,6 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             => true;
 
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
             CancellationToken cancellationToken)
         {
@@ -55,7 +55,8 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
         }
     }
 
-    private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) : AbstractProjectDiagnosticSource(project)
+    private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) 
+        : AbstractProjectDiagnosticSource(project)
     {
         /// <summary>
         /// This source provides the results of the *last* explicitly kicked off "run code analysis" command from the
@@ -66,7 +67,6 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             => false;
 
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
             CancellationToken cancellationToken)
         {

@@ -13,4 +13,5 @@ internal enum DiagnosticKind
     CompilerSemantic = 2,
     AnalyzerSyntax = 3,
     AnalyzerSemantic = 4,
+    EditAndContinue = 5,
 }

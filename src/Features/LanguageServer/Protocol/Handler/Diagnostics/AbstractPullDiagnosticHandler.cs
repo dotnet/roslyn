@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -295,7 +294,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
-        var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
+        var diagnostics = await diagnosticSource.GetDiagnosticsAsync(context, cancellationToken).ConfigureAwait(false);
 
         // If we can't get a text document identifier we can't report diagnostics for this source.
         // This can happen for 'fake' projects (e.g. used for TS script blocks).

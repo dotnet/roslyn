@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument document) : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
-    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
-        => new FullSolutionAnalysisDiagnosticSource(document, shouldIncludeAnalyzer);
+    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+        => new FullSolutionAnalysisDiagnosticSource(document, diagnosticAnalyzerService, shouldIncludeAnalyzer);
 
     public static AbstractWorkspaceDocumentDiagnosticSource CreateForCodeAnalysisDiagnostics(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(document, codeAnalysisService);
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
         /// <summary>
@@ -28,7 +28,6 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             => true;
 
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
             CancellationToken cancellationToken)
         {
@@ -64,7 +63,6 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             => false;
 
         public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             RequestContext context,
             CancellationToken cancellationToken)
         {
