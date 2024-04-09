@@ -279,7 +279,7 @@ internal sealed class SolutionStateChecksums(
                         result[projectStateChecksums.Info] = projectState.Attributes;
 
                     if (searchingChecksumsLeft.Remove(projectStateChecksums.CompilationOptions))
-                        result[projectStateChecksums.CompilationOptions] = projectState.CompilationOptions;
+                        result[projectStateChecksums.CompilationOptions] = projectState.CompilationOptions!;
                 }
             }
         }
