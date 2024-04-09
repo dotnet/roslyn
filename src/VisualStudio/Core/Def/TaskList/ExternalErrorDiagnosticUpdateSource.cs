@@ -51,7 +51,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     // Gate for concurrent access and fields guarded with this gate.
     private readonly object _gate = new();
     private InProgressState? _stateDoNotAccessDirectly;
-    private readonly CancellationSeries _activeCancellationSeriesDoNotAccessDirectly = new();
+    private readonly CancellationSeries _activeCancellationSeriesDoNotAccessDirectly;
 
     /// <summary>
     /// Latest diagnostics reported during current or last build.
