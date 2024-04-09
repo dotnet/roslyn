@@ -437,45 +437,4 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", new FeatureFlagStorage(@"Roslyn.SourceGeneratorsEnableOpeningInWorkspace")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
     };
-
-    #region UnifiedSettings
-
-    internal sealed class UnifiedSettingsStorage(string unifiedSettingsBasePath) : VisualStudioOptionStorage
-    {
-        private const string LanguagePlaceholder = "%LANGUAGE%";
-
-        /// <summary>
-        /// C# name used in Unified Settings path.
-        /// </summary>
-        private const string csharpKey = "csharp";
-
-        /// <summary>
-        /// Visual Basic name used in Unified Settings path.
-        /// </summary>
-        private const string visualBasicKey = "basic";
-
-        /// <summary>
-        /// Unified settings base path, might contains %LANGAUGE% if it maps to two per-language different setting.
-        /// </summary>
-        public string UnifiedSettingsBasePath { get; init; } = unifiedSettingsBasePath;
-
-        public string GetUnifiedSettingsPath(string language)
-        {
-            if (!UnifiedSettingsBasePath.Contains(LanguagePlaceholder))
-            {
-                return UnifiedSettingsBasePath;
-            }
-
-            return language switch
-            {
-                LanguageNames.CSharp => UnifiedSettingsBasePath.Replace(LanguagePlaceholder, csharpKey),
-                LanguageNames.VisualBasic => UnifiedSettingsBasePath.Replace(LanguagePlaceholder, visualBasicKey),
-                // Current we don't expect to handle other languages
-                _ => throw ExceptionUtilities.UnexpectedValue(language)
-            };
-        }
-    }
-
-
-    #endregion
 }

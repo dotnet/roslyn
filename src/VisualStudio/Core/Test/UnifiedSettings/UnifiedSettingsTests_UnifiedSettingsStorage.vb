@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
     Partial Public Class UnifiedSettingsTests
 
+        ' Mapping from the config name to its path in Unified Settings registration file
         Private Shared ReadOnly s_unifiedSettingsStorage As New Dictionary(Of String, UnifiedSettingsStorage)() From {
             {"dotnet_trigger_completion_on_typing_letters", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionOnTypingLetters")},
             {"dotnet_trigger_completion_on_deletion", New UnifiedSettingsStorage("textEditor.%LANGUAGE%.intellisense.triggerCompletionOnDeletion")},

@@ -3,10 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings;
+using Newtonsoft.Json.Linq;
+using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
 {
@@ -38,5 +44,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
         internal override ImmutableDictionary<IOption2, ImmutableArray<object>> EnumOptionsToValues => ImmutableDictionary<IOption2, ImmutableArray<object>>.Empty.
                 Add(CompletionOptionsStorage.SnippetsBehavior, ImmutableArray.Create<object>(SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)).
                 Add(CompletionOptionsStorage.EnterKeyBehavior, ImmutableArray.Create<object>(EnterKeyRule.Never, EnterKeyRule.AfterFullyTypedWord, EnterKeyRule.Always));
+
+        [Fact]
+        public async Task IntelliSensePageTests()
+        {
+            var registrationFileStream = typeof(CSharpUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.CSharp.UnitTests.csharpSettings.registration.json");
+            using var reader = new StreamReader(registrationFileStream);
+            var registrationFile = await reader.ReadToEndAsync().ConfigureAwait(false);
+            var registrationJsonObject = JObject.Parse(registrationFile, new JsonLoadSettings() { CommentHandling = CommentHandling.Ignore });
+            var categoriesTitle = registrationJsonObject.SelectToken($"$.categories['textEditor.csharp'].title")!;
+            Assert.Equal("C#", categoriesTitle.ToString());
+            var optionPageId = registrationJsonObject.SelectToken("$.categories['textEditor.csharp.intellisense'].legacyOptionPageId");
+            Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, optionPageId!.ToString());
+            TestIntelliSensePageSettings(registrationJsonObject);
+        }
     }
 }

@@ -3,8 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
-Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Options
@@ -15,6 +13,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
     Partial Public MustInherit Class UnifiedSettingsTests
+        ' Onboarded options in Unified Settings registration file
         Friend MustOverride ReadOnly Property OnboardedOptions As ImmutableArray(Of IOption2)
 
         ' The default value of some enum options is overridden at runtime. It uses different default value for C# and VB.
@@ -26,37 +25,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         ' Use this dictionary to list all the possible enum values in settings page.
         Friend MustOverride ReadOnly Property EnumOptionsToValues As ImmutableDictionary(Of IOption2, ImmutableArray(Of Object))
 
-        <Fact>
-        Public Async Function CSharpIntellisensePageSettingsTest() As Task
-            Dim registrationFileStream = GetType(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("csharpSettings.registration.json")
-            Using reader As New StreamReader(registrationFileStream)
-                Dim registrationFile = Await reader.ReadToEndAsync().ConfigureAwait(False)
-                Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings With {.CommentHandling = CommentHandling.Ignore})
-
-                Dim categoriesTitle = registrationJsonObject.SelectToken("$.categories('textEditor.csharp').title")
-                Assert.Equal("C#", categoriesTitle.ToString())
-                Dim optionPageId = registrationJsonObject.SelectToken("$.categories('textEditor.csharp.intellisense').legacyOptionPageId")
-                Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, optionPageId.ToString())
-
-                For Each onboardedOption In OnboardedOptions
-                    Dim optionName = onboardedOption.Definition.ConfigName
-                    Dim settingStorage As UnifiedSettingsStorage = Nothing
-                    If s_unifiedSettingsStorage.TryGetValue(optionName, settingStorage) Then
-                        Dim unifiedSettingsPath = settingStorage.GetUnifiedSettingsPath(LanguageNames.CSharp)
-                        VerifyType(registrationJsonObject, unifiedSettingsPath, onboardedOption)
-                        If onboardedOption.Type.IsEnum Then
-                            ' Enum settings contains special setup.
-                            VerifyEnum(registrationJsonObject, unifiedSettingsPath, onboardedOption)
-                        Else
-                            VerifySettings(registrationJsonObject, unifiedSettingsPath, onboardedOption)
-                        End If
+        Protected Sub TestIntelliSensePageSettings(registrationJsonObject As JObject)
+            For Each onboardedOption In OnboardedOptions
+                Dim optionName = onboardedOption.Definition.ConfigName
+                Dim settingStorage As UnifiedSettingsStorage = Nothing
+                If s_unifiedSettingsStorage.TryGetValue(optionName, settingStorage) Then
+                    Dim unifiedSettingsPath = settingStorage.GetUnifiedSettingsPath(LanguageNames.CSharp)
+                    VerifyType(registrationJsonObject, unifiedSettingsPath, onboardedOption)
+                    If onboardedOption.Type.IsEnum Then
+                        ' Enum settings contains special setup.
+                        VerifyEnum(registrationJsonObject, unifiedSettingsPath, onboardedOption)
                     Else
-                        ' Can't find the option in the storage dictionary
-                        Throw ExceptionUtilities.UnexpectedValue(optionName)
+                        VerifySettings(registrationJsonObject, unifiedSettingsPath, onboardedOption)
                     End If
-                Next
-            End Using
-        End Function
+                Else
+                    ' Can't find the option in the storage dictionary
+                    Throw ExceptionUtilities.UnexpectedValue(optionName)
+                End If
+            Next
+        End Sub
 
         Private Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2)
             ' Verify default value
