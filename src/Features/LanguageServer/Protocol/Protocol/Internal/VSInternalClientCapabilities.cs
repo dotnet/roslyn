@@ -18,10 +18,10 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [DataMember(Name = "textDocument")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public VSInternalTextDocumentClientCapabilities? VSInternalTextDocument
+        public new VSInternalTextDocumentClientCapabilities? TextDocument
         {
-            get => TextDocument as VSInternalTextDocumentClientCapabilities;
-            set => TextDocument = value;
+            get => base.TextDocument as VSInternalTextDocumentClientCapabilities;
+            set => base.TextDocument = value;
         }
 
         /// <summary>

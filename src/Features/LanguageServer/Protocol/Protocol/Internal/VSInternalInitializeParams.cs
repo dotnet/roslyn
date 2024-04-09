@@ -16,10 +16,10 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the capabilities supported by the Visual Studio client.
         /// </summary>
         [DataMember(Name = "capabilities")]
-        public VSInternalClientCapabilities VSInternalCapabilities
+        public new VSInternalClientCapabilities Capabilities
         {
-            get => Capabilities as VSInternalClientCapabilities;
-            set => Capabilities = value;
+            get => base.Capabilities as VSInternalClientCapabilities;
+            set => base.Capabilities = value;
         }
     }
 }
