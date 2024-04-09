@@ -243,8 +243,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 Dictionary<ProjectId, ProjectStateChecksums> newProjectIdToStateChecksums,
                 CancellationToken cancellationToken)
             {
-                // Note: it's common to see a whole lot of project-infos change.  So attempt to collect that in one go
-                // if we can.
+                // Note: it's common to need to collect a large set of project-attributes and compilation options.  So
+                // attempt to collect all of those in a single call for each kind instead of a call for each instance
+                // needed.
                 {
                     using var _ = PooledHashSet<Checksum>.GetInstance(out var projectItemChecksums);
                     foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
