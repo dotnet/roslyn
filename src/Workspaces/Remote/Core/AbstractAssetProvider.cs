@@ -108,17 +108,17 @@ internal abstract class AbstractAssetProvider
     public async Task<ImmutableArray<T>> GetAssetsAsync<T>(
         AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
-        using var _ = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
         checksumSet.AddAll(checksums.Children);
 
-        var results = ImmutableArray.CreateBuilder<T>(checksumSet.Count);
+        using var _2 = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
 
-        await this.GetAssetsAsync<T, ImmutableArray<T>.Builder>(
+        await this.GetAssetsAsync<T, ArrayBuilder<T>>(
             assetPath, checksumSet,
-            static (checksum, asset, results) => results.Add(asset),
-            results,
+            static (checksum, asset, builder) => builder.Add(asset),
+            builder,
             cancellationToken).ConfigureAwait(false);
 
-        return results.MoveToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }
