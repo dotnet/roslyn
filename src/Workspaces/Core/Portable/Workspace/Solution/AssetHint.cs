@@ -45,15 +45,6 @@ internal readonly struct AssetPath
         _kind = kind;
         ProjectId = projectId;
         DocumentId = documentId;
-
-        // If this isn't a test lookup, and we're searching into projects or documents, then we must have at least a
-        // projectId to limit the search.  If we don't, that risks very expensive searches where we look into *every*
-        // project in the solution for matches.
-        if ((kind & AssetPathKind.Testing) == 0)
-        {
-            if (IncludeProjects || IncludeDocuments)
-                Contract.ThrowIfNull(projectId);
-        }
     }
 
     public bool IncludeSolution => (_kind & AssetPathKind.Solution) == AssetPathKind.Solution;

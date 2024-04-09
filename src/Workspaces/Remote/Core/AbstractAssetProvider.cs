@@ -23,7 +23,7 @@ internal abstract class AbstractAssetProvider
     /// return data of type T whose checksum is the given checksum
     /// </summary>
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
-    public abstract ValueTask GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken);
+    public abstract ValueTask GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken);
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {

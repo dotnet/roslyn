@@ -243,6 +243,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 Dictionary<ProjectId, ProjectStateChecksums> newProjectIdToStateChecksums,
                 CancellationToken cancellationToken)
             {
+                // Note: it's common to see a whole lot of project-infos change.  So attempt to collect that in one go
+                // if we can.
+                using var _ = PooledHashSet<Checksum>.GetInstance(out var projectInfoChecksums);
+                foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
+                    projectInfoChecksums.Add(newProjectChecksums.Info);
+
+                await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
+                    assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, projectInfoChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+
                 // added project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {

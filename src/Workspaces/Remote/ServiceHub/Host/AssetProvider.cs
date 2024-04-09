@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -51,7 +52,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public override async ValueTask GetAssetsAsync<T, TArg>(
-        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+        AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken) where TArg : default
     {
         await this.SynchronizeAssetsAsync(assetPath, checksums, callback, arg, cancellationToken).ConfigureAwait(false);
     }

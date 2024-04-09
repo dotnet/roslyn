@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             public override async ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken)
                 => await validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
 
-            public override async ValueTask GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+            public override async ValueTask GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken) where TArg : default
             {
                 foreach (var checksum in checksums)
                 {
                     var value = await GetAssetAsync<T>(assetPath, checksum, cancellationToken).ConfigureAwait(false);
-                    callback(checksum, value, arg);
+                    callback?.Invoke(checksum, value, arg!);
                 }
             }
         }
