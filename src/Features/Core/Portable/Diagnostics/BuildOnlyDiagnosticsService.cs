@@ -28,7 +28,7 @@ internal sealed class BuildOnlyDiagnosticsServiceFactory(
     private sealed class BuildOnlyDiagnosticsService : IBuildOnlyDiagnosticsService, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
-        private readonly AsyncBatchingWorkQueue<Func<CancellationToken, Task>> _workQueue;
+        private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _workQueue;
 
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
         private readonly Dictionary<DocumentId, ImmutableArray<DiagnosticData>> _documentDiagnostics = [];
@@ -37,7 +37,7 @@ internal sealed class BuildOnlyDiagnosticsServiceFactory(
             Workspace workspace,
             IAsynchronousOperationListener asyncListener)
         {
-            _workQueue = new AsyncBatchingWorkQueue<Func<CancellationToken, Task>>(
+            _workQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
                 TimeSpan.Zero,
                 ProcessWorkQueueAsync,
                 asyncListener,
@@ -50,35 +50,55 @@ internal sealed class BuildOnlyDiagnosticsServiceFactory(
 
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
         {
+            // Keep this switch in sync with the switch in ProcessWorkQueueAsync
             switch (e.Kind)
             {
                 case WorkspaceChangeKind.SolutionAdded:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    _workQueue.AddWork(cancellationToken => ClearAllDiagnosticsAsync(cancellationToken));
-                    break;
-
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    _workQueue.AddWork(cancellationToken => ClearDiagnosticsAsync(e.OldSolution.GetProject(e.ProjectId), cancellationToken));
-                    break;
-
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
                 case WorkspaceChangeKind.AdditionalDocumentRemoved:
                 case WorkspaceChangeKind.AdditionalDocumentReloaded:
                 case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
-                    _workQueue.AddWork(cancellationToken => ClearDiagnosticsAsync(e.DocumentId, cancellationToken));
+                    _workQueue.AddWork(e);
                     break;
             }
         }
 
-        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Func<CancellationToken, Task>> list, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> list, CancellationToken cancellationToken)
         {
-            foreach (var workItem in list)
-                await workItem(cancellationToken).ConfigureAwait(false);
+            foreach (var e in list)
+            {
+                // Keep this switch in sync with the switch in OnWorkspaceChanged
+                switch (e.Kind)
+                {
+                    case WorkspaceChangeKind.SolutionAdded:
+                    case WorkspaceChangeKind.SolutionCleared:
+                    case WorkspaceChangeKind.SolutionReloaded:
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        await ClearAllDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.ProjectReloaded:
+                    case WorkspaceChangeKind.ProjectRemoved:
+                        await ClearDiagnosticsAsync(e.OldSolution.GetProject(e.ProjectId), cancellationToken).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.DocumentRemoved:
+                    case WorkspaceChangeKind.DocumentReloaded:
+                    case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                    case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+                        await ClearDiagnosticsAsync(e.DocumentId, cancellationToken).ConfigureAwait(false);
+                        break;
+                }
+            }
         }
 
         public async Task AddBuildOnlyDiagnosticsAsync(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
