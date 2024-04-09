@@ -57,6 +57,10 @@ internal sealed class BuildOnlyDiagnosticsServiceFactory(
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
+                    // Cancel existing work as we're going to clear out everything anyways, so no point processing any
+                    // document or project work.
+                    _workQueue.AddWork(e, cancelExistingWork: true);
+                    break;
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
                 case WorkspaceChangeKind.DocumentRemoved:
