@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -254,9 +255,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private Solution CreateSolutionFromInfo(SolutionInfo solutionInfo)
         {
             var solution = this.CreateSolution(solutionInfo);
-            foreach (var projectInfo in solutionInfo.Projects)
-                solution = solution.AddProject(projectInfo);
-            return solution;
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionInfo.Projects.Count, out var projectInfos);
+            projectInfos.AddRange(solutionInfo.Projects);
+
+            // Add in one operation, avoiding intermediary forking of the solution.
+            return solution.AddProjects(projectInfos);
         }
 
         /// <summary>

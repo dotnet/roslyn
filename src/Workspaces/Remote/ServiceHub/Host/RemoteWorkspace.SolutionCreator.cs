@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
+                // Add solutions in bulk.  Avoiding intermediary forking of it.
                 solution = solution.AddProjects(projectInfos);
 
                 // remove all project references from projects that changed. this ensures exceptions will not occur for
@@ -297,6 +298,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
+                // Remove solutions in bulk.  Avoiding intermediary forking of it.
                 solution = solution.RemoveProjects(projectsToRemove);
 
                 // changed project
