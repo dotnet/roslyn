@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Note: it's common to see a whole lot of project-infos change.  So attempt to collect that in one go
                 // if we can.
                 {
-                    using var _ = PooledHashSet<Checksum>.GetInstance(out var projectItemChecksums);
+                    using var _1 = PooledHashSet<Checksum>.GetInstance(out var projectItemChecksums);
                     foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
                         projectItemChecksums.Add(newProjectChecksums.Info);
 
@@ -261,22 +261,19 @@ namespace Microsoft.CodeAnalysis.Remote
                         assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
                 }
 
-                // added project
-                var projectInfoTasks = new List<Task<ProjectInfo>>();
-
+                // added project.  Try to retrieve them all in parallel.
+                using var _2 = ArrayBuilder<Task<ProjectInfo>>.GetInstance(out var projectInfoTasks);
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
                     if (!oldProjectIdToStateChecksums.ContainsKey(projectId))
                     {
                         // bulk sync added project assets fully since we'll definitely need that data, and we won't want
                         // to make tons of intermediary calls for it.
-
                         var @this = this;
                         projectInfoTasks.Add(Task.Run(async () =>
                         {
                             await @this._assetProvider.SynchronizeProjectAssetsAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
-                            var projectInfo = await @this._assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
-                            return projectInfo;
+                            return await @this._assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
                         }, cancellationToken));
                     }
                 }

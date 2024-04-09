@@ -22,14 +22,6 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
     : AbstractAssetProvider
 {
-    private const string s_logFile = @"c:\temp\sync\synclog.txt";
-    private static readonly SharedStopwatch s_start = SharedStopwatch.StartNew();
-
-    static AssetProvider()
-    {
-        IOUtilities.PerformIO(() => File.Delete(s_logFile));
-    }
-
     private const int PooledChecksumArraySize = 256;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
@@ -117,18 +109,16 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
 
-            // fourth, get all projects and documents in the solution 
-            var tasks = new List<Task>();
+            // fourth, get all projects and documents in the solution.  Do this in parallel to speed up the sync.
+            using var _ = ArrayBuilder<Task>.GetInstance(out var projectSyncTasks);
             foreach (var (projectChecksum, _) in stateChecksums.Projects)
             {
                 var projectStateChecksums = (ProjectStateChecksums)checksumToObjects[projectChecksum];
-                tasks.Add(Task.Run(async () =>
-                {
-                    await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
-                }, cancellationToken));
+                projectSyncTasks.Add(Task.Run(
+                    () => SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken), cancellationToken));
             }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(projectSyncTasks).ConfigureAwait(false);
         }
     }
 
@@ -268,17 +258,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     },
                     (this, missingChecksums, callback, arg),
                     cancellationToken).ConfigureAwait(false);
-
-                var time = stopwatch.Elapsed;
-                var totalTime = s_start.Elapsed;
-
-                IOUtilities.PerformIO(() =>
-                {
-                    lock (this)
-                    {
-                        File.AppendAllText(s_logFile, $"{missingChecksumsCount},{checksums.Count},{time},{totalTime},{typeof(T).Name}\r\n");
-                    }
-                });
             }
 
             if (usePool)
