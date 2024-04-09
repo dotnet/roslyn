@@ -9702,11 +9702,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (finalApplicableCandidates.Length == 1)
                 {
                     Debug.Assert(finalApplicableCandidates[0].IsApplicable);
+                    PropertySymbol singleCandidate = finalApplicableCandidates[0].LeastOverriddenMember;
 
                     if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
                     {
-                        PropertySymbol singleCandidate = finalApplicableCandidates[0].LeastOverriddenMember;
-
                         // We're only in trouble if a dynamic argument is passed to the
                         // params parameter and is ambiguous at compile time between normal
                         // and expanded form i.e., there is exactly one dynamic argument to
@@ -9719,7 +9718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 argumentSyntax, singleCandidate);
                         }
                     }
-                    else
+                    else if (finalApplicableCandidates[0].Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
+                             !singleCandidate.Parameters.Last().Type.IsSZArray())
                     {
                         var resultWithSingleCandidate = OverloadResolutionResult<PropertySymbol>.GetInstance();
                         resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);

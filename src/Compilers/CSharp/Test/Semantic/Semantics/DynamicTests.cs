@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3018,7 +3019,7 @@ class C1
                 // (43,55): warning CS1981: Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object' and will succeed for all non-null values
                 //         Expression<Func<dynamic, dynamic>> e18 = x => d is dynamic; // ok, warning
                 Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "d is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(43, 55),
-                // (46,59): error CS8386: Invalid object creation
+                // (46,59): error CS8382: Invalid object creation
                 //         Expression<Func<dynamic, dynamic>> e21 = x => new dynamic();
                 Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithLocation(46, 59),
                 // (25,52): error CS1963: An expression tree may not contain a dynamic operation
@@ -3033,18 +3034,12 @@ class C1
                 // (27,69): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Z").WithLocation(27, 69),
-                // (28,46): error CS1963: An expression tree may not contain a dynamic operation
+                // (28,44): error CS1963: An expression tree may not contain a dynamic operation
                 // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 46),
-                // (28,53): error CS1963: An expression tree may not contain a dynamic operation
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d }").WithLocation(28, 44),
+                // (28,51): error CS1963: An expression tree may not contain a dynamic operation
                 // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 53),
-                // (28,56): error CS1963: An expression tree may not contain a dynamic operation
-                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 56),
-                // (28,59): error CS1963: An expression tree may not contain a dynamic operation
-                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(28, 59),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d, d, d }").WithLocation(28, 51),
                 // (29,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo()").WithLocation(29, 54),
@@ -3066,6 +3061,15 @@ class C1
                 // (33,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e8 = x => -x;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "-x").WithLocation(33, 54),
+                // (34,54): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e9 = x => f(d);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d)").WithLocation(34, 54),
+                // (36,55): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e11 = x => f((dynamic)1);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f((dynamic)1)").WithLocation(36, 55),
+                // (37,55): error CS1963: An expression tree may not contain a dynamic operation
+                //         Expression<Func<dynamic, dynamic>> e12 = x => f(d ?? null);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d ?? null)").WithLocation(37, 55),
                 // (38,55): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e13 = x => d ? 1 : 2;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(38, 55),
@@ -4390,6 +4394,7 @@ class C
     {
         dynamic d = 1;
 
+        // Produce an error. This cannot work correctly right now
         M1(in d, d = 2, in d);
 
         void M2(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
@@ -4401,11 +4406,14 @@ class C
 
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput:
-@"
-True
-True
-").VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 15),
+                // (11,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 28)
+                );
         }
 
         [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
@@ -4585,24 +4593,12 @@ class C2 : C1
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, expectedOutput: "Hello world", targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
-                {
-                  // Code size       23 (0x17)
-                  .maxstack  2
-                  .locals init (S V_0, //s
-                                  object V_1) //d
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  IL_0008:  ldstr      "Hello world"
-                  IL_000d:  stloc.1
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  ldloc.1
-                  IL_0011:  call       "void S.M({{argType}})"
-                  IL_0016:  ret
-                }
-                """);
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.StandardAndCSharp);
+            comp.VerifyDiagnostics(
+                // (4,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // s.M(d);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 1)
+                );
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -4629,49 +4625,12 @@ class C2 : C1
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, expectedOutput: argType == "string" ? "Hello world" : "Caught exception", targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
-                {
-                  // Code size      101 (0x65)
-                  .maxstack  4
-                  .locals init (S V_0, //s
-                                object V_1) //d
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  IL_0008:  ldstr      "Hello world"
-                  IL_000d:  stloc.1
-                  .try
-                  {
-                    IL_000e:  ldloca.s   V_0
-                    IL_0010:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_0015:  brtrue.s   IL_003b
-                    IL_0017:  ldc.i4.0
-                    IL_0018:  ldtoken    "{{argType}}"
-                    IL_001d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_0022:  ldtoken    "Program"
-                    IL_0027:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_002c:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                    IL_0031:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                    IL_0036:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_003b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_0040:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
-                    IL_0045:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_004a:  ldloc.1
-                    IL_004b:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                    IL_0050:  call       "void S.M({{argType}})"
-                    IL_0055:  leave.s    IL_0064
-                  }
-                  catch object
-                  {
-                    IL_0057:  pop
-                    IL_0058:  ldstr      "Caught exception"
-                    IL_005d:  call       "void System.Console.WriteLine(string)"
-                    IL_0062:  leave.s    IL_0064
-                  }
-                  IL_0064:  ret
-                }
-                """);
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.StandardAndCSharp);
+            comp.VerifyDiagnostics(
+                // (6,5): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                //     s.M(d);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(6, 5)
+                );
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -4750,32 +4709,15 @@ class C2 : C1
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, expectedOutput: """
-                Hello world
-                Hello world
-                """, targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
-                {
-                  // Code size       33 (0x21)
-                  .maxstack  3
-                  .locals init (S V_0, //s
-                                object V_1) //d
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  IL_0008:  ldstr      "Hello world"
-                  IL_000d:  stloc.1
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  ldloc.1
-                  IL_0011:  call       "int S.this[{{argType}}].get"
-                  IL_0016:  pop
-                  IL_0017:  ldloca.s   V_0
-                  IL_0019:  ldloc.1
-                  IL_001a:  ldc.i4.1
-                  IL_001b:  call       "void S.this[{{argType}}].set"
-                  IL_0020:  ret
-                }
-                """);
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.StandardAndCSharp);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // _ = s[d];
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 5),
+                // (5,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // s[d] = 1;
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(5, 1)
+                );
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -4829,98 +4771,15 @@ class C2 : C1
                 }
                 """;
 
-            var verifier = CompileAndVerify(code, expectedOutput: argType == "string"
-                ? """
-                  Hello world
-                  Hello world
-                  """
-                : """
-                  Caught exception
-                  Caught exception
-                  """, targetFramework: TargetFramework.StandardAndCSharp);
-            verifier.VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.<<Main>$>g__get|0_0(ref Program.<>c__DisplayClass0_0)", $$"""
-                {
-                  // Code size      101 (0x65)
-                  .maxstack  4
-                  .locals init (S V_0) //s
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  .try
-                  {
-                    IL_0008:  ldloca.s   V_0
-                    IL_000a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_000f:  brtrue.s   IL_0035
-                    IL_0011:  ldc.i4.0
-                    IL_0012:  ldtoken    "{{argType}}"
-                    IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_001c:  ldtoken    "Program"
-                    IL_0021:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_0026:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                    IL_002b:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                    IL_0030:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_0035:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_003a:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
-                    IL_003f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__0"
-                    IL_0044:  ldarg.0
-                    IL_0045:  ldfld      "dynamic Program.<>c__DisplayClass0_0.d"
-                    IL_004a:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                    IL_004f:  call       "int S.this[{{argType}}].get"
-                    IL_0054:  pop
-                    IL_0055:  leave.s    IL_0064
-                  }
-                  catch object
-                  {
-                    IL_0057:  pop
-                    IL_0058:  ldstr      "Caught exception"
-                    IL_005d:  call       "void System.Console.WriteLine(string)"
-                    IL_0062:  leave.s    IL_0064
-                  }
-                  IL_0064:  ret
-                }
-                """);
-
-            verifier.VerifyIL("Program.<<Main>$>g__set|0_1(ref Program.<>c__DisplayClass0_0)", $$"""
-                {
-                  // Code size      101 (0x65)
-                  .maxstack  4
-                  .locals init (S V_0) //s
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "S"
-                  .try
-                  {
-                    IL_0008:  ldloca.s   V_0
-                    IL_000a:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
-                    IL_000f:  brtrue.s   IL_0035
-                    IL_0011:  ldc.i4.0
-                    IL_0012:  ldtoken    "{{argType}}"
-                    IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_001c:  ldtoken    "Program"
-                    IL_0021:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_0026:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                    IL_002b:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                    IL_0030:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
-                    IL_0035:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
-                    IL_003a:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>>.Target"
-                    IL_003f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>> Program.<>o__0.<>p__1"
-                    IL_0044:  ldarg.0
-                    IL_0045:  ldfld      "dynamic Program.<>c__DisplayClass0_0.d"
-                    IL_004a:  callvirt   "{{argType}} System.Func<System.Runtime.CompilerServices.CallSite, dynamic, {{argType}}>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                    IL_004f:  ldc.i4.1
-                    IL_0050:  call       "void S.this[{{argType}}].set"
-                    IL_0055:  leave.s    IL_0064
-                  }
-                  catch object
-                  {
-                    IL_0057:  pop
-                    IL_0058:  ldstr      "Caught exception"
-                    IL_005d:  call       "void System.Console.WriteLine(string)"
-                    IL_0062:  leave.s    IL_0064
-                  }
-                  IL_0064:  ret
-                }
-                """);
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.StandardAndCSharp);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                //         _ = s[d];
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(11, 13),
+                // (24,9): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                //         s[d] = 1;
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(24, 9)
+                );
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
@@ -4959,6 +4818,289 @@ class C2 : C1
                 // s[d] = 1;
                 Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(5, 1)
             );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_01()
+        {
+            string source1 = @"
+#nullable enable
+
+public class C
+{
+    public static C M(I1 i1, dynamic value)
+    {
+        var result = i1.Test(""name"", value);
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+public interface I1
+{
+    object Test(string name, object value);
+}
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T)!;
+}
+";
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.StandardAndCSharp);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp1.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic? result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            AssertEx.Equal(@"i1.Test(""name"", value)", call.ToString());
+            symbolInfo = model.GetSymbolInfo(call);
+            AssertEx.Equal("System.Object I1.Test(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(call);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_02()
+        {
+            string source1 = @"
+#nullable enable
+
+public class C
+{
+    public static C M(I1 i1, dynamic value)
+    {
+        var result = i1.Test(""name"", value);
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+public interface I1
+{
+    int Test(string name, object value);
+}
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T)!;
+}
+";
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.StandardAndCSharp);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp1.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic? result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            AssertEx.Equal(@"i1.Test(""name"", value)", call.ToString());
+            symbolInfo = model.GetSymbolInfo(call);
+            AssertEx.Equal("System.Int32 I1.Test(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(call);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_LocalFunction()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        dynamic d = 1;
+        var e = test4(d);
+        System.Console.WriteLine(e);        
+
+        static int test4(int x) => x;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("System.Int32 e", symbolInfo.Symbol.ToTestDisplayString());
+
+            CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_Delegate()
+        {
+            string source = @"
+public class C
+{
+    static C M(Test i1, dynamic value)
+    {
+        var result = i1(""name"", value);
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+delegate object Test(string name, object value);
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T);
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            AssertEx.Equal(@"i1(""name"", value)", call.ToString());
+            symbolInfo = model.GetSymbolInfo(call);
+            AssertEx.Equal("System.Object Test.Invoke(System.String name, System.Object value)", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(call);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicInvocationOperation)model.GetOperation(call);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_Property_01()
+        {
+            string source = @"
+#nullable enable
+
+public class C
+{
+    public static C M(I1 i1, dynamic value)
+    {
+        var result = i1[""name"", value];
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+public interface I1
+{
+    object this[string name, object value] {get;}
+}
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T)!;
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic? result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("System.Object I1.this[System.String name, System.Object value] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_ResultIsDynamic_Property_02()
+        {
+            string source = @"
+#nullable enable
+
+public class C
+{
+    public static C M(I1 i1, dynamic value)
+    {
+        var result = i1[""name"", value];
+        return JsonSerializer.Deserialize<C>(result);
+    }
+}
+
+public interface I1
+{
+    int this[string name, object value] {get;}
+}
+
+class JsonSerializer
+{
+    public static T Deserialize<T>(System.IO.Stream c) => default(T)!;
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "result").Single();
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("dynamic? result", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().Single();
+            symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("System.Int32 I1.this[System.String name, System.Object value] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("dynamic", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("dynamic", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IDynamicIndexerAccessOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp).VerifyDiagnostics();
         }
     }
 }

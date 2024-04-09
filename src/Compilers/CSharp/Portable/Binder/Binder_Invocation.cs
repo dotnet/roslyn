@@ -641,6 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
                 var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
+                MethodSymbol singleCandidate = applicable.Member;
 
                 // We have to do a dynamic dispatch only when a dynamic argument is
                 // passed to the params parameter and is ambiguous at compile time between normal
@@ -649,8 +650,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, applicable, out SyntaxNode argumentSyntax))
                 {
-                    MethodSymbol singleCandidate = applicable.Member;
-
                     // We know that runtime binder might not be
                     // able to handle the disambiguation
                     if (!singleCandidate.Parameters.Last().Type.IsSZArray())
@@ -662,9 +661,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
                 }
-                else
+                else if (applicable.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
+                         !singleCandidate.Parameters.Last().Type.IsSZArray())
                 {
                     result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
+                }
+                else
+                {
+                    result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
                 }
             }
             else
@@ -995,6 +999,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
 
             if (!CanEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
+            {
+                return null;
+            }
+
+            if (singleCandidate.MethodKind != MethodKind.LocalFunction &&
+                !resolution.IsExtensionMethodGroup &&
+                (methodResolutionResult.Result.Kind != MemberResolutionKind.ApplicableInExpandedForm ||
+                 singleCandidate.Parameters.Last().Type.IsSZArray()))
             {
                 return null;
             }
