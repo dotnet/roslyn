@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         protected override TestComposition Composition => base.Composition.AddParts(
             typeof(DocumentHandler),
             typeof(RequestHandlerWithNoParams),
-            typeof(NotificationHandler),
-            typeof(NotificationWithoutParamsHandler),
+            typeof(NotificationHandlerFactory),
+            typeof(NotificationWithoutParamsHandlerFactory),
             typeof(LanguageSpecificHandler),
             typeof(LanguageSpecificHandlerWithDifferentParams));
 
@@ -66,8 +66,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             {
                 Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
             });
+
             await server.ExecuteNotificationAsync(NotificationHandler.MethodName, request);
-            var response = await NotificationHandler.ResultSource.Task;
+            var response = await server.GetRequiredLspService<NotificationHandler>().ResultSource.Task;
             Assert.Equal(typeof(NotificationHandler).Name, response);
         }
 
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
             await server.ExecuteNotification0Async(NotificationWithoutParamsHandler.MethodName);
-            var response = await NotificationWithoutParamsHandler.ResultSource.Task;
+            var response = await server.GetRequiredLspService<NotificationWithoutParamsHandler>().ResultSource.Task;
             Assert.Equal(typeof(NotificationWithoutParamsHandler).Name, response);
         }
 
@@ -179,17 +180,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             }
         }
 
-        [ExportCSharpVisualBasicStatelessLspService(typeof(NotificationHandler)), PartNotDiscoverable, Shared]
         [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
         internal class NotificationHandler : ILspServiceNotificationHandler<TestRequestTypeOne>
         {
             public const string MethodName = nameof(NotificationHandler);
-            public static readonly TaskCompletionSource<string> ResultSource = new();
+            public readonly TaskCompletionSource<string> ResultSource;
 
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public NotificationHandler()
             {
+                ResultSource = new TaskCompletionSource<string>();
             }
 
             public bool MutatesSolutionState => true;
@@ -198,21 +197,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             public Task HandleNotificationAsync(TestRequestTypeOne request, RequestContext context, CancellationToken cancellationToken)
             {
                 ResultSource.SetResult(this.GetType().Name);
-                return ResultSource.Task;
+                return Task.CompletedTask;
             }
         }
 
-        [ExportCSharpVisualBasicStatelessLspService(typeof(NotificationWithoutParamsHandler)), PartNotDiscoverable, Shared]
+        /// <summary>
+        /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
+        /// </summary>
+        [ExportCSharpVisualBasicLspServiceFactory(typeof(NotificationHandler)), PartNotDiscoverable, Shared]
+        internal class NotificationHandlerFactory : ILspServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public NotificationHandlerFactory()
+            {
+            }
+
+            public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            {
+                return new NotificationHandler();
+            }
+        }
+
         [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
         internal class NotificationWithoutParamsHandler : ILspServiceNotificationHandler
         {
             public const string MethodName = nameof(NotificationWithoutParamsHandler);
-            public static readonly TaskCompletionSource<string> ResultSource = new();
+            public readonly TaskCompletionSource<string> ResultSource;
 
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public NotificationWithoutParamsHandler()
             {
+                ResultSource = new TaskCompletionSource<string>();
             }
 
             public bool MutatesSolutionState => true;
@@ -221,7 +236,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             public Task HandleNotificationAsync(RequestContext context, CancellationToken cancellationToken)
             {
                 ResultSource.SetResult(this.GetType().Name);
-                return ResultSource.Task;
+                return Task.CompletedTask;
+            }
+        }
+
+        /// <summary>
+        /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
+        /// </summary>
+        [ExportCSharpVisualBasicLspServiceFactory(typeof(NotificationWithoutParamsHandler)), PartNotDiscoverable, Shared]
+        internal class NotificationWithoutParamsHandlerFactory : ILspServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public NotificationWithoutParamsHandlerFactory()
+            {
+            }
+
+            public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            {
+                return new NotificationWithoutParamsHandler();
             }
         }
 
