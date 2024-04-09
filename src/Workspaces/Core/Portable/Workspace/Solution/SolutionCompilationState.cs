@@ -360,6 +360,9 @@ internal sealed partial class SolutionCompilationState
         if (projectIds.Count == 0)
             return this;
 
+        // Now go and remove the projects from teh solution-state itself.
+        var newSolutionState = this.SolutionState.RemoveProjects(projectIds);
+
         var originalDependencyGraph = this.SolutionState.GetProjectDependencyGraph();
         using var _ = PooledHashSet<ProjectId>.GetInstance(out var dependentProjects);
 
@@ -369,9 +372,6 @@ internal sealed partial class SolutionCompilationState
             foreach (var dependentProject in originalDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
                 dependentProjects.Add(dependentProject);
         }
-
-        // Now go and remove the projects from teh solution-state itself.
-        var newSolutionState = this.SolutionState.RemoveProjects(projectIds);
 
         // Now for each compilation tracker.
         // 1. remove the compilation tracker if we're removing the project.

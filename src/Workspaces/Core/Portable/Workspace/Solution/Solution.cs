@@ -355,10 +355,7 @@ public partial class Solution
 
     /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
     internal Solution AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
-    {
-        Contract.ThrowIfTrue(projectInfos.HasDuplicates(static p => p.Id), "Duplicate ProjectId provided");
-        return WithCompilationState(_compilationState.AddProjects(projectInfos));
-    }
+        => WithCompilationState(_compilationState.AddProjects(projectInfos));
 
     /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     public Solution RemoveProject(ProjectId projectId)
@@ -370,10 +367,7 @@ public partial class Solution
 
     /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     internal Solution RemoveProjects(ArrayBuilder<ProjectId> projectIds)
-    {
-        Contract.ThrowIfTrue(projectIds.HasDuplicates(), "Duplicate ProjectId provided");
-        return WithCompilationState(_compilationState.RemoveProjects(projectIds));
-    }
+        => WithCompilationState(_compilationState.RemoveProjects(projectIds));
 
     /// <summary>
     /// Creates a new solution instance with the project specified updated to have the new
