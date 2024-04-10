@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bag.HasAnyResolvedErrors())
             {
                 diagnostics.AddRangeAndFree(createTupleDiagnostics);
-                createTupleDiagnostics = null;
+                createTupleDiagnostics = null; // Suppress possibly duplicate errors from CreateTuple call below.
             }
 
             // This type is the same as the 'type' above, or differs only by using 'dynamic' for some elements.
