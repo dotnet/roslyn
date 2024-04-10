@@ -160,8 +160,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // Create a mapping from documents to the previous results the client says it has for them.  That way as we
                 // process documents we know if we should tell the client it should stay the same, or we can tell it what
                 // the updated diagnostics are.
-                using var _1 = PooledHashSet<PreviousPullResult>.GetInstance(out var removedResults);
-                var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, removedResults);
+                using var _1 = PooledDictionary<ProjectOrDocumentId, PreviousPullResult>.GetInstance(out var documentToPreviousDiagnosticParams);
+                using var _2 = PooledHashSet<PreviousPullResult>.GetInstance(out var removedResults);
+                AddIdToPreviousDiagnosticParams(context, previousResults, documentToPreviousDiagnosticParams, removedResults);
 
                 // First, let the client know if any workspace documents have gone away.  That way it can remove those for
                 // the user from squiggles or error-list.
@@ -174,7 +175,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 context.TraceInformation($"Processing {orderedSources.Length} documents");
 
-                using var _2 = PooledHashSet<ProjectOrDocumentId>.GetInstance(out var seenDiagnosticSourceIds);
+                // Keep track of what diagnostic sources we see this time around.  For any we do not see this time
+                // around, we'll notify the client that the diagnostics for it have been removed.
+                using var _3 = PooledHashSet<ProjectOrDocumentId>.GetInstance(out var seenDiagnosticSourceIds);
 
                 foreach (var diagnosticSource in orderedSources)
                 {
@@ -242,12 +245,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return CreateReturn(progress);
         }
 
-        private static Dictionary<ProjectOrDocumentId, PreviousPullResult> GetIdToPreviousDiagnosticParams(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, HashSet<PreviousPullResult> removedDocuments)
+        private static void AddIdToPreviousDiagnosticParams(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults,
+            Dictionary<ProjectOrDocumentId, PreviousPullResult> idToPreviousDiagnosticParams,
+            HashSet<PreviousPullResult> removedDocuments)
         {
             Contract.ThrowIfNull(context.Solution);
 
-            var result = new Dictionary<ProjectOrDocumentId, PreviousPullResult>();
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
@@ -255,7 +259,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     var id = GetIdForPreviousResult(diagnosticParams.TextDocument, context.Solution);
                     if (id != null)
                     {
-                        result[id.Value] = diagnosticParams;
+                        idToPreviousDiagnosticParams[id.Value] = diagnosticParams;
                     }
                     else
                     {
@@ -266,7 +270,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
             }
 
-            return result;
+            return;
 
             static ProjectOrDocumentId? GetIdForPreviousResult(TextDocumentIdentifier textDocumentIdentifier, Solution solution)
             {
