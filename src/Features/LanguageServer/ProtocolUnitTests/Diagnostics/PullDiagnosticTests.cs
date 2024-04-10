@@ -276,6 +276,7 @@ class A {
 
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, results.Single().ResultId).ConfigureAwait(false);
 
+        // VS represents removal with null diagnostics, VS code represents with an empty diagnostics array.
         Assert.Equal(useVSDiagnostics ? null : [], results.Single().Diagnostics);
         Assert.Null(results.Single().ResultId);
     }
@@ -1314,6 +1315,7 @@ class A {
 
         // First doc should show up as removed.
         Assert.Equal(3, results2.Length);
+        // VS represents removal with null diagnostics, VS code represents with an empty diagnostics array.
         Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
         Assert.Null(results2[0].ResultId);
 
@@ -1914,15 +1916,14 @@ class A {";
         Assert.Null(results[0].ResultId);
         Assert.Null(results[1].ResultId);
 
+        // VS represents removal with null diagnostics, VS code represents with an empty diagnostics array.
         if (useVSDiagnostics)
         {
-            // In VS we represent removal with a null ResultId and null diagnostics.
             Assert.Null(results[0].Diagnostics);
             Assert.Null(results[1].Diagnostics);
         }
         else
         {
-            // In plain LSP we represent removal a null ResultId and with an empty array.
             Assert.Empty(results[0].Diagnostics);
             Assert.Empty(results[1].Diagnostics);
         }
