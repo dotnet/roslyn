@@ -18,6 +18,12 @@ internal static class Extensions
         if (document is not Document sourceDocument)
             return [];
 
+        if (sourceDocument.GetLanguageService<ICopilotOptionsService>() is not { } optionsService ||
+            await optionsService.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false) is false)
+        {
+            return [];
+        }
+
         var copilotCodeAnalysisService = sourceDocument.GetLanguageService<ICopilotCodeAnalysisService>();
         if (copilotCodeAnalysisService is null)
             return [];
