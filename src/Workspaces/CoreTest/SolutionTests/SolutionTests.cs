@@ -4845,6 +4845,23 @@ class C
             Assert.Single(solution.GetRelatedDocumentIds(regularDocumentId));
         }
 
+        [Theory, CombinatorialData]
+        public void GetRelatedDocumentsCaseInsensitive(
+            [CombinatorialValues("file", "File", "FILE", "FiLe")] string prefix,
+            [CombinatorialValues("cs", "Cs", "cS", "CS")] string extension)
+        {
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution
+                .AddProject("TestProject1", "TestProject1", LanguageNames.CSharp)
+                .AddDocument("File.cs", "", filePath: "File.cs").Project.Solution
+                .AddProject("TestProject2", "TestProject2", LanguageNames.CSharp)
+                .AddDocument("file.cs", "", filePath: "file.cs").Project.Solution;
+
+            // GetDocumentIdsWithFilePath should return two, since it'll count all types of documents
+            Assert.Equal(2, solution.GetDocumentIdsWithFilePath($"{prefix}.{extension}").Length);
+        }
+
         [Fact]
         public async Task TestFrozenPartialSolution1()
         {
