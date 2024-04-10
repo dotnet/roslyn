@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// </summary>
 /// <remarks>
 /// Separated from the in-proc EnC language service to allow access from lower-layer components.
+/// 
+/// <see cref="IEditAndContinueSessionTracker"/> provides read-only access,
+/// <see cref="EditAndContinueSessionState"/> provides read-write access, which is only used by the EnC language service.
 /// </remarks>
 [Export(typeof(IEditAndContinueSessionTracker))]
 [Export(typeof(EditAndContinueSessionState))]
@@ -23,7 +26,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class EditAndContinueSessionState() : IEditAndContinueSessionTracker
 {
+    /// <summary>
+    /// Set to true when EnC or Hot Reload session becomes active (e.g. F5/Ctrl+F5), to false when it ends.
+    /// </summary>
     public bool IsSessionActive { get; set; }
 
+    /// <summary>
+    /// Updated when the user attempts to apply changes.
+    /// Includes EnC emit diagnostics and debuggee state related diagnostics.
+    /// </summary>
     public ImmutableArray<DiagnosticData> ApplyChangesDiagnostics { get; set; } = [];
 }
