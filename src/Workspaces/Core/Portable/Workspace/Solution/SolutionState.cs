@@ -34,7 +34,7 @@ internal readonly record struct StateChange(
 internal sealed partial class SolutionState
 {
     /// <summary>
-    /// Note: this insensitive comparer is bused on many systems.  But we do things this way for copmat with the logic
+    /// Note: this insensitive comparer is busted on many systems.  But we do things this way for compat with the logic
     /// we've had on windows since forever.
     /// </summary>
     public static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
