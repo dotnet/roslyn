@@ -1910,8 +1910,22 @@ class A {";
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
         Assert.Equal(2, results.Length);
-        Assert.Empty(results[0].Diagnostics);
-        Assert.Empty(results[1].Diagnostics);
+
+        Assert.Null(results[0].ResultId);
+        Assert.Null(results[1].ResultId);
+
+        if (useVSDiagnostics)
+        {
+            // In VS we represent removal with a null ResultId and null diagnostics.
+            Assert.Null(results[0].Diagnostics);
+            Assert.Null(results[1].Diagnostics);
+        }
+        else
+        {
+            // In plain LSP we represent removal a null ResultId and with an empty array.
+            Assert.Empty(results[0].Diagnostics);
+            Assert.Empty(results[1].Diagnostics);
+        }
     }
 
     [Theory, CombinatorialData]
