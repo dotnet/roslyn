@@ -205,57 +205,62 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             var usePool = missingChecksumsCount <= PooledChecksumArraySize;
             var missingChecksums = usePool ? s_checksumPool.Allocate() : new Checksum[missingChecksumsCount];
 
-            missingChecksumsCount = 0;
-            foreach (var checksum in checksums)
+            try
             {
-                if (_assetCache.TryGetAsset<T>(checksum, out var existing))
+                missingChecksumsCount = 0;
+                foreach (var checksum in checksums)
                 {
-                    callback?.Invoke(checksum, existing, arg!);
-                }
-                else
-                {
-                    if (missingChecksumsCount == missingChecksums.Length)
+                    if (_assetCache.TryGetAsset<T>(checksum, out var existing))
                     {
-                        // This can happen if the asset cache has been modified by another thread during this method's execution.
-                        var newMissingChecksums = new Checksum[missingChecksumsCount * 2];
-                        Array.Copy(missingChecksums, newMissingChecksums, missingChecksumsCount);
-
-                        if (usePool)
+                        callback?.Invoke(checksum, existing, arg!);
+                    }
+                    else
+                    {
+                        if (missingChecksumsCount == missingChecksums.Length)
                         {
-                            s_checksumPool.Free(missingChecksums);
-                            usePool = false;
+                            // This can happen if the asset cache has been modified by another thread during this method's execution.
+                            var newMissingChecksums = new Checksum[missingChecksumsCount * 2];
+                            Array.Copy(missingChecksums, newMissingChecksums, missingChecksumsCount);
+
+                            if (usePool)
+                            {
+                                s_checksumPool.Free(missingChecksums);
+                                usePool = false;
+                            }
+
+                            missingChecksums = newMissingChecksums;
                         }
 
-                        missingChecksums = newMissingChecksums;
+                        missingChecksums[missingChecksumsCount] = checksum;
+                        missingChecksumsCount++;
                     }
+                }
 
-                    missingChecksums[missingChecksumsCount] = checksum;
-                    missingChecksumsCount++;
+                if (missingChecksumsCount > 0)
+                {
+                    var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+
+                    await RequestAssetsAsync(
+                        assetPath, missingChecksumsMemory,
+                        static (
+                            int index,
+                            T missingAsset,
+                            (AssetProvider assetProvider, Checksum[] missingChecksums, Action<Checksum, T, TArg>? callback, TArg? arg) tuple) =>
+                        {
+                            var missingChecksum = tuple.missingChecksums[index];
+
+                            tuple.callback?.Invoke(missingChecksum, missingAsset, tuple.arg!);
+                            tuple.assetProvider._assetCache.GetOrAdd(missingChecksum, missingAsset!);
+                        },
+                        (this, missingChecksums, callback, arg),
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            if (missingChecksumsCount > 0)
+            finally
             {
-                var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
-
-                await RequestAssetsAsync(
-                    assetPath, missingChecksumsMemory,
-                    static (
-                        int index,
-                        T missingAsset,
-                        (AssetProvider assetProvider, Checksum[] missingChecksums, Action<Checksum, T, TArg>? callback, TArg? arg) tuple) =>
-                    {
-                        var missingChecksum = tuple.missingChecksums[index];
-
-                        tuple.callback?.Invoke(missingChecksum, missingAsset, tuple.arg!);
-                        tuple.assetProvider._assetCache.GetOrAdd(missingChecksum, missingAsset!);
-                    },
-                    (this, missingChecksums, callback, arg),
-                    cancellationToken).ConfigureAwait(false);
+                if (usePool)
+                    s_checksumPool.Free(missingChecksums);
             }
-
-            if (usePool)
-                s_checksumPool.Free(missingChecksums);
         }
 
         return;
