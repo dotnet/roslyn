@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis;
 internal sealed class TextDocumentStates<TState>
     where TState : TextDocumentState
 {
+    private static readonly ObjectPool<Dictionary<string, OneOrMany<DocumentId>>> s_filePathPool = new(() => new(SolutionState.FilePathComparer));
+
     public static readonly TextDocumentStates<TState> Empty =
         new([], ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance), FrozenDictionary<string, OneOrMany<DocumentId>>.Empty);
 
@@ -323,7 +325,8 @@ internal sealed class TextDocumentStates<TState>
 
     private FrozenDictionary<string, OneOrMany<DocumentId>> ComputeFilePathToDocumentIds()
     {
-        using var _ = PooledDictionary<string, OneOrMany<DocumentId>>.GetInstance(out var result);
+        using var pooledDictionary = s_filePathPool.GetPooledObject();
+        var result = pooledDictionary.Object;
 
         foreach (var (documentId, state) in _map)
         {
@@ -336,6 +339,6 @@ internal sealed class TextDocumentStates<TState>
                 : OneOrMany.Create(documentId);
         }
 
-        return result.ToFrozenDictionary();
+        return result.ToFrozenDictionary(SolutionState.FilePathComparer);
     }
 }
