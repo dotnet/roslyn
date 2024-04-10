@@ -280,6 +280,9 @@ internal sealed class SolutionStateChecksums(
 
                     if (searchingChecksumsLeft.Remove(projectStateChecksums.CompilationOptions))
                         result[projectStateChecksums.CompilationOptions] = projectState.CompilationOptions!;
+
+                    if (searchingChecksumsLeft.Remove(projectStateChecksums.ParseOptions))
+                        result[projectStateChecksums.ParseOptions] = projectState.ParseOptions!;
                 }
             }
         }
