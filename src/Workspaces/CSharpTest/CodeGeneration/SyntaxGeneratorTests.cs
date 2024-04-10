@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     using static SyntaxFactory;
 
     [UseExportProvider]
-    public class SyntaxGeneratorTests
+    public sealed class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-            references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
+            references: [TestMetadata.Net451.mscorlib, TestMetadata.Net451.System]);
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;

@@ -274,14 +274,9 @@ public abstract class SyntaxGenerator : ILanguageService
         if (method.MethodKind is not (MethodKind.UserDefinedOperator or MethodKind.Conversion))
             throw new ArgumentException($"Method kind '{method.MethodKind}' is not an operator.");
 
-        // This method currently supports MethodKind.UserDefinedOperator, but not MethodKind.Conversion.
-        // If we supported conversion, we'll delete these asserts and correctly pass isImplicitConversion below.
-        Debug.Assert(!method.Name.Equals(WellKnownMemberNames.ImplicitConversionName, StringComparison.OrdinalIgnoreCase));
-        Debug.Assert(!method.Name.Equals(WellKnownMemberNames.ExplicitConversionName, StringComparison.OrdinalIgnoreCase));
-
         var decl = OperatorDeclaration(
             method.Name,
-            isImplicitConversion: false,
+            isImplicitConversion: method.Name is WellKnownMemberNames.ImplicitConversionName,
             parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
             returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
             accessibility: method.DeclaredAccessibility,
