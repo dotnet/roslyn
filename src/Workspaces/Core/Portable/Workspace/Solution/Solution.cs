@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -27,8 +28,11 @@ public partial class Solution
 {
     private readonly SolutionCompilationState _compilationState;
 
+    // Mapping from ProjectId to index in _projects
+    private readonly FrozenDictionary<ProjectId, int> _projectIdToIndex;
+
     // Values for all these are created on demand.
-    private ImmutableDictionary<ProjectId, Project> _projectIdToProjectMap;
+    private readonly Project?[] _projects;
 
     /// <summary>
     /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
@@ -45,7 +49,19 @@ public partial class Solution
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
     {
-        _projectIdToProjectMap = ImmutableDictionary<ProjectId, Project>.Empty;
+        var projectIds = compilationState.SolutionState.ProjectIds;
+
+        using var _ = PooledDictionary<ProjectId, int>.GetInstance(out var dict);
+        _projects = new Project?[projectIds.Count];
+
+        for (int i = 0, n = projectIds.Count; i < n; i++)
+        {
+            var projectId = projectIds[i];
+            dict[projectId] = i;
+        }
+
+        _projectIdToIndex = dict.ToFrozenDictionary();
+
         _compilationState = compilationState;
 
         _cachedFrozenSolution = cachedFrozenSolution ??
@@ -139,12 +155,17 @@ public partial class Solution
     /// </summary>
     public Project? GetProject(ProjectId? projectId)
     {
-        if (this.ContainsProject(projectId))
+        if (projectId is null || !_projectIdToIndex.TryGetValue(projectId, out var projectIndex))
+            return null;
+
+        var project = _projects[projectIndex];
+        if (project == null)
         {
-            return ImmutableInterlocked.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
+            project = CreateProject(projectId, this);
+            Interlocked.CompareExchange(ref _projects[projectIndex], project, null);
         }
 
-        return null;
+        return project;
     }
 
     private static readonly Func<ProjectId, Solution, Project> s_createProjectFunction = CreateProject;
