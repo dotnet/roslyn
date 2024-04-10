@@ -106,7 +106,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
             Assert.Equal(documentFilePath, document.FilePath);
         }
 
-        // Try again, this time with a uri with different case sensitivity
+        // Try again, this time with a uri with different case sensitivity.  This is supported, and is needed by Xaml.
         {
             var lowercaseUri = ProtocolConversions.CreateAbsoluteUri(documentFilePath.ToLowerInvariant());
             Assert.NotEqual(expectedDocumentUri.AbsolutePath, lowercaseUri.AbsolutePath);
