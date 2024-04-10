@@ -32,10 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private Workspace _workspace;
         private SyntaxGenerator _generator;
 
-        public SyntaxGeneratorTests()
-        {
-        }
-
         private Workspace Workspace
             => _workspace ??= new AdhocWorkspace();
 
