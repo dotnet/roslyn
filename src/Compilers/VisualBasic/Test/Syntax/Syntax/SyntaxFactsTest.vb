@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports System.Reflection
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -253,8 +254,6 @@ End Namespace
 ]]></file>
           </compilation>
 
-
-
         Dim tree = CreateCompilationWithMscorlib40(source).SyntaxTrees.Item(0)
         Dim symNode = FindNodeOrTokenByKind(tree, SyntaxKind.AddressOfExpression, 1).AsNode
         Assert.False(SyntaxFacts.IsAddressOfOperand(DirectCast(symNode, ExpressionSyntax)))
@@ -326,7 +325,6 @@ End Namespace
         Assert.False(SyntaxFacts.IsCaseBlock(SyntaxKind.None))
     End Sub
 
-
     <Fact>
     Public Sub IsRelationalCaseClause()
         For Each item As SyntaxKind In {SyntaxKind.CaseEqualsClause, SyntaxKind.CaseNotEqualsClause, SyntaxKind.CaseLessThanClause, SyntaxKind.CaseLessThanOrEqualClause, SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.CaseGreaterThanClause}
@@ -353,7 +351,6 @@ End Namespace
         Assert.False(SyntaxFacts.IsCaseStatement(SyntaxKind.ExitKeyword))
         Assert.False(SyntaxFacts.IsCaseStatement(SyntaxKind.None))
     End Sub
-
 
     <Fact>
     Public Sub IsContextualKeyword1()
@@ -429,7 +426,6 @@ End Namespace
         Assert.False(SyntaxFacts.IsDelegateStatementSubOrFunctionKeyword(SyntaxKind.NamespaceBlock))
         Assert.False(SyntaxFacts.IsDelegateStatementSubOrFunctionKeyword(SyntaxKind.None))
     End Sub
-
 
     <Fact>
     Public Sub IsDoLoopBlock()
@@ -1265,6 +1261,17 @@ End Module
     <InlineData("Alice", False)>
     Public Sub TestIsReservedTupleElementName(elementName As String, isReserved As Boolean)
         Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName))
+    End Sub
+
+    <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72300")>
+    Public Sub TestAllKindsReturnedFromGetKindsMethodsExist()
+        For Each method In GetType(SyntaxFacts).GetMethods(BindingFlags.Public Or BindingFlags.Static)
+            If method.ReturnType = GetType(IEnumerable(Of SyntaxKind)) AndAlso method.GetParameters().Length = 0 Then
+                For Each kind As SyntaxKind In DirectCast(method.Invoke(Nothing, Nothing), IEnumerable(Of SyntaxKind))
+                    Assert.True([Enum].IsDefined(GetType(SyntaxKind), kind), $"Nonexistent kind '{kind}' returned from method '{method.Name}'")
+                Next
+            End If
+        Next
     End Sub
 
 End Class

@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -14,94 +18,98 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+
+/// <summary>
+/// Creates services on the first connection of an applicable subject buffer to an IWpfTextView. 
+/// This ensures the services are available by the time an open document or the interactive window needs them.
+/// </summary>
+internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
 {
-    /// <summary>
-    /// Creates services on the first connection of an applicable subject buffer to an IWpfTextView. 
-    /// This ensures the services are available by the time an open document or the interactive window needs them.
-    /// </summary>
-    internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
+    private readonly string _languageName;
+    private readonly AsyncBatchingWorkQueue<ProjectId?> _workQueue;
+    private bool _initialized = false;
+
+    protected VisualStudioWorkspace Workspace { get; }
+    protected IGlobalOptionService GlobalOptions { get; }
+
+    protected virtual Task InitializeServiceForProjectWithOpenedDocumentAsync(Project project)
+        => Task.CompletedTask;
+
+    public AbstractCreateServicesOnTextViewConnection(
+        VisualStudioWorkspace workspace,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        IThreadingContext threadingContext,
+        string languageName)
     {
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly IThreadingContext _threadingContext;
-        private readonly string _languageName;
-        private bool _initialized = false;
+        Workspace = workspace;
+        GlobalOptions = globalOptions;
+        _languageName = languageName;
 
-        protected VisualStudioWorkspace Workspace { get; }
-        protected IGlobalOptionService GlobalOptions { get; }
+        _workQueue = new AsyncBatchingWorkQueue<ProjectId?>(
+                TimeSpan.FromSeconds(1),
+                BatchProcessProjectsWithOpenedDocumentAsync,
+                EqualityComparer<ProjectId?>.Default,
+                listenerProvider.GetListener(FeatureAttribute.CompletionSet),
+                threadingContext.DisposalToken);
 
-        protected virtual Task InitializeServiceForOpenedDocumentAsync(Document document)
-            => Task.CompletedTask;
+        Workspace.DocumentOpened += QueueWorkOnDocumentOpened;
+    }
 
-        public AbstractCreateServicesOnTextViewConnection(
-            VisualStudioWorkspace workspace,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IThreadingContext threadingContext,
-            string languageName)
+    void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+    {
+        if (!_initialized)
         {
-            Workspace = workspace;
-            GlobalOptions = globalOptions;
-
-            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-            _threadingContext = threadingContext;
-            _languageName = languageName;
-
-            Workspace.DocumentOpened += InitializeServiceOnDocumentOpened;
+            _initialized = true;
+            // use `null` to trigger per VS session intialization task
+            _workQueue.AddWork((ProjectId?)null);
         }
+    }
 
-        void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+    void IWpfTextViewConnectionListener.SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+    {
+    }
+
+    private async ValueTask BatchProcessProjectsWithOpenedDocumentAsync(ImmutableSegmentedList<ProjectId?> projectIds, CancellationToken cancellationToken)
+    {
+        foreach (var projectId in projectIds)
         {
-            if (!_initialized)
-            {
-                var token = _listener.BeginAsyncOperation(nameof(InitializeServicesAsync));
-                InitializeServicesAsync().CompletesAsyncOperation(token);
+            cancellationToken.ThrowIfCancellationRequested();
 
-                _initialized = true;
+            if (projectId is null)
+            {
+                InitializePerVSSessionServices();
+            }
+            else if (Workspace.CurrentSolution.GetProject(projectId) is Project project)
+            {
+                // Preload project completion providers at document open also helps avoid redundant file reads
+                // from a race caused by multiple features (codefix, refactoring, etc.) attempting to get extensions
+                // from analyzer references at the same time when they are not cached.
+                if (project.GetLanguageService<CompletionService>() is CompletionService completionService)
+                    completionService.TriggerLoadProjectProviders(project, GlobalOptions.GetCompletionOptions(project.Language));
+
+                await InitializeServiceForProjectWithOpenedDocumentAsync(project).ConfigureAwait(false);
             }
         }
+    }
 
-        void IWpfTextViewConnectionListener.SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
-        {
-        }
+    private void QueueWorkOnDocumentOpened(object sender, DocumentEventArgs e)
+    {
+        if (e.Document.Project.Language == _languageName)
+            _workQueue.AddWork(e.Document.Project.Id);
+    }
 
-        private void InitializeServiceOnDocumentOpened(object sender, DocumentEventArgs e)
-        {
-            if (e.Document.Project.Language != _languageName)
-            {
-                return;
-            }
+    private void InitializePerVSSessionServices()
+    {
+        var languageServices = Workspace.Services.GetExtendedLanguageServices(_languageName);
 
-            var token = _listener.BeginAsyncOperation(nameof(InitializeServiceForOpenedDocumentOnBackgroundAsync));
-            InitializeServiceForOpenedDocumentOnBackgroundAsync(e.Document).CompletesAsyncOperation(token);
+        _ = languageServices.GetService<ISnippetInfoService>();
 
-            async Task InitializeServiceForOpenedDocumentOnBackgroundAsync(Document document)
-            {
-                await TaskScheduler.Default;
-
-                // Preload project completion providers on a background thread since loading extensions can be slow
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1488945
-                if (document.GetLanguageService<CompletionService>() is not null)
-                    _ = CompletionService.GetProjectCompletionProviders(document.Project);
-
-                await InitializeServiceForOpenedDocumentAsync(document).ConfigureAwait(false);
-            }
-        }
-
-        private async Task InitializeServicesAsync()
-        {
-            await TaskScheduler.Default;
-
-            var languageServices = Workspace.Services.GetExtendedLanguageServices(_languageName);
-
-            _ = languageServices.GetService<ISnippetInfoService>();
-
-            // Preload completion providers on a background thread since assembly loads can be slow
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
-            _ = languageServices.GetService<CompletionService>()?.GetLazyImportedProviders().SelectAsArray(p => p.Value);
-        }
+        // Preload completion providers on a background thread since assembly loads can be slow
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242321
+        languageServices.GetService<CompletionService>()?.LoadImportedProviders();
     }
 }

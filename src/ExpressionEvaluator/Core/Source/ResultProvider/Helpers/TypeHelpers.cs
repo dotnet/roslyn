@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 browsableStateValue,
                                 previousDeclaration,
                                 inheritanceLevel,
-                                canFavorite: supportsFavorites,
-                                isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true));
+                                canFavorite: supportsFavorites && !previousDeclaration.HasFlag(DeclarationInfo.IncludeTypeInMemberName),
+                                isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true && !previousDeclaration.HasFlag(DeclarationInfo.IncludeTypeInMemberName)));
                     }
                 }
 
@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static MethodInfo GetNonIndexerGetMethod(PropertyInfo property)
         {
-            return (property.GetIndexParameters().Length == 0) ?
-                property.GetGetMethod(nonPublic: true) :
-                null;
+            return (property.GetIndexParameters().Length == 0)
+                ? property.GetGetMethod(nonPublic: true)
+                : null;
         }
 
         internal static bool IsBoolean(this Type type)
@@ -633,7 +633,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         visualizerAttribute.UISideVisualizerAssemblyName,
                         visualizerAttribute.UISideVisualizerAssemblyLocation,
                         visualizerAttribute.DebuggeeSideVisualizerTypeName,
-                        visualizerAttribute.DebuggeeSideVisualizerAssemblyName));
+                        visualizerAttribute.DebuggeeSideVisualizerAssemblyName,
+                        visualizerAttribute.ExtensionPartId));
                 }
 
                 underlyingType = underlyingType.GetBaseTypeOrNull(appDomain, out type);
@@ -853,7 +854,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal static Type GetInterfaceListEntry(this Type interfaceType, Type declaration)

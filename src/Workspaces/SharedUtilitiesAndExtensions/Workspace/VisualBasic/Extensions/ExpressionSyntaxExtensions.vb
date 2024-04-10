@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return True
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function Cast(
             expression As ExpressionSyntax,
             targetType As ITypeSymbol,

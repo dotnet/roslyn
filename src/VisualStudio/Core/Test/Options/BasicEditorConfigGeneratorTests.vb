@@ -7,7 +7,9 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Options.EditorConfig
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
@@ -70,6 +72,7 @@ dotnet_style_null_propagation = true
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 dotnet_style_prefer_auto_properties = true
+dotnet_style_prefer_collection_expression = when_types_loosely_match
 dotnet_style_prefer_compound_assignment = true
 dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
@@ -146,8 +149,11 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
-                Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, workspace.Options, LanguageNames.VisualBasic)
+                ' Use the default options 
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
+                Dim editorConfigOptions = editorService.GetDefaultOptions(LanguageNames.VisualBasic)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.VisualBasic)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
@@ -155,8 +161,8 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub TestEditorConfigGeneratorToggleOptions()
             Using workspace = TestWorkspace.CreateVisualBasic("")
-                Dim changedOptions = workspace.Options.WithChangedOption(New OptionKey2(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.VisualBasic),
-                                                                         New CodeStyleOption2(Of Boolean)(False, NotificationOption2.[Error]))
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                options.SetOption(CodeStyleOptions2.PreferExplicitTupleNames, LanguageNames.VisualBasic, New CodeStyleOption2(Of Boolean)(False, NotificationOption2.[Error]))
                 Dim expectedText = "# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
@@ -209,6 +215,7 @@ dotnet_style_null_propagation = true
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 dotnet_style_prefer_auto_properties = true
+dotnet_style_prefer_collection_expression = when_types_loosely_match
 dotnet_style_prefer_compound_assignment = true
 dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
@@ -285,8 +292,9 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
-                Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
-                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, changedOptions, LanguageNames.VisualBasic)
+                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
+                Dim editorConfigOptions = editorService.GetDefaultOptions(LanguageNames.VisualBasic)
+                Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.VisualBasic)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub

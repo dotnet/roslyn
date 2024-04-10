@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ElseIfDirectiveKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashElseIfNotInFileTest()
             VerifyRecommendationsMissing(<File>|</File>, "#ElseIf")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashElseIfInFileAfterIfTest()
             VerifyRecommendationsContain(<File>
 #If True Then
@@ -21,7 +20,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashElseIfInFileAfterElseIfTest()
             VerifyRecommendationsContain(<File>
 #If True Then
@@ -30,7 +28,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashElseIfNotInFileAfterElseIf1Test()
             VerifyRecommendationsMissing(<File>
 #If True Then
@@ -39,7 +36,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashElseIfNotInFileAfterElseIf2Test()
             VerifyRecommendationsMissing(<File>
 #If True Then

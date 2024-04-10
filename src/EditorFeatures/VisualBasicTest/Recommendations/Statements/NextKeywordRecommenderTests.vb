@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class NextKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotInMethodBodyTest()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Next")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotInLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub()
@@ -22,7 +21,6 @@ Dim x = Sub()
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotAfterStatementTest()
             VerifyRecommendationsMissing(<MethodBody>
 Dim x
@@ -30,7 +28,6 @@ Dim x
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextAfterForStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 For i = 1 To 10
@@ -38,7 +35,6 @@ For i = 1 To 10
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextAfterForEachStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 For i = 1 To 10

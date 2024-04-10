@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -39,7 +40,7 @@ class C
             await TestServices.Editor.GoToBaseAsync(HangMitigatingCancellationToken);
             Assert.Equal("Object [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            await TestServices.EditorVerifier.TextContainsAsync(@"public virtual string ToString$$()", assertCaretPosition: true);
+            await TestServices.EditorVerifier.TextContainsAsync(@"public virtual string $$ToString()", assertCaretPosition: true);
         }
     }
 }

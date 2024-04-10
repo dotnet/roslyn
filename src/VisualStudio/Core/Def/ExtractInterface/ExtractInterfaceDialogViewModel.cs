@@ -18,68 +18,67 @@ using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
+
+internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
 {
-    internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
+    private readonly INotificationService _notificationService;
+
+    internal ExtractInterfaceDialogViewModel(
+        ISyntaxFactsService syntaxFactsService,
+        IUIThreadOperationExecutor uiThreadOperationExecutor,
+        INotificationService notificationService,
+        string defaultInterfaceName,
+        List<string> conflictingTypeNames,
+        ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> memberViewModels,
+        string defaultNamespace,
+        string generatedNameTypeParameterSuffix,
+        string languageName)
     {
-        private readonly INotificationService _notificationService;
+        _notificationService = notificationService;
 
-        internal ExtractInterfaceDialogViewModel(
-            ISyntaxFactsService syntaxFactsService,
-            IUIThreadOperationExecutor uiThreadOperationExecutor,
-            INotificationService notificationService,
-            string defaultInterfaceName,
-            List<string> conflictingTypeNames,
-            ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> memberViewModels,
-            string defaultNamespace,
-            string generatedNameTypeParameterSuffix,
-            string languageName)
-        {
-            _notificationService = notificationService;
+        MemberSelectionViewModel = new MemberSelectionViewModel(
+            uiThreadOperationExecutor,
+            memberViewModels,
+            dependentsMap: null,
+            destinationTypeKind: TypeKind.Interface,
+            showDependentsButton: false,
+            showPublicButton: false);
 
-            MemberSelectionViewModel = new MemberSelectionViewModel(
-                uiThreadOperationExecutor,
-                memberViewModels,
-                dependentsMap: null,
-                destinationTypeKind: TypeKind.Interface,
-                showDependentsButton: false,
-                showPublicButton: false);
-
-            DestinationViewModel = new NewTypeDestinationSelectionViewModel(
-                defaultInterfaceName,
-                languageName,
-                defaultNamespace,
-                generatedNameTypeParameterSuffix,
-                conflictingTypeNames.ToImmutableArray(),
-                syntaxFactsService);
-        }
-
-        internal bool TrySubmit()
-        {
-            if (!DestinationViewModel.TrySubmit(out var message))
-            {
-                SendFailureNotification(message);
-                return false;
-            }
-
-            if (!MemberContainers.Any(c => c.IsChecked))
-            {
-                SendFailureNotification(ServicesVSResources.You_must_select_at_least_one_member);
-                return false;
-            }
-
-            // TODO: Deal with filename already existing
-
-            return true;
-        }
-
-        private void SendFailureNotification(string message)
-            => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
-
-        public ImmutableArray<MemberSymbolViewModel> MemberContainers => MemberSelectionViewModel.Members;
-
-        public NewTypeDestinationSelectionViewModel DestinationViewModel { get; internal set; }
-
-        public MemberSelectionViewModel MemberSelectionViewModel { get; }
+        DestinationViewModel = new NewTypeDestinationSelectionViewModel(
+            defaultInterfaceName,
+            languageName,
+            defaultNamespace,
+            generatedNameTypeParameterSuffix,
+            conflictingTypeNames.ToImmutableArray(),
+            syntaxFactsService);
     }
+
+    internal bool TrySubmit()
+    {
+        if (!DestinationViewModel.TrySubmit(out var message))
+        {
+            SendFailureNotification(message);
+            return false;
+        }
+
+        if (!MemberContainers.Any(c => c.IsChecked))
+        {
+            SendFailureNotification(ServicesVSResources.You_must_select_at_least_one_member);
+            return false;
+        }
+
+        // TODO: Deal with filename already existing
+
+        return true;
+    }
+
+    private void SendFailureNotification(string message)
+        => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
+
+    public ImmutableArray<MemberSymbolViewModel> MemberContainers => MemberSelectionViewModel.Members;
+
+    public NewTypeDestinationSelectionViewModel DestinationViewModel { get; internal set; }
+
+    public MemberSelectionViewModel MemberSelectionViewModel { get; }
 }

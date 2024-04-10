@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' A mapping from each state of the state machine to the new state that will be used to execute
-            ''' finally blocks in case the state machine is disposed.  The Dispose method computes the new 
+            ''' finally blocks in case the state machine is disposed.  The Dispose method computes the new
             ''' state and then runs MoveNext.
             ''' </summary>
             Protected ReadOnly FinalizerStateMap As New Dictionary(Of Integer, Integer)()
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If _tryBlockSyntaxForNextFinalizerState IsNot Nothing Then
                     If SlotAllocatorOpt Is Nothing OrElse
-                       Not SlotAllocatorOpt.TryGetPreviousStateMachineState(_tryBlockSyntaxForNextFinalizerState, _currentFinalizerState) Then
+                       Not SlotAllocatorOpt.TryGetPreviousStateMachineState(_tryBlockSyntaxForNextFinalizerState, awaitId:=Nothing, _currentFinalizerState) Then
                         _currentFinalizerState = _nextFinalizerState
                         _nextFinalizerState = CType(_nextFinalizerState - 1, StateMachineState)
                     End If
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}")
 
                 Dim syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree)
-                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, state))
+                _stateDebugInfoBuilder.Add(New StateMachineStateDebugInfo(syntaxOffset, awaitId:=Nothing, state))
             End Sub
 
             Protected Sub AddState(stateNumber As Integer, <Out> ByRef resumeLabel As GeneratedLabelSymbol)
@@ -262,8 +262,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(local.SynthesizedKind.IsLongLived())
 
-                    ' We need to produce hoisted local scope debug information for user locals as well as 
-                    ' lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
+                    ' We need to produce hoisted local scope debug information for user locals as well as
+                    ' lambda display classes, since Dev12 EE uses them to determine which variables are displayed
                     ' in Locals window.
                     If local.SynthesizedKind = SynthesizedLocalKind.UserDefined OrElse local.SynthesizedKind = SynthesizedLocalKind.LambdaDisplayClass Then
                         Dim proxy As TProxy = Nothing

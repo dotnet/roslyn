@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
@@ -21,6 +22,7 @@ Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
@@ -93,7 +95,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 AddParts(extraExportedTypes)
 
             If includeFormatCommandHandler Then
-                composition = composition.AddParts(GetType(FormatCommandHandler))
+                ' FormatCommandHandler would generally be included in the catalog, but is excluded from tests by adding
+                ' it to the list of excluded part types. Here we validate the input state and restore the default
+                ' behavior of the catalog by removing FormatCommandHandler from the excluded parts list.
+                Assert.Contains(GetType(FormatCommandHandler).Assembly, composition.Assemblies)
+                Assert.Contains(GetType(FormatCommandHandler), composition.ExcludedPartTypes)
+                composition = composition.RemoveExcludedPartTypes(GetType(FormatCommandHandler))
             End If
 
             Return composition
@@ -157,6 +164,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendTypeChars(typeChars, Sub(a, n, c) ExecuteTypeCharCommand(a, n, c))
         End Sub
 
+        Public Async Function SendTypeCharsAndWaitForUiRenderAsync(typeChars As String) As Task
+            Dim uiRender = WaitForUIRenderedAsync()
+            SendTypeChars(typeChars)
+            Await uiRender
+        End Function
+
         Public Overloads Sub SendEscape()
             MyBase.SendEscape(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
@@ -193,6 +206,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overloads Sub SendInvokeCompletionList()
             MyBase.SendInvokeCompletionList(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
+
+        Public Async Function SendInvokeCompletionListAndWaitForUiRenderAsync() As Task
+            Dim uiRender = WaitForUIRenderedAsync()
+            MyBase.SendInvokeCompletionList(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
+            Await uiRender
+        End Function
 
         Public Overloads Sub SendInsertSnippetCommand()
             MyBase.SendInsertSnippetCommand(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
@@ -238,20 +257,38 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim sessionComplete = New TaskCompletionSource(Of Object)()
             Dim asynchronousOperationListenerProvider = Workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
             Dim asyncToken = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CompletionSet) _
-                .BeginAsyncOperation("SendCommitUniqueCompletionListItemAsync")
+                .BeginAsyncOperation(NameOf(SendCommitUniqueCompletionListItemAsync))
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
             sessionComplete.Task.CompletesAsyncOperation(asyncToken)
+            Dim waitingForUI = WaitForUIRenderedAsync()
 #Enable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
 
             Dim itemsUpdatedHandler = Sub(sender As Object, e As Data.ComputedCompletionItemsEventArgs)
                                           ' If there is 0 or more than one item left, then it means this was the filter operation that resulted and we're done. 
                                           ' Otherwise we know a Dismiss operation is coming so we should wait for it.
                                           If e.Items.Items.Count() <> 1 Then
-                                              Task.Run(Sub()
-                                                           Thread.Sleep(5000)
-                                                           sessionComplete.TrySetResult(Nothing)
-                                                       End Sub)
+                                              Dim threadingContext = Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
+
+                                              ' Set up a timeout path to make sure tests don't deadlock
+                                              Dim asyncToken2 = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CompletionSet) _
+                                                  .BeginAsyncOperation(NameOf(SendCommitUniqueCompletionListItemAsync))
+                                              Task.Run(
+                                                  Async Function() As Task
+                                                      Using cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(threadingContext.DisposalToken)
+                                                          Await Task.WhenAny(sessionComplete.Task, Task.Delay(TimeSpan.FromSeconds(2), cancellationSource.Token))
+                                                          If sessionComplete.TrySetException(New TimeoutException()) Then
+                                                              Throw New TimeoutException()
+                                                          End If
+                                                      End Using
+                                                  End Function).CompletesAsyncOperation(asyncToken2).ReportNonFatalErrorUnlessCancelledAsync(threadingContext.DisposalToken)
+
+                                              ' Now set up the expected path of just waiting for the UI to complete rendering
+                                              threadingContext.JoinableTaskFactory.RunAsync(
+                                                  Async Function() As Task
+                                                      Await waitingForUI
+                                                      sessionComplete.SetResult(Nothing)
+                                                  End Function)
                                           End If
                                       End Sub
 
@@ -356,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Async Function AssertCompletionItemsContainAll(ParamArray displayText As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
-            Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
+            Assert.All(displayText, Sub(v) Assert.Contains(v, items.Select(Function(i) i.DisplayText)))
         End Function
 
         Public Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
@@ -472,12 +509,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Sub
 
-        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
+        Public Async Function SetCompletionItemExpanderStateAndWaitForUiRenderAsync(isSelected As Boolean) As Task
+            Dim uiRender = WaitForUIRenderedAsync()
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
             Dim expander = presenter.GetExpander()
             Assert.NotNull(expander)
             presenter.SetExpander(isSelected)
-        End Sub
+            Await uiRender
+        End Function
 
         Public Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             Await WaitForAsynchronousOperationsAsync()
@@ -519,11 +558,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return roslynItemData.RoslynItem
         End Function
 
-        Public Sub RaiseFiltersChanged(args As ImmutableArray(Of Data.CompletionFilterWithState))
+        Public Async Function RaiseFiltersChangedAndWaitForUiRenderAsync(args As ImmutableArray(Of Data.CompletionFilterWithState)) As Task
+            Dim uiRender = WaitForUIRenderedAsync()
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
             Dim newArgs = New Data.CompletionFilterChangedEventArgs(args)
             presenter.TriggerFiltersChanged(Me, newArgs)
-        End Sub
+            Await uiRender
+        End Function
 
         Public Function GetCompletionItemFilters() As ImmutableArray(Of Data.CompletionFilterWithState)
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
@@ -559,7 +600,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Async Function WaitForUIRenderedAsync() As Task
-            Await WaitForAsynchronousOperationsAsync()
             Dim tcs = New TaskCompletionSource(Of Boolean)
             Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(TextView), MockCompletionPresenter)
             Dim uiUpdated As EventHandler(Of Data.CompletionItemSelectedEventArgs)
@@ -571,9 +611,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             AddHandler presenter.UiUpdated, uiUpdated
             Dim ct = New CancellationTokenSource(timeoutMs)
-            ct.Token.Register(Sub() tcs.TrySetCanceled(), useSynchronizationContext:=False)
-
-            Await tcs.Task.ConfigureAwait(True)
+            Using registration = ct.Token.Register(Sub() tcs.TrySetCanceled(), useSynchronizationContext:=False)
+                Await tcs.Task.ConfigureAwait(True)
+            End Using
         End Function
 
         Public Overloads Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)

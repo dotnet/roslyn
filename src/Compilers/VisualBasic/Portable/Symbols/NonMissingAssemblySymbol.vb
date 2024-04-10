@@ -63,18 +63,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
-        ''' compared case-sensitively.  Detect cycles during lookup.
+        ''' compared case-sensitively.
         ''' </summary>
         ''' <param name="emittedName">
         ''' Full type name, possibly with generic name mangling.
         ''' </param>
-        ''' <param name="visitedAssemblies">
-        ''' List of assemblies lookup has already visited (since type forwarding can introduce cycles).
-        ''' </param>
-        ''' <param name="digThroughForwardedTypes">
-        ''' Take forwarded types into account.
-        ''' </param>
-        Friend NotOverridable Overrides Function LookupTopLevelMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), digThroughForwardedTypes As Boolean) As NamedTypeSymbol
+        Friend NotOverridable Overrides Function LookupDeclaredTopLevelMetadataType(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
 
             Dim result As NamedTypeSymbol = Nothing
 
@@ -101,56 +95,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' We only cache result equivalent to digging through type forwarders, which
                 ' might produce a forwarder specific ErrorTypeSymbol. We don't want to 
                 ' return that error symbol, unless digThroughForwardedTypes Is true.
-                If digThroughForwardedTypes OrElse (Not result.IsErrorType() AndAlso result.ContainingAssembly Is Me) Then
+                If Not result.IsErrorType() AndAlso result.ContainingAssembly Is Me Then
                     Return result
                 End If
 
                 ' According to the cache, the type wasn't found, or isn't declared in this assembly (forwarded).
-                Return New MissingMetadataTypeSymbol.TopLevel(Me.Modules(0), emittedName)
+                Return Nothing
             End If
 
+            result = LookupDeclaredTopLevelMetadataTypeInModules(emittedName)
+            Debug.Assert(result Is Nothing OrElse (result.ContainingAssembly Is Me AndAlso Not result.IsErrorType()))
+
+            If result Is Nothing Then
+                Return Nothing
+            End If
+
+            ' Add result of the lookup into the cache
+            Return CacheTopLevelMetadataType(emittedName, result)
+        End Function
+
+        Private Function LookupDeclaredTopLevelMetadataTypeInModules(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
             ' Now we will look for the type in each module of the assembly and pick the 
             ' first type we find, this is what native VB compiler does.
 
-            Dim modules = Me.Modules
-            Dim count As Integer = modules.Length
-            Dim i As Integer = 0
-            result = modules(i).LookupTopLevelMetadataType(emittedName)
+            For Each [module] In Me.Modules
+                Dim result As NamedTypeSymbol = [module].LookupTopLevelMetadataType(emittedName)
 
-            If TypeOf result Is MissingMetadataTypeSymbol Then
-                For i = 1 To count - 1 Step 1
-                    Dim newResult = modules(i).LookupTopLevelMetadataType(emittedName)
-
-                    ' Hold on to the first missing type result, unless we found the type.
-                    If Not (TypeOf newResult Is MissingMetadataTypeSymbol) Then
-                        result = newResult
-                        Exit For
-                    End If
-                Next
-            End If
-
-            Dim foundMatchInThisAssembly As Boolean = (i < count)
-
-            Debug.Assert(Not foundMatchInThisAssembly OrElse result.ContainingAssembly Is Me)
-
-            If Not foundMatchInThisAssembly AndAlso digThroughForwardedTypes Then
-                ' We didn't find the type
-                Debug.Assert(TypeOf result Is MissingMetadataTypeSymbol)
-
-                Dim forwarded As NamedTypeSymbol = TryLookupForwardedMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, ignoreCase:=False)
-                If forwarded IsNot Nothing Then
-                    result = forwarded
+                If result IsNot Nothing Then
+                    Return result
                 End If
+            Next
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Lookup a top level type referenced from metadata, names should be
+        ''' compared case-sensitively.  Detect cycles during lookup.
+        ''' </summary>
+        ''' <param name="emittedName">
+        ''' Full type name, possibly with generic name mangling.
+        ''' </param>
+        ''' <param name="visitedAssemblies">
+        ''' List of assemblies lookup has already visited (since type forwarding can introduce cycles).
+        ''' </param>
+        Friend NotOverridable Overrides Function LookupDeclaredOrForwardedTopLevelMetadataType(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol)) As NamedTypeSymbol
+
+            Dim result As NamedTypeSymbol = Nothing
+
+            result = LookupTopLevelMetadataTypeInCache(emittedName)
+
+            If result IsNot Nothing Then
+                Return result
             End If
 
-            Debug.Assert(result IsNot Nothing)
+            result = LookupDeclaredTopLevelMetadataTypeInModules(emittedName)
+            Debug.Assert(result Is Nothing OrElse (result.ContainingAssembly Is Me AndAlso Not result.IsErrorType()))
+
+            If result Is Nothing Then
+                ' We didn't find the type
+                result = TryLookupForwardedMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, ignoreCase:=False)
+            End If
 
             ' Add result of the lookup into the cache
-            If digThroughForwardedTypes OrElse foundMatchInThisAssembly Then
-                CacheTopLevelMetadataType(emittedName, result)
-            End If
-
-            Return result
+            Return CacheTopLevelMetadataType(emittedName, If(result, New MissingMetadataTypeSymbol.TopLevel(Me.Modules(0), emittedName)))
         End Function
 
         Friend MustOverride Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
@@ -184,14 +192,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Sub CacheTopLevelMetadataType(
+        Private Function CacheTopLevelMetadataType(
             ByRef emittedName As MetadataTypeName,
             result As NamedTypeSymbol
-        )
+        ) As NamedTypeSymbol
             Dim result1 As NamedTypeSymbol = Nothing
             result1 = Me._emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result)
             Debug.Assert(result1.Equals(result)) ' object identity may differ in error cases
-        End Sub
+            Return result1
+        End Function
 
     End Class
 

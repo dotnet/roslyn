@@ -134,5 +134,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function ClassifyConversion(semanticModel As SemanticModel, expression As SyntaxNode, destination As ITypeSymbol) As CommonConversion Implements ISemanticFactsService.ClassifyConversion
             Return semanticModel.ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination).ToCommonConversion()
         End Function
+
+        Public Function TryGetDisposeMethod(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol Implements ISemanticFactsService.TryGetDisposeMethod
+            Dim usingStatement = If(TryCast(node, UsingBlockSyntax)?.UsingStatement, TryCast(node, UsingStatementSyntax))
+            If usingStatement Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim expression As ExpressionSyntax
+
+            If usingStatement.Variables.Count > 0 Then
+                expression = usingStatement.Variables(0).Initializer?.Value
+            Else
+                expression = usingStatement.Expression
+            End If
+
+            If expression Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim type = semanticModel.GetTypeInfo(expression, cancellationToken).Type
+            Return FindDisposeMethod(semanticModel.Compilation, type, isAsync:=False)
+        End Function
     End Class
 End Namespace

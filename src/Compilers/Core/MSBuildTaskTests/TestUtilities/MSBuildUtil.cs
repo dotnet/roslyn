@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             taskItem.Setup(x => x.GetMetadata(It.IsAny<string>())).Returns<string>(s => s switch
             {
                 "FullPath" => fileName,
-                _ => metadata.ContainsKey(s) ? metadata[s] : string.Empty
+                _ => metadata.TryGetValue(s, out var value) ? value : string.Empty
             });
             return taskItem.Object;
         }

@@ -4,25 +4,18 @@
 
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal readonly struct RenameTrackingSpan(ITrackingSpan trackingSpan, RenameSpanKind type)
 {
-    internal struct RenameTrackingSpan
-    {
-        public readonly ITrackingSpan TrackingSpan;
-        public readonly RenameSpanKind Type;
+    public readonly ITrackingSpan TrackingSpan = trackingSpan;
+    public readonly RenameSpanKind Type = type;
+}
 
-        public RenameTrackingSpan(ITrackingSpan trackingSpan, RenameSpanKind type)
-        {
-            this.TrackingSpan = trackingSpan;
-            this.Type = type;
-        }
-    }
-
-    internal enum RenameSpanKind
-    {
-        None,
-        Reference,
-        UnresolvedConflict,
-        Complexified
-    }
+internal enum RenameSpanKind
+{
+    None,
+    Reference,
+    UnresolvedConflict,
+    Complexified
 }

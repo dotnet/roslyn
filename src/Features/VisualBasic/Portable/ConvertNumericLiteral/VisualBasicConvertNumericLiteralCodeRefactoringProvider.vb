@@ -16,10 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertNumericLiteral
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
+            MyBase.New(hexPrefix:="&H", binaryPrefix:="&B")
         End Sub
-
-        Protected Overrides Function GetNumericLiteralPrefixes() As (hexPrefix As String, binaryPrefix As String)
-            Return (hexPrefix:="&H", binaryPrefix:="&B")
-        End Function
     End Class
 End Namespace

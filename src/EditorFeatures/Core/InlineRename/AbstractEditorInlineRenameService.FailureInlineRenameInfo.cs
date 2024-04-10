@@ -8,50 +8,47 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractEditorInlineRenameService
 {
-    internal abstract partial class AbstractEditorInlineRenameService
+    internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(FeaturesResources.You_cannot_rename_this_element);
+
+    private sealed class FailureInlineRenameInfo(string localizedErrorMessage) : IInlineRenameInfo
     {
-        internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+        public bool CanRename => false;
 
-        private sealed class FailureInlineRenameInfo : IInlineRenameInfo
-        {
-            public FailureInlineRenameInfo(string localizedErrorMessage)
-                => this.LocalizedErrorMessage = localizedErrorMessage;
+        public bool HasOverloads => false;
 
-            public bool CanRename => false;
+        public bool MustRenameOverloads => false;
 
-            public bool HasOverloads => false;
+        public string LocalizedErrorMessage { get; } = localizedErrorMessage;
 
-            public bool MustRenameOverloads => false;
+        public TextSpan TriggerSpan => default;
 
-            public string LocalizedErrorMessage { get; }
+        public string DisplayName => null;
 
-            public TextSpan TriggerSpan => default;
+        public string FullDisplayName => null;
 
-            public string DisplayName => null;
+        public Glyph Glyph => Glyph.None;
 
-            public string FullDisplayName => null;
+        public ImmutableArray<DocumentSpan> DefinitionLocations => default;
 
-            public Glyph Glyph => Glyph.None;
+        public string GetFinalSymbolName(string replacementText) => null;
 
-            public ImmutableArray<DocumentSpan> DefinitionLocations => default;
+        public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken) => default;
 
-            public string GetFinalSymbolName(string replacementText) => null;
+        public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken) => null;
 
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken) => default;
+        public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken) => Task.FromResult<IInlineRenameLocationSet>(null);
 
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken) => null;
+        public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
 
-            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken) => Task.FromResult<IInlineRenameLocationSet>(null);
+        public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
 
-            public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
-
-            public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
-        }
+        public InlineRenameFileRenameInfo GetFileRenameInfo() => InlineRenameFileRenameInfo.NotAllowed;
     }
 }

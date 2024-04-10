@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.LeftOperand.Type is { });
 
             // Rewrite LHS with temporaries to prevent double-evaluation of side effects, as we'll need to use it multiple times.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, stores, temps, node.LeftOperand.HasDynamicType());
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.LeftOperand, isRegularCompoundAssignment: false, stores, temps, node.LeftOperand.HasDynamicType());
             Debug.Assert(transformedLHS.Type is { });
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // tmp = lhsRead.GetValueOrDefault();
-                var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, lhsRead, getValueOrDefault),
+                var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault),
                                                out var getValueOrDefaultStore);
 
                 stores.Add(getValueOrDefaultStore);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isCompoundAssignment: false);
 
                 // lhsRead.HasValue
-                var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, hasValue);
+                var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, hasValue);
 
                 // { tmp = b; transformedLhs = tmp; tmp }
                 var alternative = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(tmpAssignment, transformedLhsAssignment), tmp);

@@ -277,29 +277,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source, TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token 'ref'
                 // [A] ref x => x
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("ref").WithLocation(1, 1),
-                // (1,1): error CS1525: Invalid expression term '['
-                // [A] ref x => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("ref").WithLocation(1, 1));
 
-            N(SyntaxKind.ElementAccessExpression);
+            N(SyntaxKind.CollectionExpression);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                N(SyntaxKind.BracketedArgumentList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Argument);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
+                        N(SyntaxKind.IdentifierToken, "A");
                     }
-                    N(SyntaxKind.CloseBracketToken);
                 }
+                N(SyntaxKind.CloseBracketToken);
             }
             EOF();
         }
@@ -311,29 +301,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source, TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token 'in'
                 // [A] in x => x
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("in").WithLocation(1, 1),
-                // (1,1): error CS1525: Invalid expression term '['
-                // [A] in x => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("in").WithLocation(1, 1));
 
-            N(SyntaxKind.ElementAccessExpression);
+            N(SyntaxKind.CollectionExpression);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                N(SyntaxKind.BracketedArgumentList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Argument);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
+                        N(SyntaxKind.IdentifierToken, "A");
                     }
-                    N(SyntaxKind.CloseBracketToken);
                 }
+                N(SyntaxKind.CloseBracketToken);
             }
             EOF();
         }
@@ -1207,34 +1187,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("-- [A] () => { }", TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token '=>'
                 // -- [A] () => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "-- [A] ()").WithArguments("=>").WithLocation(1, 1),
-                // (1,4): error CS1525: Invalid expression term '['
-                // -- [A] () => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 4));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "-- [A] ()").WithArguments("=>").WithLocation(1, 1));
 
             N(SyntaxKind.PreDecrementExpression);
             {
                 N(SyntaxKind.MinusMinusToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1252,34 +1222,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("! [A] () => { }", TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token '=>'
                 // ! [A] () => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "! [A] ()").WithArguments("=>").WithLocation(1, 1),
-                // (1,3): error CS1525: Invalid expression term '['
-                // ! [A] () => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 3));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "! [A] ()").WithArguments("=>").WithLocation(1, 1));
 
             N(SyntaxKind.LogicalNotExpression);
             {
                 N(SyntaxKind.ExclamationToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1385,10 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("x * [A] () => { }", TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token '=>'
                 // x * [A] () => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "x * [A] ()").WithArguments("=>").WithLocation(1, 1),
-                // (1,5): error CS1525: Invalid expression term '['
-                // x * [A] () => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "x * [A] ()").WithArguments("=>").WithLocation(1, 1));
 
             N(SyntaxKind.MultiplyExpression);
             {
@@ -1399,24 +1356,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.AsteriskToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1517,40 +1467,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConditionalExpression_01()
         {
-            UsingExpression("x ? [A] () => { } : z", TestOptions.RegularPreview,
-                // (1,1): error CS1073: Unexpected token '=>'
-                // x ? [A] () => { } : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "x ? [A] ()").WithArguments("=>").WithLocation(1, 1));
+            UsingExpression("x ? [A] () => { } : z", TestOptions.RegularPreview);
 
-            N(SyntaxKind.ConditionalAccessExpression);
+            N(SyntaxKind.ConditionalExpression);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "x");
                 }
                 N(SyntaxKind.QuestionToken);
-                N(SyntaxKind.InvocationExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.ElementBindingExpression);
+                    N(SyntaxKind.AttributeList);
                     {
-                        N(SyntaxKind.BracketedArgumentList);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
                         {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.ArgumentList);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalExpression_01_A()
+        {
+            UsingExpression("x ? () => { } : z", TestOptions.RegularPreview);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
                 }
             }
             EOF();
@@ -1943,9 +1933,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Range_02()
         {
             UsingExpression("s[..[A] () => { }]", TestOptions.RegularPreview,
-                // (1,5): error CS1003: Syntax error, ',' expected
+                // (1,12): error CS1003: Syntax error, ',' expected
                 // s[..[A] () => { }]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 12));
 
             N(SyntaxKind.ElementAccessExpression);
             {
@@ -1961,35 +1951,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.RangeExpression);
                         {
                             N(SyntaxKind.DotDotToken);
-                        }
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Argument);
-                    {
-                        N(SyntaxKind.ParenthesizedLambdaExpression);
-                        {
-                            N(SyntaxKind.AttributeList);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
+                                N(SyntaxKind.CollectionExpression);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "A");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
                                     }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
                             }
                         }
                     }
@@ -3562,29 +3542,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingExpression(source, parseOptions,
                     // (1,1): error CS1073: Unexpected token 'delegate'
                     // [A] delegate () { }
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("delegate").WithLocation(1, 1),
-                    // (1,1): error CS1525: Invalid expression term '['
-                    // [A] delegate () { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1));
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("delegate").WithLocation(1, 1));
 
-                N(SyntaxKind.ElementAccessExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    N(SyntaxKind.BracketedArgumentList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Argument);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
+                            N(SyntaxKind.IdentifierToken, "A");
                         }
-                        N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.CloseBracketToken);
                 }
                 EOF();
             }
@@ -3603,31 +3573,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (1,1): error CS1073: Unexpected token 'delegate'
                     // [return: A] delegate () { return null; }
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "[return: A]").WithArguments("delegate").WithLocation(1, 1),
-                    // (1,1): error CS1525: Invalid expression term '['
-                    // [return: A] delegate () { return null; }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1),
                     // (1,2): error CS1041: Identifier expected; 'return' is a keyword
                     // [return: A] delegate () { return null; }
                     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "return").WithArguments("", "return").WithLocation(1, 2));
 
-                N(SyntaxKind.ElementAccessExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    N(SyntaxKind.BracketedArgumentList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Argument);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
+                            N(SyntaxKind.IdentifierToken, "A");
                         }
-                        N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.CloseBracketToken);
                 }
                 EOF();
             }
@@ -3646,9 +3606,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (1,1): error CS1073: Unexpected token 'delegate'
                     // d = [A] delegate () { };
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "d = [A] ").WithArguments("delegate").WithLocation(1, 1),
-                    // (1,5): error CS1525: Invalid expression term '['
-                    // d = [A] delegate () { };
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 5),
                     // (1,9): error CS1002: ; expected
                     // d = [A] delegate () { };
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(1, 9));
@@ -3662,24 +3619,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.IdentifierToken, "d");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.ElementAccessExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ExpressionElement);
                             {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Argument);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
+                                    N(SyntaxKind.IdentifierToken, "A");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
                             }
+                            N(SyntaxKind.CloseBracketToken);
                         }
                     }
                     M(SyntaxKind.SemicolonToken);

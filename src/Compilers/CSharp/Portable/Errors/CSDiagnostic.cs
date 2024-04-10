@@ -40,9 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
         {
-            if (this.Severity != severity)
+            var info = this.Info.GetInstanceWithSeverity(severity);
+            if (info != this.Info)
             {
-                return new CSDiagnostic(this.Info.GetInstanceWithSeverity(severity), this.Location, this.IsSuppressed);
+                return new CSDiagnostic(info, this.Location, this.IsSuppressed);
             }
 
             return this;

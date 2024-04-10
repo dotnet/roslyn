@@ -409,10 +409,8 @@ class C
             a = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ElementAt(2);
             Assert.Equal("A", a.Identifier.Text);
 
-            // If we aren't using the right binder here, the compiler crashes going through the binder factory
             var info = model.GetSymbolInfo(a);
-            // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
-            Assert.Equal(attrType, info.Symbol);
+            Assert.Equal(attrCtor, info.Symbol);
         }
 
         [Theory]
@@ -1713,7 +1711,7 @@ class C
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
@@ -1754,7 +1752,7 @@ class C
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
@@ -1829,7 +1827,7 @@ class C
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
-                // (7,31): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,31): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 31),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
@@ -1919,7 +1917,7 @@ class C
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
@@ -1969,7 +1967,7 @@ class C
                 // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
-                // (7,34): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,34): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 34));
 
@@ -2368,18 +2366,32 @@ class C
             })();
     }
 }";
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll)
-                .VerifyDiagnostics(
-                // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            LocalFunctionStatementSyntax declaration = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().First();
+            var local = model.GetDeclaredSymbol(declaration).GetSymbol<MethodSymbol>();
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            model.GetOperation(declaration.Body);
+
+            Assert.True(local.IsIterator);
+            Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
+
+            comp.VerifyDiagnostics(
+                // (8,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
-                // (17,41): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (17,41): error CS1637: Iterators cannot have pointer type parameters
                 //             IEnumerable<int> Local(int* x) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
-                // (27,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (27,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
-                // (33,44): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
                 // (33,36): error CS1629: Unsafe code may not appear in iterators
@@ -2394,7 +2406,7 @@ class C
                 // (39,17): error CS1629: Unsafe code may not appear in iterators
                 //                 Local(&x);
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
-                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
         }
@@ -2538,10 +2550,36 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,21): error CS0225: The params parameter must be a single dimensional array
+    // (8,21): error CS0225: The params parameter must have a valid collection type
     //         void Params(params int x)
-    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(8, 21)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(8, 21)
     );
+        }
+
+        [Fact]
+        public void ParamsArray_Symbol_MultipleParamsArrays()
+        {
+            var source = """
+                int Method1(params int[] xs, params int[] ys, int[] zs) => xs.Length + ys.Length + zs.Length;
+                int Method2(params int[] xs, int[] ys, params int[] zs) => xs.Length + ys.Length + zs.Length;
+                """;
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToImmutableArray();
+            var methods = exprs.SelectAsArray(e => (IMethodSymbol)model.GetDeclaredSymbol(e));
+            Assert.Equal(2, methods.Length);
+            // Method1
+            Assert.Equal(3, methods[0].Parameters.Length);
+            Assert.True(methods[0].Parameters[0].IsParams);
+            Assert.True(methods[0].Parameters[1].IsParams);
+            Assert.False(methods[0].Parameters[2].IsParams);
+            // Method2
+            Assert.Equal(3, methods[1].Parameters.Length);
+            Assert.True(methods[1].Parameters[0].IsParams);
+            Assert.False(methods[1].Parameters[1].IsParams);
+            Assert.True(methods[1].Parameters[2].IsParams);
         }
 
         [Fact]
@@ -2667,15 +2705,15 @@ class C
     }
 }";
             VerifyDiagnostics(src,
-                // (10,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                // (10,17): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(val, val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9),
-                // (11,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(10, 17),
+                // (11,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val, x: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val, x: val)").WithArguments("ys", "L1").WithLocation(11, 9),
-                // (12,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(11, 16),
+                // (12,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val)").WithArguments("ys", "L1").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(12, 16));
         }
 
         [Fact]
@@ -2724,6 +2762,71 @@ class C
                 // (10,9): error CS1501: No overload for method 'Local' takes 2 arguments
                 //         Local(val, val);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Local").WithArguments("Local", "2").WithLocation(10, 9));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_01()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local1(i);
+        local1(ref i);
+
+        local2(i);
+        local3(i);
+        
+        void local1(ref int x){ x++; }
+        void local2(ref object x){ }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local1(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(8, 16),
+                // (9,20): error CS1503: Argument 1: cannot convert from 'ref dynamic' to 'ref int'
+                //         local1(ref i);
+                Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "ref dynamic", "ref int").WithLocation(9, 20),
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local2(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(11, 16),
+                // (12,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local3(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_02()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local2(ref i);
+        System.Console.Write(i);
+        local3(ref i);
+        System.Console.Write(i);
+        
+        void local2(ref object x){ ref dynamic y = ref x; y++; }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
         }
 
         [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
@@ -4579,23 +4682,6 @@ namespace System
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
-        public void RecursiveParameterDefault()
-        {
-            var text = @"
-class C
-{
-    public static void Main(int arg)
-    {
-        int Local(int x = Local()) => 2;
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(text);
-            compilation.VerifyDiagnostics(
-                );
-        }
-
         [Fact]
         [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
         public void LocalFunctionParameterDefaultUsingConst()
@@ -4615,12 +4701,7 @@ class C
             CompileAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
             {
                 var compilation = m.DeclaringCompilation;
-                // See https://github.com/dotnet/roslyn/issues/16454; this should actually produce no errors
-                compilation.VerifyDiagnostics(
-                    // (6,19): warning CS0219: The variable 'N' is assigned but its value is never used
-                    //         const int N = 2;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N").WithArguments("N").WithLocation(6, 19)
-                    );
+                compilation.VerifyDiagnostics();
                 var tree = compilation.SyntaxTrees[0];
                 var model = compilation.GetSemanticModel(tree);
                 var descendents = tree.GetRoot().DescendantNodes();
@@ -4638,6 +4719,18 @@ class C
                 Assert.Equal(1, refs.Length);
                 Assert.Same(symbol, model.GetSymbolInfo(refs[0]).Symbol);
             });
+        }
+
+        [Fact, WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void LocalFunction_ParameterDefaultValue_NameOfLocalFunction()
+        {
+            var source = """
+                using System;
+                void Local() {}
+                void Local2(string s = nameof(Local)) => Console.WriteLine(s);
+                Local2();
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4843,10 +4936,7 @@ class Test : System.Attribute
             compilation.VerifyDiagnostics(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
-                // (6,20): warning CS0219: The variable 'b1' is assigned but its value is never used
-                //         const bool b1 = true;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -8599,6 +8689,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
+        [WorkItem(60801, "https://github.com/dotnet/roslyn/issues/60801")]
         public void ParameterScope_InMethodAttributeNameOf_GetSymbolInfoOnSpeculativeMethodBodySemanticModel()
         {
             var source = @"
@@ -9013,9 +9104,6 @@ public class MyAttribute : System.Attribute
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,35): error CS1525: Invalid expression term '['
-                //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(6, 35),
                 // (6,36): error CS0103: The name 'My' does not exist in the current context
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "My").WithArguments("My").WithLocation(6, 36),
@@ -9027,8 +9115,7 @@ public class MyAttribute : System.Attribute
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(6, 59),
                 // (6,81): error CS1002: ; expected
                 //         System.Func<int, int> x = [My(nameof(parameter))] delegate { return 1; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 81));
         }
 
         [Theory, CombinatorialData]
@@ -10071,6 +10158,211 @@ int P
                 .Single();
 
             Assert.Null(model.GetSymbolInfo(node).Symbol);
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_01()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (14,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(14, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_02()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+
+            return null;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_03()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+
+public class C
+{
+    public void M()
+    {
+        bool a;
+        M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            await Task.Yield();
+
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_04()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+
+public class C
+{
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (13,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(13, 27)
+                );
+        }
+
+        [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
+        public void DefiniteAssignment_05()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a);
+        async Task M1()
+        {
+            await Task.Yield();
+
+            if ("""" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,27): error CS0165: Use of unassigned local variable 'a'
+                //         Console.WriteLine(a);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
+        public void TestLocalFunctionDeclaration()
+        {
+            var compilation = CreateCompilation("""
+                                                class Test
+                                                {
+                                                  void M()
+                                                  {
+                                                      int LocalFunc(string s) {}
+                                                  }
+                                                }
+                                                """);
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var localFunction = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(localFunction);
+
+            Assert.Equal("System.Int32 LocalFunc(System.String s)", methodSymbol.ToTestDisplayString());
         }
     }
 }

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.CombineValues(Aliases), Hash.Combine(_embedInteropTypes, Hash.Combine(HasRecursiveAliases, _kind.GetHashCode())));
+            return Hash.Combine(Hash.CombineValues(Aliases), Hash.Combine(_embedInteropTypes, Hash.Combine(HasRecursiveAliases, ((int)_kind).GetHashCode())));
         }
 
         public static bool operator ==(MetadataReferenceProperties left, MetadataReferenceProperties right)

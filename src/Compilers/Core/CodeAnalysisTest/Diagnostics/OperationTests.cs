@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -270,7 +271,7 @@ class C
         x = 0;
     }
 }";
-            var tree = CSharpSyntaxTree.ParseText(source);
+            var tree = CSharpTestSource.Parse(source);
             var compilation = CSharpCompilation.Create("c", new[] { tree });
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
             var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();

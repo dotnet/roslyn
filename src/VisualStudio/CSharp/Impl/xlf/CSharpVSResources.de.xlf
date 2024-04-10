@@ -7,9 +7,19 @@
         <target state="translated">Beim Einfügen fehlende using-Anweisungen hinzufügen</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">Leere Zeile nach Doppelpunkt in Konstruktorinitialisierer zulassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">Leere Zeile nach Token in Pfeilausdrucksklausel zulassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">Leere Zeile nach Token im bedingten Ausdruck zulassen</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -20,11 +30,6 @@
       <trans-unit id="Allow_embedded_statements_on_same_line">
         <source>Allow embedded statements on same line</source>
         <target state="translated">Eingebettete Anweisungen in derselben Zeile zulassen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Alle C#-Formatierungsregeln anwenden (Einzug, Umbruch, Abstand)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
@@ -47,14 +52,19 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Coding_Conventions">
-        <source>C# Coding Conventions</source>
-        <target state="translated">C#-Codierungskonventionen</target>
+      <trans-unit id="CSharp_Interactive">
+        <source>C# Interactive</source>
+        <target state="translated">C# Interactive</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Formatting_Rules">
-        <source>C# Formatting Rules</source>
-        <target state="translated">C#-Formatierungsregeln</target>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="new">Cancel Query</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="new">Cancel (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -82,11 +92,6 @@
         <target state="translated">Dateibereich</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Einstellungen zur Dokumentformatierung (experimentell)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="General">
         <source>General</source>
         <target state="translated">Allgemein</target>
@@ -102,6 +107,16 @@
         <target state="translated">Fügen Sie beim Schreiben von //-Kommentaren zwei Schrägstriche (//) am Anfang der neuen Zeilen ein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">Leerzeichen zwischen aufgerufenem Methodennamen und ihrer runden Klammer links einfügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">Innerhalb des Namespaces</target>
@@ -115,11 +130,6 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Einstellungen für den Musterabgleich:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Zusätzliche Codebereinigung während der Formatierung durchführen</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -172,6 +182,21 @@
         <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="new">Run Query</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="new">Run (Ctrl+Enter)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="new">Semantic Search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">Hinweise für new-Ausdrücke anzeigen</target>
@@ -184,17 +209,12 @@
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
-        <target state="new">Show new snippet experience (experimental)</target>
+        <target state="translated">Neue Ausschnittsoberfläche anzeigen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Hinweise in QuickInfo anzeigen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Using-Direktiven sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -402,19 +422,9 @@
         <target state="translated">Leerzeichen zwischen runden Klammern um leere Argumentliste einfügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">Leerzeichen zwischen runden Klammern in leere Parameterliste einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">Leerzeichen zwischen Methodenname und öffnender runder Klammer einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">
@@ -515,11 +525,6 @@
       <trans-unit id="Unused_local">
         <source>Unused local</source>
         <target state="translated">Nicht verwendete lokale Variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">Beim Generieren lokaler Variablen "var" verwenden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -645,11 +650,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">Using-Direktiven für Typen in _NuGet-Paketen vorschlagen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">Typrückschlusseinstellungen:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -815,16 +815,6 @@
       <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
         <source>Prefer pattern matching over 'as' with 'null' check</source>
         <target state="translated">Bei der NULL-Überprüfung Musterabgleich gegenüber "as" bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">Blocktextkörper bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">Ausdruckskörper bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_return">

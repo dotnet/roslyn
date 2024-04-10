@@ -25,7 +25,7 @@ internal readonly struct CodeFixOptionsProvider
     /// <summary>
     /// Document editorconfig options.
     /// </summary>
-    private readonly AnalyzerConfigOptions _options;
+    private readonly IOptionsReader _options;
 
     /// <summary>
     /// C# language services.
@@ -37,7 +37,7 @@ internal readonly struct CodeFixOptionsProvider
     /// </summary>
     private readonly CodeActionOptionsProvider _fallbackOptions;
 
-    public CodeFixOptionsProvider(AnalyzerConfigOptions options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
+    public CodeFixOptionsProvider(IOptionsReader options, CodeActionOptionsProvider fallbackOptions, HostLanguageServices languageServices)
     {
         _options = options;
         _fallbackOptions = fallbackOptions;
@@ -49,17 +49,17 @@ internal readonly struct CodeFixOptionsProvider
     public string NewLine => GetOption(FormattingOptions2.NewLine, FallbackLineFormattingOptions.NewLine);
 
     public LineFormattingOptions GetLineFormattingOptions()
-        => _options.GetLineFormattingOptions(FallbackLineFormattingOptions);
+        => _options.GetLineFormattingOptions(_languageServices.Language, FallbackLineFormattingOptions);
 
     // SyntaxFormattingOptions
 
     public SyntaxFormattingOptions GetFormattingOptions(ISyntaxFormatting formatting)
         => formatting.GetFormattingOptions(_options, FallbackSyntaxFormattingOptions);
 
-    public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetEditorConfigOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCommonSyntaxFormattingOptions.AccessibilityModifiersRequired);
+    public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, _languageServices.Language, FallbackCommonSyntaxFormattingOptions.AccessibilityModifiersRequired);
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
+        => _options.GetOption(option, _languageServices.Language, defaultValue);
 
     private LineFormattingOptions FallbackLineFormattingOptions
 #if CODE_STYLE
@@ -75,11 +75,11 @@ internal readonly struct CodeFixOptionsProvider
         => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 
-    private SyntaxFormattingOptions.CommonOptions FallbackCommonSyntaxFormattingOptions
+    private SyntaxFormattingOptions FallbackCommonSyntaxFormattingOptions
 #if CODE_STYLE
-        => SyntaxFormattingOptions.CommonOptions.Default;
+        => SyntaxFormattingOptions.CommonDefaults;
 #else
-        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions.Common;
+        => _fallbackOptions.GetOptions(_languageServices.LanguageServices).CleanupOptions.FormattingOptions;
 #endif
 }
 
@@ -88,6 +88,6 @@ internal static class CodeFixOptionsProviders
     public static async ValueTask<CodeFixOptionsProvider> GetCodeFixOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return new CodeFixOptionsProvider(configOptions, fallbackOptions, document.Project.GetExtendedLanguageServices());
+        return new CodeFixOptionsProvider(configOptions.GetOptionsReader(), fallbackOptions, document.Project.GetExtendedLanguageServices());
     }
 }

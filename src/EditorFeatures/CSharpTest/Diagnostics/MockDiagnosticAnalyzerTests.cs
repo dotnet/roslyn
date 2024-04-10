@@ -54,13 +54,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
              string source,
              params DiagnosticDescription[] expectedDiagnostics)
         {
-            using var workspace = TestWorkspace.CreateCSharp(source, composition: GetComposition());
+            using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: GetComposition());
             var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, new TestParameters());
             actualDiagnostics.Verify(expectedDiagnostics);
         }
 
-        [WorkItem(906919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
         public async Task Bug906919()
         {
             var source = "[|class C { }|]";

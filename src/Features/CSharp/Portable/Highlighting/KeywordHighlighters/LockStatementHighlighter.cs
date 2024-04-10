@@ -13,18 +13,17 @@ using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters
-{
-    [ExportHighlighter(LanguageNames.CSharp), Shared]
-    internal class LockStatementHighlighter : AbstractKeywordHighlighter<LockStatementSyntax>
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LockStatementHighlighter()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
-        protected override void AddHighlights(LockStatementSyntax lockStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
-            => highlights.Add(lockStatement.LockKeyword.Span);
+[ExportHighlighter(LanguageNames.CSharp), Shared]
+internal class LockStatementHighlighter : AbstractKeywordHighlighter<LockStatementSyntax>
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LockStatementHighlighter()
+    {
     }
+
+    protected override void AddHighlights(LockStatementSyntax lockStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
+        => highlights.Add(lockStatement.LockKeyword.Span);
 }

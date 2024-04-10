@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class DoLoopBlockHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return GetType(DoLoopBlockHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoWhileLoop1() As Task
             Await TestAsync(<Text>
 Class C
@@ -28,7 +29,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoWhileLoop2() As Task
             Await TestAsync(<Text>
 Class C
@@ -44,7 +45,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoWhileLoop3() As Task
             Await TestAsync(<Text>
 Class C
@@ -60,7 +61,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoWhileLoop4() As Task
             Await TestAsync(<Text>
 Class C
@@ -76,7 +77,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoUntilLoop1() As Task
             Await TestAsync(<Text>
 Class C
@@ -92,7 +93,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoUntilLoop2() As Task
             Await TestAsync(<Text>
 Class C
@@ -108,7 +109,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoUntilLoop3() As Task
             Await TestAsync(<Text>
 Class C
@@ -124,7 +125,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoUntilLoop4() As Task
             Await TestAsync(<Text>
 Class C
@@ -140,7 +141,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoLoopWhile1() As Task
             Await TestAsync(<Text>
 Class C
@@ -156,7 +157,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoLoopWhile2() As Task
             Await TestAsync(<Text>
 Class C
@@ -172,7 +173,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoLoopWhile3() As Task
             Await TestAsync(<Text>
 Class C
@@ -188,7 +189,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoLoopWhile4() As Task
             Await TestAsync(<Text>
 Class C
@@ -204,7 +205,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoLoopUntil1() As Task
             Await TestAsync(<Text>
 Class C
@@ -220,7 +221,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoLoopUntil2() As Task
             Await TestAsync(<Text>
 Class C
@@ -236,7 +237,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoLoopUntil3() As Task
             Await TestAsync(<Text>
 Class C
@@ -252,7 +253,7 @@ End Sub
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestDoLoopUntil4() As Task
             Await TestAsync(<Text>
 Class C

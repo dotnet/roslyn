@@ -7,9 +7,19 @@
         <target state="translated">在貼上時新增缺少的 using 指示詞</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">允許在建構函式初始設定式的冒號後面加上空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">在箭頭運算式子句中的權杖後允許空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">在條件運算式中的權杖後允許空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -20,11 +30,6 @@
       <trans-unit id="Allow_embedded_statements_on_same_line">
         <source>Allow embedded statements on same line</source>
         <target state="translated">允許在同一行使用內嵌陳述式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">套用所有 C# 格式化規則 (縮排、換行、間距)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
@@ -47,14 +52,19 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Coding_Conventions">
-        <source>C# Coding Conventions</source>
-        <target state="translated">C# 編碼慣例</target>
+      <trans-unit id="CSharp_Interactive">
+        <source>C# Interactive</source>
+        <target state="translated">C# 互動</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Formatting_Rules">
-        <source>C# Formatting Rules</source>
-        <target state="translated">C# 格式化規則</target>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="new">Cancel Query</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="new">Cancel (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -82,11 +92,6 @@
         <target state="translated">檔案已設定範圍</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">格式化文件設定 (實驗)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="General">
         <source>General</source>
         <target state="translated">一般</target>
@@ -102,6 +107,16 @@
         <target state="translated">撰寫 // 註解時，於新行開頭插入 //</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">在方法名稱和左括弧之間插入空格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">在方法名稱和左括號之間插入空格</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">位於 namespace 內</target>
@@ -115,11 +130,6 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">模式比對喜好設定:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">在格式化期間執行額外程式碼清除</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -172,6 +182,21 @@
         <target state="translated">移除不必要的 Using</target>
         <note />
       </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="new">Run Query</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="new">Run (Ctrl+Enter)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="new">Semantic Search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">顯示 'new' 運算式的提示</target>
@@ -184,17 +209,12 @@
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
-        <target state="new">Show new snippet experience (experimental)</target>
+        <target state="translated">顯示新的程式碼片段體驗 (實驗性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">在快速諮詢中顯示備註</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">排序 Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -402,19 +422,9 @@
         <target state="translated">在空的引數清單括號內插入空格</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">在方法名稱和左括號之間插入空格</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">在空白參數清單括號內插入空格</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">在方法名稱和左括號之間插入空格</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">
@@ -515,11 +525,6 @@
       <trans-unit id="Unused_local">
         <source>Unused local</source>
         <target state="translated">未使用的區域函式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">產生區域變數時，請使用 'var'</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -645,11 +650,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">為 NuGet 封裝中的類型建議 Using(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">型別推斷喜好設定:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -815,16 +815,6 @@
       <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
         <source>Prefer pattern matching over 'as' with 'null' check</source>
         <target state="translated">建議使用 'null' 檢查對 'as' 進行模式比對</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">偏好區塊主體</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">偏好運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_return">

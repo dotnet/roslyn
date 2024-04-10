@@ -88,20 +88,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement RewriteFieldInitializer(BoundFieldEqualsValue fieldInit)
         {
+            var field = fieldInit.Field;
             SyntaxNode syntax = fieldInit.Syntax;
             syntax = (syntax as EqualsValueClauseSyntax)?.Value ?? syntax; //we want the attached sequence point to indicate the value node
-            var boundReceiver = fieldInit.Field.IsStatic ? null :
-                                        new BoundThisReference(syntax, fieldInit.Field.ContainingType);
+            var boundReceiver = field.IsStatic ? null :
+                                        new BoundThisReference(syntax, field.ContainingType);
 
             BoundStatement boundStatement =
                 new BoundExpressionStatement(syntax,
                     new BoundAssignmentOperator(syntax,
                         new BoundFieldAccess(syntax,
                             boundReceiver,
-                            fieldInit.Field,
+                            field,
                             constantValueOpt: null),
                         fieldInit.Value,
-                        fieldInit.Field.Type)
+                        field.Type,
+                        isRef: field.RefKind != RefKind.None)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
 

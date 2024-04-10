@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             public override Symbol AssociatedSymbol
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             public override Symbol ContainingSymbol
@@ -131,12 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             public override Accessibility DeclaredAccessibility
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             public override bool IsConst
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { return false; }
             }
 
-            internal override bool IsRequired => throw ExceptionUtilities.Unreachable;
+            internal override bool IsRequired => throw ExceptionUtilities.Unreachable();
 
             public override FlowAnalysisAnnotations FlowAnalysisAnnotations
             {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             public override ImmutableArray<Location> Locations
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             public override string Name
@@ -178,37 +178,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal override bool HasRuntimeSpecialName
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override bool HasSpecialName
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override bool IsNotSerialized
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override MarshalPseudoCustomAttributeData MarshallingInformation
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override ObsoleteAttributeData ObsoleteAttributeData
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override int? TypeLayoutOffset
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)

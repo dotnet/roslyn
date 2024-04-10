@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyntaxListTests
@@ -238,6 +239,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Assert.True(item.IsKind(SyntaxKind.CommaToken))
                     Assert.Equal(position, item.AsToken.Index)
                 End If
+            Next
+        End Sub
+
+        <Fact>
+        Public Sub EnumerateWithManyChildren_Forward()
+            Const n = 200000
+            Dim builder As New System.Text.StringBuilder()
+            builder.AppendLine("Module M")
+            builder.AppendLine("    Sub Main")
+            builder.Append("        Dim values As Integer() = {")
+            For i = 0 To n - 1
+                builder.Append("0, ")
+            Next
+            builder.AppendLine("}")
+            builder.AppendLine("    End Sub")
+            builder.AppendLine("End Module")
+
+            Dim tree = VisualBasicSyntaxTree.ParseText(builder.ToString())
+            ' Do not descend into CollectionInitializerSyntax since that will populate SeparatedWithManyChildren._children.
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of CollectionInitializerSyntax)().First()
+
+            For Each child In node.ChildNodesAndTokens()
+                child.ToString()
+            Next
+        End Sub
+
+        ' Tests should timeout when using SeparatedWithManyChildren.GetChildPosition()
+        ' instead of GetChildPositionFromEnd().
+        <WorkItem(66475, "https://github.com/dotnet/roslyn/issues/66475")>
+        <Fact>
+        Public Sub EnumerateWithManyChildren_Reverse()
+            Const n = 200000
+            Dim builder As New System.Text.StringBuilder()
+            builder.AppendLine("Module M")
+            builder.AppendLine("    Sub Main")
+            builder.Append("        Dim values As Integer() = {")
+            For i = 0 To n - 1
+                builder.Append("0, ")
+            Next
+            builder.AppendLine("}")
+            builder.AppendLine("    End Sub")
+            builder.AppendLine("End Module")
+
+            Dim tree = VisualBasicSyntaxTree.ParseText(builder.ToString())
+            ' Do not descend into CollectionInitializerSyntax since that will populate SeparatedWithManyChildren._children.
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of CollectionInitializerSyntax)().First()
+
+            For Each child In node.ChildNodesAndTokens().Reverse()
+                child.ToString()
             Next
         End Sub
 

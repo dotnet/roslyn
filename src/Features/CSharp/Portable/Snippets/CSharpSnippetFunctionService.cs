@@ -14,14 +14,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageService(typeof(SnippetFunctionService), LanguageNames.CSharp), Shared]
-internal class CSharpSnippetFunctionService : SnippetFunctionService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSnippetFunctionService() : SnippetFunctionService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSnippetFunctionService()
-    {
-    }
-
     public override async Task<string?> GetContainingClassNameAsync(Document document, int position, CancellationToken cancellationToken)
     {
         // Find the nearest enclosing type declaration and use its name
@@ -59,7 +55,7 @@ internal class CSharpSnippetFunctionService : SnippetFunctionService
         var textChange = new TextChange(caseGenerationLocation, str);
         var typeSpan = new TextSpan(caseGenerationLocation.Start + "case ".Length, fullyQualifiedTypeName.Length);
 
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var documentWithCaseAdded = document.WithText(text.WithChanges(textChange));
 
         return (documentWithCaseAdded, typeSpan);

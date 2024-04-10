@@ -87,19 +87,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool Equals(object? obj)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             [Obsolete]
             public static bool operator ==(VariableIdentifier left, VariableIdentifier right)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             [Obsolete]
             public static bool operator !=(VariableIdentifier left, VariableIdentifier right)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override string ToString()

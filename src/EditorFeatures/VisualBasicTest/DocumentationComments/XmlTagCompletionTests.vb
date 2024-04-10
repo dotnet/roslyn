@@ -10,18 +10,268 @@ Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
+    <Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
     Public Class XmlTagCompletionTests
         Inherits AbstractXmlTagCompletionTests
 
-        Friend Overrides Function CreateCommandHandler(testWorkspace As TestWorkspace) As IChainedCommandHandler(Of TypeCharCommandArgs)
+        Private Protected Overrides Function CreateCommandHandler(testWorkspace As EditorTestWorkspace) As IChainedCommandHandler(Of TypeCharCommandArgs)
             Return testWorkspace.ExportProvider.GetCommandHandler(Of XmlTagCompletionCommandHandler)("XmlTagCompletionCommandHandler", ContentTypeNames.VisualBasicContentType)
         End Function
 
-        Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(initialMarkup)
+        Private Protected Overrides Function CreateTestWorkspace(initialMarkup As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(initialMarkup)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact>
+        Public Sub SimpleTagCompletion()
+            Dim text = "
+''' <goo$$
+class c
+end class"
+
+            Dim expected = "
+''' <goo>$$</goo>
+class c
+end class"
+
+            Verify(text, expected, ">"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub NestedTagCompletion()
+            Dim text = "
+''' <summary>
+''' <goo$$
+''' </summary>
+class c
+end class"
+
+            Dim expected = "
+''' <summary>
+''' <goo>$$</goo>
+''' </summary>
+class c
+end class"
+
+            Verify(text, expected, ">"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub CompleteBeforeIncompleteTag()
+            Dim text = "
+''' <goo$$
+''' </summary>
+class c
+end class"
+
+            Dim expected = "
+''' <goo>$$</goo>
+''' </summary>
+class c
+end class"
+
+            Verify(text, expected, ">"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub NotEmptyElement()
+            Dim text = "
+''' <$$
+class c
+end class"
+
+            Dim expected = "
+''' <>$$
+class c
+end class"
+
+            Verify(text, expected, ">"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub NotAlreadyCompleteTag()
+            Dim text = "
+''' <goo$$</goo>
+class c
+end class"
+
+            Dim expected = "
+''' <goo>$$</goo>
+class c
+end class"
+
+            Verify(text, expected, ">"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub NotAlreadyCompleteTag2()
+            Dim text = "
+''' <goo$$
+'''
+''' </goo>
+class c
+end class"
+
+            Dim expected = "
+''' <goo>$$
+'''
+''' </goo>
+class c
+end class"
+
+            Verify(text, expected, ">"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub SimpleSlashCompletion()
+            Dim text = "
+''' <goo><$$
+class c
+end class"
+
+            Dim expected = "
+''' <goo></goo>$$
+class c
+end class"
+
+            Verify(text, expected, "/"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub NestedSlashTagCompletion()
+            Dim text = "
+''' <summary>
+''' <goo><$$
+''' </summary>
+class c
+end class"
+
+            Dim expected = "
+''' <summary>
+''' <goo></goo>$$
+''' </summary>
+class c
+end class"
+
+            Verify(text, expected, "/"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub SlashCompleteBeforeIncompleteTag()
+            Dim text = "
+''' <goo><$$
+''' </summary>
+class c
+end class"
+
+            Dim expected = "
+''' <goo></goo>$$
+''' </summary>
+class c
+end class"
+
+            Verify(text, expected, "/"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub SlashNotEmptyElement()
+            Dim text = "
+''' <><$$
+class c
+end class"
+
+            Dim expected = "
+''' <></$$
+class c
+end class"
+
+            Verify(text, expected, "/"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub SlashNotAlreadyCompleteTag()
+            Dim text = "
+''' <goo><$$goo>
+class c
+end class"
+
+            Dim expected = "
+''' <goo></$$goo>
+class c
+end class"
+
+            Verify(text, expected, "/"c)
+        End Sub
+
+        <WpfFact>
+        Public Sub SlashNotAlreadyCompleteTag2()
+            Dim text = "
+''' <goo>
+'''
+''' <$$goo>
+class c
+end class"
+
+            Dim expected = "
+''' <goo>
+'''
+''' </$$goo>
+class c
+end class"
+
+            Verify(text, expected, "/"c)
+        End Sub
+
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")>
+        Public Sub NestedIdenticalTags()
+            Dim text = "
+''' <goo><goo$$</goo>
+class c
+end class"
+
+            Dim expected = "
+''' <goo><goo>$$</goo></goo>
+class c
+end class"
+
+            Verify(text, expected, ">"c)
+        End Sub
+
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")>
+        Public Sub MultipleNestedIdenticalTags()
+            Dim text = "
+''' <goo><goo><goo$$</goo></goo>
+class c
+end class"
+
+            Dim expected = "
+''' <goo><goo><goo>$$</goo></goo></goo>
+class c
+end class"
+
+            Verify(text, expected, ">"c)
+        End Sub
+
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
+        Public Sub SlashNotIfCloseTagFollows()
+            Dim text = "
+''' <summary>
+''' <$$
+''' </summary>
+class c
+end class"
+
+            Dim expected = "
+''' <summary>
+''' </$$
+''' </summary>
+class c
+end class"
+
+            Verify(text, expected, "/"c)
+        End Sub
+
+        <WpfFact>
         Public Sub TestSimpleTagCompletion()
 
             Dim text = <File><![CDATA[
@@ -37,7 +287,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact>
         Public Sub TestNestedTagCompletion()
 
             Dim text = <File><![CDATA[
@@ -57,7 +307,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact>
         Public Sub TestCompleteBeforeIncompleteTag()
 
             Dim text = <File><![CDATA[
@@ -75,7 +325,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact>
         Public Sub TestNotEmptyElement()
 
             Dim text = <File><![CDATA[
@@ -91,7 +341,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact>
         Public Sub TestNotAlreadyCompleteTag()
 
             Dim text = <File><![CDATA[
@@ -107,7 +357,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact>
         Public Sub TestNotAlreadyCompleteTag2()
 
             Dim text = <File><![CDATA[
@@ -127,7 +377,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact>
         Public Sub TestNotOutsideDocComment()
 
             Dim text = <File><![CDATA[
@@ -143,8 +393,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")>
         Public Sub TestNotCloseClosedTag()
             Dim text = <File><![CDATA[
 ''' <summary>

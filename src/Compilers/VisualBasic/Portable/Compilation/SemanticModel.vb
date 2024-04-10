@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -45,6 +46,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The root node of the syntax tree that this binding is based on.
         ''' </summary> 
         Friend MustOverride Shadows ReadOnly Property Root As SyntaxNode
+
+        <Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat:=RoslynExperiments.NullableDisabledSemanticModel_Url)>
+        Public NotOverridable Overrides ReadOnly Property NullableAnalysisIsDisabled As Boolean = False
 
         ''' <summary>
         ''' Gets symbol information about an expression syntax node. This is the worker
@@ -789,7 +793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundExpression = TryCast(node, BoundExpression)
             If boundExpression IsNot Nothing Then
                 ' Try calling ReclassifyAsValue
-                Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 Dim resultNode = binder.ReclassifyAsValue(boundExpression, diagnostics)
 
                 ' Reclassify ArrayLiterals and other expressions missing types to expressions with types.
@@ -2150,10 +2154,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModelForMethodBody(position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(method)
-            Return TryGetSpeculativeSemanticModelForMethodBodyCore(DirectCast(Me, SyntaxTreeSemanticModel), position, method, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelForMethodBodyCore(DirectCast(Me, SyntaxTreeSemanticModel), position, method, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' Get a SemanticModel object that is associated with a range argument syntax that did not appear in
@@ -2175,10 +2184,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModel(position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(rangeArgument)
-            Return TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, rangeArgument, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, rangeArgument, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' Get a SemanticModel object that is associated with an executable statement that did not appear in
@@ -2199,10 +2213,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModel(position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(statement)
-            Return TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, statement, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, statement, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' Get a SemanticModel object that is associated with an initializer that did not appear in
@@ -2224,10 +2243,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModel(position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(initializer)
-            Return TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, initializer, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, initializer, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' Get a SemanticModel object that is associated with an attribute that did not appear in
@@ -2280,10 +2304,15 @@ _Default:
         Public Function TryGetSpeculativeSemanticModel(position As Integer, type As TypeSyntax, <Out> ByRef speculativeModel As SemanticModel, Optional bindingOption As SpeculativeBindingOption = SpeculativeBindingOption.BindAsExpression) As Boolean
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(type)
-            Return TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, type, bindingOption, speculativeModel)
+
+            Dim speculativePublicModel As PublicSemanticModel = Nothing
+            Dim result = TryGetSpeculativeSemanticModelCore(DirectCast(Me, SyntaxTreeSemanticModel), position, type, bindingOption, speculativePublicModel)
+            speculativeModel = speculativePublicModel
+
+            Return result
         End Function
 
-        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend MustOverride Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
 
         ''' <summary>
         ''' If this is a speculative semantic model, then returns its parent semantic model.
@@ -2874,7 +2903,6 @@ _Default:
         ''' </summary>
         ''' <param name="node">The for each syntax node.</param>
         Friend MustOverride Function GetForEachStatementInfoWorker(node As ForEachBlockSyntax) As ForEachStatementInfo
-
 
         ''' <summary>
         ''' Gets the semantic information of an Await expression.
@@ -3507,6 +3535,10 @@ _Default:
                 Case SymbolKind.NamedType
                     If TypeOf declaringSyntax Is TypeStatementSyntax Then
                         If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is TypeBlockSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
+                    ElseIf TypeOf declaringSyntax Is EnumStatementSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is EnumBlockSyntax Then
                             Return declaringSyntax.Parent
                         End If
                     End If

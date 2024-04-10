@@ -31,16 +31,16 @@ Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Editor.Host
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Public Class DocumentService_IntegrationTests
-        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -64,10 +64,10 @@ class {|Definition:C1|}
             ' https://github.com/dotnet/roslyn/issues/46279
             Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(MockServiceProvider))
 
-            Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = EditorTestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
-                Dim tuple = presenter.StartSearch("test", supportsReferences:=True)
+                Dim tuple = presenter.StartSearch("test", New StreamingFindUsagesPresenterOptions() With {.SupportsReferences = True})
                 Dim context = tuple.context
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -76,8 +76,10 @@ class {|Definition:C1|}
                 Dim startDocument = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
                 Assert.NotNull(startDocument)
 
+                Dim classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider()
+
                 Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, CancellationToken.None)
+                Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, classificationOptions, CancellationToken.None)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()
@@ -112,7 +114,7 @@ class {|Definition:C1|}
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestCodeLensIntegration() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -132,7 +134,7 @@ class {|Definition:C1|}
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = EditorTestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim codelensService = New RemoteCodeLensReferencesService(workspace.GlobalOptions)
 
@@ -165,7 +167,7 @@ class {|Definition:C1|}
 
         <InlineData(True)>
         <InlineData(False)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory>
         Public Async Function TestDocumentOperationCanApplyChange(ignoreUnchangeableDocuments As Boolean) As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -176,7 +178,7 @@ class C { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance, ignoreUnchangeableDocumentsWhenApplyingChanges:=ignoreUnchangeableDocuments)
+            Using workspace = EditorTestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance, ignoreUnchangeableDocumentsWhenApplyingChanges:=ignoreUnchangeableDocuments)
 
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
@@ -205,7 +207,7 @@ class C { }
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact>
         Public Async Function TestDocumentOperationCanApplySupportDiagnostics() As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
@@ -216,7 +218,7 @@ class { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = EditorTestWorkspace.Create(input, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService, documentServiceProvider:=TestDocumentServiceProvider.Instance)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -227,7 +229,6 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
                 ' confirm diagnostic support is off for the document
@@ -237,7 +238,9 @@ class { }
                 diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' confirm that IDE doesn't report the diagnostics
-                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(workspace.CurrentSolution, documentId:=document.Id)
+                Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(workspace.CurrentSolution, projectId:=Nothing, documentId:=document.Id,
+                                                                              includeSuppressedDiagnostics:=False, includeNonLocalDocumentDiagnostics:=True,
+                                                                              CancellationToken.None)
                 Assert.False(diagnostics.Any())
             End Using
         End Function
@@ -267,7 +270,7 @@ class { }
                 Public ReadOnly Property SupportsMappingImportDirectives As Boolean = False Implements ISpanMappingService.SupportsMappingImportDirectives
 
                 Public Async Function MapSpansAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of MappedSpanResult)) Implements ISpanMappingService.MapSpansAsync
-                    Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
+                    Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, EditorTestWorkspace)
                     Dim testDocument = testWorkspace.GetTestDocument(document.Id)
 
                     Dim mappedTestDocument = testWorkspace.Documents.First(Function(d) d.Id <> testDocument.Id)
@@ -305,7 +308,7 @@ class { }
                 Public Shared ReadOnly Instance As Excerpter = New Excerpter()
 
                 Public Async Function TryExcerptAsync(document As Document, span As TextSpan, mode As ExcerptMode, classificationOptions As ClassificationOptions, cancellationToken As CancellationToken) As Task(Of ExcerptResult?) Implements IDocumentExcerptService.TryExcerptAsync
-                    Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
+                    Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, EditorTestWorkspace)
                     Dim testDocument = testWorkspace.GetTestDocument(document.Id)
 
                     Dim mappedTestDocument = testWorkspace.Documents.First(Function(d) d.Id <> testDocument.Id)

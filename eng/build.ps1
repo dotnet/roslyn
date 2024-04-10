@@ -32,9 +32,9 @@ param (
 
   # Options
   [switch]$bootstrap,
-  [string]$bootstrapConfiguration = "Release",
+  [string]$bootstrapDir = "",
   [switch][Alias('bl')]$binaryLog,
-  [switch]$buildServerLog,
+  [string]$binaryLogName = "",
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
@@ -45,7 +45,6 @@ param (
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
   [switch]$oop64bit = $true,
-  [switch]$oopCoreClr = $false,
   [switch]$lspEditor = $false,
 
   # official build settings
@@ -67,6 +66,7 @@ param (
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
+  [string]$helixApiAccessToken = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -79,7 +79,7 @@ function Print-Usage() {
   Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
-  Write-Host "  -buildServerLog           Create Roslyn build server log"
+  Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
   Write-Host ""
   Write-Host "Actions:"
   Write-Host "  -restore                  Restore packages (short: -r)"
@@ -103,7 +103,7 @@ function Print-Usage() {
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
   Write-Host "  -bootstrap                Build using a bootstrap compilers"
-  Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
+  Write-Host "  -bootstrapDir             Build using bootstrap compiler at specified location"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
@@ -166,11 +166,20 @@ function Process-Arguments() {
     $script:applyOptimizationData = $false
   }
 
+  if ($binaryLogName -ne "") {
+    $script:binaryLog = $true
+  }
+
   if ($ci) {
     $script:binaryLog = $true
-    if ($bootstrap) {
-      $script:buildServerLog = $true
-    }
+  }
+
+  if ($binaryLog -and ($binaryLogName -eq "")) {
+    $script:binaryLogName = "Build.binlog"
+  }
+
+  if ($bootstrapDir -ne "") {
+    $script:bootstrap = $true
   }
 
   $anyUnit = $testDesktop -or $testCoreClr
@@ -199,6 +208,10 @@ function Process-Arguments() {
     $script:restore = $true
   }
 
+  if ($sourceBuild) {
+    $script:msbuildEngine = "dotnet"
+  }
+
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
       Write-Host "Invalid argument: $property"
@@ -213,10 +226,15 @@ function BuildSolution() {
 
   Write-Host "$($solution):"
 
-  $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
+  $bl = ""
+  if ($binaryLog) {
+    $binaryLogPath = Join-Path $LogDir $binaryLogName
+    $bl = "/bl:" + $binaryLogPath
+    if ($ci -and (Test-Path $binaryLogPath)) {
+      Write-LogIssue -Type "error" -Message "Overwriting binary log file $($binaryLogPath)"
+      throw "Overwriting binary log files"
+    }
 
-  if ($buildServerLog) {
-    ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
   }
 
   $projects = Join-Path $RepoRoot $solution
@@ -231,8 +249,8 @@ function BuildSolution() {
   # that MSBuild output as well as ones that custom tasks output.
   $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
 
-  # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
-  $ibcDir = Join-Path $RepoRoot ".o%5c"
+  # Workaround for some machines in the AzDO pool not allowing long paths
+  $ibcDir = $RepoRoot
 
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
@@ -240,6 +258,8 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
+  $restoreUseStaticGraphEvaluation = $true
+  
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -259,7 +279,7 @@ function BuildSolution() {
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=true `
+      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
       $suppressExtensionDeployment `
@@ -273,7 +293,6 @@ function BuildSolution() {
     ${env:ROSLYNCOMMANDLINELOGFILE} = $null
   }
 }
-
 
 # Get the branch that produced the IBC data this build is going to consume.
 # IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.
@@ -310,7 +329,7 @@ function GetIbcDropName() {
     }
 
     # Bring in the ibc tools
-    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
+    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
 
     # Find the matching drop
@@ -330,6 +349,7 @@ function GetCompilerTestAssembliesIncludePaths() {
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
@@ -369,7 +389,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net8.0"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -382,17 +402,16 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0"
+    $args += " --runtime core"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
-      $args += " --tfm net6.0-windows"
       $args += " --include '\.UnitTests'"
     }
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
-    $args += " --tfm net472"
+    $args += " --runtime framework"
     $args += " --timeout 90"
 
     if ($testCompilerOnly) {
@@ -407,8 +426,7 @@ function TestUsingRunTests() {
 
   } elseif ($testVsi) {
     $args += " --timeout 110"
-    $args += " --tfm net472"
-    $args += " --retry"
+    $args += " --runtime both"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -442,9 +460,13 @@ function TestUsingRunTests() {
     $args += " --helixQueueName $helixQueueName"
   }
 
+  if ($helixApiAccessToken) {
+    $args += " --helixApiAccessToken $helixApiAccessToken"
+  }
+
   try {
     Write-Host "$runTests $args"
-    Exec-Console $dotnetExe "$runTests $args"
+    Exec-Command $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($ci) {
@@ -468,6 +490,14 @@ function TestUsingRunTests() {
         Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
       } else {
         Write-Host "No ServiceHub logs found to copy"
+      }
+
+      $projectFaultLogs = Join-Path $TempDir "VsProjectFault_*.failure.txt"
+      if (Test-Path $projectFaultLogs) {
+        Write-Host "Copying VsProjectFault logs to $LogDir"
+        Copy-Item -Path $projectFaultLogs -Destination $LogDir
+      } else {
+        Write-Host "No VsProjectFault logs found to copy"
       }
 
       if ($lspEditor) {
@@ -510,8 +540,13 @@ function EnablePreviewSdks() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
-  $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
-  $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
+
+  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net8.0\VSIXExpInstaller\VSIXExpInstaller.exe"
+  Write-Host "VSIX EXE path: " $vsixExe
+  if (-not (Test-Path $vsixExe)) {
+    Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
+    ExitWithExitCode 1
+  }
 
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
@@ -546,6 +581,7 @@ function Deploy-VsixViaTool() {
   $orderedVsixFileNames = @(
     "Roslyn.Compilers.Extension.vsix",
     "Roslyn.VisualStudio.Setup.vsix",
+    "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
     "Roslyn.VisualStudio.Setup.Dependencies.vsix",
     "ExpressionEvaluatorPackage.vsix",
     "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
@@ -555,7 +591,7 @@ function Deploy-VsixViaTool() {
     $vsixFile = Join-Path $VSSetupDir $vsixFileName
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
-    Exec-Console $vsixExe $fullArg
+    Exec-Command $vsixExe $fullArg
   }
 
   # Set up registry
@@ -573,10 +609,16 @@ function Deploy-VsixViaTool() {
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 
+  # Disable text spell checker to avoid spurious warnings in the error list
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
+
+  # Run source generators automatically during integration tests.
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\SourceGeneratorExecutionBalanced" Value dword 0
+
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword $lspRegistryValue
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword 1
 
   # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
   # custom handler or fail silently and continue testing.
@@ -585,10 +627,6 @@ function Deploy-VsixViaTool() {
   # Configure RemoteHostOptions.OOP64Bit for testing
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
-
-  # Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
-  $oopCoreClrFeatureFlagValue = [int]$oopCoreClr.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\ServiceHubCore" Value dword $oopCoreClrFeatureFlagValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
@@ -657,7 +695,6 @@ function Setup-IntegrationTestRun() {
   }
 
   $env:ROSLYN_OOP64BIT = "$oop64bit"
-  $env:ROSLYN_OOPCORECLR = "$oopCoreClr"
   $env:ROSLYN_LSPEDITOR = "$lspEditor"
 }
 
@@ -683,11 +720,6 @@ try {
     exit 1
   }
 
-  $regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
-  if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
-    Write-Host "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with `"reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1`""
-  }
-
   Process-Arguments
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
@@ -708,27 +740,18 @@ try {
       Setup-IntegrationTestRun
     }
 
-    $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
-    InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
+    $dotnet = (InitializeDotNetCli -install:$true)
   }
 
   if ($restore) {
     &(Ensure-DotNetSdk) tool restore
   }
 
-  try
-  {
-    if ($bootstrap) {
-      $force32 = $testArch -eq "x86"
-      $bootstrapDir = Make-BootstrapBuild -force32:$force32
-    }
-  }
-  catch
-  {
-    if ($ci) {
-      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Build) Build failed"
-    }
-    throw $_
+  if ($bootstrap -and $bootstrapDir -eq "") {
+    Write-Host "Building bootstrap Compiler"
+    $bootstrapDir = Join-Path (Join-Path $ArtifactsDir "bootstrap") "build"
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -force -ci:$ci
+    Test-LastExitCode
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {
@@ -744,7 +767,7 @@ try {
   catch
   {
     if ($ci) {
-      echo "##vso[task.logissue type=error](NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
+      Write-LogIssue -Type "error" -Message "(NETCORE_ENGINEERING_TELEMETRY=Test) Tests failed"
     }
     throw $_
   }
@@ -767,10 +790,8 @@ catch {
   ExitWithExitCode 1
 }
 finally {
-  if ($ci) {
-    Stop-Processes
+  if (Test-Path Function:\Unsubst-TempDir) {
+    Unsubst-TempDir
   }
-
-  Unsubst-TempDir
   Pop-Location
 }

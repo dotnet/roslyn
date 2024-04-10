@@ -127,8 +127,12 @@ namespace Microsoft.CodeAnalysis
         bool IsReadOnly { get; }
 
         /// <summary>
-        /// True if the type is a record.
+        /// For source symbols, true if the type is a record.
+        /// For metadata symbols, true if the type is a record and a reference type.
         /// </summary>
+        /// <remarks>
+        /// Returns false for record structs in metadata since they don't have any distinctive marker.
+        /// </remarks>
         bool IsRecord { get; }
 
         /// <summary>
@@ -242,7 +246,7 @@ namespace Microsoft.CodeAnalysis
             return (type as INamedTypeSymbol)?.EnumUnderlyingType;
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         internal static ITypeSymbol? GetEnumUnderlyingTypeOrSelf(ITypeSymbol? type)
         {
             return GetEnumUnderlyingType(type) ?? type;

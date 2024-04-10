@@ -30,6 +30,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static bool IsCoreClr6Runtime
             => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 6.", StringComparison.Ordinal);
 
+        internal static bool IsCoreClr8OrHigherRuntime
+            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 8.", StringComparison.Ordinal);
+
+        internal static bool IsCoreClr9OrHigherRuntime
+            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 9.", StringComparison.Ordinal);
+#if NET9_0_OR_GREATER
+#error Make the above check be an #if NET9_OR_GREATER when we add net8 support to build
+#endif
+
         internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
             tempDirectory ??= Path.GetTempPath();

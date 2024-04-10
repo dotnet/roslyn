@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// This structure is meant to capture a snapshot of the <see cref="ControlFlowGraphBuilder"/> state
         /// that is needed to build graphs for lambdas and local functions.
         /// </summary>
-        internal struct Context
+        internal readonly struct Context
         {
             public readonly IOperation? ImplicitInstance;
             public readonly INamedTypeSymbol? AnonymousType;

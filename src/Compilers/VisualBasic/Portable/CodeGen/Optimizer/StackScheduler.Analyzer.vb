@@ -228,7 +228,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return result
             End Function
 
-
             ''' <summary>
             ''' here we have a case of indirect assignment:  *t1 = expr;
             ''' normally we would need to push t1 and that will cause spilling of t2
@@ -888,12 +887,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim cookie As Object = GetStackStateCookie() ' implicit goto here
 
                 Me.SetStackDepth(origStack) ' consequence is evaluated with original stack
-                Dim valueTypeReceiver = DirectCast(Me.Visit(node.ValueTypeReceiver), BoundExpression)
+                Dim valueTypeReceiver = DirectCast(Me.VisitExpression(node.ValueTypeReceiver, Me._context), BoundExpression)
 
                 EnsureStackState(cookie) ' implicit label here
 
                 Me.SetStackDepth(origStack) ' alternative is evaluated with original stack
-                Dim referenceTypeReceiver = DirectCast(Me.Visit(node.ReferenceTypeReceiver), BoundExpression)
+                Dim referenceTypeReceiver = DirectCast(Me.VisitExpression(node.ReferenceTypeReceiver, Me._context), BoundExpression)
 
                 EnsureStackState(cookie) ' implicit label here
 
@@ -924,7 +923,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     binary = DirectCast(child, BoundBinaryOperator)
                 Loop
-
 
                 Dim prevStack As Integer = Me.StackDepth()
 

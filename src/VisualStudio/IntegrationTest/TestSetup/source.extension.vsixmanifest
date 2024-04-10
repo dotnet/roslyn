@@ -18,6 +18,7 @@
   </Installation>
   <Dependencies>
     <Dependency Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" DisplayName="Roslyn Language Services" d:Source="Project" Version="[|VisualStudioSetup;GetVsixVersion|,]" d:ProjectName="VisualStudioSetup" />
+    <Dependency Id="21BAC26D-2935-4D0D-A282-AD647E2592B5" DisplayName="Roslyn Expression Evaluators" d:Source="Project" Version="[|ExpressionEvaluatorPackage;GetVsixVersion|,]" d:ProjectName="ExpressionEvaluatorPackage" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />

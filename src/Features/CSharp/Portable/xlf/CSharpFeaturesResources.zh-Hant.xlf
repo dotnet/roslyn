@@ -22,9 +22,14 @@
         <target state="translated">新增單行控制項陳述式所需的大括弧</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">在此專案中允許不安全的程式碼</target>
+      <trans-unit id="Apply_0">
+        <source>Apply '{0}'</source>
+        <target state="translated">套用 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_Copilot_suggestion">
+        <source>Apply Copilot suggestion</source>
+        <target state="translated">套用 Copilot 建議</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
@@ -62,6 +67,11 @@
         <target state="translated">套用延伸模組/區塊主體喜好設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_fix_from">
+        <source>Apply fix from</source>
+        <target state="translated">套用修正來源</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
         <target state="translated">套用內嵌 'out' 變數喜好設定</target>
@@ -87,11 +97,6 @@
         <target state="translated">套用新增() 喜好設定</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">套用參數 Null 喜好設定</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">套用模式比對喜好設定</target>
@@ -100,6 +105,11 @@
       <trans-unit id="Apply_range_preferences">
         <source>Apply range preferences</source>
         <target state="translated">套用範圍喜好設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_readonly_struct_preferences">
+        <source>Apply 'readonly struct' preferences</source>
+        <target state="translated">套用 'readonly struct' 喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
@@ -122,19 +132,14 @@
         <target state="translated">套用 'var' 喜好設定</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">指派 'out' 參數</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">指派 'out' 參數 (開始時)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">因為潛在的範圍變數宣告，所以停用了自動選取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="translated">無法判斷要擷取的有效陳述式範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
@@ -147,6 +152,11 @@
         <target state="translated">變更為 'cast'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">將 '{0}' 轉換為 record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">轉換為方法</target>
@@ -155,6 +165,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">轉換成原始字串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="translated">轉換為一般建構函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -182,14 +197,14 @@
         <target state="translated">在專案中啟用可為 Null 的參考類型</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">在解決方案中啟用可 null 的參考類型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">全域 using 指示詞</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">內嵌暫存變數</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -202,25 +217,15 @@
         <target state="translated">若可能的話，請將私用欄位設定為唯讀</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">設為 'ref struct'</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">移除 'in' 關鍵字</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">移除 'new' 修飾詞</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">反向 'for' 陳述式</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">選取範圍不能是使用建構函式初始設定式</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
@@ -247,6 +252,11 @@
         <target state="translated">警告: 內嵌臨時變數可能會變更程式碼含義。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
+        <source>Warning: AI suggestions might be inaccurate.</source>
+        <target state="translated">警告: AI 建議可能不正確。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">非同步 foreach 陳述式</target>
@@ -257,9 +267,24 @@
         <target state="translated">非同步 using 宣告</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="new">do-while loop</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">外部別名</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="for_loop">
+        <source>for loop</source>
+        <target state="translated">for 迴圈</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="translated">init-only 屬性</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -315,11 +340,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">移除 'this' 限定性條件</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">無法判斷要擷取的有效陳述式範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
@@ -402,11 +422,6 @@
         <target state="translated">組合管理 Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_return_Task_instead_of_void">
-        <source>Make {0} return Task instead of void.</source>
-        <target state="translated">使 {0} 傳回 Task 而不是 void。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
         <source>Generate explicit conversion operator in '{0}'</source>
         <target state="translated">在 '{0}' 中產生明確轉換運算子</target>
@@ -427,6 +442,11 @@
         <target state="translated">記錄結構</target>
         <note />
       </trans-unit>
+      <trans-unit id="reversed_for_loop">
+        <source>reversed for loop</source>
+        <target state="translated">反轉 for 迴圈</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">switch 陳述式</target>
@@ -436,6 +456,16 @@
         <source>switch statement case clause</source>
         <target state="translated">switch 陳述式 case 子句</target>
         <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="top_level_code">
+        <source>top-level code</source>
+        <target state="translated">最上層代碼</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="top_level_statement">
+        <source>top-level statement</source>
+        <target state="translated">最上層陳述式</target>
+        <note />
       </trans-unit>
       <trans-unit id="try_block">
         <source>try block</source>
@@ -582,11 +612,6 @@
         <target state="translated">ref 區域或運算式</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="global_statement">
-        <source>global statement</source>
-        <target state="translated">global 陳述式</target>
-        <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>
         <target state="translated">using 指示詞</target>
@@ -667,16 +692,6 @@
         <target state="translated">因為可能的解構宣告，所以停用自動選取。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">將此專案升級為 C# 語言版本 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">將所有 C# 專案升級為語言版本 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;類別名稱&gt;</target>
@@ -697,16 +712,6 @@
         <target state="translated">&lt;結構名稱&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">讓方法非同步</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">讓方法不同步 (仍為 void)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;名稱&gt;</target>
@@ -722,16 +727,6 @@
         <target state="translated">(建議的名稱)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">移除未使用的函式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">新增括弧</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">轉換為 'foreach'</target>
@@ -745,11 +740,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">反轉 if</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">使用 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

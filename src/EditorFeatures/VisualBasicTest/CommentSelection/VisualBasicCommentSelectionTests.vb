@@ -15,8 +15,9 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CommentSelection)>
     Public Class VisualBasicCommentSelectionTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub Comment1()
             Dim code = <code>Module Program
     [|Sub Main(args As String())
@@ -35,7 +36,7 @@ End Module</code>
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Comment)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub UncommentAndFormat1()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())
@@ -52,7 +53,7 @@ End Module</code>
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub UncommentAndFormat2()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())           |]
@@ -79,7 +80,7 @@ End Module</code>
 
             MarkupTestFile.GetSpans(code, codeWithoutMarkup, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarkup)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(codeWithoutMarkup)
                 Dim doc = workspace.Documents.First()
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 

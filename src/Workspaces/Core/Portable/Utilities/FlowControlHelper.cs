@@ -5,28 +5,20 @@
 using System;
 using System.Threading;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class FlowControlHelper
 {
-    internal static class FlowControlHelper
+    public static AsyncFlowControlHelper TrySuppressFlow()
+        => new(ExecutionContext.IsFlowSuppressed() ? default : ExecutionContext.SuppressFlow());
+
+    public readonly struct AsyncFlowControlHelper(AsyncFlowControl asyncFlowControl) : IDisposable
     {
-        public static AsyncFlowControlHelper TrySuppressFlow()
-            => new(ExecutionContext.IsFlowSuppressed() ? default : ExecutionContext.SuppressFlow());
-
-        public struct AsyncFlowControlHelper : IDisposable
+        public void Dispose()
         {
-            private readonly AsyncFlowControl _asyncFlowControl;
-
-            public AsyncFlowControlHelper(AsyncFlowControl asyncFlowControl)
+            if (asyncFlowControl != default)
             {
-                _asyncFlowControl = asyncFlowControl;
-            }
-
-            public void Dispose()
-            {
-                if (_asyncFlowControl != default)
-                {
-                    _asyncFlowControl.Dispose();
-                }
+                asyncFlowControl.Dispose();
             }
         }
     }

@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
     {
-        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly string _name;
 
         protected SourceOrdinaryMethodSymbolBase(
@@ -31,106 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             CSharpSyntaxNode syntax,
-            MethodKind methodKind,
             bool isIterator,
-            bool isExtensionMethod,
-            bool isReadOnly,
-            bool hasBody,
-            bool isNullableAnalysisEnabled,
-            BindingDiagnosticBag diagnostics) :
+            (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags) :
             base(containingType,
                  syntax.GetReference(),
                  location,
-                 isIterator: isIterator)
+                 isIterator: isIterator,
+                 modifiersAndFlags)
         {
-            Debug.Assert(diagnostics.DiagnosticBag is object);
-            Debug.Assert(!isReadOnly || this.IsImplicitlyDeclared, "We only expect synthesized methods to use this flag to make a method readonly. Explicitly declared methods should get this value from modifiers in syntax.");
-
             _name = name;
-
-            // The following two values are used to compute and store the initial value of the flags
-            // However, these two components are placeholders; the correct value will be
-            // computed lazily later and then the flags will be fixed up.
-            const bool returnsVoid = false;
-
-            DeclarationModifiers declarationModifiers;
-            (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isReadOnly, hasBody, location, diagnostics);
-
-            //explicit impls must be marked metadata virtual unless static
-            bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
-            var isMetadataVirtualIgnoringModifiers = isExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0;
-
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
-
-            _typeParameters = MakeTypeParameters(syntax, diagnostics);
-
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
-
-            if (hasBody)
-            {
-                CheckModifiersForBody(location, diagnostics);
-            }
-
-            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation, diagnostics, location);
         }
-
-        protected abstract ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics);
-
-#nullable enable
-        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
-
-            var (returnType, parameters, isVararg, declaredConstraints) = MakeParametersAndBindReturnType(diagnostics);
-
-            MethodSymbol? overriddenOrExplicitlyImplementedMethod = MethodChecks(returnType, parameters, diagnostics);
-
-            if (!declaredConstraints.IsDefault && overriddenOrExplicitlyImplementedMethod is object)
-            {
-                for (int i = 0; i < declaredConstraints.Length; i++)
-                {
-                    var typeParameter = _typeParameters[i];
-                    ErrorCode report;
-
-                    switch (declaredConstraints[i].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Default))
-                    {
-                        case TypeParameterConstraintKind.ReferenceType:
-                            if (!typeParameter.IsReferenceType)
-                            {
-                                report = ErrorCode.ERR_OverrideRefConstraintNotSatisfied;
-                                break;
-                            }
-                            continue;
-                        case TypeParameterConstraintKind.ValueType:
-                            if (!typeParameter.IsNonNullableValueType())
-                            {
-                                report = ErrorCode.ERR_OverrideValConstraintNotSatisfied;
-                                break;
-                            }
-                            continue;
-                        case TypeParameterConstraintKind.Default:
-                            if (typeParameter.IsReferenceType || typeParameter.IsValueType)
-                            {
-                                report = ErrorCode.ERR_OverrideDefaultConstraintNotSatisfied;
-                                break;
-                            }
-                            continue;
-                        default:
-                            continue;
-                    }
-
-                    diagnostics.Add(report, typeParameter.Locations[0], this, typeParameter,
-                                    overriddenOrExplicitlyImplementedMethod.TypeParameters[i], overriddenOrExplicitlyImplementedMethod);
-                }
-            }
-
-            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, isVararg, HasAnyBody, locations[0], diagnostics);
-        }
-#nullable disable
-
-        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
-
-        protected abstract bool HasAnyBody { get; }
 
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
@@ -171,18 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract void CompleteAsyncMethodChecksBetweenStartAndFinish();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get { return _typeParameters; }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return this.locations;
-            }
-        }
+        public abstract override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -197,239 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract override SourceMemberMethodSymbol BoundAttributesSource { get; }
 
         internal abstract override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
-
-        internal bool HasExplicitAccessModifier { get; }
-
-        private (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodKind methodKind, bool isReadOnly, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
-        {
-            bool isInterface = this.ContainingType.IsInterface;
-            bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
-
-            // This is needed to make sure we can detect 'public' modifier specified explicitly and
-            // check it against language version below.
-            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.Private;
-
-            // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
-            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
-
-            if (!isExplicitInterfaceImplementation)
-            {
-                allowedModifiers |= DeclarationModifiers.New |
-                                    DeclarationModifiers.Sealed |
-                                    DeclarationModifiers.Abstract |
-                                    DeclarationModifiers.Static |
-                                    DeclarationModifiers.Virtual |
-                                    DeclarationModifiers.AccessibilityMask;
-
-                if (!isInterface)
-                {
-                    allowedModifiers |= DeclarationModifiers.Override;
-                }
-                else
-                {
-                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
-                                                               DeclarationModifiers.Abstract |
-                                                               DeclarationModifiers.Static |
-                                                               DeclarationModifiers.Virtual |
-                                                               DeclarationModifiers.Extern |
-                                                               DeclarationModifiers.Async |
-                                                               DeclarationModifiers.Partial |
-                                                               DeclarationModifiers.AccessibilityMask;
-                }
-            }
-            else
-            {
-                Debug.Assert(isExplicitInterfaceImplementation);
-
-                if (isInterface)
-                {
-                    allowedModifiers |= DeclarationModifiers.Abstract;
-                }
-
-                allowedModifiers |= DeclarationModifiers.Static;
-            }
-
-            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
-
-            if (ContainingType.IsStructType())
-            {
-                allowedModifiers |= DeclarationModifiers.ReadOnly;
-            }
-
-            // In order to detect whether explicit accessibility mods were provided, we pass the default value
-            // for 'defaultAccess' and manually add in the 'defaultAccess' flags after the call.
-            bool hasExplicitAccessMod;
-            DeclarationModifiers mods = MakeDeclarationModifiers(allowedModifiers, diagnostics);
-            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
-            {
-                hasExplicitAccessMod = false;
-                mods |= defaultAccess;
-            }
-            else
-            {
-                hasExplicitAccessMod = true;
-            }
-
-            if (isReadOnly)
-            {
-                Debug.Assert(ContainingType.IsStructType());
-                mods |= DeclarationModifiers.ReadOnly;
-            }
-
-            ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
-
-            this.CheckUnsafeModifier(mods, diagnostics);
-
-            ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
-                                                                        defaultInterfaceImplementationModifiers,
-                                                                        location, diagnostics);
-
-            mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
-            return (mods, hasExplicitAccessMod);
-        }
-
-        protected abstract DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics);
-
-        private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
-        {
-            // Let's overwrite modifiers for interface and explicit interface implementation methods with what they are supposed to be. 
-            // Proper errors must have been reported by now.
-            if (containingTypeIsInterface)
-            {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, hasBody,
-                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation);
-            }
-            else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
-            {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Private;
-            }
-            return mods;
-        }
-
-        private const DeclarationModifiers PartialMethodExtendedModifierMask =
-            DeclarationModifiers.Virtual |
-            DeclarationModifiers.Override |
-            DeclarationModifiers.New |
-            DeclarationModifiers.Sealed |
-            DeclarationModifiers.Extern;
-
-        internal bool HasExtendedPartialModifier => (DeclarationModifiers & PartialMethodExtendedModifierMask) != 0;
-
-        private void CheckModifiers(bool isExplicitInterfaceImplementation, bool isVararg, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
-            Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
-
-            bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
-
-            if (IsPartial && HasExplicitAccessModifier)
-            {
-                Binder.CheckFeatureAvailability(SyntaxNode, MessageID.IDS_FeatureExtendedPartialMethods, diagnostics, location);
-            }
-
-            if (IsPartial && IsAbstract)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
-            }
-            else if (IsPartial && !HasExplicitAccessModifier && !ReturnsVoid)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, location, this);
-            }
-            else if (IsPartial && !HasExplicitAccessModifier && HasExtendedPartialModifier)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, location, this);
-            }
-            else if (IsPartial && !HasExplicitAccessModifier && Parameters.Any(static p => p.RefKind == RefKind.Out))
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, location, this);
-            }
-            else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
-            {
-                diagnostics.Add(ErrorCode.ERR_VirtualPrivate, location, this);
-            }
-            else if (IsOverride && (IsNew || IsVirtual))
-            {
-                // A member '{0}' marked as override cannot be marked as new or virtual
-                diagnostics.Add(ErrorCode.ERR_OverrideNotNew, location, this);
-            }
-            else if (IsSealed && !IsOverride && !(isExplicitInterfaceImplementationInInterface && IsAbstract))
-            {
-                // '{0}' cannot be sealed because it is not an override
-                diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
-            }
-            else if (IsSealed && ContainingType.TypeKind == TypeKind.Struct)
-            {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.SealedKeyword));
-            }
-            else if (ReturnType.IsStatic)
-            {
-                // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), location, ReturnType);
-            }
-            else if (IsAbstract && IsExtern)
-            {
-                diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
-            }
-            else if (IsAbstract && IsSealed && !isExplicitInterfaceImplementationInInterface)
-            {
-                diagnostics.Add(ErrorCode.ERR_AbstractAndSealed, location, this);
-            }
-            else if (IsAbstract && IsVirtual)
-            {
-                diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
-            }
-            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
-            {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
-            }
-            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
-            {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
-            }
-            else if (IsStatic && IsDeclaredReadOnly)
-            {
-                // Static member '{0}' cannot be marked 'readonly'.
-                diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
-            }
-            else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
-            {
-                // '{0}' is abstract but it is contained in non-abstract type '{1}'
-                diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
-            }
-            else if (IsVirtual && ContainingType.IsSealed)
-            {
-                // '{0}' is a new virtual member in sealed type '{1}'
-                diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
-            }
-            else if (!hasBody && IsAsync)
-            {
-                diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
-            }
-            else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
-            {
-                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
-            }
-            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
-            {
-                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
-            }
-            else if (ContainingType.IsStatic && !IsStatic)
-            {
-                diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
-            }
-            else if (isVararg && (IsGenericMethod || ContainingType.IsGenericType || Parameters.Length > 0 && Parameters[Parameters.Length - 1].IsParams))
-            {
-                diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
-            }
-            else if (isVararg && IsAsync)
-            {
-                diagnostics.Add(ErrorCode.ERR_VarargsAsync, location);
-            }
-        }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {

@@ -36,14 +36,13 @@ namespace ns4 {}
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (4,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // global using ns1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using ns1;").WithArguments("global using directive", "10.0").WithLocation(4, 1),
-                // (6,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // global using ns3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using ns3;").WithArguments("global using directive", "10.0").WithLocation(6, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global").WithArguments("global using directive", "10.0").WithLocation(4, 1),
                 // (6,1): error CS8915: A global using directive must precede all non-global using directives.
                 // global using ns3;
-                Diagnostic(ErrorCode.ERR_GlobalUsingOutOfOrder, "global").WithLocation(6, 1)
-                );
+                Diagnostic(ErrorCode.ERR_GlobalUsingOutOfOrder, "global").WithLocation(6, 1),
+                // (6,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // global using ns3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global").WithArguments("global using directive", "10.0").WithLocation(6, 1));
 
             CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (6,1): error CS8915: A global using directive must precede all non-global using directives.
@@ -3482,9 +3481,6 @@ class C1
 
             var expected1 = @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3506,23 +3502,21 @@ class C1
   </methods>
 </symbols>
 ";
-            var comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + usings + source, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected1);
+            var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
+            var comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + usings + source, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected1, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected1);
+            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected1, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected1);
+            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected1, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected1);
+            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected1, options: PdbValidationOptions.ExcludeDocuments);
 
             var expected2 = @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3543,23 +3537,20 @@ class C1
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + source, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected2);
+            comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + source, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected2, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected2);
+            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + source, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected2, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected2);
+            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected2, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected2);
+            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected2, options: PdbValidationOptions.ExcludeDocuments);
 
             var expected3 = @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3579,23 +3570,20 @@ class C1
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(globalUsings1 + globalUsings2 + usings + source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected3);
+            comp = CreateCompilation(globalUsings1 + globalUsings2 + usings + source, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected3, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected3);
+            comp = CreateCompilation(new[] { globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected3, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected3);
+            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected3, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected3);
+            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected3, options: PdbValidationOptions.ExcludeDocuments);
 
             var expected4 = @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3614,24 +3602,21 @@ class C1
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(globalUsings1 + globalUsings2 + source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected4);
+            comp = CreateCompilation(globalUsings1 + globalUsings2 + source, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected4, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { globalUsings1 + filler + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected4);
+            comp = CreateCompilation(new[] { globalUsings1 + filler + source, globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected4, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected4);
+            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected4, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected4);
+            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected4, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.VerifyPdb("C1.Main", @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3645,7 +3630,7 @@ class C1
     </method>
   </methods>
 </symbols>
-");
+", options: PdbValidationOptions.ExcludeDocuments);
         }
 
         [Fact]
@@ -3692,9 +3677,6 @@ namespace NS
 
             var expected1 = @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3716,23 +3698,21 @@ namespace NS
   </methods>
 </symbols>
 ";
-            var comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + usings + source, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected1);
+            var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
+            var comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + usings + source, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected1, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected1);
+            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected1, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected1);
+            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected1, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected1);
+            comp = CreateCompilation(new[] { externAlias + usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected1, options: PdbValidationOptions.ExcludeDocuments);
 
             var expected2 = @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3753,23 +3733,20 @@ namespace NS
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + source, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected2);
+            comp = CreateCompilation(externAlias + globalUsings1 + globalUsings2 + source, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected2, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected2);
+            comp = CreateCompilation(new[] { externAlias + globalUsings1 + filler + source, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected2, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected2);
+            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected2, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview, references: new[] { extCompRef });
-            comp.VerifyPdb("C1.Main", expected2);
+            comp = CreateCompilation(new[] { externAlias + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions, references: new[] { extCompRef });
+            comp.VerifyPdb("C1.Main", expected2, options: PdbValidationOptions.ExcludeDocuments);
 
             var expected3 = @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3789,23 +3766,20 @@ namespace NS
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(globalUsings1 + globalUsings2 + usings + source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected3);
+            comp = CreateCompilation(globalUsings1 + globalUsings2 + usings + source, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected3, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected3);
+            comp = CreateCompilation(new[] { globalUsings1 + filler + usings + source, globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected3, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected3);
+            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected3, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected3);
+            comp = CreateCompilation(new[] { usings + filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected3, options: PdbValidationOptions.ExcludeDocuments);
 
             var expected4 = @"
 <symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
   <methods>
     <method containingType=""C1"" name=""Main"">
       <customDebugInfo>
@@ -3824,17 +3798,17 @@ namespace NS
   </methods>
 </symbols>
 ";
-            comp = CreateCompilation(globalUsings1 + globalUsings2 + source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected4);
+            comp = CreateCompilation(globalUsings1 + globalUsings2 + source, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected4, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { globalUsings1 + filler + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected4);
+            comp = CreateCompilation(new[] { globalUsings1 + filler + source, globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected4, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected4);
+            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1 + globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected4, options: PdbValidationOptions.ExcludeDocuments);
 
-            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyPdb("C1.Main", expected4);
+            comp = CreateCompilation(new[] { filler + filler + source, globalUsings1, globalUsings2 }, parseOptions: parseOptions);
+            comp.VerifyPdb("C1.Main", expected4, options: PdbValidationOptions.ExcludeDocuments);
         }
 
         [Fact]
@@ -5009,6 +4983,122 @@ class C2 {}
             model = comp.GetSemanticModel(tree);
             Assert.Equal("alias1=C1", model.GetSpeculativeAliasInfo(tree.GetRoot().Span.End, alias1, SpeculativeBindingOption.BindAsExpression).ToTestDisplayString());
             Assert.Equal("alias1=C1", model.GetSpeculativeAliasInfo(tree.GetRoot().Span.End, alias1, SpeculativeBindingOption.BindAsTypeOrNamespace).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GlobalAliasToType1()
+        {
+            var source1 = @"
+global using X = int;
+";
+            var source2 = @"
+class C
+{
+    X Goo(int i) => i;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // 0.cs(2,18): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // global using X = int;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "int").WithArguments("using type alias", "12.0").WithLocation(2, 18));
+
+            CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType_CompilationOptionOff()
+        {
+            var source1 = @"
+global using unsafe X = int*;
+";
+            var source2 = @"
+class C
+{
+    unsafe X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // global using unsafe X = int*;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 14),
+                // (4,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe X Goo() => default;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo").WithLocation(4, 14));
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType_CompilationOptionOn_CSharp11()
+        {
+            var source1 = @"
+global using unsafe X = int*;
+";
+            var source2 = @"
+class C
+{
+    unsafe X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // 0.cs(2,14): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // global using unsafe X = int*;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(2, 14));
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType1()
+        {
+            var source1 = @"
+global using unsafe X = int*;
+";
+            var source2 = @"
+class C
+{
+    X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (4,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     X Goo() => default;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(4, 5));
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType2()
+        {
+            var source1 = @"
+global using X = int*;
+";
+            var source2 = @"
+class C
+{
+    unsafe X Goo() => default;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // global using X = int*;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 18));
+        }
+
+        [Fact]
+        public void GlobalAliasToUnsafeType3()
+        {
+            var source1 = @"
+global using unsafe X = int*;
+";
+            var source2 = @"
+class C
+{
+    unsafe X Goo(int* p) => p;
+}
+";
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
     }
 }

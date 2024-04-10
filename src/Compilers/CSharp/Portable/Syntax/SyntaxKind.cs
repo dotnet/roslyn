@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <c>..</c> token.</summary>
         DotDotToken = 8222,
 
+        // Values ranging from 8193 (TildeToken) to 8287 (GreaterThanGreaterThanGreaterThanEqualsToken) are reserved for punctuation kinds.
+        // This gap is included within that range. So if you add a value here make sure `SyntaxFacts.GetPunctuationKinds` includes it in the returned enumeration
+
         // additional xml tokens
         /// <summary>Represents <c>/&gt;</c> token.</summary>
         SlashGreaterThanToken = 8232, // xml empty element end
@@ -94,6 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlProcessingInstructionStartToken = 8238, // <?
         /// <summary>Represents <c>?&gt;</c> token.</summary>
         XmlProcessingInstructionEndToken = 8239, // ?>
+
+        // Values ranging from 8193 (TildeToken) to 8287 (GreaterThanGreaterThanGreaterThanEqualsToken) are reserved for punctuation kinds.
+        // This gap is included within that range. So if you add a value here make sure `SyntaxFacts.GetPunctuationKinds` includes it in the returned enumeration
 
         // compound punctuation
         /// <summary>Represents <c>||</c> token.</summary>
@@ -907,5 +913,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedSingleLineRawStringStartToken = 9072,   // $"""
         InterpolatedMultiLineRawStringStartToken = 9073,    // $""" (whitespace and newline are included in the Text for this token)
         InterpolatedRawStringEndToken = 9074,               // """ (preceding whitespace and newline are included in the Text for this token)
+
+        ScopedType = 9075,
+
+        CollectionExpression = 9076,
+        ExpressionElement = 9077,
+        SpreadElement = 9078,
     }
 }

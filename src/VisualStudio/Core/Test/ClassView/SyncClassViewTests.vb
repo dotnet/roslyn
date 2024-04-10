@@ -11,12 +11,14 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
-    <[UseExportProvider]>
+
+    <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.ClassView)>
     Public Class SyncClassViewTests
 
 #Region "C# Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestClass1()
             Dim workspace =
 <Workspace>
@@ -34,12 +36,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestClass2()
             Dim workspace =
 <Workspace>
@@ -56,12 +58,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestClass3()
             Dim workspace =
 <Workspace>
@@ -78,12 +80,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestClass4()
             Dim workspace =
 <Workspace>
@@ -100,12 +102,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestClass5()
             Dim workspace =
 <Workspace>
@@ -125,12 +127,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestClassInNestedNamespaces1()
             Dim workspace =
 <Workspace>
@@ -150,12 +152,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("X.Y"),
-                [Class]("C"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("X.Y"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestClassInNestedNamespaces2()
             Dim workspace =
 <Workspace>
@@ -178,12 +180,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("X.Y"),
-                [Class]("C"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("X.Y"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestMethod1()
             Dim workspace =
 <Workspace>
@@ -203,13 +205,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestMethod2()
             Dim workspace =
 <Workspace>
@@ -229,13 +231,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestMethod3()
             Dim workspace =
 <Workspace>
@@ -255,13 +257,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestMethod4()
             Dim workspace =
 <Workspace>
@@ -281,13 +283,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestMethod5()
             Dim workspace =
 <Workspace>
@@ -307,13 +309,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestField1()
             Dim workspace =
 <Workspace>
@@ -331,13 +333,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("i"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("i"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestField2()
             Dim workspace =
 <Workspace>
@@ -355,13 +357,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("i"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("i"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestProperty1()
             Dim workspace =
 <Workspace>
@@ -379,13 +381,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("P"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("P"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestProperty2()
             Dim workspace =
 <Workspace>
@@ -403,13 +405,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("P"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("P"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestEvent1()
             Dim workspace =
 <Workspace>
@@ -427,13 +429,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("E"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("E"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub CSharp_TestEvent2()
             Dim workspace =
 <Workspace>
@@ -451,17 +453,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("CSharpTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("E"))
+                PackageNode("CSharpTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("E"))
         End Sub
 
 #End Region
 
 #Region "Visual Basic Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestClass1()
             Dim workspace =
 <Workspace>
@@ -477,12 +479,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestClass2()
             Dim workspace =
 <Workspace>
@@ -497,12 +499,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestClass3()
             Dim workspace =
 <Workspace>
@@ -517,12 +519,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestClass4()
             Dim workspace =
 <Workspace>
@@ -537,12 +539,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestClass5()
             Dim workspace =
 <Workspace>
@@ -559,12 +561,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestClassInNestedNamespaces1()
             Dim workspace =
 <Workspace>
@@ -581,12 +583,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("X.Y"),
-                [Class]("C"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("X.Y"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestClassInNestedNamespaces2()
             Dim workspace =
 <Workspace>
@@ -605,12 +607,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("X.Y"),
-                [Class]("C"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("X.Y"),
+                ClassNode("C"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestMethod1()
             Dim workspace =
 <Workspace>
@@ -628,13 +630,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestMethod2()
             Dim workspace =
 <Workspace>
@@ -651,13 +653,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestMethod3()
             Dim workspace =
 <Workspace>
@@ -674,13 +676,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestMethod4()
             Dim workspace =
 <Workspace>
@@ -697,13 +699,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestMethod5()
             Dim workspace =
 <Workspace>
@@ -720,13 +722,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("M()"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("M()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestField1()
             Dim workspace =
 <Workspace>
@@ -742,13 +744,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("i As Integer"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("i As Integer"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestField2()
             Dim workspace =
 <Workspace>
@@ -764,13 +766,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("i As Integer"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("i As Integer"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestProperty1()
             Dim workspace =
 <Workspace>
@@ -786,13 +788,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("P As Integer"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("P As Integer"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestProperty2()
             Dim workspace =
 <Workspace>
@@ -808,13 +810,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("P As Integer"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("P As Integer"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestEvent1()
             Dim workspace =
 <Workspace>
@@ -830,13 +832,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("E()"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("E()"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
+        <WpfFact>
         Public Sub VisualBasic_TestEvent2()
             Dim workspace =
 <Workspace>
@@ -852,10 +854,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Test(workspace,
-                Package("VBTestAssembly"),
-                [Namespace]("N"),
-                [Class]("C"),
-                Member("E()"))
+                PackageNode("VBTestAssembly"),
+                NamespaceNode("N"),
+                ClassNode("C"),
+                MemberNode("E()"))
         End Sub
 
 #End Region
@@ -865,7 +867,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
             ParamArray presentationNodes As NodeVerifier()
         )
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 

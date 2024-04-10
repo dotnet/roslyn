@@ -12,6 +12,7 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
@@ -22,8 +23,10 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -31,9 +34,14 @@ using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.VisualBasic.CodeGeneration;
 using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
+using Microsoft.CodeAnalysis.VisualBasic.Formatting;
+using Microsoft.CodeAnalysis.VisualBasic.Simplification;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -45,13 +53,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     {
         public static IEnumerable<object[]> AllServiceDescriptors
             => ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC, descriptor.Value.descriptorCoreClr64, descriptor.Value.descriptorCoreClr64ServerGC });
+                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptorCoreClr64, descriptor.Value.descriptorCoreClr64ServerGC });
 
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
 
-            foreach (var (serviceType, (descriptor, _, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
+            foreach (var (serviceType, (descriptor, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
             {
                 interfaces.Add(serviceType);
                 if (descriptor.ClientInterface != null)
@@ -142,6 +150,54 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return types;
         }
 
+        public static IEnumerable<object[]> GetEncodingTestCases()
+            => EncodingTestHelpers.GetEncodingTestCases();
+
+        [Theory]
+        [MemberData(nameof(GetEncodingTestCases))]
+        public void EncodingIsMessagePackSerializable(Encoding original)
+        {
+            var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+
+            using var stream = new MemoryStream();
+            MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+            stream.Position = 0;
+
+            var deserialized = (Encoding)MessagePackSerializer.Deserialize(typeof(Encoding), stream, messagePackOptions);
+            EncodingTestHelpers.AssertEncodingsEqual(original, deserialized);
+        }
+
+        private sealed class TestEncoderFallback : EncoderFallback
+        {
+            public override int MaxCharCount => throw new NotImplementedException();
+            public override EncoderFallbackBuffer CreateFallbackBuffer() => throw new NotImplementedException();
+        }
+
+        private sealed class TestDecoderFallback : DecoderFallback
+        {
+            public override int MaxCharCount => throw new NotImplementedException();
+            public override DecoderFallbackBuffer CreateFallbackBuffer() => throw new NotImplementedException();
+        }
+
+        [Fact]
+        public void EncodingIsMessagePackSerializable_WithCustomFallbacks()
+        {
+            var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+
+            var original = Encoding.GetEncoding(Encoding.ASCII.CodePage, new TestEncoderFallback(), new TestDecoderFallback());
+
+            using var stream = new MemoryStream();
+            MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+            stream.Position = 0;
+
+            var deserialized = (Encoding)MessagePackSerializer.Deserialize(typeof(Encoding), stream, messagePackOptions);
+            Assert.NotEqual(original, deserialized);
+
+            // original throws from the custom fallback, deserialized has the default fallback:
+            Assert.Throws<NotImplementedException>(() => original.GetBytes("\u1234"));
+            AssertEx.Equal(new byte[] { 0x3f }, deserialized.GetBytes("\u1234"));
+        }
+
         [Fact]
         public void OptionsAreMessagePackSerializable_LanguageAgnostic()
         {
@@ -189,13 +245,56 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 ExtractMethodGenerationOptions.GetDefault(languageServices),
 
                 // some non-default values:
-                new VisualBasicIdeCodeStyleOptions(
-                    new IdeCodeStyleOptions.CommonOptions()
-                    {
-                        AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
-                    },
-                    PreferredModifierOrder: new CodeStyleOption2<string>("Public Private", NotificationOption2.Error))
 
+                new CSharpSyntaxFormattingOptions()
+                {
+                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always,
+                    Indentation = IndentationPlacement.SwitchSection
+                },
+
+                new CSharpSimplifierOptions()
+                {
+                    QualifyFieldAccess = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
+                },
+
+                new CSharpCodeGenerationOptions()
+                {
+                    NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference(),
+                    PreferExpressionBodiedIndexers = new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.Error)
+                },
+
+                new CSharpSyntaxFormattingOptions()
+                {
+                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always,
+                    NewLines = NewLinePlacement.BeforeFinally
+                },
+
+                new CSharpIdeCodeStyleOptions()
+                {
+                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(true, NotificationOption2.Error),
+                    PreferConditionalDelegateCall = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
+                },
+
+                new VisualBasicSyntaxFormattingOptions()
+                {
+                    AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
+                },
+
+                new VisualBasicSimplifierOptions()
+                {
+                    QualifyFieldAccess = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
+                },
+
+                new VisualBasicCodeGenerationOptions()
+                {
+                    NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
+                },
+
+                new VisualBasicIdeCodeStyleOptions()
+                {
+                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error),
+                    PreferredModifierOrder = new CodeStyleOption2<string>("Public Private", NotificationOption2.Error)
+                }
             };
 
             foreach (var original in options)
@@ -264,20 +363,16 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [MemberData(nameof(AllServiceDescriptors))]
         internal void GetFeatureDisplayName(
             Type serviceInterface,
-            ServiceDescriptor descriptor64,
-            ServiceDescriptor descriptor64ServerGC,
             ServiceDescriptor descriptorCoreClr64,
             ServiceDescriptor descriptorCoreClr64ServerGC)
         {
             Assert.NotNull(serviceInterface);
 
-            var expectedName = descriptor64.GetFeatureDisplayName();
+            var expectedName = descriptorCoreClr64.GetFeatureDisplayName();
 
             // The service name couldn't be found. It may need to be added to RemoteWorkspacesResources.resx as FeatureName_{name}
             Assert.False(string.IsNullOrEmpty(expectedName), $"Service name for '{serviceInterface.GetType()}' not available.");
 
-            Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());
-            Assert.Equal(expectedName, descriptorCoreClr64.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptorCoreClr64ServerGC.GetFeatureDisplayName());
         }
 
@@ -288,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>();
 
             var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-                .Where(d => d.Value.descriptor64.ClientInterface != null).Select(d => d.Key);
+                .Where(d => d.Value.descriptorCoreClr64.ClientInterface != null).Select(d => d.Key);
 
             var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
             AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);

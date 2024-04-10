@@ -12,109 +12,108 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract class AbstractRenameTagger<T> : ITagger<T>, IDisposable where T : ITag
 {
-    internal abstract class AbstractRenameTagger<T> : ITagger<T>, IDisposable where T : ITag
+    private readonly ITextBuffer _buffer;
+    private readonly InlineRenameService _renameService;
+
+    private InlineRenameSession.OpenTextBufferManager _bufferManager;
+    private IEnumerable<RenameTrackingSpan> _currentSpans;
+
+    protected AbstractRenameTagger(ITextBuffer buffer, InlineRenameService renameService)
     {
-        private readonly ITextBuffer _buffer;
-        private readonly InlineRenameService _renameService;
+        _buffer = buffer;
+        _renameService = renameService;
 
-        private InlineRenameSession.OpenTextBufferManager _bufferManager;
-        private IEnumerable<RenameTrackingSpan> _currentSpans;
+        _renameService.ActiveSessionChanged += OnActiveSessionChanged;
 
-        protected AbstractRenameTagger(ITextBuffer buffer, InlineRenameService renameService)
+        if (_renameService.ActiveSession != null)
         {
-            _buffer = buffer;
-            _renameService = renameService;
+            AttachToSession(_renameService.ActiveSession);
+        }
+    }
 
-            _renameService.ActiveSessionChanged += OnActiveSessionChanged;
-
-            if (_renameService.ActiveSession != null)
-            {
-                AttachToSession(_renameService.ActiveSession);
-            }
+    private void OnActiveSessionChanged(object sender, InlineRenameService.ActiveSessionChangedEventArgs e)
+    {
+        if (e.PreviousSession != null)
+        {
+            DetachFromSession();
         }
 
-        private void OnActiveSessionChanged(object sender, InlineRenameService.ActiveSessionChangedEventArgs e)
+        if (_renameService.ActiveSession != null)
         {
-            if (e.PreviousSession != null)
-            {
-                DetachFromSession();
-            }
-
-            if (_renameService.ActiveSession != null)
-            {
-                AttachToSession(_renameService.ActiveSession);
-            }
+            AttachToSession(_renameService.ActiveSession);
         }
+    }
 
-        private void AttachToSession(InlineRenameSession session)
+    private void AttachToSession(InlineRenameSession session)
+    {
+        if (session.TryGetBufferManager(_buffer, out _bufferManager))
         {
-            if (session.TryGetBufferManager(_buffer, out _bufferManager))
-            {
-                _bufferManager.SpansChanged += OnSpansChanged;
-                OnSpansChanged();
-            }
+            _bufferManager.SpansChanged += OnSpansChanged;
+            OnSpansChanged();
         }
+    }
 
-        private void DetachFromSession()
+    private void DetachFromSession()
+    {
+        if (_bufferManager != null)
         {
-            if (_bufferManager != null)
-            {
-                RaiseTagsChangedForEntireBuffer();
-
-                _bufferManager.SpansChanged -= OnSpansChanged;
-                _bufferManager = null;
-                _currentSpans = null;
-            }
-        }
-
-        private void OnSpansChanged()
-        {
-            _currentSpans = _bufferManager.GetRenameTrackingSpans();
             RaiseTagsChangedForEntireBuffer();
+
+            _bufferManager.SpansChanged -= OnSpansChanged;
+            _bufferManager = null;
+            _currentSpans = null;
+        }
+    }
+
+    private void OnSpansChanged()
+    {
+        _currentSpans = _bufferManager.GetRenameTrackingSpans();
+        RaiseTagsChangedForEntireBuffer();
+    }
+
+    private void RaiseTagsChangedForEntireBuffer()
+        => TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_buffer.CurrentSnapshot.GetFullSpan()));
+
+    public void Dispose()
+    {
+        _renameService.ActiveSessionChanged -= OnActiveSessionChanged;
+
+        if (_renameService.ActiveSession != null)
+        {
+            DetachFromSession();
+        }
+    }
+
+    public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+    public IEnumerable<ITagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
+    {
+        if (_renameService.ActiveSession == null)
+        {
+            yield break;
         }
 
-        private void RaiseTagsChangedForEntireBuffer()
-            => TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_buffer.CurrentSnapshot.GetFullSpan()));
-
-        public void Dispose()
+        var renameSpans = _currentSpans;
+        if (renameSpans != null)
         {
-            _renameService.ActiveSessionChanged -= OnActiveSessionChanged;
-
-            if (_renameService.ActiveSession != null)
+            var snapshot = spans.First().Snapshot;
+            foreach (var renameSpan in renameSpans)
             {
-                DetachFromSession();
-            }
-        }
-
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
-
-        public IEnumerable<ITagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
-        {
-            if (_renameService.ActiveSession == null)
-            {
-                yield break;
-            }
-
-            var renameSpans = _currentSpans;
-            if (renameSpans != null)
-            {
-                var snapshot = spans.First().Snapshot;
-                foreach (var renameSpan in renameSpans)
+                var span = renameSpan.TrackingSpan.GetSpan(snapshot);
+                if (spans.OverlapsWith(span))
                 {
-                    var span = renameSpan.TrackingSpan.GetSpan(snapshot);
-                    if (spans.OverlapsWith(span))
+                    if (TryCreateTagSpan(span, renameSpan.Type, out var tagSpan))
                     {
-                        if (TryCreateTagSpan(span, renameSpan.Type, out var tagSpan))
-                        {
-                            yield return tagSpan;
-                        }
+                        yield return tagSpan;
                     }
                 }
             }
         }
-
-        protected abstract bool TryCreateTagSpan(SnapshotSpan span, RenameSpanKind type, out TagSpan<T> tagSpan);
     }
+
+    protected abstract bool TryCreateTagSpan(SnapshotSpan span, RenameSpanKind type, out TagSpan<T> tagSpan);
 }

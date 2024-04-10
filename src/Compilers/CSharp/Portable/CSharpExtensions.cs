@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis
             return nodeOrToken.RawKind == (int)kind;
         }
 
+        /// <inheritdoc cref="SyntaxNode.ContainsDirective"/>
+        public static bool ContainsDirective(this SyntaxNode node, SyntaxKind kind)
+            => node.ContainsDirective((int)kind);
+
         internal static SyntaxKind ContextualKind(this SyntaxToken token)
         {
             return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
@@ -848,6 +852,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets the underlying element <see cref="Conversion"/> information from this <see cref="ISpreadOperation"/>.
+        /// </summary>
+        /// <remarks>
+        /// This spread operation must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetElementConversion(this ISpreadOperation spread)
+        {
+            if (spread == null)
+            {
+                throw new ArgumentNullException(nameof(spread));
+            }
+
+            if (spread.Language == LanguageNames.CSharp)
+            {
+                return (Conversion)((SpreadOperation)spread).ElementConversionConvertible;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ISpreadOperationIsNotCSharpSpread, nameof(spread)), nameof(spread));
+            }
+        }
+
         public static Conversion GetSpeculativeConversion(this SemanticModel? semanticModel, int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -1550,19 +1577,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(forEachStatement);
         }
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(catchDeclaration, cancellationToken);
+            return csmodel?.GetDeclaredSymbol(catchDeclaration);
         }
 
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
@@ -1587,6 +1618,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a local function declaration syntax, get the corresponding symbol.
+        /// </summary>
+#pragma warning disable RS0026
+        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, LocalFunctionStatementSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(node, cancellationToken);
+        }
+
+        /// <summary>If the call represented by <paramref name="node"/> is referenced in an InterceptsLocationAttribute, returns the original definition symbol which is decorated with that attribute. Otherwise, returns null.</summary>
+        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        public static IMethodSymbol? GetInterceptorMethod(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
+        {
+            var csModel = semanticModel as CSharpSemanticModel;
+            return csModel?.GetInterceptorMethod(node, cancellationToken);
         }
         #endregion
     }

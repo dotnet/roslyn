@@ -44,7 +44,7 @@ JSON,
 JSON 문자열 색상 지정,
 잘못된 JSON 문자열 보고,
 감지 및 제공 JSON 문자열용 편집기 기능,
-파일 열기 시 #region 축소,
+파일 열기 시 #regions 축소,
 파일 열기 시 가져오기 축소,
 파일 열기 시 메타데이터 구현 축소,
 향상된 색상 사용, 편집기 색상 구성표, 상속 여백, 지시문 가져오기,</target>
@@ -129,16 +129,6 @@ JSON 문자열 색상 지정,
         <source>Visual Basic Tools</source>
         <target state="translated">Visual Basic 도구</target>
         <note>Help &gt; About</note>
-      </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">비어 있는 Visual Basic 스크립트 파일입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Visual Basic 스크립트</target>
-        <note />
       </trans-unit>
     </body>
   </file>

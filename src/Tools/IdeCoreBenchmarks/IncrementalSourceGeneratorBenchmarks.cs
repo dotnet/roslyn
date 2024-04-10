@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -43,7 +42,6 @@ namespace IdeCoreBenchmarks
         public void GlobalSetup()
         {
             RestoreCompilerSolution();
-            SetUpWorkspace();
         }
 
         [IterationSetup]
@@ -52,20 +50,11 @@ namespace IdeCoreBenchmarks
         private void RestoreCompilerSolution()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"Compilers.sln");
+            _solutionPath = Path.Combine(roslynRoot, @"Compilers.slnf");
             var restoreOperation = Process.Start("dotnet", $"restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true {_solutionPath}");
             restoreOperation.WaitForExit();
             if (restoreOperation.ExitCode != 0)
                 throw new ArgumentException($"Unable to restore {_solutionPath}");
-        }
-
-        private static void SetUpWorkspace()
-        {
-            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
-            // installations on .NET Core. We use the one with the most recent version.
-            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
-
-            MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
         private Task LoadSolutionAsync()

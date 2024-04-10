@@ -67,11 +67,6 @@
         <target state="translated">Vložte chybějící {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Dočasná vložená proměnná</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
         <target state="translated">Zjistily se konflikty.</target>
@@ -1457,11 +1452,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
         <target state="translated">Povolí hlášení určených upozornění v části zdrojového souboru pod aktuálním řádkem.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_an_Async_Function">
-        <source>Make {0} an Async Function.</source>
-        <target state="translated">Převeď {0} na asynchronní funkci Async.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
         <target state="translated">Použít správnou řídicí proměnnou</target>
@@ -1741,16 +1731,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
         <source>{0}.set</source>
         <target state="translated">{0}.set</target>
         <note>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</note>
-      </trans-unit>
-      <trans-unit id="Make_Async_Function">
-        <source>Make Async Function</source>
-        <target state="translated">Převést na asynchronní funkci</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_Async_Sub">
-        <source>Make Async Sub</source>
-        <target state="translated">Převést na asynchronní proceduru Sub</target>
-        <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>

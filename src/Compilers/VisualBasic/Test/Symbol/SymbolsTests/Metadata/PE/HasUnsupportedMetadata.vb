@@ -155,7 +155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 } // end of class C3
 ]]>
 
-
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
     <compilation name="Test">
         <file name="a.vb">
@@ -364,7 +363,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 } // end of class X
 
 ]]>
-
 
             Dim compilation1 = CompilationUtils.CreateCompilationWithCustomILSource(
     <compilation name="Test">

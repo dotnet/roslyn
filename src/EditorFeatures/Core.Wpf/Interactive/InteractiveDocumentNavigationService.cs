@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
             => SpecializedTasks.True;
 
-        public Task<bool> CanNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
-            => SpecializedTasks.False;
-
         public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
@@ -54,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             if (document is null)
                 return null;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
             if (textSnapshot == null)
                 return null;
@@ -85,9 +82,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return true;
             });
         }
-
-        public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<INavigableLocation>();
 
         public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => SpecializedTasks.Null<INavigableLocation>();

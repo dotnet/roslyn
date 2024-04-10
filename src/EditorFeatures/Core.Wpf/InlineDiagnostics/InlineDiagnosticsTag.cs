@@ -18,12 +18,11 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
-using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    internal class InlineDiagnosticsTag : GraphicsTag, IEndOfLineAdornmentTag
+    internal class InlineDiagnosticsTag : GraphicsTag
     {
         public const string TagID = "inline diagnostics - ";
         public readonly string ErrorType;
@@ -35,16 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         private readonly IClassificationType? _classificationType;
-
-        public string Type => "Inline Diagnostics";
-
-        public double HorizontalOffset => double.NaN;
-
-        public double VerticalOffset => double.NaN;
-
-        public double Width => double.NaN;
-
-        public double Height => double.NaN;
 
         public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap,
             IClassificationFormatMapService classificationFormatMapService, IClassificationTypeRegistryService classificationTypeRegistryService,

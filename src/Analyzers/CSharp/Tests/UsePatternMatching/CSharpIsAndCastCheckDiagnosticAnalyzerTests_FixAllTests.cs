@@ -10,74 +10,83 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
     public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task FixAllInDocument1()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            {|FixAllInDocument:var|} v1 = (string)x;
+                """
+                class C
+                {
+                    void M()
+                    {
+                        if (x is string)
+                        {
+                            {|FixAllInDocument:var|} v1 = (string)x;
+                        }
+
+                        if (x is bool)
+                        {
+                            var v2 = (bool)x;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        if (x is string v1)
+                        {
+                        }
+
+                        if (x is bool v2)
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
-        if (x is bool)
-        {
-            var v2 = (bool)x;
-        }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (x is string v1)
-        {
-        }
-
-        if (x is bool v2)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact]
         public async Task FixAllInDocument2()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (x is string)
-        {
-            var v1 = (string)x;
-        }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        if (x is string)
+                        {
+                            var v1 = (string)x;
+                        }
 
-        if (x is bool)
-        {
-            {|FixAllInDocument:var|} v2 = (bool)x;
-        }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (x is string v1)
-        {
-        }
+                        if (x is bool)
+                        {
+                            {|FixAllInDocument:var|} v2 = (bool)x;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    void M()
+                    {
+                        if (x is string v1)
+                        {
+                        }
 
-        if (x is bool v2)
-        {
-        }
-    }
-}");
+                        if (x is bool v2)
+                        {
+                        }
+                    }
+                }
+                """);
         }
     }
 }

@@ -17,7 +17,6 @@
 #define REFERENCE_STATE
 #endif
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -186,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _trackStaticMembers = trackStaticMembers;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         internal DefiniteAssignmentPass(
@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         /// <summary>
@@ -225,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            State = new LocalState(BitVector.Empty);
         }
 
         private static SourceAssemblySymbol? GetSourceAssembly(
@@ -332,10 +334,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             _alreadyReported = BitVector.Empty;           // no variables yet reported unassigned
             this.regionPlace = RegionPlace.Before;
             EnterParameters(methodParameters);               // with parameters assigned
+
+            switch (_symbol)
+            {
+                case MethodSymbol { IsStatic: false, ContainingSymbol: SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } } and
+                     (not SynthesizedPrimaryConstructor):
+                    {
+                        var save = CurrentSymbol;
+                        CurrentSymbol = primaryConstructor;
+
+                        // All primary constructor parameters are definitely assigned outside of the primary constructor
+                        foreach (var parameter in primaryConstructor.Parameters)
+                        {
+                            NoteWrite(parameter, value: null, read: true);
+                        }
+
+                        CurrentSymbol = save;
+                    }
+                    break;
+
+                case (FieldSymbol or PropertySymbol) and { IsStatic: false, ContainingSymbol: SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } }:
+                    EnterParameters(primaryConstructor.Parameters);               // with parameters assigned
+                    break;
+            }
+
             if ((object)methodThisParameter != null)
             {
                 EnterParameter(methodThisParameter);
-                if (methodThisParameter.Type.SpecialType != SpecialType.None)
+                if (methodThisParameter.Type.SpecialType.CanOptimizeBehavior())
                 {
                     int slot = GetOrCreateSlot(methodThisParameter);
                     SetSlotState(slot, true);
@@ -381,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // much better than using its 'Location' (which is the entire span of the lambda).
                     var diagnosticLocation = CurrentSymbol is LambdaSymbol lambda
                         ? lambda.DiagnosticLocation
-                        : CurrentSymbol.Locations.FirstOrNone();
+                        : CurrentSymbol.GetFirstLocationOrNone();
 
                     Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, diagnosticLocation);
                 }
@@ -445,7 +471,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(thisSlot > 0);
                     if (!this.State.IsAssigned(thisSlot))
                     {
-                        foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameter.Type))
+                        TypeSymbol parameterType = parameter.Type;
+
+                        foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameterType))
                         {
                             if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
 
@@ -473,9 +501,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 this.AddImplicitlyInitializedField(field);
+                                reported = true;
                             }
                         }
-                        reported = true;
+
+                        if (!reported)
+                        {
+                            if (parameterType.HasInlineArrayAttribute(out int length) && length > 1 && parameterType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
+                            {
+                                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                                {
+                                    Diagnostics.Add(ErrorCode.ERR_ParamUnassigned, location, parameter.Name);
+                                }
+
+                                // Add the element field to the set of fields requiring initialization to indicate that the whole instance needs initialization.
+                                // This is done explicitly only for unreported cases, because, if something was reported, then we already have added the
+                                // element field in the set. It is the only instance field in the type.
+                                // One-length inline arrays do not need special handling because we can completely rely on the tracking around the underlying
+                                // field itself.
+                                this.AddImplicitlyInitializedField(elementField);
+                            }
+
+                            reported = true;
+                        }
                     }
                 }
 
@@ -637,7 +685,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (Symbol captured in _capturedVariables)
                 {
                     Location location;
-                    if (_unsafeAddressTakenVariables.TryGetValue(captured, out location))
+                    if (_unsafeAddressTakenVariables.TryGetValue(captured, out location) &&
+                        !(captured is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter &&
+                         primaryConstructor.GetCapturedParameters().ContainsKey(parameter))) // Primary constructor parameter captured by the type itself is not hoisted into a closure
                     {
                         Debug.Assert(captured.Kind == SymbolKind.Parameter || captured.Kind == SymbolKind.Local || captured.Kind == SymbolKind.RangeVariable);
                         diagnostics.Add(ErrorCode.ERR_LocalCantBeFixedAndHoisted, location, captured.Name);
@@ -645,17 +695,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 diagnostics.AddRange(this.Diagnostics);
-
-                if (CurrentSymbol is SynthesizedRecordConstructor)
-                {
-                    foreach (ParameterSymbol parameter in MethodParameters)
-                    {
-                        if (_readParameters?.Contains(parameter) != true)
-                        {
-                            diagnostics.Add(ErrorCode.WRN_UnreadRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
-                        }
-                    }
-                }
             }
         }
 
@@ -702,9 +741,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Tracking reads/writes of variables for warnings
 
-        private void NoteRecordParameterReadIfNeeded(Symbol symbol)
+        private void NotePrimaryConstructorParameterReadIfNeeded(Symbol symbol)
         {
-            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedRecordConstructor } parameter)
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor } parameter)
             {
                 _readParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
                 _readParameters.Add(parameter);
@@ -720,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _usedVariables.Add(local);
             }
 
-            NoteRecordParameterReadIfNeeded(variable);
+            NotePrimaryConstructorParameterReadIfNeeded(variable);
 
             var localFunction = variable as LocalFunctionSymbol;
             if ((object)localFunction != null)
@@ -794,6 +833,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NoteRead(((BoundParameter)n).ParameterSymbol);
                         return;
 
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)n;
+                            n = elementAccess.Expression;
+                            continue;
+                        }
+
                     default:
                         return;
                 }
@@ -857,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type.SpecialType != SpecialType.System_String &&
                 type is not ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte })
             {
-                return value.ConstantValue != ConstantValue.Null;
+                return value.ConstantValueOpt != ConstantValue.Null;
             }
 
             if ((object)type != null && type.IsPointerOrFunctionPointer())
@@ -870,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that used them were always considered used. We now consider interpolated strings that are
             // made up of only constant expressions to be constant values, but for backcompat we consider
             // the writes to be uses anyway.
-            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
+            if (value is { ConstantValueOpt: not null, Kind: not BoundKind.InterpolatedString }) return false;
 
             switch (value.Kind)
             {
@@ -969,6 +1015,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.RangeVariable:
                         NoteWrite(((BoundRangeVariable)n).Value, value, read);
                         return;
+
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)n;
+                            n = elementAccess.Expression;
+                            value = null;
+                            continue;
+                        }
 
                     default:
                         return;
@@ -1152,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (skipIfUseBeforeDeclaration &&
                 symbol.Kind == SymbolKind.Local &&
-                (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations.FirstOrNone().SourceSpan.Start))
+                (symbol.TryGetFirstLocation() is var location && (location is null || node.Span.End < location.SourceSpan.Start)))
             {
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.
@@ -1196,10 +1250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(CurrentSymbol is MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct });
                 if (TrackImplicitlyInitializedFields)
                 {
-#if DEBUG
                     bool foundUnassignedField = false;
-#endif
-                    foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(thisParameter.ContainingType))
+                    NamedTypeSymbol containingType = thisParameter.ContainingType;
+                    foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(containingType))
                     {
                         if (_emptyStructTypeCache.IsEmptyStructType(field.Type))
                             continue;
@@ -1211,15 +1264,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (slot == -1 || !State.IsAssigned(slot))
                         {
                             AddImplicitlyInitializedField(field);
-#if DEBUG
                             foundUnassignedField = true;
-#endif
                         }
                     }
 
-#if DEBUG
+                    if (!foundUnassignedField && containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
+                    {
+                        // Add the element field to the set of fields requiring initialization to indicate that the whole instance needs initialization.
+                        // This is done explicitly only for unreported cases, because, if something was reported, then we already have added the
+                        // element field in the set. It is the only instance field in the type.
+                        // One-length inline arrays do not need special handling because we can completely rely on the tracking around the underlying
+                        // field itself.
+                        this.AddImplicitlyInitializedField(elementField);
+                        foundUnassignedField = true;
+                    }
+
                     Debug.Assert(foundUnassignedField);
-#endif
                 }
 
                 if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
@@ -1263,7 +1323,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
                         AddImplicitlyInitializedField((FieldSymbol)fieldIdentifier.Symbol);
 
-                        if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                        if (fieldSymbol.RefKind != RefKind.None)
+                        {
+                            // 'hasAssociatedProperty' is only true here in error scenarios where we don't need to report this as a cascading diagnostic
+                            if (!hasAssociatedProperty)
+                            {
+                                Diagnostics.Add(
+                                    ErrorCode.WRN_UseDefViolationRefField,
+                                    node.Location,
+                                    symbolName);
+                            }
+                        }
+                        else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                         {
                             Diagnostics.Add(
                                 hasAssociatedProperty ? ErrorCode.WRN_UseDefViolationPropertySupportedVersion : ErrorCode.WRN_UseDefViolationFieldSupportedVersion,
@@ -1343,6 +1414,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         unassignedSlot = GetOrCreateSlot(eventAccess.EventSymbol.AssociatedField, unassignedSlot);
                         break;
+                    }
+
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)node;
+                        return IsAssigned(elementAccess.Expression, out unassignedSlot);
                     }
 
                 case BoundKind.PropertyAccess:
@@ -1430,6 +1507,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void Assign(BoundNode node, BoundExpression value, bool isRef = false, bool read = true)
         {
+            if (!isRef && node is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None } fieldAccess)
+            {
+                CheckAssigned(fieldAccess, node.Syntax);
+            }
             AssignImpl(node, value, written: true, isRef: isRef, read: read);
         }
 
@@ -1494,6 +1575,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)node;
+                        if (written)
+                        {
+                            NoteWrite(elementAccess.Expression, value: null, read);
+                        }
+
+                        if (elementAccess.Expression.Type.HasInlineArrayAttribute(out int length) &&
+                            (elementAccess.Argument.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 } ||
+                             Binder.InferConstantIndexFromSystemIndex(compilation, elementAccess.Argument, length, out _) is 0))
+                        {
+                            int slot = MakeMemberSlot(elementAccess.Expression, elementAccess.Expression.Type.TryGetInlineArrayElementField());
+                            if (slot > 0)
+                            {
+                                SetSlotState(slot, written);
+                                break;
+                            }
+                        }
+
+                        if (!written)
+                        {
+                            AssignImpl(elementAccess.Expression, value: null, isRef, written, read);
+                            int slot = MakeSlot(elementAccess.Expression);
+                            SetSlotState(slot, written);
+                        }
+
+                        break;
+                    }
+
                 case BoundKind.Parameter:
                     {
                         var paramExpr = (BoundParameter)node;
@@ -1540,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
-                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
+                    ((BoundTupleExpression)node).VisitAllElements(static (x, arg) => arg.self.Assign(x, value: null, isRef: arg.isRef), (self: this, isRef));
                     break;
 
                 default:
@@ -1559,6 +1670,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
             TypeSymbol structType = variable.Symbol.GetTypeOrReturnType().Type;
+
+            if (structType.HasInlineArrayAttribute(out int length) && length > 1 && structType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is object)
+            {
+                // An inline array of length > 1 cannot be considered fully initialized judging only based on fields.
+                return false;
+            }
+
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
@@ -1662,7 +1780,70 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState TopState()
         {
-            return new LocalState(BitVector.Empty);
+            var topState = new LocalState(BitVector.Empty);
+
+            Symbol current = CurrentSymbol;
+
+            while (current?.Kind is SymbolKind.Method or SymbolKind.Field or SymbolKind.Property)
+            {
+                if ((object)current != CurrentSymbol && current is MethodSymbol method)
+                {
+                    // Enclosing method input parameters are definitely assigned
+                    foreach (var parameter in method.Parameters)
+                    {
+                        if (parameter.RefKind != RefKind.Out)
+                        {
+                            int slot = GetOrCreateSlot(parameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
+                        }
+                    }
+
+                    if (method.TryGetThisParameter(out ParameterSymbol thisParameter) && thisParameter is not null)
+                    {
+                        if (thisParameter.RefKind != RefKind.Out)
+                        {
+                            int slot = GetOrCreateSlot(thisParameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
+                        }
+                    }
+                }
+
+                Symbol containing = current.ContainingSymbol;
+
+                if (!current.IsStatic &&
+                    containing is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } &&
+                    (object)current != primaryConstructor)
+                {
+                    // All primary constructor parameters are definitely assigned outside of the primary constructor
+                    foreach (var parameter in primaryConstructor.Parameters)
+                    {
+                        int slot = GetOrCreateSlot(parameter);
+                        if (slot > 0)
+                        {
+                            if (current is not MethodSymbol && parameter.RefKind == RefKind.Out)
+                            {
+                                SetSlotUnassigned(slot, ref topState);
+                            }
+                            else
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+
+                current = containing;
+            }
+
+            return topState;
         }
 
         protected override LocalState ReachableBottomState()
@@ -1685,6 +1866,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
             }
+
+            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam)
+            {
+                // Mark attribute arguments as used.
+                VisitAttributes(sourceComplexParam.BindParameterAttributes());
+
+                // Mark default parameter values as used.
+                if (sourceComplexParam.BindParameterEqualsValue() is { } boundValue)
+                {
+                    VisitRvalue(boundValue.Value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Marks attribute arguments as used.
+        /// </summary>
+        private void VisitAttributes(ImmutableArray<(CSharpAttributeData, BoundAttribute)> boundAttributes)
+        {
+            if (boundAttributes.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            foreach (var (attributeData, boundAttribute) in boundAttributes)
+            {
+                // Skip invalid attributes (e.g., with a non-constant argument) to avoid superfluous diagnostics.
+                if (attributeData.HasErrors)
+                {
+                    continue;
+                }
+
+                foreach (var attributeArgument in boundAttribute.ConstructorArguments)
+                {
+                    VisitRvalue(attributeArgument);
+                }
+                foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
+                {
+                    VisitRvalue(attributeNamedArgumentAssignment.Right);
+                }
+            }
         }
 
         protected override void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax, Location location)
@@ -1700,6 +1922,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void LeaveParameter(ParameterSymbol parameter, SyntaxNode syntax, Location location)
         {
+            if (!parameter.IsThis && parameter.RefKind != RefKind.Out && parameter.ContainingSymbol is SynthesizedPrimaryConstructor primaryCtor)
+            {
+                if (_readParameters?.Contains(parameter) != true &&
+                    !primaryCtor.GetCapturedParameters().ContainsKey(parameter))
+                {
+                    Diagnostics.Add((primaryCtor.ContainingType is { IsRecord: true } or { IsRecordStruct: true }) ?
+                                            ErrorCode.WRN_UnreadRecordParameter :
+                                            ErrorCode.WRN_UnreadPrimaryConstructorParameter,
+                                        parameter.GetFirstLocationOrNone(), parameter.Name);
+                }
+            }
+
             if (parameter.RefKind != RefKind.None)
             {
                 var slot = VariableSlot(parameter);
@@ -1840,9 +2074,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-        public override BoundNode VisitBlock(BoundBlock node)
+#nullable enable
+        public override BoundNode? VisitBlock(BoundBlock node)
         {
+            var instrumentation = node.Instrumentation;
+            if (instrumentation != null)
+            {
+                DeclareVariables(instrumentation.Locals);
+
+                if (instrumentation.Prologue != null)
+                {
+                    Visit(instrumentation.Prologue);
+                }
+            }
+
             DeclareVariables(node.Locals);
 
             VisitStatementsWithLocalFunctions(node);
@@ -1859,9 +2104,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);
 
+            if (instrumentation?.Epilogue != null)
+            {
+                Visit(instrumentation.Epilogue);
+            }
+
             return null;
         }
-
+#nullable disable
         private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
@@ -1883,8 +2133,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // First phase
                 foreach (var stmt in block.Statements)
                 {
-                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
+                    if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
+                        // Mark attribute arguments as used.
+                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
+
                         VisitAlways(stmt);
                     }
                 }
@@ -1994,6 +2247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void DeclareVariables(OneOrMany<LocalSymbol> locals)
+        {
+            foreach (var symbol in locals)
+            {
+                DeclareVariable(symbol);
+            }
+        }
+
         private void DeclareVariable(LocalSymbol symbol)
         {
             var initiallyAssigned =
@@ -2018,7 +2279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (symbol.DeclarationKind != LocalDeclarationKind.PatternVariable && !string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
-                    Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.Locations.FirstOrNone(), symbol.Name);
+                    Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.GetFirstLocationOrNone(), symbol.Name);
                 }
             }
         }
@@ -2037,7 +2298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLocalFunction, symbol.Locations.FirstOrNone(), symbol.Name);
+                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLocalFunction, symbol.GetFirstLocationOrNone(), symbol.Name);
                 }
             }
         }
@@ -2092,6 +2353,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitLocalId(BoundLocalId node)
+            => null;
+
+        public override BoundNode VisitParameterId(BoundParameterId node)
+            => null;
+
+        public override BoundNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
+            => null;
+
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
             foreach (var method in node.Methods)
@@ -2108,6 +2378,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = node.Symbol;
+
+            // Mark attribute arguments as used.
+            VisitAttributes(node.Symbol.BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -2162,7 +2435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                NoteRecordParameterReadIfNeeded(node.ParameterSymbol);
+                NotePrimaryConstructorParameterReadIfNeeded(node.ParameterSymbol);
             }
 
             return null;
@@ -2300,6 +2573,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
                     CheckAssigned(MethodThisParameter, node);
+                    break;
+
+                case BoundKind.InlineArrayAccess:
+                    CheckAssigned(((BoundInlineArrayAccess)expr).Expression, node);
                     break;
             }
         }
@@ -2483,6 +2760,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assign(node.LeftOperand, node.LeftOperand);
         }
 
+        protected override void AfterVisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            if (node.GetItemOrSliceHelper == WellKnownMember.System_Span_T__Slice_Int_Int)
+            {
+                // exposing ref is a potential write
+                NoteWrite(node.Expression, value: null, read: false);
+            }
+        }
+
+        protected override void AfterVisitConversion(BoundConversion node)
+        {
+            if (node.Conversion.IsInlineArray &&
+                node.Type.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions))
+            {
+                // exposing ref is a potential write
+                NoteWrite(node.Operand, value: null, read: false);
+            }
+        }
+
         #endregion Visitors
 
         protected override string Dump(LocalState state)
@@ -2490,7 +2786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = new StringBuilder();
             builder.Append("[assigned ");
             AppendBitNames(state.Assigned, builder);
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 
@@ -2511,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (id.ContainingSlot > 0)
             {
                 AppendBitName(id.ContainingSlot, builder);
-                builder.Append(".");
+                builder.Append('.');
             }
 
             builder.Append(

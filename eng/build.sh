@@ -26,6 +26,7 @@ usage()
   echo "Test actions:"
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
+  echo "  --testCompilerOnly         Run only the compiler unit tests"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
   echo ""
   echo "Advanced settings:"
@@ -36,6 +37,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
+  echo "  --solution                 Soluton to build (Default is Compilers.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -60,6 +62,7 @@ publish=false
 test_core_clr=false
 test_mono=false
 test_ioperation=false
+test_compiler_only=false
 
 configuration="Debug"
 verbosity='minimal'
@@ -67,6 +70,7 @@ binary_log=false
 ci=false
 helix=false
 helix_queue_name=""
+helix_api_access_token=""
 bootstrap=false
 run_analyzers=false
 skip_documentation=false
@@ -74,6 +78,8 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
+restoreUseStaticGraphEvaluation=true
+solution_to_build="Compilers.slnf"
 
 args=""
 
@@ -124,6 +130,9 @@ while [[ $# > 0 ]]; do
     --testmono)
       test_mono=true
       ;;
+    --testcompileronly)
+      test_compiler_only=true
+      ;;
     --testioperation)
       test_ioperation=true
       ;;
@@ -135,6 +144,11 @@ while [[ $# > 0 ]]; do
       ;;
     --helixqueuename)
       helix_queue_name=$2
+      args="$args $1"
+      shift
+      ;;
+    --helixapiaccesstoken)
+      helix_api_access_token=$2
       args="$args $1"
       shift
       ;;
@@ -159,6 +173,13 @@ while [[ $# > 0 ]]; do
       # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
       # have an alias.
       source_build=true
+      # RestoreUseStaticGraphEvaluation will cause prebuilts
+      restoreUseStaticGraphEvaluation=false
+      ;;
+    --solution)
+      solution_to_build=$2
+      args="$args $1"
+      shift
       ;;
     /p:*)
       properties="$properties $1"
@@ -203,7 +224,7 @@ function MakeBootstrapBuild {
 }
 
 function BuildSolution {
-  local solution="Compilers.sln"
+  local solution=$solution_to_build
   echo "$solution:"
 
   InitializeToolset
@@ -276,6 +297,7 @@ function BuildSolution {
     /p:Pack=$pack \
     /p:Publish=$publish \
     /p:RunAnalyzersDuringBuild=$run_analyzers \
+    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
@@ -286,6 +308,26 @@ function BuildSolution {
     $generate_documentation_file \
     $roslyn_use_hard_links \
     $properties
+}
+
+function GetCompilerTestAssembliesIncludePaths {
+  assemblies="--include '^Microsoft\.CodeAnalysis\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
+  assemblies+=" --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
+  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
+  echo "$assemblies"
 }
 
 install=false
@@ -309,8 +351,17 @@ fi
 
 if [[ "$test_core_clr" == true ]]; then
   runtests_args=""
+
+  if [[ -n "$test_compiler_only" ]]; then
+    runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
+  fi
+
   if [[ -n "$helix_queue_name" ]]; then
     runtests_args="$runtests_args --helixQueueName $helix_queue_name"
+  fi
+
+  if [[ -n "$helix_api_access_token" ]]; then
+    runtests_args="$runtests_args --helixApiAccessToken $helix_api_access_token"
   fi
 
   if [[ "$helix" == true ]]; then
@@ -320,6 +371,6 @@ if [[ "$test_core_clr" == true ]]; then
   if [[ "$ci" != true ]]; then
     runtests_args="$runtests_args --html"
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net6.0/RunTests.dll" --tfm net6.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net8.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0

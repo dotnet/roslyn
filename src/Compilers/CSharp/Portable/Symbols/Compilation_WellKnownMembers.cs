@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpCompilation
     {
-        internal readonly WellKnownMembersSignatureComparer WellKnownMemberSignatureComparer;
+        private WellKnownMembersSignatureComparer? _lazyWellKnownMemberSignatureComparer;
 
         /// <summary>
         /// An array of cached well known types available for use in this Compilation.
@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _usesNullableAttributes;
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
+
+        internal WellKnownMembersSignatureComparer WellKnownMemberSignatureComparer
+            => InterlockedOperations.Initialize(ref _lazyWellKnownMemberSignatureComparer, static self => new WellKnownMembersSignatureComparer(self), this);
 
         /// <summary>
         /// Returns a value indicating which embedded attributes should be generated during emit phase.
@@ -93,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(member);
-                NamedTypeSymbol type = descriptor.DeclaringTypeId <= (int)SpecialType.Count
-                                            ? this.GetSpecialType((SpecialType)descriptor.DeclaringTypeId)
-                                            : this.GetWellKnownType((WellKnownType)descriptor.DeclaringTypeId);
+                NamedTypeSymbol type = descriptor.IsSpecialTypeMember
+                                            ? this.GetSpecialType(descriptor.DeclaringSpecialType)
+                                            : this.GetWellKnownType(descriptor.DeclaringWellKnownType);
                 Symbol? result = null;
 
                 if (!type.IsErrorType())
@@ -145,11 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = this.Assembly.GetTypeByMetadataName(
                         mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
                         warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                    Debug.Assert(result?.IsErrorType() != true);
                 }
 
                 if (result is null)
                 {
-                    // TODO: should GetTypeByMetadataName rather return a missing symbol?
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
                     if (type.IsValueTupleType())
                     {
@@ -428,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namedStringArguments = builder.ToImmutableAndFree();
             }
 
-            return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
+            return SynthesizedAttributeData.Create(this, ctorSymbol, arguments, namedStringArguments);
         }
 
         internal SynthesizedAttributeData? TrySynthesizeAttribute(
@@ -443,7 +446,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return new SynthesizedAttributeData(
+            return SynthesizedAttributeData.Create(
+                this,
                 ctorSymbol,
                 arguments: ImmutableArray<TypedConstant>.Empty,
                 namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -470,6 +474,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new TypedConstant(systemUnit32, TypedConstantKind.Primitive, mid),
                     new TypedConstant(systemUnit32, TypedConstantKind.Primitive, low)
                 ));
+        }
+
+        internal SynthesizedAttributeData? SynthesizeDateTimeConstantAttribute(DateTime value)
+        {
+            var ticks = new TypedConstant(GetSpecialType(SpecialType.System_Int64), TypedConstantKind.Primitive, value.Ticks);
+
+            return TrySynthesizeAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                ImmutableArray.Create(ticks));
         }
 
         internal SynthesizedAttributeData? SynthesizeDebuggerBrowsableNeverAttribute()
@@ -515,6 +528,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnsureIsReadOnlyAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, diagnostics, location, modifyCompilation);
+        }
+
+        internal void EnsureRequiresLocationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
+        }
+
+        internal void EnsureParamCollectionAttributeExistsAndModifyCompilation(BindingDiagnosticBag? diagnostics, Location location)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ParamCollectionAttribute, diagnostics, location, modifyCompilation: true);
         }
 
         internal void EnsureIsByRefLikeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
@@ -612,6 +635,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
+
+                case EmbeddableAttributes.RefSafetyRulesAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor);
+
+                case EmbeddableAttributes.RequiresLocationAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
+
+                case EmbeddableAttributes.ParamCollectionAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);
@@ -1179,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
             {
-                if ((int)type.OriginalDefinition.SpecialType == typeId)
+                if ((int)type.OriginalDefinition.ExtendedSpecialType == typeId)
                 {
                     if (type.IsDefinition)
                     {

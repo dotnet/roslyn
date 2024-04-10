@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -5556,6 +5558,548 @@ class C
                 // (28,17): error CS0165: Use of unassigned local variable 'obj'
                 //                 obj.ToString();
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "obj").WithArguments("obj").WithLocation(28, 17)
+                );
+        }
+
+        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        public void LocalMethod_ParameterAttribute()
+        {
+            var source = """
+                using System;
+                using System.Runtime.InteropServices;
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N = 10;
+                        const int Unused = 20;
+                        void F([Optional, DefaultParameterValue(N)] int x) => Console.WriteLine(x);
+                        F();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,19): warning CS0219: The variable 'Unused' is assigned but its value is never used
+                //         const int Unused = 20;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(8, 19));
+        }
+
+        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        public void Lambda_ParameterAttribute()
+        {
+            var source = """
+                using System;
+                using System.Runtime.InteropServices;
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N = 10;
+                        const int Unused = 20;
+                        var lam = ([Optional, DefaultParameterValue(N)] int x) => Console.WriteLine(x);
+                        lam(100);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,19): warning CS0219: The variable 'Unused' is assigned but its value is never used
+                //         const int Unused = 20;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(8, 19));
+        }
+
+        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        public void LocalMethod_ParameterAttribute_NamedArguments()
+        {
+            var source = """
+                using System;
+                [AttributeUsage(AttributeTargets.Parameter)]
+                class A : Attribute
+                {
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N = 10;
+                        const int Unused = 20;
+                        void F([A(Prop = N)] int x) { }
+                        F(100);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,19): warning CS0219: The variable 'Unused' is assigned but its value is never used
+                //         const int Unused = 20;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(12, 19));
+        }
+
+        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        public void Lambda_ParameterAttribute_NamedArguments()
+        {
+            var source = """
+                using System;
+                [AttributeUsage(AttributeTargets.Parameter)]
+                class A : Attribute
+                {
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N = 10;
+                        const int Unused = 20;
+                        var lam = ([A(Prop = N)] int x) => { };
+                        lam(100);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,19): warning CS0219: The variable 'Unused' is assigned but its value is never used
+                //         const int Unused = 20;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(12, 19));
+        }
+
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LocalMethod_AttributeArguments()
+        {
+            var source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(int param) { }
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N1 = 10;
+                        const int N2 = 20;
+                        const int N3 = 30;
+                        const int N4 = 40;
+                        const int N5 = 50;
+                        const int N6 = 60;
+                        [A(N1, Prop = N2)][return: A(N3, Prop = N4)] int F() => N5;
+                        F();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (16,19): warning CS0219: The variable 'N6' is assigned but its value is never used
+                //         const int N6 = 60;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N6").WithArguments("N6").WithLocation(16, 19));
+        }
+
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LocalMethod_AttributeArguments_GenericParameter()
+        {
+            var source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(int param) { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        [A(default(T))] void F<T>() { }
+                        F<int>();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,20): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                //         [A(default(T))] void F<T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(10, 20));
+        }
+
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LocalMethod_AttributeArguments_StringInterpolation()
+        {
+            var source = """
+                public class C
+                {
+                    public int P
+                    {
+                        get
+                        {
+                            const string X = "Hello";
+                            const string Y = "World";
+                            const string Z = "unused";
+                            [My($"{X}, World", Prop = $"Hello, {Y}")] int F() => 0;
+                            return F();
+                        }
+                    }
+                }
+                public class MyAttribute : System.Attribute
+                {
+                    public MyAttribute(string param) { }
+                    public string Prop { get; set; }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,26): warning CS0219: The variable 'Z' is assigned but its value is never used
+                //             const string Z = "unused";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Z").WithArguments("Z").WithLocation(9, 26));
+        }
+
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LambdaMethod_AttributeArguments()
+        {
+            var source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(int param) { }
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N1 = 10;
+                        const int N2 = 20;
+                        const int N3 = 30;
+                        const int N4 = 40;
+                        const int N5 = 50;
+                        const int N6 = 60;
+                        var lam = [A(N1, Prop = N2)][return: A(N3, Prop = N4)] () => N5;
+                        lam();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (16,19): warning CS0219: The variable 'N6' is assigned but its value is never used
+                //         const int N6 = 60;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N6").WithArguments("N6").WithLocation(16, 19));
+        }
+
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LambdaMethod_AttributeArguments_StringInterpolation()
+        {
+            var source = """
+                public class C
+                {
+                    public int P
+                    {
+                        get
+                        {
+                            const string X = "Hello";
+                            const string Y = "World";
+                            const string Z = "unused";
+                            var f = [My($"{X}, World", Prop = $"Hello, {Y}")] () => 0;
+                            return f();
+                        }
+                    }
+                }
+                public class MyAttribute : System.Attribute
+                {
+                    public MyAttribute(string param) { }
+                    public string Prop { get; set; }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,26): warning CS0219: The variable 'Z' is assigned but its value is never used
+                //             const string Z = "unused";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Z").WithArguments("Z").WithLocation(9, 26));
+        }
+
+        [Fact]
+        public void Setter_AttributeArguments()
+        {
+            var source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(int param) { }
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    const int N1 = 10;
+                    const int N2 = 20;
+                    const int N3 = 30;
+                    const int N4 = 40;
+                    const int N5 = 50;
+                    const int N6 = 60;
+                    public int Prop
+                    {
+                        [A(N1, Prop = N4)][param: A(N2, Prop = N5)][return: A(N3, Prop = N6)]
+                        set
+                        {
+                            Console.WriteLine(value);
+                        }
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var declarations = tree.GetRoot().DescendantNodes().OfType<PropertyDeclarationSyntax>().ToImmutableArray();
+            var property = declarations.Select(d => model.GetDeclaredSymbol(d)).Where(p => p.ContainingSymbol.Name == "Program").Single();
+            var parameter = property.SetMethod.Parameters[0].GetSymbol<SourceComplexParameterSymbolBase>();
+            var attributes = parameter.BindParameterAttributes();
+            Assert.Equal(3, attributes.Length);
+            Assert.Equal("A(10, Prop = 40)", attributes[0].Item1.ToString());
+            Assert.Equal("A(20, Prop = 50)", attributes[1].Item1.ToString());
+            Assert.Equal("A(30, Prop = 60)", attributes[2].Item1.ToString());
+        }
+
+        [Fact]
+        public void LocalConstantUsedInLocalFunctionDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int c = 10;
+            static void Local(int arg = c) => Console.WriteLine(arg);
+            
+            Local();
+        }
+
+    }
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalConstantUsedInLambdaDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int c = 10;
+            var f = (int arg = c) => Console.WriteLine(arg);
+            f();
+        }
+    }
+";
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MultipleDependentLocalConstants_LambdaDefaultParameterValue()
+        {
+            var source =
+@"
+    using System;
+
+    public class Program
+    {
+        public static void Main()
+        {
+            const int a = 10;
+            const int b = a + 1;
+            const int c = a + b;
+            var f = (int arg = c) => Console.WriteLine(arg);
+            f();
+        }
+    }
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NameOf_Nested()
+        {
+            var source = """
+                System.Console.WriteLine(C.M());
+                public class C
+                {
+                    private C c;
+                    public static string M() => nameof(c.c.c);
+                }
+                """;
+
+            var expectedDiagnostic =
+                // (4,15): warning CS0649: Field 'C.c' is never assigned to, and will always have its default value null
+                //     private C c;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "c").WithArguments("C.c", "null").WithLocation(4, 15);
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: "c").VerifyDiagnostics(expectedDiagnostic);
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "c").VerifyDiagnostics(expectedDiagnostic);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                expectedDiagnostic,
+                // (5,40): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     public static string M() => nameof(c.c.c);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "c").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 40));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_01()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+                
+                static void bug(out int a)
+                {
+                    bool hasLevel() => true;
+                    hasLevel();
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,13): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(3, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_02()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+
+                static void bug(out int a)
+                {
+                    bool hasLevel() => true;
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,13): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(3, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_03()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+                
+                class C
+                {
+                    static void bug(out int a)
+                    {
+                        bool hasLevel() => true;
+                        hasLevel();
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(5, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_04()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+
+                class C
+                {
+                    static void bug(out int a)
+                    {
+                        bool hasLevel() => true;
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(5, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_05()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+                
+                static void bug(out int a)
+                {
+                    System.Func<bool> hasLevel = () => true;
+                    hasLevel();
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,13): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(3, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_06()
+        {
+            var source = """
+                class C
+                {
+                    static void bug(out int a)
+                    {
+                        System.Func<bool> hasLevel = () => true;
+                        hasLevel();
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(3, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_07()
+        {
+            var source = """
+                class C(out int a) : Base(Test(() =>
+                                          {
+                                              System.Func<bool> hasLevel = () => true;
+                                              return hasLevel();
+                                          }))
+                {
+                    int F = Test(() =>
+                                 {
+                                     System.Func<bool> hasLevel = () => true;
+                                     return hasLevel();
+                                 });
+
+                    static int Test(System.Func<bool> x) => 0;
+                }
+
+                class Base
+                {
+                    public Base(int x){}    
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,7): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // class C(out int a) : Base(Test(() =>
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C").WithArguments("a").WithLocation(1, 7)
                 );
         }
     }

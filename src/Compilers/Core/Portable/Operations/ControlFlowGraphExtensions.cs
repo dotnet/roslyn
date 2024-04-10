@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Gets or creates a control flow graph for the given <paramref name="localFunction"/> defined in
         /// the given <paramref name="controlFlowGraph"/> or any of it's parent control flow graphs.
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ControlFlowGraph GetLocalFunctionControlFlowGraphInScope(this ControlFlowGraph controlFlowGraph, IMethodSymbol localFunction, CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (controlFlowGraph == null)
             {
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ControlFlowGraph? currentGraph = controlFlowGraph;
             do
             {
-                if (currentGraph.TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out ControlFlowGraph? localFunctionControlFlowGraph))
+                if (currentGraph.TryGetLocalFunctionControlFlowGraph(localFunction, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }
@@ -42,7 +44,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Gets or creates a control flow graph for the given <paramref name="anonymousFunction"/> defined in
         /// the given <paramref name="controlFlowGraph"/> or any of it's parent control flow graphs.
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ControlFlowGraph GetAnonymousFunctionControlFlowGraphInScope(this ControlFlowGraph controlFlowGraph, IFlowAnonymousFunctionOperation anonymousFunction, CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (controlFlowGraph == null)
             {
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ControlFlowGraph? currentGraph = controlFlowGraph;
             do
             {
-                if (currentGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph? localFunctionControlFlowGraph))
+                if (currentGraph.TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, out ControlFlowGraph? localFunctionControlFlowGraph))
                 {
                     return localFunctionControlFlowGraph;
                 }

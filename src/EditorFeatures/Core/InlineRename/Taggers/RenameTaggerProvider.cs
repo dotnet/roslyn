@@ -11,22 +11,18 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+[Export(typeof(ITaggerProvider))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[ContentType(ContentTypeNames.XamlContentType)]
+[TagType(typeof(ITextMarkerTag))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class RenameTaggerProvider(InlineRenameService renameService) : ITaggerProvider
 {
-    [Export(typeof(ITaggerProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [TagType(typeof(ITextMarkerTag))]
-    internal class RenameTaggerProvider : ITaggerProvider
-    {
-        private readonly InlineRenameService _renameService;
+    private readonly InlineRenameService _renameService = renameService;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameTaggerProvider(InlineRenameService renameService)
-            => _renameService = renameService;
-
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-            => new RenameTagger(buffer, _renameService) as ITagger<T>;
-    }
+    public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        => new RenameTagger(buffer, _renameService) as ITagger<T>;
 }

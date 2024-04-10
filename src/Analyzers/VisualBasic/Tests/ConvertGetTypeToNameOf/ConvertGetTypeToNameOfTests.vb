@@ -114,7 +114,7 @@ end class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
-        <WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/54233")>
         Public Async Function OnVoid() As Task
             Dim text = "
 imports System

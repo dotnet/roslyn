@@ -17,10 +17,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
 {
+    [Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
     public class BlockCommentEditingTests : AbstractTypingCommandHandlerTest<ReturnKeyCommandArgs>
     {
-        [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
         public void EdgeCase0()
         {
             var code = @"
@@ -33,8 +33,7 @@ $$/**/
             Verify(code, expected);
         }
 
-        [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
         public void EdgeCase1()
         {
             var code = @"
@@ -47,8 +46,7 @@ $$
             Verify(code, expected);
         }
 
-        [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
         public void EdgeCase2()
         {
             var code = @"
@@ -61,8 +59,7 @@ $$/* */
             Verify(code, expected);
         }
 
-        [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
         public void EdgeCase3()
         {
             var code = @"
@@ -75,8 +72,7 @@ $$
             Verify(code, expected);
         }
 
-        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         public void EofCase0()
         {
             var code = @"
@@ -87,8 +83,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         public void EofCase1()
         {
             var code = @"
@@ -99,8 +94,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
         public void EofCase2()
         {
             var code = @"
@@ -111,7 +105,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine0()
         {
             var code = @"
@@ -124,7 +118,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine1()
         {
             var code = @"
@@ -137,7 +131,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine2()
         {
             var code = @"
@@ -150,7 +144,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine3()
         {
             var code = @"
@@ -165,7 +159,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine4()
         {
             var code = @"
@@ -180,7 +174,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine5()
         {
             var code = @"
@@ -193,7 +187,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine6()
         {
             var code = @"
@@ -206,7 +200,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine7()
         {
             var code = @"
@@ -219,7 +213,7 @@ $$";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotInsertOnStartLine0()
         {
             var code = @"
@@ -234,7 +228,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine0()
         {
             var code = @"
@@ -249,7 +243,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine1()
         {
             var code = @"
@@ -264,7 +258,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine2()
         {
             var code = @"
@@ -279,7 +273,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine3()
         {
             var code = @"
@@ -296,7 +290,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine4()
         {
             var code = @"
@@ -313,7 +307,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine5()
         {
             var code = @"
@@ -332,7 +326,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine6()
         {
             var code = @"
@@ -349,7 +343,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine7()
         {
             var code = @"
@@ -366,7 +360,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine8()
         {
             var code = @"
@@ -383,7 +377,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine9()
         {
             var code = @"
@@ -398,7 +392,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnEndLine0()
         {
             var code = @"
@@ -413,7 +407,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnEndLine1()
         {
             var code = @"
@@ -428,7 +422,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnEndLine2()
         {
             var code = @"
@@ -445,7 +439,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnEndLine3()
         {
             var code = @"
@@ -460,7 +454,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnEndLine4()
         {
             var code = @"
@@ -475,7 +469,7 @@ $$*
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotInsertInVerbatimString0()
         {
             var code = @"
@@ -492,7 +486,7 @@ $$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void NotInsertInVerbatimString1()
         {
             var code = @"
@@ -511,7 +505,7 @@ $$
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void BoundCheckInsertOnStartLine0()
         {
             var code = @"
@@ -522,7 +516,7 @@ $$*";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void BoundCheckInsertOnStartLine1()
         {
             var code = @"
@@ -533,7 +527,7 @@ $$*";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void BoundCheckInsertOnMiddleLine()
         {
             var code = @"
@@ -546,7 +540,7 @@ $$*";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void BoundCheckInsertOnEndLine()
         {
             var code = @"
@@ -559,7 +553,7 @@ $$*";
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine2_Tab()
         {
             var code = @"
@@ -572,7 +566,7 @@ $$*";
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine3_Tab()
         {
             var code = @"
@@ -587,7 +581,7 @@ $$*";
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine4_Tab()
         {
             var code = @"
@@ -602,7 +596,7 @@ $$*";
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnStartLine6_Tab()
         {
             var code = @"
@@ -615,7 +609,7 @@ $$*";
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine2_Tab()
         {
             var code = @"
@@ -630,7 +624,7 @@ $$*";
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine3_Tab()
         {
             var code = @"
@@ -647,7 +641,7 @@ $$*";
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine4_Tab()
         {
             var code = @"
@@ -664,7 +658,7 @@ $$*";
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InsertOnMiddleLine5_Tab()
         {
             var code = @"
@@ -683,7 +677,7 @@ $$*";
             VerifyTabs(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InLanguageConstructTrailingTrivia()
         {
             var code = @"
@@ -702,7 +696,7 @@ class C
             Verify(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        [WpfFact]
         public void InLanguageConstructTrailingTrivia_Tabs()
         {
             var code = @"
@@ -721,13 +715,13 @@ class C
             VerifyTabs(code, expected);
         }
 
-        protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
-            => TestWorkspace.CreateCSharp(initialMarkup);
+        protected override EditorTestWorkspace CreateTestWorkspace(string initialMarkup)
+            => EditorTestWorkspace.CreateCSharp(initialMarkup);
 
         protected override (ReturnKeyCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
             => (new ReturnKeyCommandArgs(textView, textBuffer), "\r\n");
 
-        internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(TestWorkspace workspace)
+        internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(EditorTestWorkspace workspace)
             => Assert.IsType<BlockCommentEditingCommandHandler>(workspace.GetService<ICommandHandler>(ContentTypeNames.CSharpContentType, nameof(BlockCommentEditingCommandHandler)));
     }
 }

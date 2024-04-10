@@ -39,7 +39,6 @@ End Namespace]]>
                            End Sub
                 End Function
 
-
             Dim verify =
                 Sub(winmd As Boolean, expected As String())
                     Dim validator = getValidator(expected)
@@ -163,7 +162,6 @@ Namespace WinRTDelegateLibrary
     Public Delegate Function interfaceDelegate(i As I1) As I1
 End Namespace
 ]]>
-
                     </file>
                 </compilation>
 

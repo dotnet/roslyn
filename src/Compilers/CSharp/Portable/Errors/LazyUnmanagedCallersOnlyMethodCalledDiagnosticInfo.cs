@@ -19,6 +19,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             _isDelegateConversion = isDelegateConversion;
         }
 
+        private LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _method = original._method;
+            _isDelegateConversion = original._isDelegateConversion;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new LazyUnmanagedCallersOnlyMethodCalledDiagnosticInfo(this, severity);
+        }
+
         protected override DiagnosticInfo? ResolveInfo()
         {
             UnmanagedCallersOnlyAttributeData? unmanagedCallersOnlyAttributeData = _method.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);

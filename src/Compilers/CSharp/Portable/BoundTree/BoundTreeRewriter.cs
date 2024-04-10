@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract partial class BoundTreeRewriter : BoundTreeVisitor
     {
-        [return: NotNullIfNotNull("type")]
+        [return: NotNullIfNotNull(nameof(type))]
         public virtual TypeSymbol? VisitType(TypeSymbol? type)
         {
             return type;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int RecursionDepth => _recursionDepth;
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public override BoundNode? Visit(BoundNode? node)
         {
             var expression = node as BoundExpression;

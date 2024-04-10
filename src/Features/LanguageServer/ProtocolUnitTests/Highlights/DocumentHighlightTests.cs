@@ -10,14 +10,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Highlights
 {
     public class DocumentHighlightTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task TestGetDocumentHighlightAsync()
+        public DocumentHighlightTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetDocumentHighlightAsync(bool lspMutatingWorkspace)
         {
             var markup =
 @"class B
@@ -32,7 +37,7 @@ class A
         {|caret:|}{|write:classB|} = new B();
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
             var expected = new LSP.DocumentHighlight[]
             {
                 CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, testLspServer.GetLocations("text").Single()),
@@ -44,9 +49,8 @@ class A
             AssertJsonEquals(expected, results);
         }
 
-        [Fact]
-        [WorkItem(59120, "https://github.com/dotnet/roslyn/issues/59120")]
-        public async Task TestGetDocumentHighlightAsync_Keywords()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59120")]
+        public async Task TestGetDocumentHighlightAsync_Keywords(bool lspMutatingWorkspace)
         {
             var markup =
 @"using System.Threading.Tasks;
@@ -58,7 +62,7 @@ class A
         {|caret:|}{|text:await|} Task.Delay(100);
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
 
             var expectedLocations = testLspServer.GetLocations("text");
 
@@ -71,8 +75,8 @@ class A
             Assert.Equal(expectedLocations[2].Range, results[2].Range);
         }
 
-        [Fact]
-        public async Task TestGetDocumentHighlightAsync_InvalidLocation()
+        [Theory, CombinatorialData]
+        public async Task TestGetDocumentHighlightAsync_InvalidLocation(bool lspMutatingWorkspace)
         {
             var markup =
 @"class A
@@ -82,7 +86,7 @@ class A
         {|caret:|}
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
 
             var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);

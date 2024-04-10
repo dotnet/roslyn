@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddDelegateOperation(kind, delegateType, operators);
         }
 
-        private void GetEnumOperation(BinaryOperatorKind kind, TypeSymbol enumType, BoundExpression left, BoundExpression right, ArrayBuilder<BinaryOperatorSignature> operators)
+        private void GetEnumOperation(BinaryOperatorKind kind, TypeSymbol enumType, BoundExpression right, ArrayBuilder<BinaryOperatorSignature> operators)
         {
             Debug.Assert((object)enumType != null);
             AssertNotChecked(kind);
@@ -475,9 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)underlying != null);
             Debug.Assert(underlying.SpecialType != SpecialType.None);
 
-            var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
-            var nullableEnum = nullable.Construct(enumType);
-            var nullableUnderlying = nullable.Construct(underlying);
+            var nullableEnum = Compilation.GetOrCreateNullableType(enumType);
+            var nullableUnderlying = Compilation.GetOrCreateNullableType(underlying);
 
             switch (kind)
             {
@@ -662,12 +661,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)leftType != null)
             {
-                GetEnumOperation(kind, leftType, left, right, results);
+                GetEnumOperation(kind, leftType, right, results);
             }
 
             if ((object)rightType != null && ((object)leftType == null || !(useIdentityConversion ? Conversions.HasIdentityConversion(rightType, leftType) : rightType.Equals(leftType))))
             {
-                GetEnumOperation(kind, rightType, left, right, results);
+                GetEnumOperation(kind, rightType, right, results);
             }
         }
 
@@ -720,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !left.Type.IsNativeIntegerOrNullableThereof() && !right.Type.IsNativeIntegerOrNullableThereof());
+                this.Compilation.BuiltInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !left.Type.IsNativeIntegerOrNullableThereof() && !right.Type.IsNativeIntegerOrNullableThereof());
 
                 // SPEC 7.3.4: For predefined enum and delegate operators, the only operators
                 // considered are those defined by an enum or delegate type that is the binding
@@ -735,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isUtf8ByteRepresentation(left) &&
                     isUtf8ByteRepresentation(right))
                 {
-                    this.Compilation.builtInOperators.GetUtf8ConcatenationBuiltInOperator(left.Type, operators);
+                    this.Compilation.BuiltInOperators.GetUtf8ConcatenationBuiltInOperator(left.Type, operators);
                 }
             }
 

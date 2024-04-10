@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable annotations
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
 {
     internal sealed class SymbolHoldingResultSetTracker : IResultSetTracker
     {
-        private readonly Dictionary<ISymbol, TrackedResultSet> _symbolToResultSetId = new Dictionary<ISymbol, TrackedResultSet>();
+        private readonly Dictionary<ISymbol, TrackedResultSet> _symbolToResultSetId = [];
         private readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private readonly ILsifJsonWriter _lsifJsonWriter;
         private readonly IdFactory _idFactory;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
 
         private TrackedResultSet GetTrackedResultSet(ISymbol symbol)
         {
-            TrackedResultSet trackedResultSet;
+            TrackedResultSet? trackedResultSet;
 
             // First acquire a simple read lock to see if we already have a result set; we do this with
             // just a read lock to ensure we aren't contending a lot if the symbol already exists which
@@ -74,45 +72,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             //
             // This we do outside the lock -- whichever thread was the one to create this was the one that
             // gets to write out the moniker, but others can use the ResultSet Id at this point.
-            if (symbol.OriginalDefinition.Equals(symbol))
+            if (SymbolMoniker.HasMoniker(symbol))
             {
-                var monikerVertex = TryCreateMonikerVertexForSymbol(symbol);
-
-                if (monikerVertex != null)
-                {
-                    _lsifJsonWriter.Write(monikerVertex);
-                    _lsifJsonWriter.Write(Edge.Create("moniker", trackedResultSet.Id, monikerVertex.GetId(), _idFactory));
-                }
+                _ = this.GetMoniker(symbol, _sourceCompilation);
             }
 
             return trackedResultSet;
-        }
-
-        private Moniker? TryCreateMonikerVertexForSymbol(ISymbol symbol)
-        {
-            var moniker = SymbolMoniker.TryCreate(symbol);
-
-            if (moniker == null)
-            {
-                return null;
-            }
-
-            string? kind;
-
-            if (symbol.Kind == SymbolKind.Namespace)
-            {
-                kind = null;
-            }
-            else if (symbol.ContainingAssembly.Equals(_sourceCompilation.Assembly))
-            {
-                kind = "export";
-            }
-            else
-            {
-                kind = "import";
-            }
-
-            return new Moniker(moniker.Scheme, moniker.Identifier, kind, _idFactory);
         }
 
         public Id<ResultSet> GetResultSetIdForSymbol(ISymbol symbol)
@@ -120,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             return GetTrackedResultSet(symbol).Id;
         }
 
-        public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<T> vertexCreator) where T : Vertex
+        public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<IdFactory, T> vertexCreator) where T : Vertex
         {
             return GetTrackedResultSet(symbol).GetResultId(edgeKind, vertexCreator, _lsifJsonWriter, _idFactory);
         }
@@ -150,22 +115,22 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             /// We record the first kind of this in this dictionary with a non-null Id, and the second kind with a null ID. We could conceptually store
             /// two dictionaries for this, but that will add memory pressure and also limit the catching of mistakes if people cross these two APIs.
             /// </remarks>
-            private readonly Dictionary<string, Id<Vertex>?> _edgeKindToVertexId = new Dictionary<string, Id<Vertex>?>();
+            private readonly Dictionary<string, Id<Vertex>?> _edgeKindToVertexId = [];
 
             public TrackedResultSet(Id<ResultSet> id)
             {
                 Id = id;
             }
 
-            public Id<T> GetResultId<T>(string edgeKind, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
+            public Id<T> GetResultId<T>(string edgeLabel, Func<IdFactory, T> vertexCreator, ILsifJsonWriter lsifJsonWriter, IdFactory idFactory) where T : Vertex
             {
                 lock (_edgeKindToVertexId)
                 {
-                    if (_edgeKindToVertexId.TryGetValue(edgeKind, out var existingId))
+                    if (_edgeKindToVertexId.TryGetValue(edgeLabel, out var existingId))
                     {
                         if (!existingId.HasValue)
                         {
-                            throw new Exception($"This ResultSet already has an edge of {edgeKind} as {nameof(ResultSetNeedsInformationalEdgeAdded)} was called with this edge kind.");
+                            throw new Exception($"This ResultSet already has an edge of {edgeLabel} as {nameof(ResultSetNeedsInformationalEdgeAdded)} was called with this edge label.");
                         }
 
                         // TODO: this is a violation of the type system here, really: we're assuming that all calls to this function with the same edge kind
@@ -173,11 +138,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                         return new Id<T>(existingId.Value.NumericId);
                     }
 
-                    var vertex = vertexCreator();
-                    _edgeKindToVertexId.Add(edgeKind, vertex.GetId().As<T, Vertex>());
+                    var vertex = vertexCreator(idFactory);
+                    _edgeKindToVertexId.Add(edgeLabel, vertex.GetId().As<T, Vertex>());
 
                     lsifJsonWriter.Write(vertex);
-                    lsifJsonWriter.Write(Edge.Create(edgeKind, Id, vertex.GetId(), idFactory));
+                    lsifJsonWriter.Write(Edge.Create(edgeLabel, Id, vertex.GetId(), idFactory));
 
                     return vertex.GetId();
                 }

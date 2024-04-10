@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel).GetEnclosingBinder(position)
         End Function
 
-
         <Fact()>
         Public Sub TestLookupResult()
             Dim sym1 = New MockAssemblySymbol("hello") ' just a symbol to put in results
@@ -386,7 +385,6 @@ End Module
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-
         <Fact()>
         Public Sub Bug3024()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -407,7 +405,6 @@ Namespace P.Q
 End Namespace
     </file>
 </compilation>)
-
 
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
 
@@ -471,7 +468,6 @@ End Class
     </file>
 </compilation>)
 
-
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
 
             Assert.Same(compilation.GetTypeByMetadataName("K.C"), compilation.GetTypeByMetadataName("A").BaseType)
@@ -503,7 +499,6 @@ End Class
     </file>
 </compilation>)
 
-
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
 
             Assert.Same(compilation.GetTypeByMetadataName("N.C"), compilation.GetTypeByMetadataName("A").BaseType)
@@ -532,12 +527,10 @@ End Class
     </file>
 </compilation>)
 
-
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
 
             Assert.Same(compilation.GetTypeByMetadataName("N.C"), compilation.GetTypeByMetadataName("A").BaseType)
         End Sub
-
 
         <Fact()>
         Public Sub Bug3015()
@@ -568,7 +561,6 @@ End Namespace
 R.Q
 ]]>)
         End Sub
-
 
         <Fact()>
         Public Sub Bug3014()
@@ -717,7 +709,6 @@ BC30560: 'CT5' is ambiguous in the namespace 'NS2'.
                       ~~~
 </expected>)
         End Sub
-
 
         <Fact()>
         Public Sub TieBreakingInImports()
@@ -885,7 +876,6 @@ BC30561: 'Test5' is ambiguous, imported from the namespaces or types 'NS1, NS2'.
 
         End Sub
 
-
         <Fact()>
         Public Sub RecursiveCheckForAccessibleTypesWithinANamespace()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -914,7 +904,6 @@ End Namespace
             CompileAndVerify(compilation, <![CDATA[
 P.Q.R.S
 ]]>)
-
 
             compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="RecursiveCheckForAccessibleTypesWithinANamespace2">
@@ -1406,7 +1395,6 @@ Module2.Test
 ]]>)
         End Sub
 
-
         <Fact()>
         Public Sub Bug4817()
 
@@ -1433,7 +1421,6 @@ Module C
 End Module
     </file>
 </compilation>, TestOptions.ReleaseExe)
-
 
             CompileAndVerify(compilation, <![CDATA[
 A.Goo()
@@ -1534,7 +1521,6 @@ End Module
             context.LookupMember(lr, classA, "GooShared", 0, LookupOptions.MustBeInstance, Nothing)
             Assert.Equal(LookupResultKind.MustBeInstance, lr.Kind)
             Assert.False(lr.HasDiagnostic)
-
 
             Dim interfaceI = DirectCast(globalNS.GetMembers("I").Single(), NamedTypeSymbol)
 
@@ -2125,7 +2111,6 @@ End Namespace
                 Dim info1 = semanticModel.GetSymbolInfo(nodes(i))
                 Assert.Equal("NS1.NS6", info1.Symbol.ToTestDisplayString())
                 Assert.Equal(NamespaceKind.Module, DirectCast(info1.Symbol, NamespaceSymbol).NamespaceKind)
-
 
                 Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
                              semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().

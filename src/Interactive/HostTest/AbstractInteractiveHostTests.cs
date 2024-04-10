@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     {
         private SynchronizedStringWriter _synchronizedOutput = null!;
         private SynchronizedStringWriter _synchronizedErrorOutput = null!;
-        private int[] _outputReadPosition = new int[] { 0, 0 };
+        private int[] _outputReadPosition = [0, 0];
 
         internal readonly InteractiveHost Host;
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             var initializationFileName = UseDefaultInitializationFile ? "CSharpInteractive.rsp" : null;
 
-            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName, CultureInfo.InvariantCulture, DefaultPlatform));
+            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, DefaultPlatform));
 
             // assert and remove logo:
             var output = SplitLines(await ReadOutputToEnd());
@@ -84,8 +84,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", errorOutput);
 
-            var expectedOutput = new List<string>();
-            expectedOutput.Add(string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider))));
+            var expectedOutput = new List<string>
+            {
+                string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider)))
+            };
 
             if (UseDefaultInitializationFile)
             {
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public void ClearOutput()
         {
-            _outputReadPosition = new int[] { 0, 0 };
+            _outputReadPosition = [0, 0];
             _synchronizedOutput.Clear();
             _synchronizedErrorOutput.Clear();
         }
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             ClearOutput();
 
-            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
+            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
         }
 
         public async Task<string> ReadOutputToEnd(bool isError = false)

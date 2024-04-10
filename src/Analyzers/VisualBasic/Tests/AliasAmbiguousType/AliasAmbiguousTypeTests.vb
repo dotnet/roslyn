@@ -9,8 +9,9 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AliasAmbiguousType
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
     Public Class AliasAmbiguousTypeTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicAliasAmbiguousTypeCodeFixProvider())
@@ -30,7 +31,7 @@ Namespace N2
 End Namespace"
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousClassObjectCreationGlobalImports() As Task
             Dim classDef = GetAmbiguousDefinition("
 Public Class Ambiguous
@@ -65,7 +66,7 @@ End Namespace"
             Await TestSmartTagTextAsync(initialMarkup, "Imports Ambiguous = N1.Ambiguous", index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousAttribute() As Task
             Dim classDef = GetAmbiguousDefinition("
     Class AAttribute
@@ -92,7 +93,7 @@ End Class"
             Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkupTemplate)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousBug4817() As Task
             Dim initialMarkup = "
 Imports A
@@ -115,7 +116,7 @@ End Module
             Await TestMissingAsync(initialMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousClassInModule() As Task
             Dim initialMarkup = "
 Imports N1, N2
@@ -138,7 +139,6 @@ End Class
             Dim expectedMarkup = "
 Imports N1, N2
 Imports Goo = N1.Goo
-
 Namespace N1
     Module K
         Class Goo
@@ -158,7 +158,7 @@ End Class
             Await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)>
+        <Fact>
         Public Async Function TestAmbiguousInterfaceNameReferencedInSmallCaps() As Task
             Dim initialMarkup = "
 Imports N1, N2
@@ -177,7 +177,6 @@ End Class
             Dim expectedMarkup = "
 Imports N1, N2
 Imports I1 = N1.I1
-
 Namespace N1
     Interface I1
     End Interface

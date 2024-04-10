@@ -78,7 +78,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' This is an entry point for the Binder to collect extension methods with the given name 
         ''' declared within this (compilation merged or module level) namespace, so that methods 

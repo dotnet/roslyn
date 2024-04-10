@@ -11,7 +11,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UpdateLegacySuppressions
 
     <Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)>
-    <WorkItem(44362, "https://github.com/dotnet/roslyn/issues/44362")>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/44362")>
     Public Class UpdateLegacySuppressionsTests
         <Theory, CombinatorialData>
         Public Sub TestStandardProperty([property] As AnalyzerProperty)

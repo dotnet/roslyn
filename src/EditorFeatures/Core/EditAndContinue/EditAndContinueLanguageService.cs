@@ -3,346 +3,357 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+[Shared]
+[Export(typeof(IManagedHotReloadLanguageService))]
+[Export(typeof(IEditAndContinueSolutionProvider))]
+[Export(typeof(EditAndContinueLanguageService))]
+[ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EditAndContinueLanguageService(
+    IServiceBrokerProvider serviceBrokerProvider,
+    Lazy<IHostWorkspaceProvider> workspaceProvider,
+    Lazy<IManagedHotReloadService> debuggerService,
+    IDiagnosticAnalyzerService diagnosticService,
+    EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
+    PdbMatchingSourceTextProvider sourceTextProvider,
+    IDiagnosticsRefresher diagnosticRefresher,
+    IAsynchronousOperationListenerProvider listenerProvider) : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
 {
-    [Shared]
-    [Export(typeof(IManagedHotReloadLanguageService))]
-    [Export(typeof(IEditAndContinueSolutionProvider))]
-    [Export(typeof(EditAndContinueLanguageService))]
-    [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
+    private sealed class NoSessionException : InvalidOperationException
     {
-        private readonly Lazy<IManagedHotReloadService> _debuggerService;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
-
-        public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider;
-
-        public bool IsSessionActive { get; private set; }
-
-        private bool _disabled;
-        private RemoteDebuggingSessionProxy? _debuggingSession;
-
-        private Solution? _pendingUpdatedDesignTimeSolution;
-        private Solution? _committedDesignTimeSolution;
-
-        public event Action<Solution>? SolutionCommitted;
-
-        /// <summary>
-        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
-        /// unless the host implements debugger components.
-        /// </summary>
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditAndContinueLanguageService(
-            Lazy<IHostWorkspaceProvider> workspaceProvider,
-            Lazy<IManagedHotReloadService> debuggerService,
-            IDiagnosticAnalyzerService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
+        public NoSessionException()
+            : base("Internal error: no session.")
         {
-            WorkspaceProvider = workspaceProvider;
-            _debuggerService = debuggerService;
-            _diagnosticService = diagnosticService;
-            _diagnosticUpdateSource = diagnosticUpdateSource;
+            // unique enough HResult to distinguish from other exceptions
+            HResult = unchecked((int)0x801315087);
+        }
+    }
+
+    private readonly PdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
+    private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
+    private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.EditAndContinue);
+    private readonly Lazy<IManagedHotReloadService> _debuggerService = debuggerService;
+    private readonly IDiagnosticAnalyzerService _diagnosticService = diagnosticService;
+    private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource = diagnosticUpdateSource;
+    private readonly HotReloadLoggerProxy _logger = new(serviceBrokerProvider.ServiceBroker);
+
+    public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider = workspaceProvider;
+
+    public bool IsSessionActive { get; private set; }
+
+    private bool _disabled;
+    private RemoteDebuggingSessionProxy? _debuggingSession;
+
+    private Solution? _pendingUpdatedDesignTimeSolution;
+    private Solution? _committedDesignTimeSolution;
+
+    public event Action<Solution>? SolutionCommitted;
+
+    public void SetFileLoggingDirectory(string? logDirectory)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var proxy = new RemoteEditAndContinueServiceProxy(WorkspaceProvider.Value.Workspace);
+                await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignore
+            }
+        });
+    }
+
+    private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
+    {
+        var workspace = WorkspaceProvider.Value.Workspace;
+        return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution ?? workspace.CurrentSolution);
+    }
+
+    private RemoteDebuggingSessionProxy GetDebuggingSession()
+        => _debuggingSession ?? throw new NoSessionException();
+
+    private IActiveStatementTrackingService GetActiveStatementTrackingService()
+        => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+
+    internal void Disable(Exception e)
+    {
+        _disabled = true;
+
+        var token = _asyncListener.BeginAsyncOperation(nameof(EditAndContinueLanguageService) + ".LogToOutput");
+
+        _ = _logger.LogAsync(new HotReloadLogMessage(HotReloadVerbosity.Diagnostic, e.ToString(), errorLevel: HotReloadDiagnosticErrorLevel.Error), CancellationToken.None).AsTask()
+            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+    }
+
+    /// <summary>
+    /// Called by the debugger when a debugging session starts and managed debugging is being used.
+    /// </summary>
+    public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
+    {
+        IsSessionActive = true;
+
+        if (_disabled)
+        {
+            return;
         }
 
-        private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
+        try
         {
+            // Activate listener before capturing the current solution snapshot,
+            // so that we don't miss any pertinent workspace update events.
+            _sourceTextProvider.Activate();
+
             var workspace = WorkspaceProvider.Value.Workspace;
-            return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution ?? workspace.CurrentSolution);
+            var currentSolution = workspace.CurrentSolution;
+            _committedDesignTimeSolution = currentSolution;
+            var solution = GetCurrentCompileTimeSolution(currentSolution);
+
+            _sourceTextProvider.SetBaseline(currentSolution);
+
+            var proxy = new RemoteEditAndContinueServiceProxy(workspace);
+
+            _debuggingSession = await proxy.StartDebuggingSessionAsync(
+                solution,
+                new ManagedHotReloadServiceBridge(_debuggerService.Value),
+                _sourceTextProvider,
+                captureMatchingDocuments: [],
+                captureAllMatchingDocuments: false,
+                reportDiagnostics: true,
+                cancellationToken).ConfigureAwait(false);
         }
-
-        private RemoteDebuggingSessionProxy GetDebuggingSession()
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
-            var debuggingSession = _debuggingSession;
-            Contract.ThrowIfNull(debuggingSession);
-            return debuggingSession;
-        }
-
-        private IActiveStatementTrackingService GetActiveStatementTrackingService()
-            => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
-
-        internal void Disable()
-            => _disabled = true;
-
-        /// <summary>
-        /// Called by the debugger when a debugging session starts and managed debugging is being used.
-        /// </summary>
-        public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
-        {
-            IsSessionActive = true;
-
-            if (_disabled)
-            {
-                return;
-            }
-
-            try
-            {
-                var workspace = WorkspaceProvider.Value.Workspace;
-                var solution = GetCurrentCompileTimeSolution(_committedDesignTimeSolution = workspace.CurrentSolution);
-                var openedDocumentIds = workspace.GetOpenDocumentIds().ToImmutableArray();
-                var proxy = new RemoteEditAndContinueServiceProxy(workspace);
-
-                _debuggingSession = await proxy.StartDebuggingSessionAsync(
-                    solution,
-                    new ManagedHotReloadServiceImpl(_debuggerService.Value),
-                    captureMatchingDocuments: openedDocumentIds,
-                    captureAllMatchingDocuments: false,
-                    reportDiagnostics: true,
-                    cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-            }
-
             // the service failed, error has been reported - disable further operations
-            _disabled = _debuggingSession == null;
+            Disable(e);
+        }
+    }
+
+    public async ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
+    {
+        if (_disabled)
+        {
+            return;
         }
 
-        public async ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
+        var solution = GetCurrentCompileTimeSolution();
+        var session = GetDebuggingSession();
+
+        try
         {
-            if (_disabled)
-            {
-                return;
-            }
+            await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: true, cancellationToken).ConfigureAwait(false);
 
-            var solution = GetCurrentCompileTimeSolution();
-            var session = GetDebuggingSession();
-
-            try
-            {
-                await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: true, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                _disabled = true;
-                return;
-            }
-
-            // Start tracking after we entered break state so that break-state session is active.
-            // This is potentially costly operation but entering break state is non-blocking so it should be ok to await.
-            await GetActiveStatementTrackingService().StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
+            _diagnosticRefresher.RequestWorkspaceRefresh();
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            Disable(e);
+            return;
         }
 
-        public async ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
+        // Start tracking after we entered break state so that break-state session is active.
+        // This is potentially costly operation as source generators might get invoked in OOP
+        // to determine the spans of all active statements.
+        // We start the operation but do not wait for it to complete.
+        // The tracking session is cancelled when we exit the break state.
+
+        GetActiveStatementTrackingService().StartTracking(solution, session);
+    }
+
+    public async ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
+    {
+        if (_disabled)
         {
-            if (_disabled)
-            {
-                return;
-            }
-
-            var session = GetDebuggingSession();
-
-            try
-            {
-                await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: false, cancellationToken).ConfigureAwait(false);
-                GetActiveStatementTrackingService().EndTracking();
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                _disabled = true;
-                return;
-            }
+            return;
         }
 
-        public async ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
-        {
-            if (_disabled)
-            {
-                return;
-            }
+        var session = GetDebuggingSession();
 
-            try
-            {
-                await GetDebuggingSession().BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: null, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                _disabled = true;
-            }
+        try
+        {
+            await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: false, cancellationToken).ConfigureAwait(false);
+
+            _diagnosticRefresher.RequestWorkspaceRefresh();
+            GetActiveStatementTrackingService().EndTracking();
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            Disable(e);
+            return;
+        }
+    }
+
+    public async ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
+    {
+        if (_disabled)
+        {
+            return;
         }
 
-        public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
+        try
         {
-            if (_disabled)
-            {
-                return;
-            }
+            await GetDebuggingSession().BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: null, cancellationToken).ConfigureAwait(false);
 
-            var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
-            Contract.ThrowIfNull(committedDesignTimeSolution);
+            _diagnosticRefresher.RequestWorkspaceRefresh();
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            Disable(e);
+        }
+    }
 
-            try
-            {
-                SolutionCommitted?.Invoke(committedDesignTimeSolution);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-            }
-
-            _committedDesignTimeSolution = committedDesignTimeSolution;
-
-            try
-            {
-                await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-            }
+    public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
+    {
+        if (_disabled)
+        {
+            return;
         }
 
-        public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
+        var committedDesignTimeSolution = Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null);
+        Contract.ThrowIfNull(committedDesignTimeSolution);
+
+        try
         {
-            if (_disabled)
-            {
-                return;
-            }
-
-            Contract.ThrowIfNull(Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null));
-
-            try
-            {
-                await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-            }
+            SolutionCommitted?.Invoke(committedDesignTimeSolution);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatch(e))
+        {
         }
 
-        public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
+        _committedDesignTimeSolution = committedDesignTimeSolution;
+
+        try
         {
-            IsSessionActive = false;
+            await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+        }
+    }
 
-            if (_disabled)
-            {
-                return;
-            }
+    public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
+    {
+        if (_disabled)
+        {
+            return;
+        }
 
+        Contract.ThrowIfNull(Interlocked.Exchange(ref _pendingUpdatedDesignTimeSolution, null));
+
+        try
+        {
+            await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+        }
+    }
+
+    public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
+    {
+        IsSessionActive = false;
+
+        if (!_disabled)
+        {
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
                 await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
 
-                _debuggingSession = null;
-                _committedDesignTimeSolution = null;
-                _pendingUpdatedDesignTimeSolution = null;
+                _diagnosticRefresher.RequestWorkspaceRefresh();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                _disabled = true;
+                Disable(e);
             }
         }
 
-        private ActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
+        _sourceTextProvider.Deactivate();
+        _debuggingSession = null;
+        _committedDesignTimeSolution = null;
+        _pendingUpdatedDesignTimeSolution = null;
+    }
+
+    private ActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
+    {
+        var service = GetActiveStatementTrackingService();
+        return new((documentId, filePath, cancellationToken) => service.GetSpansAsync(solution, documentId, filePath, cancellationToken));
+    }
+
+    /// <summary>
+    /// Returns true if any changes have been made to the source since the last changes had been applied.
+    /// For performance reasons it only implements a heuristic and may return both false positives and false negatives.
+    /// If the result is a false negative the debugger will not apply the changes unless the user explicitly triggers apply change command.
+    /// The background diagnostic analysis will still report rude edits for these ignored changes. It may also happen that these rude edits 
+    /// will disappear once the debuggee is resumed - if they are caused by presence of active statements around the change.
+    /// If the result is a false positive the debugger attempts to apply the changes, which will result in a delay but will correctly end up
+    /// with no actual deltas to be applied.
+    /// 
+    /// If <paramref name="sourceFilePath"/> is specified checks for changes only in a document of the given path.
+    /// This is not supported (returns false) for source-generated documents.
+    /// </summary>
+    public async ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
+    {
+        try
         {
-            var service = GetActiveStatementTrackingService();
-            return new((documentId, filePath, cancellationToken) => service.GetSpansAsync(solution, documentId, filePath, cancellationToken));
-        }
+            var debuggingSession = _debuggingSession;
+            if (debuggingSession == null)
+            {
+                return false;
+            }
 
-        /// <summary>
-        /// Returns true if any changes have been made to the source since the last changes had been applied.
-        /// For performance reasons it only implements a heuristic and may return both false positives and false negatives.
-        /// If the result is a false negative the debugger will not apply the changes unless the user explicitly triggers apply change command.
-        /// The background diagnostic analysis will still report rude edits for these ignored changes. It may also happen that these rude edits 
-        /// will disappear once the debuggee is resumed - if they are caused by presence of active statements around the change.
-        /// If the result is a false positive the debugger attempts to apply the changes, which will result in a delay but will correctly end up
-        /// with no actual deltas to be applied.
-        /// 
-        /// If <paramref name="sourceFilePath"/> is specified checks for changes only in a document of the given path.
-        /// This is not supported (returns false) for source-generated documents.
-        /// </summary>
-        public async ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
+            Contract.ThrowIfNull(_committedDesignTimeSolution);
+            var oldSolution = _committedDesignTimeSolution;
+            var newSolution = WorkspaceProvider.Value.Workspace.CurrentSolution;
+
+            return (sourceFilePath != null)
+                ? await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false)
+                : await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
-            try
-            {
-                var debuggingSession = _debuggingSession;
-                if (debuggingSession == null)
-                {
-                    return false;
-                }
-
-                Contract.ThrowIfNull(_committedDesignTimeSolution);
-                var oldSolution = _committedDesignTimeSolution;
-                var newSolution = WorkspaceProvider.Value.Workspace.CurrentSolution;
-
-                return (sourceFilePath != null) ?
-                    await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false) :
-                    await EditSession.HasChangesAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return true;
-            }
+            return true;
         }
+    }
 
-        public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+    {
+        if (_disabled)
         {
-            if (_disabled)
-            {
-                return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
-            }
-
-            var workspace = WorkspaceProvider.Value.Workspace;
-            var designTimeSolution = workspace.CurrentSolution;
-            var solution = GetCurrentCompileTimeSolution(designTimeSolution);
-            var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-            var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
-
-            // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
-            if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
-            {
-                _pendingUpdatedDesignTimeSolution = designTimeSolution;
-            }
-
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
-            return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
+            return new ManagedHotReloadUpdates([], []);
         }
 
-        public async ValueTask<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
+        var workspace = WorkspaceProvider.Value.Workspace;
+        var designTimeSolution = workspace.CurrentSolution;
+        var solution = GetCurrentCompileTimeSolution(designTimeSolution);
+        var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+        var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+
+        // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
+        if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
         {
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                var activeStatementTrackingService = GetActiveStatementTrackingService();
-
-                var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) =>
-                    activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
-
-                var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
-                return span?.ToSourceSpan().FromContract();
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
-            }
+            _pendingUpdatedDesignTimeSolution = designTimeSolution;
         }
 
-        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var solution = GetCurrentCompileTimeSolution();
-                return await GetDebuggingSession().IsActiveStatementInExceptionRegionAsync(solution, instruction.ToContract(), cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
-            }
-        }
+        _diagnosticRefresher.RequestWorkspaceRefresh();
+
+        var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
+        return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
     }
 }

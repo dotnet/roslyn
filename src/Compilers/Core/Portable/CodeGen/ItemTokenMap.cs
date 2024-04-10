@@ -6,13 +6,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     /// <summary>
-    /// Handles storage of items referenced via tokens in metadata. When items are stored 
+    /// Handles storage of items referenced via tokens in metadata. When items are stored
     /// they are uniquely "associated" with fake tokens, which are basically sequential numbers.
-    /// IL gen will use these fake tokens during codegen and later, when actual values 
+    /// IL gen will use these fake tokens during codegen and later, when actual values
     /// are known, the method bodies will be patched.
     /// To support these two scenarios we need two maps - Item-->uint, and uint-->Item. (The second is really just a list).
     /// </summary>
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        public IEnumerable<T> GetAllItems()
+        public T[] CopyItems()
         {
             lock (_items)
             {

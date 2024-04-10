@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Or the current anonymous type object being initialized if we're visiting an anonymous type object initializer.
         /// Or the target of a VB With statement.
         /// </summary>
-        private struct ImplicitInstanceInfo
+        private readonly struct ImplicitInstanceInfo
         {
             /// <summary>
             /// Holds the current object instance being initialized if we're visiting an object initializer.

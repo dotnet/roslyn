@@ -177,7 +177,6 @@ End Module
         Diagnostic(ERRID.ERR_LabelNotDefined1, "").WithArguments(""))
         End Sub
 
-
         <Fact()>
         Public Sub Error_ErrorHandler_WithInValidLabelMatchingKeywordsEscaped()
             Dim compilationDef =
@@ -349,7 +348,6 @@ End Module
     </file>
     </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
 1
@@ -389,7 +387,6 @@ End Module
     </file>
     </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedSpecifier, "Labels"),
                                           Diagnostic(ERRID.ERR_ExpectedDeclaration, "sing"),
@@ -399,8 +396,6 @@ End Module
                                           Diagnostic(ERRID.ERR_LabelNotDefined1, "diffMethodLabel").WithArguments("diffMethodLabel"),
                                           Diagnostic(ERRID.ERR_LabelNotDefined1, "DifferentMethod").WithArguments("DifferentMethod"))
         End Sub
-
-
 
         <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29568")>
         Public Sub Error_ErrorHandler_BothTypesOfErrorHandling()
@@ -479,7 +474,6 @@ End Module
     goo:
         End Sub]]>
 
-
             compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, ExpectedOutput).WithArguments("Unstructured exception handling").WithLocation(2, 9))
         End Sub
 
@@ -508,7 +502,6 @@ End Class
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
-
 
             compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 13),
                                           Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a & ""test""").WithArguments("Late binding").WithLocation(8, 13)
@@ -585,7 +578,6 @@ End Module
 
             compilation.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_PlatformDoesntSupport, "a + 1").WithArguments("Late binding").WithLocation(6, 40))
         End Sub
-
 
         <Fact(), WorkItem(545772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
         Public Sub VbCoreMyNamespace()
@@ -1099,7 +1091,7 @@ Class Test
         End Sub
 
         <Fact>
-        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObjectDefaultConstructor()
+        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObjectDefaultConstructor_01()
             Dim comp = CompilationUtils.CreateEmptyCompilation("
 Namespace System
     Public Class [Object]
@@ -1121,6 +1113,25 @@ BC30387: Class 'Test' must declare a 'Sub New' because its base class 'Object' d
 Class Test
       ~~~~
                                                           </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObjectDefaultConstructor_02()
+            Dim comp = CompilationUtils.CreateEmptyCompilation("
+Namespace System
+    Public Class [Object]
+        Public Sub New(other as Object)
+        End Sub
+    End Class
+    Public Class Void
+        Public Sub New()
+            MyBase.New(Nothing)
+        End Sub
+    End Class
+End Namespace
+", options:=TestOptions.ReleaseDll.WithModuleName("testModule"))
+
+            comp.VerifyEmitDiagnostics()
         End Sub
 
     End Class

@@ -7,19 +7,17 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.NamingStyles
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.NamingStyles;
+
+[ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<NamingStyleSetting>)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class NamingStyleSettingsWorkspaceServiceFactory(IGlobalOptionService globalOptions) : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<NamingStyleSetting>)), Shared]
-    internal class NamingStyleSettingsWorkspaceServiceFactory : IWorkspaceServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NamingStyleSettingsWorkspaceServiceFactory()
-        {
-        }
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new NamingStyleSettingsProviderFactory(workspaceServices.Workspace);
-    }
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new NamingStyleSettingsProviderFactory(workspaceServices.Workspace, _globalOptions);
 }

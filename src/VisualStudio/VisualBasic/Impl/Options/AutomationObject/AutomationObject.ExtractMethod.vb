@@ -17,10 +17,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property ExtractMethod_DoNotPutOutOrRefOnStruct As Boolean
             Get
-                Return GetBooleanOption(ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct)
+                Return GetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, value)
+                SetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, value)
             End Set
         End Property
     End Class

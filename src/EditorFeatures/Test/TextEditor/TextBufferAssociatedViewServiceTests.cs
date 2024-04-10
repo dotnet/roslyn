@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             var bufferMock = new Mock<ITextBuffer>(MockBehavior.Strict);
             bufferMock.Setup(b => b.ContentType).Returns(contentType.Object);
 
-            var bufferCollection = new Collection<ITextBuffer>(SpecializedCollections.SingletonEnumerable(bufferMock.Object).ToList());
+            var bufferCollection = new Collection<ITextBuffer>([bufferMock.Object]);
             var dummyReason = ConnectionReason.BufferGraphChange;
 
             var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();

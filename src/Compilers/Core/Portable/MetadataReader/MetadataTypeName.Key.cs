@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A digest of MetadataTypeName's fully qualified name which can be used as the key in a dictionary
         /// </summary>
-        public struct Key : IEquatable<Key>
+        public readonly struct Key : IEquatable<Key>
         {
             // PERF: We can work with either a fully qualified name (a single string) or
             // a 'split' name (namespace and type). If typeName is null, then a FQN is

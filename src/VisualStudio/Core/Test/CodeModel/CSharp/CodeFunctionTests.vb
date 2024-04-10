@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
         Inherits AbstractCodeFunctionTests
 
 #Region "Get Start Point"
-        <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1980")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPointConversionOperatorFunction()
             Dim code =
@@ -33,7 +33,7 @@ class D
                      TextPoint(line:=5, lineOffset:=1, absoluteOffset:=65, lineLength:=23)))
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPointExplicitlyImplementedMethod()
             Dim code =
@@ -59,7 +59,7 @@ public class C1 : I1
 #End Region
 
 #Region "Get End Point"
-        <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1980")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPointConversionOperatorFunction()
             Dim code =
@@ -78,7 +78,7 @@ class D
                      TextPoint(line:=6, lineOffset:=1, absoluteOffset:=89, lineLength:=5)))
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPointExplicitlyImplementedMethod()
             Dim code =
@@ -199,7 +199,7 @@ interface I
 #End Region
 
 #Region "Attribute Tests"
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestPropertyGetAttribute_WithNoSet()
             Dim code =
@@ -220,7 +220,7 @@ public class Class1
             TestAttributes(code, IsElement("Obsolete"))
         End Sub
 
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestPropertySetAttribute_WithNoGet()
             Dim code =
@@ -240,7 +240,7 @@ public class Class1
             TestAttributes(code, IsElement("Obsolete"))
         End Sub
 
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestPropertyGetAttribute_WithSet()
             Dim code =
@@ -266,7 +266,7 @@ public class Class1
             TestAttributes(code, IsElement("Obsolete"))
         End Sub
 
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestPropertySetAttribute_WithGet()
             Dim code =
@@ -292,7 +292,7 @@ public class Class1
             TestAttributes(code, IsElement("Obsolete"))
         End Sub
 
-        <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2356")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAttribute_1()
             Dim code =
@@ -405,7 +405,7 @@ class C
             TestFullName(code, "C.~C")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName_ExplicitlyImplementedMethod()
             Dim code =
@@ -427,7 +427,7 @@ public class C1 : I1
             TestFullName(code, "C1.I1.f1")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName_ImplicitOperator()
             Dim code =
@@ -450,7 +450,7 @@ public class ComplexType
             TestFullName(code, "ComplexType.implicit operator ComplexType")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName_ExplicitOperator()
             Dim code =
@@ -473,7 +473,7 @@ public class ComplexType
             TestFullName(code, "ComplexType.explicit operator ComplexType")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName_OperatorOverload()
             Dim code =
@@ -661,7 +661,7 @@ class C : B
 
 #Region "Name tests"
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName_ExplicitlyImplementedMethod()
             Dim code =
@@ -696,7 +696,7 @@ class C
             TestName(code, "~C")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName_ImplicitOperator()
             Dim code =
@@ -719,7 +719,7 @@ public class ComplexType
             TestName(code, "implicit operator ComplexType")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName_ExplicitOperator()
             Dim code =
@@ -742,7 +742,7 @@ public class ComplexType
             TestName(code, "explicit operator ComplexType")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName_OperatorOverload()
             Dim code =
@@ -2549,7 +2549,7 @@ class A
 
 #Region "Parameter name tests"
 
-        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
@@ -2564,7 +2564,7 @@ public class C
             TestAllParameterNames(code, "@int")
         End Sub
 
-        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterNameWithEscapeCharacters_2()
             Dim code =
@@ -2634,7 +2634,7 @@ class C
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =

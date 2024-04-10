@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis
 
             if (unmatchedActualDescription.Count > 0 || unmatchedExpected.Count > 0)
             {
-                Assert.True(false, DiagnosticDescription.GetAssertText(expected, actual, unmatchedExpected.ToArray(), actual.Select((a, i) => (a, i)).Join(unmatchedActualIndex, ai => ai.i, i => i, (ai, _) => ai.a)));
+                var text = DiagnosticDescription.GetAssertText(expected, actual, unmatchedExpected.ToArray(), actual.Select((a, i) => (a, i)).Join(unmatchedActualIndex, ai => ai.i, i => i, (ai, _) => ai.a));
+                Assert.True(false, text);
             }
 
             unmatchedExpected.Free();
@@ -310,14 +311,15 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerManager = new AnalyzerManager(analyzersArray);
             var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException,
-                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter: SeverityFilter.None, out var newCompilation, cancellationToken);
+                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter: SeverityFilter.None, trackSuppressedDiagnosticIds: false,
+                out var newCompilation, cancellationToken);
             Debug.Assert(newCompilation.SemanticModelProvider != null);
             var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
-            var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation).Result;
+            var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation, cancellationToken).Result;
             var allDiagnostics = includeCompilerDiagnostics ?
                 compilerDiagnostics.AddRange(analyzerDiagnostics) :
                 analyzerDiagnostics;
-            diagnostics = driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(allDiagnostics, newCompilation);
+            diagnostics = driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(allDiagnostics, newCompilation, cancellationToken);
 
             if (!reportSuppressedDiagnostics)
             {
@@ -342,6 +344,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
         /// </summary>
+        [Obsolete("This API is no longer supported. See https://github.com/dotnet/roslyn/issues/67592 for details")]
         public static bool IsDiagnosticAnalyzerSuppressed(this DiagnosticAnalyzer analyzer, CompilationOptions options)
         {
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options);
@@ -360,7 +363,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ResourceDescription> manifestResources = null)
             where TCompilation : Compilation
         {
-            var pdbStream = MonoHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            var pdbStream = MonoHelpers.IsRunningOnMono() || options?.EmitMetadataOnly == true ? null : new MemoryStream();
             return c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options, manifestResources: manifestResources).Diagnostics;
         }
 

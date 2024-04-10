@@ -9,9 +9,11 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.Cci
 {
@@ -27,7 +29,7 @@ namespace Microsoft.Cci
 
         private readonly Dictionary<ITypeDefinition, int> _fieldDefIndex;
         private readonly Dictionary<ITypeDefinition, int> _methodDefIndex;
-        private readonly Dictionary<IMethodDefinition, int> _parameterListIndex;
+        private readonly SegmentedDictionary<IMethodDefinition, int> _parameterListIndex;
 
         private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
@@ -100,7 +102,7 @@ namespace Microsoft.Cci
 
             _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
             _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess, ReferenceEqualityComparer.Instance);
-            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods, ReferenceEqualityComparer.Instance);
+            _parameterListIndex = new SegmentedDictionary<IMethodDefinition, int>(numMethods, ReferenceEqualityComparer.Instance);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this);
@@ -426,16 +428,16 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct DefinitionIndex<T> where T : class, IReference
+        private readonly struct DefinitionIndex<T> where T : class, IReference
         {
             // IReference to RowId
-            private readonly Dictionary<T, int> _index;
-            private readonly List<T> _rows;
+            private readonly SegmentedDictionary<T, int> _index;
+            private readonly SegmentedList<T> _rows;
 
             public DefinitionIndex(int capacity)
             {
-                _index = new Dictionary<T, int>(capacity, ReferenceEqualityComparer.Instance);
-                _rows = new List<T>(capacity);
+                _index = new SegmentedDictionary<T, int>(capacity, ReferenceEqualityComparer.Instance);
+                _rows = new SegmentedList<T>(capacity);
             }
 
             public bool TryGetValue(T item, out int rowId)

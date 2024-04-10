@@ -335,7 +335,6 @@ end namespace
 
         ' Imports <xmlns:r1="http://roslyn">
 
-
 #Region "xml namespace"
 
         <Fact>

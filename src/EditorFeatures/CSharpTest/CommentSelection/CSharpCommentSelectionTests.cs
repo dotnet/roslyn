@@ -21,99 +21,114 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.CommentSelection)]
     public class CSharpCommentSelectionTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact]
         public void UncommentAndFormat1()
         {
-            var code = @"class A
-{
-    [|          //            void  Method  (   )
-                // {
-                //
-                //                      }|]
-}";
-            var expected = @"class A
-{
-    void Method()
-    {
+            var code = """
+                class A
+                {
+                    [|          //            void  Method  (   )
+                                // {
+                                //
+                                //                      }|]
+                }
+                """;
+            var expected = """
+                class A
+                {
+                    void Method()
+                    {
 
-    }
-}";
+                    }
+                }
+                """;
             UncommentSelection(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact]
         public void UncommentAndFormat2()
         {
-            var code = @"class A
-{
-    [|          /*            void  Method  (   )
-                 {
-                
-                                      } */|]
-}";
-            var expected = @"class A
-{
-    void Method()
-    {
+            var code = """
+                class A
+                {
+                    [|          /*            void  Method  (   )
+                                 {
 
-    }
-}";
+                                                      } */|]
+                }
+                """;
+            var expected = """
+                class A
+                {
+                    void Method()
+                    {
+
+                    }
+                }
+                """;
             UncommentSelection(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact]
         public void UncommentSingleLineCommentInPseudoBlockComment()
         {
-            var code = @"
-class C
-{
-    /// <include file='doc\Control.uex' path='docs/doc[@for=""Control.RtlTranslateAlignment1""]/*' />
-    protected void RtlTranslateAlignment2()
-    {
-        //[|int x = 0;|]
-    }
-    /* Hello world */
-}";
+            var code = """
+                class C
+                {
+                    /// <include file='doc\Control.uex' path='docs/doc[@for="Control.RtlTranslateAlignment1"]/*' />
+                    protected void RtlTranslateAlignment2()
+                    {
+                        //[|int x = 0;|]
+                    }
+                    /* Hello world */
+                }
+                """;
 
-            var expected = @"
-class C
-{
-    /// <include file='doc\Control.uex' path='docs/doc[@for=""Control.RtlTranslateAlignment1""]/*' />
-    protected void RtlTranslateAlignment2()
-    {
-        int x = 0;
-    }
-    /* Hello world */
-}";
+            var expected = """
+                class C
+                {
+                    /// <include file='doc\Control.uex' path='docs/doc[@for="Control.RtlTranslateAlignment1"]/*' />
+                    protected void RtlTranslateAlignment2()
+                    {
+                        int x = 0;
+                    }
+                    /* Hello world */
+                }
+                """;
 
             UncommentSelection(code, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        [WpfFact]
         public void UncommentAndFormat3()
         {
-            var code = @"class A
-{
-    [|          //            void  Method  (   )       |]
-    [|            // {                                  |]
-    [|            //                                    |]
-    [|            //                      }             |]
-}";
-            var expected = @"class A
-{
-    void Method()
-    {
+            var code = """
+                class A
+                {
+                    [|          //            void  Method  (   )       |]
+                    [|            // {                                  |]
+                    [|            //                                    |]
+                    [|            //                      }             |]
+                }
+                """;
+            var expected = """
+                class A
+                {
+                    void Method()
+                    {
 
-    }
-}";
+                    }
+                }
+                """;
             UncommentSelection(code, expected);
         }
 
         private static void UncommentSelection(string markup, string expected)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup);
             var doc = workspace.Documents.First();
             SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 

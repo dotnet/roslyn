@@ -316,7 +316,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Class
         End Namespace
     </file>
-
       </compilation>, options:=options)
 
             Dim expectedErrors = <errors>
@@ -403,7 +402,6 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
-
 
         <Fact>
         Public Sub TestTypeBinding()

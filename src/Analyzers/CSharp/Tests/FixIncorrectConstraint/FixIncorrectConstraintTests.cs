@@ -21,15 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixIncorrectConstraint
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C<T> where T : {|CS9010:enum|}
-{
-}",
-                FixedCode = @"
-class C<T> where T : struct, System.Enum
-{
-}",
-
+                TestCode = """
+                class C<T> where T : {|CS9010:enum|}
+                {
+                }
+                """,
+                FixedCode = """
+                class C<T> where T : struct, System.Enum
+                {
+                }
+                """,
             }.RunAsync();
         }
 
@@ -38,19 +39,20 @@ class C<T> where T : struct, System.Enum
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C<T> where T : {|CS9010:enum|}
-{
-}",
-                FixedCode = @"
-using System;
+                class C<T> where T : {|CS9010:enum|}
+                {
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C<T> where T : struct, Enum
-{
-}",
-
+                class C<T> where T : struct, Enum
+                {
+                }
+                """,
             }.RunAsync();
         }
 
@@ -59,14 +61,16 @@ class C<T> where T : struct, Enum
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-class C<T> where T : {|CS9011:delegate|}
-{
-}",
-                FixedCode = @"
-class C<T> where T : System.Delegate
-{
-}",
+                TestCode = """
+                class C<T> where T : {|CS9011:delegate|}
+                {
+                }
+                """,
+                FixedCode = """
+                class C<T> where T : System.Delegate
+                {
+                }
+                """,
             }.RunAsync();
         }
 
@@ -75,18 +79,20 @@ class C<T> where T : System.Delegate
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
-using System;
+                TestCode = """
+                using System;
 
-class C<T> where T : {|CS9011:delegate|}
-{
-}",
-                FixedCode = @"
-using System;
+                class C<T> where T : {|CS9011:delegate|}
+                {
+                }
+                """,
+                FixedCode = """
+                using System;
 
-class C<T> where T : Delegate
-{
-}",
+                class C<T> where T : Delegate
+                {
+                }
+                """,
             }.RunAsync();
         }
     }

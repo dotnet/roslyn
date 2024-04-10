@@ -5,7 +5,9 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
@@ -41,11 +43,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
                     Case SyntaxKind.ExitFunctionStatement
                     Case SyntaxKind.ExitPropertyStatement
                         Dim Symbol = semanticModel.GetDeclaredSymbol(exitTarget)
-                        Return Symbol.Locations.FirstOrNone().SourceSpan.Start
+                        Return If(Symbol.Locations.FirstOrDefault()?.SourceSpan.Start, 0)
                 End Select
 
                 ' Exit Select, Exit While, Exit For, Exit ForEach, ...
                 Return exitTarget.GetLastToken().Span.End
+            End If
+
+            If node.IsKind(SyntaxKind.GoToStatement) Then
+                Dim goToStatement = DirectCast(node, GoToStatementSyntax)
+
+                Dim gotoOperation = DirectCast(semanticModel.GetOperation(goToStatement), IBranchOperation)
+                If gotoOperation Is Nothing Then
+                    Return Nothing
+                End If
+
+                Debug.Assert(gotoOperation.BranchKind = BranchKind.GoTo)
+                Dim target = gotoOperation.Target
+                Return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.SpanStart
             End If
 
             Return Nothing

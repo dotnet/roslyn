@@ -4,17 +4,10 @@
 
 using Microsoft;
 
-namespace Microsoft.CodeAnalysis.BraceMatching
-{
-    internal readonly struct BraceCharacterAndKind
-    {
-        public char Character { get; }
-        public int Kind { get; }
+namespace Microsoft.CodeAnalysis.BraceMatching;
 
-        public BraceCharacterAndKind(char character, int kind)
-        {
-            this.Character = character;
-            this.Kind = kind;
-        }
-    }
+internal readonly struct BraceCharacterAndKind(char character, int kind)
+{
+    public char Character { get; } = character;
+    public int Kind { get; } = kind;
 }

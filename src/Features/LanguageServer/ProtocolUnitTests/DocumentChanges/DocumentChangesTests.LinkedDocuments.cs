@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 {
     public partial class DocumentChangesTests
     {
-        [Fact]
-        public async Task LinkedDocuments_AllTracked()
+        [Theory, CombinatorialData]
+        public async Task LinkedDocuments_AllTracked(bool mutatingLspWorkspace)
         {
             var documentText = "class C { }";
             var workspaceXml =
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
             var caretLocation = testLspServer.GetLocations("caret").Single();
 
             await DidOpen(testLspServer, caretLocation.Uri);
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             Assert.Empty(testLspServer.GetTrackedTexts());
         }
 
-        [Fact]
-        public async Task LinkedDocuments_AllTextChanged()
+        [Theory, CombinatorialData]
+        public async Task LinkedDocuments_AllTextChanged(bool mutatingLspWorkspace)
         {
             var initialText =
 @"class A
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
             var caretLocation = testLspServer.GetLocations("caret").Single();
 
             var updatedText =
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
         private static async Task<Solution> GetLSPSolutionAsync(TestLspServer testLspServer, Uri uri)
         {
-            var lspDocument = await testLspServer.GetManager().GetLspDocumentAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
+            var (_, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
             Contract.ThrowIfNull(lspDocument);
             return lspDocument.Project.Solution;
         }

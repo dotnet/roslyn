@@ -10,7 +10,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
@@ -48,6 +50,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         protected override bool IsReadOnly => true;
 
+        protected override bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
+
         protected override IList<string> GenericIListFactory(int setLength)
         {
             return GenericListFactory(setLength).AsReadOnly();
@@ -70,6 +74,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         protected override bool IsReadOnly => true;
+
+        protected override bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
 
         protected override IList<int> GenericIListFactory(int setLength)
         {

@@ -287,7 +287,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <WorkItem(870422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870422")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870422")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_MethodCallWithoutTypeQualification()
             Dim definition =

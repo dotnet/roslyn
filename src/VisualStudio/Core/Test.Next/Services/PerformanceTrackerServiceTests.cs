@@ -18,85 +18,156 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
     public class PerformanceTrackerServiceTests
     {
-        [Fact]
-        public void TestTooFewSamples()
-        {
-            // minimum sample is 100
-            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 80);
+        private const int TestMinSampleSizeForDocumentAnalysis = 100;
+        private const int TestMinSampleSizeForSpanAnalysis = 10;
 
-            Assert.Empty(badAnalyzers);
+        [Theory, CombinatorialData]
+        public void TestSampleSize(bool forSpanAnalysis)
+        {
+            var minSampleSize = forSpanAnalysis
+                ? TestMinSampleSizeForSpanAnalysis
+                : TestMinSampleSizeForDocumentAnalysis;
+
+            // Verify no analyzer infos reported when sampleSize < minSampleSize
+            var sampleSize = minSampleSize - 1;
+            var analyzerInfos = GetAnalyzerInfos(sampleSize, forSpanAnalysis);
+            Assert.Empty(analyzerInfos);
+
+            // Verify analyzer infos reported when sampleSize >= minSampleSize
+            sampleSize = minSampleSize + 1;
+            analyzerInfos = GetAnalyzerInfos(sampleSize, forSpanAnalysis);
+            Assert.NotEmpty(analyzerInfos);
         }
 
-        [Fact]
-        public void TestTracking()
+        [Theory, CombinatorialData]
+        public void TestNoDuplicateReportGeneration(bool forSpanAnalysis)
         {
-            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 200);
+            var minSampleSize = forSpanAnalysis
+                ? TestMinSampleSizeForSpanAnalysis
+                : TestMinSampleSizeForDocumentAnalysis;
 
-            VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 101.244432561581, 54.48, 21.8163001442628);
-            VerifyBadAnalyzer(badAnalyzers[1], "CSharpInlineDeclarationDiagnosticAnalyzer", 49.9389715502954, 26.6686092715232, 9.2987133054884);
-            VerifyBadAnalyzer(badAnalyzers[2], "VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer", 42.0967360557792, 23.277619047619, 7.25464266261805);
+            var service = new PerformanceTrackerService(TestMinSampleSizeForDocumentAnalysis, TestMinSampleSizeForSpanAnalysis);
+
+            // Verify analyzer infos reported when sampleSize >= minSampleSize
+            var sampleSize = minSampleSize + 1;
+            ReadTestFileAndAddSnapshots(service, sampleSize, forSpanAnalysis);
+            var analyzerInfos = GenerateReport(service, forSpanAnalysis);
+            Assert.NotEmpty(analyzerInfos);
+
+            // Verify no analyzer infos reported when attempting to generate a duplicate
+            // report without adding any new samples.
+            analyzerInfos = GenerateReport(service, forSpanAnalysis);
+            Assert.Empty(analyzerInfos);
+
+            // Verify no analyzer infos reported after adding less than minSampleSize snapshots
+            sampleSize = minSampleSize - 1;
+            ReadTestFileAndAddSnapshots(service, sampleSize, forSpanAnalysis);
+            analyzerInfos = GenerateReport(service, forSpanAnalysis);
+            Assert.Empty(analyzerInfos);
+
+            // Verify analyzer infos reported once we the added snapshots exceeds sample size
+            sampleSize = 2;
+            ReadTestFileAndAddSnapshots(service, sampleSize, forSpanAnalysis);
+            analyzerInfos = GenerateReport(service, forSpanAnalysis);
+            Assert.NotEmpty(analyzerInfos);
         }
 
-        [Fact]
-        public void TestTrackingMaxSample()
+        [Theory, CombinatorialData]
+        public void TestTracking(bool forSpanAnalysis)
         {
-            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 300);
+            var analyzerInfos = GetAnalyzerInfos(to: 200, forSpanAnalysis);
 
-            VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 85.6039521236341, 58.4542358078603, 18.4245217226717);
-            VerifyBadAnalyzer(badAnalyzers[1], "VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer", 45.0918385052674, 29.0622535211268, 9.13728667060397);
-            VerifyBadAnalyzer(badAnalyzers[2], "CSharpInlineDeclarationDiagnosticAnalyzer", 42.2014208750466, 28.7935371179039, 7.99261581900397);
+            VerifyAnalyzerInfo(analyzerInfos, "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer",
+                mean: forSpanAnalysis ? 89.2416 : 54.48,
+                stddev: forSpanAnalysis ? 78.8177 : 21.8163001442628);
+            VerifyAnalyzerInfo(analyzerInfos, "CSharpInlineDeclarationDiagnosticAnalyzer",
+                mean: forSpanAnalysis ? 48.4284 : 26.6686092715232,
+                stddev: forSpanAnalysis ? 38.5010107523771 : 9.2987133054884);
+            VerifyAnalyzerInfo(analyzerInfos, "VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer",
+                mean: forSpanAnalysis ? 26.8618181818182 : 23.277619047619,
+                stddev: forSpanAnalysis ? 6.62917030049974 : 7.25464266261805);
         }
 
-        [Fact]
-        public void TestTrackingRolling()
+        [Theory, CombinatorialData]
+        public void TestTrackingMaxSample(bool forSpanAnalysis)
+        {
+            var analyzerInfos = GetAnalyzerInfos(to: 300, forSpanAnalysis);
+
+            VerifyAnalyzerInfo(analyzerInfos, "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer",
+                mean: forSpanAnalysis ? 75.3678260869565 : 58.4542358078603,
+                stddev: forSpanAnalysis ? 64.7106979026339 : 18.4245217226717);
+            VerifyAnalyzerInfo(analyzerInfos, "VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer",
+                mean: forSpanAnalysis ? 0.375 : 29.0622535211268,
+                stddev: forSpanAnalysis ? 0.144592142784807 : 9.13728667060397);
+            VerifyAnalyzerInfo(analyzerInfos, "CSharpInlineDeclarationDiagnosticAnalyzer",
+                mean: forSpanAnalysis ? 37.6895652173913 : 28.7935371179039,
+                stddev: forSpanAnalysis ? 29.5179969292277 : 7.99261581900397);
+        }
+
+        [Theory, CombinatorialData]
+        public void TestTrackingRolling(bool forSpanAnalysis)
         {
             // data starting to rolling at 300 data points
-            var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 400);
+            var analyzerInfos = GetAnalyzerInfos(to: 400, forSpanAnalysis);
 
-            VerifyBadAnalyzer(badAnalyzers[0], "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer", 76.2748443491852, 51.1698695652174, 17.3819563479479);
-            VerifyBadAnalyzer(badAnalyzers[1], "VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer", 43.5700167914005, 29.2597857142857, 9.21213873850298);
-            VerifyBadAnalyzer(badAnalyzers[2], "InlineDeclaration.CSharpInlineDeclarationDiagnosticAnalyzer", 36.4336594793033, 23.9764782608696, 7.43956680199015);
+            VerifyAnalyzerInfo(analyzerInfos, "CSharpRemoveUnnecessaryCastDiagnosticAnalyzer",
+                mean: forSpanAnalysis ? 0.24304347826087 : 51.1698695652174,
+                stddev: forSpanAnalysis ? 0.1511123654363 : 17.3819563479479);
+            VerifyAnalyzerInfo(analyzerInfos, "VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer",
+                mean: forSpanAnalysis ? 44.5428571428571 : 29.2597857142857,
+                stddev: forSpanAnalysis ? 34.6949934844539 : 9.21213873850298);
+            VerifyAnalyzerInfo(analyzerInfos, "InlineDeclaration.CSharpInlineDeclarationDiagnosticAnalyzer",
+                mean: forSpanAnalysis ? 0.842608695652174 : 23.9764782608696,
+                stddev: forSpanAnalysis ? 0.312682894617701 : 7.43956680199015);
         }
 
         [Fact]
         public void TestBadAnalyzerInfoPII()
         {
-            var badAnalyzer1 = new ExpensiveAnalyzerInfo(true, "test", 0.1, 0.1, 0.1);
-            Assert.True(badAnalyzer1.PIISafeAnalyzerId == badAnalyzer1.AnalyzerId);
-            Assert.True(badAnalyzer1.PIISafeAnalyzerId == "test");
+            var analyzerInfo1 = new AnalyzerInfoForPerformanceReporting(true, "test", 0.1, 0.1);
+            Assert.True(analyzerInfo1.PIISafeAnalyzerId == analyzerInfo1.AnalyzerId);
+            Assert.True(analyzerInfo1.PIISafeAnalyzerId == "test");
 
-            var badAnalyzer2 = new ExpensiveAnalyzerInfo(false, "test", 0.1, 0.1, 0.1);
-            Assert.True(badAnalyzer2.PIISafeAnalyzerId == badAnalyzer2.AnalyzerIdHash);
-            Assert.True(badAnalyzer2.PIISafeAnalyzerId == "test".GetHashCode().ToString());
+            var analyzerInfo2 = new AnalyzerInfoForPerformanceReporting(false, "test", 0.1, 0.1);
+            Assert.True(analyzerInfo2.PIISafeAnalyzerId == analyzerInfo2.AnalyzerIdHash);
+            Assert.True(analyzerInfo2.PIISafeAnalyzerId == "test".GetHashCode().ToString());
         }
 
-        private static void VerifyBadAnalyzer(ExpensiveAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
+        private static void VerifyAnalyzerInfo(List<AnalyzerInfoForPerformanceReporting> analyzerInfos, string analyzerName, double mean, double stddev)
         {
-            Assert.True(analyzer.PIISafeAnalyzerId.IndexOf(analyzerId, StringComparison.OrdinalIgnoreCase) >= 0);
-            Assert.Equal(lof, analyzer.LocalOutlierFactor, precision: 4);
-            Assert.Equal(mean, analyzer.Average, precision: 4);
-            Assert.Equal(stddev, analyzer.AdjustedStandardDeviation, precision: 4);
+            var analyzerInfo = analyzerInfos.Single(i => i.AnalyzerId.Contains(analyzerName));
+            Assert.True(analyzerInfo.PIISafeAnalyzerId.IndexOf(analyzerName, StringComparison.OrdinalIgnoreCase) >= 0);
+            Assert.Equal(mean, analyzerInfo.Average, precision: 4);
+            Assert.Equal(stddev, analyzerInfo.AdjustedStandardDeviation, precision: 4);
         }
 
-        private static List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
+        private static List<AnalyzerInfoForPerformanceReporting> GetAnalyzerInfos(int to, bool forSpanAnalysis)
         {
-            var testFile = ReadTestFile(testFileName);
+            var service = new PerformanceTrackerService(TestMinSampleSizeForDocumentAnalysis, TestMinSampleSizeForSpanAnalysis);
+            ReadTestFileAndAddSnapshots(service, to, forSpanAnalysis);
+            return GenerateReport(service, forSpanAnalysis);
+        }
+
+        private static void ReadTestFileAndAddSnapshots(PerformanceTrackerService service, int to, bool forSpanAnalysis)
+        {
+            var testFile = ReadTestFile(@"TestFiles\analyzer_input.csv");
 
             var (matrix, dataCount) = CreateMatrix(testFile);
 
             to = Math.Min(to, dataCount);
 
-            var service = new PerformanceTrackerService(minLOFValue: 0, averageThreshold: 0, stddevThreshold: 0);
-
             for (var i = 0; i < to; i++)
             {
-                service.AddSnapshot(CreateSnapshots(matrix, i), unitCount: 100);
+                service.AddSnapshot(CreateSnapshots(matrix, i), unitCount: 100, forSpanAnalysis);
             }
+        }
 
-            var badAnalyzerInfo = new List<ExpensiveAnalyzerInfo>();
-            service.GenerateReport(badAnalyzerInfo);
+        private static List<AnalyzerInfoForPerformanceReporting> GenerateReport(PerformanceTrackerService service, bool forSpanAnalysis)
+        {
+            var analyzerInfos = new List<AnalyzerInfoForPerformanceReporting>();
+            service.GenerateReport(analyzerInfos, forSpanAnalysis);
 
-            return badAnalyzerInfo;
+            return analyzerInfos;
         }
 
         private static IEnumerable<AnalyzerPerformanceInfo> CreateSnapshots(Dictionary<string, double[]> matrix, int index)
@@ -153,7 +224,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private static string GetAnalyzerId(string line)
         {
-            return line.Substring(1, line.LastIndexOf('"') - 1);
+            return line[1..line.LastIndexOf('"')];
         }
 
         private static int GetExpectedDataCount(string header)
@@ -164,7 +235,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private static string SkipAnalyzerId(string line)
         {
-            return line.Substring(line.LastIndexOf('"') + 2);
+            return line[(line.LastIndexOf('"') + 2)..];
         }
 
         private static string ReadTestFile(string name)

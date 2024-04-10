@@ -369,7 +369,7 @@ End Enum
 
 #Region "Comment tests"
 
-        <WorkItem(638909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638909")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638909")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestComment1()
             Dim code =
@@ -580,7 +580,7 @@ End Class
 
 #Region "Name tests"
 
-        <WorkItem(638224, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638224")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638224")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName_EnumMember()
             Dim code =
@@ -866,7 +866,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
-        <WorkItem(1087167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087167")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
@@ -892,7 +892,7 @@ End Class
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =

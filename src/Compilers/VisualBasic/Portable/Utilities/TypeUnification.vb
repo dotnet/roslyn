@@ -233,9 +233,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-
-
-
         ''' <summary>
         ''' Return true if the given type contains the specified type parameter.
         ''' </summary>

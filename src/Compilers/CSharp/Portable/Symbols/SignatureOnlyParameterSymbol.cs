@@ -16,13 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly TypeWithAnnotations _type;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
-        private readonly bool _isParams;
+        private readonly bool _isParamsArray;
+        private readonly bool _isParamsCollection;
         private readonly RefKind _refKind;
 
         public SignatureOnlyParameterSymbol(
             TypeWithAnnotations type,
             ImmutableArray<CustomModifier> refCustomModifiers,
-            bool isParams,
+            bool isParamsArray,
+            bool isParamsCollection,
             RefKind refKind)
         {
             Debug.Assert((object)type.Type != null);
@@ -30,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _type = type;
             _refCustomModifiers = refCustomModifiers;
-            _isParams = isParams;
+            _isParamsArray = isParamsArray;
+            _isParamsCollection = isParamsCollection;
             _refKind = refKind;
         }
 
@@ -38,7 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
-        public override bool IsParams { get { return _isParams; } }
+        public override bool IsParamsArray { get { return _isParamsArray; } }
+
+        public override bool IsParamsCollection { get { return _isParamsCollection; } }
 
         public override RefKind RefKind { get { return _refKind; } }
 
@@ -48,52 +53,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard { get { return false; } }
 
-        internal override DeclarationScope DeclaredScope => DeclarationScope.Unscoped;
-        internal override DeclarationScope EffectiveScope => DeclaredScope;
+        internal override ScopedKind EffectiveScope
+            => ParameterHelpers.IsRefScopedByDefault(this) ? ScopedKind.ScopedRef : ScopedKind.None;
+
+        internal override bool HasUnscopedRefAttribute => false;
+
+        internal override bool UseUpdatedEscapeRules => false;
 
         #region Not used by MethodSignatureComparer
 
-        internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsMetadataOut { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsMetadataOut { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation { get { throw ExceptionUtilities.Unreachable; } }
+        internal override MarshalPseudoCustomAttributeData MarshallingInformation { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override int Ordinal { get { throw ExceptionUtilities.Unreachable; } }
+        public override int Ordinal { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsMetadataOptional { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsMetadataOptional { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ConstantValue ExplicitDefaultConstantValue { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ConstantValue ExplicitDefaultConstantValue { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsIDispatchConstant { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsIDispatchConstant { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsIUnknownConstant { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsIUnknownConstant { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsCallerFilePath { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsCallerFilePath { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsCallerLineNumber { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsCallerLineNumber { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override int CallerArgumentExpressionParameterIndex { get { throw ExceptionUtilities.Unreachable; } }
+        internal override int CallerArgumentExpressionParameterIndex { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable; } }
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
+        public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable; } }
+        public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable; } }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
+        public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
-        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
 
         #endregion Not used by MethodSignatureComparer
 
@@ -109,7 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol.Equals(_type.Type, other._type.Type, compareKind) &&
                 _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
                 _refCustomModifiers.SequenceEqual(other._refCustomModifiers) &&
-                _isParams == other._isParams &&
+                _isParamsArray == other._isParamsArray &&
+                _isParamsCollection == other._isParamsCollection &&
                 _refKind == other._refKind;
         }
 
@@ -120,8 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Hash.Combine(
                     Hash.CombineValues(_type.CustomModifiers),
                     Hash.Combine(
-                        _isParams.GetHashCode(),
-                        _refKind.GetHashCode())));
+                        (_isParamsArray || _isParamsCollection).GetHashCode(),
+                        ((int)_refKind).GetHashCode())));
         }
     }
 }

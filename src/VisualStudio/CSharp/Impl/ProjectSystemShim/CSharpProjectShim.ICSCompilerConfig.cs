@@ -27,18 +27,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void ResetAllOptions()
         {
-            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_CCSYMBOLS] = string.Empty;
-            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_KEYFILE] = string.Empty;
-            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_NOWARNLIST] = string.Empty;
-            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_WARNASERRORLIST] = string.Empty;
-            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_WARNNOTASERRORLIST] = string.Empty;
-            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_UNSAFE] = false;
-            VisualStudioProjectOptionsProcessor[CompilerOptions.OPTID_XML_DOCFILE] = string.Empty;
+            ProjectSystemProjectOptionsProcessor[CompilerOptions.OPTID_CCSYMBOLS] = string.Empty;
+            ProjectSystemProjectOptionsProcessor[CompilerOptions.OPTID_KEYFILE] = string.Empty;
+            ProjectSystemProjectOptionsProcessor[CompilerOptions.OPTID_NOWARNLIST] = string.Empty;
+            ProjectSystemProjectOptionsProcessor[CompilerOptions.OPTID_WARNASERRORLIST] = string.Empty;
+            ProjectSystemProjectOptionsProcessor[CompilerOptions.OPTID_WARNNOTASERRORLIST] = string.Empty;
+            ProjectSystemProjectOptionsProcessor[CompilerOptions.OPTID_UNSAFE] = false;
+            ProjectSystemProjectOptionsProcessor[CompilerOptions.OPTID_XML_DOCFILE] = string.Empty;
         }
 
         public int SetOption(CompilerOptions optionID, HACK_VariantStructure value)
         {
-            VisualStudioProjectOptionsProcessor[optionID] = value.ConvertToObject();
+            ProjectSystemProjectOptionsProcessor[optionID] = value.ConvertToObject();
 
             if (optionID == CompilerOptions.OPTID_COMPATIBILITY)
             {
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void GetOption(CompilerOptions optionID, IntPtr variant)
-            => Marshal.GetNativeVariantForObject(VisualStudioProjectOptionsProcessor[optionID], variant);
+            => Marshal.GetNativeVariantForObject(ProjectSystemProjectOptionsProcessor[optionID], variant);
 
         public int CommitChanges(ref ICSError error)
         {

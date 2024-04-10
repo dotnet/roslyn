@@ -22,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case type
                 Case SpecialType.System_String
-                    SymbolDisplay.AddSymbolDisplayParts(builder, DirectCast(value, String))
+                    SymbolDisplay.AddSymbolDisplayParts(Builder, DirectCast(value, String))
 
                 Case SpecialType.System_Char
-                    SymbolDisplay.AddSymbolDisplayParts(builder, DirectCast(value, Char))
+                    SymbolDisplay.AddSymbolDisplayParts(Builder, DirectCast(value, Char))
 
                 Case Else
                     Dim valueString = SymbolDisplay.FormatPrimitive(value, quoteStrings:=True, useHexadecimalNumbers:=False)
-                    Me.builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, Nothing, valueString, False))
+                    Me.Builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, Nothing, valueString, False))
             End Select
         End Sub
 

@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteWorkspace GetWorkspace()
             => WorkspaceManager.GetWorkspace();
 
-        public HostWorkspaceServices GetWorkspaceServices()
-            => GetWorkspace().Services;
+        public SolutionServices GetWorkspaceServices()
+            => GetWorkspace().Services.SolutionServices;
 
         protected void Log(TraceEventType errorType, string message)
             => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -146,6 +146,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 }, cancellationToken);
         }
 
+        protected ValueTask RunServiceAsync(
+            Checksum solutionChecksum1,
+            Checksum solutionChecksum2,
+            Func<Solution, Solution, ValueTask> implementation,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(
+                solutionChecksum1,
+                s1 => RunServiceAsync(
+                    solutionChecksum2,
+                    s2 => implementation(s1, s2),
+                    cancellationToken),
+                cancellationToken);
+        }
+
         internal static async ValueTask RunServiceImplAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
         {
             try
@@ -154,26 +169,20 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-#if TODO // https://github.com/microsoft/vs-streamjsonrpc/issues/789
-        internal static async ValueTask<TOptions> GetClientOptionsAsync<TOptions, TCallbackInterface>(
-            RemoteCallback<TCallbackInterface> callback,
-            RemoteServiceCallbackId callbackId,
-            HostLanguageServices languageServices,
-            CancellationToken cancellationToken)
-            where TCallbackInterface : class, IRemoteOptionsCallback<TOptions>
-        {
-            var cache = ImmutableDictionary<string, AsyncLazy<TOptions>>.Empty;
-            var lazyOptions = ImmutableInterlocked.GetOrAdd(ref cache, languageServices.Language, _ => new AsyncLazy<TOptions>(GetRemoteOptions, cacheResult: true));
-            return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-            Task<TOptions> GetRemoteOptions(CancellationToken cancellationToken)
-                => callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, languageServices.Language, cancellationToken), cancellationToken).AsTask();
-        }
-#endif
+        /// <summary>
+        /// Use for on-demand retrieval of language-specific options from the client.
+        /// 
+        /// If the service doesn't know up-front for which languages it will need to retrieve specific options,
+        /// its ICallback interface should implement <see cref="IRemoteOptionsCallback{TOptions}"/> and use this
+        /// method to create the options provider to be passed to the feature implementation.
+        /// </summary>
+        protected static OptionsProvider<TOptions> GetClientOptionsProvider<TOptions, TCallback>(RemoteCallback<TCallback> callback, RemoteServiceCallbackId callbackId)
+            where TCallback : class, IRemoteOptionsCallback<TOptions>
+           => new ClientOptionsProvider<TOptions, TCallback>(callback, callbackId);
 
         private static void SetNativeDllSearchDirectories()
         {

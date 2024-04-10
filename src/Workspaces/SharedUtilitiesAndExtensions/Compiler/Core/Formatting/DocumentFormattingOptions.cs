@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Formatting;
@@ -30,14 +31,14 @@ internal interface DocumentFormattingOptionsProvider
 
 internal static class DocumentFormattingOptionsProviders
 {
-    public static DocumentFormattingOptions GetDocumentFormattingOptions(this AnalyzerConfigOptions options, DocumentFormattingOptions? fallbackOptions)
+    public static DocumentFormattingOptions GetDocumentFormattingOptions(this IOptionsReader options, DocumentFormattingOptions? fallbackOptions)
     {
         fallbackOptions ??= DocumentFormattingOptions.Default;
 
         return new()
         {
-            FileHeaderTemplate = options.GetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, fallbackOptions.FileHeaderTemplate),
-            InsertFinalNewLine = options.GetEditorConfigOption(FormattingOptions2.InsertFinalNewLine, fallbackOptions.InsertFinalNewLine)
+            FileHeaderTemplate = options.GetOption(CodeStyleOptions2.FileHeaderTemplate, fallbackOptions.FileHeaderTemplate),
+            InsertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine, fallbackOptions.InsertFinalNewLine)
         };
     }
 

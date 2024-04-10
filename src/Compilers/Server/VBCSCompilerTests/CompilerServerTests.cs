@@ -449,8 +449,11 @@ End Module")
         {
             var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
             var compilerServerExecutable = Path.Combine(basePath, "VBCSCompiler.exe");
+#pragma warning disable SYSLIB0037
+            // warning SYSLIB0037: 'AssemblyName.ProcessorArchitecture' is obsolete: 'AssemblyName members HashAlgorithm, ProcessorArchitecture, and VersionCompatibility are obsolete and not supported.'
             Assert.NotEqual(ProcessorArchitecture.X86,
                 AssemblyName.GetAssemblyName(compilerServerExecutable).ProcessorArchitecture);
+#pragma warning restore SYSLIB0037
         }
 
         /// <summary>

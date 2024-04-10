@@ -196,6 +196,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(FileAlignment), 0); }
         }
 
+        public string? GeneratedFilesOutputPath
+        {
+            set { _store[nameof(GeneratedFilesOutputPath)] = value; }
+            get { return (string?)_store[nameof(GeneratedFilesOutputPath)]; }
+        }
+
         public bool HighEntropyVA
         {
             set { _store[nameof(HighEntropyVA)] = value; }
@@ -291,6 +297,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Prefer32Bit), false); }
         }
 
+        public string? ProjectName
+        {
+            set { _store[nameof(ProjectName)] = value; }
+            get { return (string?)_store[nameof(ProjectName)]; }
+        }
+
         public bool ProvideCommandLineArgs
         {
             set { _store[nameof(ProvideCommandLineArgs)] = value; }
@@ -369,6 +381,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(SubsystemVersion)] = value; }
             get { return (string?)_store[nameof(SubsystemVersion)]; }
+        }
+
+        public string? TargetFramework
+        {
+            set { _store[nameof(TargetFramework)] = value; }
+            get { return (string?)_store[nameof(TargetFramework)]; }
         }
 
         public string? TargetType
@@ -463,16 +481,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(LangVersion)]; }
         }
 
+        public bool ReportIVTs
+        {
+            set { _store[nameof(ReportIVTs)] = value; }
+            get { return _store.GetOrDefault(nameof(ReportIVTs), false); }
+        }
+
         #endregion
-
-        // ToolExe delegates back to ToolName if the override is not
-        // set.  So, if ToolExe == ToolName, we know ToolExe is not
-        // explicitly overridden.  So, if both ToolPath is unset and
-        // ToolExe == ToolName, we know nothing is overridden, and
-        // we can use our own csc.
-        private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
-
-        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
 
         /// <summary>
         /// Method for testing only
@@ -481,10 +496,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             return GenerateFullPathToTool();
         }
-
-        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
-
-        protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
@@ -496,8 +507,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (ProvideCommandLineArgs)
             {
-                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
-                    .Select(arg => new TaskItem(arg)).ToArray();
+                CommandLineArgs = GenerateCommandLineArgsTaskItems(responseFileCommands);
             }
 
             if (SkipCompilerExecution)
@@ -507,14 +517,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                var requestId = Guid.NewGuid();
+                var requestId = getRequestId();
                 logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
 
                 string workingDirectory = CurrentDirectoryToUse();
                 string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
 
                 if (!UseSharedCompilation ||
-                    HasToolBeenOverridden ||
+                    !IsManagedTool ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
@@ -538,7 +548,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
-                    GetArguments(ToolArguments, responseFileCommands).ToList(),
+                    GenerateCommandLineArgsList(responseFileCommands),
                     workingDirectory: workingDirectory,
                     tempDirectory: tempDirectory,
                     keepAlive: null,
@@ -576,6 +586,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return ExitCode;
+
+            // Construct the friendly name for the compilation. This does not need to be unique. Instead
+            // it's used by developers to understand what compilation is running on the server.
+            string getRequestId()
+            {
+                if (!string.IsNullOrEmpty(ProjectName))
+                {
+                    return string.IsNullOrEmpty(TargetFramework)
+                        ? ProjectName
+                        : $"{ProjectName} ({TargetFramework})";
+                }
+
+                return $"Unnamed compilation {Guid.NewGuid()}";
+            }
         }
 
         /// <summary>
@@ -640,7 +664,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(Guid requestId, BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
+        private int HandleResponse(string requestId, BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
 #if BOOTSTRAP
             if (!ValidateBootstrapResponse(response))
@@ -729,7 +753,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     Log.LogError($"Critical error {responseType} when building");
                     return false;
                 case BuildResponse.ResponseType.Rejected:
-                    Log.LogError($"Compiler request rejected");
+                    Log.LogError($"Compiler request rejected: {((RejectedBuildResponse)response!).Reason}");
                     return false;
                 case BuildResponse.ResponseType.CannotConnect:
                     if (Interlocked.Increment(ref s_connectFailedCount) > maxCannotConnectCount)
@@ -768,7 +792,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// These are intended to be processed by automation in the binlog hence do not change the structure of
         /// the messages here.
         /// </summary>
-        private void LogCompilationMessage(ICompilerServerLogger logger, Guid requestId, CompilationKind kind, string diagnostic)
+        private void LogCompilationMessage(ICompilerServerLogger logger, string requestId, CompilationKind kind, string diagnostic)
         {
             var category = kind switch
             {
@@ -792,58 +816,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        public string GenerateResponseFileContents()
-        {
-            return GenerateResponseFileCommands();
-        }
-
-        /// <summary>
-        /// Get the command line arguments to pass to the compiler.
-        /// </summary>
-        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
-        {
-            var commandLineArguments =
-                CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
-            var responseFileArguments =
-                CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
-            return commandLineArguments.Concat(responseFileArguments).ToArray();
-        }
-
-        /// <summary>
-        /// Returns the command line switch used by the tool executable to specify the response file
-        /// Will only be called if the task returned a non empty string from GetResponseFileCommands
-        /// Called after ValidateParameters, SkipTaskExecution and GetResponseFileCommands
-        /// </summary>
-        protected override string GenerateResponseFileCommands()
-        {
-            CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
-            AddResponseFileCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Method for testing only
-        /// </summary>
-        public string GenerateCommandLine()
-        {
-            return GenerateCommandLineCommands();
-        }
-
-        protected sealed override string ToolArguments
-        {
-            get
-            {
-                var builder = new CommandLineBuilderExtension();
-                AddCommandLineCommands(builder);
-                return builder.ToString();
-            }
-        }
-
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can't go into a response file and
         /// must go directly onto the command line.
         /// </summary>
-        protected internal virtual void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendWhenTrue("/noconfig", _store, nameof(NoConfig));
         }
@@ -851,7 +828,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        protected internal virtual void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             // If outputAssembly is not specified, then an "/out: <name>" option won't be added to
             // overwrite the one resulting from the OutputAssembly member of the CompilerParameters class.
@@ -899,7 +876,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             commandLine.AppendPlusOrMinusSwitch("/delaysign", _store, nameof(DelaySign));
 
+            commandLine.AppendWhenTrue("/reportivts", _store, nameof(ReportIVTs));
+
             commandLine.AppendSwitchWithInteger("/filealign:", _store, nameof(FileAlignment));
+            commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendSwitchIfNotNull("/keycontainer:", KeyContainer);
             commandLine.AppendSwitchIfNotNull("/keyfile:", KeyFile);
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
@@ -1127,7 +1107,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// support a particular parameter or variation on a parameter.  So we log a comment,
         /// and set our state so we know not to call the host object to do the actual compilation.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected void CheckHostObjectSupport
             (
             string parameterName,
@@ -1157,7 +1136,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Checks to see whether all of the passed-in references exist on disk before we launch the compiler.
         /// </summary>
-        /// <owner>RGoel</owner>
         protected bool CheckAllReferencesExistOnDisk()
         {
             if (null == References)

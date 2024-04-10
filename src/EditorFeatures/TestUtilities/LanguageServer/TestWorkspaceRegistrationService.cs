@@ -4,28 +4,21 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Composition;
 
-namespace Roslyn.Test.Utilities
-{
-    public abstract partial class AbstractLanguageServerProtocolTests
-    {
-        [Export(typeof(LspWorkspaceRegistrationService)), Shared, PartNotDiscoverable]
-        internal class TestWorkspaceRegistrationService : LspWorkspaceRegistrationService
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestWorkspaceRegistrationService()
-            {
-            }
+namespace Roslyn.Test.Utilities;
 
-            public override string GetHostWorkspaceKind()
-            {
-                return WorkspaceKind.Host;
-            }
+public abstract partial class AbstractLanguageServerProtocolTests
+{
+    [Export(typeof(LspWorkspaceRegistrationService)), Shared, PartNotDiscoverable]
+    internal class TestWorkspaceRegistrationService : LspWorkspaceRegistrationService
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestWorkspaceRegistrationService()
+        {
         }
     }
 }

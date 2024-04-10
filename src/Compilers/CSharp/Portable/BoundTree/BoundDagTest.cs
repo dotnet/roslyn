@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Kind.GetHashCode(), Input.GetHashCode());
+            return Hash.Combine(((int)Kind).GetHashCode(), Input.GetHashCode());
         }
 
 #if DEBUG

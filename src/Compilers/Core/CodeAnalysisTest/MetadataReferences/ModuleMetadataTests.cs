@@ -352,7 +352,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        /// <summary>
+        /// Only test in 64-bit process. <see cref="UnmanagedMemoryStream"/> throws if the given length is greater than the size of the available address space.
+        /// </summary>
+        [ConditionalFact(typeof(Bitness64))]
         public unsafe void CreateFromUnmanagedMemoryStream_LargeIntSize()
         {
             var assembly = TestResources.Basic.Members;

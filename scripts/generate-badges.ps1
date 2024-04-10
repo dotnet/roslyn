@@ -9,9 +9,10 @@ $branchNames = @(
 
 function Get-AzureBadge($branchName, $jobName, $configName, [switch]$integration = $false) {
     $name = if ($integration) { "roslyn-integration-CI" } else { "roslyn-CI" }
-    $id = if ($integration) { 245 } else { 15 }
-    $template = "[![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/roslyn/$($name)?branchname=$branchName&jobname=$jobName&configuration=$jobName$configName&label=build)]"
-    $template += "(https://dev.azure.com/dnceng/public/_build/latest?definitionId=$($id)&branchname=$branchName&view=logs)"
+    $id = if ($integration) { 96 } else { 95 }
+    $jobName = [System.Web.HttpUtility]::UrlEncode($jobName)
+    $template = "[![Build Status](https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/roslyn/$($name)?branchname=$branchName&jobname=$jobName&configuration=$jobName$configName&label=build)]"
+    $template += "(https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=$($id)&branchname=$branchName&view=logs)"
     return $template
 }
 
@@ -20,13 +21,6 @@ function Get-AzureLine($branchName, $jobNames, [switch]$integration = $false) {
     foreach ($jobName in $jobNames) {
 
         $configName = ""
-        $i = $jobName.IndexOf('#')
-        if ($i -ge 0)
-        {
-            $configName = "%20$($jobName.SubString($i + 1))"
-            $jobName = $jobName.Substring(0, $i)
-        }
-
         $line += Get-AzureBadge $branchName $jobName $configName -integration:$integration
         $line += "|"
     }
@@ -98,10 +92,10 @@ function Get-CoreClrTable() {
 
 function Get-IntegrationTable() {
     $jobNames = @(
-        'VS_Integration#debug_32',
-        'VS_Integration#debug_64',
-        'VS_Integration#release_32',
-        'VS_Integration#release_64'
+        'VS_Integration_Debug_32',
+        'VS_Integration_Debug_64',
+        'VS_Integration_Release_32',
+        'VS_Integration_Release_64'
     )
 
     $table = @'
@@ -122,17 +116,19 @@ function Get-IntegrationTable() {
 function Get-MiscTable() {
     $jobNames = @(
         'Correctness_Determinism',
-        'Correctness_Build',
-        'Correctness_SourceBuild',
-        'Test_Windows_Desktop_Spanish_Release_32',
+        'Correctness_Analyzers',
+        'Correctness_Build_Artifacts',
+        'Source-Build (Managed)',
+        'Correctness_TodoCheck',
+        'Test_Windows_Desktop_Spanish_Release_64',
         'Test_macOS_Debug'
     )
 
     $table = @'
 #### Misc Tests
 
-|Branch|Determinism|Build Correctness|Source build|Spanish|MacOS|
-|:--:|:--:|:--|:--:|:--:|:--:|
+|Branch|Determinism|Analyzers|Build Correctness|Source build|TODO/Prototype|Spanish|MacOS|
+|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 
 '@
 

@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
-                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, temporaries)
+                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, isForRegularCompoundAssignment:=True, temporaries)
                 temps = temporaries.ToImmutableAndFree()
 
                 Dim leftOnTheRight As BoundExpression
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assignmentTarget = assignmentTarget.SetLateBoundAccessKind(LateBoundAccessKind.Unknown)
 
                 Dim temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
-                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, temporaries)
+                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, isForRegularCompoundAssignment:=False, temporaries)
                 temps = temporaries.ToImmutableAndFree()
 
                 Dim leftOnTheRight As BoundExpression

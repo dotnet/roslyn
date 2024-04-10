@@ -32,7 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
             Return VisualBasicCompilation.Create(GetUniqueName(), {tree}, {MscorlibRef}, TestOptions.DebugDll.WithSourceReferenceResolver(resolver))
         End Function
 
-
         <Fact>
         Public Sub CheckSumDirectiveClashesSameTree()
             Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
@@ -103,7 +102,6 @@ End Class
         </file>
     </compilation>, options:=TestOptions.DebugDll)
 
-
             CompileAndVerify(other).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_BadChecksumValExtChecksum, """ab007f1d23d"""),
                 Diagnostic(ERRID.WRN_BadGUIDFormatExtChecksum, """{406EA660-64CF-4C82-B6F0-42D48172A79}"""),
@@ -147,7 +145,6 @@ End Class
 ]]>
         </file>
     </compilation>, options:=TestOptions.DebugDll)
-
 
             CompileAndVerify(other).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_MultipleDeclFileExtChecksum, "#ExternalChecksum(""bogus1.vb"", ""{406EA660-64CF-4C82-B6F0-42D48172A799}"", ""ab007f1d23"")").WithArguments("bogus1.vb")

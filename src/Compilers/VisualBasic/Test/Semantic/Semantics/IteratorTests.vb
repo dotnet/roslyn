@@ -128,7 +128,6 @@ BC42105: Function 'goo1' doesn't return a value on all code paths. A null refere
         <Fact()>
         Public Sub YieldingUnassigned()
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
@@ -252,7 +251,6 @@ BC36939: 'Yield' cannot be used inside a 'Catch' statement or a 'Finally' statem
         <Fact()>
         Public Sub NoConversion()
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
@@ -283,7 +281,6 @@ BC30311: Value of type 'Integer' cannot be converted to 'Exception'.
 
         <Fact()>
         Public Sub NotReadable()
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -322,7 +319,6 @@ BC30524: Property 'P1' is 'WriteOnly'.
         <Fact()>
         Public Sub LambdaConversions()
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
@@ -353,7 +349,6 @@ End Module
         <Fact()>
         Public Sub InvalidParamType()
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
@@ -382,7 +377,6 @@ BC36932: 'ArgIterator' cannot be used as a parameter type for an Iterator or Asy
 
         <Fact()>
         Public Sub EnumeratorNotImported()
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -413,7 +407,6 @@ BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
         <Fact()>
         Public Sub ByRefParams()
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
@@ -442,7 +435,6 @@ BC36927: Iterator methods cannot have ByRef parameters.
 
         <Fact()>
         Public Sub IteratorTypeWrong()
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -479,7 +471,6 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
 
         <Fact()>
         Public Sub SubIterator()
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -523,7 +514,6 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
         <Fact()>
         Public Sub StaticInIterator()
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
@@ -553,7 +543,6 @@ BC36955: Static variables cannot appear inside Async or Iterator methods.
 
         <Fact()>
         Public Sub MiscInvalid()
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -598,7 +587,6 @@ BC30218: 'Lib' expected.
 
         <Fact()>
         Public Sub IteratorInWrongPlaces()
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -677,10 +665,8 @@ BC30201: Expression expected.
 </errors>)
         End Sub
 
-
         <Fact()>
         Public Sub InferenceByrefLike()
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
@@ -712,7 +698,6 @@ End Module
 
         <Fact()>
         Public Sub InferenceByref()
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>

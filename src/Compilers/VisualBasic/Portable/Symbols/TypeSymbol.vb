@@ -273,9 +273,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
         ''' </summary>
-        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
+        Public Overridable ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
             Get
-                Return SpecialType.None
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
+            Get
+                Return CType(ExtendedSpecialType, SpecialType)
             End Get
         End Property
 
@@ -355,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Type name.
         ''' </param>
         ''' <returns>
-        ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        ''' Symbol for the type, or Nothing if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
         Friend Overridable Function LookupMetadataType(ByRef emittedTypeName As MetadataTypeName) As NamedTypeSymbol
@@ -425,10 +431,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
 Done:
-            If namedType Is Nothing Then
-                Return New MissingMetadataTypeSymbol.Nested(DirectCast(Me, NamedTypeSymbol), emittedTypeName)
-            End If
-
             Return namedType
         End Function
 
@@ -671,7 +673,6 @@ Done:
                 Return If(Interlocked.CompareExchange(_lazyImplementationForInterfaceMemberMap, map, Nothing), map)
             End Get
         End Property
-
 
         ''' <summary>
         ''' Compute the implementation for an interface member in this type, or Nothing if none.

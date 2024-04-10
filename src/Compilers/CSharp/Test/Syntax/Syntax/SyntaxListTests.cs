@@ -6,9 +6,11 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,14 +40,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<NotSupportedException>(() => default(SyntaxList<CSharpSyntaxNode>.Enumerator).Equals(default(SyntaxList<CSharpSyntaxNode>.Enumerator)));
         }
 
-        [Fact]
-        public void TestAddInsertRemoveReplace()
+        [Theory, CombinatorialData]
+        public void TestAddInsertRemoveReplace(bool collectionExpression)
         {
-            var list = SyntaxFactory.List<SyntaxNode>(
-                new[] {
+            var list = collectionExpression
+                ? [
                     SyntaxFactory.ParseExpression("A "),
                     SyntaxFactory.ParseExpression("B "),
-                    SyntaxFactory.ParseExpression("C ") });
+                    SyntaxFactory.ParseExpression("C ")]
+                : SyntaxFactory.List<SyntaxNode>(
+                    new[] {
+                        SyntaxFactory.ParseExpression("A "),
+                        SyntaxFactory.ParseExpression("B "),
+                        SyntaxFactory.ParseExpression("C ") });
 
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
@@ -178,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAddInsertRemoveReplaceOnEmptyList()
         {
             DoTestAddInsertRemoveReplaceOnEmptyList(SyntaxFactory.List<SyntaxNode>());
+            DoTestAddInsertRemoveReplaceOnEmptyList([]);
             DoTestAddInsertRemoveReplaceOnEmptyList(default(SyntaxList<SyntaxNode>));
         }
 
@@ -229,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             newMethodDeclaration.AddAttributeLists(attributes);
         }
 
-        [Fact]
-        public void AddNamespaceAttributeListsAndModifiers()
+        [Theory, CombinatorialData]
+        public void AddNamespaceAttributeListsAndModifiers(bool collectionExpression)
         {
             var declaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("M"));
 
@@ -239,8 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             declaration = declaration.AddAttributeLists(new[]
             {
-                SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
+                SyntaxFactory.AttributeList(collectionExpression
+                    ? [SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr"))]
+                    : SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
             });
 
             Assert.True(declaration.AttributeLists.Count == 1);
@@ -303,6 +313,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     int expectedTokenIndex = position + 1; // + 1 because there is a (missing) OpenParen at slot 0
                     Assert.Equal(expectedTokenIndex, item.AsToken().Index);
                 }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void EnumerateWithManyChildren_Forward(bool trailingSeparator)
+        {
+            const int n = 200000;
+            var builder = new StringBuilder();
+            builder.Append("int[] values = new[] { ");
+            for (int i = 0; i < n; i++) builder.Append("0, ");
+            if (!trailingSeparator) builder.Append("0 ");
+            builder.AppendLine("};");
+
+            var tree = CSharpSyntaxTree.ParseText(builder.ToString());
+            // Do not descend into InitializerExpressionSyntax since that will populate SeparatedWithManyChildren._children.
+            var node = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().First();
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                _ = child.ToString();
+            }
+        }
+
+        // Tests should timeout when using SeparatedWithManyChildren.GetChildPosition()
+        // instead of GetChildPositionFromEnd().
+        [WorkItem(66475, "https://github.com/dotnet/roslyn/issues/66475")]
+        [Theory]
+        [CombinatorialData]
+        public void EnumerateWithManyChildren_Reverse(bool trailingSeparator)
+        {
+            const int n = 200000;
+            var builder = new StringBuilder();
+            builder.Append("int[] values = new[] { ");
+            for (int i = 0; i < n; i++) builder.Append("0, ");
+            if (!trailingSeparator) builder.Append("0 ");
+            builder.AppendLine("};");
+
+            var tree = CSharpSyntaxTree.ParseText(builder.ToString());
+            // Do not descend into InitializerExpressionSyntax since that will populate SeparatedWithManyChildren._children.
+            var node = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().First();
+
+            foreach (var child in node.ChildNodesAndTokens().Reverse())
+            {
+                _ = child.ToString();
+            }
+        }
+
+        [Theory]
+        [InlineData("int[] values = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };")]
+        [InlineData("int[] values = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };")]
+        public void EnumerateWithManyChildren_Compare(string source)
+        {
+            CSharpSyntaxTree.ParseText(source).VerifyChildNodePositions();
+
+            var builder = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            foreach (var node in parseAndGetInitializer(source).ChildNodesAndTokens().Reverse())
+            {
+                builder.Add(node);
+            }
+            builder.ReverseContents();
+            var childNodes1 = builder.ToImmutableAndFree();
+
+            builder = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            foreach (var node in parseAndGetInitializer(source).ChildNodesAndTokens())
+            {
+                builder.Add(node);
+            }
+            var childNodes2 = builder.ToImmutableAndFree();
+
+            Assert.Equal(childNodes1.Length, childNodes2.Length);
+
+            for (int i = 0; i < childNodes1.Length; i++)
+            {
+                var child1 = childNodes1[i];
+                var child2 = childNodes2[i];
+                Assert.Equal(child1.Position, child2.Position);
+                Assert.Equal(child1.EndPosition, child2.EndPosition);
+                Assert.Equal(child1.Width, child2.Width);
+                Assert.Equal(child1.FullWidth, child2.FullWidth);
+            }
+
+            static InitializerExpressionSyntax parseAndGetInitializer(string source)
+            {
+                var tree = CSharpSyntaxTree.ParseText(source);
+                // Do not descend into InitializerExpressionSyntax since that will populate SeparatedWithManyChildren._children.
+                return tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().First();
             }
         }
     }

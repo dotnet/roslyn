@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,7 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions.XmlSnippetParser;
 
@@ -31,17 +30,54 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// </summary>
 [ExportCSharpVisualBasicStatelessLspService(typeof(InlineCompletionsHandler)), Shared]
 [Method(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
+internal partial class InlineCompletionsHandler : ILspServiceDocumentRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in
     /// C:\Program Files\Microsoft Visual Studio\2022\VS_INSTANCE\VC#\Snippets\1033\Visual C#
     /// These are currently the only snippets supported.
     /// </summary>
-    public static ImmutableHashSet<string> BuiltInSnippets = ImmutableHashSet.Create(
-        "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
-        "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
-        "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
+    public static ImmutableHashSet<string> BuiltInSnippets =
+    [
+        "~",
+        "Attribute",
+        "checked",
+        "class",
+        "ctor",
+        "cw",
+        "do",
+        "else",
+        "enum",
+        "equals",
+        "Exception",
+        "for",
+        "foreach",
+        "forr",
+        "if",
+        "indexer",
+        "interface",
+        "invoke",
+        "iterator",
+        "iterindex",
+        "lock",
+        "mbox",
+        "namespace",
+        "#if",
+        "#region",
+        "prop",
+        "propfull",
+        "propg",
+        "sim",
+        "struct",
+        "svm",
+        "switch",
+        "try",
+        "tryf",
+        "unchecked",
+        "unsafe",
+        "using",
+        "while",
+    ];
 
     private readonly XmlSnippetParser _xmlSnippetParser;
     private readonly IGlobalOptionService _globalOptions;
@@ -58,17 +94,17 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
         _globalOptions = globalOptions;
     }
 
-    public TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
         return request.TextDocument;
     }
 
     public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Document);
+        var document = context.GetRequiredDocument();
 
         // First get available snippets if any.
-        var snippetInfoService = context.Document.Project.GetRequiredLanguageService<ISnippetInfoService>();
+        var snippetInfoService = document.Project.GetRequiredLanguageService<ISnippetInfoService>();
         var snippetInfo = snippetInfoService.GetSnippetsIfAvailable();
         if (!snippetInfo.Any())
         {
@@ -76,8 +112,8 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
         }
 
         // Then attempt to get the word at the requested position.
-        var sourceText = await context.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFactsService = context.Document.Project.GetRequiredLanguageService<ISyntaxFactsService>();
+        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFactsService = document.Project.GetRequiredLanguageService<ISyntaxFactsService>();
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var position = sourceText.Lines.GetPosition(linePosition);
         if (!SnippetUtilities.TryGetWordOnLeft(position, sourceText, syntaxFactsService, out var wordOnLeft))
@@ -101,22 +137,22 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
         }
 
         // Use the formatting options specified by the client to format the snippet.
-        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, context.Document, _globalOptions, cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = await context.Document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = await document.GetSimplifierOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
 
-        var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
+        var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, document, sourceText, formattingOptions, simplifierOptions, cancellationToken).ConfigureAwait(false);
 
         return new VSInternalInlineCompletionList
         {
-            Items = new VSInternalInlineCompletionItem[]
-            {
+            Items =
+            [
                 new VSInternalInlineCompletionItem
                 {
                     Range = ProtocolConversions.TextSpanToRange(wordOnLeft.Value, sourceText),
                     Text = formattedLspSnippet,
                     TextFormat = InsertTextFormat.Snippet,
                 }
-            }
+            ]
         };
     }
 
@@ -148,7 +184,7 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
 
         var spanToFormat = TextSpan.FromBounds(textChange.Span.Start, snippetEndPosition);
         var formattingChanges = Formatter.GetFormattedTextChanges(root, spanToFormat, originalDocument.Project.Solution.Services, formattingOptions, cancellationToken: cancellationToken)
-            ?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
+            ?.ToImmutableArray() ?? [];
 
         var formattedText = documentWithSnippetText.WithChanges(formattingChanges);
 
@@ -247,7 +283,7 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
             if (part is SnippetFieldPart fieldPart && fieldPart.EditIndex != null)
             {
                 var fieldSpan = new TextSpan(locationInFinalSnippet, part.DefaultText.Length);
-                fieldOffsets[fieldPart] = fieldOffsets.GetValueOrDefault(fieldPart, ImmutableArray<TextSpan>.Empty).Add(fieldSpan);
+                fieldOffsets[fieldPart] = fieldOffsets.GetValueOrDefault(fieldPart, []).Add(fieldSpan);
             }
             else if (part is SnippetCursorPart cursorPart)
             {

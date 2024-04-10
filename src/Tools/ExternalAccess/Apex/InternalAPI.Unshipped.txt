@@ -1,0 +1,6 @@
+#nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.Apex.ApexAsynchronousOperationListenerProviderAccessor
+Microsoft.CodeAnalysis.ExternalAccess.Apex.ApexAsynchronousOperationListenerProviderAccessor.ApexAsynchronousOperationListenerProviderAccessor(Microsoft.CodeAnalysis.Shared.TestHooks.AsynchronousOperationListenerProvider! implementation, Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace? workspace) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Apex.ApexAsynchronousOperationListenerProviderAccessor.WaitAllAsync(string![]? featureNames = null, System.Action? eventProcessingAction = null, System.TimeSpan? timeout = null) -> System.Threading.Tasks.Task!
+Microsoft.CodeAnalysis.ExternalAccess.Apex.IApexAsynchronousOperationListenerProviderAccessor
+~Microsoft.CodeAnalysis.ExternalAccess.Apex.IApexAsynchronousOperationListenerProviderAccessor.WaitAllAsync(string[] featureNames = null, System.Action eventProcessingAction = null, System.TimeSpan? timeout = null) -> System.Threading.Tasks.Task

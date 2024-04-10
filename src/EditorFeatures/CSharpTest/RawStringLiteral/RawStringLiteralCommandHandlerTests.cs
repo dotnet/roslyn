@@ -30,27 +30,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
                     Single(c => c is RawStringLiteralCommandHandler);
             }
 
-            public static RawStringLiteralTestState CreateTestState(string markup)
-                => new(GetWorkspaceXml(markup));
+            public static RawStringLiteralTestState CreateTestState(string markup, bool withSpansOnly = false)
+                => new(GetWorkspaceXml(markup, withSpansOnly));
 
-            public static XElement GetWorkspaceXml(string markup)
-                => XElement.Parse($@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>{markup}</Document>
-    </Project>
-</Workspace>");
-
-            internal void AssertCodeIs(string expectedCode)
+            public static XElement GetWorkspaceXml(string markup, bool withSpansOnly)
             {
+                var spansOnlyMarkup = withSpansOnly ? """Markup="SpansOnly" """ : "";
+                return XElement.Parse($"""
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document {spansOnlyMarkup}>{markup}</Document>
+    </Project>
+</Workspace>
+""");
+            }
+
+            internal void AssertCodeIs(string expectedCode, bool withSpansOnly = false)
+            {
+                if (withSpansOnly)
+                    expectedCode = expectedCode.Replace("$", "\uD7FF");
+
                 MarkupTestFile.GetPositionAndSpans(expectedCode, out var massaged, out int? caretPosition, out var spans);
+
+                if (withSpansOnly)
+                {
+                    Assert.Null(caretPosition);
+                    massaged = massaged.Replace("\uD7FF", "$");
+                }
+
                 Assert.Equal(massaged, TextView.TextSnapshot.GetText());
-                Assert.Equal(caretPosition!.Value, TextView.Caret.Position.BufferPosition.Position);
+
+                if (!withSpansOnly)
+                    Assert.Equal(caretPosition!.Value, TextView.Caret.Position.BufferPosition.Position);
 
                 var virtualSpaces = spans.SingleOrDefault(kvp => kvp.Key.StartsWith("VirtualSpaces#"));
                 if (virtualSpaces.Key != null)
                 {
-                    var virtualOffset = int.Parse(virtualSpaces.Key.Substring("VirtualSpaces-".Length));
+                    var virtualOffset = int.Parse(virtualSpaces.Key["VirtualSpaces-".Length..]);
                     Assert.True(TextView.Caret.InVirtualSpace);
                     Assert.Equal(virtualOffset, TextView.Caret.Position.VirtualBufferPosition.VirtualSpaces);
                 }
@@ -72,13 +88,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral
         public void TestReturnInSixQuotes()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$""""""");
+                """"
+                var v = """$$"""
+                """");
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = """"""
-$${|VirtualSpaces-4:|}
-    """"""");
+                """"
+                var v = """
+                $${|VirtualSpaces-4:|}
+                    """
+                """");
         }
 
         [WpfFact]
@@ -89,61 +109,79 @@ $${|VirtualSpaces-4:|}
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = """"""
-$${|VirtualSpaces-4:|}
-    """""";");
+                """"
+                var v = """
+                $${|VirtualSpaces-4:|}
+                    """;
+                """");
         }
 
         [WpfFact]
         public void TestReturnInSixQuotesNotAtMiddle()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""""$$""""");
+                """""
+                var v = """"$$""
+                """"");
 
             testState.SendReturn(handled: false);
             testState.AssertCodeIs(
-@"var v = """"""""$$""""");
+                """""
+                var v = """"$$""
+                """"");
         }
 
         [WpfFact]
         public void TestReturnInSixQuotes_Interpolated()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = $""""""$$""""""");
+                """"
+                var v = $"""$$"""
+                """");
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = $""""""
-$${|VirtualSpaces-4:|}
-    """"""");
+                """"
+                var v = $"""
+                $${|VirtualSpaces-4:|}
+                    """
+                """");
         }
 
         [WpfFact]
         public void TestReturnInSixQuotesMoreQuotesLaterOn()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$"""""";
-Console.WriteLine(""Goo"");");
+                """"
+                var v = """$$""";
+                Console.WriteLine("Goo");
+                """");
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = """"""
-$${|VirtualSpaces-4:|}
-    """""";
-Console.WriteLine(""Goo"");");
+                """"
+                var v = """
+                $${|VirtualSpaces-4:|}
+                    """;
+                Console.WriteLine("Goo");
+                """");
         }
 
         [WpfFact]
         public void TestReturnInSixQuotesAsArgument1()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = WriteLine(""""""$$""""""");
+                """"
+                var v = WriteLine("""$$"""
+                """");
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = WriteLine(""""""
-$${|VirtualSpaces-4:|}
-    """"""");
+                """"
+                var v = WriteLine("""
+                $${|VirtualSpaces-4:|}
+                    """
+                """");
         }
 
         [WpfFact]
@@ -154,9 +192,11 @@ $${|VirtualSpaces-4:|}
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = WriteLine(""""""
-$${|VirtualSpaces-4:|}
-    """""")");
+                """"
+                var v = WriteLine("""
+                $${|VirtualSpaces-4:|}
+                    """)
+                """");
         }
 
         [WpfFact]
@@ -167,54 +207,68 @@ $${|VirtualSpaces-4:|}
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = WriteLine(""""""
-$${|VirtualSpaces-4:|}
-    """""");");
+                """"
+                var v = WriteLine("""
+                $${|VirtualSpaces-4:|}
+                    """);
+                """");
         }
 
         [WpfFact]
         public void TestReturnInSixQuotesAsArgument4()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = WriteLine(
-    """"""$$""""""");
+                """"
+                var v = WriteLine(
+                    """$$"""
+                """");
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = WriteLine(
-    """"""
-$${|VirtualSpaces-4:|}
-    """"""");
+                """"
+                var v = WriteLine(
+                    """
+                $${|VirtualSpaces-4:|}
+                    """
+                """");
         }
 
         [WpfFact]
         public void TestReturnInSixQuotesAsArgument5()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = WriteLine(
-    """"""$$"""""")");
+                """"
+                var v = WriteLine(
+                    """$$""")
+                """");
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = WriteLine(
-    """"""
-$${|VirtualSpaces-4:|}
-    """""")");
+                """"
+                var v = WriteLine(
+                    """
+                $${|VirtualSpaces-4:|}
+                    """)
+                """");
         }
 
         [WpfFact]
         public void TestReturnInSixQuotesAsArgument6()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = WriteLine(
-    """"""$$"""""");");
+                """"
+                var v = WriteLine(
+                    """$$""");
+                """");
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = WriteLine(
-    """"""
-$${|VirtualSpaces-4:|}
-    """""");");
+                """"
+                var v = WriteLine(
+                    """
+                $${|VirtualSpaces-4:|}
+                    """);
+                """");
         }
 
         [WpfFact]
@@ -225,20 +279,26 @@ $${|VirtualSpaces-4:|}
 
             testState.SendReturn(handled: true);
             testState.AssertCodeIs(
-@"var v = $""""""
-$${|VirtualSpaces-4:|}
-    """""";");
+                """"
+                var v = $"""
+                $${|VirtualSpaces-4:|}
+                    """;
+                """");
         }
 
         [WpfFact]
         public void TestReturnInSixQuotesNotAtMiddle_Interpolated()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = $""""""""$$""""");
+                """""
+                var v = $""""$$""
+                """"");
 
             testState.SendReturn(handled: false);
             testState.AssertCodeIs(
-@"var v = $""""""""$$""""");
+                """""
+                var v = $""""$$""
+                """"");
         }
 
         [WpfFact]
@@ -271,7 +331,9 @@ $${|VirtualSpaces-4:|}
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = """"""$$""""""");
+                """"
+                var v = """$$"""
+                """");
         }
 
         [WpfFact]
@@ -293,7 +355,46 @@ $${|VirtualSpaces-4:|}
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = $""""""$$""""""");
+                """"
+                var v = $"""$$"""
+                """");
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
+        public void TestGenerateWithInterpolatedString_TwoDollarSigns()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+"""var v = $$""[||]""", withSpansOnly: true);
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+""""
+var v = $$"""[||]"""
+"""", withSpansOnly: true);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
+        public void TestGenerateWithInterpolatedString_TwoDollarSigns_FourthDoubleQuote()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+""""var v = $$"""[||]""";"""", withSpansOnly: true);
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+"""""var v = $$""""[||]"""";""""", withSpansOnly: true);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
+        public void TestGenerateWithInterpolatedString_ThreeDollarSigns()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+"""var v = $$$""[||]""", withSpansOnly: true);
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+""""
+var v = $$$"""[||]"""
+"""", withSpansOnly: true);
         }
 
         [WpfFact]
@@ -337,55 +438,75 @@ $${|VirtualSpaces-4:|}
         public void TestDoNotGrowEmptyInsideSimpleString()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = ""$$""");
+                """
+                var v = "$$"
+                """);
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = """"$$""");
+                """
+                var v = ""$$"
+                """);
         }
 
         [WpfFact]
         public void TestDoNotGrowEmptyInsideFourQuotes()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"$$""""");
+                """
+                var v = ""$$""
+                """);
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = """"""$$""""");
+                """"
+                var v = """$$""
+                """");
         }
 
         [WpfFact]
         public void TestDoGrowEmptyInsideSixQuotesInMiddle()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$""""""");
+                """"
+                var v = """$$"""
+                """");
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = """"""""$$""""""""");
+                """""
+                var v = """"$$""""
+                """"");
         }
 
         [WpfFact]
         public void TestDoGrowEmptyInsideSixQuotesInInterpolatedRaw()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = $""""""$$""""""");
+                """"
+                var v = $"""$$"""
+                """");
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = $""""""""$$""""""""");
+                """""
+                var v = $""""$$""""
+                """"");
         }
 
         [WpfFact]
         public void TestDoNotGrowEmptyInsideSixQuotesWhenNotInMiddle1()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = $""""$$""""""""");
+                """""
+                var v = $""$$""""
+                """"");
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = $""""""$$""""""""");
+                """""
+                var v = $"""$$""""
+                """"");
         }
 
         #endregion
@@ -396,41 +517,53 @@ $${|VirtualSpaces-4:|}
         public void TestGrowDelimetersWhenEndExists_SingleLine()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$ """"""");
+                """"
+                var v = """$$ """
+                """");
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = """"""""$$ """"""""");
+                """""
+                var v = """"$$ """"
+                """"");
         }
 
         [WpfFact]
         public void TestGrowDelimetersWhenEndExists_MultiLine()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$
+                """"
+                var v = """$$
 
-    """"""");
+                    """
+                """");
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = """"""""$$
+                """""
+                var v = """"$$
 
-    """"""""");
+                    """"
+                """"");
         }
 
         [WpfFact]
         public void TestGrowDelimetersWhenEndExists_Interpolated()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = $""""""$$
+                """"
+                var v = $"""$$
 
-    """"""");
+                    """
+                """");
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = $""""""""$$
+                """""
+                var v = $""""$$
 
-    """"""""");
+                    """"
+                """"");
         }
 
         [WpfFact]
@@ -448,15 +581,19 @@ $${|VirtualSpaces-4:|}
         public void TestDoNotGrowDelimetersWhenEndTooShort()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$
+                """"
+                var v = """$$
 
-    """"");
+                    ""
+                """");
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"var v = """"""""$$
+                """""
+                var v = """"$$
 
-    """"");
+                    ""
+                """"");
         }
 
         #endregion
@@ -469,7 +606,9 @@ $${|VirtualSpaces-4:|}
 
             testState.SendTypeChar('"');
             testState.AssertCodeIs(
-@"""$$");
+                """
+                "$$
+                """);
         }
     }
 }

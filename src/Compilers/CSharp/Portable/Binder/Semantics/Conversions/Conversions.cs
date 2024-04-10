@@ -4,10 +4,11 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -33,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         protected override CSharpCompilation Compilation { get { return _binder.Compilation; } }
-#nullable disable
 
         protected override ConversionsBase WithNullabilityCore(bool includeNullability)
         {
@@ -57,6 +57,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(methodSymbol == ((NamedTypeSymbol)destination).DelegateInvokeMethod);
 
+            if (methodSymbol.OriginalDefinition is SynthesizedDelegateInvokeMethod invoke)
+            {
+                // If synthesizing a delegate with `params` array, check that `ParamArrayAttribute` is available.
+                if (invoke.Parameters is [.., { IsParamsArray: true }])
+                {
+                    Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                        Compilation,
+                        WellKnownMember.System_ParamArrayAttribute__ctor,
+                        ref useSiteInfo);
+                }
+
+                // If synthesizing a delegate with `decimal`/`DateTime` default value,
+                // check that the corresponding `*ConstantAttribute` is available.
+                foreach (var p in invoke.Parameters)
+                {
+                    var defaultValue = p.ExplicitDefaultConstantValue;
+                    if (defaultValue != ConstantValue.NotAvailable)
+                    {
+                        WellKnownMember? member = defaultValue.SpecialType switch
+                        {
+                            SpecialType.System_Decimal => WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                            SpecialType.System_DateTime => WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                            _ => null
+                        };
+                        if (member != null)
+                        {
+                            Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                                Compilation,
+                                member.GetValueOrDefault(),
+                                ref useSiteInfo);
+                        }
+                    }
+                }
+
+                // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
+                if (invoke.Parameters.Any(p => p.HasUnscopedRefAttribute))
+                {
+                    Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
+                        Compilation,
+                        WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                        ref useSiteInfo);
+                }
+            }
+
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
@@ -64,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resolution.Free();
             return conversion;
         }
+#nullable disable
 
         public override Conversion GetMethodGroupFunctionPointerConversion(BoundMethodGroup source, FunctionPointerTypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -83,6 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            if (_binder.InParameterDefaultValue || _binder.InAttributeArgument)
+            {
+                // We don't consider when we're in default parameter values or attributes to avoid cycles. This is an error scenario,
+                // so we don't care if we accidentally miss a parameter being applicable.
+                return Conversion.NoConversion;
+            }
+
             if (destination is NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
             {
                 return Conversion.InterpolatedStringHandler;
@@ -101,6 +153,95 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
 
+#nullable enable
+        protected override Conversion GetCollectionExpressionConversion(
+            BoundUnconvertedCollectionExpression node,
+            TypeSymbol targetType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var syntax = node.Syntax;
+            var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+            var elementType = elementTypeWithAnnotations.Type;
+            switch (collectionTypeKind)
+            {
+                case CollectionExpressionTypeKind.None:
+                    return Conversion.NoConversion;
+
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    {
+                        _binder.TryGetCollectionIterationType(syntax, targetType, out elementTypeWithAnnotations);
+                        elementType = elementTypeWithAnnotations.Type;
+                        if (elementType is null)
+                        {
+                            return Conversion.NoConversion;
+                        }
+                    }
+                    break;
+            }
+
+            Debug.Assert(elementType is { });
+            var elements = node.Elements;
+
+            MethodSymbol? constructor = null;
+            bool isExpanded = false;
+
+            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+                {
+                    return Conversion.NoConversion;
+                }
+
+                if (elements.Length > 0 &&
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
+                {
+                    return Conversion.NoConversion;
+                }
+            }
+
+            var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
+            foreach (var element in elements)
+            {
+                Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
+                if (!elementConversion.Exists)
+                {
+                    builder.Free();
+                    return Conversion.NoConversion;
+                }
+
+                builder.Add(elementConversion);
+            }
+
+            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
+
+            Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                return element switch
+                {
+                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
+                    _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
+                };
+            }
+        }
+
+        internal Conversion GetCollectionExpressionSpreadElementConversion(
+            BoundCollectionExpressionSpreadElement element,
+            TypeSymbol targetType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return Conversion.NoConversion;
+            }
+            return ClassifyImplicitConversionFromExpression(
+                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
+                targetType,
+                ref useSiteInfo);
+        }
+#nullable disable
+
         /// <summary>
         /// Resolve method group based on the optional delegate invoke method.
         /// If the invoke method is null, ignore arguments in resolution.
@@ -111,15 +252,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
-                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo, inferWithDynamic: true,
-                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
-                    isFunctionPointerResolution: isFunctionPointer, callingConventionInfo: callingConventionInfo);
+                var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
+                    options: OverloadResolution.Options.InferWithDynamic | OverloadResolution.Options.IsMethodGroupConversion |
+                             (isFunctionPointer ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
+                    returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
+                    callingConventionInfo: callingConventionInfo);
                 analyzedArguments.Free();
                 return resolution;
             }
             else
             {
-                return binder.ResolveMethodGroup(source, analyzedArguments: null, isMethodGroupConversion: true, ref useSiteInfo);
+                return binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion);
             }
         }
 
@@ -246,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments: analyzedArguments,
                 result: result,
                 useSiteInfo: ref useSiteInfo,
-                isMethodGroupConversion: true,
+                options: OverloadResolution.Options.IsMethodGroupConversion,
                 returnRefKind: delegateInvokeMethod.RefKind,
                 returnType: delegateInvokeMethod.ReturnType);
             var conversion = ToConversion(result, methodGroup, delegateType.DelegateInvokeMethod.ParameterCount);
@@ -272,7 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If we don't have System.Object, then we'll get an error type, which will cause overload resolution to fail, 
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
-                        TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.TypeWithAnnotations.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
+                        TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.TypeWithAnnotations.CustomModifiers), parameter.RefCustomModifiers,
+                                                   isParamsArray: parameter.IsParamsArray, isParamsCollection: parameter.IsParamsCollection, parameter.RefKind);
                 }
 
                 analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
@@ -378,5 +522,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (Conversions)base.WithNullability(includeNullability);
         }
+
+        protected override bool IsAttributeArgumentBinding => _binder.InAttributeArgument;
+
+        protected override bool IsParameterDefaultValueBinding => _binder.InParameterDefaultValue;
     }
 }

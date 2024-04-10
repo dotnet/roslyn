@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement result = new BoundGotoStatement(node.Syntax, node.Label, node.HasErrors);
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = _instrumenter.InstrumentContinueStatement(node, result);
+                result = Instrumenter.InstrumentContinueStatement(node, result);
             }
 
             return result;

@@ -5,15 +5,11 @@
 using System;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal readonly struct UnitTestingTextDocumentEventArgsWrapper(TextDocumentEventArgs underlyingObject)
 {
-    internal readonly struct UnitTestingTextDocumentEventArgsWrapper
-    {
-        internal TextDocumentEventArgs UnderlyingObject { get; }
+    internal TextDocumentEventArgs UnderlyingObject { get; } = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
 
-        public TextDocument Document => UnderlyingObject.Document;
-
-        public UnitTestingTextDocumentEventArgsWrapper(TextDocumentEventArgs underlyingObject)
-            => UnderlyingObject = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
-    }
+    public TextDocument Document => UnderlyingObject.Document;
 }

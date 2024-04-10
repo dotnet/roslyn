@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
@@ -14,27 +13,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     internal sealed class SemanticTokensRangeHandlerFactory : ILspServiceFactory
     {
         private readonly IGlobalOptionService _globalOptions;
-        private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
-        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensRangeHandlerFactory(
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
+            IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-            _asyncListenerProvider = asynchronousOperationListenerProvider;
-            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         }
 
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
-            var clientCapabilities = lspServices.GetRequiredService<IClientCapabilitiesProvider>().GetClientCapabilities();
-            var notificationManager = lspServices.GetRequiredService<ILanguageServerNotificationManager>();
-            var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-            return new SemanticTokensRangeHandler(_globalOptions, _asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, clientCapabilities);
+            var semanticTokensRefreshQueue = lspServices.GetRequiredService<SemanticTokensRefreshQueue>();
+            return new SemanticTokensRangeHandler(_globalOptions, semanticTokensRefreshQueue);
         }
     }
 }

@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 {
+    [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
     public partial class LinkedFileDiffMergingTests
     {
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18432")]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestChangeSignature()
         {
             TestLinkedFileSet(
@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     }
 #endif
 }",
-                new List<string>
-                {
+                [
                     @"public class Class1
 {
     void M(int z, int x)
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     }
 #endif
 }"
-                },
+                ],
                 @"public class Class1
 {
     void M(int z, int x)
@@ -92,7 +91,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
         public void TestRename()
         {
             TestLinkedFileSet(
@@ -113,8 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     }
 #endif
 }",
-                new List<string>
-                {
+                [
                     @"public class Class1
 {
     void Method()
@@ -149,7 +146,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     }
 #endif
 }"
-                },
+                ],
                 @"public class Class1
 {
     void Method()

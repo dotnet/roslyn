@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
     Friend Class VisualBasicCompilerDiagnosticAnalyzer
         Inherits CompilerDiagnosticAnalyzer
 
-        Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
+        Protected Overrides ReadOnly Property MessageProvider As CommonMessageProvider
             Get
                 Return CodeAnalysis.VisualBasic.MessageProvider.Instance
             End Get

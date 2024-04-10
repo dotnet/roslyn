@@ -105,8 +105,8 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, Type: System.Void, IsInvalid) (Syntax: 'Await UndefinedTask')
-  Expression: 
+IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'Await UndefinedTask')
+  Expression:
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'UndefinedTask')
       Children(0)
 ]]>.Value
@@ -134,8 +134,8 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, Type: System.Void, IsInvalid) (Syntax: 'Await i')
-  Expression: 
+IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'Await i')
+  Expression:
     IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
 ]]>.Value
 
@@ -162,8 +162,8 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitOperation (OperationKind.Await, Type: System.Void, IsInvalid) (Syntax: 'Await')
-  Expression: 
+IAwaitOperation (OperationKind.Await, Type: ?, IsInvalid) (Syntax: 'Await')
+  Expression:
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
       Children(0)
 ]]>.Value
@@ -210,6 +210,116 @@ BC30800: Method arguments must be enclosed in parentheses.
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics, useLatestFramework:=True)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67616")>
+        Public Sub TestAwaitExpression_InStatement()
+            Dim source = <![CDATA[
+Imports System.Threading.Tasks
+
+Public Module Program
+    Public Async Function M() As Task(Of Integer)
+        Await M2()'BIND:"Await M2()"
+        Return 0
+    End Function
+
+    Public Function M2() As Task(Of String)
+        Throw New System.Exception()
+    End Function
+End Module
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'Await M2()')
+  Expression:
+    IInvocationOperation (Function Program.M2() As System.Threading.Tasks.Task(Of System.String)) (OperationKind.Invocation, Type: System.Threading.Tasks.Task(Of System.String)) (Syntax: 'M2()')
+      Instance Receiver:
+        null
+      Arguments(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AwaitExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, useLatestFramework:=True)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67616")>
+        Public Sub TestAwaitExpression_InStatement_InSubLambda()
+            Dim source = <compilation>
+                             <file name="c.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Public Module Program
+    Public Sub Main()
+        Dim lambda As Action = Async Sub()
+                                 Await M2()'BIND:"Await M2()"
+                               End Sub
+
+        lambda()
+    End Sub
+
+    Public Function M2() As Task(Of String)
+        System.Console.WriteLine("M2")
+        Return Task.FromResult("")
+    End Function
+End Module
+]]></file>
+                         </compilation>
+
+            Dim expectedOperationTree = <![CDATA[
+IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'Await M2()')
+  Expression:
+    IInvocationOperation (Function Program.M2() As System.Threading.Tasks.Task(Of System.String)) (OperationKind.Invocation, Type: System.Threading.Tasks.Task(Of System.String)) (Syntax: 'M2()')
+      Instance Receiver:
+        null
+      Arguments(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AwaitExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics, useLatestFramework:=True)
+            CompileAndVerify(source, expectedOutput:="M2", useLatestFramework:=True)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67616")>
+        Public Sub TestAwaitExpression_InStatement_InSubWithExpressionLambda()
+            Dim source = <compilation>
+                             <file name="c.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Public Module Program
+    Public Sub Main()
+        Dim lambda As Action = Async Sub() Await M2()'BIND:"Await M2()"
+
+        lambda()
+    End Sub
+
+    Public Function M2() As Task(Of String)
+        System.Console.WriteLine("M2")
+        Return Task.FromResult("")
+    End Function
+End Module
+]]></file>
+                         </compilation>
+
+            Dim expectedOperationTree = <![CDATA[
+IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'Await M2()')
+  Expression:
+    IInvocationOperation (Function Program.M2() As System.Threading.Tasks.Task(Of System.String)) (OperationKind.Invocation, Type: System.Threading.Tasks.Task(Of System.String)) (Syntax: 'M2()')
+      Instance Receiver:
+        null
+      Arguments(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AwaitExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics, useLatestFramework:=True)
+            CompileAndVerify(source, expectedOutput:="M2", useLatestFramework:=True)
         End Sub
     End Class
 End Namespace

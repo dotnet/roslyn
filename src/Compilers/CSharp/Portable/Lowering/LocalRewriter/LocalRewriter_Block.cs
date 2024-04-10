@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,34 +13,59 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBlock(BoundBlock node)
         {
+            if (Instrument)
+            {
+                Instrumenter.PreInstrumentBlock(node, this);
+            }
+
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
-            VisitStatementSubList(builder, node.Statements);
-
-            if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
+            // If _additionalLocals is null, this must be the outermost block of the current function.
+            // If so, create a collection where child statements can insert inline array temporaries,
+            // and add those temporaries to the generated block.
+            var previousLocals = _additionalLocals;
+            if (previousLocals is null)
             {
-                return node.Update(node.Locals, node.LocalFunctions, builder.ToImmutableAndFree());
+                _additionalLocals = ArrayBuilder<LocalSymbol>.GetInstance();
             }
 
-            LocalSymbol? synthesizedLocal;
-            BoundStatement? prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
-            if (prologue != null)
+            try
             {
-                builder.Insert(0, prologue);
-            }
-            else if (node == _rootStatement && _factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-            {
-                builder.Insert(0, _factory.HiddenSequencePoint());
-            }
+                VisitStatementSubList(builder, node.Statements);
 
-            BoundStatement? epilogue = _instrumenter.CreateBlockEpilogue(node);
-            if (epilogue != null)
-            {
-                builder.Add(epilogue);
-            }
+                var additionalLocals = TemporaryArray<LocalSymbol>.Empty;
 
-            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
+                BoundBlockInstrumentation? instrumentation = null;
+                if (Instrument)
+                {
+                    Instrumenter.InstrumentBlock(node, this, ref additionalLocals, out var prologue, out var epilogue, out instrumentation);
+                    if (prologue != null)
+                    {
+                        builder.Insert(0, prologue);
+                    }
+
+                    if (epilogue != null)
+                    {
+                        builder.Add(epilogue);
+                    }
+                }
+
+                var locals = node.Locals;
+                if (previousLocals is null)
+                {
+                    locals = locals.AddRange(_additionalLocals!);
+                }
+                locals = locals.AddRange(additionalLocals);
+                return new BoundBlock(node.Syntax, locals, node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
+            }
+            finally
+            {
+                if (previousLocals is null)
+                {
+                    _additionalLocals!.Free();
+                    _additionalLocals = previousLocals;
+                }
+            }
         }
-
 
         /// <summary>
         /// Visit a partial list of statements that possibly contain using declarations
@@ -102,12 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {
             return (node.WasCompilerGenerated || !this.Instrument)
                 ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
-                : _instrumenter.InstrumentNoOpStatement(node, node);
+                : Instrumenter.InstrumentNoOpStatement(node, node);
         }
     }
 }

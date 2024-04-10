@@ -106,6 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Syntax != null && RegionContains(node.Syntax.Span)) _labelsInside.Add(label);
         }
 
+        protected override LocalState TopState()
+        {
+            return new LocalState(BitVector.Empty);
+        }
+
         protected override void EnterRegion()
         {
             this.State = TopState();

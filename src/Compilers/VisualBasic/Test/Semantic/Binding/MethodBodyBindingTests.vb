@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class MethodBodyBindingTests
         Inherits BasicTestBase
@@ -143,7 +142,6 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-
         <Fact>
         Public Sub Bug4273()
 
@@ -256,7 +254,6 @@ BC30987: '{' expected.
                                                                   ~
 </expected>)
         End Sub
-
 
         <WorkItem(538967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538967")>
         <Fact>

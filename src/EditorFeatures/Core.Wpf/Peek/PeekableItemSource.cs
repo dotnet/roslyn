@@ -79,13 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             {
                 // For documents without semantic models, just try to use the goto-def service
                 // as a reasonable place to peek at.
-                var goToDefinitionService = document.GetLanguageService<IGoToDefinitionService>();
-                if (goToDefinitionService == null)
-                {
+                var service = document.GetLanguageService<INavigableItemsService>();
+                if (service == null)
                     return;
-                }
 
-                var navigableItems = await goToDefinitionService.FindDefinitionsAsync(document, triggerPoint.Position, cancellationToken).ConfigureAwait(false);
+                var navigableItems = await service.GetNavigableItemsAsync(document, triggerPoint.Position, cancellationToken).ConfigureAwait(false);
                 await foreach (var item in GetPeekableItemsForNavigableItemsAsync(
                     navigableItems, document.Project, _peekResultFactory, cancellationToken).ConfigureAwait(false))
                 {
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     if (await navigationService.CanNavigateToPositionAsync(
                             workspace, document.Id, item.SourceSpan.Start, cancellationToken).ConfigureAwait(false))
                     {
-                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var text = await document.GetTextAsync(project.Solution, cancellationToken).ConfigureAwait(false);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
                         if (document.FilePath != null)
                         {

@@ -4,30 +4,18 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptBlockSpan(
+    string? type, bool isCollapsible, TextSpan textSpan, TextSpan hintSpan, string bannerText = VSTypeScriptBlockSpan.Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
 {
-    internal readonly struct VSTypeScriptBlockSpan
-    {
-        private const string Ellipses = "...";
+    private const string Ellipses = "...";
 
-        public bool IsCollapsible { get; }
-        public TextSpan TextSpan { get; }
-        public TextSpan HintSpan { get; }
-        public string BannerText { get; }
-        public bool AutoCollapse { get; }
-        public bool IsDefaultCollapsed { get; }
-        public string? Type { get; }
-
-        public VSTypeScriptBlockSpan(
-            string? type, bool isCollapsible, TextSpan textSpan, TextSpan hintSpan, string bannerText = Ellipses, bool autoCollapse = false, bool isDefaultCollapsed = false)
-        {
-            TextSpan = textSpan;
-            BannerText = bannerText;
-            HintSpan = hintSpan;
-            AutoCollapse = autoCollapse;
-            IsDefaultCollapsed = isDefaultCollapsed;
-            IsCollapsible = isCollapsible;
-            Type = type;
-        }
-    }
+    public bool IsCollapsible { get; } = isCollapsible;
+    public TextSpan TextSpan { get; } = textSpan;
+    public TextSpan HintSpan { get; } = hintSpan;
+    public string BannerText { get; } = bannerText;
+    public bool AutoCollapse { get; } = autoCollapse;
+    public bool IsDefaultCollapsed { get; } = isDefaultCollapsed;
+    public string? Type { get; } = type;
 }

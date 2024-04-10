@@ -278,9 +278,8 @@ public class X
     }
 }
 ";
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
         var verifier = CompileAndVerify(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns,
-            options: TestOptions.ReleaseDll, verify: Verification.FailsILVerify);
+            options: TestOptions.ReleaseDll);
         verifier.VerifyDiagnostics();
         AssertEx.Multiple(
             () => verifier.VerifyIL("X.Test1", @"
@@ -2596,10 +2595,9 @@ class X
     } 
 }
 ";
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
         var compilation = CreateCompilation(new[] { source, TestSources.Index }, options: TestOptions.ReleaseExe);
         compilation.VerifyEmitDiagnostics();
-        CompileAndVerify(compilation, expectedOutput: "123", verify: Verification.FailsILVerify);
+        CompileAndVerify(compilation, expectedOutput: "123");
     }
 
     [Fact]
@@ -3088,6 +3086,163 @@ class X
             //              _ = (x, y, z); // 2
             Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(16, 25)
             );
+    }
+
+    [Fact, WorkItem(65876, "https://github.com/dotnet/roslyn/issues/65876")]
+    public void ListPattern_Negated_03()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}));
+        Console.WriteLine(M1(new[]{2,1}));
+        Console.WriteLine(M1(new[]{1}));
+        Console.WriteLine(M1(new[]{0}));
+        
+        Console.WriteLine(M2(new[]{1,2}));
+        Console.WriteLine(M2(new[]{2,1}));
+        Console.WriteLine(M2(new[]{1}));
+        Console.WriteLine(M2(new[]{0}));
+    }
+    
+    public static bool M1(int[] a) {
+        return a is not ([1,2,..] or [..,2,1] or [1]);
+    }
+    public static bool M2(int[] a) {
+        return !(a is ([1,2,..] or [..,2,1] or [1]));
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+False
+False
+False
+True
+False
+False
+False
+True
+");
+    }
+
+    [Fact]
+    public void ListPattern_Negated_04()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}));
+        Console.WriteLine(M1(new[]{2,1}));
+        Console.WriteLine(M1(new[]{1}));
+        Console.WriteLine(M1(new[]{0}));
+        
+        Console.WriteLine(M2(new[]{1,2}));
+        Console.WriteLine(M2(new[]{2,1}));
+        Console.WriteLine(M2(new[]{1}));
+        Console.WriteLine(M2(new[]{0}));
+    }
+    
+    public static int M1(int[] a) {
+        return a switch 
+        {
+            not ([1,2,..] or [..,2,1] or [1]) => 1, 
+            [1,2,..] => 2,
+            [..,2,1] => 3,
+            [1] => 4,
+        };
+    }
+    public static int M2(int[] a) {
+        switch (a) 
+        {
+            case not ([1,2,..] or [..,2,1] or [1]):
+                return 1; 
+            case [1,2,..]:
+                return 2;
+            case [..,2,1]:
+                return 3;
+            case [1]:
+                return 4;
+        }
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+2
+3
+4
+1
+2
+3
+4
+1
+");
+    }
+
+    [Fact]
+    public void ListPattern_Negated_05()
+    {
+        var source = """
+using System;
+public class C
+{
+    static void Main() 
+    {
+        Console.WriteLine(M1(new[]{1,2}, new[]{1}));
+        Console.WriteLine(M1(new[]{1}, new[]{2,1}));
+        Console.WriteLine(M1(new[]{2,1}, new[]{1,2}));
+        Console.WriteLine(M1(new[]{0}, new[]{0}));
+
+        Console.WriteLine(M2(new[]{1,2}, new[]{1}));
+        Console.WriteLine(M2(new[]{1}, new[]{2,1}));
+        Console.WriteLine(M2(new[]{2,1}, new[]{1,2}));
+        Console.WriteLine(M2(new[]{0}, new[]{0}));
+    }
+    
+    public static int M1(int[] a, int[] b) {
+        return (a, b) switch 
+        {
+            (not ([1,2,..] or [..,2,1] or [1]),
+             not ([1,2,..] or [..,2,1] or [1])) => 1, 
+            ([1,2,..] or [1], [..,2,1] or [1]) => 2,
+            ([..,2,1], [1,2,..]) => 3,
+            _ => 0
+        };
+    }
+    public static int M2(int[] a, int[] b) {
+        switch (a, b) 
+        {
+            case (not ([1,2,..] or [..,2,1] or [1]),
+                  not ([1,2,..] or [..,2,1] or [1])):
+                return 1; 
+            case ([1,2,..] or [1], [..,2,1] or [1]):
+                return 2;
+            case ([..,2,1], [1,2,..]):
+                return 3;
+            default:
+                return 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"
+2
+2
+3
+1
+2
+2
+3
+1
+");
     }
 
     [Fact]
@@ -3804,8 +3959,7 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        CompileAndVerify(compilation, expectedOutput: expectedOutput);
     }
 
     [Fact]
@@ -5381,8 +5535,7 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)", verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)");
 
         verifier.VerifyIL("C.M", @"
 {
@@ -5470,8 +5623,7 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)", verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)");
 
         verifier.VerifyIL("C.M", @"
 {
@@ -5560,8 +5712,7 @@ class C
             Console.Write((x, y));
     }
 }";
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "Index Range (42, 43)", verify: Verification.FailsILVerify);
+        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "Index Range (42, 43)");
     }
 
     [Fact]
@@ -5600,8 +5751,7 @@ if (""abc"" is [var first, ..var rest])
     System.Console.Write((first, rest).ToString());
 }
 ";
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "(a, bc)", verify: Verification.FailsILVerify);
+        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "(a, bc)");
     }
 
     [Fact]
@@ -7491,8 +7641,7 @@ class C : Base
     }
 }
 ";
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, options: TestOptions.DebugDll, verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, options: TestOptions.DebugDll);
         verifier.VerifyIL("C.M", @"
 {
   // Code size      105 (0x69)
@@ -7589,8 +7738,7 @@ class C : Base
     }
 }
 ";
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index });
         verifier.VerifyIL("C.M", @"
 {
   // Code size       78 (0x4e)
@@ -7742,8 +7890,7 @@ public class C
             );
 
         compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(2, 3)", verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(2, 3)");
         verifier.VerifyDiagnostics();
         // Note: no Index or Range involved
         verifier.VerifyIL("C.M", @"
@@ -7909,7 +8056,7 @@ record ConsList(object Head, ConsList? Tail)
         // Note: this pattern doesn't work well because list-patterns needs a functional Length
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, IsExternalInitTypeDefinition });
         compilation.VerifyDiagnostics();
-        var verifier = CompileAndVerify(compilation, verify: Verification.Fails);
+        var verifier = CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
         verifier.VerifyIL("ConsList.Print", @"
 {
   // Code size       84 (0x54)
@@ -7980,7 +8127,7 @@ record ConsList(object Head, ConsList? Tail)
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, IsExternalInitTypeDefinition });
         compilation.VerifyDiagnostics();
-        var verifier = CompileAndVerify(compilation, expectedOutput: "1 2 3", verify: Verification.Fails);
+        var verifier = CompileAndVerify(compilation, expectedOutput: "1 2 3", verify: Verification.FailsPEVerify);
         verifier.VerifyIL("ConsList.Print", @"
 {
   // Code size       44 (0x2c)
@@ -8024,8 +8171,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "(42, 42)");
     }
 
     [Fact]
@@ -8071,8 +8217,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "(42, 42)");
     }
 
     [Fact]
@@ -8086,8 +8231,7 @@ if (""42"" is [var x, var y])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(comp, expectedOutput: "(4, 2)", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "(4, 2)");
     }
 
     [Fact]
@@ -8102,8 +8246,7 @@ if (new[] { 4, 2 } is [var x, _])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(comp, expectedOutput: "(4, 2)", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "(4, 2)");
     }
 
     [Theory]
@@ -8124,8 +8267,7 @@ if (new[] {data} is {pattern})
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(comp, expectedOutput: "(4, 4)", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "(4, 4)");
     }
 
     [Fact]
@@ -8146,8 +8288,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "(42, 42)");
     }
 
     [Fact]
@@ -8168,8 +8309,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "(42, 42)");
     }
 
     [Fact]
@@ -8183,8 +8323,7 @@ if (""0420"" is [_, .. var x, _])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' } 
-        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "42");
     }
 
     [Fact, WorkItem(57728, "https://github.com/dotnet/roslyn/issues/57728")]
@@ -8205,8 +8344,7 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseExe);
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        var verifier = CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)", verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)");
         // we use Array.Length to get the length, but should be using ldlen
         // Tracked by https://github.com/dotnet/roslyn/issues/57728
         verifier.VerifyIL("C.Main", @"
@@ -8298,8 +8436,7 @@ if (new[] {data} is {pattern})
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics();
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
-        CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)", verify: Verification.FailsILVerify);
+        CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)");
     }
 
     [Fact]
@@ -8320,8 +8457,7 @@ class C
 }
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDll);
-        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of '[...]System.Index', Expected = address of '[...]System.Index' }
-        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
 
         verifier.VerifyIL("C.M", @"
 {
@@ -8400,7 +8536,7 @@ class C : Interface
 }
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
-        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
         verifier.VerifyDiagnostics();
     }
 
@@ -8763,6 +8899,399 @@ public static class Extension
             // (9,27): error CS0029: Cannot implicitly convert type 'int' to 'int[]'
             // if (a?.M(out var j) is .. 1) // 2, 3
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "int[]").WithLocation(9, 27)
+            );
+    }
+
+    [Fact]
+    public void NotExhaustive_LongList()
+    {
+        string source = """
+            var a = new[] { 1, 2, 3 };
+            _ = a switch { { Length: < 1000 } => 0 };
+            """;
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 1000 }' is not covered.
+            // _ = a switch { { Length: < 1000 } => 0 };
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 1000 }").WithLocation(2, 7));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns()
+    {
+        // One of the property patterns is treated as a non-negative Count pattern,
+        // while the other is a regular property pattern.
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            { Count: 0 } => 0,
+            IList { Count: > 0 } => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "012").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_ReverseOrder()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            IList { Count: > 0 } => 1,
+            { Count: 0 } => 0,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "012").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_NegativeTest()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+var result = (ICollection)new List<int>() switch
+{
+    IList { Count: > 0 } => throw null,
+    IList { Count: < 0 } => throw null,
+    { Count: 0 } => "ran",
+};
+
+System.Console.Write(result);
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,43): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // var result = (ICollection)new List<int>() switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(4, 43),
+            // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     IList { Count: < 0 } => throw null,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "IList { Count: < 0 }").WithLocation(7, 5)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_NegativeTestAfterRegularPropertyPattern()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+_ = (ICollection)new List<int>() switch
+{
+    IList { Count: > 0 } => 0,
+    { Count: 0 } => 0,
+    IList { Count: < 0 } => 0,
+};
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,34): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // _ = (ICollection)new List<int>() switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(4, 34),
+            // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     IList { Count: < 0 } => 0,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "IList { Count: < 0 }").WithLocation(8, 5)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_ExplicitICollectionType()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            ICollection { Count: 0 } => 0,
+            IList { Count: 1 } => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "012").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_Subsumed()
+    {
+        var source = """
+using System.Collections;
+
+_ = (ICollection)null switch
+{
+    { Count: <0 or >0 } => 0,
+    IList { Count: >0 } => 1,
+    { Count: 0 } => 2,
+};
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (6,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     IList { Count: >0 } => 1,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "IList { Count: >0 }").WithLocation(6, 5)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_Or()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            { Count: 0 } or (IList { Count: > 0 }) => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "112").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_Or_ReverseOrder()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            (IList { Count: > 0 }) or { Count: 0 } => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "112").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_And()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            { Count: >= 0 } and (IList { Count: > 0 }) => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "212").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: -1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: -1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_And_ReverseOrder()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            (IList { Count: > 0 }) and { Count: >= 0 } => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "212").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(13, 18)
             );
     }
 }

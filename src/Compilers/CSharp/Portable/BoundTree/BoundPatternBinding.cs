@@ -9,7 +9,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct BoundPatternBinding
+    internal readonly struct BoundPatternBinding
     {
         public readonly BoundExpression VariableAccess;
         public readonly BoundDagTemp TempContainingValue;

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     internal abstract class AbstractCommandHandlerTestState : IDisposable
     {
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         public readonly IEditorOperations EditorOperations;
         public readonly ITextUndoHistoryRegistry UndoHistoryRegistry;
         private readonly ITextView _textView;
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             bool makeSeparateBufferForCursor = false,
             ImmutableArray<string> roles = default)
         {
-            Workspace = TestWorkspace.CreateWorkspace(
+            Workspace = EditorTestWorkspace.CreateWorkspace(
                 workspaceElement,
                 composition: composition,
                 workspaceKind: workspaceKind);
@@ -215,8 +214,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var lineCaretPosition = bufferCaretPosition - line.Start.Position;
 
             var text = line.GetText();
-            var textBeforeCaret = text.Substring(0, lineCaretPosition);
-            var textAfterCaret = text.Substring(lineCaretPosition, text.Length - lineCaretPosition);
+            var textBeforeCaret = text[..lineCaretPosition];
+            var textAfterCaret = text[lineCaretPosition..];
 
             return (textBeforeCaret, textAfterCaret);
         }

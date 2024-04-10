@@ -100,7 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-
             ' Set "inExpressionLambda" if we're converting lambda to expression tree.
             Dim returnValue As BoundNode
             Dim wasInExpressionlambda As Boolean = _inExpressionLambda
@@ -310,7 +309,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-
         ' Rewrite Anonymous Delegate conversion into a delegate creation
         Private Function RewriteAnonymousDelegateConversion(node As BoundConversion) As BoundNode
             Debug.Assert(Not Conversions.IsIdentityConversion(node.ConversionKind))
@@ -373,8 +371,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 Case BoundKind.Call
                     Dim t = DirectCast(node, BoundCall)
-                    Return Not (t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate, True) OrElse
-                                t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate4, True) OrElse
+                    Return Not (t.Method = F.SpecialMember(SpecialMember.System_Delegate__CreateDelegate, True) OrElse
+                                t.Method = F.SpecialMember(SpecialMember.System_Delegate__CreateDelegate4, True) OrElse
                                 t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, True))
                 Case Else
                     Return True
@@ -663,7 +661,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-
             If resultType.IsNullableType Then
                 ' RefType --> T? , this is just an unboxing conversion.
                 Dim useSiteInfo = GetNewCompoundUseSiteInfo()
@@ -679,7 +676,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Throw ExceptionUtilities.Unreachable
         End Function
-
 
         Private Function RewriteNullableUserDefinedConversion(node As BoundUserDefinedConversion) As BoundNode
             ' User defined conversions rewrite as:
@@ -794,7 +790,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
         End Function
-
 
 #Region "Post-rewrite conversion"
 

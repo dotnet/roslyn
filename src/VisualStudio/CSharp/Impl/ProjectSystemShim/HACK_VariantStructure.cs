@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// it to null instead of true.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct HACK_VariantStructure
+    internal readonly struct HACK_VariantStructure
     {
         private readonly short _type;
 

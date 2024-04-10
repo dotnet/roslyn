@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ErrorCases
 {
-    internal class ExceptionInCodeAction : CodeRefactoringProvider
+    internal sealed class ExceptionInCodeAction : CodeRefactoringProvider
     {
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ErrorC
             return Task.CompletedTask;
         }
 
-        internal class ExceptionCodeAction : CodeAction
+        internal sealed class ExceptionCodeAction : CodeAction
         {
             public override string Title
             {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ErrorC
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
                 => throw new Exception($"Exception thrown from GetChangedDocumentAsync in {nameof(ExceptionCodeAction)}");
 
-            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override Task<Solution> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
                 => throw new Exception($"Exception thrown from GetChangedSolutionAsync in {nameof(ExceptionCodeAction)}");
 
             protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)

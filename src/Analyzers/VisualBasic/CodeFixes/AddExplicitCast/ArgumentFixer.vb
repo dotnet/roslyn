@@ -10,10 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         Private Class ArgumentFixer
             Inherits Fixer(Of ArgumentSyntax, ArgumentListSyntax, SyntaxNode)
 
-            Public Sub New(provider As VisualBasicAddExplicitCastCodeFixProvider)
-                MyBase.New(provider)
-            End Sub
-
             Protected Overrides Function GetExpressionOfArgument(argument As ArgumentSyntax) As ExpressionSyntax
                 Return argument.GetArgumentExpression()
             End Function

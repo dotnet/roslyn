@@ -82,7 +82,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const PARAGRAPH_SEPARATOR As Char = ChrW(&H2029)
         Friend Const NEXT_LINE As Char = ChrW(&H0085)
 
-
         Friend Const LEFT_SINGLE_QUOTATION_MARK As Char = ChrW(&H2018)                       REM ‘
         Friend Const RIGHT_SINGLE_QUOTATION_MARK As Char = ChrW(&H2019)                      REM ’
 
@@ -263,7 +262,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             (c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_O) Or
                                             (c = FULLWIDTH_LATIN_CAPITAL_LETTER_B Or c = FULLWIDTH_LATIN_SMALL_LETTER_B))
         End Function
-
 
         Private Shared ReadOnly s_isIDChar As Boolean() =
         {

@@ -53,6 +53,19 @@ namespace Microsoft.CodeAnalysis.Collections
 
             bool ICollection<TValue>.Remove(TValue item)
                 => throw new NotSupportedException();
+
+            public bool All<TArg>(Func<TValue, TArg, bool> predicate, TArg arg)
+            {
+                foreach (var item in this)
+                {
+                    if (!predicate(item, arg))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

@@ -3,171 +3,110 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Serialization
+namespace Microsoft.CodeAnalysis.Serialization;
+
+/// <summary>
+/// serialize and deserialize objects to stream.
+/// some of these could be moved into actual object, but putting everything here is a bit easier to find I believe.
+/// </summary>
+internal partial class SerializerService
 {
-    /// <summary>
-    /// serialize and deserialize objects to stream.
-    /// some of these could be moved into actual object, but putting everything here is a bit easier to find I believe.
-    /// </summary>
-    internal partial class SerializerService
+    private static void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
     {
-        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (text.Storage is not null)
-            {
-                context.AddResource(text.Storage);
+        text.Serialize(writer, context, cancellationToken);
+    }
 
-                writer.WriteInt32((int)text.Storage.ChecksumAlgorithm);
-                writer.WriteEncoding(text.Storage.Encoding);
+    private void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-                writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
-                writer.WriteString(text.Storage.Name);
-                writer.WriteInt64(text.Storage.Offset);
-                writer.WriteInt64(text.Storage.Size);
-            }
-            else
-            {
-                RoslynDebug.AssertNotNull(text.Text);
+        var language = options.Language;
 
-                writer.WriteInt32((int)text.Text.ChecksumAlgorithm);
-                writer.WriteEncoding(text.Text.Encoding);
-                writer.WriteInt32((int)SerializationKinds.Bits);
-                text.Text.WriteTo(writer, cancellationToken);
-            }
-        }
+        // TODO: once compiler team adds ability to serialize compilation options to ObjectWriter directly, we won't need this.
+        writer.WriteString(language);
 
-        private SerializableSourceText DeserializeSerializableSourceText(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        var service = GetOptionsSerializationService(language);
+        service.WriteTo(options, writer, cancellationToken);
+    }
 
-            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var encoding = (Encoding)reader.ReadValue();
+    private CompilationOptions DeserializeCompilationOptions(ObjectReader reader, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-            var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind == SerializationKinds.MemoryMapFile)
-            {
-                var storage2 = (ITemporaryStorageService2)_storageService;
+        var language = reader.ReadRequiredString();
 
-                var name = reader.ReadString();
-                var offset = reader.ReadInt64();
-                var size = reader.ReadInt64();
+        var service = GetOptionsSerializationService(language);
+        return service.ReadCompilationOptionsFrom(reader, cancellationToken);
+    }
 
-                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
-                if (storage is ITemporaryTextStorageWithName storageWithName)
-                {
-                    return new SerializableSourceText(storageWithName);
-                }
-                else
-                {
-                    return new SerializableSourceText(storage.ReadText(cancellationToken));
-                }
-            }
+    public void SerializeParseOptions(ParseOptions options, ObjectWriter writer)
+    {
+        var language = options.Language;
 
-            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken));
-        }
+        // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
+        writer.WriteString(language);
 
-        private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            var serializableSourceText = DeserializeSerializableSourceText(reader, cancellationToken);
-            return serializableSourceText.Text ?? serializableSourceText.Storage!.ReadText(cancellationToken);
-        }
+        var service = GetOptionsSerializationService(language);
+        service.WriteTo(options, writer);
+    }
 
-        public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+    private ParseOptions DeserializeParseOptions(ObjectReader reader, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-            var language = options.Language;
+        var language = reader.ReadRequiredString();
 
-            // TODO: once compiler team adds ability to serialize compilation options to ObjectWriter directly, we won't need this.
-            writer.WriteString(language);
+        var service = GetOptionsSerializationService(language);
+        return service.ReadParseOptionsFrom(reader, cancellationToken);
+    }
 
-            var service = GetOptionsSerializationService(language);
-            service.WriteTo(options, writer, cancellationToken);
-        }
+    private static void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-        private CompilationOptions DeserializeCompilationOptions(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        reference.ProjectId.WriteTo(writer);
+        writer.WriteArray(reference.Aliases, static (w, a) => w.WriteString(a));
+        writer.WriteBoolean(reference.EmbedInteropTypes);
+    }
 
-            var language = reader.ReadString();
+    private static ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-            var service = GetOptionsSerializationService(language);
-            return service.ReadCompilationOptionsFrom(reader, cancellationToken);
-        }
+        var projectId = ProjectId.ReadFrom(reader);
+        var aliases = reader.ReadArray(static r => r.ReadString());
+        var embedInteropTypes = reader.ReadBoolean();
 
-        public void SerializeParseOptions(ParseOptions options, ObjectWriter writer)
-        {
-            var language = options.Language;
+        return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
+    }
 
-            // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
-            writer.WriteString(language);
+    private void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
+    }
 
-            var service = GetOptionsSerializationService(language);
-            service.WriteTo(options, writer);
-        }
+    private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ReadMetadataReferenceFrom(reader, cancellationToken);
+    }
 
-        private ParseOptions DeserializeParseOptions(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
+    }
 
-            var language = reader.ReadString();
-
-            var service = GetOptionsSerializationService(language);
-            return service.ReadParseOptionsFrom(reader, cancellationToken);
-        }
-
-        public void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            reference.ProjectId.WriteTo(writer);
-            writer.WriteValue(reference.Aliases.ToArray());
-            writer.WriteBoolean(reference.EmbedInteropTypes);
-        }
-
-        private static ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var projectId = ProjectId.ReadFrom(reader);
-            var aliases = reader.ReadArray<string>();
-            var embedInteropTypes = reader.ReadBoolean();
-
-            return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
-        }
-
-        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
-        }
-
-        private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return ReadMetadataReferenceFrom(reader, cancellationToken);
-        }
-
-        public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
-        }
-
-        private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return ReadAnalyzerReferenceFrom(reader, cancellationToken);
-        }
+    private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ReadAnalyzerReferenceFrom(reader, cancellationToken);
     }
 }

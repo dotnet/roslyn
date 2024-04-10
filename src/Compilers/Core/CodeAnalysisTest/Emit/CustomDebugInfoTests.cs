@@ -4,19 +4,15 @@
 
 #nullable disable
 
-extern alias PDB;
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
-using PDB::Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -292,6 +288,56 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             AssertEx.Equal(closures, deserialized.Closures);
             AssertEx.Equal(lambdas, deserialized.Lambdas);
+        }
+
+        [Fact]
+        public void StateMachineStateDebugInfo()
+        {
+            var cmw = new BlobBuilder();
+
+            var info = new EditAndContinueMethodDebugInformation(
+                methodOrdinal: 1,
+                localSlots: ImmutableArray<LocalSlotDebugInfo>.Empty,
+                closures: ImmutableArray<ClosureDebugInfo>.Empty,
+                lambdas: ImmutableArray<LambdaDebugInfo>.Empty,
+                stateMachineStates: ImmutableArray.Create(
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(2), (StateMachineState)0),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x30, new AwaitDebugId(0), (StateMachineState)5),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(0), (StateMachineState)1),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x20, new AwaitDebugId(0), (StateMachineState)3),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(1), (StateMachineState)2),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x20, new AwaitDebugId(1), (StateMachineState)4)
+                ));
+
+            info.SerializeStateMachineStates(cmw);
+
+            var bytes = cmw.ToImmutableArray();
+            AssertEx.Equal(new byte[] { 0x06, 0x00, 0x02, 0x10, 0x04, 0x10, 0x00, 0x10, 0x06, 0x20, 0x08, 0x20, 0x0A, 0x30 }, bytes);
+
+            var deserialized = EditAndContinueMethodDebugInformation.Create(
+                compressedSlotMap: ImmutableArray<byte>.Empty,
+                compressedLambdaMap: ImmutableArray<byte>.Empty,
+                compressedStateMachineStateMap: bytes).StateMachineStates;
+
+            AssertEx.Equal(new[]
+            {
+                new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(0), (StateMachineState)1),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(1), (StateMachineState)2),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(2), (StateMachineState)0),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x20, new AwaitDebugId(0), (StateMachineState)3),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x20, new AwaitDebugId(1), (StateMachineState)4),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x30, new AwaitDebugId(0), (StateMachineState)5),
+            }, deserialized);
+        }
+
+        [Fact]
+        public void StateMachineStateDebugInfo_BadData()
+        {
+            // not sorted:
+            Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(
+                compressedSlotMap: ImmutableArray<byte>.Empty,
+                compressedLambdaMap: ImmutableArray<byte>.Empty,
+                compressedStateMachineStateMap: ImmutableArray.Create<byte>(0x06, 0x00, 0x02, 0x20, 0x04, 0x10, 0x00, 0x10, 0x06, 0x20, 0x08, 0x20, 0x0A, 0x30)));
         }
 
         [Fact]

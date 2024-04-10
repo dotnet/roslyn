@@ -2,43 +2,47 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal abstract class VSTypeScriptCompletionServiceWithProviders : CompletionService
 {
-    internal abstract class VSTypeScriptCompletionServiceWithProviders : CompletionService
+    // Pass in NullProvider since it's only used for testing project reference based CompletionProvider,
+    // which TypeScript does not need.
+    internal VSTypeScriptCompletionServiceWithProviders(Workspace workspace)
+        : base(workspace.Services.SolutionServices, AsynchronousOperationListenerProvider.NullProvider)
     {
-        internal VSTypeScriptCompletionServiceWithProviders(Workspace workspace)
-            : base(workspace.Services.SolutionServices)
-        {
-        }
+    }
 
-        internal sealed override CompletionRules GetRules(CompletionOptions options)
-            => GetRulesImpl();
+    internal sealed override CompletionRules GetRules(CompletionOptions options)
+        => GetRulesImpl();
 
-        internal abstract CompletionRules GetRulesImpl();
+    internal abstract CompletionRules GetRulesImpl();
 
-        internal sealed override void FilterItems(
-           Document document,
-           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
-           string filterText,
-           IList<CompletionItem> builder)
-            => FilterItemsImpl(document, itemsWithPatternMatch, filterText, builder);
+    internal sealed override void FilterItems(
+       Document document,
+       IReadOnlyList<MatchResult> matchResults,
+       string filterText,
+       IList<MatchResult> builder)
+        => FilterItemsImpl(document, matchResults, filterText, builder);
 
-        internal virtual void FilterItemsImpl(
-            Document document,
-            IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
-            string filterText,
-            IList<CompletionItem> builder)
-        {
+    internal virtual void FilterItemsImpl(
+        Document document,
+        IReadOnlyList<MatchResult> matchResults,
+        string filterText,
+        IList<MatchResult> builder)
+    {
 #pragma warning disable RS0030 // Do not used banned APIs
-            builder.AddRange(FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText));
+        var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
-        }
+
+        using var helper = new PatternMatchHelper(filterText);
+        builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, includeMatchSpans: false, CultureInfo.CurrentCulture)));
     }
 }

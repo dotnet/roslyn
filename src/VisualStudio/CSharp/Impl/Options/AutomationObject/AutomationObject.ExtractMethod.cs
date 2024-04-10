@@ -16,8 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int ExtractMethod_DoNotPutOutOrRefOnStruct
         {
-            get { return GetBooleanOption(ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct); }
-            set { SetBooleanOption(ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, value); }
+            get { return GetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct); }
+            set { SetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, value); }
         }
     }
 }

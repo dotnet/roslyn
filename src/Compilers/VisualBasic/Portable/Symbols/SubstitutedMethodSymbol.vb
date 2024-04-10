@@ -404,6 +404,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return OriginalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
 
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return OriginalDefinition.HasSetsRequiredMembers
+            End Get
+        End Property
+
         ''' <summary>
         ''' Base class for symbols representing non-generic or open generic methods contained within constructed generic type.
         ''' For example: A(Of Integer).B, A(Of Integer).B.C or A(Of Integer).B.C(Of ).

@@ -70,7 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim ifStatement = DirectCast(BeginStatement, IfStatementSyntax)
 
-
             Dim result = SyntaxFactory.SingleLineIfStatement(ifStatement.IfKeyword, ifStatement.Condition, ifStatement.ThenKeyword, Body(), _optionalElseClause)
 
             FreeStatements()

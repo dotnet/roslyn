@@ -19,6 +19,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Run_background_code_analysis_for As String =
             ServicesVSResources.Run_background_code_analysis_for_colon
 
+        Public ReadOnly Property Option_analyze_source_generated_files As String =
+             ServicesVSResources.Analyze_source_generated_files
+
         Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
             ServicesVSResources.None
 
@@ -35,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BackgroundAnalysisScope.None
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File_Tag As BackgroundAnalysisScope =
-            BackgroundAnalysisScope.ActiveFile
+            BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_Tag As BackgroundAnalysisScope =
             BackgroundAnalysisScope.OpenFiles
@@ -62,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             CompilerDiagnosticsScope.None
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files_Tag As CompilerDiagnosticsScope =
-            CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics
+            CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Open_Files_Tag As CompilerDiagnosticsScope =
             CompilerDiagnosticsScope.OpenFiles
@@ -78,6 +81,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Underline_reassigned_variables As String =
             ServicesVSResources.Underline_reassigned_variables
+
+        Public ReadOnly Property Option_Strike_out_obsolete_symbols As String =
+            ServicesVSResources.Strike_out_obsolete_symbols
 
         Public ReadOnly Property Option_Display_all_hints_while_pressing_Alt_F1 As String =
             ServicesVSResources.Display_all_hints_while_pressing_Alt_F1
@@ -141,9 +147,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Quick_Actions As String =
             ServicesVSResources.Quick_Actions
-
-        Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
-            ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
 
         Public ReadOnly Property Option_EnableOutlining As String =
             BasicVSResources.Enter_outlining_mode_when_files_open
@@ -254,6 +257,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_guides_for_code_level_constructs As String =
             ServicesVSResources.Show_guides_for_code_level_constructs
+
+        Public ReadOnly Property Option_Show_guides_for_comments_and_preprocessor_regions As String =
+            ServicesVSResources.Show_guides_for_comments_and_preprocessor_regions
 
         Public ReadOnly Property Option_Fading As String =
             ServicesVSResources.Fading
@@ -368,5 +374,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Rename_asynchronously_experimental As String =
             ServicesVSResources.Rename_asynchronously_experimental
+
+        Public ReadOnly Property Where_should_the_rename_UI_be_shown As String =
+            ServicesVSResources.Where_should_the_rename_UI_be_shown
+
+        Public ReadOnly Property Option_Show_UI_inline As String =
+            ServicesVSResources.Show_UI_inline
+
+        Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
+            ServicesVSResources.Show_UI_as_dashboard_in_top_right
+
+        Public ReadOnly Property Document_Outline As String =
+            ServicesVSResources.Document_Outline
+
+        Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
+            ServicesVSResources.Enable_document_outline_experimental_requires_restart
+
+        Public ReadOnly Property Option_Source_Generators As String =
+            ServicesVSResources.Source_Generators
+
+        Public ReadOnly Property Option_Source_generator_execution_requires_restart As String =
+            ServicesVSResources.Source_generator_execution_requires_restart
+
+        Public ReadOnly Property Option_Automatic_Run_generators_after_any_change As String =
+            ServicesVSResources.Automatic_Run_generators_after_any_change
+
+        Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
+            ServicesVSResources.Balanced_Run_generators_after_saving_or_building
+
     End Module
 End Namespace

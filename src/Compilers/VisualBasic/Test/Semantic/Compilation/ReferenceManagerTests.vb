@@ -350,7 +350,6 @@ End Class
         </file>
     </compilation>
 
-
             Dim main = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceMain, {New VisualBasicCompilationReference(refLibV2), New VisualBasicCompilationReference(libV1), New VisualBasicCompilationReference(x)})
 
             CompilationUtils.AssertTheseDiagnostics(main,
@@ -1378,7 +1377,6 @@ End Namespace
                     </file>
                 </compilation>
 
-
             Dim ilRef = CompileIL(il.Value, prependDefaultHeader:=False)
             Dim oldRef = CreateCompilationWithMscorlib40AndVBRuntime(oldVb).ToMetadataReference()
 
@@ -1526,7 +1524,6 @@ Namespace A
 
             Dim implicitTypeCount1 = comp1.GlobalNamespace.GetMember(Of NamespaceSymbol)("A").GetMembers(TypeSymbol.ImplicitTypeName).Length
             Assert.Equal(1, implicitTypeCount1)
-
 
             Dim tree2 = tree1.WithInsertAt(tree1.ToString().Length, "End Namespace")
             Dim comp2 = comp1.ReplaceSyntaxTree(tree1, tree2)

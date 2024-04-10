@@ -235,8 +235,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Method that is called from the CachingLookup to get all child names. Looks
         ''' in all constituent namespaces.
         ''' </summary>
-        Private Function SlowGetChildNames(comparer As IEqualityComparer(Of String)) As HashSet(Of String)
-            Dim childNames As New HashSet(Of String)(comparer)
+        Private Function SlowGetChildNames(comparer As IEqualityComparer(Of String)) As SegmentedHashSet(Of String)
+            ' compute an upper bound for the final capacity of the set we'll return, to reduce heap churn
+            Dim childCount As Integer = 0
+
+            For Each nsSym As NamespaceSymbol In _namespacesToMerge
+                childCount += nsSym.GetMembersUnordered().Length
+            Next
+
+            Dim childNames As New SegmentedHashSet(Of String)(childCount, comparer)
 
             For Each nsSym As NamespaceSymbol In _namespacesToMerge
                 For Each childSym As NamespaceOrTypeSymbol In nsSym.GetMembersUnordered()

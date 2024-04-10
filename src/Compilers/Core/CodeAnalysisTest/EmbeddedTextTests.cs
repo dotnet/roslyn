@@ -156,11 +156,11 @@ class Program
         public void FromBytes_Large()
         {
             var bytes = Encoding.Unicode.GetBytes(LargeSource);
-            var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha256);
-            var text = EmbeddedText.FromBytes("pathToLarge", new ArraySegment<byte>(bytes, 0, bytes.Length), SourceHashAlgorithm.Sha256);
+            var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithms.Default);
+            var text = EmbeddedText.FromBytes("pathToLarge", new ArraySegment<byte>(bytes, 0, bytes.Length), SourceHashAlgorithms.Default);
 
             Assert.Equal("pathToLarge", text.FilePath);
-            Assert.Equal(SourceHashAlgorithm.Sha256, text.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, text.ChecksumAlgorithm);
             AssertEx.Equal(checksum, text.Checksum);
             AssertEx.Equal(BitConverter.GetBytes(bytes.Length), text.Blob.Take(4));
             AssertEx.Equal(bytes, Decompress(text.Blob.Skip(4)));
@@ -171,12 +171,12 @@ class Program
         {
             var bytes = Encoding.Unicode.GetBytes(LargeSource);
             var paddedBytes = new byte[] { 0 }.Concat(bytes).Concat(new byte[] { 0 }).ToArray();
-            var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha256);
-            var text = EmbeddedText.FromBytes("pathToLarge", new ArraySegment<byte>(paddedBytes, 1, bytes.Length), SourceHashAlgorithm.Sha256);
+            var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithms.Default);
+            var text = EmbeddedText.FromBytes("pathToLarge", new ArraySegment<byte>(paddedBytes, 1, bytes.Length), SourceHashAlgorithms.Default);
 
             Assert.Equal("pathToLarge", text.FilePath);
             AssertEx.Equal(checksum, text.Checksum);
-            Assert.Equal(SourceHashAlgorithm.Sha256, text.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, text.ChecksumAlgorithm);
             AssertEx.Equal(BitConverter.GetBytes(bytes.Length), text.Blob.Take(4));
             AssertEx.Equal(bytes, Decompress(text.Blob.Skip(4)));
         }
@@ -184,11 +184,11 @@ class Program
         [Fact]
         public void FromSource_Large()
         {
-            var source = SourceText.From(LargeSource, Encoding.Unicode, SourceHashAlgorithm.Sha256);
+            var source = SourceText.From(LargeSource, Encoding.Unicode, SourceHashAlgorithms.Default);
             var text = EmbeddedText.FromSource("pathToLarge", source);
 
             Assert.Equal("pathToLarge", text.FilePath);
-            Assert.Equal(SourceHashAlgorithm.Sha256, text.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, text.ChecksumAlgorithm);
             AssertEx.Equal(source.GetChecksum(), text.Checksum);
             AssertEx.Equal(BitConverter.GetBytes(Encoding.Unicode.GetPreamble().Length + LargeSource.Length * sizeof(char)), text.Blob.Take(4));
             AssertEx.Equal(Encoding.Unicode.GetPreamble().Concat(Encoding.Unicode.GetBytes(LargeSource)), Decompress(text.Blob.Skip(4)));

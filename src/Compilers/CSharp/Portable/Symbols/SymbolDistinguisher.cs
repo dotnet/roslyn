@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_lazyDescriptions.IsDefault) return;
 
-            string description0 = _symbol0.ToDisplayString();
-            string description1 = _symbol1.ToDisplayString();
+            string description0 = _symbol0.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat);
+            string description1 = _symbol1.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat);
 
             if (description0 == description1)
             {

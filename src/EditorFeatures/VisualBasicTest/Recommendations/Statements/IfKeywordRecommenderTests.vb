@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class IfKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "If")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfInMultiLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
@@ -22,14 +21,12 @@ Dim x = Sub()
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfInSingleLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub() |</MethodBody>, "If")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterElseInMultiLine1Test()
             VerifyRecommendationsContain(<MethodBody>
 If True Then
@@ -38,7 +35,6 @@ End If</MethodBody>, "If")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterElseInMultiLine2Test()
             VerifyRecommendationsContain(<MethodBody>
 If True Then
@@ -48,13 +44,11 @@ End If</MethodBody>, "If")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterElseInSingleLineIfTest()
             VerifyRecommendationsContain(<MethodBody>If True Then Stop Else |</MethodBody>, "If")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterExternalSourceDirectiveTest()
             VerifyRecommendationsContain(
 <MethodBody>

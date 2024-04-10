@@ -260,7 +260,7 @@ enum E
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
@@ -356,7 +356,7 @@ enum E
             Await TestAddEnumMember(code, expected, New EnumMemberData With {.Name = "U", .Value = "V"})
         End Function
 
-        <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember4() As Task
             Dim code =
@@ -379,7 +379,7 @@ enum E
             Await TestAddEnumMember(code, expected, New EnumMemberData With {.Position = -1, .Name = "B"})
         End Function
 
-        <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember5() As Task
             Dim code =
@@ -404,7 +404,7 @@ enum E
             Await TestAddEnumMember(code, expected, New EnumMemberData With {.Position = 1, .Name = "B"})
         End Function
 
-        <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember6() As Task
             Dim code =
@@ -429,7 +429,7 @@ enum E
             Await TestAddEnumMember(code, expected, New EnumMemberData With {.Position = -1, .Name = "C"})
         End Function
 
-        <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddMember7() As Task
             Dim code =

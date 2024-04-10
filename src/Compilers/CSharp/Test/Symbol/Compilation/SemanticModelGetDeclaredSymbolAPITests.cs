@@ -3269,7 +3269,6 @@ class C
             var localDecl = (LocalDeclarationStatementSyntax)methodDecl.Body.Statements[0];
             var initializer = localDecl.Declaration.Variables[0].Initializer.Value;
 
-
             var initInfo = model.GetSemanticInfoSummary(initializer);
             Assert.Null(initInfo.Type);
             Assert.NotNull(initInfo.ConvertedType);
@@ -4022,7 +4021,6 @@ public class A<T>
             Assert.Equal(typeA, boundType.OriginalDefinition);
             Assert.True(boundType.IsUnboundGenericType());
 
-
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("B<U>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
             boundType = symbolInfo.Symbol as ITypeSymbol;
             Assert.Equal(typeB, boundType);
@@ -4040,7 +4038,6 @@ public class A<T>
             Assert.NotEqual(typeB, boundType);
             Assert.Equal(typeB, boundType.OriginalDefinition);
             Assert.True(boundType.IsUnboundGenericType());
-
 
             symbolInfo = model.GetSpeculativeSymbolInfo(typeofArgPosition, SyntaxFactory.ParseTypeName("A<>.B<>"), SpeculativeBindingOption.BindAsTypeOrNamespace);
             boundType = symbolInfo.Symbol as ITypeSymbol;
@@ -4131,7 +4128,7 @@ static class S
             SymbolInfo info = new SymbolInfo();
             info = model.GetSymbolInfo(call);
 
-            Assert.IsType<SourceOrdinaryMethodSymbol>(info.Symbol.GetSymbol());
+            Assert.IsAssignableFrom<SourceOrdinaryMethodSymbol>(info.Symbol.GetSymbol());
 
             src = @"
 static class S
@@ -4744,9 +4741,7 @@ public class C
             var enumDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EnumDeclarationSyntax>().Single();
             var eventDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EventDeclarationSyntax>().Single();
 
-            // To repro DevDiv #563572, we need to go through the interface (which, at the time, followed
-            // a different code path).
-            var model = (SemanticModel)compilation.GetSemanticModel(tree);
+            var model = compilation.GetSemanticModel(tree);
 
             var enumSymbol = model.GetDeclaredSymbol(enumDecl); //Used to assert.
             Assert.Equal(SymbolKind.NamedType, enumSymbol.Kind);
@@ -4772,7 +4767,7 @@ public class S
             var structDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<StructDeclarationSyntax>().First();
             var interfaceDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Last();
 
-            var model = (SemanticModel)compilation.GetSemanticModel(tree);
+            var model = compilation.GetSemanticModel(tree);
 
             var structSymbol = model.GetDeclaredSymbol(structDecl);
             var interfaceSymbol = model.GetDeclaredSymbol(interfaceDecl);

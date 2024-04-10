@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.Category; }
         }
 
-
         internal sealed override int Code
         {
             get { return this.Info.Code; }

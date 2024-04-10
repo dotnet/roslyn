@@ -37,7 +37,7 @@ namespace Roslyn.Test.Utilities
 
         private class AssertEqualityComparer<T> : IEqualityComparer<T>
         {
-            private static readonly IEqualityComparer<T> s_instance = new AssertEqualityComparer<T>();
+            public static readonly IEqualityComparer<T> Instance = new AssertEqualityComparer<T>();
 
             private static bool CanBeNull()
             {
@@ -58,7 +58,7 @@ namespace Roslyn.Test.Utilities
 
             public static bool Equals(T left, T right)
             {
-                return s_instance.Equals(left, right);
+                return Instance.Equals(left, right);
             }
 
             bool IEqualityComparer<T>.Equals(T x, T y)
@@ -76,11 +76,6 @@ namespace Roslyn.Test.Utilities
                     }
                 }
 
-                if (x.GetType() != y.GetType())
-                {
-                    return false;
-                }
-
                 if (x is IEquatable<T> equatable)
                 {
                     return equatable.Equals(y);
@@ -96,10 +91,7 @@ namespace Roslyn.Test.Utilities
                     return comparable.CompareTo(y) == 0;
                 }
 
-                var enumerableX = x as IEnumerable;
-                var enumerableY = y as IEnumerable;
-
-                if (enumerableX != null && enumerableY != null)
+                if (x is IEnumerable enumerableX && y is IEnumerable enumerableY)
                 {
                     var enumeratorX = enumerableX.GetEnumerator();
                     var enumeratorY = enumerableY.GetEnumerator();
@@ -141,23 +133,30 @@ namespace Roslyn.Test.Utilities
 
             if (expected == null)
             {
-                Fail("expected was null, but actual wasn't\r\n" + message);
+                Fail("expected was null, but actual wasn't" + Environment.NewLine + message);
             }
             else if (actual == null)
             {
-                Fail("actual was null, but expected wasn't\r\n" + message);
+                Fail("actual was null, but expected wasn't" + Environment.NewLine + message);
             }
-            else
+            else if (!(comparer ?? AssertEqualityComparer<T>.Instance).Equals(expected, actual))
             {
-                if (!(comparer != null ?
-                    comparer.Equals(expected, actual) :
-                    AssertEqualityComparer<T>.Equals(expected, actual)))
+                string expectedAndActual;
+                if (expected is IEnumerable expectedEnumerable && actual is IEnumerable actualEnumerable)
                 {
-                    Fail("Expected and actual were different.\r\n" +
-                         "Expected:\r\n" + expected + "\r\n" +
-                         "Actual:\r\n" + actual + "\r\n" +
-                         message);
+                    expectedAndActual = GetAssertMessage(expectedEnumerable.OfType<object>(), actualEnumerable.OfType<object>(), comparer: null);
                 }
+                else
+                {
+                    expectedAndActual = $"""
+                        Expected:
+                        {expected}
+                        Actual:
+                        {actual}
+                        """;
+                }
+
+                Fail(message + Environment.NewLine + expectedAndActual);
             }
         }
 
@@ -297,8 +296,7 @@ namespace Roslyn.Test.Utilities
             Assert.True(false, messageBuilder.ToString());
         }
 
-        public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
-            string itemSeparator = null, Func<T, string> itemInspector = null)
+        public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null)
         {
             if (ReferenceEquals(expected, actual))
             {
@@ -545,7 +543,7 @@ namespace Roslyn.Test.Utilities
             throw new Xunit.Sdk.XunitException(string.Format(format, args));
         }
 
-        public static void NotNull<T>(T @object, string message = null)
+        public static void NotNull<T>([NotNull] T @object, string message = null)
         {
             Assert.False(AssertEqualityComparer<T>.IsNull(@object), message);
         }
@@ -954,6 +952,18 @@ namespace Roslyn.Test.Utilities
             Debug.Assert(value is object);
         }
 
-#nullable disable
+        public static void Contains<T>(IEnumerable<T> collection, Predicate<T> filter, Func<T, string>? itemInspector = null, string? itemSeparator = null)
+        {
+            foreach (var item in collection)
+            {
+                if (filter(item))
+                {
+                    return;
+                }
+            }
+
+            Fail("Filter does not match any item in the collection: " + Environment.NewLine +
+                ToString(collection, itemSeparator ?? Environment.NewLine, itemInspector));
+        }
     }
 }

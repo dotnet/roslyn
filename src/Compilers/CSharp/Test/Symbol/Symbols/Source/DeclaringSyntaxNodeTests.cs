@@ -644,7 +644,6 @@ class C1
             CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "default", SymbolKind.Label);
         }
 
-
         [Fact]
         public void AliasDeclaringSyntax()
         {

@@ -7,30 +7,24 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
+
+internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
 {
-    internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
+    private sealed class GenerateDefaultConstructorCodeAction(
+        Document document,
+        State state,
+        IMethodSymbol constructor,
+        CodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, new[] { constructor }, GetDisplayText(state, constructor), fallbackOptions)
     {
-        private sealed class GenerateDefaultConstructorCodeAction : AbstractCodeAction
+        private static string GetDisplayText(State state, IMethodSymbol constructor)
         {
-            public GenerateDefaultConstructorCodeAction(
-                Document document,
-                State state,
-                IMethodSymbol constructor,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
-                : base(document, state, new[] { constructor }, GetDisplayText(state, constructor), fallbackOptions)
-            {
-            }
+            var parameters = constructor.Parameters.Select(p => p.Name);
+            var parameterString = string.Join(", ", parameters);
 
-            private static string GetDisplayText(State state, IMethodSymbol constructor)
-            {
-                var parameters = constructor.Parameters.Select(p => p.Name);
-                var parameterString = string.Join(", ", parameters);
-
-                Contract.ThrowIfNull(state.ClassType);
-                return string.Format(FeaturesResources.Generate_constructor_0_1,
-                    state.ClassType.Name, parameterString);
-            }
+            Contract.ThrowIfNull(state.ClassType);
+            return string.Format(FeaturesResources.Generate_constructor_0_1,
+                state.ClassType.Name, parameterString);
         }
     }
 }

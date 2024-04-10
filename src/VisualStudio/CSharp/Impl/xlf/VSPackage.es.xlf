@@ -410,14 +410,39 @@ Mostrar elementos de espacios de nombres no importados (experimental);</target>
         <target state="translated">Los componentes de C# utilizados en el IDE. En función del tipo de proyecto y la configuración, se podría utilizar una versión diferente del compilador.</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">Archivo de script de C# vacío.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Siempre agregar una nueva línea al pulsar Intro</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Script de Visual C#</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Incluir siempre fragmentos de código</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default">
+        <source>Default</source>
+        <target state="translated">Predeterminado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when Tab is typed after an identifier</source>
+        <target state="translated">Incluir fragmentos de código cuando Tab se escriba después de un identificador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Nunca agregar una nueva línea al pulsar Intro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">No incluir nunca fragmentos de código</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Solo agregar una nueva línea al pulsar Intro cuando se haya terminado de escribir completamente una palabra</target>
         <note />
       </trans-unit>
     </body>

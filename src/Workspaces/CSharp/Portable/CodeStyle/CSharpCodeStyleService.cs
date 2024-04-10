@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
@@ -20,4 +21,7 @@ internal sealed class CSharpCodeStyleService : ICodeStyleService
 
     public IdeCodeStyleOptions DefaultOptions
         => CSharpIdeCodeStyleOptions.Default;
+
+    public IdeCodeStyleOptions GetIdeCodeStyleOptions(IOptionsReader options, IdeCodeStyleOptions? fallbackOptions)
+        => new CSharpIdeCodeStyleOptions(options, (CSharpIdeCodeStyleOptions?)fallbackOptions);
 }

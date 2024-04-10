@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
     /// Use this attribute to export a <see cref="IAspNetCoreEmbeddedLanguageClassifier"/>.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class ExportAspNetCoreEmbeddedLanguageClassifierAttribute : ExportAttribute
     {
         /// <summary>

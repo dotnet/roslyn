@@ -16,11 +16,12 @@ Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Packaging)>
     Public Class SymbolSearchUpdateEngineTests
         Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, CancellationToken, Boolean) =
             Function(e, cancellationToken) TypeOf e IsNot MockException
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function CreateCacheFolderIfMissing() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -45,13 +46,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 fileDownloaderFactory.Verify()
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function DoNotCreateCacheFolderIfItIsThere() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -73,13 +74,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await service.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 fileDownloaderFactory.Verify()
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function DownloadFullDatabaseWhenLocalDatabaseIsMissing() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -110,14 +111,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 downloaderMock.Verify()
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function FailureToParseFullDBAtXmlLevelTakesCatastrophicPath() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -128,7 +129,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
 
-                Dim downloaderMock = CreatedownloaderMock(CreateStream(New XElement("Database",
+                Dim downloaderMock = CreateDownloaderMock(CreateStream(New XElement("Database",
                     New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, ""),
                     New XAttribute(SymbolSearchUpdateEngine.ChecksumAttributeName, Convert.ToBase64String(New Byte() {0, 1, 2})))))
 
@@ -152,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 downloaderMock.Verify()
@@ -160,7 +161,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function TestClientDisposedAfterUse() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -186,14 +187,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 serviceMock.Verify()
                 downloaderMock.Verify()
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function CrashInClientRunsFailureLoopPath() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -233,7 +234,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=Nothing,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -241,7 +242,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function FailureToParseFullDBAtElfieLevelTakesCatastrophicPath() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -275,7 +276,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -284,7 +285,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function SuccessParsingDBWritesToDisk() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -323,7 +324,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -332,7 +333,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function WriteAgainOnIOFailure() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -382,7 +383,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=factoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -391,7 +392,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_UpToDate_DoesNothing() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -426,7 +427,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -435,7 +436,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_IsTooOldCausesFullDownload() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -479,7 +480,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -489,7 +490,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_ContentsCausesPatching_FailureToPatchCausesFullDownload() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -538,7 +539,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -549,7 +550,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Packaging)>
+        <Fact>
         Public Async Function LocalDatabaseExistingCausesPatchToDownload_ContentsCausesPatching_SuccessfulPatchWritesToDisk() As Task
             Using workspace = TestWorkspace.CreateCSharp("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
@@ -593,7 +594,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     databaseFactoryService:=databaseFactoryMock.Object,
                     reportAndSwallowExceptionUnlessCanceled:=s_allButMoqExceptions)
 
-                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", TestLogService.Instance, cancellationTokenSource.Token)
+                Await searchService.UpdateContinuouslyAsync(PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
                 ioMock.Verify()
                 remoteControlMock.Verify()
                 downloaderMock.Verify()
@@ -724,23 +725,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                     Return TimeSpan.Zero
                 End Get
             End Property
-        End Class
-
-        Private Class TestLogService
-            Implements ISymbolSearchLogService
-
-            Public Shared ReadOnly Instance As TestLogService = New TestLogService()
-
-            Private Sub New()
-            End Sub
-
-            Public Function LogExceptionAsync(exception As String, text As String, cancellationToken As CancellationToken) As ValueTask Implements ISymbolSearchLogService.LogExceptionAsync
-                Return Nothing
-            End Function
-
-            Public Function LogInfoAsync(text As String, cancellationToken As CancellationToken) As ValueTask Implements ISymbolSearchLogService.LogInfoAsync
-                Return Nothing
-            End Function
         End Class
     End Class
 End Namespace

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     any = true;
                 }
             }
-            result.Append(")");
+            result.Append(')');
             return result.ToString();
         }
     }

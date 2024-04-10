@@ -388,8 +388,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         ""name"": """",
         ""version"": ""1.0.0"",
         ""fileVersion"": """",
-        ""semanticVersion"": ""1.0.0"",
-        ""language"": """"
+        ""semanticVersion"": ""1.0.0""
       }},
       ""results"": [
         {{

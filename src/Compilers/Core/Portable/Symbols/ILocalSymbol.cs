@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis
         RefKind RefKind { get; }
 
         /// <summary>
+        /// Returns the scoped kind of the local.
+        /// </summary>
+        ScopedKind ScopedKind { get; }
+
+        /// <summary>
         /// Returns false if the local variable wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
         /// </summary>
@@ -64,5 +69,21 @@ namespace Microsoft.CodeAnalysis
         /// Returns true if the local variable is declared with fixed-pointer-initializer (in unsafe context).
         /// </summary>
         bool IsFixed { get; }
+
+        /// <summary>
+        /// Returns true if this local variable is declared as iteration variable
+        /// </summary>
+        bool IsForEach { get; }
+
+        /// <summary>
+        /// Returns true if the local variable is declared in resource-acquisition of a 'using statement';
+        /// otherwise false
+        /// </summary>
+        /// <example>
+        /// <code>
+        ///     using (var localVariable = new StreamReader(path)) { ... } 
+        /// </code>
+        /// </example>
+        bool IsUsing { get; }
     }
 }

@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         // Calls are treated as having side effects, but properties and
         // indexers are not. (Since this visitor is run on the bound tree
         // before lowering, properties are not represented as calls.)
-        public override BoundNode VisitCall(BoundCall node)
+        protected override void VisitArguments(BoundCall node)
         {
-            return this.SetMayHaveSideEffects();
+            this.SetMayHaveSideEffects();
         }
 
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 // Do not treat initializer assignment as a side effect since it is
                 // part of an object creation. In short, visit the RHS only.
-                var expr = (initializer.Kind == BoundKind.AssignmentOperator) ?
-                    ((BoundAssignmentOperator)initializer).Right :
-                    initializer;
+                var expr = (initializer.Kind == BoundKind.AssignmentOperator)
+                    ? ((BoundAssignmentOperator)initializer).Right
+                    : initializer;
                 this.Visit(expr);
             }
             return null;

@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             if (analyzerNodeCanonicalName.StartsWith(projectDirectoryPath, StringComparison.OrdinalIgnoreCase))
             {
                 // Extract the rest of the string
-                analyzerNodeCanonicalName = analyzerNodeCanonicalName.Substring(projectDirectoryPath.Length);
+                analyzerNodeCanonicalName = analyzerNodeCanonicalName[projectDirectoryPath.Length..];
             }
 
             // Find the slash after the target framework
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             // The rest of the string is the path.
-            return analyzerNodeCanonicalName.Substring(backslashIndex + 1);
+            return analyzerNodeCanonicalName[(backslashIndex + 1)..];
         }
     }
 }

@@ -53,16 +53,18 @@ namespace Microsoft.CodeAnalysis
                         basePath = null;
                     }
 
-                    return string.Format(formatter, "{0}{1}: {2}: {3}",
+                    return string.Format(formatter, "{0}{1}: {2}: {3}{4}",
                                          FormatSourcePath(path, basePath, formatter),
                                          FormatSourceSpan(mappedSpan.Span, formatter),
                                          GetMessagePrefix(diagnostic),
-                                         diagnostic.GetMessage(culture));
+                                         diagnostic.GetMessage(culture),
+                                         FormatHelpLinkUri(diagnostic));
 
                 default:
-                    return string.Format(formatter, "{0}: {1}",
+                    return string.Format(formatter, "{0}: {1}{2}",
                                          GetMessagePrefix(diagnostic),
-                                         diagnostic.GetMessage(culture));
+                                         diagnostic.GetMessage(culture),
+                                         FormatHelpLinkUri(diagnostic));
             }
         }
 
@@ -100,6 +102,20 @@ namespace Microsoft.CodeAnalysis
 
             return string.Format("{0} {1}", prefix, diagnostic.Id);
         }
+
+        private string FormatHelpLinkUri(Diagnostic diagnostic)
+        {
+            var uri = diagnostic.Descriptor.HelpLinkUri;
+
+            if (string.IsNullOrEmpty(uri) || HasDefaultHelpLinkUri(diagnostic))
+            {
+                return string.Empty;
+            }
+
+            return $" ({uri})";
+        }
+
+        internal virtual bool HasDefaultHelpLinkUri(Diagnostic diagnostic) => true;
 
         internal static readonly DiagnosticFormatter Instance = new DiagnosticFormatter();
     }

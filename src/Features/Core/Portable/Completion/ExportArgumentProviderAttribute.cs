@@ -5,22 +5,13 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Completion
-{
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportArgumentProviderAttribute : ExportAttribute
-    {
-        public string Name { get; }
-        public string Language { get; }
-        public string[] Roles { get; set; }
+namespace Microsoft.CodeAnalysis.Completion;
 
-        public ExportArgumentProviderAttribute(string name, string language)
-            : base(typeof(ArgumentProvider))
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Language = language ?? throw new ArgumentNullException(nameof(language));
-            Roles = Array.Empty<string>();
-        }
-    }
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportArgumentProviderAttribute(string name, string language) : ExportAttribute(typeof(ArgumentProvider))
+{
+    public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+    public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
+    public string[] Roles { get; set; } = [];
 }

@@ -364,7 +364,7 @@ class C
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
@@ -812,7 +812,7 @@ class C
                          })
         End Sub
 
-        <WorkItem(888785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888785")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888785")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestArrayTypeName()
             Dim code =

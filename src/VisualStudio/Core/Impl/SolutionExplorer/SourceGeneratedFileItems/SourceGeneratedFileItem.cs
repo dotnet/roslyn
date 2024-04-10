@@ -38,8 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public string HintName { get; }
         public Workspace Workspace { get; }
 
-        public override ImageMoniker IconMoniker =>
-            _languageName switch
+        public override ImageMoniker IconMoniker
+            => _languageName switch
             {
                 LanguageNames.CSharp => KnownMonikers.CSFileNode,
                 LanguageNames.VisualBasic => KnownMonikers.VBFileNode,

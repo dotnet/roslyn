@@ -24,8 +24,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
+    <PackageReference Include="Microsoft.DiaSymReader" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

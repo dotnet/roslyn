@@ -310,7 +310,6 @@ class C3
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void UsingPatternExtensionMethodTest()
         {
@@ -407,7 +406,6 @@ class C2
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
         }
-
 
         [Fact]
         public void UsingPatternAmbiguousExtensionMethodTest()

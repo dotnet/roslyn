@@ -7,12 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -67,14 +64,35 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 
         public FSharpWorkspaceProjectContext CreateProjectContext(string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath)
             => new(_threadingContext.JoinableTaskFactory.Run(() => _factory.CreateProjectContextAsync(
+                id: projectGuid,
+                uniqueName: projectUniqueName,
                 languageName: LanguageNames.FSharp,
-                projectUniqueName: projectUniqueName,
-                projectFilePath: projectFilePath,
-                projectGuid: projectGuid,
-                hierarchy,
-                binOutputPath,
-                assemblyName: null,
+                data: new FSharpEvaluationData(projectFilePath, binOutputPath),
+                hostObject: hierarchy,
                 CancellationToken.None)));
+
+        private sealed class FSharpEvaluationData : EvaluationData
+        {
+            private readonly string _projectFilePath;
+            private readonly string? _binOutputPath;
+
+            public FSharpEvaluationData(string projectFilePath, string? binOutputPath)
+            {
+                _projectFilePath = projectFilePath;
+                _binOutputPath = binOutputPath;
+            }
+
+            public override string GetPropertyValue(string name)
+                => name switch
+                {
+                    BuildPropertyNames.MSBuildProjectFullPath => _projectFilePath,
+                    BuildPropertyNames.TargetPath => _binOutputPath ?? "",
+                    _ => "",
+                };
+
+            public override ImmutableArray<string> GetItemValues(string name)
+                => ImmutableArray<string>.Empty;
+        }
     }
 
     internal sealed class FSharpWorkspaceProjectContext : IFSharpWorkspaceProjectContext
@@ -105,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 
         public string BinOutputPath
         {
-            get => _vsProjectContext.BinOutputPath;
+            get => _vsProjectContext.BinOutputPath!;
             set => _vsProjectContext.BinOutputPath = value;
         }
 
@@ -113,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
             => _vsProjectContext.Id;
 
         public string FilePath
-            => _vsProjectContext.ProjectFilePath;
+            => _vsProjectContext.ProjectFilePath!;
 
         public int ProjectReferenceCount
             => _projectReferences.Count;

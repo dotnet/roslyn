@@ -4,8 +4,9 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class NamespaceBlockTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterNamespace()
             VerifyStatementEndConstructApplied(
                 before:="Namespace goo",
@@ -16,7 +17,7 @@ End Namespace",
                 afterCaret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestApplyAfterNestedNamespace()
             VerifyStatementEndConstructApplied(
                 before:="Namespace goo
@@ -31,7 +32,7 @@ End Namespace",
                 afterCaret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyRecommit()
             VerifyStatementEndConstructNotApplied(
                 text:="NameSpace Bar
@@ -39,7 +40,7 @@ End Namespace",
                 caret:={0, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidNSInMethod()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -50,7 +51,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidNSInModule()
             VerifyStatementEndConstructNotApplied(
                 text:="Module M

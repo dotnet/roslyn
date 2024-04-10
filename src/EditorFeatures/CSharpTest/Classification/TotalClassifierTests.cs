@@ -2,14 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -20,16 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
-            return await GetAllClassificationsAsync(document, span);
+            return await GetAllClassificationsAsync(document, spans);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -42,17 +51,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(547068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547068")]
+        [Theory, CombinatorialData]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547068")]
         public async Task Bug17819(TestHost testHost)
         {
             await TestAsync(
-@"_ _()
-{
-}
-///<param name='_
-}",
+                """
+                _ _()
+                {
+                }
+                ///<param name='_
+                }
+                """,
                 testHost,
                 ParseOptions(Options.Regular),
                 Method("_"),
@@ -71,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForClass(TestHost testHost)
         {
             await TestAsync(
@@ -88,8 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForDelegate(TestHost testHost)
         {
             await TestAsync(
@@ -104,8 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForStruct(TestHost testHost)
         {
             await TestAsync(
@@ -120,8 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForEnum(TestHost testHost)
         {
             await TestAsync(
@@ -136,8 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsUsingAliasForInterface(TestHost testHost)
         {
             await TestAsync(
@@ -152,17 +157,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task VarAsConstructorName(TestHost testHost)
         {
             await TestAsync(
-@"class var
-{
-    var()
-    {
-    }
-}",
+                """
+                class var
+                {
+                    var()
+                    {
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("var"),
@@ -175,23 +181,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRecordClass(TestHost testHost)
         {
             await TestAsync(
-@"record class R
-{
-    R()
-    {
-    }
-}",
+                """
+                record class R
+                {
+                    R()
+                    {
+                    }
+                }
+                """,
                 testHost,
                 Keyword("record"),
                 Keyword("class"),
-                Record("R"),
+                RecordClass("R"),
                 Punctuation.OpenCurly,
-                Record("R"),
+                RecordClass("R"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -199,17 +206,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRecordStruct(TestHost testHost)
         {
             await TestAsync(
-@"record struct R
-{
-    R(int i)
-    {
-    }
-}",
+                """
+                record struct R
+                {
+                    R(int i)
+                    {
+                    }
+                }
+                """,
                 testHost,
                 Keyword("record"),
                 Keyword("struct"),
@@ -225,8 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task UsingAliasGlobalNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -243,18 +250,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PartialDynamicWhere(TestHost testHost)
         {
-            var code = @"partial class partial<where> where where : partial<where>
-{
-    static dynamic dynamic<partial>()
-    {
-        return dynamic<dynamic>();
-    }
-}
-";
+            var code = """
+                partial class partial<where> where where : partial<where>
+                {
+                    static dynamic dynamic<partial>()
+                    {
+                        return dynamic<dynamic>();
+                    }
+                }
+                """;
             await TestAsync(code,
                 testHost,
                 Keyword("partial"),
@@ -294,9 +301,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
+        [Theory, CombinatorialData]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         public async Task VarInForeach(TestHost testHost)
         {
             await TestInMethodAsync(@"foreach (var v in args) { }",
@@ -312,21 +318,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValueInSetterAndAnonymousTypePropertyName(TestHost testHost)
         {
             await TestAsync(
-@"class C
-{
-    int P
-    {
-        set
-        {
-            var t = new { value = value };
-        }
-    }
-}",
+                """
+                class C
+                {
+                    int P
+                    {
+                        set
+                        {
+                            var t = new { value = value };
+                        }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("C"),
@@ -351,23 +358,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestValueInEvent(TestHost testHost)
         {
             await TestInClassAsync(
-@"event int Bar
-{
-    add
-    {
-        this.value = value;
-    }
+                """
+                event int Bar
+                {
+                    add
+                    {
+                        this.value = value;
+                    }
 
-    remove
-    {
-        this.value = value;
-    }
-}",
+                    remove
+                    {
+                        this.value = value;
+                    }
+                }
+                """,
                 testHost,
                 Keyword("event"),
                 Keyword("int"),
@@ -395,23 +403,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestValueInProperty(TestHost testHost)
         {
             await TestInClassAsync(
-@"int Goo
-{
-    get
-    {
-        this.value = value;
-    }
+                """
+                int Goo
+                {
+                    get
+                    {
+                        this.value = value;
+                    }
 
-    set
-    {
-        this.value = value;
-    }
-}",
+                    set
+                    {
+                        this.value = value;
+                    }
+                }
+                """,
                 testHost,
                 Keyword("int"),
                 Property("Goo"),
@@ -438,18 +447,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValueFieldInSetterAccessedThroughThis(TestHost testHost)
         {
             await TestInClassAsync(
-@"int P
-{
-    set
-    {
-        this.value = value;
-    }
-}",
+                """
+                int P
+                {
+                    set
+                    {
+                        this.value = value;
+                    }
+                }
+                """,
                 testHost,
                 Keyword("int"),
                 Property("P"),
@@ -466,8 +476,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NewOfInterface(TestHost testHost)
         {
             await TestInMethodAsync(
@@ -485,19 +494,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.Semicolon);
         }
 
-        [WorkItem(545611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545611")]
         [CombinatorialData]
         public async Task TestVarConstructor(TestHost testHost)
         {
             await TestAsync(
-@"class var
-{
-    void Main()
-    {
-        new var();
-    }
-}",
+                """
+                class var
+                {
+                    void Main()
+                    {
+                        new var();
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("var"),
@@ -516,19 +526,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545609")]
         [CombinatorialData]
         public async Task TestVarTypeParameter(TestHost testHost)
         {
             await TestAsync(
-@"class X
-{
-    void Goo<var>()
-    {
-        var x;
-    }
-}",
+                """
+                class X
+                {
+                    void Goo<var>()
+                    {
+                        var x;
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("X"),
@@ -541,25 +552,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                TypeParameter("var"),
+                Keyword("var"),
                 Local("x"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [CombinatorialData]
         public async Task TestVarAttribute1(TestHost testHost)
         {
             await TestAsync(
-@"using System;
+                """
+                using System;
 
-[var]
-class var : Attribute
-{
-}",
+                [var]
+                class var : Attribute
+                {
+                }
+                """,
                 testHost,
                 Keyword("using"),
                 Namespace("System"),
@@ -575,18 +587,19 @@ class var : Attribute
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(545610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545610")]
         [CombinatorialData]
         public async Task TestVarAttribute2(TestHost testHost)
         {
             await TestAsync(
-@"using System;
+                """
+                using System;
 
-[var]
-class varAttribute : Attribute
-{
-}",
+                [var]
+                class varAttribute : Attribute
+                {
+                }
+                """,
                 testHost,
                 Keyword("using"),
                 Namespace("System"),
@@ -602,21 +615,22 @@ class varAttribute : Attribute
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(546170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546170")]
         [CombinatorialData]
         public async Task TestStandaloneTypeName(TestHost testHost)
         {
             await TestAsync(
-@"using System;
+                """
+                using System;
 
-class C
-{
-    static void Main()
-    {
-        var tree = Console
-    }
-}",
+                class C
+                {
+                    static void Main()
+                    {
+                        var tree = Console
+                    }
+                }
+                """,
                 testHost,
                 Keyword("using"),
                 Namespace("System"),
@@ -640,19 +654,20 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
-        [Theory]
+        [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")]
         [CombinatorialData]
         public async Task TestNamespaceClassAmbiguities(TestHost testHost)
         {
             await TestAsync(
-@"class C
-{
-}
+                """
+                class C
+                {
+                }
 
-namespace C
-{
-}",
+                namespace C
+                {
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("C"),
@@ -664,18 +679,19 @@ namespace C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NameAttributeValue(TestHost testHost)
         {
             await TestAsync(
-@"class Program<T>
-{
-    /// <param name=""x""/>
-    void Goo(int x)
-    {
-    }
-}",
+                """
+                class Program<T>
+                {
+                    /// <param name="x"/>
+                    void Goo(int x)
+                    {
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("Program"),
@@ -689,9 +705,13 @@ namespace C
                 XmlDoc.Name("param"),
                 XmlDoc.AttributeName("name"),
                 XmlDoc.Delimiter("="),
-                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.AttributeQuotes("""
+                    "
+                    """),
                 Parameter("x"),
-                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.AttributeQuotes("""
+                    "
+                    """),
                 XmlDoc.Delimiter("/>"),
                 Keyword("void"),
                 Method("Goo"),
@@ -704,18 +724,19 @@ namespace C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Cref1(TestHost testHost)
         {
             await TestAsync(
-@"/// <see cref=""Program{T}""/>
-class Program<T>
-{
-    void Goo()
-    {
-    }
-}",
+                """
+                /// <see cref="Program{T}"/>
+                class Program<T>
+                {
+                    void Goo()
+                    {
+                    }
+                }
+                """,
                 testHost,
                 XmlDoc.Delimiter("///"),
                 XmlDoc.Text(" "),
@@ -723,12 +744,16 @@ class Program<T>
                 XmlDoc.Name("see"),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
-                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.AttributeQuotes("""
+                    "
+                    """),
                 Class("Program"),
                 Punctuation.OpenCurly,
                 TypeParameter("T"),
                 Punctuation.CloseCurly,
-                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.AttributeQuotes("""
+                    "
+                    """),
                 XmlDoc.Delimiter("/>"),
                 Keyword("class"),
                 Class("Program"),
@@ -745,18 +770,19 @@ class Program<T>
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CrefNamespaceIsNotClass(TestHost testHost)
         {
             await TestAsync(
-@"///  <see cref=""N""/>
-namespace N
-{
-    class Program
-    {
-    }
-}",
+                """
+                ///  <see cref="N"/>
+                namespace N
+                {
+                    class Program
+                    {
+                    }
+                }
+                """,
                 testHost,
                 XmlDoc.Delimiter("///"),
                 XmlDoc.Text("  "),
@@ -764,9 +790,13 @@ namespace N
                 XmlDoc.Name("see"),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
-                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.AttributeQuotes("""
+                    "
+                    """),
                 Namespace("N"),
-                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.AttributeQuotes("""
+                    "
+                    """),
                 XmlDoc.Delimiter("/>"),
                 Keyword("namespace"),
                 Namespace("N"),
@@ -778,17 +808,18 @@ namespace N
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task InterfacePropertyWithSameNameShouldBePreferredToType(TestHost testHost)
         {
             await TestAsync(
-@"interface IGoo
-{
-    int IGoo { get; set; }
+                """
+                interface IGoo
+                {
+                    int IGoo { get; set; }
 
-    void Bar(int x = IGoo);
-}",
+                    void Bar(int x = IGoo);
+                }
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("IGoo"),
@@ -813,21 +844,22 @@ namespace N
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
         public async Task XmlDocCref(TestHost testHost)
         {
             await TestAsync(
-@"/// <summary>
-/// <see cref=""MyClass.MyClass(int)""/>
-/// </summary>
-class MyClass
-{
-    public MyClass(int x)
-    {
-    }
-}",
+                """
+                /// <summary>
+                /// <see cref="MyClass.MyClass(int)"/>
+                /// </summary>
+                class MyClass
+                {
+                    public MyClass(int x)
+                    {
+                    }
+                }
+                """,
                 testHost,
                 XmlDoc.Delimiter("///"),
                 XmlDoc.Text(" "),
@@ -840,14 +872,18 @@ class MyClass
                 XmlDoc.Name("see"),
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
-                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.AttributeQuotes("""
+                    "
+                    """),
                 Class("MyClass"),
                 Operators.Dot,
                 Class("MyClass"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Punctuation.CloseParen,
-                XmlDoc.AttributeQuotes("\""),
+                XmlDoc.AttributeQuotes("""
+                    "
+                    """),
                 XmlDoc.Delimiter("/>"),
                 XmlDoc.Delimiter("///"),
                 XmlDoc.Text(" "),
@@ -868,17 +904,17 @@ class MyClass
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericTypeWithNoArity(TestHost testHost)
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program : IReadOnlyCollection
-{
-}",
+                class Program : IReadOnlyCollection
+                {
+                }
+                """,
                 testHost,
                 Keyword("using"),
                 Namespace("System"),
@@ -895,17 +931,17 @@ class Program : IReadOnlyCollection
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestGenericTypeWithWrongArity(TestHost testHost)
         {
             await TestAsync(
-@"
-using System.Collections.Generic;
+                """
+                using System.Collections.Generic;
 
-class Program : IReadOnlyCollection<int,string>
-{
-}",
+                class Program : IReadOnlyCollection<int,string>
+                {
+                }
+                """,
                 testHost,
                 Keyword("using"),
                 Namespace("System"),
@@ -927,18 +963,18 @@ class Program : IReadOnlyCollection<int,string>
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestExtensionMethodDeclaration(TestHost testHost)
         {
             await TestAsync(
-@"static class ExtMethod
-{
-    public static void TestMethod(this C c)
-    {
-    }
-}
-",
+                """
+                static class ExtMethod
+                {
+                    public static void TestMethod(this C c)
+                    {
+                    }
+                }
+                """,
                 testHost,
                 Keyword("static"),
                 Keyword("class"),
@@ -960,27 +996,27 @@ class Program : IReadOnlyCollection<int,string>
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestExtensionMethodUsage(TestHost testHost)
         {
             await TestAsync(
-@"static class ExtMethod
-{
-    public static void TestMethod(this C c)
-    {
-    }
-}
+                """
+                static class ExtMethod
+                {
+                    public static void TestMethod(this C c)
+                    {
+                    }
+                }
 
-class C
-{
-    void Test()
-    {
-        ExtMethod.TestMethod(new C());
-        new C().TestMethod();
-    }
-}
-",
+                class C
+                {
+                    void Test()
+                    {
+                        ExtMethod.TestMethod(new C());
+                        new C().TestMethod();
+                    }
+                }
+                """,
                 testHost,
                 ParseOptions(Options.Regular),
                 Keyword("static"),
@@ -1034,13 +1070,14 @@ class C
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestConstLocals(TestHost testHost)
         {
             await TestInMethodAsync(
-@"const int Number = 42;
-var x = Number;",
+                """
+                const int Number = 42;
+                var x = Number;
+                """,
                 testHost,
                 Keyword("const"),
                 Keyword("int"),
@@ -1056,13 +1093,13 @@ var x = Number;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_InsideMethod(TestHost testHost)
         {
-            await TestInMethodAsync(@"
-var unmanaged = 0;
-unmanaged++;",
+            await TestInMethodAsync("""
+                var unmanaged = 0;
+                unmanaged++;
+                """,
                 testHost,
                 Keyword("var"),
                 Local("unmanaged"),
@@ -1074,8 +1111,7 @@ unmanaged++;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -1094,13 +1130,13 @@ unmanaged++;",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_ExistingInterface(TestHost testHost)
         {
-            await TestAsync(@"
-interface unmanaged {}
-class X<T> where T : unmanaged { }",
+            await TestAsync("""
+                interface unmanaged {}
+                class X<T> where T : unmanaged { }
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1114,21 +1150,21 @@ class X<T> where T : unmanaged { }",
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
-            await TestAsync(@"
-namespace OtherScope
-{
-    interface unmanaged {}
-}
-class X<T> where T : unmanaged { }",
+            await TestAsync("""
+                namespace OtherScope
+                {
+                    interface unmanaged {}
+                }
+                class X<T> where T : unmanaged { }
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("OtherScope"),
@@ -1151,15 +1187,15 @@ class X<T> where T : unmanaged { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_Keyword(TestHost testHost)
         {
-            await TestAsync(@"
-class X
-{
-    void M<T>() where T : unmanaged { }
-}",
+            await TestAsync("""
+                class X
+                {
+                    void M<T>() where T : unmanaged { }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("X"),
@@ -1180,16 +1216,16 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_ExistingInterface(TestHost testHost)
         {
-            await TestAsync(@"
-interface unmanaged {}
-class X
-{
-    void M<T>() where T : unmanaged { }
-}",
+            await TestAsync("""
+                interface unmanaged {}
+                class X
+                {
+                    void M<T>() where T : unmanaged { }
+                }
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1208,25 +1244,25 @@ class X
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
-            await TestAsync(@"
-namespace OtherScope
-{
-    interface unmanaged {}
-}
-class X
-{
-    void M<T>() where T : unmanaged { }
-}",
+            await TestAsync("""
+                namespace OtherScope
+                {
+                    interface unmanaged {}
+                }
+                class X
+                {
+                    void M<T>() where T : unmanaged { }
+                }
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("OtherScope"),
@@ -1255,8 +1291,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -1277,13 +1312,13 @@ class X
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_ExistingInterface(TestHost testHost)
         {
-            await TestAsync(@"
-interface unmanaged {}
-delegate void D<T>() where T : unmanaged;",
+            await TestAsync("""
+                interface unmanaged {}
+                delegate void D<T>() where T : unmanaged;
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1300,20 +1335,20 @@ delegate void D<T>() where T : unmanaged;",
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
-            await TestAsync(@"
-namespace OtherScope
-{
-    interface unmanaged {}
-}
-delegate void D<T>() where T : unmanaged;",
+            await TestAsync("""
+                namespace OtherScope
+                {
+                    interface unmanaged {}
+                }
+                delegate void D<T>() where T : unmanaged;
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("OtherScope"),
@@ -1338,18 +1373,18 @@ delegate void D<T>() where T : unmanaged;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
         {
-            await TestAsync(@"
-class X
-{
-    void N()
-    {
-        void M<T>() where T : unmanaged { }
-    }
-}",
+            await TestAsync("""
+                class X
+                {
+                    void N()
+                    {
+                        void M<T>() where T : unmanaged { }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("X"),
@@ -1376,19 +1411,19 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface(TestHost testHost)
         {
-            await TestAsync(@"
-interface unmanaged {}
-class X
-{
-    void N()
-    {
-        void M<T>() where T : unmanaged { }
-    }
-}",
+            await TestAsync("""
+                interface unmanaged {}
+                class X
+                {
+                    void N()
+                    {
+                        void M<T>() where T : unmanaged { }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1412,29 +1447,29 @@ class X
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
-            await TestAsync(@"
-namespace OtherScope
-{
-    interface unmanaged {}
-}
-class X
-{
-    void N()
-    {
-        void M<T>() where T : unmanaged { }
-    }
-}",
+            await TestAsync("""
+                namespace OtherScope
+                {
+                    interface unmanaged {}
+                }
+                class X
+                {
+                    void N()
+                    {
+                        void M<T>() where T : unmanaged { }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("OtherScope"),
@@ -1469,27 +1504,27 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
         [CombinatorialData]
         public async Task TestOperatorOverloading(TestHost testHost)
         {
-            await TestAsync(@"
-class C
-{
-    void M()
-    {
-        var a = 1 + 1;
-        var b = new True() + new True();
-    }
-}
-class True
-{
-    public static True operator +(True a, True b)
-    {
-         return new True();
-    }
-}",
+            await TestAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        var a = 1 + 1;
+                        var b = new True() + new True();
+                    }
+                }
+                class True
+                {
+                    public static True operator +(True a, True b)
+                    {
+                         return new True();
+                    }
+                }
+                """,
     testHost,
     Keyword("class"),
     Class("C"),
@@ -1547,13 +1582,13 @@ class True
     Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_InsideMethod(TestHost testHost)
         {
-            await TestInMethodAsync(@"
-var notnull = 0;
-notnull++;",
+            await TestInMethodAsync("""
+                var notnull = 0;
+                notnull++;
+                """,
                 testHost,
                 Keyword("var"),
                 Local("notnull"),
@@ -1565,8 +1600,7 @@ notnull++;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -1585,13 +1619,13 @@ notnull++;",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_ExistingInterface(TestHost testHost)
         {
-            await TestAsync(@"
-interface notnull {}
-class X<T> where T : notnull { }",
+            await TestAsync("""
+                interface notnull {}
+                class X<T> where T : notnull { }
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("notnull"),
@@ -1605,21 +1639,21 @@ class X<T> where T : notnull { }",
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
-            await TestAsync(@"
-namespace OtherScope
-{
-    interface notnull {}
-}
-class X<T> where T : notnull { }",
+            await TestAsync("""
+                namespace OtherScope
+                {
+                    interface notnull {}
+                }
+                class X<T> where T : notnull { }
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("OtherScope"),
@@ -1642,15 +1676,15 @@ class X<T> where T : notnull { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_Keyword(TestHost testHost)
         {
-            await TestAsync(@"
-class X
-{
-    void M<T>() where T : notnull { }
-}",
+            await TestAsync("""
+                class X
+                {
+                    void M<T>() where T : notnull { }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("X"),
@@ -1671,16 +1705,16 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_ExistingInterface(TestHost testHost)
         {
-            await TestAsync(@"
-interface notnull {}
-class X
-{
-    void M<T>() where T : notnull { }
-}",
+            await TestAsync("""
+                interface notnull {}
+                class X
+                {
+                    void M<T>() where T : notnull { }
+                }
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("notnull"),
@@ -1699,25 +1733,25 @@ class X
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
-            await TestAsync(@"
-namespace OtherScope
-{
-    interface notnull {}
-}
-class X
-{
-    void M<T>() where T : notnull { }
-}",
+            await TestAsync("""
+                namespace OtherScope
+                {
+                    interface notnull {}
+                }
+                class X
+                {
+                    void M<T>() where T : notnull { }
+                }
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("OtherScope"),
@@ -1746,8 +1780,7 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_Keyword(TestHost testHost)
         {
             await TestAsync(
@@ -1768,13 +1801,13 @@ class X
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_ExistingInterface(TestHost testHost)
         {
-            await TestAsync(@"
-interface notnull {}
-delegate void D<T>() where T : notnull;",
+            await TestAsync("""
+                interface notnull {}
+                delegate void D<T>() where T : notnull;
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("notnull"),
@@ -1791,20 +1824,20 @@ delegate void D<T>() where T : notnull;",
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
-            await TestAsync(@"
-namespace OtherScope
-{
-    interface notnull {}
-}
-delegate void D<T>() where T : notnull;",
+            await TestAsync("""
+                namespace OtherScope
+                {
+                    interface notnull {}
+                }
+                delegate void D<T>() where T : notnull;
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("OtherScope"),
@@ -1829,18 +1862,18 @@ delegate void D<T>() where T : notnull;",
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_Keyword(TestHost testHost)
         {
-            await TestAsync(@"
-class X
-{
-    void N()
-    {
-        void M<T>() where T : notnull { }
-    }
-}",
+            await TestAsync("""
+                class X
+                {
+                    void N()
+                    {
+                        void M<T>() where T : notnull { }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("X"),
@@ -1867,19 +1900,19 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_ExistingInterface(TestHost testHost)
         {
-            await TestAsync(@"
-interface notnull {}
-class X
-{
-    void N()
-    {
-        void M<T>() where T : notnull { }
-    }
-}",
+            await TestAsync("""
+                interface notnull {}
+                class X
+                {
+                    void N()
+                    {
+                        void M<T>() where T : notnull { }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("interface"),
                 Interface("notnull"),
@@ -1903,29 +1936,29 @@ class X
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
         {
-            await TestAsync(@"
-namespace OtherScope
-{
-    interface notnull {}
-}
-class X
-{
-    void N()
-    {
-        void M<T>() where T : notnull { }
-    }
-}",
+            await TestAsync("""
+                namespace OtherScope
+                {
+                    interface notnull {}
+                }
+                class X
+                {
+                    void N()
+                    {
+                        void M<T>() where T : notnull { }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("OtherScope"),
@@ -1960,27 +1993,27 @@ class X
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(10174, "https://github.com/dotnet/roslyn/issues/10174")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/10174")]
         [CombinatorialData]
         public async Task VarInPropertyPattern(TestHost testHost)
         {
             await TestAsync(
-@"
-using System;
+                """
+                using System;
 
-class Person { public string Name; }
+                class Person { public string Name; }
 
-class Program
-{
-    void Goo(object o)
-    {
-        if (o is Person { Name: var n })
-        {
-            Console.WriteLine(n);
-        }
-    }
-}",
+                class Program
+                {
+                    void Goo(object o)
+                    {
+                        if (o is Person { Name: var n })
+                        {
+                            Console.WriteLine(n);
+                        }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("using"),
                 Namespace("System"),
@@ -2012,7 +2045,7 @@ class Program
                 Field("Name"),
                 Punctuation.Colon,
                 Keyword("var"),
-                Identifier("n"),
+                Local("n"),
                 Punctuation.CloseCurly,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2030,22 +2063,22 @@ class Program
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task NotPattern(TestHost testHost)
         {
             await TestAsync(
-@"
-class Person
-{
-    void Goo(object o)
-    {
-        if (o is not Person p)
-        {
-        }
-    }
-}",
+                """
+                class Person
+                {
+                    void Goo(object o)
+                    {
+                        if (o is not Person p)
+                        {
+                        }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("Person"),
@@ -2071,22 +2104,22 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task OrPattern(TestHost testHost)
         {
             await TestAsync(
-@"
-class Person
-{
-    void Goo(object o)
-    {
-        if (o is Person or int)
-        {
-        }
-    }
-}",
+                """
+                class Person
+                {
+                    void Goo(object o)
+                    {
+                        if (o is Person or int)
+                        {
+                        }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("Person"),
@@ -2112,22 +2145,61 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/59484")]
+        [CombinatorialData]
+        public async Task TestPatternVariables(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                void M(object o) {
+                    _ = o is [var (x, y), {} z] list;
+                }
+                """,
+                testHost,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("_"),
+                Operators.Equals,
+                Parameter("o"),
+                Keyword("is"),
+                Punctuation.OpenBracket,
+                Keyword("var"),
+                Punctuation.OpenParen,
+                Local("x"),
+                Punctuation.Comma,
+                Local("y"),
+                Punctuation.CloseParen,
+                Punctuation.Comma,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Local("z"),
+                Punctuation.CloseBracket,
+                Local("list"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         [CombinatorialData]
         public async Task RelationalPattern(TestHost testHost)
         {
             await TestAsync(
-@"
-class Person
-{
-    void Goo(object o)
-    {
-        if (o is >= 0)
-        {
-        }
-    }
-}",
+                """
+                class Person
+                {
+                    void Goo(object o)
+                    {
+                        if (o is >= 0)
+                        {
+                        }
+                    }
+                }
+                """,
                 testHost,
                 Keyword("class"),
                 Class("Person"),
@@ -2152,14 +2224,15 @@ class Person
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
         {
             await TestAsync(
-@"namespace NS;
+                """
+                namespace NS;
 
-class C { }",
+                class C { }
+                """,
                 testHost,
                 Keyword("namespace"),
                 Namespace("NS"),
@@ -2170,8 +2243,7 @@ class C { }",
                 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestStringEscape(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
@@ -2179,7 +2251,9 @@ class C { }",
                 Keyword("var"),
                 Local("goo"),
                 Operators.Equals,
-                Verbatim("$@\""),
+                Verbatim("""
+                    $@"
+                    """),
                 Escape("{{"),
                 Punctuation.OpenCurly,
                 Number("12"),
@@ -2187,21 +2261,23 @@ class C { }",
                 String("X"),
                 Punctuation.CloseCurly,
                 Escape("}}"),
-                Verbatim("\""),
+                Verbatim("""
+                    "
+                    """),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55313")]
         public async Task TestStaticConstructorClass(TestHost testHost)
         {
             await TestAsync(
-@"
-class C
-{
-    static C() { }
-}",
+                """
+                class C
+                {
+                    static C() { }
+                }
+                """,
                 testHost,
 Keyword("class"),
 Class("C"),
@@ -2216,17 +2292,17 @@ Punctuation.CloseCurly,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/55313")]
         public async Task TestStaticConstructorInterface(TestHost testHost)
         {
             await TestAsync(
-@"
-interface C
-{
-    static C() { }
-}",
+                """
+                interface C
+                {
+                    static C() { }
+                }
+                """,
                 testHost,
 Keyword("interface"),
 Interface("C"),
@@ -2241,16 +2317,16 @@ Punctuation.CloseCurly,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59569")]
         public async Task TestArgsInTopLevel(TestHost testHost)
         {
             await TestAsync(
-@"
-[|foreach (var arg in args)
-{
-}|]",
+                """
+                [|foreach (var arg in args)
+                {
+                }|]
+                """,
                 testHost,
                 parseOptions: null,
 ControlKeyword("foreach"),
@@ -2264,22 +2340,22 @@ Punctuation.OpenCurly,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
-        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/59569")]
         public async Task TestArgsInNormalProgram(TestHost testHost)
         {
             await TestAsync(
-@"
-class Program
-{
-    static void Main(string[] args)
-    {
-        [|foreach (var arg in args)
-        {
-        }|]
-    }
-}",
+                """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        [|foreach (var arg in args)
+                        {
+                        }|]
+                    }
+                }
+                """,
                 testHost,
                 parseOptions: null,
 ControlKeyword("foreach"),
@@ -2293,16 +2369,17 @@ Punctuation.OpenCurly,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInIncompleteMember(TestHost testHost)
         {
             await TestAsync(
-@"class Test
-{
-    public async
-}",
+                """
+                class Test
+                {
+                    public async
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("class"),
@@ -2313,20 +2390,21 @@ Keyword("async"),
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInIncompleteMemberWhenAsyncTypeIsDefined(TestHost testHost)
         {
             await TestAsync(
-@"[|class Test
-{
-    public async
-}|]
+                """
+                [|class Test
+                {
+                    public async
+                }|]
 
-class async
-{
-}",
+                class async
+                {
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("class"),
@@ -2337,16 +2415,17 @@ Class("async"),
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInPotentialLocalFunctionDeclaration(TestHost testHost)
         {
             await TestAsync(
-@"void M()
-{
-    async
-}",
+                """
+                void M()
+                {
+                    async
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("void"),
@@ -2358,20 +2437,21 @@ Keyword("async"),
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInPotentialLocalFunctionDeclarationWhenAsyncTypeIsDefined(TestHost testHost)
         {
             await TestAsync(
-@"[|void M()
-{
-    async
-}|]
+                """
+                [|void M()
+                {
+                    async
+                }|]
 
-class async
-{
-}",
+                class async
+                {
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("void"),
@@ -2383,19 +2463,20 @@ Class("async"),
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsLocalMemberType_NoAsyncInScope(TestHost testHost)
         {
             await TestAsync(
-@"class Test
-{
-    void M()
-    {
-        [|async a;|]
-    }
-}",
+                """
+                class Test
+                {
+                    void M()
+                    {
+                        [|async a;|]
+                    }
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("async"),
@@ -2403,22 +2484,22 @@ Local("a"),
 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsLocalMemberType_AsyncInScope(TestHost testHost)
         {
             await TestAsync(
-@"
-class async { }
+                """
+                class async { }
 
-class Test
-{
-    void M()
-    {
-        [|async a;|]
-    }
-}",
+                class Test
+                {
+                    void M()
+                    {
+                        [|async a;|]
+                    }
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Class("async"),
@@ -2426,16 +2507,17 @@ Local("a"),
 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsPropertyType_NoAsyncInScope(TestHost testHost)
         {
             await TestAsync(
-@"class Test
-{
-    [|public async Prop { get; set; }|]
-}",
+                """
+                class Test
+                {
+                    [|public async Prop { get; set; }|]
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("public"),
@@ -2449,19 +2531,19 @@ Punctuation.Semicolon,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsPropertyType_AsyncInScope(TestHost testHost)
         {
             await TestAsync(
-@"
-class async { }
+                """
+                class async { }
 
-class Test
-{
-    [|public async Prop { get; set; }|]
-}",
+                class Test
+                {
+                    [|public async Prop { get; set; }|]
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("public"),
@@ -2475,16 +2557,17 @@ Punctuation.Semicolon,
 Punctuation.CloseCurly);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsMethodReturnType_NoAsyncInScope(TestHost testHost)
         {
             await TestAsync(
-@"class Test
-{
-    [|public async M()|] {}
-}",
+                """
+                class Test
+                {
+                    [|public async M()|] {}
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("public"),
@@ -2494,19 +2577,19 @@ Punctuation.OpenParen,
 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsMethodReturnType_AsyncInScope(TestHost testHost)
         {
             await TestAsync(
-@"
-class async { }
+                """
+                class async { }
 
-class Test
-{
-    [|public async M()|] {}
-}",
+                class Test
+                {
+                    [|public async M()|] {}
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Keyword("public"),
@@ -2516,24 +2599,25 @@ Punctuation.OpenParen,
 Punctuation.CloseParen);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncAsAccessingName(TestHost testHost)
         {
             await TestAsync(
-@"class Test
-{
-    void M()
-    {
-        var a = [|C.async;|]
-    }
-}
+                """
+                class Test
+                {
+                    void M()
+                    {
+                        var a = [|C.async;|]
+                    }
+                }
 
-class C
-{
-    public static int async;
-}",
+                class C
+                {
+                    public static int async;
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Class("C"),
@@ -2543,20 +2627,21 @@ Static("async"),
 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
         public async Task TestAsyncInIncompleteDelegateOrLambda(TestHost testHost)
         {
             await TestAsync(
-@"using System;
-class Test
-{
-    void M()
-    {
-        [|Action a = async |]
-    }
-}",
+                """
+                using System;
+                class Test
+                {
+                    void M()
+                    {
+                        [|Action a = async |]
+                    }
+                }
+                """,
                 testHost,
                 parseOptions: null,
 Delegate("Action"),
@@ -2565,10 +2650,121 @@ Operators.Equals,
 Keyword("async"));
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember1(TestHost testHost)
+        {
+            await TestAsync("""
+                class C
+                {
+                    [|partial|]
+                }
+                """,
+                testHost,
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember2(TestHost testHost)
+        {
+            await TestAsync("""
+                class C
+                {
+                    [|public partial|]
+                }
+                """,
+                testHost,
+                Keyword("public"),
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember1_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                class C
+                {
+                    [|partial|]
+                }
+                """,
+                testHost,
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestPartialInIncompleteMember2_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                class C
+                {
+                    [|public partial|]
+                }
+                """,
+                testHost,
+                Keyword("public"),
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial1(TestHost testHost)
+        {
+            await TestAsync("""
+                partial
+                """,
+                testHost,
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial2(TestHost testHost)
+        {
+            await TestAsync("""
+                public partial
+                """,
+                testHost,
+                Keyword("public"),
+                Keyword("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial1_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                [|partial|]
+                """,
+                testHost,
+                Class("partial"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestTopLevelPartial2_PartialTypeIsDefined(TestHost testHost)
+        {
+            await TestAsync("""
+                class partial
+                {
+                }
+
+                [|public partial|]
+                """,
+                testHost,
+                Keyword("public"),
+                Class("partial"));
+        }
+
         /// <seealso cref="SemanticClassifierTests.LocalFunctionUse"/>
         /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task LocalFunctionDeclarationAndUse(TestHost testHost)
         {
             await TestAsync(
@@ -2626,6 +2822,420 @@ Keyword("async"));
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestScopedVar(TestHost testHost)
+        {
+            await TestAsync("""
+                static void method(scoped in S s)
+                {
+                    scoped var rs1 = s;
+                }
+
+                file readonly ref struct S { }
+                """, testHost,
+                Keyword("static"),
+                Keyword("void"),
+                Method("method"),
+                Static("method"),
+                Punctuation.OpenParen,
+                Keyword("scoped"),
+                Keyword("in"),
+                Struct("S"),
+                Parameter("s"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("scoped"),
+                Keyword("var"),
+                Local("rs1"),
+                Operators.Equals,
+                Parameter("s"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Keyword("file"),
+                Keyword("readonly"),
+                Keyword("ref"),
+                Keyword("struct"),
+                Struct("S"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task Lambda_DefaultParameterValue(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    const int N = 10;
+
+                    void M()
+                    {
+                        var lam = [|(int x = N) => x|];
+                    }
+                }
+
+                """,
+                testHost,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("x"),
+                Operators.Equals,
+                Constant("N"),
+                Static("N"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Parameter("x"));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType1(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = int;
+                """,
+                testHost,
+                Keyword("using"),
+                Struct("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType2(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = int[];
+                """,
+                testHost,
+                Keyword("using"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType3(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using unsafe X = int*;
+                """,
+                testHost,
+                Keyword("using"),
+                Keyword("unsafe"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("int"),
+                Operators.Asterisk,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType4(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using unsafe X = delegate*<int,int>;
+                """,
+                testHost,
+                Keyword("using"),
+                Keyword("unsafe"),
+                Identifier("X"),
+                Operators.Equals,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task UsingAliasToType5(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using X = (int x, string b);
+                """,
+                testHost,
+                Keyword("using"),
+                Struct("X"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Identifier("x"),
+                Punctuation.Comma,
+                Keyword("string"),
+                Identifier("b"),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer1(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                delegate* unmanaged[Fastcall, Stdcall, Thiscall]<int> fp;
+                """,
+                testHost,
+                parseOptions: null,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Class("Fastcall"),
+                Punctuation.Comma,
+                Class("Stdcall"),
+                Punctuation.Comma,
+                Class("Thiscall"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Local("fp"),
+                Punctuation.Semicolon);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70107")]
+        public async Task TestFunctionPointer2(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                delegate* unmanaged[Member]<int> fp;
+                """,
+                testHost,
+                parseOptions: null,
+                Keyword("delegate"),
+                Operators.Asterisk,
+                Keyword("unmanaged"),
+                Punctuation.OpenBracket,
+                Identifier("Member"),
+                Punctuation.CloseBracket,
+                Punctuation.OpenAngle,
+                Keyword("int"),
+                Punctuation.CloseAngle,
+                Local("fp"),
+                Punctuation.Semicolon);
+        }
+
+        [WpfFact]
+        public async Task TestTotalClassifier()
+        {
+            using var workspace = EditorTestWorkspace.CreateCSharp(""""
+                using System.Text.RegularExpressions;
+
+                class C
+                {
+                    // class D { }
+                    void M()
+                    {
+                        new Regex("(a)");
+                        var s1 = "s1";
+                        var s2 = $"s2";
+                        var s3 = @"s3";
+                        var s4 = """
+                        s4
+                        """;
+                    }
+                }
+                """");
+            var document = workspace.Documents.First();
+
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+            var provider = new TotalClassificationTaggerProvider(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                globalOptions,
+                visibilityTracker: null,
+                listenerProvider);
+
+            var buffer = document.GetTextBuffer();
+            using var tagger = provider.CreateTagger(document.GetTextView(), buffer);
+
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.ExpeditedWaitAsync();
+
+            var allCode = buffer.CurrentSnapshot.GetText();
+            var tags = tagger!.GetTags(new NormalizedSnapshotSpanCollection(buffer.CurrentSnapshot.GetFullSpan()));
+
+            var actualOrdered = tags.OrderBy((t1, t2) => t1.Span.Span.Start - t2.Span.Span.Start);
+
+            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.Span.Span.Start, a.Span.Span.Length), a.Tag.ClassificationType.Classification));
+
+            AssertEx.Equal(new[]
+            {
+                Keyword("using"),
+                Namespace("System"),
+                Operators.Dot,
+                Namespace("Text"),
+                Operators.Dot,
+                Namespace("RegularExpressions"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("// class D { }"),
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("new"),
+                Class("Regex"),
+                Punctuation.OpenParen,
+                String("\""),
+                Regex.Grouping("("),
+                Regex.Text("a"),
+                Regex.Grouping(")"),
+                String("\""),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s1"),
+                Operators.Equals,
+                String("\"s1\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s2"),
+                Operators.Equals,
+                String("$\""),
+                String("s2"),
+                String("\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s3"),
+                Operators.Equals,
+                Verbatim("@\"s3\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s4"),
+                Operators.Equals,
+                String(""""
+                    """
+                            s4
+                            """
+                    """"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+            }, actualFormatted);
+        }
+
+        [WpfFact]
+        public void TestCopyPasteClassifier()
+        {
+            using var workspace = EditorTestWorkspace.CreateCSharp(""""
+                using System.Text.RegularExpressions;
+
+                class C
+                {
+                    // class D { }
+                    void M()
+                    {
+                        new Regex("(a)");
+                        var s1 = "s1";
+                        var s2 = $"s2";
+                        var s3 = @"s3";
+                        var s4 = """
+                        s4
+                        """;
+                    }
+                }
+                """");
+            var document = workspace.Documents.First();
+
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+            var provider = new CopyPasteAndPrintingClassificationBufferTaggerProvider(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                listenerProvider,
+                globalOptions);
+
+            var buffer = document.GetTextBuffer();
+            using var tagger = provider.CreateTagger<IClassificationTag>(buffer);
+
+            var allCode = buffer.CurrentSnapshot.GetText();
+            var tags = tagger!.GetAllTags(new NormalizedSnapshotSpanCollection(buffer.CurrentSnapshot.GetFullSpan()), CancellationToken.None);
+
+            var actualOrdered = tags.OrderBy((t1, t2) => t1.Span.Span.Start - t2.Span.Span.Start);
+
+            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.Span.Span.Start, a.Span.Span.Length), a.Tag.ClassificationType.Classification));
+
+            AssertEx.Equal(new[]
+            {
+                Keyword("using"),
+                Namespace("System"),
+                Operators.Dot,
+                Namespace("Text"),
+                Operators.Dot,
+                Namespace("RegularExpressions"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("// class D { }"),
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("new"),
+                Class("Regex"),
+                Punctuation.OpenParen,
+                String("\""),
+                Regex.Grouping("("),
+                Regex.Text("a"),
+                Regex.Grouping(")"),
+                String("\""),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s1"),
+                Operators.Equals,
+                String("\"s1\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s2"),
+                Operators.Equals,
+                String("$\""),
+                String("s2"),
+                String("\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s3"),
+                Operators.Equals,
+                Verbatim("@\"s3\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s4"),
+                Operators.Equals,
+                String(""""
+                    """
+                            s4
+                            """
+                    """"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+            }, actualFormatted);
         }
     }
 }

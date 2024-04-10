@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return ConvertRuntimeHelperToExpressionTree(GetBinaryOperatorMethodName(opKind, isChecked),
                                                                 Visit(node.Left), Visit(node.Right),
                                                                 Me._factory.Literal(isLifted),
-                                                                _factory.MethodInfo(node.Call.Method))
+                                                                _factory.MethodInfo(node.Call.Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
 
                 Case Else
                     ' Error should have been reported by DiagnosticsPass, see 
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return ConvertRuntimeHelperToExpressionTree(GetBinaryOperatorMethodName(opKind, isChecked),
                                                                 Visit(node.Left), Visit(node.Right),
-                                                                _factory.MethodInfo(node.Call.Method))
+                                                                _factory.MethodInfo(node.Call.Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
             End Select
         End Function
 
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return ConvertRuntimeHelperToExpressionTree(GetBinaryOperatorMethodName(opKind, False),
                                                         Visit(operand.Left), Visit(operand.Right),
-                                                        _factory.MethodInfo(operand.Call.Method))
+                                                        _factory.MethodInfo(operand.Call.Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
         End Function
 
 #Region "User Defined Like"
@@ -207,9 +207,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If helper IsNot Nothing Then
                 Debug.Assert(helper.MethodKind = MethodKind.Ordinary OrElse helper.MethodKind = MethodKind.UserDefinedOperator)
-                Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, Me._factory.Literal(resultType.IsNullableType), _factory.MethodInfo(helper))
+                Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, Me._factory.Literal(resultType.IsNullableType), _factory.MethodInfo(helper, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
             End If
-
 
             ' No helpers starting from here
 
@@ -345,9 +344,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If helper IsNot Nothing Then
                 right = Visit(node.Right)
-                Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, _factory.MethodInfo(helper))
+                Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, _factory.MethodInfo(helper, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
             End If
-
 
             ' No special helper
             Dim resultTypeIsNullable As Boolean = resultType.IsNullableType
@@ -373,7 +371,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                isChecked AndAlso IsIntegralType(resultUnderlyingType),
                                                                needToCastBackToByteOrSByte)
             End If
-
 
             Dim result As BoundExpression = ConvertRuntimeHelperToExpressionTree(opMethod, left, right)
 
@@ -468,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim constantOperand As BoundExpression =
                     ConvertRuntimeHelperToExpressionTree("Constant",
                                                          Me._factory.Convert(Me.ObjectType, Me._factory.Literal(shiftMask)),
-                                                         Me._factory.Typeof(Me.Int32Type))
+                                                         Me._factory.Typeof(Me.Int32Type, _factory.WellKnownType(WellKnownType.System_Type)))
 
                 Dim isNullable As Boolean = shiftedType.IsNullableType
                 Dim isInt32 As Boolean = shiftedType.GetNullableUnderlyingTypeOrSelf.SpecialType = SpecialType.System_Int32

@@ -3,39 +3,37 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace;
+
+internal sealed class CommonWhitespaceSettingsProvider : SettingsProviderBase<Setting, OptionUpdater, IOption2, object>
 {
-    internal class CommonWhitespaceSettingsProvider : SettingsProviderBase<WhitespaceSetting, OptionUpdater, IOption2, object>
+    public CommonWhitespaceSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
+        : base(fileName, settingsUpdater, workspace, globalOptions)
     {
-        public CommonWhitespaceSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace)
-            : base(fileName, settingsUpdater, workspace)
-        {
-            Update();
-        }
+        Update();
+    }
 
-        protected override void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions)
-        {
-            var defaultOptions = GetDefaultOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-            AddRange(defaultOptions);
-        }
+    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    {
+        var defaultOptions = GetDefaultOptions(options, SettingsUpdater);
+        AddRange(defaultOptions);
+    }
 
-        private IEnumerable<WhitespaceSetting> GetDefaultOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updater)
-        {
-            yield return WhitespaceSetting.Create(FormattingOptions2.UseTabs, EditorFeaturesResources.Use_Tabs, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return WhitespaceSetting.Create(FormattingOptions2.TabSize, EditorFeaturesResources.Tab_Size, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return WhitespaceSetting.Create(FormattingOptions2.IndentationSize, EditorFeaturesResources.Indentation_Size, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return WhitespaceSetting.Create(FormattingOptions2.NewLine, EditorFeaturesResources.New_Line, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return WhitespaceSetting.Create(FormattingOptions2.InsertFinalNewLine, EditorFeaturesResources.Insert_Final_Newline, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return WhitespaceSetting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, ServicesVSResources.Operator_placement_when_wrapping, editorConfigOptions, visualStudioOptions, updater, FileName);
-        }
+    private static IEnumerable<Setting> GetDefaultOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
+    {
+        yield return Setting.Create(FormattingOptions2.UseTabs, EditorFeaturesResources.Use_Tabs, options, updater);
+        yield return Setting.Create(FormattingOptions2.TabSize, EditorFeaturesResources.Tab_Size, options, updater);
+        yield return Setting.Create(FormattingOptions2.IndentationSize, EditorFeaturesResources.Indentation_Size, options, updater);
+        yield return Setting.Create(FormattingOptions2.NewLine, EditorFeaturesResources.New_Line, options, updater);
+        yield return Setting.Create(FormattingOptions2.InsertFinalNewLine, EditorFeaturesResources.Insert_Final_Newline, options, updater);
+        yield return Setting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, ServicesVSResources.Operator_placement_when_wrapping, options, updater);
     }
 }

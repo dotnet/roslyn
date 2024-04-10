@@ -1101,7 +1101,7 @@ public class Lib2
             Assert.Equal(2, s3.ReturnValue);
         }
 
-        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6457")]
         public async Task MissingReferencesReuse()
         {
             var source = @"

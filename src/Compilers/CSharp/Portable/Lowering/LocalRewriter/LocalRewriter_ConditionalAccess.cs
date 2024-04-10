@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         // null when currently enclosing conditional access node
@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 loweringKind = ConditionalAccessLoweringKind.Conditional;
             }
-
 
             var previousConditionalAccessTarget = _currentConditionalAccessTarget;
             var currentConditionalAccessID = ++_currentConditionalAccessID;
@@ -158,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         loweredAccessExpression,
                         null,
                         currentConditionalAccessID,
+                        forceCopyOfNullableValueType: true,
                         type);
 
                     break;

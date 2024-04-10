@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
         {
             var kinds = sourceCodeKind != null
                 ? SpecializedCollections.SingletonEnumerable(sourceCodeKind.Value)
-                : new[] { SourceCodeKind.Regular, SourceCodeKind.Script };
+                : [SourceCodeKind.Regular, SourceCodeKind.Script];
 
             foreach (var kind in kinds)
             {

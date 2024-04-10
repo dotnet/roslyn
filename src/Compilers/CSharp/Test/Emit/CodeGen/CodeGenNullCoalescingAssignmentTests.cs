@@ -963,12 +963,12 @@ public class C
         Console.WriteLine(c.GetF1() ??= 2);
     }
 }").VerifyDiagnostics(
-                // (24,27): error CS8331: Cannot assign to property 'C.P1' because it is a readonly variable
+                // (24,27): error CS8331: Cannot assign to property 'P1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         Console.WriteLine(c.P1 ??= 1);
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "c.P1").WithArguments("property", "C.P1").WithLocation(24, 27),
-                // (26,27): error CS8331: Cannot assign to method 'C.GetF1()' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "c.P1").WithArguments("property", "P1").WithLocation(24, 27),
+                // (26,27): error CS8331: Cannot assign to method 'GetF1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         Console.WriteLine(c.GetF1() ??= 2);
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "c.GetF1()").WithArguments("method", "C.GetF1()").WithLocation(26, 27)
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "c.GetF1()").WithArguments("method", "GetF1").WithLocation(26, 27)
             );
         }
 
@@ -2597,9 +2597,9 @@ class C
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,9): error CS8331: Cannot assign to variable 'in object' because it is a readonly variable
+                // (6,9): error CS8331: Cannot assign to variable 'o1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         o1 ??= null;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "o1").WithArguments("variable", "in object").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "o1").WithArguments("variable", "o1").WithLocation(6, 9),
                 // (7,9): error CS0269: Use of unassigned out parameter 'o2'
                 //         o2 ??= null;
                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "o2").WithArguments("o2").WithLocation(7, 9)

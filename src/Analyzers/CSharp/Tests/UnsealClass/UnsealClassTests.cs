@@ -2,266 +2,301 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.UnsealClass;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UnsealClass
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        EmptyDiagnosticAnalyzer,
+        CSharpUnsealClassCodeFixProvider>;
+
     [Trait(Traits.Feature, Traits.Features.CodeActionsUnsealClass)]
-    public sealed class UnsealClassTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class UnsealClassTests
     {
-        public UnsealClassTests(ITestOutputHelper logger)
-            : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpUnsealClassCodeFixProvider());
-
         [Fact]
         public async Task RemovedFromSealedClass()
         {
-            await TestInRegularAndScriptAsync(@"
-sealed class C
-{
-}
-class D : [|C|]
-{
-}", @"
-class C
-{
-}
-class D : C
-{
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                sealed class C
+                {
+                }
+                class D : {|CS0509:C|}
+                {
+                }
+                """, """
+                class C
+                {
+                }
+                class D : C
+                {
+                }
+                """);
         }
 
         [Fact]
         public async Task RemovedFromSealedClassWithOtherModifiersPreserved()
         {
-            await TestInRegularAndScriptAsync(@"
-public sealed unsafe class C
-{
-}
-class D : [|C|]
-{
-}", @"
-public unsafe class C
-{
-}
-class D : C
-{
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public sealed unsafe class C
+                {
+                }
+                class D : {|CS0509:C|}
+                {
+                }
+                """, """
+                public unsafe class C
+                {
+                }
+                class D : C
+                {
+                }
+                """);
         }
 
         [Fact]
         public async Task RemovedFromSealedClassWithConstructedGeneric()
         {
-            await TestInRegularAndScriptAsync(@"
-sealed class C<T>
-{
-}
-class D : [|C<int>|]
-{
-}", @"
-class C<T>
-{
-}
-class D : C<int>
-{
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                sealed class C<T>
+                {
+                }
+                class D : {|CS0509:C<int>|}
+                {
+                }
+                """, """
+                class C<T>
+                {
+                }
+                class D : C<int>
+                {
+                }
+                """);
         }
 
         [Fact]
         public async Task NotOfferedForNonSealedClass()
         {
-            await TestMissingInRegularAndScriptAsync(@"
-class C
-{
-}
-class D : [|C|]
-{
-}");
+            var code = """
+                class C
+                {
+                }
+                class D : C
+                {
+                }
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task NotOfferedForStaticClass()
         {
-            await TestMissingInRegularAndScriptAsync(@"
-static class C
-{
-}
-class D : [|C|]
-{
-}");
+            var code = """
+                static class C
+                {
+                }
+                class {|CS0709:D|} : C
+                {
+                }
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task NotOfferedForStruct()
         {
-            await TestMissingInRegularAndScriptAsync(@"
-struct S
-{
-}
-class D : [|S|]
-{
-}");
+            var code = """
+                struct S
+                {
+                }
+                class D : {|CS0509:S|}
+                {
+                }
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task NotOfferedForDelegate()
         {
-            await TestMissingInRegularAndScriptAsync(@"
-delegate void F();
-{
-}
-class D : [|F|]
-{
-}");
+            var code = """
+                delegate void F();
+
+                class D : {|CS0509:F|}
+                {
+                }
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task NotOfferedForSealedClassFromMetadata1()
         {
-            await TestMissingInRegularAndScriptAsync(@"
-class D : [|string|]
-{
-}");
+            var code = """
+                class D : {|CS0509:string|}
+                {
+                }
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task NotOfferedForSealedClassFromMetadata2()
         {
-            await TestMissingInRegularAndScriptAsync(@"
-class D : [|System.ApplicationId|]
-{
-}");
+            var code = """
+                class D : {|CS0509:System.ApplicationId|}
+                {
+                }
+                """;
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact]
         public async Task RemovedFromAllPartialClassDeclarationsInSameFile()
         {
-            await TestInRegularAndScriptAsync(@"
-public sealed partial class C
-{
-}
-partial class C
-{
-}
-sealed partial class C
-{
-}
-class D : [|C|]
-{
-}", @"
-public partial class C
-{
-}
-partial class C
-{
-}
-partial class C
-{
-}
-class D : C
-{
-}");
+            await VerifyCS.VerifyCodeFixAsync("""
+                public sealed partial class C
+                {
+                }
+                partial class C
+                {
+                }
+                sealed partial class C
+                {
+                }
+                class D : {|CS0509:C|}
+                {
+                }
+                """, """
+                public partial class C
+                {
+                }
+                partial class C
+                {
+                }
+                partial class C
+                {
+                }
+                class D : C
+                {
+                }
+                """);
         }
 
         [Fact]
         public async Task RemovedFromAllPartialClassDeclarationsAcrossFiles()
         {
-            await TestInRegularAndScriptAsync(@"
-<Workspace>
-    <Project Language=""C#"">
-        <Document>
-public sealed partial class C
-{
-}
-        </Document>
-        <Document>
-partial class C
-{
-}
-sealed partial class C
-{
-}
-        </Document>
-        <Document>
-class D : [|C|]
-{
-}
-        </Document>
-    </Project>
-</Workspace>", @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document>
-public partial class C
-{
-}
-        </Document>
-        <Document>
-partial class C
-{
-}
-partial class C
-{
-}
-        </Document>
-        <Document>
-class D : C
-{
-}
-        </Document>
-    </Project>
-</Workspace>");
+            var document1 = """
+                public sealed partial class C
+                {
+                }
+                """;
+            var document2 = """
+                partial class C
+                {
+                }
+                sealed partial class C
+                {
+                }
+                """;
+            var document3 = """
+                class D : {|CS0509:C|}
+                {
+                }
+                """;
+
+            var fixedDocument1 = """
+                public partial class C
+                {
+                }
+                """;
+            var fixedDocument2 = """
+                partial class C
+                {
+                }
+                partial class C
+                {
+                }
+                """;
+            var fixedDocument3 = """
+                class D : C
+                {
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { document1, document2, document3 }
+                },
+                FixedState =
+                {
+                    Sources = { fixedDocument1, fixedDocument2, fixedDocument3 }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task RemovedFromClassInVisualBasicProject()
         {
-            await TestInRegularAndScriptAsync(@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <ProjectReference>Project2</ProjectReference>
-        <Document>
-class D : [|C|]
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"" AssemblyName=""Project2"">
-        <Document>
-public notinheritable class C
-end class
-        </Document>
-    </Project>
-</Workspace>", @"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <ProjectReference>Project2</ProjectReference>
-        <Document>
-class D : C
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""Visual Basic"" CommonReferences=""true"" AssemblyName=""Project2"">
-        <Document>
-public class C
-end class
-        </Document>
-    </Project>
-</Workspace>");
+            var csharpDocument = """
+                class D : {|CS0509:C|}
+                {
+                }
+                """;
+            var vbDocument = """
+                public notinheritable class C
+                end class
+                """;
+
+            var fixedCSharpDocument = """
+                class D : C
+                {
+                }
+                """;
+            var fixedVBDocument = """
+                public class C
+                end class
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { csharpDocument },
+                    AdditionalProjectReferences = { "Project2" },
+                    AdditionalProjects =
+                    {
+                        ["Project2", LanguageNames.VisualBasic] =
+                        {
+                            Sources = { vbDocument }
+                        }
+                    }
+                },
+                FixedState =
+                {
+                    Sources = { fixedCSharpDocument },
+                    AdditionalProjectReferences = { "Project2" },
+                    AdditionalProjects =
+                    {
+                        ["Project2", LanguageNames.VisualBasic] =
+                        {
+                            Sources = { fixedVBDocument }
+                        }
+                    }
+                }
+            }.RunAsync();
         }
     }
 }

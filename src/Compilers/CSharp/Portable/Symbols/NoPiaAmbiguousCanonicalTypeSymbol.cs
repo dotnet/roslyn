@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override SyntaxTree? AssociatedSyntaxTree => null;
+        internal sealed override bool IsFileLocal => false;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
         public AssemblySymbol EmbeddingAssembly
         {

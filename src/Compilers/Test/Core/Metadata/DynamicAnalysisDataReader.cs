@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct DynamicAnalysisDocument
+    internal readonly struct DynamicAnalysisDocument
     {
         public readonly BlobHandle Name;
         public readonly GuidHandle HashAlgorithm;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal struct DynamicAnalysisMethod
+    internal readonly struct DynamicAnalysisMethod
     {
         public readonly BlobHandle Blob;
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal struct DynamicAnalysisSpan
+    internal readonly struct DynamicAnalysisSpan
     {
         public readonly int DocumentRowId;
         public readonly int StartLine;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis
 
         //TODO: some of the helpers below should be provided by System.Reflection.Metadata
 
-        private unsafe struct Blob
+        private readonly unsafe struct Blob
         {
             public readonly byte* Pointer;
             public readonly int Length;

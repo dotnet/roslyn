@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -24,7 +23,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             defaultNamespaceName: "",
             localVariableNames: ImmutableArray<string>.Empty,
             localConstants: ImmutableArray<TLocalSymbol>.Empty,
-            reuseSpan: ILSpan.MaxValue);
+            reuseSpan: ILSpan.MaxValue,
+            containingDocumentName: null,
+            isPrimaryConstructor: false);
 
         /// <summary>
         /// Hoisted local variable scopes.
@@ -41,6 +42,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly ImmutableArray<string> LocalVariableNames;
         public readonly ImmutableArray<TLocalSymbol> LocalConstants;
         public readonly ILSpan ReuseSpan;
+        public readonly string? ContainingDocumentName;
+        public readonly bool IsPrimaryConstructor;
 
         public MethodDebugInfo(
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
@@ -51,7 +54,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string defaultNamespaceName,
             ImmutableArray<string> localVariableNames,
             ImmutableArray<TLocalSymbol> localConstants,
-            ILSpan reuseSpan)
+            ILSpan reuseSpan,
+            string? containingDocumentName,
+            bool isPrimaryConstructor)
         {
             RoslynDebug.Assert(!importRecordGroups.IsDefault);
             RoslynDebug.Assert(!externAliasRecords.IsDefault);
@@ -69,6 +74,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             LocalVariableNames = localVariableNames;
             LocalConstants = localConstants;
             ReuseSpan = reuseSpan;
+
+            ContainingDocumentName = containingDocumentName;
+            IsPrimaryConstructor = isPrimaryConstructor;
         }
 
         public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)

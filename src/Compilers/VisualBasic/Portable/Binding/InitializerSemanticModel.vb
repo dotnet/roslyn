@@ -13,33 +13,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class InitializerSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode,
+        Friend Sub New(root As VisualBasicSyntaxNode,
                         binder As Binder,
-                        Optional containingSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
-                        Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing,
-                        Optional speculatedPosition As Integer = 0,
-                        Optional ignoreAccessibility As Boolean = False)
-            MyBase.New(root, binder, containingSemanticModelOpt, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
+                        containingPublicSemanticModel As PublicSemanticModel)
+            MyBase.New(root, binder, containingPublicSemanticModel)
         End Sub
 
         ''' <summary>
         ''' Creates an InitializerSemanticModel that allows asking semantic questions about an initializer node.
         ''' </summary>
-        Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As DeclarationInitializerBinder, Optional ignoreAccessibility As Boolean = False) As InitializerSemanticModel
+        Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As DeclarationInitializerBinder) As InitializerSemanticModel
             Debug.Assert(containingSemanticModel IsNot Nothing)
-            Return New InitializerSemanticModel(binder.Root, binder, containingSemanticModel, ignoreAccessibility:=ignoreAccessibility)
+            Return New InitializerSemanticModel(binder.Root, binder, containingSemanticModel)
         End Function
 
         ''' <summary>
-        ''' Creates a speculative InitializerSemanticModel that allows asking semantic questions about an initializer node that did not appear in the original source code.
+        ''' Creates a speculative semantic model that allows asking semantic questions about an initializer node that did not appear in the original source code.
         ''' </summary>
-        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As EqualsValueSyntax, binder As Binder, position As Integer) As InitializerSemanticModel
-            Debug.Assert(parentSemanticModel IsNot Nothing)
-            Debug.Assert(root IsNot Nothing)
-            Debug.Assert(binder IsNot Nothing)
-            Debug.Assert(binder.IsSemanticModelBinder)
-
-            Return New InitializerSemanticModel(root, binder, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
+        Friend Shared Function CreateSpeculative(parentSemanticModel As SyntaxTreeSemanticModel, root As EqualsValueSyntax, binder As Binder, position As Integer) As SpeculativeSemanticModelWithMemberModel
+            Return New SpeculativeSemanticModelWithMemberModel(parentSemanticModel, position, root, binder)
         End Function
 
         Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As BindingDiagnosticBag) As BoundNode
@@ -210,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetUpperBoundNode(rootSyntax)
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim binder = Me.GetEnclosingBinder(position)
             If binder Is Nothing Then
                 speculativeModel = Nothing
@@ -224,12 +216,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             speculativeModel = Nothing
             Return False
         End Function
 
-        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, body As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
+        Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, body As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             speculativeModel = Nothing
             Return False
         End Function

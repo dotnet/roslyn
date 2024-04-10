@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 #if !DEBUG
 using NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol;
@@ -259,14 +260,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             if (hasGuid)
             {
                 // This is an interface with a GuidAttribute, so we will generate the no-parameter TypeIdentifier.
-                return new SynthesizedAttributeData(ctor, ImmutableArray<TypedConstant>.Empty, ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+                return SynthesizedAttributeData.Create(TypeManager.ModuleBeingBuilt.Compilation, ctor, ImmutableArray<TypedConstant>.Empty, ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
             }
             else
             {
                 // This is an interface with no GuidAttribute, or some other type, so we will generate the
                 // TypeIdentifier with name and scope parameters.
 
-                // Look for a GUID attribute attached to type's containing assembly. If we find one, we'll use it; 
+                // Look for a GUID attribute attached to type's containing assembly. If we find one, we'll use it;
                 // otherwise, we expect that we will have reported an error (ERRID_PIAHasNoAssemblyGuid1) about this assembly, since
                 // you can't /link against an assembly which lacks a GuidAttribute.
 
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 if ((object)stringType != null)
                 {
                     string guidString = TypeManager.GetAssemblyGuidString(UnderlyingNamedType.AdaptedNamedTypeSymbol.ContainingAssembly);
-                    return new SynthesizedAttributeData(ctor,
+                    return SynthesizedAttributeData.Create(TypeManager.ModuleBeingBuilt.Compilation, ctor,
                                     ImmutableArray.Create(new TypedConstant(stringType, TypedConstantKind.Primitive, guidString),
                                                     new TypedConstant(stringType, TypedConstantKind.Primitive,
                                                                             UnderlyingNamedType.AdaptedNamedTypeSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))),

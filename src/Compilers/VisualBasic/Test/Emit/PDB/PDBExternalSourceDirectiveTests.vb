@@ -505,7 +505,6 @@ end Class
 #ExternalChecksum("C:\Abc\ACTUAL.vb", "{406EA660-64CF-4C82-B6F0-42D48172A799}", "6789")
 
     </file>
-
     <file name="b.vb">
 Option strict on
 imports system

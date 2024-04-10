@@ -324,20 +324,20 @@ public class LocalTypes3
             var fullName_S1 = MetadataTypeName.FromFullName("S1");
             var fullName_S2 = MetadataTypeName.FromFullName("NS1.S2");
 
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes1.LookupTopLevelMetadataType(ref fullName_I1));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes1.LookupTopLevelMetadataType(ref fullName_I2));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes1.LookupTopLevelMetadataType(ref fullName_S1));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes1.LookupTopLevelMetadataType(ref fullName_S2));
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(ref fullName_I1));
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(ref fullName_I2));
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(ref fullName_S1));
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(ref fullName_S2));
 
             Assert.Null(assemblies[0].GetTypeByMetadataName(fullName_I1.FullName));
             Assert.Null(assemblies[0].GetTypeByMetadataName(fullName_I2.FullName));
             Assert.Null(assemblies[0].GetTypeByMetadataName(fullName_S1.FullName));
             Assert.Null(assemblies[0].GetTypeByMetadataName(fullName_S2.FullName));
 
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes2.LookupTopLevelMetadataType(ref fullName_I1));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes2.LookupTopLevelMetadataType(ref fullName_I2));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes2.LookupTopLevelMetadataType(ref fullName_S1));
-            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(localTypes2.LookupTopLevelMetadataType(ref fullName_S2));
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(ref fullName_I1));
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(ref fullName_I2));
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(ref fullName_S1));
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(ref fullName_S2));
 
             Assert.Null(assemblies[1].GetTypeByMetadataName(fullName_I1.FullName));
             Assert.Null(assemblies[1].GetTypeByMetadataName(fullName_I2.FullName));

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -13,189 +14,206 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal partial class SymbolTreeInfo
 {
-    internal partial class SymbolTreeInfo
+    private static readonly SimplePool<MultiDictionary<string, INamespaceOrTypeSymbol>> s_symbolMapPool = new(() => []);
+
+    private static MultiDictionary<string, INamespaceOrTypeSymbol> AllocateSymbolMap()
+        => s_symbolMapPool.Allocate();
+
+    private static void FreeSymbolMap(MultiDictionary<string, INamespaceOrTypeSymbol> symbolMap)
     {
-        private static readonly SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
-            new(() => new MultiDictionary<string, ISymbol>());
+        symbolMap.Clear();
+        s_symbolMapPool.Free(symbolMap);
+    }
 
-        private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
-            => s_symbolMapPool.Allocate();
+    private static string GetSourceKeySuffix(Project project)
+        => "_Source_" + project.FilePath;
 
-        private static void FreeSymbolMap(MultiDictionary<string, ISymbol> symbolMap)
+    public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+        Project project, Checksum checksum, CancellationToken cancellationToken)
+    {
+        var solution = project.Solution;
+
+        return LoadOrCreateAsync(
+            solution.Services,
+            SolutionKey.ToSolutionKey(solution),
+            checksum,
+            createAsync: checksum => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
+            keySuffix: GetSourceKeySuffix(project),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads any info we have for this project from our persistence store.  Will succeed regardless of the
+    /// checksum of the <paramref name="project"/>.  Should only be used by clients that are ok with potentially
+    /// stale data.
+    /// </summary>
+    public static async Task<SymbolTreeInfo?> LoadAnyInfoForSourceAssemblyAsync(
+        Project project, CancellationToken cancellationToken)
+    {
+        return await LoadAsync(
+            project.Solution.Services,
+            SolutionKey.ToSolutionKey(project.Solution),
+            checksum: await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false),
+            checksumMustMatch: false,
+            GetSourceKeySuffix(project),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Cache of project to the checksum for it so that we don't have to expensively recompute
+    /// this each time we get a project.
+    /// </summary>
+    private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum = new();
+
+    public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+    {
+        var lazy = s_projectToSourceChecksum.GetValue(
+            project.State,
+            static p => AsyncLazy.Create(
+                static (p, c) => ComputeSourceSymbolsChecksumAsync(p, c),
+                arg: p));
+
+        return lazy.GetValueAsync(cancellationToken);
+    }
+
+    private static async Task<Checksum> ComputeSourceSymbolsChecksumAsync(ProjectState projectState, CancellationToken cancellationToken)
+    {
+        // The SymbolTree for source is built from the source-symbols from the project's compilation's
+        // assembly.  Specifically, we only get the name, kind and parent/child relationship of all the
+        // child symbols.  So we want to be able to reuse the index as long as none of these have 
+        // changed.  The only thing that can make those source-symbols change in that manner are if
+        // the text of any document changes, or if options for the project change.  So we build our
+        // checksum out of that data.
+        var serializer = projectState.LanguageServices.SolutionServices.GetService<ISerializerService>();
+        var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
+        // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
+        // to be ordered by Guid (which is not consistent across VS sessions).
+        var textChecksumsTasks = projectState.DocumentStates.States.Values.OrderBy(state => state.FilePath, StringComparer.Ordinal).Select(async state =>
         {
-            symbolMap.Clear();
-            s_symbolMapPool.Free(symbolMap);
-        }
+            var documentStateChecksum = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            return documentStateChecksum.Text;
+        });
 
-        public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
+        var compilationOptionsChecksum = projectStateChecksums.CompilationOptions;
+        var parseOptionsChecksum = projectStateChecksums.ParseOptions;
+        var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
+
+        using var _ = ArrayBuilder<Checksum>.GetInstance(out var allChecksums);
+
+        allChecksums.AddRange(textChecksums);
+        allChecksums.Add(compilationOptionsChecksum);
+        allChecksums.Add(parseOptionsChecksum);
+
+        // Include serialization format version in our checksum.  That way if the 
+        // version ever changes, all persisted data won't match the current checksum
+        // we expect, and we'll recompute things.
+        allChecksums.Add(SerializationFormatChecksum);
+
+        return Checksum.Create(allChecksums);
+    }
+
+    internal static async ValueTask<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
+        Project project, Checksum checksum, CancellationToken cancellationToken)
+    {
+        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var assembly = compilation?.Assembly;
+        if (assembly == null)
+            return CreateEmpty(checksum);
+
+        var symbolMap = AllocateSymbolMap();
+        try
         {
-            var solution = project.Solution;
-            var services = solution.Services;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
-            var projectFilePath = project.FilePath ?? "";
+            // generate nodes for the global namespace and all descendants
+            using var _ = ArrayBuilder<BuilderNode>.GetInstance(out var unsortedBuilderNodes);
 
-            var result = TryLoadOrCreateAsync(
-                services,
-                solutionKey,
-                checksum,
-                loadOnly,
-                createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
-                keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, projectFilePath, nodes)),
-                cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
-            return result;
-        }
-
-        /// <summary>
-        /// Cache of project to the checksum for it so that we don't have to expensively recompute
-        /// this each time we get a project.
-        /// </summary>
-        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
-            new();
-
-        public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
-        {
-            var lazy = s_projectToSourceChecksum.GetValue(
-                project.State, p => new AsyncLazy<Checksum>(c => ComputeSourceSymbolsChecksumAsync(p, c), cacheResult: true));
-
-            return lazy.GetValueAsync(cancellationToken);
-        }
-
-        private static async Task<Checksum> ComputeSourceSymbolsChecksumAsync(ProjectState projectState, CancellationToken cancellationToken)
-        {
-            // The SymbolTree for source is built from the source-symbols from the project's compilation's
-            // assembly.  Specifically, we only get the name, kind and parent/child relationship of all the
-            // child symbols.  So we want to be able to reuse the index as long as none of these have 
-            // changed.  The only thing that can make those source-symbols change in that manner are if
-            // the text of any document changes, or if options for the project change.  So we build our
-            // checksum out of that data.
-            var serializer = projectState.LanguageServices.LanguageServices.SolutionServices.GetService<ISerializerService>();
-            var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-            // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
-            // to be ordered by Guid (which is not consistent across VS sessions).
-            var textChecksumsTasks = projectState.DocumentStates.States.Values.OrderBy(state => state.FilePath, StringComparer.Ordinal).Select(async state =>
-            {
-                var documentStateChecksum = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                return documentStateChecksum.Text;
-            });
-
-            var compilationOptionsChecksum = projectStateChecksums.CompilationOptions;
-            var parseOptionsChecksum = projectStateChecksums.ParseOptions;
-            var textChecksums = await Task.WhenAll(textChecksumsTasks).ConfigureAwait(false);
-
-            using var _ = ArrayBuilder<Checksum>.GetInstance(out var allChecksums);
-
-            allChecksums.AddRange(textChecksums);
-            allChecksums.Add(compilationOptionsChecksum);
-            allChecksums.Add(parseOptionsChecksum);
-
-            // Include serialization format version in our checksum.  That way if the 
-            // version ever changes, all persisted data won't match the current checksum
-            // we expect, and we'll recompute things.
-            allChecksums.Add(SerializationFormatChecksum);
-
-            return Checksum.Create(allChecksums);
-        }
-
-        internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
-            Project project, Checksum checksum, CancellationToken cancellationToken)
-        {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var assembly = compilation?.Assembly;
-            if (assembly == null)
-            {
-                return CreateEmpty(checksum);
-            }
-
-            var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
-            unsortedNodes.Add(new BuilderNode(assembly.GlobalNamespace.Name, RootNodeParentIndex));
-
-            GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
-
-            var solution = project.Solution;
-            var services = solution.Services;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
+            var globalNamespaceName = assembly.GlobalNamespace.Name;
+            symbolMap.Add(globalNamespaceName, assembly.GlobalNamespace);
+            GenerateSourceNodes(globalNamespaceName, RootNodeParentIndex, symbolMap[globalNamespaceName], unsortedBuilderNodes);
 
             return CreateSymbolTreeInfo(
-                services, solutionKey, checksum, project.FilePath ?? "", unsortedNodes.ToImmutableAndFree(),
-                inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
+                checksum,
+                unsortedBuilderNodes.ToImmutable(),
+                inheritanceMap: [],
                 receiverTypeNameToExtensionMethodMap: null);
         }
-
-        // generate nodes for the global namespace an all descendants
-        private static void GenerateSourceNodes(
-            INamespaceSymbol globalNamespace,
-            ArrayBuilder<BuilderNode> list,
-            Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
+        finally
         {
-            // Add all child members
-            var symbolMap = AllocateSymbolMap();
-            try
-            {
-                lookup(globalNamespace, symbolMap);
-
-                foreach (var (name, symbols) in symbolMap)
-                    GenerateSourceNodes(name, 0 /*index of root node*/, symbols, list, lookup);
-            }
-            finally
-            {
-                FreeSymbolMap(symbolMap);
-            }
+            FreeSymbolMap(symbolMap);
         }
+    }
 
-        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivate =
-            s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
+    private static void GenerateSourceNodes(
+        string name,
+        int parentIndex,
+        MultiDictionary<string, INamespaceOrTypeSymbol>.ValueSet symbolsWithSameName,
+        ArrayBuilder<BuilderNode> list)
+    {
+        // Add the node for this name, and record which parent it points at.  And keep track of the index of the
+        // node we just added.
+        var node = new BuilderNode(name, parentIndex);
+        var nodeIndex = list.Count;
+        list.Add(node);
 
-        // generate nodes for symbols that share the same name, and all their descendants
-        private static void GenerateSourceNodes(
-            string name,
-            int parentIndex,
-            MultiDictionary<string, ISymbol>.ValueSet symbolsWithSameName,
-            ArrayBuilder<BuilderNode> list,
-            Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
+        var symbolMap = AllocateSymbolMap();
+        using var _ = PooledHashSet<string>.GetInstance(out var seenNames);
+        try
         {
-            var node = new BuilderNode(name, parentIndex);
-            var nodeIndex = list.Count;
-            list.Add(node);
+            // Walk the symbols with this name, and add all their child namespaces and types, grouping them together
+            // based on their name.  There may be multiple (for example, Action<T1>, Action<T1, T2>, etc.)
+            foreach (var symbol in symbolsWithSameName)
+                AddChildNamespacesAndTypes(symbol, symbolMap);
 
-            var symbolMap = AllocateSymbolMap();
-            try
+            // Now, go through all those groups and make the single mapping from their name to the builder-node we
+            // just created above, and recurse into their children as well.
+            foreach (var (childName, childSymbols) in symbolMap)
             {
-                // Add all child members
-                foreach (var symbol in symbolsWithSameName)
-                {
-                    lookup(symbol, symbolMap);
-                }
-
-                foreach (var (symbolName, symbols) in symbolMap)
-                    GenerateSourceNodes(symbolName, nodeIndex, symbols, list, lookup);
+                seenNames.Add(childName);
+                GenerateSourceNodes(childName, nodeIndex, childSymbols, list);
             }
-            finally
-            {
-                FreeSymbolMap(symbolMap);
-            }
-        }
 
-        private static readonly Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
-            (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivate);
+            // The above loops only create nodes for namespaces and types.  we also want nodes for members as well.
+            // However, we do not want to force the symbols for those members to be created just to get the names.
+            //
+            // So walk through the symbols again, and for the named-types grab all the member-names contained
+            // therein.  If we didn't already see that child name when recursing above, then make a builder-node for
+            // it that points to the builder-node we just created above.
 
-        private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)
-        {
-            if (symbol is INamespaceOrTypeSymbol nt)
+            foreach (var symbol in symbolsWithSameName)
             {
-                foreach (var member in nt.GetMembers())
+                if (symbol is INamedTypeSymbol namedType)
                 {
-                    if (useSymbol(member))
+                    foreach (var childMemberName in namedType.MemberNames)
                     {
-                        symbolMap.Add(member.Name, member);
+                        if (seenNames.Add(childMemberName))
+                            list.Add(new BuilderNode(childMemberName, nodeIndex));
                     }
                 }
             }
+        }
+        finally
+        {
+            FreeSymbolMap(symbolMap);
+        }
+    }
+
+    private static void AddChildNamespacesAndTypes(INamespaceOrTypeSymbol symbol, MultiDictionary<string, INamespaceOrTypeSymbol> symbolMap)
+    {
+        if (symbol is INamespaceSymbol namespaceSymbol)
+        {
+            foreach (var childNamespaceOrType in namespaceSymbol.GetMembers())
+                symbolMap.Add(childNamespaceOrType.Name, childNamespaceOrType);
+        }
+        else if (symbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            // for named-types, we only need to recurse into child types.  Call GetTypeMembers instead of GetMembers
+            // so we do not cause all child symbols to be created.
+            foreach (var childType in namedTypeSymbol.GetTypeMembers())
+                symbolMap.Add(childType.Name, childType);
         }
     }
 }

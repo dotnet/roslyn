@@ -16,7 +16,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
     {
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(10358, "https://github.com/dotnet/roslyn/issues/10358")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10358")]
         public void DisconnectingAProjectDoesNotLeak()
         {
             using var environment = new TestEnvironment();

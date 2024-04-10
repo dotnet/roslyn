@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class NamespaceDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of NamespaceStatementSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New NamespaceDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestNamespace() As Task
             Const code = "
 {|span:$$Namespace N1
@@ -25,7 +26,7 @@ End Namespace|}
                 Region("span", "Namespace N1 ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestNamespaceWithComments() As Task
             Const code = "
 {|span1:'My
@@ -39,7 +40,7 @@ End Namespace|}
                 Region("span2", "Namespace N1 ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestNamespaceWithNestedComments() As Task
             Const code = "
 {|span1:$$Namespace N1

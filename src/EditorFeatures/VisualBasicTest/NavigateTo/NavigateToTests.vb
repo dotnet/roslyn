@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
         Protected Overrides ReadOnly Property Language As String = "vb"
 
-        Protected Overrides Function CreateWorkspace(content As String, exportProvider As ExportProvider) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(content, exportProvider:=exportProvider)
+        Protected Overrides Function CreateWorkspace(content As String, composition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(content, composition:=composition)
         End Function
 
         <Theory>
@@ -261,7 +261,7 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
         Public Async Function TestFindEvent(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "Class Goo
 Public Event Bar as EventHandler
@@ -584,7 +584,7 @@ end namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        <WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")>
+        <WorkItem("https://github.com/dotnet/Roslyn/issues/7855")>
         Public Async Function TestDottedPattern7(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "namespace Goo
 namespace Bar
@@ -719,8 +719,7 @@ End Class", Async Function(w)
             End Function)
         End Function
 
-        <WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
-        <Theory>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
         <CombinatorialData>
         Public Async Function TestFindClassInNamespaceWithGlobalPrefix(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "Namespace Global.MyNS
@@ -732,8 +731,7 @@ End Namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WorkItem(1121267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
-        <Theory>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
         <CombinatorialData>
         Public Async Function TestFindClassInGlobalNamespace(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "Namespace Global
@@ -745,8 +743,7 @@ End Namespace", Async Function(w)
                 End Function)
         End Function
 
-        <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
-        <Theory>
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/1834")>
         <CombinatorialData>
         Public Async Function TestConstructorNotParentedByTypeBlock(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "Module Program
@@ -1052,7 +1049,7 @@ End Class
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(59231, "https://github.com/dotnet/roslyn/issues/59231")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/59231")>
         Public Async Function FindMethodWithTuple(testHost As TestHost, composition As Composition) As Task
             Await TestAsync(testHost, composition, "Class Goo
     Public Sub Method(

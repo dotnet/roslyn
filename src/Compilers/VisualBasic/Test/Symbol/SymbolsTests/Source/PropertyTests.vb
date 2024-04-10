@@ -5892,7 +5892,6 @@ Interface Interface1
     Overloads ReadOnly Property Banana(x as integer)
 End Interface
     </file>
-
 </compilation>)
             ' "Overloads" specified, so all properties should match properties in base
             Dim interface1 = compilation.GetTypeByMetadataName("Interface1")
@@ -5934,7 +5933,6 @@ Interface Interface1
     Overloads ReadOnly Property Banana(x as integer)
 End Interface
     </file>
-
 </compilation>)
             ' "Overloads" specified, but base properties have multiple casing, so don't use it.
             Dim interface1 = compilation.GetTypeByMetadataName("Interface1")

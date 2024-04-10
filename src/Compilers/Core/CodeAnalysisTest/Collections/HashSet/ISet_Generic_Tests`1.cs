@@ -592,8 +592,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             ISet<T> set = GenericISetFactory(setLength);
             T value = CreateT(532);
-            if (!set.Contains(value))
-                set.Add(value);
+            set.Add(value);
             set.Remove(value);
             IEnumerable<T> enumerable = CreateEnumerable(enumerableType, set, enumerableLength, numberOfMatchingElements, numberOfDuplicateElements);
             Debug.Assert(enumerable != null);

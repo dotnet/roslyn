@@ -58,8 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 
         protected override Guid Id => CSharpVsInteractiveWindowPackage.Id;
 
-        // Note: intentionally left unlocalized (we treat these words as if they were unregistered trademarks)
-        protected override string Title => "C# Interactive";
+        protected override string Title => CSharpVSResources.CSharp_Interactive;
 
         protected override FunctionId InteractiveWindowFunctionId => FunctionId.CSharp_Interactive_Window;
 

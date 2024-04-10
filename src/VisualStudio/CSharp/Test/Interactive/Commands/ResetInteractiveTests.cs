@@ -63,7 +63,7 @@ namespace ResetInteractiveTestsDocument
             await AssertResetInteractiveAsync(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
 
             // Test that no submissions are executed if the build fails.
-            await AssertResetInteractiveAsync(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
+            await AssertResetInteractiveAsync(workspace, project, buildSucceeds: false, expectedReferences: []);
         }
 
         private async Task AssertResetInteractiveAsync(
@@ -73,8 +73,8 @@ namespace ResetInteractiveTestsDocument
             List<string> expectedReferences = null,
             List<string> expectedUsings = null)
         {
-            expectedReferences ??= new List<string>();
-            expectedUsings ??= new List<string>();
+            expectedReferences ??= [];
+            expectedUsings ??= [];
 
             var testHost = new InteractiveWindowTestHost(workspace.ExportProvider.GetExportedValue<IInteractiveWindowFactoryService>());
             var executedSubmissionCalls = new List<string>();
@@ -140,7 +140,7 @@ namespace ResetInteractiveTestsDocument
         /// <param name="workspace">Workspace with the solution.</param>
         /// <param name="project">A project that should be built.</param>
         /// <returns>A list of paths that should be referenced.</returns>
-        private IEnumerable<string> GetProjectReferences(TestWorkspace workspace, Project project)
+        private static IEnumerable<string> GetProjectReferences(TestWorkspace workspace, Project project)
         {
             var metadataReferences = project.MetadataReferences.Select(r => r.Display);
             var projectReferences = project.ProjectReferences.SelectMany(p => GetProjectReferences(

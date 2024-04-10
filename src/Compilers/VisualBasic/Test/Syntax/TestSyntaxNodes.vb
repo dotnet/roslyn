@@ -92,7 +92,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(children(1), binop.OperatorToken)
             Assert.Equal(children(2), binop.Right)
 
-
             Dim ItemList As New List(Of String)
             Dim ItemListRev As New List(Of String)
 
@@ -319,7 +318,6 @@ End Class
             End If
         End Sub
 
-
         ' Check that spans within a given tree are all consistent. Makes sure the children's spans all
         ' line up correctly.
         Private Sub VerifyAllSpans(tree As SyntaxNode)
@@ -386,7 +384,6 @@ End Class
             Assert.Equal(New TextSpan(3, 1), binop.Right.Span)
             Assert.Equal(New TextSpan(3, 1), binop.Right.FullSpan)
 
-
             Dim simpleTree = CreateSimpleTree()
             Assert.Equal(New TextSpan(0, 17), simpleTree.Span)
             Assert.Equal(New TextSpan(0, 18), simpleTree.FullSpan)
@@ -448,7 +445,6 @@ End Class
                                                               Dim x As New TextSpan(0, -1)
                                                           End Sub)
 
-
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub()
                                                               Dim x As New TextSpan(-1, -1)
                                                           End Sub)
@@ -457,7 +453,6 @@ End Class
                                                               Dim x As New TextSpan(2, -4)
                                                           End Sub)
         End Sub
-
 
         ' Test that a list with 0 items works correctly.
         <Fact>
@@ -568,7 +563,6 @@ End Class
         Private Function CreateSimpleTypeName(id As String) As TypeSyntax
             Return SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, id, SyntaxFactory.WhitespaceTrivia(" ")))
         End Function
-
 
         'helper to check an empty separated list
         Private Sub CheckEmptySeparatedList(seplist As SeparatedSyntaxList(Of TypeSyntax))
@@ -1574,7 +1568,6 @@ End Class</x>.Value)
             Assert.Throws(Of InvalidOperationException)(Function() cu.InsertTokensAfter(identifierC, New SyntaxToken() {}))
         End Sub
 
-
         <Fact>
         Public Sub TestReplaceSingleTriviaInNode()
             Dim expr = SyntaxFactory.ParseExpression("a + b")
@@ -1810,7 +1803,6 @@ End Class</x>.Value)
             Assert.Equal(" <goo> </ >  ", ident.LeadingTrivia()(0).ToFullString)
             Assert.Equal("<goo> </ >", ident.LeadingTrivia()(0).ToString())
 
-
             Dim identExpr = SyntaxFactory.IdentifierName(ident)
 
             ' make sure FindLeaf digs into the structured trivia.
@@ -1854,7 +1846,6 @@ End Class</x>.Value)
             statementBuilder.Add(SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken)))
             statementBuilder.Add(SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken)))
             statementBuilder.Add(SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.EmptyToken)))
-
 
             Return SyntaxFactory.NamespaceBlock(SyntaxFactory.NamespaceStatement(
                                             SyntaxFactory.Token(SyntaxKind.NamespaceKeyword, trailing:=_spaceTrivia), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("goo"))),
@@ -2040,7 +2031,6 @@ End Module
 
         End Sub
 
-
         <Fact>
         Public Sub TestFirstLastDirective()
             Dim prog = ParseAndVerify(<![CDATA[
@@ -2093,7 +2083,6 @@ End Module
             Dim lDir1 = fDir.GetNextDirective
             Assert.Equal("#const y = 2", lDir1.ToString)
 
-
             Dim fDir2 = fDir1.GetNextDirective(Function(d) d.ToString = "#const y = 3")
             Assert.Equal("#const y = 3", fDir2.ToString)
             fDir2 = fDir1.GetNextDirective(Function(d) d.ToString = "#const y = 42")
@@ -2104,6 +2093,73 @@ End Module
             lDir2 = lDir1.GetPreviousDirective(Function(d) d.ToString = "#const x =42")
             Assert.Equal(Nothing, lDir2)
 
+        End Sub
+
+        <Fact>
+        Public Sub TestContainsDirective()
+            ' Empty compilation unit shouldn't have any directives in it.
+            For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
+                Assert.False(SyntaxFactory.ParseCompilationUnit("").ContainsDirective(currentKind))
+            Next
+
+            ' basic file shouldn't have any directives in it.
+            For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
+                Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "end namespace").ContainsDirective(currentKind))
+            Next
+
+            ' directive in trailing trivia Is Not a thing
+            For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
+                Dim compilationUnit = SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "end namespace #if false")
+                compilationUnit.GetDiagnostics().Verify(
+                    Diagnostic(ERRID.ERR_ExpectedEOS, "#").WithLocation(2, 15))
+                Assert.False(compilationUnit.ContainsDirective(currentKind))
+            Next
+
+            Dim TestContainsHelper2 = Sub(directiveKinds As SyntaxKind(), compilationUnit As CompilationUnitSyntax)
+                                          Assert.True(compilationUnit.ContainsDirectives)
+                                          For Each currentKind In directiveKinds
+                                              Assert.True(compilationUnit.ContainsDirective(currentKind))
+                                          Next
+
+                                          For currentKind = SyntaxKind.EmptyStatement To SyntaxKind.ConflictMarkerTrivia
+                                              If Not directiveKinds.Contains(currentKind) Then
+                                                  Assert.False(compilationUnit.ContainsDirective(currentKind))
+                                              End If
+                                          Next
+                                      End Sub
+
+            Dim TestContainsHelper1 = Sub(directive As String, directiveKinds As SyntaxKind())
+                                          ' directive on its own.
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive))
+
+                                          ' Two of the same directive back to back.
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit(directive & vbCrLf & directive))
+
+                                          ' Two of the same directive back to back with additional trivia
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("   " & directive & vbCrLf & "   " & directive))
+
+                                          ' Directive inside a namespace
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & "end namespace"))
+
+                                          ' Multiple Directive inside a namespace
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & directive & vbCrLf & "end namespace"))
+
+                                          ' Multiple Directive inside a namespace with additional trivia
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & "   " & directive & vbCrLf & "   " & directive & vbCrLf & "end namespace"))
+
+                                          ' Directives on different elements in a namespace
+                                          TestContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit("namespace N" & vbCrLf & directive & vbCrLf & "class C" & vbCrLf & "end class" & directive & vbCrLf & "class D" & vbCrLf & "end class" & vbCrLf & "end namespace"))
+                                      End Sub
+
+            TestContainsHelper1("#const x", {SyntaxKind.ConstDirectiveTrivia})
+            TestContainsHelper1("#if true" & vbCrLf & "#else", {SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia})
+            TestContainsHelper1("#else", {SyntaxKind.ElseDirectiveTrivia})
+            TestContainsHelper1("#if true" & vbCrLf & "#end if", {SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia})
+            TestContainsHelper1("#end if", {SyntaxKind.EndIfDirectiveTrivia})
+            TestContainsHelper1("#region" & vbCrLf & "#end region", {SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia})
+            TestContainsHelper1("#end region", {SyntaxKind.EndRegionDirectiveTrivia})
+            TestContainsHelper1("#if true", {SyntaxKind.IfDirectiveTrivia})
+            TestContainsHelper1("#region", {SyntaxKind.RegionDirectiveTrivia})
         End Sub
 
         <WorkItem(537404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537404")>
@@ -3335,7 +3391,6 @@ End Module
             Assert.Equal(1, x.Count)
         End Sub
 
-
         <WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")>
         <Fact>
         Public Sub TestFindTrivia_NoStackOverflowOnLargeExpression()
@@ -3441,7 +3496,6 @@ Option Explicit On
 Option Compare Text
     </file>
 </compilation>, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Custom).WithOptionInfer(False).WithOptionExplicit(True).WithOptionCompareText(False))
-
 
             Dim vbpo1 = compilation.Options
             Dim vbpo2 = compilation2.Options

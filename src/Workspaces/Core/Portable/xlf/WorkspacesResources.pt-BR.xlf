@@ -37,7 +37,7 @@
         <target state="translated">Não há suporte para alterar o documento '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+      <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">A CodeAction '{0}' não produziu uma solução alterada</target>
         <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
@@ -52,11 +52,6 @@
         <target state="translated">DateTimeKind deve ser Utc</target>
         <note />
       </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
-        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
-        <target state="translated">O tipo de destino precisa ser {0}, {1}, {2} ou {3}, mas o tipo fornecido é {4}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
         <target state="translated">O documento não dá suporte a árvores de sintaxe</target>
@@ -69,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_resolve_rename_conflicts">
         <source>Failed to resolve rename conflicts</source>
-        <target state="new">Failed to resolve rename conflicts</target>
+        <target state="translated">Falha ao resolver conflitos de renomeação</target>
         <note />
       </trans-unit>
       <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
@@ -142,59 +137,9 @@
         <target state="translated">Símbolo "{0}" não é da fonte.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T">
-        <source>Documentation comment id must start with E, F, M, N, P or T</source>
-        <target state="translated">Identificação do comentário de documentação deve começar com E, F, M, N, P ou T</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cycle_detected_in_extensions">
         <source>Cycle detected in extensions</source>
         <target state="translated">Ciclo detectado em extensões</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_but_given_one_is_1">
-        <source>Destination type must be a {0}, but given one is {1}.</source>
-        <target state="translated">O tipo de destino deve ser um {0}, mas o tipo fornecido é {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_or_a_1_but_given_one_is_2">
-        <source>Destination type must be a {0} or a {1}, but given one is {2}.</source>
-        <target state="translated">O tipo de destino deve ser um {0} ou um {1}, mas o tipo fornecido é {2}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_type_must_be_a_0_1_or_2_but_given_one_is_3">
-        <source>Destination type must be a {0}, {1} or {2}, but given one is {3}.</source>
-        <target state="translated">O tipo de destino deve ser um {0}, {1} ou {2}, mas o tipo fornecido é {3}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_location_to_generation_symbol_into">
-        <source>Could not find location to generation symbol into.</source>
-        <target state="translated">Não foi possível encontrar o local para o símbolo de geração.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_location_provided_to_add_statements_to">
-        <source>No location provided to add statements to.</source>
-        <target state="translated">Nenhum local fornecido para o qual adicionar instruções.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_location_was_not_in_source">
-        <source>Destination location was not in source.</source>
-        <target state="translated">Local de destino não estava na origem.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Destination_location_was_from_a_different_tree">
-        <source>Destination location was from a different tree.</source>
-        <target state="translated">Local de destino era de uma árvore diferente.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_is_of_the_wrong_type">
-        <source>Node is of the wrong type.</source>
-        <target state="translated">O nó é do tipo errado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Location_must_be_null_or_from_source">
-        <source>Location must be null or from source.</source>
-        <target state="translated">Local deve ser nulo ou da fonte.</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -237,9 +182,19 @@
         <target state="translated">A solução já contém a referência especificada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unexpected_value_0_in_DocumentKinds_array">
+        <source>Unexpected value '{0}' in DocumentKinds array.</source>
+        <target state="translated">Valor inesperado '{0}' na matriz DocumentKinds.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
         <target state="translated">Desconhecido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents">
+        <source>Use 'TextDocument' property instead of 'Document' property as the provider supports non-source text documents.</source>
+        <target state="translated">Use a propriedade 'TextDocument' em vez da propriedade 'Document', pois o provedor dá suporte a documentos de texto que não são de origem.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -337,11 +292,6 @@
         <target state="translated">O projeto já referencia o projeto de destino.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_solution_already_contains_the_specified_document">
-        <source>The solution already contains the specified document.</source>
-        <target state="translated">A solução já contém o documento especificado.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
         <source>Temporary storage cannot be written more than once.</source>
         <target state="translated">Armazenamento temporário não pode ser gravado mais de uma vez.</target>
@@ -382,21 +332,6 @@
         <target state="translated">Não é possível resolver a referência do analisador: "{0}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_Project">
-        <source>Invalid project block, expected "=" after Project.</source>
-        <target state="translated">Bloco de projetos inválido, esperado "=" após Projeto.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_name">
-        <source>Invalid project block, expected "," after project name.</source>
-        <target state="translated">Bloco de projetos inválido, esperado "," após nome do projeto.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_path">
-        <source>Invalid project block, expected "," after project path.</source>
-        <target state="translated">Bloco de projetos inválido, esperado "," após caminho do projeto.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expected_0">
         <source>Expected {0}.</source>
         <target state="translated">Esperado {0}.</target>
@@ -405,21 +340,6 @@
       <trans-unit id="_0_must_be_a_non_null_and_non_empty_string">
         <source>"{0}" must be a non-null and non-empty string.</source>
         <target state="translated">"{0}" deve ser uma cadeia de caracteres não nula e não vazia.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_header_colon_0">
-        <source>Expected header: "{0}".</source>
-        <target state="translated">Cabeçalho esperado: "{0}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_end_of_file">
-        <source>Expected end-of-file.</source>
-        <target state="translated">Fim de arquivo esperado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_0_line">
-        <source>Expected {0} line.</source>
-        <target state="translated">Linha {0} esperada.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_submission_already_references_another_submission_project">
@@ -437,39 +357,9 @@
         <target state="translated">{0} ainda está aberto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
-        <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">As matrizes com mais de uma dimensão não podem ser serializadas.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">Valor muito grande para ser representado como um inteiro não assinado de 30 bits.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_path_must_be_absolute">
-        <source>Specified path must be absolute.</source>
-        <target state="translated">Caminho especificado deve ser absoluto.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_identifier">
-        <source>Unknown identifier.</source>
-        <target state="translated">Identificador desconhecido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_generate_code_for_unsupported_operator_0">
-        <source>Cannot generate code for unsupported operator '{0}'</source>
-        <target state="translated">Não é possível gerar código para operador não suportado "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
-        <source>Invalid number of parameters for binary operator.</source>
-        <target state="translated">Número inválido de parâmetros para o operador binário.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_number_of_parameters_for_unary_operator">
-        <source>Invalid number of parameters for unary operator.</source>
-        <target state="translated">Número inválido de parâmetros para o operador unário.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -527,11 +417,6 @@
         <target state="translated">Removido:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_CodePage_value_colon_0">
-        <source>Invalid CodePage value: {0}</source>
-        <target state="translated">Valor CodePage inválido: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
         <source>Adding additional documents is not supported.</source>
         <target state="translated">Não há suporte para a adição de documentos adicionais.</target>
@@ -545,11 +430,6 @@
       <trans-unit id="Adding_documents_is_not_supported">
         <source>Adding documents is not supported.</source>
         <target state="translated">Não há suporte para a adição de documentos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_metadata_references_is_not_supported">
-        <source>Adding metadata references is not supported.</source>
-        <target state="translated">Não há suporte para a adição de referências de metadados.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_references_is_not_supported">
@@ -567,11 +447,6 @@
         <target state="translated">Não há suporte para a alteração de documentos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_project_properties_is_not_supported">
-        <source>Changing project properties is not supported.</source>
-        <target state="translated">Não há suporte para a alteração de propriedades do projeto.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removing_additional_documents_is_not_supported">
         <source>Removing additional documents is not supported.</source>
         <target state="translated">Não há suporte para a remoção de documentos adicionais.</target>
@@ -585,11 +460,6 @@
       <trans-unit id="Removing_documents_is_not_supported">
         <source>Removing documents is not supported.</source>
         <target state="translated">Não há suporte para a remoção de documentos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_metadata_references_is_not_supported">
-        <source>Removing metadata references is not supported.</source>
-        <target state="translated">Não há suporte para a remoção de referências de metadado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_references_is_not_supported">
@@ -610,21 +480,6 @@
       <trans-unit id="Diagnostic_must_have_span_0">
         <source>Diagnostic must have span '{0}'</source>
         <target state="translated">O diagnóstico deve ter a extensão '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_deserialize_type_0">
-        <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">Não é possível desserializar o tipo '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_serialize_type_0">
-        <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">Não é possível serializar o tipo '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
-        <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">O tipo '{0}' não é reconhecido pelo associador de serialização.</target>
         <note />
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
@@ -725,11 +580,6 @@
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
         <target state="translated">O fluxo é muito longo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
-        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">O leitor de desserialização para '{0}' lê o número incorreto de valores.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

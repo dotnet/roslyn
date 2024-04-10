@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorBuffer = cursorDocument.GetTextBuffer()
@@ -50,14 +51,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
                 Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
                     trackingSpan.Object, quickInfoItem, document,
-                    ClassificationOptions.Default, threadingContext, operationExecutor,
+                    ClassificationOptions.Default, LineFormattingOptions.Default, threadingContext, operationExecutor,
                     AsynchronousOperationListenerProvider.NullListener,
                     streamingPresenter, CancellationToken.None)
             End Using
         End Function
 
         Protected Shared Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of VSQuickInfoItem)
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -80,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim classificationOptions = workspace.GlobalOptions.GetClassificationOptions(document.Project.Language)
                 Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
                     trackingSpan.Object, codeAnalysisQuickInfoItem, document,
-                    classificationOptions, threadingContext, operationExecutor,
+                    classificationOptions, LineFormattingOptions.Default, threadingContext, operationExecutor,
                     AsynchronousOperationListenerProvider.NullListener,
                     streamingPresenter, CancellationToken.None)
             End Using

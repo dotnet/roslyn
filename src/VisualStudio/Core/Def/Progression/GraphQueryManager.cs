@@ -4,185 +4,169 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
+using Microsoft.VisualStudio.Progression;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+
+using Workspace = Microsoft.CodeAnalysis.Workspace;
+
+internal class GraphQueryManager
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
+    private readonly Workspace _workspace;
 
-    internal class GraphQueryManager
+    /// <summary>
+    /// This gate locks manipulation of <see cref="_trackedQueries"/>.
+    /// </summary>
+    private readonly object _gate = new();
+    private ImmutableArray<(WeakReference<IGraphContext> context, ImmutableArray<IGraphQuery> queries)> _trackedQueries = ImmutableArray<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)>.Empty;
+
+    private readonly AsyncBatchingWorkQueue _updateQueue;
+
+    internal GraphQueryManager(
+        Workspace workspace,
+        IThreadingContext threadingContext,
+        IAsynchronousOperationListener asyncListener)
     {
-        private readonly Workspace _workspace;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        _workspace = workspace;
 
-        /// <summary>
-        /// This gate locks manipulation of <see cref="_trackedQueries"/>.
-        /// </summary>
-        private readonly object _gate = new();
-        private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new();
+        // Update any existing live/tracking queries 1.5 seconds after every workspace changes.
+        _updateQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.Idle,
+            UpdateExistingQueriesAsync,
+            asyncListener,
+            threadingContext.DisposalToken);
 
-        // We update all of our tracked queries when this delay elapses.
-        private ResettableDelay? _delay;
+        // Note: this ends up always listening for workspace events, even if we have no active 'live' queries that
+        // need updating.  But this should basically be practically no cost.  The queue just holds a single item
+        // indicating a change happened.  And when UpdateExistingQueriesAsync fires, it will just see that there are
+        // no live queries and immediately return.  So it's just simple to do things this way instead of trying to 
+        // have state management where we try to decide if we should listen or not.
+        _workspace.WorkspaceChanged += (_, _) => _updateQueue.AddWork();
+    }
 
-        internal GraphQueryManager(Workspace workspace, IAsynchronousOperationListener asyncListener)
+    public async Task AddQueriesAsync(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries, CancellationToken disposalToken)
+    {
+        try
         {
-            _workspace = workspace;
-            _asyncListener = asyncListener;
-        }
-
-        internal void AddQueries(IGraphContext context, List<IGraphQuery> graphQueries)
-        {
-            var asyncToken = _asyncListener.BeginAsyncOperation("GraphQueryManager.AddQueries");
-
             var solution = _workspace.CurrentSolution;
 
-            var populateTask = PopulateContextGraphAsync(solution, graphQueries, context);
+            // Perform the actual graph query first.
+            await PopulateContextGraphAsync(solution, context, graphQueries, disposalToken).ConfigureAwait(false);
 
-            // We want to ensure that no matter what happens, this initial context is completed
-            var task = populateTask.SafeContinueWith(
-                _ => context.OnCompleted(), context.CancelToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-
+            // If this context would like to be continuously updated with live changes to this query, then add the
+            // tracked query to our tracking list, keeping it alive as long as those is keeping the context alive.
             if (context.TrackChanges)
             {
-                task = task.SafeContinueWith(
-                    _ => TrackChangesAfterFirstPopulate(graphQueries, context, solution),
-                    context.CancelToken, TaskContinuationOptions.None, TaskScheduler.Default);
-            }
-
-            task.CompletesAsyncOperation(asyncToken);
-        }
-
-        private void TrackChangesAfterFirstPopulate(List<IGraphQuery> graphQueries, IGraphContext context, Solution solution)
-        {
-            var workspace = solution.Workspace;
-            var contextWeakReference = new WeakReference<IGraphContext>(context);
-
-            lock (_gate)
-            {
-                if (_trackedQueries.IsEmpty())
+                lock (_gate)
                 {
-                    _workspace.WorkspaceChanged += OnWorkspaceChanged;
-                }
-
-                _trackedQueries.Add(ValueTuple.Create(contextWeakReference, graphQueries));
-            }
-
-            EnqueueUpdateIfSolutionIsStale(solution);
-        }
-
-        private void EnqueueUpdateIfSolutionIsStale(Solution solution)
-        {
-            // It's possible the workspace changed during our initial population, so let's enqueue an update if it did
-            if (_workspace.CurrentSolution != solution)
-            {
-                EnqueueUpdate();
-            }
-        }
-
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-            => EnqueueUpdate();
-
-        private void EnqueueUpdate()
-        {
-            const int WorkspaceUpdateDelay = 1500;
-            var delay = _delay;
-            if (delay == null)
-            {
-                var newDelay = new ResettableDelay(WorkspaceUpdateDelay, _asyncListener);
-                if (Interlocked.CompareExchange(ref _delay, newDelay, null) == null)
-                {
-                    var asyncToken = _asyncListener.BeginAsyncOperation("WorkspaceGraphQueryManager.EnqueueUpdate");
-                    newDelay.Task.SafeContinueWithFromAsync(_ => UpdateAsync(), CancellationToken.None, TaskScheduler.Default)
-                        .CompletesAsyncOperation(asyncToken);
-                }
-
-                return;
-            }
-
-            delay.Reset();
-        }
-
-        private Task UpdateAsync()
-        {
-            List<ValueTuple<IGraphContext, List<IGraphQuery>>> liveQueries;
-            lock (_gate)
-            {
-                liveQueries = _trackedQueries.Select(t => ValueTuple.Create(t.Item1.GetTarget(), t.Item2)).Where(t => t.Item1 != null).ToList()!;
-            }
-
-            var solution = _workspace.CurrentSolution;
-            var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.Item2, t.Item1)).ToArray();
-            var whenAllTask = Task.WhenAll(tasks);
-
-            return whenAllTask.SafeContinueWith(t => PostUpdate(solution), TaskScheduler.Default);
-        }
-
-        private void PostUpdate(Solution solution)
-        {
-            _delay = null;
-            lock (_gate)
-            {
-                // See if each context is still alive. It's possible it's already been GC'ed meaning we should stop caring about the query
-                _trackedQueries.RemoveAll(t => !IsTrackingContext(t.Item1));
-                if (_trackedQueries.IsEmpty())
-                {
-                    _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-                    return;
+                    _trackedQueries = _trackedQueries.Add((new WeakReference<IGraphContext>(context), graphQueries));
                 }
             }
-
-            EnqueueUpdateIfSolutionIsStale(solution);
         }
-
-        private static bool IsTrackingContext(WeakReference<IGraphContext> weakContext)
+        finally
         {
-            var context = weakContext.GetTarget();
-            return context != null && !context.CancelToken.IsCancellationRequested;
+            // We want to ensure that no matter what happens, this initial context is completed
+            context.OnCompleted();
         }
+    }
 
-        /// <summary>
-        /// Populate the graph of the context with the values for the given Solution.
-        /// </summary>
-        private static async Task PopulateContextGraphAsync(Solution solution, List<IGraphQuery> graphQueries, IGraphContext context)
+    private async ValueTask UpdateExistingQueriesAsync(CancellationToken disposalToken)
+    {
+        ImmutableArray<(IGraphContext context, ImmutableArray<IGraphQuery> queries)> liveQueries;
+        lock (_gate)
         {
-            try
+            // First, grab the set of contexts that are still live.  We'll update them below.
+            liveQueries = _trackedQueries
+                .SelectAsArray(t => (context: t.context.GetTarget(), t.queries))
+                .WhereAsArray(t => t.context != null)!;
+
+            // Next, clear out any context that are now no longer alive (or have been canceled).  We no longer care
+            // about these.
+            _trackedQueries = _trackedQueries.RemoveAll(t =>
             {
-                var cancellationToken = context.CancelToken;
+                var target = t.context.GetTarget();
+                return target is null || target.CancelToken.IsCancellationRequested;
+            });
+        }
 
-                // Perform the actual graph transaction 
-                using (var transaction1 = new GraphTransactionScope())
+        var solution = _workspace.CurrentSolution;
+
+        // Update all the live queries in parallel.
+        var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.context, t.queries, disposalToken)).ToArray();
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Populate the graph of the context with the values for the given Solution.
+    /// </summary>
+    private static async Task PopulateContextGraphAsync(
+        Solution solution,
+        IGraphContext context,
+        ImmutableArray<IGraphQuery> graphQueries,
+        CancellationToken disposalToken)
+    {
+        try
+        {
+            // Compute all queries in parallel.  Then as each finishes, update the graph.
+
+            // Cancel the work if either the context wants us to cancel, or our host is getting disposed.
+            using var source = CancellationTokenSource.CreateLinkedTokenSource(context.CancelToken, disposalToken);
+            var cancellationToken = source.Token;
+
+            var tasks = graphQueries.Select(q => Task.Run(() => q.GetGraphAsync(solution, context, cancellationToken), cancellationToken)).ToHashSet();
+
+            var first = true;
+            while (tasks.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var completedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
+                tasks.Remove(completedTask);
+
+                // if this is the first task finished, clear out the existing results and add all the new
+                // results as a single transaction.  Doing this as a single transaction is vital for
+                // solution-explorer as that is how it can map the prior elements to the new ones, preserving the
+                // view-state (like ensuring the same nodes stay collapsed/expanded).
+                //
+                // As additional queries finish, add those results in after without clearing the results of the
+                // prior queries.
+
+                var graphBuilder = await completedTask.ConfigureAwait(false);
+                using var transaction = new GraphTransactionScope();
+
+                if (first)
                 {
-                    // Remove any links that may have been added by a previous population. We don't
-                    // remove nodes to maintain node identity, matching the behavior of the old
-                    // providers.
+                    first = false;
                     context.Graph.Links.Clear();
-                    transaction1.Complete();
                 }
 
-                foreach (var query in graphQueries)
-                {
-                    var graphBuilder = await query.GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
+                graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
+                context.OutputNodes.AddAll(graphBuilder.GetCreatedNodes(cancellationToken));
 
-                    using var transaction2 = new GraphTransactionScope();
-
-                    graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
-                    context.OutputNodes.AddAll(graphBuilder.GetCreatedNodes(cancellationToken));
-
-                    transaction2.Complete();
-                }
+                transaction.Complete();
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Diagnostic))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Don't bubble this cancellation outwards.  The queue's cancellation token is mixed with the context's
+            // token to make a final token that controls the work we do above.  We don't want any of the wrong
+            // cancellations leaking outwards.
+        }
+        catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Diagnostic))
+        {
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

@@ -16,7 +16,7 @@ namespace BuildBoss
     /// <summary>
     /// All of the project entry contained in a solution file.
     /// </summary>
-    internal struct ProjectEntry
+    internal readonly struct ProjectEntry
     {
         internal string RelativeFilePath { get; }
         internal string Name { get; }

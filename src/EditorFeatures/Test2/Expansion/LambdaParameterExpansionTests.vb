@@ -5,10 +5,11 @@
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
+    <Trait(Traits.Feature, Traits.Features.Expansion)>
     Public Class LambdaParameterExpansionTests
         Inherits AbstractExpansionTest
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandLambdaWithNoParameters() As Task
             Dim input =
 <Workspace>
@@ -41,7 +42,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandLambdaWithSingleParameter_NoParens() As Task
             Dim input =
 <Workspace>
@@ -74,7 +75,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandLambdaWithSingleParameter_WithParens() As Task
             Dim input =
 <Workspace>
@@ -107,7 +108,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandLambdaWithTwoParameters() As Task
             Dim input =
 <Workspace>
@@ -140,7 +141,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact>
         Public Async Function TestCSharp_ExpandLambdaWithThreeParameters() As Task
             Dim input =
 <Workspace>

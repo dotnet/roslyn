@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override Accessibility DeclaredAccessibility
@@ -860,6 +860,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return InterlockedOperations.Initialize(ref _lazySignature, signature);
         }
 
+        public override BlobHandle MetadataSignatureHandle
+        {
+            get
+            {
+                try
+                {
+                    return _containingType.ContainingPEModule.Module.GetMethodSignatureOrThrow(_handle);
+                }
+                catch (BadImageFormatException)
+                {
+                    return default;
+                }
+            }
+        }
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -982,7 +997,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filteredOutAttribute4: out _,
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
-                        filterOut5: default);
+                        filterOut5: default,
+                        filteredOutAttribute6: out _,
+                        filterOut6: default);
 
                     isExtensionMethod = !extensionAttribute.IsNil;
                     isReadOnly = !isReadOnlyAttribute.IsNil;
@@ -1048,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override byte? GetLocalNullableContextValue()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override MethodKind MethodKind
@@ -1082,6 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case RefKind.None:
                 case RefKind.Ref:
                 case RefKind.In:
+                case RefKind.RefReadOnlyParameter:
                     return !parameter.IsParams;
                 default:
                     return false;
@@ -1109,6 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     case RefKind.Out:
                     case RefKind.Ref:
+                    case RefKind.RefReadOnlyParameter:
                         return false;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);
@@ -1386,11 +1405,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var diagnosticInfo = result.DiagnosticInfo;
                 MergeUseSiteDiagnostics(ref diagnosticInfo, DeriveCompilerFeatureRequiredDiagnostic());
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);
+
+                if (diagnosticInfo == null &&
+                    _containingType.ContainingPEModule.RefSafetyRulesVersion == PEModuleSymbol.RefSafetyRulesAttributeVersion.UnrecognizedAttribute)
+                {
+                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, this);
+                }
+
                 if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
-                    if (CheckAndReportValidUnmanagedCallersOnlyTarget(location: null, diagnostics: null))
+                    if (CheckAndReportValidUnmanagedCallersOnlyTarget(node: null, diagnostics: null))
                     {
                         diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                     }
@@ -1512,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
@@ -1540,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var result = uncommonFields._lazyObsoleteAttributeData;
                     return ReferenceEquals(result, ObsoleteAttributeData.Uninitialized)
-                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyObsoleteAttributeData, null, ObsoleteAttributeData.Uninitialized)
+                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyObsoleteAttributeData, initializedValue: null, ObsoleteAttributeData.Uninitialized)
                         : result;
                 }
             }
@@ -1601,17 +1627,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         // perf, not correctness
@@ -1623,7 +1649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // Internal for unit test
         internal bool TestIsExtensionBitTrue => _packedFlags.IsExtensionMethod;
 
-        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool HasUnscopedRefAttribute
         {
@@ -1638,6 +1664,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return _packedFlags.IsUnscopedRef;
             }
+        }
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = _containingType.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.AsyncMethodBuilderAttribute);
+            return builderArgument is not null;
         }
     }
 }

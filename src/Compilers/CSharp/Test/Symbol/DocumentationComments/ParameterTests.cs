@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using SymbolExtensions = Microsoft.CodeAnalysis.Test.Utilities.SymbolExtensions;
@@ -735,27 +734,19 @@ class C
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
                 // (6,9): warning CS1587: XML comment is not placed on a valid language element
-                //         /// <see cref="C"/>
+                //         /// <param name=""t""/>
                 Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/"));
 
             var tree = compilation.SyntaxTrees.Single();
             var names = GetNameAttributeValues(compilation).ToArray();
             var model = compilation.GetSemanticModel(tree);
 
-            var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M").GetPublicSymbol();
-            var expectedParameter = method.Parameters.Single();
-            var expectedTypeParameter = method.TypeParameters.Single();
-
-            // These are sort of working by accident - the code that walks up to the associated member
-            // doesn't care whether the doc comment is in the trivia before the member.
-            Assert.Equal(expectedParameter, model.GetSymbolInfo(names[0]).Symbol);
-            Assert.Equal(expectedParameter, model.GetSymbolInfo(names[1]).Symbol);
-            Assert.Equal(expectedTypeParameter, model.GetSymbolInfo(names[2]).Symbol);
-            Assert.Equal(expectedTypeParameter, model.GetSymbolInfo(names[3]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[0]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[1]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[2]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[3]).Symbol);
         }
 
-        // Accessor declarations aren't MemberDeclarationSyntaxes, so we don't have to worry about finding
-        // the parameters of an accessor (i.e. all the lookups will start from the property/indexer).
         [WorkItem(531337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531337")]
         [Fact]
         public void NamesOnAccessor()
@@ -797,40 +788,50 @@ class C<T>
             var names = GetNameAttributeValues(compilation).ToArray();
             var model = compilation.GetSemanticModel(tree);
 
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var indexer = type.Indexers.Single();
-
-            var expectedTypeParameter = type.TypeParameters.Single().ISymbol;
-            var expectedParameter = indexer.Parameters.Single().ISymbol;
-            var expectedValueParameter = indexer.SetMethod.Parameters.Last().ISymbol;
-
             // Getter
 
             //T
             Assert.Null(model.GetSymbolInfo(names[0]).Symbol);
-            Assert.Equal(expectedTypeParameter, model.GetSymbolInfo(names[1]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[1]).Symbol);
 
             //t
-            Assert.Equal(expectedParameter, model.GetSymbolInfo(names[2]).Symbol);
-            Assert.Equal(expectedParameter, model.GetSymbolInfo(names[3]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[2]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[3]).Symbol);
 
             //value
-            Assert.Equal(expectedValueParameter, model.GetSymbolInfo(names[4]).Symbol);
-            Assert.Equal(expectedValueParameter, model.GetSymbolInfo(names[5]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[4]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[5]).Symbol);
 
             // Setter
 
             //T
             Assert.Null(model.GetSymbolInfo(names[6]).Symbol);
-            Assert.Equal(expectedTypeParameter, model.GetSymbolInfo(names[7]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[7]).Symbol);
 
             //t
-            Assert.Equal(expectedParameter, model.GetSymbolInfo(names[8]).Symbol);
-            Assert.Equal(expectedParameter, model.GetSymbolInfo(names[9]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[8]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[9]).Symbol);
 
             //value
-            Assert.Equal(expectedValueParameter, model.GetSymbolInfo(names[10]).Symbol);
-            Assert.Equal(expectedValueParameter, model.GetSymbolInfo(names[11]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[10]).Symbol);
+            Assert.Null(model.GetSymbolInfo(names[11]).Symbol);
+        }
+
+        [Fact]
+        public void ExtensionMethodsAreNotAvailableInEarlierCSharpVersions()
+        {
+            var code = @"
+ public static class Test
+ {
+     public static void DoSomething(this int x) { }
+ }";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp2)).VerifyDiagnostics(
+                // (4,37): error CS8023: Feature 'extension method' is not available in C# 2. Please use language version 3 or greater.
+                //      public static void DoSomething(this int x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "this").WithArguments("extension method", "3").WithLocation(4, 37));
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.Latest)).VerifyDiagnostics();
         }
 
         private static IEnumerable<IdentifierNameSyntax> GetNameAttributeValues(CSharpCompilation compilation)

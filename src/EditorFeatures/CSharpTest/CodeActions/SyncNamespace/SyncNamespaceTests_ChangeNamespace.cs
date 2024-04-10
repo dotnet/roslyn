@@ -12,16 +12,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
     public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_InvalidFolderName1()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar";
 
             // No change namespace action because the folder name is not valid identifier
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "3B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["3B", "C"], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -39,14 +40,14 @@ namespace [||]{declaredNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_InvalidFolderName2()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar";
 
             // No change namespace action because the folder name is not valid identifier
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B.3C", "D" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B.3C", "D"], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -64,13 +65,13 @@ namespace [||]{declaredNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_SingleDocumentNoReference()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -95,13 +96,13 @@ namespace [||]{declaredNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_SingleDocumentNoReference_FileScopedNamespace()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -126,13 +127,13 @@ class Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_SingleDocumentLocalReference()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -177,14 +178,14 @@ namespace [||]{declaredNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_WithCrefReference()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -254,13 +255,13 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_WithCrefReferencesInVB()
         {
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -316,14 +317,14 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_ReferencingTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -373,14 +374,14 @@ namespace A.B.C
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -430,14 +431,14 @@ namespace A.B.C
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_WithReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -501,14 +502,14 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_WithQualifiedReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -556,14 +557,14 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_ChangeUsingsInMultipleContainers()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -627,14 +628,14 @@ namespace NS1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -701,18 +702,18 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_SingleDocumentNoRef()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">
 using System;
 
 // Comments before declaration.
@@ -728,7 +729,8 @@ namespace [||]{declaredNamespace}
 </Workspace>";
 
             var expectedSourceOriginal =
-@"using System;
+@"
+using System;
 
 // Comments before declaration.
 // Comments after opening brace
@@ -741,13 +743,13 @@ class Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_SingleDocumentLocalRef()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -790,14 +792,14 @@ class Class2 : Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithReferencesInOtherDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -856,14 +858,14 @@ class Class2
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithQualifiedReferencesInOtherDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -907,14 +909,14 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInOtherDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -964,14 +966,14 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_ReferencingTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1019,14 +1021,14 @@ class Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_ChangeUsingsInMultipleContainers()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1086,14 +1088,14 @@ namespace NS1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithAliasReferencesInOtherDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1138,7 +1140,8 @@ class Class2
 }
 ";
             var expectedSourceReference =
-@"using System;
+@"
+using System;
 using Class1Alias = Class1;
 
 namespace Foo
@@ -1156,16 +1159,16 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_SingleDocumentNoRef()
         {
             var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
             var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">
 using System;
 
 class [||]Class1
@@ -1176,7 +1179,8 @@ class [||]Class1
 </Workspace>";
 
             var expectedSourceOriginal =
-@"using System;
+@"
+using System;
 
 namespace A.B.C
 {
@@ -1187,11 +1191,11 @@ namespace A.B.C
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_SingleDocumentLocalRef()
         {
             var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1233,13 +1237,13 @@ class Class2 : Class1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1298,12 +1302,12 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithQualifiedReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1346,12 +1350,12 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1395,13 +1399,13 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_ChangeUsingsInMultipleContainers()
         {
             var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1465,13 +1469,13 @@ namespace NS1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithAliasReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1537,13 +1541,13 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_WithReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1583,13 +1587,13 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeNamespace_WithQualifiedReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1624,12 +1628,12 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithReferencesInVBDocument()
         {
             var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1665,12 +1669,12 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeFromGlobalNamespace_WithCredReferences()
         {
             var defaultNamespace = "A";
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1698,6 +1702,7 @@ namespace Foo
             var expectedSourceOriginal =
 @"namespace A.B.C
 {
+
     /// <summary>
     /// See <see cref=""Class1""/>
     /// </summary>
@@ -1721,13 +1726,13 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithReferencesInVBDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1762,13 +1767,13 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInVBDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -1811,14 +1816,14 @@ End Namespace";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact]
         public async Task ChangeToGlobalNamespace_WithCredReferences()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1874,14 +1879,13 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         public async Task ChangeNamespace_ExtensionMethodInReducedForm()
         {
             var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1930,14 +1934,13 @@ namespace {defaultNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         public async Task ChangeNamespace_ExternsionMethodInRegularForm()
         {
             var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -1986,14 +1989,13 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         public async Task ChangeNamespace_ContainsBothTypeAndExternsionMethod()
         {
             var defaultNamespace = "A";
 
-            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -2048,14 +2050,13 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         public async Task ChangeNamespace_WithExtensionMethodReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -2106,15 +2107,14 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath1 = CreateDocumentFilePath(["B", "C"], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -2170,15 +2170,14 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "Foo.Bar.Baz";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
+            var documentPath2 = CreateDocumentFilePath([], "File2.cs");
             var code =
 $@"
 <Workspace>
@@ -2229,14 +2228,13 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         public async Task ChangeNamespace_WithMemberAccessReferencesInVBDocument()
         {
             var defaultNamespace = "A.B.C";
             var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -2281,14 +2279,13 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInVBDocument()
         {
             var defaultNamespace = "";
             var declaredNamespace = "A.B.C.D";
 
-            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var documentPath1 = CreateDocumentFilePath([], "File1.cs");
             var code =
 $@"
 <Workspace>
@@ -2329,6 +2326,37 @@ End Class</Document>
     End Sub
 End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889796")]
+        public async Task ChangeNamespace_DoesNotThrowInDuplicateProgramDeclaration()
+        {
+            var defaultNamespace = "A";
+
+            // No change namespace action because the folder name is not valid identifier
+            var (topLevelProgramFolder, topLevelProgramFilePath) = CreateDocumentFilePath(["3B", "C"], "Program.cs");
+            var (duplicateProgramFolder, _) = CreateDocumentFilePath([], "Program.cs");
+
+            var code =
+$$"""
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+        <Document Folders="{{duplicateProgramFolder}}" FilePath="{{duplicateProgramFolder}}"> 
+internal class [||]Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine("Hello, World!");
+    }
+}
+        </Document>
+        <Document Folders="{{topLevelProgramFolder}}" FilePath="{{topLevelProgramFilePath}}"> 
+Console.WriteLine("Hello Two");
+        </Document>
+    </Project>
+</Workspace>
+""";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
         }
     }
 }

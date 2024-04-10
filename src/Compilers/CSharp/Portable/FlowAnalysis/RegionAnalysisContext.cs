@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Represents region analysis context attributes such as compilation, region, etc...
     /// </summary>
-    internal struct RegionAnalysisContext
+    internal readonly struct RegionAnalysisContext
     {
         /// <summary> Compilation to use </summary>
         public readonly CSharpCompilation Compilation;

@@ -235,9 +235,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         private static string FormatStringChar(char c)
         {
-            return (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Control) ?
-                $"\\u{((int)c).ToString("x4")}" :
-                c.ToString();
+            return (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Control)
+                ? $"\\u{((int)c).ToString("x4")}"
+                : c.ToString();
         }
 
         [Fact]
@@ -491,7 +491,7 @@ namespace N
 
             var vectorInstance = Array.CreateInstance(constructedType, 2);
             var matrixInstance = Array.CreateInstance(constructedType, 3, 4);
-            var irregularInstance = Array.CreateInstance(constructedType, new[] { 1, 2 }, new[] { 3, 4 });
+            var irregularInstance = Array.CreateInstance(constructedType, [1, 2], [3, 4]);
 
             Assert.Equal("{N.A<bool>.B<long>[2]}", FormatValue(vectorInstance));
             Assert.Equal("{N.A<bool>.B<long>[3, 4]}", FormatValue(matrixInstance));
@@ -623,7 +623,7 @@ namespace System.Data.SqlTypes
 
             object sqlString = type.Instantiate();
             var setMethod = type.GetMethod("Set");
-            setMethod.Invoke(sqlString, new object[] { "Test" });
+            setMethod.Invoke(sqlString, ["Test"]);
 
             Assert.Equal("Test", GetUnderlyingString(sqlString));
         }

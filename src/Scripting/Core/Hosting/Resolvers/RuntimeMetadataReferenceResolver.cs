@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         // The extensions are in order in which the CLR loader looks for assembly files.
         internal static ImmutableArray<string> AssemblyExtensions = ImmutableArray.Create(".dll", ".exe");
 
-        private static readonly char[] s_directorySeparators = new[] { PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar };
+        private static readonly char[] s_directorySeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
         /// <summary>
         /// Creates a resolver that uses the current platform settings (GAC, platform assembly list).
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 if (PathResolver != null)
                 {
-                    string resolvedPath = PathResolver.ResolvePath(reference, baseFilePath);
+                    string? resolvedPath = PathResolver.ResolvePath(reference, baseFilePath);
                     if (resolvedPath != null)
                     {
                         return ImmutableArray.Create(_fileReferenceProvider(resolvedPath, properties));
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     string fileName = PathUtilities.GetFileName(path, includeExtension: false);
                     if (fileName.EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
                     {
-                        fileName = fileName.Substring(0, fileName.Length - ".ni".Length);
+                        fileName = fileName[..^".ni".Length];
                     }
 
                     // last one wins:

@@ -2,45 +2,64 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteDesignerAttributeDiscoveryService(
+    in BrokeredServiceBase.ServiceConstructionArguments arguments,
+    RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
+    : BrokeredServiceBase(arguments), IRemoteDesignerAttributeDiscoveryService
 {
-    internal sealed class RemoteDesignerAttributeDiscoveryService : BrokeredServiceBase, IRemoteDesignerAttributeDiscoveryService
+    private sealed class CallbackWrapper(
+        RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback,
+        RemoteServiceCallbackId callbackId) : IDesignerAttributeDiscoveryService.ICallback
     {
-        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService, IRemoteDesignerAttributeDiscoveryService.ICallback>
-        {
-            protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
-                => new RemoteDesignerAttributeDiscoveryService(arguments, callback);
-        }
+        private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback = callback;
 
-        private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
+        public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+            => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(callbackId, data, cancellationToken), cancellationToken);
+    }
 
-        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
-        }
+    internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService, IRemoteDesignerAttributeDiscoveryService.ICallback>
+    {
+        protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
+            => new RemoteDesignerAttributeDiscoveryService(arguments, callback);
+    }
 
-        public ValueTask StartScanningForDesignerAttributesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(cancellationToken =>
+    public ValueTask DiscoverDesignerAttributesAsync(
+        RemoteServiceCallbackId callbackId,
+        Checksum solutionChecksum,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(
+            solutionChecksum,
+            solution =>
             {
-                var registrationService = GetWorkspace().Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(_callback, callbackId);
+                var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
+                return service.ProcessSolutionAsync(
+                    solution, new CallbackWrapper(callback, callbackId), cancellationToken);
+            },
+            cancellationToken);
+    }
 
-                registrationService.AddAnalyzerProvider(
-                    analyzerProvider,
-                    new IncrementalAnalyzerProviderMetadata(
-                        nameof(RemoteDesignerAttributeIncrementalAnalyzerProvider),
-                        highPriorityForActiveFile: false,
-                        workspaceKinds: WorkspaceKind.RemoteWorkspace));
-
-                return default;
-            }, cancellationToken);
-        }
+    public ValueTask DiscoverDesignerAttributesAsync(
+        RemoteServiceCallbackId callbackId,
+        Checksum solutionChecksum,
+        DocumentId priorityDocument,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(
+            solutionChecksum,
+            solution =>
+            {
+                var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
+                return service.ProcessPriorityDocumentAsync(
+                    solution, priorityDocument, new CallbackWrapper(callback, callbackId), cancellationToken);
+            },
+            cancellationToken);
     }
 }

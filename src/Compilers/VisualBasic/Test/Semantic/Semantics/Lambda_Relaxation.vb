@@ -1950,7 +1950,6 @@ End Module
                     Assert.Null(typeInfo.Type)
                     Assert.Equal("System.Func(Of System.Int32, System.Int32, System.Int32)", typeInfo.ConvertedType.ToTestDisplayString())
 
-
                     Dim conv = semanticModel.GetConversion(node4.Parent)
                     Assert.Equal("Lambda, DelegateRelaxationLevelInvalid", conv.Kind.ToString())
                     Assert.False(conv.Exists)
@@ -2437,7 +2436,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2494,7 +2492,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
@@ -2530,7 +2527,6 @@ Module Program
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
@@ -2608,7 +2604,6 @@ Module Program
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
@@ -2737,7 +2732,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -2766,7 +2760,6 @@ System.Func`1[System.String]
 ]]>)
         End Sub
 
-
         <Fact()>
         Public Sub ArgumentIsVbOrBoxWidening5()
 
@@ -2792,7 +2785,6 @@ End Module
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="12")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
-
 
             verifier.VerifyIL("Program.Main",
             <![CDATA[

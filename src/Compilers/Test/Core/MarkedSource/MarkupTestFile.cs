@@ -50,7 +50,7 @@ namespace Roslyn.Test.Utilities
             RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 
         private static void Parse(
-            string input, out string output, out int? position, out IDictionary<string, ArrayBuilder<TextSpan>> spans)
+            string input, bool treatPositionIndicatorsAsCode, out string output, out int? position, out IDictionary<string, ArrayBuilder<TextSpan>> spans)
         {
             position = null;
             var tempSpans = new Dictionary<string, ArrayBuilder<TextSpan>>();
@@ -68,7 +68,9 @@ namespace Roslyn.Test.Utilities
             while (true)
             {
                 var matches = new List<(int matchIndex, string name)>();
-                AddMatch(input, PositionString, currentIndexInInput, matches);
+                if (!treatPositionIndicatorsAsCode)
+                    AddMatch(input, PositionString, currentIndexInInput, matches);
+
                 AddMatch(input, SpanStartString, currentIndexInInput, matches);
                 AddMatch(input, SpanEndString, currentIndexInInput, matches);
                 AddMatch(input, NamedSpanEndString, currentIndexInInput, matches);
@@ -207,9 +209,10 @@ namespace Roslyn.Test.Utilities
         }
 
         private static void GetPositionAndSpans(
-            string input, out string output, out int? cursorPositionOpt, out ImmutableArray<TextSpan> spans)
+            string input, out string output, out int? cursorPositionOpt, out ImmutableArray<TextSpan> spans,
+            bool treatPositionIndicatorsAsCode = false)
         {
-            Parse(input, out output, out cursorPositionOpt, out var dictionary);
+            Parse(input, treatPositionIndicatorsAsCode, out output, out cursorPositionOpt, out var dictionary);
 
             var builder = GetOrAdd(dictionary, string.Empty, _ => ArrayBuilder<TextSpan>.GetInstance());
             builder.Sort((left, right) => left.Start - right.Start);
@@ -217,14 +220,16 @@ namespace Roslyn.Test.Utilities
         }
 
         public static void GetPositionAndSpans(
-            string input, out string output, out int? cursorPositionOpt, out IDictionary<string, ImmutableArray<TextSpan>> spans)
+            string input, out string output, out int? cursorPositionOpt, out IDictionary<string, ImmutableArray<TextSpan>> spans,
+            bool treatPositionIndicatorsAsCode = false)
         {
-            Parse(input, out output, out cursorPositionOpt, out var dictionary);
+            Parse(input, treatPositionIndicatorsAsCode, out output, out cursorPositionOpt, out var dictionary);
             spans = dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
         }
 
-        public static void GetSpans(string input, out string output, out IDictionary<string, ImmutableArray<TextSpan>> spans)
-            => GetPositionAndSpans(input, out output, out var cursorPositionOpt, out spans);
+        public static void GetSpans(string input, out string output, out IDictionary<string, ImmutableArray<TextSpan>> spans,
+            bool treatPositionIndicatorsAsCode = false)
+            => GetPositionAndSpans(input, out output, out var cursorPositionOpt, out spans, treatPositionIndicatorsAsCode);
 
         public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out ImmutableArray<TextSpan> spans)
         {

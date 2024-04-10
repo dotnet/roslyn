@@ -6,24 +6,22 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class FalseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public FalseKeywordRecommender()
-            : base(SyntaxKind.FalseKeyword, isValidInPreprocessorContext: true)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return
-                context.IsAnyExpressionContext ||
-                context.IsPreProcessorExpressionContext ||
-                context.IsStatementContext ||
-                context.IsGlobalStatementContext ||
-                context.TargetToken.IsUnaryOperatorContext() ||
-                context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
-        }
+internal class FalseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+{
+    public FalseKeywordRecommender()
+        : base(SyntaxKind.FalseKeyword, isValidInPreprocessorContext: true)
+    {
+    }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return
+            context.IsAnyExpressionContext ||
+            context.IsPreProcessorExpressionContext ||
+            context.IsStatementContext ||
+            context.IsGlobalStatementContext ||
+            context.TargetToken.IsUnaryOperatorContext();
     }
 }

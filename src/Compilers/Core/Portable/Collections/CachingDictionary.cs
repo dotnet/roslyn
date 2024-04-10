@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Collections
         where TKey : notnull
     {
         private readonly Func<TKey, ImmutableArray<TElement>> _getElementsOfKey;
-        private readonly Func<IEqualityComparer<TKey>, HashSet<TKey>> _getKeys;
+        private readonly Func<IEqualityComparer<TKey>, SegmentedHashSet<TKey>> _getKeys;
         private readonly IEqualityComparer<TKey> _comparer;
 
         // The underlying dictionary. It may be null (indicating that nothing is cached), a ConcurrentDictionary
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <param name="comparer">A IEqualityComparer used to compare keys.</param>
         public CachingDictionary(
             Func<TKey, ImmutableArray<TElement>> getElementsOfKey,
-            Func<IEqualityComparer<TKey>, HashSet<TKey>> getKeys,
+            Func<IEqualityComparer<TKey>, SegmentedHashSet<TKey>> getKeys,
             IEqualityComparer<TKey> comparer)
         {
             _getElementsOfKey = getElementsOfKey;

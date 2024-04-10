@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -47,14 +48,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var conversion = BoundNode.GetConversion(operandConversion, operandPlaceholder);
 
-                ConstantValue constantValue = Binder.GetAsOperatorConstantResult(rewrittenOperand.Type, rewrittenType, conversion.Kind, rewrittenOperand.ConstantValue);
+                ConstantValue constantValue = Binder.GetAsOperatorConstantResult(rewrittenOperand.Type, rewrittenType, conversion.Kind, rewrittenOperand.ConstantValueOpt);
 
                 if (constantValue != null)
                 {
+                    if (constantValue.IsBad)
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(constantValue);
+                    }
+
                     Debug.Assert(constantValue.IsNull);
                     BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultExpression(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
 
-                    if (rewrittenOperand.ConstantValue != null)
+                    if (rewrittenOperand.ConstantValueOpt != null)
                     {
                         // No need to preserve any side-effects from the operand. 
                         // We also can keep the "constant" notion of the result, which

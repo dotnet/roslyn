@@ -66,6 +66,24 @@ namespace IdeCoreBenchmarks
             return newRoot;
         }
 
+        private SyntaxNode WithSimpleEditAtBeginning()
+        {
+            var addedText = "using System.IO;";
+            var newText = _text.WithChanges(new TextChange(new TextSpan(0, addedText.Length), addedText));
+            var newTree = _tree.WithChangedText(newText);
+            var newRoot = newTree.GetRoot();
+            return newRoot;
+        }
+
+        private SyntaxNode WithSimpleEditInTheEnd()
+        {
+            var addedText = "class HelloWorld { }";
+            var newText = _text.WithChanges(new TextChange(new TextSpan(_text.Length - addedText.Length, addedText.Length), addedText));
+            var newTree = _tree.WithChangedText(newText);
+            var newRoot = newTree.GetRoot();
+            return newRoot;
+        }
+
         [Benchmark]
         public void SimpleEditAtMiddle()
         {
@@ -90,6 +108,20 @@ namespace IdeCoreBenchmarks
         public void DestabalizingEditAtMiddle_NoParse()
         {
             SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, _rootWithComplexEdit, TimeSpan.MaxValue, CancellationToken.None);
+        }
+
+        [Benchmark]
+        public void SimpleEditAtTheBeginning()
+        {
+            var newRoot = WithSimpleEditAtBeginning();
+            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, TimeSpan.MaxValue, CancellationToken.None);
+        }
+
+        [Benchmark]
+        public void SimpleEditorInTheEnd()
+        {
+            var newRoot = WithSimpleEditInTheEnd();
+            SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(_root, newRoot, TimeSpan.MaxValue, CancellationToken.None);
         }
     }
 }

@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     ///
     ///          &lt;text&gt; : warning [num]: &lt;msg&gt;
     /// </remarks>
-    /// <owner>JomoF</owner>
     internal static class CanonicalError
     {
         // Defines the main pattern for matching messages.
@@ -141,7 +140,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Represents the parts of a decomposed canonical message.
         /// </summary>
-        /// <owner>JomoF</owner>
         internal sealed class Parts
         {
             /// <summary>
@@ -237,7 +235,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         /// <param name="value"></param>
         /// <returns>'value' converted to int or 0 if it can't be parsed or is negative</returns>
-        /// <owner>LukaszG</owner>
         private static int ConvertToIntWithDefault(string value)
         {
             int result;
@@ -255,7 +252,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Decompose an error or warning message into constituent parts. If the message isn't in the canonical form, return null.
         /// </summary>
         /// <remarks>This method is thread-safe, because the Regex class is thread-safe (per MSDN).</remarks>
-        /// <owner>JomoF</owner>
         /// <param name="message"></param>
         /// <returns>Decomposed canonical message, or null.</returns>
         internal static Parts? Parse(string message)

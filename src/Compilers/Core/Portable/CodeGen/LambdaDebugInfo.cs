@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -14,8 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <remarks>
     /// The information is emitted to PDB in Custom Debug Information record for a method containing the lambda.
     /// </remarks>
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct LambdaDebugInfo : IEquatable<LambdaDebugInfo>
+    internal readonly record struct LambdaDebugInfo
     {
         /// <summary>
         /// The syntax offset of the syntax node declaring the lambda (lambda expression) or its body (lambda in a query).
@@ -23,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public readonly int SyntaxOffset;
 
         /// <summary>
-        /// The ordinal of the closure frame the lambda belongs to, or
+        /// The ordinal of the closure frame the lambda or local function belongs to, or
         /// <see cref="StaticClosureOrdinal"/> if the lambda is static, or
         /// <see cref="ThisOnlyClosureOrdinal"/> if the lambda is closed over "this" pointer only.
         /// </summary>
@@ -44,30 +41,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LambdaId = lambdaId;
         }
 
-        public bool Equals(LambdaDebugInfo other)
-        {
-            return SyntaxOffset == other.SyntaxOffset
-                && ClosureOrdinal == other.ClosureOrdinal
-                && LambdaId.Equals(other.LambdaId);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is LambdaDebugInfo && Equals((LambdaDebugInfo)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(ClosureOrdinal,
-                   Hash.Combine(SyntaxOffset, LambdaId.GetHashCode()));
-        }
-
-        internal string GetDebuggerDisplay()
-        {
-            return
-                ClosureOrdinal == StaticClosureOrdinal ? $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, static)" :
-                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, this)" :
-                $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset} in {ClosureOrdinal})";
-        }
+        public override string ToString()
+            => ClosureOrdinal == StaticClosureOrdinal ? $"({LambdaId} @{SyntaxOffset}, static)" :
+               ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{LambdaId} @{SyntaxOffset}, this)" :
+               $"({LambdaId} @{SyntaxOffset} in {ClosureOrdinal})";
     }
 }

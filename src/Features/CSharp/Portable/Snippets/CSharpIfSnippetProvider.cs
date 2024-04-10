@@ -3,42 +3,40 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpIfSnippetProvider() : AbstractIfSnippetProvider<IfStatementSyntax, ExpressionSyntax>
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpIfSnippetProvider : AbstractIfSnippetProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpIfSnippetProvider()
-        {
-        }
+    public override string Identifier => CSharpSnippetIdentifiers.If;
 
-        protected override void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode)
-        {
-            var ifStatement = (IfStatementSyntax)node;
-            condition = ifStatement.Condition;
-            cursorPositionNode = ifStatement.Statement.SpanStart + 1;
-        }
-    }
+    public override string Description => FeaturesResources.if_statement;
+
+    protected override ExpressionSyntax GetCondition(IfStatementSyntax node)
+        => node.Condition;
+
+    protected override int GetTargetCaretPosition(IfStatementSyntax ifStatement, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            ifStatement,
+            static s => (BlockSyntax)s.Statement,
+            sourceText);
+
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
+            document,
+            ifStatement,
+            static s => (BlockSyntax)s.Statement,
+            cancellationToken);
 }

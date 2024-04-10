@@ -17,19 +17,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static DkmInspectionContext With(this DkmInspectionContext inspectionContext, DkmEvaluationFlags flags)
         {
-            return DkmInspectionContext.Create(
-                inspectionContext.InspectionSession,
-                inspectionContext.RuntimeInstance,
-                inspectionContext.Thread,
+            return inspectionContext.WithProperties(
                 inspectionContext.Timeout,
                 inspectionContext.EvaluationFlags | flags,
                 inspectionContext.FuncEvalFlags,
-                inspectionContext.Radix,
-                inspectionContext.Language,
-                inspectionContext.ReturnValue,
-                inspectionContext.AdditionalVisualizationData,
-                inspectionContext.AdditionalVisualizationDataPriority,
-                inspectionContext.ReturnValues);
+                inspectionContext.Radix
+                );
         }
     }
 }

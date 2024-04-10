@@ -7,7 +7,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// Info needed when emitting ExportedType table entry.
     /// </summary>
-    internal struct ExportedType
+    internal readonly struct ExportedType
     {
         /// <summary>
         /// The target type reference. 

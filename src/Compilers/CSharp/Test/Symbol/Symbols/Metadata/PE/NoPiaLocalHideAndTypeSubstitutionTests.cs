@@ -107,7 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             //Structure - As method parameter type in external assembly (test this by passing the parameter with a variable which was declared in the current assembly)
 
-
             var localTypeSource = @"static class TypeSubstitution
 {
     FooStruct myOwnVar = null;
@@ -209,7 +208,6 @@ static class TypeSubstitution
         public void NoPIALocalTypesEquivalentToEachOtherEnumAsReturnTypeInExternalAssembly()
         {
             //Enum - As return type in external assembly
-
 
             var localTypeSource = @"static class TypeSubstitution
 {

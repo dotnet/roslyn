@@ -48,24 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns the RefKind of the field. 
-        ''' </summary>
-        Public ReadOnly Property RefKind As RefKind Implements IFieldSymbol.RefKind
-            Get
-                Return RefKind.None
-            End Get
-        End Property
-
-        ''' <summary>
-        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
-        ''' </summary>
-        Public ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IFieldSymbol.RefCustomModifiers
-            Get
-                Return ImmutableArray(Of CustomModifier).Empty
-            End Get
-        End Property
-
-        ''' <summary>
         ''' Gets the type of this variable.
         ''' </summary>
         Public MustOverride ReadOnly Property Type As TypeSymbol
@@ -87,6 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The list of custom modifiers, if any, associated with the member variable.
         ''' </summary>
         Public MustOverride ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
+
+        Public MustOverride ReadOnly Property IsRequired As Boolean
 
         ''' <summary>
         ''' If this variable serves as a backing variable for an automatically generated
@@ -396,7 +380,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-
         ''' <summary>
         ''' If this is a field representing a tuple element,
         ''' returns the index of the element (zero-based).
@@ -424,6 +407,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbolInternal_Type As ITypeSymbolInternal Implements IFieldSymbolInternal.Type
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldSymbolInternal_AssociatedSymbol As ISymbolInternal Implements IFieldSymbolInternal.AssociatedSymbol
+            Get
+                Return Me.AssociatedSymbol
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_IsConst As Boolean Implements IFieldSymbol.IsConst
             Get
                 Return Me.IsConst
@@ -438,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IFieldSymbol_IsRequired As Boolean Implements IFieldSymbol.IsRequired
             Get
-                Return False
+                Return Me.IsRequired
             End Get
         End Property
 
@@ -451,6 +446,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IFieldSymbol_FixedSize As Integer Implements IFieldSymbol.FixedSize
             Get
                 Return 0
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns the RefKind of the field. 
+        ''' </summary>
+        Private ReadOnly Property IFieldSymbol_RefKind As RefKind Implements IFieldSymbol.RefKind
+            Get
+                Return RefKind.None
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Private ReadOnly Property IFieldSymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IFieldSymbol.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
             End Get
         End Property
 

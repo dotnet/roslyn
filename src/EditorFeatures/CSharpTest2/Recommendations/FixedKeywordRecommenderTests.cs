@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -11,177 +9,206 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class FixedKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAtRoot_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInsideEmptyMethod()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideUnsafeBlock()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"unsafe {
-    $$"));
+                """
+                unsafe {
+                    $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterFixed()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"unsafe {
-    fixed (int* = bar) {
-    }
-    $$"));
+                """
+                unsafe {
+                    fixed (int* = bar) {
+                    }
+                    $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterFixed()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"  fixed (int* = bar) {
-    }
-    $$"));
+                """
+                fixed (int* = bar) {
+                  }
+                  $$
+                """));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInClass()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    $$");
+                """
+                class C {
+                    $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInStruct()
         {
             await VerifyAbsenceAsync(
-@"struct S {
-    $$");
+                """
+                struct S {
+                    $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInRecordStruct()
         {
             await VerifyAbsenceAsync(
-@"record struct S {
-    $$");
+                """
+                record struct S {
+                    $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInUnsafeStruct()
         {
             await VerifyKeywordAsync(
-@"unsafe struct S {
-    $$");
+                """
+                unsafe struct S {
+                    $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInUnsafeNestedStruct1()
         {
             await VerifyKeywordAsync(
-@"unsafe struct S {
-    struct T {
-      $$");
+                """
+                unsafe struct S {
+                    struct T {
+                      $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInUnsafeNestedStruct2()
         {
             await VerifyKeywordAsync(
-@"struct S {
-    unsafe struct T {
-      $$");
+                """
+                struct S {
+                    unsafe struct T {
+                      $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterStatic()
         {
             await VerifyAbsenceAsync(
-@"unsafe struct S {
-    static $$");
+                """
+                unsafe struct S {
+                    static $$
+                """);
         }
 
-        [WorkItem(52296, "https://github.com/dotnet/roslyn/issues/52296")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52296")]
         public async Task TestInUnsafeLocalFunction()
         {
             await VerifyKeywordAsync(
-@"public class C
-{
-    public void M()
-    {
-        unsafe void Local()
-        {
-            $$
-        }
-    }
-}");
+                """
+                public class C
+                {
+                    public void M()
+                    {
+                        unsafe void Local()
+                        {
+                            $$
+                        }
+                    }
+                }
+                """);
         }
 
-        [WorkItem(52296, "https://github.com/dotnet/roslyn/issues/52296")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52296")]
         public async Task TestNotInOrdinaryLocalFunction()
         {
             await VerifyAbsenceAsync(
-@"public class C
-{
-    public void M()
-    {
-        void Local()
-        {
-            $$
-        }
-    }
-}");
+                """
+                public class C
+                {
+                    public void M()
+                    {
+                        void Local()
+                        {
+                            $$
+                        }
+                    }
+                }
+                """);
         }
     }
 }

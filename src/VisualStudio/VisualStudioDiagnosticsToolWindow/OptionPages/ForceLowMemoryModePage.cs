@@ -27,7 +27,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         internal sealed class Control : InternalOptionsControl
         {
             public Control(OptionStore optionStore)
-                : base(Array.Empty<IOption>(), optionStore)
+                : base(Array.Empty<IOption2>(), optionStore)
             {
             }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     internal class RelativePathResolver : IEquatable<RelativePathResolver>
     {
         public ImmutableArray<string> SearchPaths { get; }
-        public string BaseDirectory { get; }
+        public string? BaseDirectory { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RelativePathResolver"/> class.
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="searchPaths">An ordered set of fully qualified 
         /// paths which are searched when resolving assembly names.</param>
         /// <param name="baseDirectory">Directory used when resolving relative paths.</param>
-        public RelativePathResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+        public RelativePathResolver(ImmutableArray<string> searchPaths, string? baseDirectory)
         {
             Debug.Assert(searchPaths.All(PathUtilities.IsAbsolute));
             Debug.Assert(baseDirectory == null || PathUtilities.GetPathKind(baseDirectory) == PathKind.Absolute);
@@ -35,9 +33,9 @@ namespace Microsoft.CodeAnalysis
             BaseDirectory = baseDirectory;
         }
 
-        public string ResolvePath(string reference, string baseFilePath)
+        public string? ResolvePath(string reference, string? baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, BaseDirectory, SearchPaths, FileExists);
+            string? resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, BaseDirectory, SearchPaths, FileExists);
             if (resolvedPath == null)
             {
                 return null;
@@ -56,15 +54,15 @@ namespace Microsoft.CodeAnalysis
         public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) =>
             new(searchPaths, BaseDirectory);
 
-        public RelativePathResolver WithBaseDirectory(string baseDirectory) =>
+        public RelativePathResolver WithBaseDirectory(string? baseDirectory) =>
             new(SearchPaths, baseDirectory);
 
-        public bool Equals(RelativePathResolver other) =>
-            BaseDirectory == other.BaseDirectory && SearchPaths.SequenceEqual(other.SearchPaths);
+        public bool Equals(RelativePathResolver? other) =>
+            other is not null && BaseDirectory == other.BaseDirectory && SearchPaths.SequenceEqual(other.SearchPaths);
 
         public override int GetHashCode() =>
             Hash.Combine(BaseDirectory, Hash.CombineValues(SearchPaths));
 
-        public override bool Equals(object obj) => Equals(obj as RelativePathResolver);
+        public override bool Equals(object? obj) => Equals(obj as RelativePathResolver);
     }
 }

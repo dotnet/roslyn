@@ -464,7 +464,6 @@ class C
 
             comp.VerifyDiagnostics();
 
-
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
             var parameterTypes = m.Parameters;
@@ -539,33 +538,33 @@ class C
 }");
 
             comp.VerifyDiagnostics(
-                    // (5,19): error CS8755: 'params' cannot be used as a modifier on a function pointer parameter.
-                    //         delegate*<params string[], void> p1,
-                    Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "params").WithArguments("params").WithLocation(5, 19),
-                    // (6,19): error CS0027: Keyword 'this' is not available in the current context
-                    //         delegate*<this string, void> p2,
-                    Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 19),
-                    // (7,19): error CS8755: 'readonly' cannot be used as a modifier on a function pointer parameter.
-                    //         delegate*<readonly ref string, void> p3,
-                    Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "readonly").WithArguments("readonly").WithLocation(7, 19),
-                    // (8,22): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
-                    //         delegate*<in out string, void> p4,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(8, 22),
-                    // (9,23): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
-                    //         delegate*<out in string, void> p5,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(9, 23),
-                    // (10,22): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
-                    //         delegate*<in ref string, void> p6,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(10, 22),
-                    // (11,23): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
-                    //         delegate*<ref in string, void> p7,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(11, 23),
-                    // (12,23): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
-                    //         delegate*<out ref string, void> p8,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(12, 23),
-                    // (13,23): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
-                    //         delegate*<ref out string, void> p9) {}
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 23));
+                // (5,19): error CS8755: 'params' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<params string[], void> p1,
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "params").WithArguments("params").WithLocation(5, 19),
+                // (6,19): error CS0027: Keyword 'this' is not available in the current context
+                //         delegate*<this string, void> p2,
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 19),
+                // (7,19): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                //         delegate*<readonly ref string, void> p3,
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(7, 19),
+                // (8,22): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                //         delegate*<in out string, void> p4,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(8, 22),
+                // (9,23): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
+                //         delegate*<out in string, void> p5,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(9, 23),
+                // (10,22): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
+                //         delegate*<in ref string, void> p6,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(10, 22),
+                // (11,23): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
+                //         delegate*<ref in string, void> p7,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(11, 23),
+                // (12,23): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
+                //         delegate*<out ref string, void> p8,
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(12, 23),
+                // (13,23): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
+                //         delegate*<ref out string, void> p9) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 23));
 
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
@@ -1225,9 +1224,9 @@ unsafe class C
                 // (17,15): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         p4(in s);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "s").WithArguments("1", "ref").WithLocation(17, 15),
-                // (18,16): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                // (18,16): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 9.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         p5(ref s);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "s").WithArguments("1", "ref").WithLocation(18, 16));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "s").WithArguments("1", "9.0", "12.0").WithLocation(18, 16));
         }
 
         [Fact]
@@ -1271,7 +1270,6 @@ class E
             var nestedTypeInfo = model.GetTypeInfo(functionPointerTypeSyntax.ParameterList.Parameters.Single().Type!);
             Assert.Equal("C.D", nestedTypeInfo.Type!.ToTestDisplayString());
             Assert.False(nestedTypeInfo.Type!.IsErrorType());
-
 
             VerifyOperationTreeForNode(comp, model, functionPointerTypeSyntax.Parent, expectedOperationTree: @"
 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'delegate*<C.D> d')
@@ -1420,11 +1418,8 @@ unsafe static class C
             comp.VerifyDiagnostics(
                 // (6,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
                 //         var a = new { Ptr = ptr };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptr = ptr").WithArguments("delegate*<void>").WithLocation(6, 23),
-                // (7,23): error CS0828: Cannot assign 'delegate*<void>[]' to anonymous type property
-                //         var b = new { Ptrs = new[] { ptr } };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptrs = new[] { ptr }").WithArguments("delegate*<void>[]").WithLocation(7, 23)
-            );
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptr = ptr").WithArguments("delegate*<void>").WithLocation(6, 23)
+                );
 
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
@@ -1459,21 +1454,21 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 ");
 
             VerifyOperationTreeForNode(comp, model, anonymousObjectCreations[1], expectedOperationTree: @"
-IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: delegate*<System.Void>[] Ptrs>, IsInvalid) (Syntax: 'new { Ptrs  ... ] { ptr } }')
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: delegate*<System.Void>[] Ptrs>) (Syntax: 'new { Ptrs  ... ] { ptr } }')
   Initializers(1):
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'Ptrs = new[] { ptr }')
-        Left: 
-          IPropertyReferenceOperation: delegate*<System.Void>[] <anonymous type: delegate*<System.Void>[] Ptrs>.Ptrs { get; } (OperationKind.PropertyReference, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'Ptrs')
-            Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: delegate*<System.Void>[] Ptrs>, IsInvalid, IsImplicit) (Syntax: 'new { Ptrs  ... ] { ptr } }')
-        Right: 
-          IArrayCreationOperation (OperationKind.ArrayCreation, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'new[] { ptr }')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Void>[]) (Syntax: 'Ptrs = new[] { ptr }')
+        Left:
+          IPropertyReferenceOperation: delegate*<System.Void>[] <anonymous type: delegate*<System.Void>[] Ptrs>.Ptrs { get; } (OperationKind.PropertyReference, Type: delegate*<System.Void>[]) (Syntax: 'Ptrs')
+            Instance Receiver:
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: delegate*<System.Void>[] Ptrs>, IsImplicit) (Syntax: 'new { Ptrs  ... ] { ptr } }')
+        Right:
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: delegate*<System.Void>[]) (Syntax: 'new[] { ptr }')
             Dimension Sizes(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new[] { ptr }')
-            Initializer: 
-              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ ptr }')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[] { ptr }')
+            Initializer:
+              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ ptr }')
                 Element Values(1):
-                    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
+                    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
 ");
         }
 
@@ -1496,13 +1491,10 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (5,48): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (5,48): error CS1637: Iterators cannot have pointer type parameters
                 //     IEnumerable<int> Iterator1(delegate*<void> i)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(5, 48),
-                // (10,50): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //     IEnumerable<int> Iterator2(delegate*<void>[] i)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(10, 50)
-            );
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(5, 48)
+                );
         }
 
         [Fact]
@@ -1915,16 +1907,18 @@ unsafe class C
                 // (8,19): error CS8808: 'in' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                 //         delegate*<in int> ptr2;
                 Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "in").WithArguments("in").WithLocation(8, 19),
-                // (9,23): error CS8755: 'readonly' cannot be used as a modifier on a function pointer parameter.
+                // (9,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
                 //         delegate*<ref readonly int, void> ptr3;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "readonly").WithArguments("readonly").WithLocation(9, 23),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(9, 19),
+                // (9,23): error CS8773: Feature 'ref readonly parameters' is not available in C# 9.0. Please use language version 12.0 or greater.
+                //         delegate*<ref readonly int, void> ptr3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(9, 23),
                 // (10,19): error CS1536: Invalid parameter type 'void'
                 //         delegate*<void, void> ptr4;
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(10, 19),
                 // (11,19): error CS1547: Keyword 'void' cannot be used in this context
                 //         delegate*<ref void> ptr5;
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "ref void").WithLocation(11, 19)
-            );
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "ref void").WithLocation(11, 19));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
@@ -1935,7 +1929,7 @@ unsafe class C
 
             Assert.Equal("delegate*<System.Int32> ptr1", model.GetDeclaredSymbol(decls[0]).ToTestDisplayString());
             Assert.Equal("delegate*<System.Int32> ptr2", model.GetDeclaredSymbol(decls[1]).ToTestDisplayString());
-            Assert.Equal("delegate*<ref System.Int32, System.Void> ptr3", model.GetDeclaredSymbol(decls[2]).ToTestDisplayString());
+            Assert.Equal("delegate*<ref readonly modopt(System.Runtime.CompilerServices.RequiresLocationAttribute[missing]) System.Int32, System.Void> ptr3", model.GetDeclaredSymbol(decls[2]).ToTestDisplayString());
             Assert.Equal("delegate*<System.Void, System.Void> ptr4", model.GetDeclaredSymbol(decls[3]).ToTestDisplayString());
             Assert.Equal("delegate*<ref System.Void> ptr5", model.GetDeclaredSymbol(decls[4]).ToTestDisplayString());
         }

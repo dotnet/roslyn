@@ -49,7 +49,6 @@ End Class
 
 End Namespace
     </file>
-
     <file name="b.vb">
 Option Strict On
 
@@ -222,7 +221,6 @@ End Class
 
 End Namespace
     </file>
-
     <file name="b.vb">
 Option Strict On
 
@@ -567,5 +565,4 @@ End Class
         End Sub
     End Class
 End Namespace
-
 

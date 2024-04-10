@@ -1549,7 +1549,7 @@ End Class";
 }";
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
-                // (5,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'B.Q[object, object]'
+                // (5,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'B.Q[object, object]'
                 //         var o = b.Q[0];
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "b.Q[0]").WithArguments("y", "B.Q[object, object]").WithLocation(5, 17));
             var source3 =
@@ -2502,7 +2502,7 @@ class D : CodeModule
     public string get_ProcOfLine(int line, out Microsoft.Vbe.Interop.vbext_ProcKind procKind) { throw null; }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0535: 'C' does not implement interface member 'Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get'
                 // class C : CodeModule

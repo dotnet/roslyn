@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         // normalized absolute paths
         private readonly ImmutableArray<string> _noShadowCopyDirectories;
 
-        private struct CacheEntry<TPublic>
+        private readonly struct CacheEntry<TPublic>
         {
             public readonly TPublic Public;
             public readonly Metadata Private;

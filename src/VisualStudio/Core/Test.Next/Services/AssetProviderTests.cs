@@ -22,18 +22,19 @@ using Xunit;
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class AssetProviderTests
     {
         private static Workspace CreateRemoteWorkspace()
             => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestCSharpParseOptionsSynchronization()
         {
             await TestAssetAsync(Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Default);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestVisualBasicParseOptionsSynchronization()
         {
             await TestAssetAsync(Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default);
@@ -52,17 +53,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), new Dictionary<Checksum, object>() { { checksum, data } });
 
             var provider = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            var stored = await provider.GetAssetAsync<object>(checksum, CancellationToken.None);
+            var stored = await provider.GetAssetAsync<object>(AssetPath.FullLookupForTesting, checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
-            var stored2 = await provider.GetAssetsAsync<object>(new HashSet<Checksum> { checksum }, CancellationToken.None);
-            Assert.Equal(1, stored2.Length);
+            var stored2 = new List<(Checksum, object)>();
+            await provider.GetAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum> { checksum }, (checksum, asset, _) => stored2.Add((checksum, asset)), default, CancellationToken.None);
+            Assert.Equal(1, stored2.Count);
 
             Assert.Equal(checksum, stored2[0].Item1);
             Assert.Equal(data, stored2[0].Item2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestAssetSynchronization()
         {
             var code = @"class Test { void Method() { } }";
@@ -71,7 +73,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             // build checksum
-            await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
             var map = await solution.GetAssetMapAsync(CancellationToken.None);
 
@@ -82,7 +84,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
+            await service.SynchronizeAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum>(map.Keys), callback: null, arg: default, CancellationToken.None);
 
             foreach (var kv in map)
             {
@@ -90,7 +92,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestSolutionSynchronization()
         {
             var code = @"class Test { void Method() { } }";
@@ -99,7 +101,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             // build checksum
-            await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
             var map = await solution.GetAssetMapAsync(CancellationToken.None);
 
@@ -110,12 +112,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+            await service.SynchronizeSolutionAssetsAsync(await solution.CompilationState.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact]
         public async Task TestProjectSynchronization()
         {
             var code = @"class Test { void Method() { } }";
@@ -135,7 +137,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeProjectAssetsAsync(new HashSet<Checksum> { await project.State.GetChecksumAsync(CancellationToken.None) }, CancellationToken.None);
+            await service.SynchronizeProjectAssetsAsync(await project.State.GetStateChecksumsAsync(CancellationToken.None), CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }

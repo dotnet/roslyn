@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
+    <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
     Public Class RegionDirectiveStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of RegionDirectiveTriviaSyntax)
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return New RegionDirectiveStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function FileHeader() As Task
             Const code = "
 {|span:$$#Region ""Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
                 Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse:=True, isDefaultCollapsed:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function EmptyFileHeader() As Task
             Const code = "
 {|span:$$#Region """"

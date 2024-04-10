@@ -13,58 +13,62 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnClassName_ShouldFail()
         {
-            var markup = @"
-using System;
-class MyClass$$
-{
-    public void Goo(int x, string y)
-    {
-    }
-}";
+            var markup = """
+                using System;
+                class MyClass$$
+                {
+                    public void Goo(int x, string y)
+                    {
+                    }
+                }
+                """;
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnField_ShouldFail()
         {
-            var markup = @"
-using System;
-class MyClass
-{
-    int t$$ = 2;
+            var markup = """
+                using System;
+                class MyClass
+                {
+                    int t$$ = 2;
 
-    public void Goo(int x, string y)
-    {
-    }
-}";
+                    public void Goo(int x, string y)
+                    {
+                    }
+                }
+                """;
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
         {
             var markup = @"class C { void $$M() { } }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
         {
-            var markup = @"
-class C
-{
-    public static C $$operator +(C a, C b)
-    {
-        return null;
-    }
-}";
+            var markup = """
+                class C
+                {
+                    public static C $$operator +(C a, C b)
+                    {
+                        return null;
+                    }
+                }
+                """;
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
         }

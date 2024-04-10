@@ -60,9 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    VBFeaturesResources.Inline_temporary_variable,
+                    FeaturesResources.Inline_temporary_variable,
                     Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c),
-                    NameOf(VBFeaturesResources.Inline_temporary_variable)),
+                    NameOf(FeaturesResources.Inline_temporary_variable)),
                 variableDeclarator.Span)
         End Function
 

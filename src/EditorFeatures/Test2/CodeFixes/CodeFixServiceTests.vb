@@ -9,6 +9,7 @@ Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -17,16 +18,17 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ErrorLogger
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class CodeFixServiceTests
 
-        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures
 
         Private ReadOnly _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
 
@@ -34,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Async Function TestProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -44,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+            Using workspace = EditorTestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
@@ -53,7 +55,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim project = workspace.CurrentSolution.Projects(0)
 
-                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
@@ -68,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -77,7 +78,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -94,7 +94,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
                 Assert.Equal(1, fixes.Count())
 
@@ -105,14 +104,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <Fact>
         Public Async Function TestDifferentLanguageProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -123,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+            Using workspace = EditorTestWorkspace.Create(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
@@ -132,7 +130,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 Dim project = workspace.CurrentSolution.Projects(0)
 
-                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
@@ -147,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -156,7 +153,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -173,7 +169,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
-                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -265,6 +260,87 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 #Disable Warning RS0005
                 context.RegisterCodeFix(CodeAction.Create("FIX_TEST1111", Function(ct) Task.FromResult(context.Document.WithSyntaxRoot(root))), context.Diagnostics)
 #Enable Warning RS0005
+            End Function
+        End Class
+
+        <Fact>
+        Public Async Function TestCopilotCodeAnalysisServiceWithoutSyntaxTree() As Task
+            Dim workspaceDefinition =
+            <Workspace>
+                <Project Language="NoCompilation" AssemblyName="TestAssembly" CommonReferencesPortable="true">
+                    <Document>
+                        var x = {}; // e.g., TypeScript code or anything else that doesn't support compilations
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(NoCompilationCopilotCodeAnalysisService))
+
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=composition)
+
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim diagnosticsXml =
+                    <Diagnostics>
+                        <Error Id=<%= "TestId" %>
+                            MappedFile=<%= document.Name %> MappedLine="0" MappedColumn="0"
+                            OriginalFile=<%= document.Name %> OriginalLine="0" OriginalColumn="0"
+                            Message=<%= "Test Message" %>/>
+                    </Diagnostics>
+                Dim diagnostics = DiagnosticProviderTests.GetExpectedDiagnostics(workspace, diagnosticsXml)
+
+                Dim copilotCodeAnalysisService = document.Project.Services.GetService(Of ICopilotCodeAnalysisService)()
+                Dim noCompilationCopilotCodeAnalysisService = DirectCast(copilotCodeAnalysisService, NoCompilationCopilotCodeAnalysisService)
+
+                NoCompilationCopilotCodeAnalysisService.Diagnostics = diagnostics.SelectAsArray(Of Diagnostic)(
+                        Function(d) d.ToDiagnosticAsync(document.Project, CancellationToken.None).Result)
+                Dim codefixService = workspace.ExportProvider.GetExportedValue(Of ICodeFixService)
+
+                ' Make sure we don't crash
+                Dim unused = Await codefixService.GetMostSevereFixAsync(
+                    document, Text.TextSpan.FromBounds(0, 0), New DefaultCodeActionRequestPriorityProvider(), CodeActionOptions.DefaultProvider, CancellationToken.None)
+            End Using
+        End Function
+
+        <ExportLanguageService(GetType(ICopilotCodeAnalysisService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
+        Private Class NoCompilationCopilotCodeAnalysisService
+            Implements ICopilotCodeAnalysisService
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Shared Property Diagnostics As ImmutableArray(Of Diagnostic) = ImmutableArray(Of Diagnostic).Empty
+
+            Public Function IsRefineOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsRefineOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsCodeAnalysisOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsCodeAnalysisOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsAvailableAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsAvailableAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function GetAvailablePromptTitlesAsync(document As Document, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String)) Implements ICopilotCodeAnalysisService.GetAvailablePromptTitlesAsync
+                Return Task.FromResult(ImmutableArray.Create("Title"))
+            End Function
+
+            Public Function AnalyzeDocumentAsync(document As Document, span As TextSpan?, promptTitle As String, cancellationToken As CancellationToken) As Task Implements ICopilotCodeAnalysisService.AnalyzeDocumentAsync
+                Return Task.CompletedTask
+            End Function
+
+            Public Function GetCachedDocumentDiagnosticsAsync(document As Document, span As TextSpan?, promptTitles As ImmutableArray(Of String), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of Diagnostic)) Implements ICopilotCodeAnalysisService.GetCachedDocumentDiagnosticsAsync
+                Return Task.FromResult(Diagnostics)
+            End Function
+
+            Public Function StartRefinementSessionAsync(oldDocument As Document, newDocument As Document, primaryDiagnostic As Diagnostic, cancellationToken As CancellationToken) As Task Implements ICopilotCodeAnalysisService.StartRefinementSessionAsync
+                Return Task.CompletedTask
             End Function
         End Class
     End Class

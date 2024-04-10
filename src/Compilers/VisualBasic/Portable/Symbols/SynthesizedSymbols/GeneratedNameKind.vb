@@ -17,7 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         IteratorParameterProxyField
         StateMachineAwaiterField
         StateMachineStateField
-        StateMachineHoistedUserVariableField
+        StateMachineHoistedUserVariableOrDisplayClassField
+        HoistedWithLocalPrefix
         StaticLocalField
         TransparentIdentifier
         AnonymousTransparentIdentifier

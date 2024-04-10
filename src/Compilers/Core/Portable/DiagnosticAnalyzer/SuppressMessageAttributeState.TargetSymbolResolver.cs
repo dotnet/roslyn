@@ -841,7 +841,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return GetNthTypeParameter(typeSymbol.ContainingType, n);
                 }
 
-                return typeSymbol.TypeParameters[n - containingTypeParameterCount];
+                var index = n - containingTypeParameterCount;
+                var typeParameters = typeSymbol.TypeParameters;
+                if (index < typeParameters.Length)
+                {
+                    return typeParameters[index];
+                }
+
+                return null;
             }
 
             private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
@@ -855,7 +862,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private struct TypeInfo
+            private readonly struct TypeInfo
             {
                 // The type, may be null if unbound.
                 public readonly ITypeSymbol Type;
@@ -886,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private struct ParameterInfo
+            private readonly struct ParameterInfo
             {
                 public readonly TypeInfo Type;
                 public readonly bool IsRefOrOut;

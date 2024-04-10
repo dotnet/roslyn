@@ -1183,7 +1183,6 @@ Lambda(
 ]]>)
         End Sub
 
-
 #Region "Conversions: User Defined Types"
 
         Public Sub TestConversion_UserDefinedTypes_Narrowing(checked As Boolean, result As String)
@@ -1678,7 +1677,6 @@ lNothing:
             TestConversion_TypeParameters("O", "D", tests)
             TestConversion_TypeParameters("D", "O", tests)
 
-
             ' Type parameter -> Type
             For Each type1 In {"T", "S", "S?", "O", "D"}
                 TestConversion_TypeParameters(type1, "Object", tests)
@@ -1687,7 +1685,6 @@ lNothing:
             TestConversion_TwoTypesAndExpression("O", "Clazz2", "TryCast({0}, {1})", tests)
             TestConversion_TypeParameters("D", "Clazz1", tests)
             TestConversion_TwoTypesAndExpression("D", "Clazz2", "TryCast({0}, {1})", tests)
-
 
             ' Type -> Type parameter 
             For Each type1 In {"T", "S", "S?", "O", "D"}
@@ -1701,7 +1698,6 @@ lNothing:
             TestConversion_TypeParameters("Clazz1", "D", tests)
             TestConversion_TwoTypesAndExpression("Clazz2", "D", "TryCast({0}, {1})", tests)
 
-
             ' Nothing -> Type parameter 
             For Each type1 In {"T", "S", "S?", "O", "D"}
                 TestConversion_TwoTypesAndExpression("Object", type1, "Nothing", tests)
@@ -1711,7 +1707,6 @@ lNothing:
                     TestConversion_TwoTypesAndExpression("Object", type1, "TryCast(Nothing, {1})", tests)
                 End If
             Next
-
 
             tests(0).Prefix = <![CDATA[
 Public Class Clazz1
@@ -1821,7 +1816,7 @@ End Structure
                                                      Optional optimize As Boolean = True,
                                                      Optional latestReferences As Boolean = False,
                                                      Optional addXmlReferences As Boolean = False,
-                                                     Optional verify As Verification = Verification.Passes) As CompilationVerifier
+                                                     Optional verify As Verification = Nothing) As CompilationVerifier
 
             Debug.Assert(Not latestReferences OrElse Not addXmlReferences) ' NYI
 
@@ -1844,7 +1839,7 @@ End Structure
                                         Optional latestReferences As Boolean = False,
                                         Optional addXmlReferences As Boolean = False,
                                         Optional diagnostics() As DiagnosticDescription = Nothing,
-                                        Optional verify As Verification = Verification.Passes)
+                                        Optional verify As Verification = Nothing)
 
             TestExpressionTreesVerifier(sourceFile, result, checked, optimize, latestReferences, addXmlReferences, verify).VerifyDiagnostics(If(diagnostics, {}))
         End Sub
@@ -2018,6 +2013,31 @@ End Module
                          </compilation>
 
             CompileAndVerify(source, references:={Net40.SystemCore}).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72456")>
+        Public Sub UndeclaredClassInLambdaFunction()
+            Dim source =
+<compilation>
+    <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Module Program
+    Public Function CreateExpression() As Expression(Of Func(Of Object))
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+    End Function
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, {LinqAssemblyRef})
+            AssertTheseDiagnostics(compilation.GetDiagnostics(),
+<expected>
+BC30002: Type 'UndeclaredClass' is not defined.
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+                               ~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3258,7 +3278,6 @@ End Class
 ]]>)
         End Sub
 
-
 #End Region
 
 #Region "Xml Literals"
@@ -3670,7 +3689,6 @@ Lambda(
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v40()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1223 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3711,12 +3729,11 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result)
         End Sub
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v45()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1167 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3754,7 +3771,7 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True)
         End Sub
 
         <Fact>
@@ -7262,7 +7279,6 @@ end class
                  expectedOutput:="m => m").VerifyDiagnostics()
         End Sub
 
-
         <WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")>
         <Fact>
         Public Sub GenericField01()
@@ -8221,9 +8237,15 @@ End Class
 </compilation>)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
+    BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~
@@ -8517,7 +8539,6 @@ x => x.set_City("aa")
 aa
 ]]>).VerifyDiagnostics()
 
-
         End Sub
 
         <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
@@ -8594,7 +8615,6 @@ x => x.set_City(value(Module1+_Closure$__4-0).$VB$Local_i, "aa")
 aa23
 ]]>).VerifyDiagnostics()
 
-
         End Sub
 
         <WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
@@ -8651,7 +8671,6 @@ End Module
                             ]]></file>
                          </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source,
                  references:={Net40.SystemCore},
                  options:=TestOptions.ReleaseExe)
@@ -8701,7 +8720,6 @@ End Class
 
                             ]]></file>
                          </compilation>
-
 
             CompileAndVerify(source,
                  references:={Net40.SystemCore},

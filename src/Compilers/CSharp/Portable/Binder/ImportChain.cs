@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -17,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public readonly Imports Imports;
         public readonly ImportChain ParentOpt;
-
-        private ImmutableArray<Cci.UsedNamespaceOrType> _lazyTranslatedImports;
 
         public ImportChain(Imports imports, ImportChain parentOpt)
         {
@@ -33,23 +32,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"{Imports.GetDebuggerDisplay()} ^ {ParentOpt?.GetHashCode() ?? 0}";
         }
 
-        ImmutableArray<Cci.UsedNamespaceOrType> Cci.IImportScope.GetUsedNamespaces()
+        ImmutableArray<Cci.UsedNamespaceOrType> Cci.IImportScope.GetUsedNamespaces(EmitContext context)
         {
+            bool result = ((Emit.PEModuleBuilder)context.Module).TryGetTranslatedImports(this, out ImmutableArray<Cci.UsedNamespaceOrType> imports);
             // The imports should have been translated during code gen.
-            Debug.Assert(!_lazyTranslatedImports.IsDefault);
-            return _lazyTranslatedImports;
+            Debug.Assert(result);
+            Debug.Assert(!imports.IsDefault);
+            return imports;
         }
 
         public Cci.IImportScope Translate(Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
         {
             for (var scope = this; scope != null; scope = scope.ParentOpt)
             {
-                if (!scope._lazyTranslatedImports.IsDefault)
+                if (moduleBuilder.TryGetTranslatedImports(scope, out _))
                 {
                     break;
                 }
 
-                ImmutableInterlocked.InterlockedInitialize(ref scope._lazyTranslatedImports, scope.TranslateImports(moduleBuilder, diagnostics));
+                moduleBuilder.GetOrAddTranslatedImports(scope, scope.TranslateImports(moduleBuilder, diagnostics));
             }
 
             return this;
@@ -112,10 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var assemblyRef = TryGetAssemblyScope(ns, moduleBuilder, diagnostics);
                         usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns.GetCciAdapter(), assemblyRef, alias));
                     }
-                    else if (!target.ContainingAssembly.IsLinked)
+                    else if (target is NamedTypeSymbol { ContainingAssembly.IsLinked: false } or not NamedTypeSymbol)
                     {
-                        // We skip alias imports of embedded types to avoid breaking existing code that
-                        // imports types that can't be embedded but doesn't use them anywhere else in the code.
+                        // We skip alias imports of embedded types to avoid breaking existing code that imports types
+                        // that can't be embedded but doesn't use them anywhere else in the code.  Note, this is only
+                        // done for named types.  Other sorts of type symbols (arrays, etc.) are allowed through.
                         var typeRef = GetTypeReference((TypeSymbol)target, syntax, moduleBuilder, diagnostics);
                         usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateType(typeRef, alias));
                     }

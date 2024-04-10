@@ -17,25 +17,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class BinderFactory
     {
-        private sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
+        internal sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
         {
             private int _position;
             private CSharpSyntaxNode _memberDeclarationOpt;
             private Symbol _memberOpt;
-            private readonly BinderFactory _factory;
+            private BinderFactory _factory;
 
-            internal BinderFactoryVisitor(BinderFactory factory)
-            {
-                _factory = factory;
-            }
-
-            internal void Initialize(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
+            internal void Initialize(BinderFactory factory, int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
             {
                 Debug.Assert((memberDeclarationOpt == null) == (memberOpt == null));
 
+                _factory = factory;
                 _position = position;
                 _memberDeclarationOpt = memberDeclarationOpt;
                 _memberOpt = memberOpt;
+            }
+
+            internal void Clear()
+            {
+                _factory = null;
+                _position = 0;
+                _memberDeclarationOpt = null;
+                _memberOpt = null;
             }
 
             private CSharpCompilation compilation
@@ -229,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitDestructorDeclaration(DestructorDeclarationSyntax parent)
             {
                 // If the position isn't in the scope of the method, then proceed to the parent syntax node.
-                if (!LookupPosition.IsInMethodDeclaration(_position, parent))
+                if (!LookupPosition.IsInBody(_position, parent))
                 {
                     return VisitCore(parent.Parent);
                 }
@@ -542,19 +546,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private Symbol GetMemberSymbol(string memberName, TextSpan memberSpan, NamedTypeSymbol container, SymbolKind kind)
             {
-                // return container.GetMembers(methodSyntax.Identifier.ValueText).OfType<SourceMethodSymbol>().Single(m => m.Locations.Any(l => l.SourceTree == tree && methodSyntax.Span.Contains(l.SourceSpan)));
-                foreach (Symbol sym in container.GetMembers(memberName))
+                Debug.Assert(kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event);
+
+                if (container is SourceMemberContainerTypeSymbol { HasPrimaryConstructor: true } sourceMemberContainerTypeSymbol)
                 {
+                    foreach (Symbol sym in sourceMemberContainerTypeSymbol.GetMembersToMatchAgainstDeclarationSpan())
+                    {
+                        if (sym.IsAccessor())
+                        {
+                            continue;
+                        }
+
+                        if (sym.Name == memberName && checkSymbol(sym, memberSpan, kind, out Symbol result))
+                        {
+                            return result;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (Symbol sym in container.GetMembers(memberName))
+                    {
+                        if (checkSymbol(sym, memberSpan, kind, out Symbol result))
+                        {
+                            return result;
+                        }
+                    }
+                }
+
+                return null;
+
+                bool checkSymbol(Symbol sym, TextSpan memberSpan, SymbolKind kind, out Symbol result)
+                {
+                    result = sym;
+
                     if (sym.Kind != kind)
                     {
-                        continue;
+                        return false;
                     }
 
                     if (sym.Kind == SymbolKind.Method)
                     {
-                        if (InSpan(sym.Locations[0], this.syntaxTree, memberSpan))
+                        if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
-                            return sym;
+                            return true;
                         }
 
                         // If this is a partial method, the method represents the defining part,
@@ -563,19 +598,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var implementation = ((MethodSymbol)sym).PartialImplementationPart;
                         if ((object)implementation != null)
                         {
-                            if (InSpan(implementation.Locations[0], this.syntaxTree, memberSpan))
+                            if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {
-                                return implementation;
+                                result = implementation;
+                                return true;
                             }
                         }
                     }
                     else if (InSpan(sym.Locations, this.syntaxTree, memberSpan))
                     {
-                        return sym;
+                        return true;
                     }
-                }
 
-                return null;
+                    return false;
+                }
             }
 
             /// <summary>
@@ -726,6 +762,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+                            resultBinder = new WithPrimaryConstructorParametersBinder(typeSymbol, resultBinder);
+
                             resultBinder = new InContainerBinder(typeSymbol, resultBinder);
 
                             if (parent.TypeParameterList != null)
@@ -1114,7 +1152,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 XmlNameAttributeElementKind elementKind = parent.GetElementKind();
 
-
                 NodeUsage extraInfo;
                 switch (elementKind)
                 {
@@ -1187,11 +1224,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
 
-                if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
+                if (memberSyntax is TypeDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } typeDeclaration)
                 {
+                    _ = typeDeclaration.ParameterList;
                     Binder outerBinder = VisitCore(memberSyntax);
-                    SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
-                    var primaryConstructor = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
+                    SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
+                    var primaryConstructor = type.PrimaryConstructor;
 
                     if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
                         primaryConstructor.GetSyntax() == memberSyntax)
@@ -1323,9 +1361,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder getBinder(BaseTypeDeclarationSyntax baseTypeDeclaration)
             {
-                if (baseTypeDeclaration is RecordDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken } } recordDeclaration)
+                if (baseTypeDeclaration is TypeDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken }, OpenBraceToken: { RawKind: (int)SyntaxKind.None } } noBlockBodyTypeDeclarationWithSemicolon)
                 {
-                    return factory.GetInRecordBodyBinder(recordDeclaration);
+                    return factory.GetInTypeBodyBinder(noBlockBodyTypeDeclarationWithSemicolon);
                 }
 
                 return factory.GetBinder(baseTypeDeclaration, baseTypeDeclaration.OpenBraceToken.SpanStart);
@@ -1359,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             StructuredTriviaSyntax structuredTrivia = GetEnclosingDocumentationComment(xmlSyntax);
             SyntaxTrivia containingTrivia = structuredTrivia.ParentTrivia;
-            SyntaxToken associatedToken = (SyntaxToken)containingTrivia.Token;
+            SyntaxToken associatedToken = containingTrivia.Token;
 
             CSharpSyntaxNode curr = (CSharpSyntaxNode)associatedToken.Parent;
             while (curr != null)
@@ -1367,7 +1405,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberDeclarationSyntax memberSyntax = curr as MemberDeclarationSyntax;
                 if (memberSyntax != null)
                 {
-                    // CONSIDER: require that the xml syntax precede the start of the member span?
+                    // The doc comment must be in the leading trivia of its associated member.
+                    if (!memberSyntax.GetLeadingTrivia().Contains(containingTrivia))
+                    {
+                        return null;
+                    }
+
                     return memberSyntax;
                 }
                 curr = curr.Parent;

@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private Function GetSemanticModelWithIgnoreAccessibility() As SemanticModel
 
-
             Dim compilationA = CreateVisualBasicCompilation(<![CDATA[
 Class A
 

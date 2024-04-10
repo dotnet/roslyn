@@ -9,8 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ValueSetFactory
     {
-        private struct StringTC : IEquatableValueTC<string>
+        private class StringTC : IEquatableValueTC<string>
         {
+            public static readonly StringTC Instance = new StringTC();
+            private StringTC() { }
+
             string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue)
             {
                 var result = constantValue.IsBad ? string.Empty : constantValue.StringValue;

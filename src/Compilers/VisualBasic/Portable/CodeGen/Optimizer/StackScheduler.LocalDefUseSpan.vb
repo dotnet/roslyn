@@ -76,7 +76,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return Me.Start <= val AndAlso Me.End >= val
             End Function
 
-
         End Class
 
     End Class

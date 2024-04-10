@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
     [UseExportProvider]
     public class DiagnosticAnalyzerDriverTests
     {
-        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
         [Fact]
         public async Task DiagnosticAnalyzerDriverAllInOne()
@@ -42,17 +40,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var source = TestResource.AllInOneCSharpCode;
 
             // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
-            var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
+            var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>
+            {
+                SymbolKind.Property,
+                SymbolKind.NamedType
+            };
 
-            var missingSyntaxNodes = new HashSet<SyntaxKind>();
-            // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
-            missingSyntaxNodes.Add(SyntaxKind.WithExpression);
-            missingSyntaxNodes.Add(SyntaxKind.RecordDeclaration);
+            var missingSyntaxNodes = new HashSet<SyntaxKind>
+            {
+                // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
+                SyntaxKind.WithExpression,
+                SyntaxKind.RecordDeclaration,
+                SyntaxKind.CollectionExpression,
+                SyntaxKind.ExpressionElement,
+                SyntaxKind.SpreadElement
+            };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
             var newSolution = workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference })
@@ -68,22 +73,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
         }
 
-        [Fact, WorkItem(908658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908658")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908658")]
         public async Task DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
         {
             var methodNames = new string[] { "Initialize", "AnalyzeCodeBlock" };
-            var source = @"
-[System.Obsolete]
-class C
-{
-    int P { get; set; }
-    delegate void A();
-    delegate string F();
-}
-";
+            var source = """
+                [System.Obsolete]
+                class C
+                {
+                    int P { get; set; }
+                    delegate void A();
+                    delegate string F();
+                }
+                """;
 
             var ideEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
+            using (var ideEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
                 var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(ideEngineAnalyzer));
                 ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -100,7 +105,7 @@ class C
             }
 
             var compilerEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var compilerEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
             var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None).Result;
             compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { compilerEngineAnalyzer });
             foreach (var method in methodNames)
@@ -112,15 +117,14 @@ class C
             }
         }
 
-        [Fact]
-        [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/759")]
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
 
             await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>
             {
-                using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+                using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
                 var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -130,8 +134,7 @@ class C
             });
         }
 
-        [WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_1()
         {
             var analyzer = new ThrowingDiagnosticAnalyzer<SyntaxKind>();
@@ -139,8 +142,7 @@ class C
             AccessSupportedDiagnostics(analyzer);
         }
 
-        [WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_2()
         {
             var analyzer = new ThrowingDoNotCatchDiagnosticAnalyzer<SyntaxKind>();
@@ -155,13 +157,13 @@ class C
                 exceptions.Add(e);
             }
 
-            Assert.True(exceptions.Count == 0);
+            Assert.Empty(exceptions);
         }
 
         [Fact]
         public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
-            using var workspace = TestWorkspace.CreateCSharp(TestResource.AllInOneCSharpCode, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = EditorTestWorkspace.CreateCSharp(TestResource.AllInOneCSharpCode, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
             var additionalDocId = DocumentId.CreateNewId(workspace.CurrentSolution.Projects.Single().Id);
             var additionalText = new TestAdditionalText("add.config", SourceText.From("random text"));
@@ -186,7 +188,7 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
-            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+            public bool IsHighPriority => false;
 
             public bool OpenFileOnly(SimplifierOptions? options) => false;
 
@@ -199,7 +201,7 @@ class C
         {
             var source = @"x";
 
-            using var workspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
 
             var analyzer = new CompilationAnalyzerWithSyntaxTreeAnalyzer();
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
@@ -244,19 +246,19 @@ class C
         [Fact]
         public async Task CodeBlockAnalyzersOnlyAnalyzeExecutableCode()
         {
-            var source = @"
-using System;
-class C
-{
-    void F(int x = 0)
-    {
-        Console.WriteLine(0);
-    }
-}
-";
+            var source = """
+                using System;
+                class C
+                {
+                    void F(int x = 0)
+                    {
+                        Console.WriteLine(0);
+                    }
+                }
+                """;
 
             var analyzer = new CodeBlockAnalyzerFactory();
-            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
+            using (var ideEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
                 var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
                 ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -267,18 +269,18 @@ class C
                 Assert.Equal(2, diagnosticsFromAnalyzer.Count());
             }
 
-            source = @"
-using System;
-class C
-{
-    void F(int x = 0, int y = 1, int z = 2)
-    {
-        Console.WriteLine(0);
-    }
-}
-";
+            source = """
+                using System;
+                class C
+                {
+                    void F(int x = 0, int y = 1, int z = 2)
+                    {
+                        Console.WriteLine(0);
+                    }
+                }
+                """;
 
-            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
+            using (var compilerEngineWorkspace = EditorTestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
                 var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None).Result;
                 var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
@@ -338,7 +340,7 @@ class C
             var source = @"// empty code";
 
             var analyzer = new InvalidSpanAnalyzer();
-            using var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source);
+            using var compilerEngineWorkspace = EditorTestWorkspace.CreateCSharp(source);
             var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None));
 
             var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
@@ -359,7 +361,7 @@ class C
                 => context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.Create(context.Tree, TextSpan.FromBounds(1000, 2000))));
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixAnalyzer_ReportsSameId()
         {
             // NuGet and VSIX analyzer reporting same diagnostic IDs.
@@ -418,7 +420,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixAnalyzer_NuGetAnalyzerReportsSubsetOfVsixAnalyzerIds()
         {
             // NuGet analyzer reports subset of diagnostic IDs reported by VSIX analyzer.
@@ -470,7 +472,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixAnalyzer_VsixAnalyzerReportsSubsetOfNuGetAnalyzerIds()
         {
             // VSIX analyzer reports subset of diagnostic IDs reported by NuGet analyzer.
@@ -521,7 +523,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(18818, "https://github.com/dotnet/roslyn/issues/18818")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18818")]
         public async Task TestNuGetAndVsixAnalyzer_MultipleNuGetAnalyzersCollectivelyReportSameIds()
         {
             // Multiple NuGet analyzers collectively report same diagnostic IDs reported by Vsix analyzer.
@@ -594,7 +596,7 @@ class C
                 });
         }
 
-        [Fact, WorkItem(46942, "https://github.com/dotnet/roslyn/issues/46942")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46942")]
         public async Task TestNuGetAndVsixAnalyzer_SuppressorSuppressesVsixAnalyzer()
         {
             // Multiple NuGet analyzers do not overlap with the VSIX analyzer or suppressor
@@ -606,7 +608,7 @@ class C
             var vsixAnalyzer = new VsixAnalyzer(vsixAnalyzerDiagnosticIds);
             var vsixSuppressor = new VsixSuppressor(vsixAnalyzerDiagnosticIds);
             var nugetSuppressor = new NuGetSuppressor(vsixAnalyzerDiagnosticIds);
-            var partialNugetSuppressor = new NuGetSuppressor(new[] { "Y", "Z" });
+            var partialNugetSuppressor = new NuGetSuppressor(["Y", "Z"]);
 
             Assert.Equal(firstNugetAnalyzerDiagnosticIds, firstNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
             Assert.Equal(secondNugetAnalyzerDiagnosticIds, secondNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
@@ -771,7 +773,7 @@ class C
                 vsixSuppressor.SuppressorInvoked = false;
             }
 
-            using var workspace = TestWorkspace.CreateCSharp("class Class { }", TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = EditorTestWorkspace.CreateCSharp("class Class { }", TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
             var vsixAnalyzerReferences = new List<DiagnosticAnalyzer>(vsixAnalyzers.CastArray<DiagnosticAnalyzer>());
             vsixAnalyzerReferences.AddRange(vsixSuppressors.CastArray<DiagnosticAnalyzer>());
 
@@ -904,7 +906,7 @@ class C
 
         private abstract class AbstractNugetOrVsixSuppressor : DiagnosticSuppressor
         {
-            private readonly Dictionary<string, SuppressionDescriptor> mapping = new Dictionary<string, SuppressionDescriptor>();
+            private readonly Dictionary<string, SuppressionDescriptor> mapping = [];
 
             protected AbstractNugetOrVsixSuppressor(string analyzerName, params string[] reportedIds)
                 => SupportedSuppressions = CreateSupportedSuppressions(analyzerName, this.mapping, reportedIds);

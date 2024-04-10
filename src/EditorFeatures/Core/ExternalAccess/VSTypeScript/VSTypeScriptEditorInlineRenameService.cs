@@ -11,30 +11,24 @@ using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[Shared]
+[ExportLanguageService(typeof(IEditorInlineRenameService), InternalLanguageNames.TypeScript)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptEditorInlineRenameService(
+    [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? service) : IEditorInlineRenameService
 {
-    [Shared]
-    [ExportLanguageService(typeof(IEditorInlineRenameService), InternalLanguageNames.TypeScript)]
-    internal sealed class VSTypeScriptEditorInlineRenameService : IEditorInlineRenameService
+    private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service = service;
+
+    public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
     {
-        private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptEditorInlineRenameService(
-            [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? service)
+        if (_service != null)
         {
-            _service = service;
+            return await _service.Value.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            if (_service != null)
-            {
-                return await _service.Value.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            }
-
-            return AbstractEditorInlineRenameService.DefaultFailureInfo;
-        }
+        return AbstractEditorInlineRenameService.DefaultFailureInfo;
     }
 }

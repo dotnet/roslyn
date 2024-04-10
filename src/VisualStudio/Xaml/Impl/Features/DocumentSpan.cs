@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Editor.Xaml.Features
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal struct DocumentSpan
+    internal readonly struct DocumentSpan
     {
         public Document Document { get; }
         public TextSpan TextSpan { get; }

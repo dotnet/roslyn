@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 } // end of class C3
 ";
 
-
             var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
 
             var c3 = compilation1.GetTypeByMetadataName("C3");
@@ -359,7 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
   } // end of property X::Token
 } // end of class X
 ";
-
 
             var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
 

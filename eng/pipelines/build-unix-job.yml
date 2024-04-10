@@ -9,23 +9,17 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
-- name: queueName
-  type: string
-  default: ''
-- name: vmImageName
-  type: string
-  default: ''
+- name: poolParameters
+  type: object
 
 jobs:
 - job: ${{ parameters.jobName }}
-  pool:
-    ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-
-    ${{ if ne(parameters.vmImageName, '') }}:
-      vmImage: ${{ parameters.vmImageName }}
+  pool: ${{ parameters.poolParameters }}
   timeoutInMinutes: 40
+  variables:
+    - template: variables-build.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
 
   steps:
     - template: checkout-unix-task.yml

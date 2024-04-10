@@ -159,7 +159,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
         End Sub
 
-
         'The interesting part in the following method is the support for exception filters. 
         '=== Example:
         '
@@ -728,7 +727,6 @@ BinaryOperatorKindLogicalAnd:
                         Case BinaryOperatorKind.Equals,
                              BinaryOperatorKind.NotEquals
 BinaryOperatorKindEqualsNotEquals:
-
                             Dim reduced = TryReduce(binOp, sense)
                             If reduced IsNot Nothing Then
                                 condition = reduced
@@ -765,7 +763,6 @@ BinaryOperatorKindLessThan:
                     Else
                         GoTo OtherExpressions
                     End If
-
 
                 Case BoundKind.TypeOf
 
@@ -1087,11 +1084,10 @@ OtherExpressions:
         End Sub
 
         Private Sub EmitStringSwitchJumpTable(caseLabels As KeyValuePair(Of ConstantValue, Object)(), fallThroughLabel As LabelSymbol, key As LocalDefinition, syntaxNode As SyntaxNode)
-            Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(_module, caseLabels.Length)
+            Dim genHashTableSwitch As Boolean = SwitchStringJumpTableEmitter.ShouldGenerateHashTableSwitch(caseLabels.Length)
             Dim keyHash As LocalDefinition = Nothing
 
             If genHashTableSwitch Then
-                Debug.Assert(_module.SupportsPrivateImplClass)
                 Dim privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics)
                 Dim stringHashMethodRef As Microsoft.Cci.IReference = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName)
                 Debug.Assert(stringHashMethodRef IsNot Nothing)

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (!methodToken.IsNil)
             {
                 string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
-                sequencePointMarkers = ILValidation.GetSequencePointMarkers(actualPdb);
+                sequencePointMarkers = ILValidation.GetSequencePointMarkers(XElement.Parse(actualPdb));
 
                 Assert.True(sequencePointMarkers.Count > 0, $"No sequence points found in:{Environment.NewLine}{actualPdb}");
             }

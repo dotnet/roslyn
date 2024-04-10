@@ -275,8 +275,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndNonConstantDynamic()
         {
             var source =
@@ -344,8 +343,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndNonConstantNonDynamic()
         {
             var source =
@@ -403,8 +401,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndConstantDynamic()
         {
             var source =
@@ -503,8 +500,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndConstantNonDynamic()
         {
             var source =
@@ -749,7 +745,7 @@ class Generic<T>
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void ComplexDynamicType()
         {
             var source =
@@ -1020,8 +1016,7 @@ class C
             });
         }
 
-        [WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
         public void AwaitDynamic()
         {
             var source = @"
@@ -1251,8 +1246,7 @@ class C
             });
         }
 
-        [WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
         public void InvokeStaticMemberInLambda()
         {
             var source = @"
@@ -1263,6 +1257,10 @@ class C
     static void Goo(dynamic y)
     {
         System.Action a = () => Goo(x);
+    }
+
+    static void Goo(int y)
+    {
     }
 }
 ";
@@ -1359,8 +1357,7 @@ class C
             });
         }
 
-        [WorkItem(1095613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
         public void HoistedLocalsLoseDynamicAttribute()
         {
             var source = @"
@@ -1375,6 +1372,9 @@ class C
     static void Goo(int x)
     {
         M(x);
+    }
+    static void Goo(string x)
+    {
     }
 }
 ";
@@ -1500,10 +1500,7 @@ class C
             {
                 Assert.Equal(CustomTypeInfo.PayloadTypeId, customTypeInfoId);
                 // Include leading count byte.
-                var builder = ArrayBuilder<byte>.GetInstance();
-                builder.Add((byte)expectedBytes.Length);
-                builder.AddRange(expectedBytes);
-                expectedBytes = builder.ToArrayAndFree();
+                expectedBytes = [(byte)expectedBytes.Length, .. expectedBytes];
                 Assert.Equal(expectedBytes, customTypeInfo);
             }
         }

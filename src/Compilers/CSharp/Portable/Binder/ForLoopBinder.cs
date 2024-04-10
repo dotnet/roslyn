@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var vdecl in _syntax.Declaration.Variables)
                 {
-                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable, hasScopedModifier: false); // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
+                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable, allowScoped: true);
                     locals.Add(localSymbol);
 
                     // also gather expression-declared variables from the bracketed argument lists and the initializers
@@ -72,8 +72,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Declaration and Initializers are mutually exclusive.
             if (_syntax.Declaration != null)
             {
-                ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out unused);
+                var type = _syntax.Declaration.Type.SkipScoped(out _);
+
+                if (type is RefTypeSyntax)
+                {
+                    // Checking for 'ref for' (7.3) automatically checks for 'ref' (7.0), so no need for an explicit
+                    // check feature as well here.
+                    MessageID.IDS_FeatureRefFor.CheckFeatureAvailability(diagnostics, type);
+                }
+
+                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out _);
             }
             else
             {
@@ -136,12 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Locals;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override SyntaxNode ScopeDesignator

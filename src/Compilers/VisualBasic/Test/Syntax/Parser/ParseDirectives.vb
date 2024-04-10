@@ -175,7 +175,6 @@ End Module
         ]]>)
     End Sub
 
-
     <WorkItem(679758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679758")>
     <Fact>
     Public Sub TypeCharMismatch()
@@ -1280,7 +1279,6 @@ End Module]]>,
             ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
-
     <WorkItem(538483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538483")>
     <Fact>
     Public Sub ParseDirectiveWithStatementOnLine()
@@ -1402,7 +1400,6 @@ End Module
                  <error id="30012"/>
              </errors>)
     End Sub
-
 
     <WorkItem(9710, "DevDiv_Projects/Roslyn")>
     <WorkItem(542447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542447")>
@@ -2535,7 +2532,6 @@ End Module]]>,
         Assert.True(enableNode.WarningKeyword.IsMissing)
         Assert.Equal(0, enableNode.ErrorCodes.Count)
     End Sub
-
 
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation6()

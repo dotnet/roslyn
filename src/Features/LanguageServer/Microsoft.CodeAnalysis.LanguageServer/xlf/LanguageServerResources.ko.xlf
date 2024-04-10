@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../LanguageServerResources.resx">
+    <body>
+      <trans-unit id="Aborted">
+        <source>Aborted!</source>
+        <target state="translated">중단됨!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attaching_debugger_to_process_0">
+        <source>Attaching debugger to process {0}</source>
+        <target state="translated">프로세스 {0}에 디버거를 연결하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Building_project">
+        <source>Building project...</source>
+        <target state="translated">프로젝트를 빌드하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Canceled">
+        <source>Canceled!</source>
+        <target state="translated">취소됨!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Client_failed_to_attach_the_debugger">
+        <source>Client failed to attach the debugger</source>
+        <target state="translated">클라이언트가 디버거를 연결하지 못함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completed_reload_of_all_projects_in_0">
+        <source>Completed (re)load of all projects in {0}</source>
+        <target state="translated">{0}에 있는 모든 프로젝트의 (재)로드가 완료됨</target>
+        <note>The placeholder is a time duration like 00:15</note>
+      </trans-unit>
+      <trans-unit id="Debugging_tests">
+        <source>Debugging tests...</source>
+        <target state="translated">테스트를 디버그하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discovering_tests">
+        <source>Discovering tests...</source>
+        <target state="translated">테스트를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exception_thrown_0">
+        <source>Exception thrown: {0}</source>
+        <target state="translated">예외 throw됨: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed">
+        <source>Failed!</source>
+        <target state="translated">실패함!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4">
+        <source>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</source>
+        <target state="translated">실패:    {0}, 통과:    {1}, 건너뜀:    {2}, 합계:    {3}, 기간: {4}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
+        <source>Failed to read .runsettings file at {0}:{1}</source>
+        <target state="translated">{0}:{1}에서 .runsettings 파일을 읽지 못했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_run_restore_on_0">
+        <source>Failed to run restore on {0}</source>
+        <target state="translated">{0}에서 복원을 실행하지 못함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_0_tests_in_1">
+        <source>Found {0} tests in {1}</source>
+        <target state="translated">{0} 테스트를 {1}에서 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_0">
+        <source>Loading {0}...</source>
+        <target state="translated">{0} 로드 중...</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Message">
+        <source>Message</source>
+        <target state="translated">메시지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_test_methods_found_in_requested_range">
+        <source>No test methods found in requested range</source>
+        <target state="translated">요청된 범위에서 테스트 메서드를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing_found_to_restore">
+        <source>Nothing found to restore</source>
+        <target state="translated">복원할 항목이 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Passed">
+        <source>Passed!</source>
+        <target state="translated">통과함!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_0_has_unresolved_dependencies">
+        <source>Project {0} has unresolved dependencies</source>
+        <target state="translated">프로젝트 {0}에 확인되지 않은 종속성이 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_0_loaded_by_CSharp_Dev_Kit">
+        <source>Project {0} loaded by C# Dev Kit</source>
+        <target state="translated">C# Dev Kit에서 로드한 프로젝트 {0}</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Projects_failed_to_load_because_MSBuild_could_not_be_found">
+        <source>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</source>
+        <target state="translated">.NET Framework 빌드 도구를 찾을 수 없으므로 프로젝트를 로드하지 못했습니다. Visual Studio 또는 Visual Studio Build Tools 패키지를 설치하거나 로그에서 자세한 내용을 확인하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Projects_failed_to_load_because_Mono_could_not_be_found">
+        <source>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</source>
+        <target state="translated">Mono를 찾을 수 없어 프로젝트를 로드하지 못했습니다. Mono 및 MSBuild가 설치되어 있는지 확인하고 로그에서 자세한 내용을 확인하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore">
+        <source>Restore</source>
+        <target state="translated">복원</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore_complete">
+        <source>Restore complete</source>
+        <target state="translated">복원 완료</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore_started">
+        <source>Restore started</source>
+        <target state="translated">복원 시작됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restoring_0">
+        <source>Restoring {0}</source>
+        <target state="translated">{0}을(를) 복원하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_dotnet_restore_on_0">
+        <source>Running dotnet restore on {0}</source>
+        <target state="translated">{0}에서 dotnet restore를 실행하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_tests">
+        <source>Running tests...</source>
+        <target state="translated">테스트를 실행하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Runsettings_file_does_not_exist_at_0">
+        <source>.runsettings file does not exist at {0}</source>
+        <target state="translated">.runsettings 파일이 {0}에 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_csharp_logs">
+        <source>Show C# logs</source>
+        <target state="translated">C# 로그 표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="translated">스택 추적</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Starting_test_discovery">
+        <source>Starting test discovery</source>
+        <target state="translated">테스트 검색을 시작하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Starting_test_run">
+        <source>Starting test run</source>
+        <target state="translated">테스트 실행을 시작하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Successfully_completed_load_of_0">
+        <source>Successfully completed load of {0}</source>
+        <target state="translated">{0}의 로드가 완료됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Summary">
+        <source>Summary</source>
+        <target state="translated">요약</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Test_discovery_aborted">
+        <source>Test discovery aborted</source>
+        <target state="translated">테스트 검색이 중단됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Test_run_error">
+        <source>Test run error: {0}</source>
+        <target state="translated">테스트 실행 오류: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="There_were_problems_loading_project_0_See_log_for_details">
+        <source>There were problems loading project {0}. See log for details.</source>
+        <target state="translated">{0} 프로젝트를 로드하는 동안 문제가 발생했습니다. 자세한 내용은 로그를 참조하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_runsettings_file_at_0">
+        <source>Using .runsettings file at {0}</source>
+        <target state="translated">{0}에서 runsettings 파일을 사용하는 중</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

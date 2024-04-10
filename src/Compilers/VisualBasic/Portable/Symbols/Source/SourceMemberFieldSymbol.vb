@@ -387,7 +387,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
         End Class
 
-
         ' Create variable members, with the given, name, declarator, and declaration syntax.
         Friend Shared Sub Create(container As SourceMemberContainerTypeSymbol,
                                  syntax As FieldDeclarationSyntax,

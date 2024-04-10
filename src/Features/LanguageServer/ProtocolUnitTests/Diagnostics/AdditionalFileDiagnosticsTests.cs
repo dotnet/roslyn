@@ -12,43 +12,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
-    [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics)
+    public AdditionalFileDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        var workspaceXml =
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" FilePath=""C:\CSProj1.csproj"">
-        <Document FilePath=""C:\C.cs""></Document>
-        <AdditionalDocument FilePath=""C:\Test.txt""></AdditionalDocument>
-    </Project>
-</Workspace>";
-
-        using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
-
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        Assert.Equal(3, results.Length);
-
-        Assert.Empty(results[0].Diagnostics);
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
-        Assert.Empty(results[2].Diagnostics);
-
-        // Asking again should give us back an unchanged diagnostic.
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
-        Assert.Null(results2[0].Diagnostics);
-        Assert.Null(results2[1].Diagnostics);
-        Assert.Equal(results[1].ResultId, results2[1].ResultId);
-        Assert.Null(results2[2].Diagnostics);
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsWithRemovedAdditionalFile(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var workspaceXml =
 @$"<Workspace>
@@ -58,7 +35,33 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     </Project>
 </Workspace>";
 
-        using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        AssertEx.Equal(new[]
+        {
+            @"C:\C.cs: []",
+            @$"C:\Test.txt: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
+            @"C:\CSProj1.csproj: []"
+        }, results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics.Select(d => d.Code?.Value?.ToString()))}]"));
+
+        // Asking again should give us back an unchanged diagnostic.
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        Assert.Empty(results2);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDiagnosticsWithRemovedAdditionalFile(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" FilePath=""C:\CSProj1.csproj"">
+        <Document FilePath=""C:\C.cs""></Document>
+        <AdditionalDocument FilePath=""C:\Test.txt""></AdditionalDocument>
+    </Project>
+</Workspace>";
+
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
@@ -76,7 +79,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Equal(3, results2.Length);
 
         // The first report is the report for the removed additional file.
-        Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results2[0].Diagnostics);
+        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
         Assert.Null(results2[0].ResultId);
 
         // The other files should have new results since the solution changed.
@@ -86,10 +89,44 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.NotNull(results2[2].ResultId);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDiagnosticsWithAdditionalFileInMultipleProjects(bool mutatingLspWorkspace)
+    {
+        var workspaceXml =
+@$"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" FilePath=""C:\CSProj1.csproj"">
+        <Document FilePath=""C:\A.cs""></Document>
+        <AdditionalDocument FilePath=""C:\Test.txt""></AdditionalDocument>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"" FilePath=""C:\CSProj1.csproj"">
+        <Document FilePath=""C:\B.cs""></Document>
+        <AdditionalDocument FilePath=""C:\Test.txt""></AdditionalDocument>
+    </Project>
+</Workspace>";
+
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: true);
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true);
+        Assert.Equal(6, results.Length);
+
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
+        Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
+        Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics.Single()).Projects.First().ProjectName);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics.Single().Code);
+        Assert.Equal(@"C:\Test.txt", results[4].Uri.LocalPath);
+        Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics.Single()).Projects.First().ProjectName);
+
+        // Asking again should give us back an unchanged diagnostic.
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        Assert.Empty(results2);
+    }
+
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer));
 
-    private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences => new(ImmutableDictionary.Create<string, ImmutableArray<DiagnosticAnalyzer>>()
-        .Add(LanguageNames.CSharp, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockAdditionalFileDiagnosticAnalyzer())));
+    private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
+        => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(
+                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+                new MockAdditionalFileDiagnosticAnalyzer())));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
     private class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer

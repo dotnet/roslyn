@@ -74,6 +74,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int VariableSlot(Symbol symbol, int containingSlot = 0)
         {
+            // Skip LocalStoreTracker from data flow analysis.
+            // The variable is declared by synthesized instrumentation code in every instrumented method (including async, iterators and lambdas).
+            // It is of a ref-struct type, which is normally not allowed to be used in some of these methods, but is designed to not be lifted to
+            // a closure or state machine field and only directly accessed from the frame it is declared in.
+            if (symbol is LocalSymbol { SynthesizedKind: SynthesizedLocalKind.LocalStoreTracker })
+            {
+                return -1;
+            }
+
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: false);
 
             int slot;
@@ -171,6 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (forceContainingSlotsToExist)
                     {
                         containingSlot = GetOrCreateSlot(restField, containingSlot);
+
+                        if (containingSlot < 0)
+                        {
+                            return -1;
+                        }
                     }
                     else
                     {
@@ -248,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected static bool HasInitializer(Symbol field) => field switch
         {
             SourceMemberFieldSymbol f => f.HasInitializer,
-            SynthesizedBackingFieldSymbol f => f.HasInitializer,
+            SynthesizedBackingFieldSymbolBase f => f.HasInitializer,
             SourceFieldLikeEventSymbol e => e.AssociatedEventField?.HasInitializer == true,
             _ => false
         };

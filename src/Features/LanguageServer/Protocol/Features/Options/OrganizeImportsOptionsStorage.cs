@@ -4,8 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.OrganizeImports;
@@ -16,10 +14,5 @@ internal static class OrganizeImportsOptionsStorage
         => document.GetOrganizeImportsOptionsAsync(globalOptions.GetOrganizeImportsOptions(document.Project.Language), cancellationToken);
 
     public static OrganizeImportsOptions GetOrganizeImportsOptions(this IGlobalOptionService globalOptions, string language)
-        => new()
-        {
-            PlaceSystemNamespaceFirst = globalOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, language),
-            SeparateImportDirectiveGroups = globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language),
-            NewLine = globalOptions.GetOption(FormattingOptions2.NewLine, language)
-        };
+        => globalOptions.GetOrganizeImportsOptions(language, fallbackOptions: null);
 }

@@ -17,10 +17,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class AnalyzersTests : TestBase
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task RuleSet_GeneralOption_CPS()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -45,7 +45,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task RuleSet_SpecificOptions_CPS()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
@@ -70,7 +69,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task RuleSet_PathCanBeFound()
         {
             var ruleSetFile = Temp.CreateFile();

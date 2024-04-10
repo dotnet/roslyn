@@ -32,7 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestResources.SymbolsTests.Methods.ByRefReturn
                 }, importInternals:=True)
 
-
             Dim module1 = assemblies(0).Modules(0)
             Dim module2 = assemblies(1).Modules(0)
             Dim module3 = assemblies(2).Modules(0)
@@ -176,7 +175,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(1, console.GetMembers("WriteLine").OfType(Of MethodSymbol)().Where(Function(m) m.IsVararg).Count())
             Assert.True(console.GetMembers("WriteLine").OfType(Of MethodSymbol)().Where(Function(m) m.IsVararg).Single().IsShared)
-
 
             Dim VB_Modifiers1 = module4.GlobalNamespace.GetTypeMembers("Modifiers1").Single()
 
@@ -322,7 +320,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.False(CS_Modifiers1_M4.IsNotOverridable)
             Assert.True(CS_Modifiers1_M4.IsOverloads)
             Assert.False(CS_Modifiers1_M4.IsOverrides)
-
 
             Dim CS_Modifiers2 = module3.GlobalNamespace.GetTypeMembers("Modifiers2").Single()
 

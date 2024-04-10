@@ -948,7 +948,6 @@ p1 as vb$anonymous1
             </errors>)
     End Sub
 
-
     <WorkItem(538990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538990")>
     <Fact>
     Public Sub Bug4770()

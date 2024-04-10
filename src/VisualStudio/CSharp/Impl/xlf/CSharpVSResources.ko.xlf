@@ -7,9 +7,19 @@
         <target state="translated">붙여넣을 때 누락된 using 지시문 추가</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+      <trans-unit id="Allow_blank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
         <target state="translated">생성자 이니셜라이저의 콜론 뒤에 빈 줄 허용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_arrow_expression_clause">
+        <source>Allow blank line after token in arrow expression clause</source>
+        <target state="translated">화살표 식 절에서 토큰 뒤에 빈 줄 허용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_line_after_token_in_conditional_expression">
+        <source>Allow blank line after token in conditional expression</source>
+        <target state="translated">조건식에서 토큰 뒤에 빈 줄 허용</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
@@ -20,11 +30,6 @@
       <trans-unit id="Allow_embedded_statements_on_same_line">
         <source>Allow embedded statements on same line</source>
         <target state="translated">같은 줄에 포함 문 허용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">모든 C# 서식 규칙 적용(들여쓰기, 래핑, 간격 조정)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
@@ -47,14 +52,19 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Coding_Conventions">
-        <source>C# Coding Conventions</source>
-        <target state="translated">C# 코딩 규칙</target>
+      <trans-unit id="CSharp_Interactive">
+        <source>C# Interactive</source>
+        <target state="translated">C# 대화형</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Formatting_Rules">
-        <source>C# Formatting Rules</source>
-        <target state="translated">C# 서식 설정 규칙</target>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="new">Cancel Query</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="new">Cancel (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -82,11 +92,6 @@
         <target state="translated">파일 범위 지정됨</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">문서 서식 설정(실험)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="General">
         <source>General</source>
         <target state="translated">일반</target>
@@ -102,6 +107,16 @@
         <target state="translated">// 주석을 작성할 때 새 줄의 시작 부분에 // 삽입</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_space_between_called_method_name_and_its_opening_parenthesis">
+        <source>Insert space between called method name and its opening parenthesis</source>
+        <target state="translated">호출한 메서드 이름과 여는 괄호 사이에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">메서드 이름과 여는 괄호 사이에 공백 삽입</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
         <target state="translated">namespace 내부</target>
@@ -115,11 +130,6 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">패턴 일치 기본 설정:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">서식을 지정하는 동안 추가 코드 정리 수행</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -172,6 +182,21 @@
         <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="new">Run Query</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="new">Run (Ctrl+Enter)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="new">Semantic Search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">'new' 식에 대한 힌트 표시</target>
@@ -184,17 +209,12 @@
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
-        <target state="new">Show new snippet experience (experimental)</target>
+        <target state="translated">새 코드 조각 환경 표시(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">요약 정보에 설명 표시</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Using 정렬</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -402,19 +422,9 @@
         <target state="translated">빈 인수 목록 괄호 내부에 공백 삽입</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">메서드 이름과 여는 괄호 사이에 공백 삽입</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
         <source>Insert space within empty parameter list parentheses</source>
         <target state="translated">빈 매개 변수 목록 괄호 내에 공백 삽입</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
-        <source>Insert space between method name and its opening parenthesis</source>
-        <target state="translated">메서드 이름과 여는 괄호 사이에 공백 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_space_within_parameter_list_parentheses">
@@ -515,11 +525,6 @@
       <trans-unit id="Unused_local">
         <source>Unused local</source>
         <target state="translated">사용하지 않는 로컬</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">지역 변수를 생성할 때 'var'을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -645,11 +650,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">NuGet 패키지의 형식에 대한 using 제안(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">형식 유추 기본 설정:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -815,16 +815,6 @@
       <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
         <source>Prefer pattern matching over 'as' with 'null' check</source>
         <target state="translated">null' 검사에서 'as'보다 패턴 일치 기본 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">블록 본문 기본 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">식 본문 기본 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_return">

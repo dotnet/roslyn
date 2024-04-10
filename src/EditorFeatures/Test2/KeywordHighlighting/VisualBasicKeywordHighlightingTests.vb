@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class VisualBasicKeywordHighlightingTests
         Inherits AbstractKeywordHighlightingTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact>
         Public Async Function VerifyNoHighlightsWhenOptionDisabled() As System.Threading.Tasks.Task
             Await VerifyHighlightsAsync(
                 <Workspace>
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 optionIsEnabled:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact>
         Public Async Function VerifyHighlightsWhenOptionEnabled() As System.Threading.Tasks.Task
             Await VerifyHighlightsAsync(
                 <Workspace>

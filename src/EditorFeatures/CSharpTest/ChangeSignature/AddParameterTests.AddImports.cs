@@ -14,16 +14,18 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task AddParameterAddsAllImports()
         {
-            var markup = @"
-class C
-{
-    void $$M() { }
-}";
+            var markup = """
+                class C
+                {
+                    void $$M() { }
+                }
+                """;
 
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(
@@ -34,30 +36,32 @@ class C
                         CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
-            var updatedCode = @"
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Threading.Tasks;
+            var updatedCode = """
+                using System;
+                using System.Collections.Generic;
+                using System.ComponentModel;
+                using System.Threading.Tasks;
 
-class C
-{
-    void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
-}";
+                class C
+                {
+                    void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
+                }
+                """;
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task AddParameterAddsOnlyMissingImports()
         {
-            var markup = @"
-using System.ComponentModel;
+            var markup = """
+                using System.ComponentModel;
 
-class C
-{
-    void $$M() { }
-}";
+                class C
+                {
+                    void $$M() { }
+                }
+                """;
 
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(
@@ -68,46 +72,48 @@ class C
                         CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
-            var updatedCode = @"
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Threading.Tasks;
+            var updatedCode = """
+                using System;
+                using System.Collections.Generic;
+                using System.ComponentModel;
+                using System.Threading.Tasks;
 
-class C
-{
-    void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
-}";
+                class C
+                {
+                    void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
+                }
+                """;
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task AddParameterAddsImportsOnCascading()
         {
-            var markup = @"
-using NS1;
+            var markup = """
+                using NS1;
 
-namespace NS1
-{
-    class B
-    {
-        public virtual void M() { }
-    }
-}
+                namespace NS1
+                {
+                    class B
+                    {
+                        public virtual void M() { }
+                    }
+                }
 
-namespace NS2
-{
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Threading.Tasks;
+                namespace NS2
+                {
+                    using System;
+                    using System.Collections.Generic;
+                    using System.ComponentModel;
+                    using System.Threading.Tasks;
 
-    class D : B
-    {
-        public override void $$M() { }
-    }
-}";
+                    class D : B
+                    {
+                        public override void $$M() { }
+                    }
+                }
+                """;
 
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(
@@ -118,33 +124,34 @@ namespace NS2
                         CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
-            var updatedCode = @"
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Threading.Tasks;
-using NS1;
+            var updatedCode = """
+                using System;
+                using System.Collections.Generic;
+                using System.ComponentModel;
+                using System.Threading.Tasks;
+                using NS1;
 
-namespace NS1
-{
-    class B
-    {
-        public virtual void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
-    }
-}
+                namespace NS1
+                {
+                    class B
+                    {
+                        public virtual void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
+                    }
+                }
 
-namespace NS2
-{
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Threading.Tasks;
+                namespace NS2
+                {
+                    using System;
+                    using System.Collections.Generic;
+                    using System.ComponentModel;
+                    using System.Threading.Tasks;
 
-    class D : B
-    {
-        public override void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
-    }
-}";
+                    class D : B
+                    {
+                        public override void M(Dictionary<ConsoleColor, Task<AsyncOperation>> test) { }
+                    }
+                }
+                """;
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }

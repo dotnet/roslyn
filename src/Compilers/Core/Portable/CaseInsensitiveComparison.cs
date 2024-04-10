@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        [return: NotNullIfNotNull(parameterName: "value")]
+        [return: NotNullIfNotNull(parameterName: nameof(value))]
         public static string? ToLower(string? value)
         {
             if (value is null)

@@ -4,7 +4,9 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.IO
+Imports System.Reflection.Emit
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -261,7 +263,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
                             ' with allowing the newer syntax here.
                             Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Default)
-                            tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
+                            tree = VisualBasicSyntaxTree.ParseText(
+                                SourceText.From(text, encoding:=Nothing, SourceHashAlgorithms.Default),
+                                isMyTemplate:=True,
+                                options,
+                                path:=Nothing)
 
                             If tree.GetDiagnostics().Any() Then
                                 Throw ExceptionUtilities.Unreachable
@@ -1222,7 +1228,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We are explicitly ignoring scenario where the type might be defined in an added module.
             For Each reference As AssemblySymbol In sourceAssembly.SourceModule.GetReferencedAssemblySymbols()
                 Debug.Assert(Not reference.IsMissing)
-                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim candidate As NamedTypeSymbol = reference.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
 
                 If sourceAssembly.IsValidWellKnownType(candidate) AndAlso AssemblySymbol.IsAcceptableMatchForGetTypeByNameAndArity(candidate) Then
                     Return True
@@ -1318,6 +1325,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim index As Integer = GetBoundReferenceManager().GetReferencedModuleIndex(reference)
                 Return If(index < 0, Nothing, Me.Assembly.Modules(index))
             End If
+        End Function
+
+        Friend Overrides Function GetSymbolInternal(Of TSymbol As {Class, ISymbolInternal})(symbol As ISymbol) As TSymbol
+            Return DirectCast(symbol, TSymbol)
         End Function
 
         ''' <summary>
@@ -1684,7 +1695,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Sub ReportUnusedImports(diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
-            ReportUnusedImports(filterTree:=Nothing, New BindingDiagnosticBag(diagnostics), cancellationToken)
+            Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
+            ReportUnusedImports(filterTree:=Nothing, builder, cancellationToken)
+            diagnostics.AddRange(builder.DiagnosticBag)
+            builder.Free()
         End Sub
 
         Private Overloads Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken)
@@ -1939,9 +1953,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get symbol for predefined type from Cor Library referenced by this compilation.
         ''' </summary>
-        Friend Shadows Function GetSpecialType(typeId As SpecialType) As NamedTypeSymbol
+        Friend Shadows Function GetSpecialType(typeId As ExtendedSpecialType) As NamedTypeSymbol
             Dim result = Assembly.GetSpecialType(typeId)
-            Debug.Assert(result.SpecialType = typeId)
+            Debug.Assert(result.ExtendedSpecialType = typeId)
             Return result
         End Function
 
@@ -2027,16 +2041,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
             Dim model As SemanticModel = Nothing
             If SemanticModelProvider IsNot Nothing Then
-                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, ignoreAccessibility)
+#Disable Warning RSEXPERIMENTAL001 'internal use of experimental API
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, If(ignoreAccessibility, SemanticModelOptions.IgnoreAccessibility, SemanticModelOptions.None))
                 Debug.Assert(model IsNot Nothing)
             End If
 
-            Return If(model, CreateSemanticModel(syntaxTree, ignoreAccessibility))
+            Return If(model, CreateSemanticModel(syntaxTree, If(ignoreAccessibility, SemanticModelOptions.IgnoreAccessibility, SemanticModelOptions.None)))
         End Function
 
-        Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
-            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
+        Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, options As SemanticModelOptions) As SemanticModel
+            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility:=(options And SemanticModelOptions.IgnoreAccessibility) <> 0)
         End Function
+#Enable Warning RSEXPERIMENTAL001
 
         Friend ReadOnly Property FeatureStrictEnabled As Boolean
             Get
@@ -2114,13 +2130,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              diagnostics As DiagnosticBag,
                                              Optional cancellationToken As CancellationToken = Nothing)
 
-            Dim builder = DiagnosticBag.GetInstance()
+            Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
-            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, New BindingDiagnosticBag(builder), cancellationToken)
+            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, builder, cancellationToken)
 
             ' Before returning diagnostics, we filter some of them
             ' to honor the compiler options (e.g., /nowarn and /warnaserror)
-            FilterAndAppendAndFreeDiagnostics(diagnostics, builder, cancellationToken)
+            FilterAndAppendDiagnostics(diagnostics, builder.DiagnosticBag, cancellationToken)
+            builder.Free()
         End Sub
 
         Private Sub GetDiagnosticsWithoutFiltering(stage As CompilationStage,
@@ -2184,11 +2201,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
                 ' Note: this phase does not need to be parallelized because 
                 '       it is already implemented in method compiler
-                Dim methodBodyDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance(),
-                                                                     If(builder.AccumulatesDependencies, New ConcurrentSet(Of AssemblySymbol), Nothing))
+                Dim methodBodyDiagnostics = If(builder.AccumulatesDependencies, BindingDiagnosticBag.GetConcurrentInstance(), BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False))
+
                 GetDiagnosticsForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, doLowering:=False, cancellationToken)
                 builder.AddRange(methodBodyDiagnostics)
-                methodBodyDiagnostics.DiagnosticBag.Free()
+                methodBodyDiagnostics.Free()
             End If
         End Sub
 
@@ -2202,7 +2219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If _lazyClsComplianceDiagnostics.IsDefault OrElse _lazyClsComplianceDependencies.IsDefault Then
                 Dim builder = BindingDiagnosticBag.GetInstance()
                 ClsComplianceChecker.CheckCompliance(Me, builder, cancellationToken)
-                Dim result As ImmutableBindingDiagnostic(Of AssemblySymbol) = builder.ToReadOnlyAndFree()
+                Dim result As ReadOnlyBindingDiagnostic(Of AssemblySymbol) = builder.ToReadOnlyAndFree()
                 ImmutableInterlocked.InterlockedInitialize(_lazyClsComplianceDependencies, result.Dependencies)
                 ImmutableInterlocked.InterlockedInitialize(_lazyClsComplianceDiagnostics, result.Diagnostics)
             End If
@@ -2210,7 +2227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Not _lazyClsComplianceDependencies.IsDefault)
             Debug.Assert(Not _lazyClsComplianceDiagnostics.IsDefault)
 
-            diagnostics.AddRange(New ImmutableBindingDiagnostic(Of AssemblySymbol)(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies), allowMismatchInDependencyAccumulation:=True)
+            diagnostics.AddRange(New ReadOnlyBindingDiagnostic(Of AssemblySymbol)(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies), allowMismatchInDependencyAccumulation:=True)
         End Sub
 
         Private Shared Iterator Function FilterDiagnosticsByLocation(diagnostics As IEnumerable(Of Diagnostic), tree As SyntaxTree, filterSpanWithinTree As TextSpan?) As IEnumerable(Of Diagnostic)
@@ -2230,7 +2247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException("Cannot GetDiagnosticsForSyntax for a tree that is not part of the compilation", NameOf(tree))
             End If
 
-            Dim builder = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+            Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
             If (stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages) Then
                 ' Add all parsing errors.
@@ -2250,7 +2267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add method body declaring errors.
             If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
-                Dim methodBodyDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                Dim methodBodyDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 GetDiagnosticsForMethodBodiesInTree(tree, filterSpanWithinTree, builder.HasAnyErrors(), methodBodyDiagnostics, cancellationToken)
 
                 ' This diagnostics can include diagnostics for initializers that do not belong to the tree.
@@ -2262,10 +2279,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         builder.Add(diag)
                     Next
                 End If
+
+                methodBodyDiagnostics.Free()
             End If
 
             Dim result = DiagnosticBag.GetInstance()
-            FilterAndAppendAndFreeDiagnostics(result, builder.DiagnosticBag, cancellationToken)
+            FilterAndAppendDiagnostics(result, builder.DiagnosticBag, cancellationToken)
+            builder.Free()
             Return result.ToReadOnlyAndFree(Of Diagnostic)()
         End Function
 
@@ -2424,8 +2444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If testData IsNot Nothing Then
-                moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                testData.Module = moduleBeingBuilt
+                moduleBeingBuilt.SetTestData(testData)
             End If
 
             Return moduleBeingBuilt
@@ -2434,11 +2453,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CompileMethods(
             moduleBuilder As CommonPEModuleBuilder,
             emittingPdb As Boolean,
-            emitMetadataOnly As Boolean,
-            emitTestCoverageData As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbolInternal),
             cancellationToken As CancellationToken) As Boolean
+
+            Dim emitMetadataOnly = moduleBuilder.EmitOptions.EmitMetadataOnly
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
             ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
@@ -2470,7 +2489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
                 ' start generating PDB checksums if we need to emit PDBs
-                If (emittingPdb OrElse emitTestCoverageData) AndAlso
+                If (emittingPdb OrElse moduleBuilder.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage)) AndAlso
                    Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
                     Return False
                 End If
@@ -2479,19 +2498,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' behavior as when calling GetDiagnostics()
 
                 ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-                Dim methodBodyDiagnosticBag = DiagnosticBag.GetInstance()
+                Dim methodBodyDiagnosticBag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
                 MethodCompiler.CompileMethodBodies(
                     Me,
                     moduleBeingBuilt,
                     emittingPdb,
-                    emitTestCoverageData,
                     hasDeclarationErrors,
                     filterOpt,
-                    New BindingDiagnosticBag(methodBodyDiagnosticBag),
+                    methodBodyDiagnosticBag,
                     cancellationToken)
 
-                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag, cancellationToken)
+                Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendDiagnostics(diagnostics, methodBodyDiagnosticBag.DiagnosticBag, cancellationToken)
+                methodBodyDiagnosticBag.Free()
+
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
                 End If
@@ -2536,12 +2556,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken.ThrowIfCancellationRequested()
 
             ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            Dim xmlDiagnostics = DiagnosticBag.GetInstance()
+            Dim xmlDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
 
             Dim assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension:=Nothing)
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, New BindingDiagnosticBag(xmlDiagnostics), cancellationToken)
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken)
 
-            Return FilterAndAppendAndFreeDiagnostics(diagnostics, xmlDiagnostics, cancellationToken)
+            Dim result = FilterAndAppendDiagnostics(diagnostics, xmlDiagnostics.DiagnosticBag, cancellationToken)
+            xmlDiagnostics.Free()
+            Return result
         End Function
 
         Private Iterator Function AddedModulesResourceNames(diagnostics As DiagnosticBag) As IEnumerable(Of String)
@@ -2721,8 +2743,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
-            Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
+        <Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat:=RoslynExperiments.NullableDisabledSemanticModel_Url)>
+        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, options As SemanticModelOptions) As SemanticModel
+            Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility:=(options And SemanticModelOptions.IgnoreAccessibility) <> 0)
         End Function
 
         Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableArray(Of SyntaxTree)
@@ -2909,6 +2932,142 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
         End Function
 
+        Protected Overrides Function CommonCreateBuiltinOperator(
+                name As String,
+                returnType As ITypeSymbol,
+                leftType As ITypeSymbol,
+                rightType As ITypeSymbol) As IMethodSymbol
+
+            Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
+            Dim vbLeftType = leftType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(leftType))
+            Dim vbRightType = rightType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(rightType))
+
+            Dim nameToCheck = name
+            Select Case name
+                Case WellKnownMemberNames.CheckedAdditionOperatorName
+                    nameToCheck = WellKnownMemberNames.AdditionOperatorName
+                Case WellKnownMemberNames.CheckedDivisionOperatorName
+                    nameToCheck = WellKnownMemberNames.IntegerDivisionOperatorName
+                Case WellKnownMemberNames.CheckedMultiplyOperatorName
+                    nameToCheck = WellKnownMemberNames.MultiplyOperatorName
+                Case WellKnownMemberNames.CheckedSubtractionOperatorName
+                    nameToCheck = WellKnownMemberNames.SubtractionOperatorName
+            End Select
+
+            Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
+            If Not opInfo.IsBinary Then
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps1, name), NameOf(name))
+            End If
+
+            CheckBinaryBuiltInOperator(name, vbReturnType, vbLeftType, vbRightType, opInfo)
+
+            Return New SynthesizedIntrinsicOperatorSymbol(vbLeftType, name, vbRightType, vbReturnType)
+        End Function
+
+        Private Shared Sub CheckBinaryBuiltInOperator(
+                name As String,
+                returnType As TypeSymbol,
+                leftType As NamedTypeSymbol,
+                rightType As TypeSymbol,
+                opInfo As OverloadResolution.OperatorInfo)
+
+            ' Built in enum binary operators
+            If leftType.IsEnumType() AndAlso
+               leftType.Equals(rightType, TypeCompareKind.ConsiderEverything) AndAlso
+               leftType.Equals(returnType, TypeCompareKind.ConsiderEverything) Then
+                If opInfo.BinaryOperatorKind = BinaryOperatorKind.Xor OrElse
+                   opInfo.BinaryOperatorKind = BinaryOperatorKind.And OrElse
+                   opInfo.BinaryOperatorKind = BinaryOperatorKind.Or Then
+                    Return
+                End If
+            End If
+
+            ' Quick table access to determine if these types are legal.
+            If returnType.SpecialType <> SpecialType.None AndAlso
+               leftType.SpecialType <> SpecialType.None AndAlso
+               rightType.SpecialType <> SpecialType.None Then
+
+                Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicBinaryOperator(opInfo.BinaryOperatorKind, leftType.SpecialType, rightType.SpecialType)
+                If resolved <> SpecialType.None Then
+                    ' Quick access table strangely maps `string Like string` to the `string` return type. remap it to 'bool'
+                    ' here as that's what the operator actually is.
+                    '
+                    ' Similarly, the relations table doesn't include useful info.  it always has the original type,
+                    ' not the expected 'bool' return type.
+                    If resolved <> SpecialType.System_Object Then
+                        If opInfo.BinaryOperatorKind = BinaryOperatorKind.Equals OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.NotEquals OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.LessThan OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.GreaterThan OrElse
+                           opInfo.BinaryOperatorKind = BinaryOperatorKind.Like Then
+
+                            resolved = SpecialType.System_Boolean
+                        End If
+                    End If
+
+                    If returnType.SpecialType = resolved Then
+                        Return
+                    End If
+                End If
+            End If
+
+            Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps3, $"{returnType.ToDisplayString()} operator {name}({leftType.ToDisplayString()}, {rightType.ToDisplayString()})"))
+        End Sub
+
+        Protected Overrides Function CommonCreateBuiltinOperator(
+                name As String,
+                returnType As ITypeSymbol,
+                operandType As ITypeSymbol) As IMethodSymbol
+
+            Dim vbReturnType = returnType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(returnType))
+            Dim vbOperandType = returnType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(operandType))
+
+            Dim nameToCheck = If(name = WellKnownMemberNames.CheckedUnaryNegationOperatorName, WellKnownMemberNames.UnaryNegationOperatorName, name)
+
+            Dim opInfo = OverloadResolution.GetOperatorInfo(nameToCheck)
+            If Not opInfo.IsUnary Then
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps1, name), NameOf(name))
+            End If
+
+            CheckUnaryBuiltInOperator(name, vbReturnType, vbOperandType, opInfo)
+
+            Return New SynthesizedIntrinsicOperatorSymbol(vbOperandType, name, vbReturnType)
+        End Function
+
+        Private Shared Sub CheckUnaryBuiltInOperator(
+                name As String,
+                returnType As TypeSymbol,
+                operandType As NamedTypeSymbol,
+                opInfo As OverloadResolution.OperatorInfo)
+
+            ' Enums support the `Not` operator.
+            If operandType.IsEnumType() AndAlso
+               opInfo.UnaryOperatorKind = UnaryOperatorKind.Not AndAlso
+               returnType.Equals(operandType, TypeCompareKind.ConsiderEverything) Then
+                Return
+            End If
+
+            ' Quick table access to determine if these types are legal.
+            If returnType.SpecialType <> SpecialType.None AndAlso
+               operandType.SpecialType <> SpecialType.None Then
+
+                If opInfo.UnaryOperatorKind = UnaryOperatorKind.Not OrElse
+                   opInfo.UnaryOperatorKind = UnaryOperatorKind.Plus OrElse
+                   opInfo.UnaryOperatorKind = UnaryOperatorKind.Minus Then
+
+                    Dim resolved = OverloadResolution.ResolveNotLiftedIntrinsicUnaryOperator(opInfo.UnaryOperatorKind, operandType.SpecialType)
+                    If resolved <> SpecialType.None AndAlso
+                       returnType.SpecialType = resolved Then
+                        Return
+                    End If
+                End If
+            End If
+
+            Throw New ArgumentException(String.Format(CodeAnalysisResources.BadBuiltInOps3, $"{returnType.ToDisplayString()} operator {name}({operandType.ToDisplayString()})"))
+        End Sub
+
         Protected Overrides ReadOnly Property CommonDynamicType As ITypeSymbol
             Get
                 Throw New NotSupportedException(VBResources.ThereIsNoDynamicTypeInVB)
@@ -2996,6 +3155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Return False
             End Select
+        End Function
+
+        Private Protected Overrides Function SupportsRuntimeCapabilityCore(capability As RuntimeCapability) As Boolean
+            Return Me.Assembly.SupportsRuntimeCapability(capability)
         End Function
 
 #End Region

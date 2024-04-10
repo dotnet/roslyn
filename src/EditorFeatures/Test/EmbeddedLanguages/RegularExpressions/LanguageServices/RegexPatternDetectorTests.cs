@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void MatchWorker(string value, RegexOptions? expectedOptions)
             {
-                var detector = new EmbeddedLanguageCommentDetector(RegexLanguageDetector.LanguageIdentifiers);
-                Assert.True(detector.TryMatch(value, out _, out var captures));
+                Assert.True(RegexLanguageDetector.CommentDetector.TryMatch(value, out _, out var captures));
 
                 if (expectedOptions != null)
                 {
@@ -44,8 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void NoMatchWorker(string value)
             {
-                var detector = new EmbeddedLanguageCommentDetector(RegexLanguageDetector.LanguageIdentifiers);
-                Assert.False(detector.TryMatch(value, out _, out var stringOptions) &&
+                Assert.False(RegexLanguageDetector.CommentDetector.TryMatch(value, out _, out var stringOptions) &&
                     EmbeddedLanguageCommentOptions<RegexOptions>.TryGetOptions(stringOptions, out _));
             }
         }

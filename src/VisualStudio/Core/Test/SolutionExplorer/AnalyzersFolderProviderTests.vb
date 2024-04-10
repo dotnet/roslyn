@@ -13,9 +13,10 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class AnalyzersFolderProviderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Sub CreateCollectionSource_NullItem()
             Using environment = New TestEnvironment()
                 Dim provider As IAttachedCollectionSourceProvider =
@@ -27,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Sub CreateCollectionSource_NullHierarchyIdentity()
             Using environment = New TestEnvironment()
                 Dim provider As IAttachedCollectionSourceProvider =
@@ -41,7 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Sub CreateCollectionSource()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Goo")

@@ -8,10 +8,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
+    [Trait(Traits.Feature, Traits.Features.AddMissingReference)]
     public class CSharpAddMissingReference : AbstractEditorTest
     {
         private const string FileInLibraryProject1 = @"Public Class Class1
@@ -138,7 +140,7 @@ class Program
                 "</Solution>"), HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [IdeFact]
         public async Task VerifyAvailableCodeActions()
         {
             var consoleProject = ConsoleProjectName;
@@ -154,7 +156,7 @@ class Program
             await TestServices.EditorVerifier.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [IdeFact]
         public async Task InvokeSomeFixesInCSharpThenVerifyReferences()
         {
             var consoleProject = ConsoleProjectName;
@@ -162,7 +164,7 @@ class Program
             await TestServices.Editor.PlaceCaretAsync("y.goo", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorerVerifier.AssemblyReferencePresentAsync(
+            await TestServices.SolutionVerifier.AssemblyReferencePresentAsync(
                 projectName: consoleProject,
                 assemblyName: "System.Windows.Forms",
                 assemblyVersion: "4.0.0.0",
@@ -171,7 +173,7 @@ class Program
             await TestServices.Editor.PlaceCaretAsync("a.bar", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorerVerifier.ProjectReferencePresentAsync(
+            await TestServices.SolutionVerifier.ProjectReferencePresentAsync(
                 projectName: consoleProject,
                 referencedProjectName: ClassLibrary3Name,
                 HangMitigatingCancellationToken);

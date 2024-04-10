@@ -82,6 +82,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides Function GetHashCode() As Integer
             Return m_Identity.GetHashCode()
         End Function
@@ -120,6 +132,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of ImmutableArray(Of Byte))()
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return SpecializedCollections.EmptyEnumerable(Of String)()
+        End Function
+
         Public Overrides ReadOnly Property TypeNames As ICollection(Of String)
             Get
                 Return SpecializedCollections.EmptyCollection(Of String)()
@@ -136,17 +152,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Overrides Function LookupTopLevelMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), digThroughForwardedTypes As Boolean) As NamedTypeSymbol
-            Dim result = m_ModuleSymbol.LookupTopLevelMetadataType(emittedName)
-            Debug.Assert(TypeOf result Is MissingMetadataTypeSymbol)
-            Return result
+        Friend Overrides Function LookupDeclaredOrForwardedTopLevelMetadataType(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol)) As NamedTypeSymbol
+            Return New MissingMetadataTypeSymbol.TopLevel(m_ModuleSymbol, emittedName)
+        End Function
+
+        Friend Overrides Function LookupDeclaredTopLevelMetadataType(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
+            Return Nothing
         End Function
 
         Friend NotOverridable Overrides Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
             Return SpecializedCollections.EmptyEnumerable(Of NamedTypeSymbol)()
         End Function
 
-        Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -158,6 +176,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return Nothing
+        End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = Nothing
+            Return False
         End Function
     End Class
 
@@ -187,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' called if it is know that this is the Cor Library (mscorlib).
         ''' </summary>
         ''' <param name="type"></param>
-        Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
 #If DEBUG Then
             For Each [module] In Me.Modules
                 Debug.Assert([module].GetReferencedAssemblies().Length = 0)
@@ -195,16 +224,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
 
             If _lazySpecialTypes Is Nothing Then
-                Interlocked.CompareExchange(_lazySpecialTypes, New NamedTypeSymbol(SpecialType.Count) {}, Nothing)
+                Interlocked.CompareExchange(_lazySpecialTypes, New NamedTypeSymbol(InternalSpecialType.NextAvailable - 1) {}, Nothing)
             End If
 
-            If _lazySpecialTypes(type) Is Nothing Then
+            If _lazySpecialTypes(CInt(type)) Is Nothing Then
                 Dim emittedFullName As MetadataTypeName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
                 Dim corType As NamedTypeSymbol = New MissingMetadataTypeSymbol.TopLevel(m_ModuleSymbol, emittedFullName, type)
-                Interlocked.CompareExchange(_lazySpecialTypes(type), corType, Nothing)
+                Interlocked.CompareExchange(_lazySpecialTypes(CInt(type)), corType, Nothing)
             End If
 
-            Return _lazySpecialTypes(type)
+            Return _lazySpecialTypes(CInt(type))
 
         End Function
     End Class

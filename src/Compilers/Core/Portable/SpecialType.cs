@@ -259,8 +259,16 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute = 45,
 
         /// <summary>
+        /// An attribute that is placed on an inline array type.
+        /// </summary>
+        System_Runtime_CompilerServices_InlineArrayAttribute = 46,
+
+        /// <summary>
         /// Count of special types. This is not a count of enum members.
         /// </summary>
-        Count = System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
+        /// <remarks>
+        /// The underlying numeric value of this member is expected to change every time a new special type is added
+        /// </remarks>
+        Count = System_Runtime_CompilerServices_InlineArrayAttribute
     }
 }

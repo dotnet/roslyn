@@ -3275,19 +3275,19 @@ struct S3
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S1() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1").WithLocation(10, 12),
                 // (10,12): error CS0171: Field 'S1.F1' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public S1() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.F1", "11.0").WithLocation(10, 12),
-                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     S2(object? obj) { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2").WithLocation(16, 5),
                 // (16,5): error CS0171: Field 'S2.F2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     S2(object? obj) { }
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S2").WithArguments("S2.F2", "11.0").WithLocation(16, 5),
-                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S3() { F3 = GetValue(); }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3").WithLocation(21, 12),
                 // (21,24): warning CS8601: Possible null reference assignment.
@@ -3296,13 +3296,13 @@ struct S3
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S1() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1").WithLocation(10, 12),
-                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     S2(object? obj) { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2").WithLocation(16, 5),
-                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S3() { F3 = GetValue(); }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3").WithLocation(21, 12),
                 // (21,24): warning CS8601: Possible null reference assignment.
@@ -3721,9 +3721,15 @@ ref struct Example
                 // (5,38): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Field = stackalloc int[512];
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 38),
+                // (5,38): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //     public ReadOnlySpan<int> Field = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 38),
                 // (6,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(6, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(6, 50),
+                // (6,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(6, 50));
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
@@ -3752,8 +3758,10 @@ ref struct E2
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "Field = stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(9, 57));
         }
 
-        [Fact]
-        public void FieldInitializer_EscapeAnalysis_04()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.Latest)]
+        public void FieldInitializer_EscapeAnalysis_04(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -3765,19 +3773,7 @@ ref struct Example
     public Example() {}
     static Span<T> F<T>(D<T> d) => d();
 }";
-            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (5,31): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '11.0' to auto-default the unassigned fields.
-                //     public Span<byte> Field = F(() => stackalloc byte[512]);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("11.0").WithLocation(5, 31),
-                // (5,39): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-                //     public Span<byte> Field = F(() => stackalloc byte[512]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(5, 39),
-                // (6,51): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-                //     public Span<byte> Property { get; } = F(() => stackalloc byte[512]);
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(6, 51));
-
-            comp = CreateCompilationWithSpan(source);
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (5,39): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public Span<byte> Field = F(() => stackalloc byte[512]);
@@ -3812,7 +3808,10 @@ struct Example
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
+                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
@@ -3839,7 +3838,10 @@ record struct Example()
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
+                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
         }
 
         [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
@@ -3866,7 +3868,10 @@ class Example
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
+                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
@@ -4099,6 +4104,71 @@ public struct S
   IL_001a:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
+        public void ImplicitlyInitializedField_ConstructorInitializer_01()
+        {
+            var source = """
+public struct S1
+{
+    public int F;
+
+    S1(int x) {}
+
+    public S1() : this(F) {}
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,24): error CS0120: An object reference is required for the non-static field, method, or property 'S1.F'
+                //     public S1() : this(F) {}
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(7, 24));
+        }
+
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
+        public void ImplicitlyInitializedField_ConstructorInitializer_02()
+        {
+            var source = """
+public struct S1
+{
+    public int F;
+
+    S1(int x) {}
+
+    public static int M(int y) => y;
+
+    public S1() : this(M(F)) {}
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,26): error CS0120: An object reference is required for the non-static field, method, or property 'S1.F'
+                //     public S1() : this(M(F)) {}
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(9, 26));
+        }
+
+        [Fact, WorkItem(66046, "https://github.com/dotnet/roslyn/issues/66046")]
+        public void ImplicitlyInitializedField_ConstructorInitializer_03()
+        {
+            var source = """
+public struct S1
+{
+    public int F;
+
+    S1(int x) {}
+
+    public S1() : base(F) {}
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0522: 'S1': structs cannot call base class constructors
+                //     public S1() : base(F) {}
+                Diagnostic(ErrorCode.ERR_StructWithBaseConstructorCall, "S1").WithArguments("S1").WithLocation(7, 12),
+                // (7,24): error CS0120: An object reference is required for the non-static field, method, or property 'S1.F'
+                //     public S1() : base(F) {}
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S1.F").WithLocation(7, 24));
         }
 
         [Theory]
@@ -4535,10 +4605,10 @@ public struct S<T>
 }";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             verifier.VerifyDiagnostics(
-                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(21, 12),
-                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public S()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(21, 12),
                 // (23,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
@@ -4547,10 +4617,10 @@ public struct S<T>
                 // (24,18): warning CS8601: Possible null reference assignment.
                 //         TField = default;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(24, 18),
-                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(29, 12),
-                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(29, 12),
                 // (29,12): warning CS9022: Control is returned to caller before field 'S<T>.TField' is explicitly assigned, causing a preceding implicit assignment of 'default'.
@@ -4566,10 +4636,10 @@ public struct S<T>
 
             verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
             verifier.VerifyDiagnostics(
-                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (21,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(21, 12),
-                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (21,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public S()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(21, 12),
                 // (23,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
@@ -4578,10 +4648,10 @@ public struct S<T>
                 // (24,18): warning CS8601: Possible null reference assignment.
                 //         TField = default;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(24, 18),
-                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (29,12): warning CS8618: Non-nullable field 'TField' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "TField").WithLocation(29, 12),
-                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (29,12): warning CS8618: Non-nullable property 'AutoProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "AutoProp").WithLocation(29, 12));
             verifyIL();
@@ -4643,7 +4713,7 @@ public struct S<T>
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12),
                 // (4,12): error CS0171: Field 'S.Item' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
@@ -4653,7 +4723,7 @@ public struct S<T>
 
             var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12));
             verifier.VerifyIL("S..ctor", @"
@@ -4683,7 +4753,7 @@ public struct S<T>
 }";
             var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12)
                 );
@@ -4736,6 +4806,112 @@ public struct S<T>
   IL_000b:  ret
 }
 ");
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1598252")]
+        public void StaticAndInstanceConstructors_01(string type)
+        {
+            string source = $$"""
+                using System;
+                {{type}} S
+                {
+                    static S()
+                    {
+                        Console.WriteLine("static constructor");
+                    }
+                    public S(int p)
+                    {
+                        Console.WriteLine("instance constructor: {0}", p);
+                    }
+                    public S() : this(0)
+                    {
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = new S();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            VerifyExplicitlyDeclaredInstanceConstructors(
+                comp.GlobalNamespace.GetTypeMember("S"),
+                "S..ctor(System.Int32 p)",
+                "S..ctor()");
+            VerifyExplicitlyDeclaredInstanceConstructors(
+                ((Compilation)comp).GlobalNamespace.GetTypeMember("S"),
+                "S..ctor(System.Int32 p)",
+                "S..ctor()");
+
+            CompileAndVerify(comp, expectedOutput: """
+                static constructor
+                instance constructor: 0
+                """);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void StaticAndInstanceConstructors_02(string type)
+        {
+            string source = $$"""
+                using System;
+                {{type}} S
+                {
+                    static S()
+                    {
+                        Console.WriteLine("static constructor");
+                    }
+                    public S()
+                    {
+                        Console.WriteLine("instance constructor");
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = new S();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            VerifyExplicitlyDeclaredInstanceConstructors(
+                comp.GlobalNamespace.GetTypeMember("S"),
+                "S..ctor()");
+            VerifyExplicitlyDeclaredInstanceConstructors(
+                ((Compilation)comp).GlobalNamespace.GetTypeMember("S"),
+                "S..ctor()");
+
+            CompileAndVerify(comp, expectedOutput: """
+                static constructor
+                instance constructor
+                """);
+        }
+
+        private static void VerifyExplicitlyDeclaredInstanceConstructors(NamedTypeSymbol type, params string[] expectedConstructors)
+        {
+            var constructors = type.InstanceConstructors;
+            var members = type.GetMembers(".ctor");
+            Assert.True(members.SequenceEqual(constructors));
+            Assert.True(constructors.All(c => c is { IsStatic: false, IsImplicitConstructor: false }));
+            Assert.Equal(expectedConstructors, constructors.ToTestDisplayStrings());
+        }
+
+        private static void VerifyExplicitlyDeclaredInstanceConstructors(INamedTypeSymbol type, params string[] expectedConstructors)
+        {
+            var constructors = type.InstanceConstructors;
+            var members = type.GetMembers(".ctor");
+            Assert.True(members.SequenceEqual(constructors));
+            Assert.True(constructors.All(c => c is { IsStatic: false, IsImplicitlyDeclared: false }));
+            Assert.Equal(expectedConstructors, constructors.ToTestDisplayStrings());
         }
     }
 }

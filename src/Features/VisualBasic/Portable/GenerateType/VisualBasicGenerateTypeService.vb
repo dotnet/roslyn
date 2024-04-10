@@ -454,7 +454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return (globalNamespace, rootNamespaceOrType, afterThisLocation)
         End Function
 
-        Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax
+        Private Shared Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax
             For Each member In compilationUnit.Members
                 Dim namespaceDeclaration = GetDeclaringNamespace(containers, indexDone, member)
                 If namespaceDeclaration IsNot Nothing Then
@@ -465,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return Nothing
         End Function
 
-        Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, localRoot As SyntaxNode) As NamespaceStatementSyntax
+        Private Shared Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, localRoot As SyntaxNode) As NamespaceStatementSyntax
             Dim namespaceBlock = TryCast(localRoot, NamespaceBlockSyntax)
             If namespaceBlock IsNot Nothing Then
                 Dim matchingNamesCount = MatchingNamesFromNamespaceName(containers, indexDone, namespaceBlock.NamespaceStatement)
@@ -494,7 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         End Function
 
-        Private Function MatchingNamesFromNamespaceName(containers As List(Of String), indexDone As Integer, namespaceStatementSyntax As NamespaceStatementSyntax) As Integer
+        Private Shared Function MatchingNamesFromNamespaceName(containers As List(Of String), indexDone As Integer, namespaceStatementSyntax As NamespaceStatementSyntax) As Integer
 
             If namespaceStatementSyntax Is Nothing Then
                 Return -1
@@ -521,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return True
         End Function
 
-        Private Sub GetNamespaceContainers(name As NameSyntax, namespaceContainers As List(Of String))
+        Private Shared Sub GetNamespaceContainers(name As NameSyntax, namespaceContainers As List(Of String))
             If TypeOf name Is QualifiedNameSyntax Then
                 GetNamespaceContainers(DirectCast(name, QualifiedNameSyntax).Left, namespaceContainers)
                 namespaceContainers.Add(DirectCast(name, QualifiedNameSyntax).Right.Identifier.ValueText)

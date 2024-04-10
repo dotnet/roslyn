@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IParameterTypeInformation
         Implements IParameterDefinition
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements IParameterTypeInformation.CustomModifiers
             Get
                 Return AdaptedParameterSymbol.CustomModifiers.As(Of Cci.ICustomModifier)
@@ -184,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property IsMetadataOptional As Boolean
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(Me, AttributeDescription.OptionalAttribute))
+                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(AttributeDescription.OptionalAttribute))
             End Get
         End Property
 

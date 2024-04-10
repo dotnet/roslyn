@@ -39,7 +39,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 
     public override Symbol ContainingSymbol => _containingSymbol;
 
-    public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
+    public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable();
 
     public override TypeKind TypeKind => TypeKind.Class;
 

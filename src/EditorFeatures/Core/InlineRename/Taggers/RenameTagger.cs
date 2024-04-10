@@ -7,35 +7,29 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal sealed partial class RenameTagger(ITextBuffer buffer, InlineRenameService renameService) : AbstractRenameTagger<ITextMarkerTag>(buffer, renameService)
 {
-    internal sealed partial class RenameTagger : AbstractRenameTagger<ITextMarkerTag>
+    protected override bool TryCreateTagSpan(SnapshotSpan span, RenameSpanKind type, out TagSpan<ITextMarkerTag> tagSpan)
     {
-        public RenameTagger(ITextBuffer buffer, InlineRenameService renameService)
-            : base(buffer, renameService)
+        ITextMarkerTag tagKind;
+        switch (type)
         {
+            case RenameSpanKind.Reference:
+                tagKind = RenameFieldBackgroundAndBorderTag.Instance;
+                break;
+            case RenameSpanKind.UnresolvedConflict:
+                tagKind = RenameConflictTag.Instance;
+                break;
+            case RenameSpanKind.Complexified:
+                tagKind = RenameFixupTag.Instance;
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        protected override bool TryCreateTagSpan(SnapshotSpan span, RenameSpanKind type, out TagSpan<ITextMarkerTag> tagSpan)
-        {
-            ITextMarkerTag tagKind;
-            switch (type)
-            {
-                case RenameSpanKind.Reference:
-                    tagKind = RenameFieldBackgroundAndBorderTag.Instance;
-                    break;
-                case RenameSpanKind.UnresolvedConflict:
-                    tagKind = RenameConflictTag.Instance;
-                    break;
-                case RenameSpanKind.Complexified:
-                    tagKind = RenameFixupTag.Instance;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(type);
-            }
-
-            tagSpan = new TagSpan<ITextMarkerTag>(span, tagKind);
-            return true;
-        }
+        tagSpan = new TagSpan<ITextMarkerTag>(span, tagKind);
+        return true;
     }
 }

@@ -138,17 +138,11 @@
   <data name="Msbuild_failed_when_processing_the_file_0_with_message_1" xml:space="preserve">
     <value>Msbuild failed when processing the file '{0}' with message: {1}</value>
   </data>
-  <data name="Parameter_cannot_be_null_empty_or_contain_whitespace" xml:space="preserve">
-    <value>Parameter cannot be null, empty, or contain whitespace.</value>
-  </data>
   <data name="Path_for_document_0_was_null" xml:space="preserve">
     <value>Path for document '{0}' was null</value>
   </data>
   <data name="Project_already_added" xml:space="preserve">
     <value>Project already added.</value>
-  </data>
-  <data name="Project_does_not_contain_0_target" xml:space="preserve">
-    <value>Project does not contain '{0}' target.</value>
   </data>
   <data name="Project_does_not_have_a_path" xml:space="preserve">
     <value>Project does not have a path.</value>
@@ -173,5 +167,8 @@
   </data>
   <data name="Path_for_additional_document_0_was_null" xml:space="preserve">
     <value>Path for additional document '{0}' was null}</value>
+  </data>
+  <data name="The_build_host_could_not_be_found_at_0" xml:space="preserve">
+    <value>The build host could not be found at '{0}'</value>
   </data>
 </root>

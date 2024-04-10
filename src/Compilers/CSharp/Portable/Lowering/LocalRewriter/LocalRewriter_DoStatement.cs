@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the containing method is edited while methods invoked in the condition are being executed.
             if (!node.WasCompilerGenerated && this.Instrument)
             {
-                rewrittenCondition = _instrumenter.InstrumentDoStatementCondition(node, rewrittenCondition, _factory);
+                rewrittenCondition = Instrumenter.InstrumentDoStatementCondition(node, rewrittenCondition, _factory);
             }
 
             BoundStatement ifConditionGotoStart = new BoundConditionalGoto(syntax, rewrittenCondition, true, startLabel);
 
             if (!node.WasCompilerGenerated && this.Instrument)
             {
-                ifConditionGotoStart = _instrumenter.InstrumentDoStatementConditionalGotoStart(node, ifConditionGotoStart);
+                ifConditionGotoStart = Instrumenter.InstrumentDoStatementConditionalGotoStart(node, ifConditionGotoStart);
             }
 
             // do

@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyRequiresLocationAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyParamCollectionAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol _lazyNullablePublicOnlyAttribute;
         private SynthesizedEmbeddedNativeIntegerAttributeSymbol _lazyNativeIntegerAttribute;
         private SynthesizedEmbeddedScopedRefAttributeSymbol _lazyScopedRefAttribute;
+        private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol _lazyRefSafetyRulesAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -93,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             builder.AddIfNotNull(_lazyEmbeddedAttribute);
             builder.AddIfNotNull(_lazyIsReadOnlyAttribute);
+            builder.AddIfNotNull(_lazyRequiresLocationAttribute);
+            builder.AddIfNotNull(_lazyParamCollectionAttribute);
             builder.AddIfNotNull(_lazyIsUnmanagedAttribute);
             builder.AddIfNotNull(_lazyIsByRefLikeAttribute);
             builder.AddIfNotNull(_lazyNullableAttribute);
@@ -100,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyNullablePublicOnlyAttribute);
             builder.AddIfNotNull(_lazyNativeIntegerAttribute);
             builder.AddIfNotNull(_lazyScopedRefAttribute);
+            builder.AddIfNotNull(_lazyRefSafetyRulesAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -191,7 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
             // _lazyEmbeddedAttribute should have been created before calling this method.
-            return new SynthesizedAttributeData(
+            return SynthesizedAttributeData.Create(
+                Compilation,
                 _lazyEmbeddedAttribute.Constructors[0],
                 ImmutableArray<TypedConstant>.Empty,
                 ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -202,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyNullableAttribute != null)
             {
                 var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags) ? 1 : 0;
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyNullableAttribute.Constructors[constructorIndex],
                     arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -215,7 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if ((object)_lazyNullableContextAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyNullableContextAttribute.Constructors[0],
                     arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -228,7 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if ((object)_lazyNullablePublicOnlyAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyNullablePublicOnlyAttribute.Constructors[0],
                     arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -242,7 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyNativeIntegerAttribute != null)
             {
                 var constructorIndex = (member == WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags) ? 1 : 0;
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyNativeIntegerAttribute.Constructors[constructorIndex],
                     arguments,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -255,7 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if ((object)_lazyScopedRefAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyScopedRefAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -264,11 +276,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.SynthesizeScopedRefAttribute(member);
         }
 
+        internal override SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            if ((object)_lazyRefSafetyRulesAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyRefSafetyRulesAttribute.Constructors[0],
+                    arguments,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.SynthesizeRefSafetyRulesAttribute(arguments);
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyIsReadOnlyAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -277,11 +304,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsReadOnlyAttribute();
         }
 
+        protected override SynthesizedAttributeData TrySynthesizeRequiresLocationAttribute()
+        {
+            if ((object)_lazyRequiresLocationAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyRequiresLocationAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeRequiresLocationAttribute();
+        }
+
+        protected override SynthesizedAttributeData TrySynthesizeParamCollectionAttribute()
+        {
+            if ((object)_lazyParamCollectionAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyParamCollectionAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeParamCollectionAttribute();
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             if ((object)_lazyIsUnmanagedAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyIsUnmanagedAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -294,7 +350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if ((object)_lazyIsByRefLikeAttribute != null)
             {
-                return new SynthesizedAttributeData(
+                return SynthesizedAttributeData.Create(
+                    Compilation,
                     _lazyIsByRefLikeAttribute.Constructors[0],
                     ImmutableArray<TypedConstant>.Empty,
                     ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -312,7 +369,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 needsAttributes |= EmbeddableAttributes.NullablePublicOnlyAttribute;
             }
-            else if (needsAttributes == 0)
+
+            if (((SourceModuleSymbol)Compilation.SourceModule).RequiresRefSafetyRulesAttribute() &&
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.RefSafetyRulesAttribute, diagnostics, Location.None))
+            {
+                needsAttributes |= EmbeddableAttributes.RefSafetyRulesAttribute;
+            }
+
+            if (needsAttributes == 0)
             {
                 return;
             }
@@ -331,6 +395,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RequiresLocationAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRequiresLocationAttribute,
+                    diagnostics,
+                    AttributeDescription.RequiresLocationAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.ParamCollectionAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyParamCollectionAttribute,
+                    diagnostics,
+                    AttributeDescription.ParamCollectionAttribute,
                     createParameterlessEmbeddedAttributeSymbol);
             }
 
@@ -397,6 +479,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     AttributeDescription.ScopedRefAttribute,
                     CreateScopedRefAttributeSymbol);
             }
+
+            if ((needsAttributes & EmbeddableAttributes.RefSafetyRulesAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRefSafetyRulesAttribute,
+                    diagnostics,
+                    AttributeDescription.RefSafetyRulesAttribute,
+                    CreateRefSafetyRulesAttributeSymbol);
+            }
         }
 
         private SynthesizedEmbeddedAttributeSymbol CreateParameterlessEmbeddedAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
@@ -445,6 +536,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     SourceModule,
                     GetWellKnownType(WellKnownType.System_Attribute, diagnostics));
 
+        private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol CreateRefSafetyRulesAttributeSymbol(string name, NamespaceSymbol containingNamespace, BindingDiagnosticBag diagnostics)
+            => new SynthesizedEmbeddedRefSafetyRulesAttributeSymbol(
+                    name,
+                    containingNamespace,
+                    SourceModule,
+                    GetWellKnownType(WellKnownType.System_Attribute, diagnostics),
+                    GetSpecialType(SpecialType.System_Int32, diagnostics));
+
         private void CreateAttributeIfNeeded<T>(
             ref T symbol,
             BindingDiagnosticBag diagnostics,
@@ -470,17 +569,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+#nullable enable
+
         private void AddDiagnosticsForExistingAttribute(AttributeDescription description, BindingDiagnosticBag diagnostics)
         {
             var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
             var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+            Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+            Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
 
-            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+            if (userDefinedAttribute is not null)
             {
-                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
             }
         }
+
+#nullable disable
 
         private NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
         {

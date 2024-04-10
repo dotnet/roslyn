@@ -4,10 +4,11 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -18,31 +19,54 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
     /// Key processor that allows us to toggle inline hints when a user hits Alt+F1
     /// </summary>
     [Export(typeof(IKeyProcessorProvider))]
+    [Export(typeof(IInlineHintKeyProcessor))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(InlineHintsKeyProcessorProvider))]
-    internal sealed class InlineHintsKeyProcessorProvider : IKeyProcessorProvider
+    internal sealed class InlineHintsKeyProcessorProvider : IKeyProcessorProvider, IInlineHintKeyProcessor
     {
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
+        private int _state;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineHintsKeyProcessorProvider(IGlobalOptionService globalOptions)
+        public InlineHintsKeyProcessorProvider(
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
         {
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
         }
 
+        public bool State
+        {
+            get
+            {
+                // Can be read on any thread.
+                return Volatile.Read(ref _state) == 1;
+            }
+
+            private set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                Volatile.Write(ref _state, value ? 1 : 0);
+            }
+        }
+
+        public event Action? StateChanged;
+
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
-            => new InlineHintsKeyProcessor(_globalOptions, wpfTextView);
+            => new InlineHintsKeyProcessor(this, wpfTextView);
 
         private sealed class InlineHintsKeyProcessor : KeyProcessor
         {
-            private readonly IGlobalOptionService _globalOptions;
+            private readonly InlineHintsKeyProcessorProvider _processorProvider;
             private readonly IWpfTextView _view;
 
-            public InlineHintsKeyProcessor(IGlobalOptionService globalOptions, IWpfTextView view)
+            public InlineHintsKeyProcessor(InlineHintsKeyProcessorProvider processorProvider, IWpfTextView view)
             {
-                _globalOptions = globalOptions;
+                _processorProvider = processorProvider;
                 _view = view;
                 _view.Closed += OnViewClosed;
                 _view.LostAggregateFocus += OnLostFocus;
@@ -109,14 +133,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             private void Toggle(bool on)
             {
                 // No need to do anything if we're already in the requested state
-                var state = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
-                if (state == on)
+                if (_processorProvider.State == on)
                     return;
 
                 // We can only enter the on-state if the user has the chord feature enabled.  We can always enter the
                 // off state though.
-                on = on && _globalOptions.GetOption(InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1);
-                _globalOptions.RefreshOption(new OptionKey(InlineHintsGlobalStateOption.DisplayAllOverride), on);
+                on = on && _processorProvider._globalOptions.GetOption(InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1);
+                if (_processorProvider.State == on)
+                    return;
+
+                _processorProvider.State = on;
+                _processorProvider.StateChanged?.Invoke();
             }
         }
     }

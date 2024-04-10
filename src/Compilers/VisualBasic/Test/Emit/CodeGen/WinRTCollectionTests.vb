@@ -91,7 +91,6 @@ b
 0
 ]]>
 
-
             Dim verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput,
@@ -509,7 +508,6 @@ End Class
 ]]>
                     </file>
                 </compilation>
-
 
             Dim verifier = CompileAndVerify(source,
                 references:=LegacyRefs,
@@ -1299,8 +1297,6 @@ End Class
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:=LegacyRefs)
             CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
-
-
 
         <Fact()>
         Public Sub LegacyCollectionTest03()
@@ -3966,8 +3962,6 @@ End Class
 ]]>.Value)
         End Sub
 
-
-
         <Fact()>
         Public Sub LegacyCollectionTest06()
             Dim source =
@@ -5821,7 +5815,6 @@ End Class
                     </file>
                 </compilation>
 
-
             Dim verifier = CompileAndVerify(
                 source,
                 references:=LegacyRefs,
@@ -6080,7 +6073,6 @@ End Class
                     </file>
                 </compilation>
 
-
             Dim verifier = CompileAndVerify(
                 source,
                 references:=LegacyRefs,
@@ -6181,7 +6173,6 @@ End Class
 ]]>
                     </file>
                 </compilation>
-
 
             Dim verifier = CompileAndVerify(
                 source,
@@ -6287,7 +6278,6 @@ Namespace Test
 End Namespace
 ]]></file>
                          </compilation>
-
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source,
                 options:=TestOptions.ReleaseWinMD,

@@ -31,7 +31,7 @@ class C
         var x1 = stackalloc RefS[10];
         var x2 = stackalloc RefG<string>[10];
         var x3 = stackalloc RefG<int>[10];
-        var x4 = stackalloc System.TypedReference[10]; // Note: this should be disallowed by adding a dummy field to the ref assembly for TypedReference
+        var x4 = stackalloc System.TypedReference[10];
         var x5 = stackalloc System.ArgIterator[10];
         var x6 = stackalloc System.RuntimeArgumentHandle[10];
 
@@ -62,6 +62,9 @@ class C
                 // (10,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('RefG<string>')
                 //         var x2 = stackalloc RefG<string>[10];
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "RefG<string>").WithArguments("RefG<string>").WithLocation(10, 29),
+                // (12,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('TypedReference')
+                //         var x4 = stackalloc System.TypedReference[10];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(12, 29),
                 // (16,22): error CS0611: Array elements cannot be of type 'RefS'
                 //         var y1 = new RefS[10];
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(16, 22),
@@ -657,12 +660,21 @@ class Test
                 // (7,37): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 37),
+                // (7,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 44),
                 // (8,37): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 37),
+                // (8,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 44),
                 // (9,37): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 37),
+                // (9,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 44)
                 );
         }
 
@@ -1443,16 +1455,24 @@ class Test
         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
     }
 }", options: TestOptions.UnsafeReleaseDll, parseOptions: parseOptions).VerifyDiagnostics(
-                // (7,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x1 = stackalloc int [3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(7, 24),
-                // (8,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x2 = stackalloc int [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(8, 24),
-                // (9,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
-                //         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(9, 24)
-                );
+            // (7,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+            //         Span<int> x1 = stackalloc int [3] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(7, 24),
+            // (7,24): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+            //         Span<int> x1 = stackalloc int [3] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int [3] { 1, 2, 3 }").WithArguments("ref structs", "7.2").WithLocation(7, 24),
+            // (8,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+            //         Span<int> x2 = stackalloc int [ ] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(8, 24),
+            // (8,24): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+            //         Span<int> x2 = stackalloc int [ ] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int [ ] { 1, 2, 3 }").WithArguments("ref structs", "7.2").WithLocation(8, 24),
+            // (9,24): error CS8107: Feature 'stackalloc initializer' is not available in C# 7.0. Please use language version 7.3 or greater.
+            //         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(9, 24),
+            // (9,24): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+            //         Span<int> x3 = stackalloc     [ ] { 1, 2, 3 };
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc     [ ] { 1, 2, 3 }").WithArguments("ref structs", "7.2").WithLocation(9, 24));
         }
 
         [Fact]
@@ -2656,6 +2676,98 @@ unsafe class Test
             Assert.Equal(Conversion.ImplicitNumeric, element1Info.ImplicitConversion);
 
             Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Fact]
+        public void UnconvertedExpression_01()
+        {
+            string source = """
+                stackalloc X[new(), new()];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[new(), new()]").WithLocation(1, 1),
+                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
+                // (1,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[new(), new()]").WithLocation(1, 12));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var operation = model.GetOperation(tree.GetRoot());
+            var actualOperationTree = GetOperationTreeForTest(comp, operation);
+            OperationTreeVerifier.Verify("""
+                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'stackalloc  ... (), new()];')
+                  BlockBody:
+                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'stackalloc  ... (), new()];')
+                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'stackalloc  ... (), new()];')
+                        Expression:
+                          IInvalidOperation (OperationKind.Invalid, Type: X*, IsInvalid) (Syntax: 'stackalloc  ... w(), new()]')
+                            Children(2):
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                  Children(0)
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                  Children(0)
+                  ExpressionBody:
+                    null
+                """,
+                actualOperationTree);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Fact]
+        public void UnconvertedExpression_02()
+        {
+            string source = """
+                object x;
+                stackalloc X[0, new(out x)];
+                object y = x;
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[0, new(out x)]").WithLocation(2, 1),
+                // (2,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(2, 12),
+                // (2,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[0, new(out x)]").WithLocation(2, 12),
+                // (2,25): error CS0165: Use of unassigned local variable 'x'
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(2, 25));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Theory]
+        [InlineData("default")]
+        [InlineData("(default, 1)")]
+        [InlineData("[]")]
+        [InlineData("$\"str\"")]
+        [InlineData("args.Length > 0 ? default : default")]
+        [InlineData("args.Length > 0 switch { true => default, false => default }")]
+        public void UnconvertedExpression_03(string expr)
+        {
+            string source = $$"""
+                stackalloc X[0, {{expr}}];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, $"stackalloc X[0, {expr}]").WithLocation(1, 1),
+                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
+                // (1,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, $"X[0, {expr}]").WithLocation(1, 12));
         }
     }
 }
