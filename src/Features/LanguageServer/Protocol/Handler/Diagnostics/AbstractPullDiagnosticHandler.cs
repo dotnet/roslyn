@@ -144,6 +144,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
             else
             {
+                Contract.ThrowIfNull(context.Solution);
+
                 var clientCapabilities = context.GetRequiredClientCapabilities();
                 var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
                 var sourceIdentifier = GetDiagnosticSourceIdentifier(diagnosticsParams) ?? "";
@@ -160,13 +162,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // Create a mapping from documents to the previous results the client says it has for them.  That way as we
                 // process documents we know if we should tell the client it should stay the same, or we can tell it what
                 // the updated diagnostics are.
-                using var _1 = PooledDictionary<ProjectOrDocumentId, PreviousPullResult>.GetInstance(out var documentToPreviousDiagnosticParams);
-                using var _2 = PooledHashSet<PreviousPullResult>.GetInstance(out var removedResults);
-                AddIdToPreviousDiagnosticParams(context, previousResults, documentToPreviousDiagnosticParams, removedResults);
+                using var _1 = PooledDictionary<ProjectOrDocumentId, PreviousPullResult>.GetInstance(out var documentIdToPreviousDiagnosticParams);
+                using var _2 = PooledHashSet<PreviousPullResult>.GetInstance(out var removedDocuments);
+                ProcessPreviousResults(context.Solution, previousResults, documentIdToPreviousDiagnosticParams, removedDocuments);
 
                 // First, let the client know if any workspace documents have gone away.  That way it can remove those for
                 // the user from squiggles or error-list.
-                HandleRemovedDocuments(context, removedResults, progress);
+                HandleRemovedDocuments(context, removedDocuments, progress);
 
                 // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
                 // last time we notified the client.  Report back either to the client so they can update accordingly.
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     var project = diagnosticSource.GetProject();
 
                     var newResultId = await versionedCache.GetNewResultIdAsync(
-                        documentToPreviousDiagnosticParams,
+                        documentIdToPreviousDiagnosticParams,
                         diagnosticSource.GetId(),
                         project,
                         computeCheapVersionAsync: async () => (globalStateVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
@@ -208,7 +210,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                         //
                         // Note: if this is a workspace request, we can do nothing, as that will be interpreted by the
                         // client as nothing having been changed for that document.
-                        var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
+                        var previousParams = documentIdToPreviousDiagnosticParams[diagnosticSource.GetId()];
                         if (TryCreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId, out var report))
                             progress.Report(report);
                     }
@@ -219,10 +221,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // each time around, while still producing accurate diagnostic reports.
                 //
                 // Only do this if we haven't already created a removal report for that prior result.
-                foreach (var (projectOrDocumentId, previousDiagnosticParams) in documentToPreviousDiagnosticParams)
+                foreach (var (projectOrDocumentId, previousDiagnosticParams) in documentIdToPreviousDiagnosticParams)
                 {
                     if (!seenDiagnosticSourceIds.Contains(projectOrDocumentId) &&
-                        !removedResults.Contains(previousDiagnosticParams))
+                        !removedDocuments.Contains(previousDiagnosticParams))
                     {
                         progress.Report(CreateRemovedReport(previousDiagnosticParams.TextDocument));
                     }
@@ -243,34 +245,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
 
             return CreateReturn(progress);
-        }
 
-        private static void AddIdToPreviousDiagnosticParams(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults,
-            Dictionary<ProjectOrDocumentId, PreviousPullResult> idToPreviousDiagnosticParams,
-            HashSet<PreviousPullResult> removedDocuments)
-        {
-            Contract.ThrowIfNull(context.Solution);
-
-            foreach (var diagnosticParams in previousResults)
+            static void ProcessPreviousResults(
+                Solution solution,
+                ImmutableArray<PreviousPullResult> previousResults,
+                Dictionary<ProjectOrDocumentId, PreviousPullResult> idToPreviousDiagnosticParams,
+                HashSet<PreviousPullResult> removedResults)
             {
-                if (diagnosticParams.TextDocument != null)
+                foreach (var diagnosticParams in previousResults)
                 {
-                    var id = GetIdForPreviousResult(diagnosticParams.TextDocument, context.Solution);
-                    if (id != null)
+                    if (diagnosticParams.TextDocument != null)
                     {
-                        idToPreviousDiagnosticParams[id.Value] = diagnosticParams;
-                    }
-                    else
-                    {
-                        // The client previously had a result from us for this document, but we no longer have it in our solution.
-                        // Record it so we can report to the client that it has been removed.
-                        removedDocuments.Add(diagnosticParams);
+                        var id = GetIdForPreviousResult(diagnosticParams.TextDocument, solution);
+                        if (id != null)
+                        {
+                            idToPreviousDiagnosticParams[id.Value] = diagnosticParams;
+                        }
+                        else
+                        {
+                            // The client previously had a result from us for this document, but we no longer have it in our solution.
+                            // Record it so we can report to the client that it has been removed.
+                            removedResults.Add(diagnosticParams);
+                        }
                     }
                 }
             }
-
-            return;
 
             static ProjectOrDocumentId? GetIdForPreviousResult(TextDocumentIdentifier textDocumentIdentifier, Solution solution)
             {
