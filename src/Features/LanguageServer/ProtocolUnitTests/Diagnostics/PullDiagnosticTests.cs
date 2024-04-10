@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -1890,6 +1891,56 @@ class A {";
             // Assert the task completes after a change occurs
             var results = await resultTask;
             Assert.NotEmpty(results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceDiagnosticsForClosedFilesSwitchFSAFromOnToOff(bool useVSDiagnostics, bool mutatingLspWorkspace)
+        {
+            var markup1 =
+@"class A {";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                [markup1], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+
+            var options = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            options.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.OpenFiles);
+            options.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, CompilerDiagnosticsScope.OpenFiles);
+
+            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            Assert.Equal(2, results.Length);
+            Assert.Empty(results[0].Diagnostics);
+            Assert.Empty(results[1].Diagnostics);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceDiagnosticsForClosedFilesSwitchFSAFromOffToOn(bool useVSDiagnostics, bool mutatingLspWorkspace)
+        {
+            var markup1 =
+@"class A {";
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                [markup1], mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            Assert.Equal(2, results.Length);
+            Assert.Empty(results[0].Diagnostics);
+            Assert.Empty(results[1].Diagnostics);
+
+            var options = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            options.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+            options.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, CompilerDiagnosticsScope.FullSolution);
+
+            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
         }
 
         #endregion

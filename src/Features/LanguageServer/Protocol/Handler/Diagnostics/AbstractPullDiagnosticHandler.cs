@@ -160,7 +160,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // Create a mapping from documents to the previous results the client says it has for them.  That way as we
                 // process documents we know if we should tell the client it should stay the same, or we can tell it what
                 // the updated diagnostics are.
-                var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, out var removedResults);
+                using var _1 = PooledHashSet<PreviousPullResult>.GetInstance(out var removedResults);
+                var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, removedResults);
 
                 // First, let the client know if any workspace documents have gone away.  That way it can remove those for
                 // the user from squiggles or error-list.
@@ -173,8 +174,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 context.TraceInformation($"Processing {orderedSources.Length} documents");
 
+                using var _2 = PooledHashSet<ProjectOrDocumentId>.GetInstance(out var seenDiagnosticSourceIds);
+
                 foreach (var diagnosticSource in orderedSources)
                 {
+                    seenDiagnosticSourceIds.Add(diagnosticSource.GetId());
                     var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
 
                     var project = diagnosticSource.GetProject();
@@ -207,6 +211,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     }
                 }
 
+                // Now, for any diagnostics reported from a prior source that we do not see this time around, report its
+                // diagnostics as being removed. This allows for different sets of diagnostic-sources to be computed
+                // each time around, while still producing accurate diagnostic reports.
+                //
+                // Only do this if we haven't already created a removal report for that prior result.
+                foreach (var (projectOrDocumentId, previousDiagnosticParams) in documentToPreviousDiagnosticParams)
+                {
+                    if (!seenDiagnosticSourceIds.Contains(projectOrDocumentId) &&
+                        !removedResults.Contains(previousDiagnosticParams))
+                    {
+                        progress.Report(CreateRemovedReport(previousDiagnosticParams.TextDocument));
+                    }
+                }
+
                 // Clear out the solution context to avoid retaining memory
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1809058
                 context.ClearSolutionContext();
@@ -225,12 +243,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         private static Dictionary<ProjectOrDocumentId, PreviousPullResult> GetIdToPreviousDiagnosticParams(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, out ImmutableArray<PreviousPullResult> removedDocuments)
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, HashSet<PreviousPullResult> removedDocuments)
         {
             Contract.ThrowIfNull(context.Solution);
 
             var result = new Dictionary<ProjectOrDocumentId, PreviousPullResult>();
-            using var _ = ArrayBuilder<PreviousPullResult>.GetInstance(out var removedDocumentsBuilder);
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
@@ -244,12 +261,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     {
                         // The client previously had a result from us for this document, but we no longer have it in our solution.
                         // Record it so we can report to the client that it has been removed.
-                        removedDocumentsBuilder.Add(diagnosticParams);
+                        removedDocuments.Add(diagnosticParams);
                     }
                 }
             }
 
-            removedDocuments = removedDocumentsBuilder.ToImmutable();
             return result;
 
             static ProjectOrDocumentId? GetIdForPreviousResult(TextDocumentIdentifier textDocumentIdentifier, Solution solution)
@@ -306,7 +322,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             progress.Report(report);
         }
 
-        private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, HashSet<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)
         {
             foreach (var removedResult in removedPreviousResults)
             {
