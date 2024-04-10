@@ -912,7 +912,7 @@ class C
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -926,7 +926,7 @@ class C
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -943,7 +943,7 @@ class C
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
         var projectId = scopeRunCodeAnalysisToProject ? testLspServer.GetCurrentSolution().Projects.Single().Id : null;
         await testLspServer.RunCodeAnalysisAsync(projectId);
@@ -990,7 +990,7 @@ class C
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         // Run code analysis on the initial project snapshot with compiler error.
         var projectId = scopeRunCodeAnalysisToProject ? testLspServer.GetCurrentSolution().Projects.Single().Id : null;
@@ -1040,7 +1040,7 @@ class C
 class A {
 }";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            [markup1], mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: false, category: PullDiagnosticCategories.Task);
 
@@ -1056,7 +1056,7 @@ class A {
 class A {
 }";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            [markup1], mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: true, category: PullDiagnosticCategories.Task);
 
@@ -1090,7 +1090,7 @@ class A {
 class A {
 }";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
+            [markup1], mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
 
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(
             TaskListOptionsStorage.Descriptors,
@@ -1113,7 +1113,7 @@ class A {
 class A {
 }";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: false, category: PullDiagnosticCategories.Task);
 
@@ -1138,7 +1138,7 @@ class A {
 class A {
 }";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: true, category: PullDiagnosticCategories.Task);
 
@@ -1167,7 +1167,7 @@ class A {
 class A {
 ";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: true, category: PullDiagnosticCategories.Task);
 
@@ -1194,7 +1194,7 @@ class A {
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
         var firstDocument = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
         await OpenDocumentAsync(testLspServer, firstDocument);
@@ -1300,7 +1300,7 @@ class A {
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -1333,7 +1333,7 @@ class A {
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-             new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+             [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -1355,7 +1355,7 @@ class A {
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-             new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+             [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -1388,7 +1388,7 @@ class A {
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-             new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+             [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -1428,7 +1428,7 @@ class A {
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-             new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+             [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -1449,7 +1449,7 @@ class A {
 class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
@@ -1850,7 +1850,7 @@ class A {";
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
 
@@ -1874,7 +1874,7 @@ class A {";
 @"class A {";
         var markup2 = "";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-            new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+            [markup1, markup2], mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var resultTask = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, triggerConnectionClose: false);
 
