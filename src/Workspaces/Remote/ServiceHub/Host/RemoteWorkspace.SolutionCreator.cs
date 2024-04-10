@@ -558,7 +558,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
                 if (newDocumentIdToStateChecksums.Count > 2)
                 {
-                    await _assetProvider.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+                    using var _ = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectChecksums);
+                    allProjectChecksums.Add(projectChecksums);
+                    await _assetProvider.SynchronizeProjectAssetsAsync(allProjectChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
                 return await UpdateDocumentsAsync(project, addDocuments, removeDocuments, oldDocumentIdToStateChecksums, newDocumentIdToStateChecksums, cancellationToken).ConfigureAwait(false);
