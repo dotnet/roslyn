@@ -207,7 +207,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             AddAll(checksums, projectChecksums.AnalyzerConfigDocuments.Checksums);
 
             await this.SynchronizeAssetsAsync<DocumentStateChecksums, VoidResult>(
-                AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
 
             // First, fetch all the DocumentStateChecksums for all the documents in the project.
             using var _2 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
