@@ -135,15 +135,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
         [ExportCSharpVisualBasicStatelessLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
         [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        internal sealed class TestDocumentHandler : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class TestDocumentHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
         {
             public const string MethodName = nameof(TestDocumentHandler);
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestDocumentHandler()
-            {
-            }
 
             public bool MutatesSolutionState => true;
             public bool RequiresLSPSolution => true;
@@ -161,15 +157,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
         [ExportCSharpVisualBasicStatelessLspService(typeof(TestRequestHandlerWithNoParams)), PartNotDiscoverable, Shared]
         [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        internal sealed class TestRequestHandlerWithNoParams : ILspServiceRequestHandler<string>
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class TestRequestHandlerWithNoParams() : ILspServiceRequestHandler<string>
         {
             public const string MethodName = nameof(TestRequestHandlerWithNoParams);
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestRequestHandlerWithNoParams()
-            {
-            }
 
             public bool MutatesSolutionState => true;
             public bool RequiresLSPSolution => true;
@@ -181,15 +173,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        internal sealed class TestNotificationHandler : ILspServiceNotificationHandler<TestRequestTypeOne>
+        internal sealed class TestNotificationHandler() : ILspServiceNotificationHandler<TestRequestTypeOne>
         {
             public const string MethodName = nameof(TestNotificationHandler);
-            public readonly TaskCompletionSource<string> ResultSource;
-
-            public TestNotificationHandler()
-            {
-                ResultSource = new TaskCompletionSource<string>();
-            }
+            public readonly TaskCompletionSource<string> ResultSource = new();
 
             public bool MutatesSolutionState => true;
             public bool RequiresLSPSolution => true;
@@ -205,14 +192,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
         /// </summary>
         [ExportCSharpVisualBasicLspServiceFactory(typeof(TestNotificationHandler)), PartNotDiscoverable, Shared]
-        internal sealed class TestNotificationHandlerFactory : ILspServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class TestNotificationHandlerFactory() : ILspServiceFactory
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestNotificationHandlerFactory()
-            {
-            }
-
             public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
             {
                 return new TestNotificationHandler();
@@ -220,15 +203,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
-        internal sealed class TestNotificationWithoutParamsHandler : ILspServiceNotificationHandler
+        internal sealed class TestNotificationWithoutParamsHandler() : ILspServiceNotificationHandler
         {
             public const string MethodName = nameof(TestNotificationWithoutParamsHandler);
-            public readonly TaskCompletionSource<string> ResultSource;
-
-            public TestNotificationWithoutParamsHandler()
-            {
-                ResultSource = new TaskCompletionSource<string>();
-            }
+            public readonly TaskCompletionSource<string> ResultSource = new();
 
             public bool MutatesSolutionState => true;
             public bool RequiresLSPSolution => true;
@@ -244,14 +222,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
         /// </summary>
         [ExportCSharpVisualBasicLspServiceFactory(typeof(TestNotificationWithoutParamsHandler)), PartNotDiscoverable, Shared]
-        internal sealed class TestNotificationWithoutParamsHandlerFactory : ILspServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class TestNotificationWithoutParamsHandlerFactory() : ILspServiceFactory
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestNotificationWithoutParamsHandlerFactory()
-            {
-            }
-
             public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
             {
                 return new TestNotificationWithoutParamsHandler();
@@ -263,14 +237,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// </summary>
         [ExportCSharpVisualBasicStatelessLspService(typeof(TestLanguageSpecificHandler)), PartNotDiscoverable, Shared]
         [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
-        internal sealed class TestLanguageSpecificHandler : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class TestLanguageSpecificHandler() : ILspServiceDocumentRequestHandler<TestRequestTypeOne, string>
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestLanguageSpecificHandler()
-            {
-            }
-
             public bool MutatesSolutionState => true;
             public bool RequiresLSPSolution => true;
 
@@ -291,14 +261,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// </summary>
         [ExportCSharpVisualBasicStatelessLspService(typeof(TestLanguageSpecificHandlerWithDifferentParams)), PartNotDiscoverable, Shared]
         [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.VisualBasic)]
-        internal sealed class TestLanguageSpecificHandlerWithDifferentParams : ILspServiceDocumentRequestHandler<TestRequestTypeTwo, string>
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class TestLanguageSpecificHandlerWithDifferentParams() : ILspServiceDocumentRequestHandler<TestRequestTypeTwo, string>
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestLanguageSpecificHandlerWithDifferentParams()
-            {
-            }
-
             public bool MutatesSolutionState => true;
             public bool RequiresLSPSolution => true;
 
@@ -319,14 +285,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// </summary>
         [ExportCSharpVisualBasicStatelessLspService(typeof(TestDuplicateLanguageSpecificHandler)), PartNotDiscoverable, Shared]
         [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
-        internal sealed class TestDuplicateLanguageSpecificHandler : ILspServiceRequestHandler<string>
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal sealed class TestDuplicateLanguageSpecificHandler() : ILspServiceRequestHandler<string>
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestDuplicateLanguageSpecificHandler()
-            {
-            }
-
             public bool MutatesSolutionState => true;
             public bool RequiresLSPSolution => true;
 
