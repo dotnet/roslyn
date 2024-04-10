@@ -220,7 +220,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // diagnostics as being removed. This allows for different sets of diagnostic-sources to be computed
                 // each time around, while still producing accurate diagnostic reports.
                 //
-                // Only do this if we haven't already created a removal report for that prior result.
+                // Only do this if we haven't already created a removal report for that prior result above.
+                //
+                // Note: we are intentionally notifying the client that this is not a remove (vs an empty set of
+                // results). As far as we and the client are concerned, this document no longer exists at this point
+                // for the purposes of diagnostics.
                 foreach (var (projectOrDocumentId, previousDiagnosticParams) in documentIdToPreviousDiagnosticParams)
                 {
                     if (!seenDiagnosticSourceIds.Contains(projectOrDocumentId) &&
