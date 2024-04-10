@@ -272,17 +272,13 @@ internal sealed class SolutionStateChecksums(
 
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums))
                 {
-                    if (searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
-                        result[projectStateChecksums.Checksum] = projectStateChecksums;
-
-                    if (searchingChecksumsLeft.Remove(projectStateChecksums.Info))
-                        result[projectStateChecksums.Info] = projectState.Attributes;
-
-                    if (searchingChecksumsLeft.Remove(projectStateChecksums.CompilationOptions))
-                        result[projectStateChecksums.CompilationOptions] = projectState.CompilationOptions!;
-
-                    if (searchingChecksumsLeft.Remove(projectStateChecksums.ParseOptions))
-                        result[projectStateChecksums.ParseOptions] = projectState.ParseOptions!;
+                    await projectStateChecksums.FindAsync(
+                        projectState,
+                        // Only search the project level info of the project we're diving into.  Do not go into documents.
+                        AssetPath.ProjectOnly,
+                        searchingChecksumsLeft,
+                        result,
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }

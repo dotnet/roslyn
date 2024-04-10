@@ -27,6 +27,8 @@ internal readonly struct AssetPath
     /// </summary>
     public static readonly AssetPath SolutionAndTopLevelProjectsOnly = new(AssetPathKind.Solution | AssetPathKind.TopLevelProjects);
 
+    public static readonly AssetPath ProjectOnly = new(AssetPathKind.Projects);
+
     /// <summary>
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.

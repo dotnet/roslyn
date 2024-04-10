@@ -31,7 +31,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         IOUtilities.PerformIO(() => File.Delete(s_logFile));
     }
 
-    private const int PooledChecksumArraySize = 256;
+    private const int PooledChecksumArraySize = 1024;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
     private readonly Checksum _solutionChecksum = solutionChecksum;
@@ -150,100 +150,83 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
         async ValueTask SynchronizeProjectAssetsWorkerAsync()
         {
-            // get children of project checksum objects at once
-            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-            {
-                checksums.Clear();
-                foreach (var projectChecksums in allProjectChecksums)
-                    checksums.Add(projectChecksums.Info);
+            // Make parallel requests for all the project data across all projects at once.
+            tasks.Add(SynchronizeProjectAssetAsync<ProjectInfo.ProjectAttributes>(static p => p.Info, cancellationToken));
+            tasks.Add(SynchronizeProjectAssetAsync<CompilationOptions>(static p => p.CompilationOptions, cancellationToken));
+            tasks.Add(SynchronizeProjectAssetAsync<ParseOptions>(static p => p.ParseOptions, cancellationToken));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<ProjectReference>(static p => p.ProjectReferences, cancellationToken));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<MetadataReference>(static p => p.MetadataReferences, cancellationToken));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<AnalyzerReference>(static p => p.AnalyzerReferences, cancellationToken));
 
-                await this.SynchronizeAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-            }
-
-            {
-                checksums.Clear();
-                foreach (var projectChecksums in allProjectChecksums)
-                    checksums.Add(projectChecksums.CompilationOptions);
-
-                await this.SynchronizeAssetsAsync<CompilationOptions, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-            }
-
-            {
-                checksums.Clear();
-                foreach (var projectChecksums in allProjectChecksums)
-                    checksums.Add(projectChecksums.ParseOptions);
-
-                await this.SynchronizeAssetsAsync<ParseOptions, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-            }
-
-            {
-                checksums.Clear();
-                foreach (var projectChecksums in allProjectChecksums)
-                    AddAll(checksums, projectChecksums.ProjectReferences);
-
-                await this.SynchronizeAssetsAsync<ProjectReference, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-            }
-
-            {
-                checksums.Clear();
-                foreach (var projectChecksums in allProjectChecksums)
-                    AddAll(checksums, projectChecksums.MetadataReferences);
-
-                await this.SynchronizeAssetsAsync<MetadataReference, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-            }
-
-            {
-                checksums.Clear();
-                foreach (var projectChecksums in allProjectChecksums)
-                    AddAll(checksums, projectChecksums.AnalyzerReferences);
-
-                await this.SynchronizeAssetsAsync<AnalyzerReference, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-            }
-
-            using var _1 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
-
+            // Then sync each project's documents in parallel with each other.
             foreach (var projectChecksums in allProjectChecksums)
-            {
-                allDocumentStateChecksums.Clear();
-                checksums.Clear();
+                tasks.Add(SynchronizeProjectDocumentsAsync(projectChecksums, cancellationToken));
 
-                AddAll(checksums, projectChecksums.Documents.Checksums);
-                AddAll(checksums, projectChecksums.AdditionalDocuments.Checksums);
-                AddAll(checksums, projectChecksums.AnalyzerConfigDocuments.Checksums);
-
-                // First synchronize all the top-level info about this project.
-
-                await this.SynchronizeAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
-                    assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums,
-                    static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
-                    allDocumentStateChecksums,
-                    cancellationToken).ConfigureAwait(false);
-
-                {
-                    checksums.Clear();
-                    foreach (var docChecksums in allDocumentStateChecksums)
-                    {
-                        checksums.Add(docChecksums.Info);
-                        checksums.Add(docChecksums.Text);
-                    }
-
-                    await this.SynchronizeAssetsAsync<object, VoidResult>(
-                        assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-                }
-            }
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         static void AddAll(HashSet<Checksum> checksums, ChecksumCollection checksumCollection)
         {
             foreach (var checksum in checksumCollection)
                 checksums.Add(checksum);
+        }
+
+        async Task SynchronizeProjectAssetAsync<TAsset>(Func<ProjectStateChecksums, Checksum> getChecksum, CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+            foreach (var projectChecksums in allProjectChecksums)
+                checksums.Add(getChecksum(projectChecksums));
+
+            await this.SynchronizeAssetsAsync<TAsset, VoidResult>(
+                AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+        }
+
+        async Task SynchronizeProjectAssetCollectionAsync<TAsset>(Func<ProjectStateChecksums, ChecksumCollection> getChecksums, CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+            foreach (var projectChecksums in allProjectChecksums)
+                AddAll(checksums, getChecksums(projectChecksums));
+
+            await this.SynchronizeAssetsAsync<TAsset, VoidResult>(
+                AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+        }
+
+        async Task SynchronizeProjectDocumentsAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+            using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+            AddAll(checksums, projectChecksums.Documents.Checksums);
+            AddAll(checksums, projectChecksums.AdditionalDocuments.Checksums);
+            AddAll(checksums, projectChecksums.AnalyzerConfigDocuments.Checksums);
+
+            await this.SynchronizeAssetsAsync<DocumentStateChecksums, VoidResult>(
+                AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+
+            // First, fetch all the DocumentStateChecksums for all the documents in the project.
+            using var _2 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
+            await this.SynchronizeAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
+                assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums,
+                static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
+                allDocumentStateChecksums,
+                cancellationToken).ConfigureAwait(false);
+
+            // Now go and fetch the info and text for all of those documents.
+            checksums.Clear();
+            foreach (var docChecksums in allDocumentStateChecksums)
+            {
+                checksums.Add(docChecksums.Info);
+                checksums.Add(docChecksums.Text);
+            }
+
+            await this.SynchronizeAssetsAsync<object, VoidResult>(
+                assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
         }
     }
 
