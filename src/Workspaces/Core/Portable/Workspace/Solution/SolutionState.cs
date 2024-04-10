@@ -33,6 +33,12 @@ internal readonly record struct StateChange(
 /// </summary>
 internal sealed partial class SolutionState
 {
+    /// <summary>
+    /// Note: this insensitive comparer is bused on many systems.  But we do things this way for copmat with the logic
+    /// we've had on windows since forever.
+    /// </summary>
+    public static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
+
     // the version of the workspace this solution is from
     public int WorkspaceVersion { get; }
     public string? WorkspaceKind { get; }
@@ -47,7 +53,7 @@ internal sealed partial class SolutionState
     // holds on data calculated based on the AnalyzerReferences list
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
-    private ImmutableDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = ImmutableDictionary<string, ImmutableArray<DocumentId>>.Empty;
+    private ImmutableDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = ImmutableDictionary<string, ImmutableArray<DocumentId>>.Empty.WithComparers(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,
