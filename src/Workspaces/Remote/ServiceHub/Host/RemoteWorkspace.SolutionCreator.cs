@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.Solution;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -262,6 +263,8 @@ namespace Microsoft.CodeAnalysis.Remote
                         assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
                 }
 
+                using var _2 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
+
                 // added project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
@@ -272,9 +275,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         await _assetProvider.SynchronizeProjectAssetsAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
                         var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
-                        solution = solution.AddProject(projectInfo);
+                        projectInfos.Add(projectInfo);
                     }
                 }
+
+                // Add solutions in bulk.  Avoiding intermediary forking of it.
+                solution = solution.AddProjects(projectInfos);
 
                 // remove all project references from projects that changed. this ensures exceptions will not occur for
                 // cyclic references during an incremental update.
@@ -289,6 +295,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
+                using var _3 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRemove);
+
                 // removed project
                 foreach (var (projectId, _) in oldProjectIdToStateChecksums)
                 {
@@ -296,9 +304,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // Should never be removing projects during cone syncing.
                         Contract.ThrowIfTrue(isConeSync);
-                        solution = solution.RemoveProject(projectId);
+                        projectsToRemove.Add(projectId);
                     }
                 }
+
+                // Remove solutions in bulk.  Avoiding intermediary forking of it.
+                solution = solution.RemoveProjects(projectsToRemove);
 
                 // changed project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
