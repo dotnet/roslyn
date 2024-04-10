@@ -5443,9 +5443,9 @@ class JsonSerializer
         [Theory]
         [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
         [CombinatorialData]
-        public void SingleCandidate_Extension([CombinatorialValues(0, 12, 13)] int version)
+        public void SingleCandidate_Extension(bool testPreview)
         {
-            var parseOptions = version switch { 12 => TestOptions.Regular12, 13 => TestOptions.RegularNext, _ => TestOptions.RegularPreview };
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
 
             string source1 = @"
 public class C
@@ -11655,6 +11655,42 @@ class JsonSerializer
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp1).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72750")]
+        public void SingleCandidate_Extension_CSharp12()
+        {
+            string source1 = @"
+public class C
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        var result = new C().Test(""name"", d);
+        System.Console.Write(result);        
+    }
+}
+
+static class Extensions
+{
+    public static int Test(this C c, string name, object value) => 123;
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp, parseOptions: TestOptions.Regular12);
+
+            var tree = comp1.SyntaxTrees.Single();
+            var model = comp1.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            Assert.Equal(OperationKind.Invalid, model.GetOperation(call).Kind);
+
+            comp1.VerifyDiagnostics(
+                // (7,22): error CS1973: 'C' has no applicable method named 'Test' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+                //         var result = new C().Test("name", d);
+                Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, @"new C().Test(""name"", d)").WithArguments("C", "Test").WithLocation(7, 22)
+                );
         }
 
         [Fact]

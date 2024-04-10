@@ -1011,10 +1011,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for local functions, extension methods or expanded non-array params cases.
+            // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for local functions or expanded non-array params cases.
             if (Compilation.LanguageVersion > LanguageVersion.CSharp12 ||
                 singleCandidate.MethodKind == MethodKind.LocalFunction ||
-                resolution.IsExtensionMethodGroup ||
                 IsMemberWithExpandedNonArrayParamsCollection(methodResolutionResult))
             {
                 var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
