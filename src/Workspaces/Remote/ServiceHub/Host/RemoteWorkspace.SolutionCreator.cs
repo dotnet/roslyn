@@ -277,7 +277,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksumsToAdd, cancellationToken).ConfigureAwait(false);
 
-
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
                     if (!oldProjectIdToStateChecksums.ContainsKey(projectId))
@@ -305,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                using var _3 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRemove);
+                using var _4 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRemove);
 
                 // removed project
                 foreach (var (projectId, _) in oldProjectIdToStateChecksums)
