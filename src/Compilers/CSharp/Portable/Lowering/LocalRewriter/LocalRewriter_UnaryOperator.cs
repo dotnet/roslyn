@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
             Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2) ||
-                         (node.Type.IsDynamic() && node.Operand is BoundIndexerAccess { Type.TypeKind: not TypeKind.Dynamic }));
+                         ShouldConvertResultOfAssignmentToDynamic(node, node.Operand));
 
             LocalSymbol tempSymbol = _factory.SynthesizedLocal(operandType);
             tempSymbols.Add(tempSymbol);
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = rewriteWithNotRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
             }
 
-            result = ForceDynamicResultForAssignmentIfNecessary(node, node.Operand, result, used: true);
+            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, node.Operand, result, used: true);
             Debug.Assert(TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.AllIgnoreOptions));
 
             return result;

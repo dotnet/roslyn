@@ -5812,7 +5812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (valueKind == BindValueKind.Assignable)
                         {
-                            indexer = (BoundIndexerAccess)AdjustAssignmentTarget(indexer, forceDynamicResult: out _);
+                            indexer = (BoundIndexerAccess)AdjustAssignmentTargetForDynamic(indexer, forceDynamicResult: out _);
                         }
 
                         boundMember = indexer;
@@ -5854,9 +5854,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors |= !CheckNestedObjectInitializerPropertySymbol(property, leftSyntax, diagnostics, hasErrors, ref resultKind);
                     }
 
+                    Debug.Assert(boundMember is not BoundIndexerAccess);
                     return hasErrors ?
                                boundMember :
-                               CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess);
+                               CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
 
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
@@ -5873,7 +5874,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerElementAccess:
-                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess);
+                    Debug.Assert(boundMember is not BoundIndexerAccess);
+                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
 
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
@@ -5958,7 +5960,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case LookupResultKind.Inaccessible:
-                        boundMember = CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess);
+                        Debug.Assert(boundMember is not BoundIndexerAccess);
+                        boundMember = CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
                         Debug.Assert(boundMember.HasAnyErrors);
                         break;
 
@@ -9712,10 +9715,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (finalApplicableCandidates.Length == 1)
                 {
                     Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-                    PropertySymbol singleCandidate = finalApplicableCandidates[0].LeastOverriddenMember;
 
                     if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
                     {
+                        PropertySymbol singleCandidate = finalApplicableCandidates[0].LeastOverriddenMember;
+
                         // We're only in trouble if a dynamic argument is passed to the
                         // params parameter and is ambiguous at compile time between normal
                         // and expanded form i.e., there is exactly one dynamic argument to
@@ -9729,9 +9733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for expanded non-array params cases.
-                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 ||
-                             (finalApplicableCandidates[0].Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                              !singleCandidate.Parameters.Last().Type.IsSZArray()))
+                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 || IsMemberWithExpandedNonArrayParamsCollection(finalApplicableCandidates[0]))
                     {
                         var resultWithSingleCandidate = OverloadResolutionResult<PropertySymbol>.GetInstance();
                         resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);
@@ -9827,9 +9829,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool forceDynamicResultType = false;
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-                if (hasDynamicArgument && !property.Type.IsDynamic() && !property.ReturnsByRef &&
-                    Conversions.ClassifyConversionFromExpressionType(property.Type, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit &&
-                    !HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, ImmutableArray.Create(resolutionResult)))
+                // Due to backward compatibility, invocations statically bound in presence of dynamic arguments
+                // should have dynamic result if their dynamic binding succeeded in C# 12 and there are no
+                // obvious reasons for the runtime binder to fail (ref return, for example).
+                if (hasDynamicArgument &&
+                    !(property.Type.IsDynamic() || property.ReturnsByRef ||
+                     !Conversions.ClassifyConversionFromExpressionType(property.Type, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit ||
+                     IsMemberWithExpandedNonArrayParamsCollection(resolutionResult)))
                 {
                     var tryDynamicAccessDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                     BindDynamicIndexer(syntax, receiver, analyzedArguments, ImmutableArray.Create(property), tryDynamicAccessDiagnostics);

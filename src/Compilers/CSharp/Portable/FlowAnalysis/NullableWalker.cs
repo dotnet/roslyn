@@ -5442,19 +5442,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromNullTest(leftOperand, ref this.State);
 
             var adjustedNodeType = node.Type;
-
-            if (node.Type?.IsDynamic() == true && leftOperand is BoundIndexerAccess { Type.TypeKind: not TypeKind.Dynamic } indexerAccess)
+            if (LocalRewriter.ShouldConvertResultOfAssignmentToDynamic(node, leftOperand))
             {
-                Debug.Assert(!indexerAccess.Indexer.Type.IsDynamic());
-                Debug.Assert(!indexerAccess.Indexer.ReturnsByRef);
+                Debug.Assert(leftOperand.Type is not null);
 
                 if (node.IsNullableValueTypeAssignment)
                 {
-                    adjustedNodeType = indexerAccess.Type.GetNullableUnderlyingType();
+                    adjustedNodeType = leftOperand.Type.GetNullableUnderlyingType();
                 }
                 else
                 {
-                    adjustedNodeType = indexerAccess.Type;
+                    adjustedNodeType = leftOperand.Type;
                 }
             }
 
@@ -5480,23 +5478,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Join(ref this.State, ref leftState);
             TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
-            SetResultType(node, resultType);
 
             if (adjustedNodeType != (object?)node.Type)
             {
                 Debug.Assert(adjustedNodeType is not null);
-                ForceDynamicResultType(node, adjustedNodeType);
+                SetDynamicResult(node, resultType);
+            }
+            else
+            {
+                SetResultType(node, resultType);
             }
 
             return null;
         }
 
-        private void ForceDynamicResultType(BoundExpression node, TypeSymbol sourceType)
+        /// <summary>
+        /// When an operation on an indexer with dynamic argument is resolved statically,
+        /// in some scenarios result type of the operation is set to 'dynamic' type.
+        /// 
+        /// This helper takes care of the setting result type to 'dynamic' type.
+        /// </summary>
+        private void SetDynamicResult(BoundExpression node, TypeWithState sourceType)
         {
             Debug.Assert(node.Type is not null);
             Debug.Assert(node.Type.IsDynamic());
-            Debug.Assert(!sourceType.IsDynamic());
-            Debug.Assert(!sourceType.IsVoidType());
+            Debug.Assert(sourceType.Type is not null);
+            Debug.Assert(!sourceType.Type.IsDynamic());
+            Debug.Assert(!sourceType.Type.IsVoidType());
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
@@ -5504,9 +5512,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitConversion(
                     conversionOpt: null,
                     conversionOperand: node,
-                    _conversions.ClassifyConversionFromExpressionType(sourceType, node.Type, isChecked: false, ref discardedUseSiteInfo),
+                    _conversions.ClassifyConversionFromExpressionType(sourceType.Type, node.Type, isChecked: false, ref discardedUseSiteInfo),
                     targetTypeWithNullability: TypeWithAnnotations.Create(node.Type, NullableAnnotation.Annotated),
-                    operandType: ResultType,
+                    operandType: sourceType,
                     checkConversion: false,
                     fromExplicitCast: false,
                     useLegacyWarnings: false,
@@ -6202,14 +6210,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnState = returnState.WithNotNullState();
                 }
 
-                SetResult(node, returnState, method.ReturnTypeWithAnnotations);
-                SetUpdatedSymbol(node, node.Method, method);
-
                 if (node.Type.IsDynamic() && !node.Method.ReturnType.IsDynamic())
                 {
                     Debug.Assert(!node.Method.ReturnsByRef);
-                    ForceDynamicResultType(node, node.Method.ReturnType);
+                    SetDynamicResult(node, returnState);
                 }
+                else
+                {
+                    SetResult(node, returnState, method.ReturnTypeWithAnnotations);
+                }
+
+                SetUpdatedSymbol(node, node.Method, method);
             }
         }
 
@@ -9831,26 +9842,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
+                    SetResultConveringToDynamicIfNecessary(node, left, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
                 }
 
                 AdjustSetValue(left, ref rightState);
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
             }
 
-            ForceDynamicTypeForAssignmentResultIfNecessary(node, left);
-
             return null;
         }
 
-        private void ForceDynamicTypeForAssignmentResultIfNecessary(BoundExpression originalAssignment, BoundExpression assignmentTarget)
+        private void SetResultConveringToDynamicIfNecessary(BoundExpression originalAssignment, BoundExpression assignmentTarget, TypeWithState resultType, TypeWithAnnotations lvalueType)
         {
             Debug.Assert(originalAssignment.Type is not null);
-            if (originalAssignment.Type.IsDynamic() && assignmentTarget is BoundIndexerAccess { Type.TypeKind: not TypeKind.Dynamic } indexerAccess)
+            Debug.Assert(assignmentTarget.Type is not null);
+
+            if (LocalRewriter.ShouldConvertResultOfAssignmentToDynamic(originalAssignment, assignmentTarget))
             {
-                Debug.Assert(!indexerAccess.Indexer.Type.IsDynamic());
-                Debug.Assert(!indexerAccess.Indexer.ReturnsByRef);
-                ForceDynamicResultType(originalAssignment, indexerAccess.Type);
+                SetDynamicResult(originalAssignment, resultType);
+            }
+            else
+            {
+                SetResult(originalAssignment, resultType, lvalueType);
             }
         }
 
@@ -10363,7 +10376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var op = node.OperatorKind.Operator();
                     TypeWithState resultType = (op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement) ? resultOfIncrementType : operandType;
-                    SetResultType(node, resultType);
+                    SetResultConveringToDynamicIfNecessary(node, node.Operand, resultType, resultType.ToTypeWithAnnotations(compilation));
                     setResult = true;
 
                     TrackNullableStateForAssignment(node, targetType: operandLvalue, targetSlot: MakeSlot(node.Operand), valueType: resultOfIncrementType);
@@ -10373,10 +10386,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!setResult)
             {
                 SetNotNullResult(node);
-            }
-            else
-            {
-                ForceDynamicTypeForAssignmentResultIfNecessary(node, node.Operand);
             }
 
             return null;
@@ -10435,13 +10444,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Handle `[DisallowNull]` on LHS operand (final assignment target).
             CheckDisallowedNullAssignment(resultTypeWithState, leftArgumentAnnotations, node.Syntax);
 
-            SetResultType(node, resultTypeWithState);
+            SetResultConveringToDynamicIfNecessary(node, node.Left, resultTypeWithState, resultTypeWithState.ToTypeWithAnnotations(compilation));
 
             AdjustSetValue(node.Left, ref resultTypeWithState);
             Debug.Assert(MakeSlot(node) == -1);
             TrackNullableStateForAssignment(node, leftLvalueType, MakeSlot(node.Left), resultTypeWithState);
-
-            ForceDynamicTypeForAssignmentResultIfNecessary(node, node.Left);
 
             return null;
         }
@@ -10575,15 +10582,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
 
             var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
-            SetResult(node, resultType, indexer.TypeWithAnnotations);
-            SetUpdatedSymbol(node, node.Indexer, indexer);
 
             if (node.Type.IsDynamic() && !node.Indexer.Type.IsDynamic())
             {
                 Debug.Assert(!node.Indexer.ReturnsByRef);
-                ForceDynamicResultType(node, node.Indexer.Type);
+                SetDynamicResult(node, resultType);
+            }
+            else
+            {
+                SetResult(node, resultType, indexer.TypeWithAnnotations);
             }
 
+            SetUpdatedSymbol(node, node.Indexer, indexer);
             return null;
         }
 

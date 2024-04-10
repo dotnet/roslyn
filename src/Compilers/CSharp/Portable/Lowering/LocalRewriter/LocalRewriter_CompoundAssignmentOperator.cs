@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             temps.Free();
             stores.Free();
 
-            result = ForceDynamicResultForAssignmentIfNecessary(node, node.Left, result, used);
+            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, node.Left, result, used);
 
             Debug.Assert(used || node.Left is not (BoundIndexerAccess { Indexer.RefKind: RefKind.None } or BoundPropertyAccess { PropertySymbol.RefKind: RefKind.None }) || result.Type?.IsVoidType() == true);
             return result;

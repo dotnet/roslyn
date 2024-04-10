@@ -641,7 +641,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
                 var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
-                MethodSymbol singleCandidate = applicable.Member;
 
                 // We have to do a dynamic dispatch only when a dynamic argument is
                 // passed to the params parameter and is ambiguous at compile time between normal
@@ -650,6 +649,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, applicable, out SyntaxNode argumentSyntax))
                 {
+                    MethodSymbol singleCandidate = applicable.Member;
+
                     // We know that runtime binder might not be
                     // able to handle the disambiguation
                     if (!singleCandidate.Parameters.Last().Type.IsSZArray())
@@ -662,9 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
                 }
                 // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for expanded non-array params cases.
-                else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 ||
-                         (applicable.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                          !singleCandidate.Parameters.Last().Type.IsSZArray()))
+                else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 || IsMemberWithExpandedNonArrayParamsCollection(applicable))
                 {
                     result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, hasDynamicArgument: true, boundExpression, diagnostics, queryClause);
                 }
@@ -710,6 +709,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        private bool IsMemberWithExpandedNonArrayParamsCollection<TMember>(MemberResolutionResult<TMember> candidate)
+            where TMember : Symbol
+        {
+            return candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
+                   !candidate.Member.GetParameters().Last().Type.IsSZArray();
         }
 
         private BoundExpression BindMethodGroupInvocation(
@@ -1006,34 +1012,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for local functions, extension methods or expanded non-array params cases.
-            if (Compilation.LanguageVersion <= LanguageVersion.CSharp12 &&
-                singleCandidate.MethodKind != MethodKind.LocalFunction &&
-                !resolution.IsExtensionMethodGroup &&
-                (methodResolutionResult.Result.Kind != MemberResolutionKind.ApplicableInExpandedForm ||
-                 singleCandidate.Parameters.Last().Type.IsSZArray()))
+            if (Compilation.LanguageVersion > LanguageVersion.CSharp12 ||
+                singleCandidate.MethodKind == MethodKind.LocalFunction ||
+                resolution.IsExtensionMethodGroup ||
+                IsMemberWithExpandedNonArrayParamsCollection(methodResolutionResult))
             {
-                return null;
+                var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
+                resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
+
+                BoundExpression result = BindInvocationExpressionContinued(
+                    node: syntax,
+                    expression: expression,
+                    methodName: methodName,
+                    result: resultWithSingleCandidate,
+                    analyzedArguments: resolution.AnalyzedArguments,
+                    methodGroup: resolution.MethodGroup,
+                    delegateTypeOpt: null,
+                    hasDynamicArgument: true,
+                    boundMethodGroup,
+                    diagnostics: diagnostics,
+                    queryClause: queryClause);
+
+                resultWithSingleCandidate.Free();
+
+                return result;
             }
 
-            var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
-            resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
-
-            BoundExpression result = BindInvocationExpressionContinued(
-                node: syntax,
-                expression: expression,
-                methodName: methodName,
-                result: resultWithSingleCandidate,
-                analyzedArguments: resolution.AnalyzedArguments,
-                methodGroup: resolution.MethodGroup,
-                delegateTypeOpt: null,
-                hasDynamicArgument: true,
-                boundMethodGroup,
-                diagnostics: diagnostics,
-                queryClause: queryClause);
-
-            resultWithSingleCandidate.Free();
-
-            return result;
+            return null;
         }
 
         private ImmutableArray<MemberResolutionResult<TMethodOrPropertySymbol>> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
@@ -1259,10 +1264,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            if (hasDynamicArgument && !methodGroup.IsExtensionMethodGroup && method.MethodKind != MethodKind.LocalFunction &&
-                !method.ReturnsVoid && !method.ReturnsByRef && !returnType.IsDynamic() &&
-                Conversions.ClassifyConversionFromExpressionType(returnType, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit &&
-                !HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, ImmutableArray.Create(methodResult)))
+            // Due to backward compatibility, invocations statically bound in presence of dynamic arguments
+            // should have dynamic result if their dynamic binding succeeded in C# 12 and there are no
+            // obvious reasons for the runtime binder to fail (ref return, for example).
+            if (hasDynamicArgument &&
+                !(methodGroup.IsExtensionMethodGroup || method.MethodKind == MethodKind.LocalFunction ||
+                  method.ReturnsVoid || method.ReturnsByRef || returnType.IsDynamic() ||
+                  !Conversions.ClassifyConversionFromExpressionType(returnType, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit ||
+                  IsMemberWithExpandedNonArrayParamsCollection(methodResult)))
             {
                 var tryDynamicInvocationDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 BindDynamicInvocation(node, targetMethodGroupOrDelegateInstance, analyzedArguments, ImmutableArray.Create(method), tryDynamicInvocationDiagnostics, queryClause);

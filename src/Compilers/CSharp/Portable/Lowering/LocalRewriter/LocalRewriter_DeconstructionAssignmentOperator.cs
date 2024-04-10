@@ -259,9 +259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart,
                             used: false, isChecked: false, isCompoundAssignment: false));
 
-                        if (resultType.IsDynamic() && leftTarget is BoundIndexerAccess { Indexer.Type.TypeKind: not TypeKind.Dynamic } indexerAccess)
+                        if (ShouldConvertResultOfAssignmentToDynamic(resultType, leftTarget))
                         {
-                            Debug.Assert(!indexerAccess.Indexer.ReturnsByRef);
                             Debug.Assert(resultPart.Type is not null);
                             Debug.Assert(!resultPart.Type.IsDynamic());
                             resultPart = _factory.Convert(resultType, resultPart);

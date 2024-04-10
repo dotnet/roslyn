@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(variable.Single is object);
-                    var single = AdjustAssignmentTarget(variable.Single, forceDynamicResult: out _);
+                    var single = AdjustAssignmentTargetForDynamic(variable.Single, forceDynamicResult: out _);
                     Debug.Assert(single.Type is not null);
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     nestedConversion = this.Conversions.ClassifyConversionFromType(tupleOrDeconstructedTypes[i], single.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object?)variable.Single.Type != null)
                         {
                             // typed-variable on the left
-                            mergedType = AdjustAssignmentTarget(variable.Single, forceDynamicResult: out _).Type;
+                            mergedType = AdjustAssignmentTargetForDynamic(variable.Single, forceDynamicResult: out _).Type;
                         }
                     }
                 }
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     value = variable.Single;
                     Debug.Assert(value.Type is not null);
                     resultType = value.Type;
-                    value = AdjustAssignmentTarget(value, forceDynamicResult: out _);
+                    value = AdjustAssignmentTargetForDynamic(value, forceDynamicResult: out _);
                     namesBuilder.Add(ExtractDeconstructResultElementName(value));
                 }
                 valuesBuilder.Add(value);
@@ -829,6 +829,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expression = node;
                     }
 
+                    // This object doesn't escape BindDeconstruction method, we don't call AdjustAssignmentTargetForDynamic
+                    // for checkedVariable here, instead we call it where binder accesses DeconstructionVariable.Single
+                    // In some of the places we need to be able to detect the fact that the type used to be dynamic, and,
+                    // if we erase the fact here, there will be no other place for us to look at.
                     return new DeconstructionVariable(checkedVariable, node);
             }
         }

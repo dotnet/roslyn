@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewriteNullCoalescingAssignmentForValueType() :
                     rewriteNullCoalscingAssignmentStandard();
 
-            return ForceDynamicResultForAssignmentIfNecessary(node, node.LeftOperand, result, used: true);
+            return ConvertResultOfAssignmentToDynamicIfNecessary(node, node.LeftOperand, result, used: true);
 
             BoundExpression rewriteNullCoalscingAssignmentStandard()
             {
