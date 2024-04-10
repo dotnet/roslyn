@@ -22,11 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
 
-            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind())
-#if DEBUG
-                                             , dynamificationOfAssignmentResultIsHandled: true
-#endif
-                                            );
+            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()), dynamificationOfAssignmentResultIsHandled: true);
             ReportSuppressionIfNeeded(left, diagnostics);
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
@@ -2303,11 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             operandSyntax.CheckDeconstructionCompatibleArgument(diagnostics);
 
-            BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement
-#if DEBUG
-                                                                  , dynamificationOfAssignmentResultIsHandled: true
-#endif
-                                                                 ),
+            BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement, dynamificationOfAssignmentResultIsHandled: true),
                                                         diagnostics);
 
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
@@ -4184,11 +4176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment
-#if DEBUG
-                                                    , dynamificationOfAssignmentResultIsHandled: true
-#endif
-                                                   );
+            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment, dynamificationOfAssignmentResultIsHandled: true);
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
 
             leftOperand = AdjustAssignmentTarget(leftOperand, out bool forceDynamicResult);

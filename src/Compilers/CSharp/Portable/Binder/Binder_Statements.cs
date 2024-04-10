@@ -1429,11 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isRef)
                 MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right.GetFirstToken());
 
-            var op1 = BindValue(node.Left, diagnostics, lhsKind
-#if DEBUG
-                                , dynamificationOfAssignmentResultIsHandled: true
-#endif
-            );
+            var op1 = BindValue(node.Left, diagnostics, lhsKind, dynamificationOfAssignmentResultIsHandled: true);
             ReportSuppressionIfNeeded(op1, diagnostics);
 
             op1 = AdjustAssignmentTarget(op1, out bool forceDynamicResult);

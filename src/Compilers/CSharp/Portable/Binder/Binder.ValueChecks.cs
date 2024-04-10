@@ -310,15 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics
-#if DEBUG
-            , bool dynamificationOfAssignmentResultIsHandled = false
-#endif
-            )
+        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsCollection(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics, bool dynamificationOfAssignmentResultIsHandled = false)
         {
-#if DEBUG
             Debug.Assert((valueKind & BindValueKind.Assignable) == 0 || (valueKind & BindValueKind.RefersToLocation) != 0 || dynamificationOfAssignmentResultIsHandled);
-#endif
+
             var useSetAccessor = valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef;
             var accessorForDefaultArguments = useSetAccessor
                 ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
@@ -411,15 +406,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// method returns a BoundBadExpression node. The method returns the original
         /// expression without generating any error if the expression has errors.
         /// </summary>
-        private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics
-#if DEBUG
-            , bool dynamificationOfAssignmentResultIsHandled = false
-#endif
-            )
+        private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics, bool dynamificationOfAssignmentResultIsHandled = false)
         {
-#if DEBUG
             Debug.Assert((valueKind & BindValueKind.Assignable) == 0 || (valueKind & BindValueKind.RefersToLocation) != 0 || dynamificationOfAssignmentResultIsHandled);
-#endif
 
             switch (expr.Kind)
             {
@@ -427,11 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
                     if (expr is BoundIndexerAccess indexerAccess)
                     {
-                        expr = BindIndexerDefaultArgumentsAndParamsCollection(indexerAccess, valueKind, diagnostics
-#if DEBUG
-                                                                              , dynamificationOfAssignmentResultIsHandled: dynamificationOfAssignmentResultIsHandled
-#endif
-                                                                              );
+                        expr = BindIndexerDefaultArgumentsAndParamsCollection(indexerAccess, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: dynamificationOfAssignmentResultIsHandled);
                     }
                     break;
 
@@ -449,11 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.IndexerAccess:
-                    expr = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)expr, valueKind, diagnostics
-#if DEBUG
-                                                                          , dynamificationOfAssignmentResultIsHandled: dynamificationOfAssignmentResultIsHandled
-#endif
-                                                                          );
+                    expr = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)expr, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: dynamificationOfAssignmentResultIsHandled);
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:

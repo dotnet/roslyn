@@ -233,18 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// did not meet the requirements, the return value will be a <see cref="BoundBadExpression"/> that
         /// (typically) wraps the subexpression.
         /// </summary>
-        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind
-#if DEBUG
-            , bool dynamificationOfAssignmentResultIsHandled = false
-#endif
-            )
+        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind, bool dynamificationOfAssignmentResultIsHandled = false)
         {
             var result = this.BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
-            return CheckValue(result, valueKind, diagnostics
-#if DEBUG
-                              , dynamificationOfAssignmentResultIsHandled
-#endif
-            );
+            return CheckValue(result, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled);
         }
 
         internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool reportNoTargetType = true)
@@ -5711,11 +5703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
                     boundMember = new BoundDynamicObjectInitializerMember(leftSyntax, memberName.Identifier.Text, implicitReceiver.Type, initializerType, hasErrors: false);
-                    return CheckValue(boundMember, valueKind, diagnostics
-#if DEBUG
-                                      , dynamificationOfAssignmentResultIsHandled: true
-#endif
-                                     );
+                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
                 }
                 else
                 {
@@ -5818,11 +5806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics
-#if DEBUG
-                                                                                     , dynamificationOfAssignmentResultIsHandled: true
-#endif
-                                                                                    );
+                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
 
                         Debug.Assert(valueKind is BindValueKind.RValue or BindValueKind.RefAssignable or BindValueKind.Assignable);
 
@@ -5872,11 +5856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return hasErrors ?
                                boundMember :
-                               CheckValue(boundMember, valueKind, diagnostics
-#if DEBUG
-                                          , dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess
-#endif
-                                         );
+                               CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess);
 
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
@@ -5893,11 +5873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerElementAccess:
-                    return CheckValue(boundMember, valueKind, diagnostics
-#if DEBUG
-                                      , dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess
-#endif
-                                     );
+                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess);
 
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
@@ -5982,11 +5958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case LookupResultKind.Inaccessible:
-                        boundMember = CheckValue(boundMember, valueKind, diagnostics
-#if DEBUG
-                                                 , dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess
-#endif
-                                                );
+                        boundMember = CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: boundMember is not BoundIndexerAccess);
                         Debug.Assert(boundMember.HasAnyErrors);
                         break;
 

@@ -822,11 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 default:
                     var boundVariable = BindExpression(node, diagnostics, invoked: false, indexed: false);
-                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignable, diagnostics
-#if DEBUG
-                                                    , dynamificationOfAssignmentResultIsHandled: true
-#endif
-                                                    );
+                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignable, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
 
                     if (expression == null && checkedVariable.Kind != BoundKind.DiscardExpression)
                     {
