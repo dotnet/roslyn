@@ -229,18 +229,12 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 {
                     checksums.Clear();
                     foreach (var docChecksums in allDocumentStateChecksums)
+                    {
                         checksums.Add(docChecksums.Info);
-
-                    await this.SynchronizeAssetsAsync<DocumentInfo.DocumentAttributes, VoidResult>(
-                        assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-                }
-
-                {
-                    checksums.Clear();
-                    foreach (var docChecksums in allDocumentStateChecksums)
                         checksums.Add(docChecksums.Text);
+                    }
 
-                    await this.SynchronizeAssetsAsync<SerializableSourceText, VoidResult>(
+                    await this.SynchronizeAssetsAsync<object, VoidResult>(
                         assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
                 }
             }
