@@ -612,19 +612,27 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // changed document
+                using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
                 foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
                 {
-                    if (!oldDocumentIdToStateChecksums.TryGetValue(documentId, out var oldDocumentChecksums))
+                    if (oldDocumentIdToStateChecksums.TryGetValue(documentId, out var oldDocumentChecksums))
+                        checksums.Add(newDocumentChecksums.Info);
+                }
+
+                await _assetProvider.GetAssetsAsync<DocumentInfo.DocumentAttributes, VoidResult>(
+                    AssetPath.ProjectAndDocuments(project.Id), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+
+                foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
+                {
+                    if (oldDocumentIdToStateChecksums.TryGetValue(documentId, out var oldDocumentChecksums))
                     {
-                        continue;
+                        Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
+
+                        var document = project.GetDocument(documentId) ?? project.GetAdditionalDocument(documentId) ?? project.GetAnalyzerConfigDocument(documentId);
+                        Contract.ThrowIfNull(document);
+
+                        project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, cancellationToken).ConfigureAwait(false);
                     }
-
-                    Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
-
-                    var document = project.GetDocument(documentId) ?? project.GetAdditionalDocument(documentId) ?? project.GetAnalyzerConfigDocument(documentId);
-                    Contract.ThrowIfNull(document);
-
-                    project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
                 return project;
