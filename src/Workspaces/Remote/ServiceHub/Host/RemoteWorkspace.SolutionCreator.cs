@@ -264,16 +264,26 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 using var _2 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
+                using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var projectStateChecksumsToAdd);
 
                 // added project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
                     if (!oldProjectIdToStateChecksums.ContainsKey(projectId))
-                    {
-                        // bulk sync added project assets fully since we'll definitely need that data, and we won't want
-                        // to make tons of intermediary calls for it.
+                        projectStateChecksumsToAdd.Add(newProjectChecksums);
+                }
 
-                        await _assetProvider.SynchronizeProjectAssetsAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
+                // bulk sync added project assets fully since we'll definitely need that data, and we won't want
+
+                await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksumsToAdd, cancellationToken).ConfigureAwait(false);
+
+
+                foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
+                {
+                    if (!oldProjectIdToStateChecksums.ContainsKey(projectId))
+                    {
+                        // Now make a ProjectInfo corresponding to the new project checksums.  This should be fast due
+                        // to the bulk sync we just performed above.
                         var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
                         projectInfos.Add(projectInfo);
                     }
