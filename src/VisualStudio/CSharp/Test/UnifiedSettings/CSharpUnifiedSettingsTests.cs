@@ -34,17 +34,53 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             CompletionOptionsStorage.ShowNewSnippetExperienceUserOption
         );
 
-        internal override ImmutableDictionary<IOption2, object> OptionsToDefaultValue => ImmutableDictionary<IOption2, object>.Empty.
-            Add(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude).
-            Add(CompletionOptionsStorage.EnterKeyBehavior, EnterKeyRule.Never).
-            Add(CompletionOptionsStorage.TriggerOnDeletion, false).
-            Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, true).
-            Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, false).
-            Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, false);
-
         internal override ImmutableDictionary<IOption2, ImmutableArray<object>> EnumOptionsToValues => ImmutableDictionary<IOption2, ImmutableArray<object>>.Empty.
                 Add(CompletionOptionsStorage.SnippetsBehavior, ImmutableArray.Create<object>(SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)).
                 Add(CompletionOptionsStorage.EnterKeyBehavior, ImmutableArray.Create<object>(EnterKeyRule.Never, EnterKeyRule.AfterFullyTypedWord, EnterKeyRule.Always));
+
+        internal override object GetOptionsDefaultValue(IOption2 option)
+        {
+            // The default values of some options are set at runtime. option.defaultValue is just a dummy value in this case.
+            // However, in unified settings we always set the correct value in registration.json.
+            if (option == CompletionOptionsStorage.SnippetsBehavior)
+            {
+                // CompletionOptionsStorage.SnippetsBehavior's default value is SnippetsRule.Default.
+                // It's overridden differently per-language at runtime.
+                return SnippetsRule.AlwaysInclude;
+            }
+            else if (option == CompletionOptionsStorage.EnterKeyBehavior)
+            {
+                // CompletionOptionsStorage.EnterKeyBehavior's default value is EnterKeyBehavior.Default.
+                // It's overridden differently per-language at runtime.
+                return EnterKeyRule.Never;
+            }
+            else if (option == CompletionOptionsStorage.TriggerOnDeletion)
+            {
+                // CompletionOptionsStorage.TriggerOnDeletion's default value is null.
+                // It's disabled by default for C#
+                return false;
+            }
+            else if (option == CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces)
+            {
+                // CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces's default value is null
+                // It's enabled by default for C#
+                return true;
+            }
+            else if (option == CompletionViewOptionsStorage.EnableArgumentCompletionSnippets)
+            {
+                // CompletionViewOptionsStorage.EnableArgumentCompletionSnippets' default value is null
+                // It's disabled by default for C#
+                return false;
+            }
+            else if (option == CompletionOptionsStorage.ShowNewSnippetExperienceUserOption)
+            {
+                // CompletionOptionsStorage.ShowNewSnippetExperienceUserOption's default value is null.
+                // It's in experiment, so disabled by default.
+                return false;
+            }
+
+            return base.GetOptionsDefaultValue(option);
+        }
 
         [Fact]
         public async Task IntelliSensePageTests()
