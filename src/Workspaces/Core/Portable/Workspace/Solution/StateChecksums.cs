@@ -281,7 +281,9 @@ internal sealed class SolutionStateChecksums(
                 // Check all projects for the remaining checksums.
 
                 // Note: optimize the case where the caller is asking for all the project-state-checksums, but not
-                // diving any deeper into them.
+                // diving any deeper into them.  Do a first pass just checking the top level project checksum itself. If
+                // that finds all the remaining items, we'll bail out of the second pass below which dives into the
+                // projects.
                 if (assetPath.IncludeProjects)
                 {
                     await FindInProjectAsync(
@@ -313,6 +315,7 @@ internal sealed class SolutionStateChecksums(
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                // If we have no more checksums, can immediately bail out.
                 if (searchingChecksumsLeft.Count == 0)
                     break;
 
