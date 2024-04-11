@@ -105,7 +105,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
 
             await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
-                assetPath: AssetPath.SolutionAndTopLevelProjectsOnly,
+                assetPath: AssetPath.SolutionAndProjects,
                 checksums,
                 static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
@@ -151,7 +151,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     checksums.Add(projectChecksums.Info);
 
                 await this.SynchronizeAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    AssetPath.ProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
             }
 
             {
@@ -160,7 +160,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     checksums.Add(projectChecksums.CompilationOptions);
 
                 await this.SynchronizeAssetsAsync<CompilationOptions, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    AssetPath.ProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
             }
 
             {
@@ -169,7 +169,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     checksums.Add(projectChecksums.ParseOptions);
 
                 await this.SynchronizeAssetsAsync<ParseOptions, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    AssetPath.ProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
             }
 
             {
@@ -178,7 +178,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     AddAll(checksums, projectChecksums.ProjectReferences);
 
                 await this.SynchronizeAssetsAsync<ProjectReference, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    AssetPath.ProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
             }
 
             {
@@ -187,7 +187,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     AddAll(checksums, projectChecksums.MetadataReferences);
 
                 await this.SynchronizeAssetsAsync<MetadataReference, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    AssetPath.ProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
             }
 
             {
@@ -196,7 +196,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     AddAll(checksums, projectChecksums.AnalyzerReferences);
 
                 await this.SynchronizeAssetsAsync<AnalyzerReference, VoidResult>(
-                    AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    AssetPath.ProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
             }
 
             using var _1 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);

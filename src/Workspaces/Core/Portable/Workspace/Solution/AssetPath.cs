@@ -22,16 +22,21 @@ internal readonly struct AssetPath
     public static readonly AssetPath SolutionOnly = new(AssetPathKind.Solution);
 
     /// <summary>
-    /// Instance that will only look up solution-level, as well as the top level nodes for projects when searching for
-    /// checksums.  It will not descend into projects.
+    /// Instance that will only look up solution-level, as well and projects when searching for checksums.  It will not
+    /// descend into documents.
     /// </summary>
-    public static readonly AssetPath SolutionAndTopLevelProjectsOnly = new(AssetPathKind.Solution | AssetPathKind.TopLevelProjects);
+    public static readonly AssetPath SolutionAndProjects = new(AssetPathKind.Solution | AssetPathKind.Projects);
+
+    /// <summary>
+    /// Only search at the project level when searching for checksums.
+    /// </summary>
+    public static readonly AssetPath ProjectsOnly = new(AssetPathKind.Projects);
 
     /// <summary>
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
-    public static readonly AssetPath FullLookupForTesting = new(AssetPathKind.Solution | AssetPathKind.TopLevelProjects | AssetPathKind.Projects | AssetPathKind.Documents | AssetPathKind.Testing);
+    public static readonly AssetPath FullLookupForTesting = new(AssetPathKind.Solution | AssetPathKind.Projects | AssetPathKind.Documents);
 
     [DataMember(Order = 0)]
     private readonly AssetPathKind _kind;
@@ -56,7 +61,6 @@ internal readonly struct AssetPath
     }
 
     public bool IncludeSolution => (_kind & AssetPathKind.Solution) == AssetPathKind.Solution;
-    public bool IncludeTopLevelProjects => (_kind & AssetPathKind.TopLevelProjects) == AssetPathKind.TopLevelProjects;
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) == AssetPathKind.Projects;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) == AssetPathKind.Documents;
 
@@ -76,11 +80,10 @@ internal readonly struct AssetPath
     /// <param name="projectId"></param>
     /// <returns></returns>
     public static AssetPath SolutionAndProjectForTesting(ProjectId projectId)
-        => new(AssetPathKind.Solution | AssetPathKind.Projects | AssetPathKind.Testing, projectId);
+        => new(AssetPathKind.Solution | AssetPathKind.Projects, projectId);
 
     /// <summary>
-    /// Searches the requested project, and all documents underneath it.  used during normal sync when bulk syncing a
-    /// project.
+    /// Searches all documents within the specified project.
     /// </summary>
     /// <param name="projectId"></param>
     /// <returns></returns>
@@ -96,25 +99,13 @@ internal readonly struct AssetPath
         Solution = 1 << 0,
 
         /// <summary>
-        /// Search projects, without descending into them. In effect, only finding direct ProjectStateChecksum children
-        /// of the solution.
-        /// </summary>
-        TopLevelProjects = 1 << 1,
-
-        /// <summary>
         /// Search projects for results.
         /// </summary>
-        Projects = 1 << 2,
+        Projects = 1 << 1,
 
         /// <summary>
         /// Search documents for results.
         /// </summary>
-        Documents = 1 << 3,
-
-        /// <summary>
-        /// Indicates that this is a special search performed during testing.  These searches are allowed to search
-        /// everything for expediency purposes.
-        /// </summary>
-        Testing = 1 << 4,
+        Documents = 1 << 2,
     }
 }

@@ -257,36 +257,6 @@ internal sealed class SolutionStateChecksums(
             ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
         }
 
-        if (assetPath.IncludeTopLevelProjects)
-        {
-            // Caller is trying to fetch the top level ProjectStateChecksums as well. Look for those without diving deeper.
-            foreach (var (projectId, projectState) in solution.ProjectStates)
-            {
-                if (searchingChecksumsLeft.Count == 0)
-                    break;
-
-                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
-                // are not in that cone.
-                if (projectCone != null && !projectCone.Contains(projectId))
-                    continue;
-
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                {
-                    if (searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
-                        result[projectStateChecksums.Checksum] = projectStateChecksums;
-
-                    if (searchingChecksumsLeft.Remove(projectStateChecksums.Info))
-                        result[projectStateChecksums.Info] = projectState.Attributes;
-
-                    if (searchingChecksumsLeft.Remove(projectStateChecksums.CompilationOptions))
-                        result[projectStateChecksums.CompilationOptions] = projectState.CompilationOptions!;
-
-                    if (searchingChecksumsLeft.Remove(projectStateChecksums.ParseOptions))
-                        result[projectStateChecksums.ParseOptions] = projectState.ParseOptions!;
-                }
-            }
-        }
-
         if (searchingChecksumsLeft.Count == 0)
             return;
 
@@ -308,7 +278,7 @@ internal sealed class SolutionStateChecksums(
             }
             else
             {
-                // Full search, used for test purposes.
+                // Check all projects for the remaining checksums.
                 foreach (var (projectId, projectState) in solution.ProjectStates)
                 {
                     if (searchingChecksumsLeft.Count == 0)
