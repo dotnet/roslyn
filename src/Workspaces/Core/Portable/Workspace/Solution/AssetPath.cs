@@ -22,11 +22,6 @@ internal readonly struct AssetPath
     public static readonly AssetPath SolutionOnly = new(AssetPathKind.Solution);
 
     /// <summary>
-    /// Only search at the project level when searching for checksums.
-    /// </summary>
-    public static readonly AssetPath ProjectsOnly = new(AssetPathKind.Projects);
-
-    /// <summary>
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
@@ -100,7 +95,7 @@ internal enum AssetPathKind
     /// </summary>
     Solution = 1 << 0,
 
-    ProjectChecksums = 1 << 1,
+    ProjectStateChecksums = 1 << 1,
     ProjectAttributes = 1 << 2,
     ProjectCompilationOptions = 1 << 3,
     ProjectParseOptions = 1 << 4,
@@ -111,7 +106,7 @@ internal enum AssetPathKind
     /// <summary>
     /// Search projects for results.  All project-level information will be searched.
     /// </summary>
-    Projects = ProjectChecksums | ProjectAttributes | ProjectCompilationOptions | ProjectParseOptions | ProjectProjectReferences | ProjectMetadataReferences | ProjectAnalyzerReferences,
+    Projects = ProjectStateChecksums | ProjectAttributes | ProjectCompilationOptions | ProjectParseOptions | ProjectProjectReferences | ProjectMetadataReferences | ProjectAnalyzerReferences,
 
     /// <summary>
     /// Search documents for results.

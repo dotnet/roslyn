@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
 
                 await _assetProvider.GetAssetsAsync<ProjectStateChecksums, Dictionary<ProjectId, ProjectStateChecksums>>(
-                    assetPath: AssetPath.ProjectsOnly, newChecksumsToSync,
+                    assetPath: new(AssetPathKind.ProjectStateChecksums), newChecksumsToSync,
                     static (checksum, newProjectStateChecksum, newProjectIdToStateChecksums) =>
                     {
                         Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
@@ -253,14 +253,14 @@ namespace Microsoft.CodeAnalysis.Remote
                         projectItemChecksums.Add(newProjectChecksums.Info);
 
                     await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
-                        assetPath: AssetPath.ProjectsOnly, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                        assetPath: new(AssetPathKind.ProjectAttributes), projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
 
                     projectItemChecksums.Clear();
                     foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
                         projectItemChecksums.Add(newProjectChecksums.CompilationOptions);
 
                     await _assetProvider.GetAssetsAsync<CompilationOptions, VoidResult>(
-                        assetPath: AssetPath.ProjectsOnly, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                        assetPath: new(AssetPathKind.ProjectCompilationOptions), projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
                 }
 
                 using var _2 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
