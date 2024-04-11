@@ -7,6 +7,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -136,6 +137,7 @@ internal sealed class SolutionCompilationStateChecksums
             if (compilationState.FrozenSourceGeneratedDocumentStates != null)
             {
                 Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
+                Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentTexts.HasValue);
 
                 // This could either be the checksum for the text (which we'll use our regular helper for first)...
                 if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentText)
@@ -150,23 +152,31 @@ internal sealed class SolutionCompilationStateChecksums
                 if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentIdentities)
                 {
                     var documentId = assetPath.DocumentId;
-                    foreach(var identity in FrozenSourceGeneratedDocumentIdentities.Value)
+                    if (documentId != null)
                     {
-                        if (documentId != null)
+                        var index = FrozenSourceGeneratedDocumentTexts.Value.Ids.IndexOf(documentId);
+                        if (index >= 0)
                         {
-                            if (identity.do)
+                            var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value.Children[index];
+                            if (searchingChecksumsLeft.Remove(identityChecksum))
+                            {
+                                Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(documentId, out var state));
+                                result[identityChecksum] = state.Identity;
+                            }
                         }
                     }
-                }
-
-                for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
-                {
-                    var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
-                    if (searchingChecksumsLeft.Remove(identityChecksum))
+                    else
                     {
-                        var id = FrozenSourceGeneratedDocuments!.Value.Ids[i];
-                        Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
-                        result[identityChecksum] = state.Identity;
+                        for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
+                        {
+                            var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
+                            if (searchingChecksumsLeft.Remove(identityChecksum))
+                            {
+                                var id = FrozenSourceGeneratedDocumentTexts.Value.Ids[i];
+                                Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
+                                result[identityChecksum] = state.Identity;
+                            }
+                        }
                     }
                 }
             }

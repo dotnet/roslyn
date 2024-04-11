@@ -293,15 +293,27 @@ internal sealed class TextDocumentStates<TState>
         }
     }
 
+    public async ValueTask<ChecksumsAndIds<DocumentId>> GetChecksumsAndIdsAsync(CancellationToken cancellationToken)
+    {
+        var documentTextChecksums = await SelectAsArrayAsync(
+            static async (state, _, cancellationToken) => await state.GetChecksumAsync(cancellationToken).ConfigureAwait(false),
+            arg: default(VoidResult),
+            cancellationToken).ConfigureAwait(false);
+
+        var documentChecksums = new ChecksumCollection(documentTextChecksums);
+        return new(documentChecksums, SelectAsArray(static s => s.Id));
+    }
+
     public async ValueTask<ChecksumsAndIds<DocumentId>> GetTextChecksumsAndIdsAsync(CancellationToken cancellationToken)
     {
-        var documentTextChecksums = await SelectAsArrayAsync(static async (state, _, cancellationToken) =>
-        {
-            var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            return stateChecksums.Text;
-        },
-        arg: default(VoidResult),
-        cancellationToken).ConfigureAwait(false);
+        var documentTextChecksums = await SelectAsArrayAsync(
+            static async (state, _, cancellationToken) =>
+            {
+                var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                return stateChecksums.Text;
+            },
+            arg: default(VoidResult),
+            cancellationToken).ConfigureAwait(false);
 
         var documentChecksums = new ChecksumCollection(documentTextChecksums);
         return new(documentChecksums, SelectAsArray(static s => s.Id));
