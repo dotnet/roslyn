@@ -96,15 +96,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         for (var i = 0; i < count; i++)
                         {
-                            var assetPath = new AssetPath(AssetPathKind.SolutionFrozenSourceGeneratedDocumentStates, newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i]);
+                            var frozenDocumentId = newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i];
                             var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
-                                assetPath, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value[i], cancellationToken).ConfigureAwait(false);
+                                new(AssetPathKind.SolutionFrozenSourceGeneratedDocumentIdentities, frozenDocumentId), newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value[i], cancellationToken).ConfigureAwait(false);
 
                             var documentStateChecksums = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(
-                                assetPath, newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
+                                new(AssetPathKind.SolutionFrozenSourceGeneratedDocumentStateChecksums, frozenDocumentId), newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
 
                             var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
-                                assetPath, documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
+                                new(AssetPathKind.SolutionFrozenSourceGeneratedDocumentText, frozenDocumentId), documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
 
                             var generationDateTime = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes[i];
                             var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
