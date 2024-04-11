@@ -62,7 +62,6 @@ internal readonly struct AssetPath
     public bool IncludeSolutionCompilationStateChecksums => (_kind & AssetPathKind.SolutionCompilationStateChecksums) != 0;
     public bool IncludeSolutionSourceGeneratorExecutionVersionMap => (_kind & AssetPathKind.SolutionSourceGeneratorExecutionVersionMap) != 0;
     public bool IncludeSolutionFrozenSourceGeneratedDocumentIdentities => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentIdentities) != 0;
-    public bool IncludeSolutionFrozenSourceGeneratedDocumentStateChecksums => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentStateChecksums) != 0;
     public bool IncludeSolutionFrozenSourceGeneratedDocumentText => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentText) != 0;
 
     public bool IncludeSolutionStateChecksums => (_kind & AssetPathKind.SolutionStateChecksums) != 0;
@@ -116,8 +115,7 @@ internal enum AssetPathKind
     SolutionCompilationStateChecksums = 1 << 0,
     SolutionSourceGeneratorExecutionVersionMap = 1 << 2,
     SolutionFrozenSourceGeneratedDocumentIdentities = 1 << 3,
-    SolutionFrozenSourceGeneratedDocumentStateChecksums = 1 << 4,
-    SolutionFrozenSourceGeneratedDocumentText = 1 << 5,
+    SolutionFrozenSourceGeneratedDocumentText = 1 << 4,
 
     // Keep a gap so we can easily add more solution compilation state kinds
     SolutionStateChecksums = 1 << 10,
@@ -141,7 +139,7 @@ internal enum AssetPathKind
     /// <summary>
     /// Search solution-compilation-state level information.
     /// </summary>
-    SolutionCompilationState = SolutionCompilationStateChecksums | SolutionSourceGeneratorExecutionVersionMap | SolutionFrozenSourceGeneratedDocumentIdentities | SolutionFrozenSourceGeneratedDocumentStateChecksums | SolutionFrozenSourceGeneratedDocumentText,
+    SolutionCompilationState = SolutionCompilationStateChecksums | SolutionSourceGeneratorExecutionVersionMap | SolutionFrozenSourceGeneratedDocumentIdentities | SolutionFrozenSourceGeneratedDocumentText,
 
     /// <summary>
     /// Search solution-state level information.

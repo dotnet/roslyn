@@ -96,7 +96,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             // second, get direct children of the solution compilation state.
             compilationStateChecksums.AddAllTo(checksums);
             await this.SynchronizeAssetsAsync<object, VoidResult>(
-                assetPath: AssetPathKind.Solution, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                assetPath: AssetPathKind.SolutionCompilationState, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
 
             // third, get direct children of the solution state.
             var stateChecksums = await this.GetAssetAsync<SolutionStateChecksums>(
@@ -113,7 +113,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             // and then the top level project-state-checksum values only.  No other project data or document data will be
             // looked at.
             await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
-                assetPath: AssetPathKind.Solution | AssetPathKind.ProjectStateChecksums,
+                assetPath: AssetPathKind.SolutionState | AssetPathKind.ProjectStateChecksums,
                 checksums,
                 static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);

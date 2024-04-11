@@ -88,23 +88,25 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
-                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue &&
+                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentTexts.HasValue &&
                         !newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes.IsDefault)
                     {
-                        var count = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value.Count;
-                        using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
+                        var newSolutionFrozenSourceGeneratedDocumentIdentities = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value;
+                        var newSolutionFrozenSourceGeneratedDocumentTexts = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentTexts.Value;
+                        var count = newSolutionFrozenSourceGeneratedDocumentTexts.Checksums.Count;
 
+                        using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
                         for (var i = 0; i < count; i++)
                         {
-                            var frozenDocumentId = newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i];
-                            var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
-                                new(AssetPathKind.SolutionFrozenSourceGeneratedDocumentIdentities, frozenDocumentId), newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value[i], cancellationToken).ConfigureAwait(false);
+                            var frozenDocumentId = newSolutionFrozenSourceGeneratedDocumentTexts.Ids[i];
+                            var frozenDocumentTextChecksum = newSolutionFrozenSourceGeneratedDocumentTexts.Checksums[i];
+                            var frozenDocumentIdentity = newSolutionFrozenSourceGeneratedDocumentIdentities[i];
 
-                            var documentStateChecksums = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(
-                                new(AssetPathKind.SolutionFrozenSourceGeneratedDocumentStateChecksums, frozenDocumentId), newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
+                            var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
+                                new(AssetPathKind.SolutionFrozenSourceGeneratedDocumentIdentities, frozenDocumentId), frozenDocumentIdentity, cancellationToken).ConfigureAwait(false);
 
                             var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
-                                new(AssetPathKind.SolutionFrozenSourceGeneratedDocumentText, frozenDocumentId), documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
+                                new(AssetPathKind.SolutionFrozenSourceGeneratedDocumentText, frozenDocumentId), frozenDocumentTextChecksum, cancellationToken).ConfigureAwait(false);
 
                             var generationDateTime = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes[i];
                             var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);

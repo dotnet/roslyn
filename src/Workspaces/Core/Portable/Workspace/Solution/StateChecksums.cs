@@ -146,6 +146,18 @@ internal sealed class SolutionCompilationStateChecksums
 
                 // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
                 // two collections we hold onto.
+                if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentIdentities)
+                {
+                    var documentId = assetPath.DocumentId;
+                    foreach(var identity in FrozenSourceGeneratedDocumentIdentities.Value)
+                    {
+                        if (documentId != null)
+                        {
+                            if (identity.do)
+                        }
+                    }
+                }
+
                 for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
                 {
                     var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
