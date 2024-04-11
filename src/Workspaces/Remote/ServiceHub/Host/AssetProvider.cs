@@ -213,24 +213,26 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 checksums.Add(checksum);
         }
 
-        async Task SynchronizeProjectAssetAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, Checksum> getChecksum)
+        Task SynchronizeProjectAssetAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, Checksum> getChecksum)
+            => SynchronizeProjectAssetOrCollectionAsync<TAsset, Func<ProjectStateChecksums, Checksum>>(
+                assetPath,
+                static (projectStateChecksums, checksums, getChecksum) => checksums.Add(getChecksum(projectStateChecksums)),
+                getChecksum);
+
+        Task SynchronizeProjectAssetCollectionAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, ChecksumCollection> getChecksums)
+            => SynchronizeProjectAssetOrCollectionAsync<TAsset, Func<ProjectStateChecksums, ChecksumCollection>>(
+                assetPath,
+                static (projectStateChecksums, checksums, getChecksums) => AddAll(checksums, getChecksums(projectStateChecksums)),
+                getChecksums);
+
+        async Task SynchronizeProjectAssetOrCollectionAsync<TAsset, TArg>(
+            AssetPath assetPath, Action<ProjectStateChecksums, HashSet<Checksum>, TArg> addAllChecksums, TArg arg)
         {
             await Task.Yield();
             using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
             foreach (var projectChecksums in allProjectChecksums)
-                checksums.Add(getChecksum(projectChecksums));
-
-            await SynchronizeAssetsAsync<TAsset>(assetPath, checksums).ConfigureAwait(false);
-        }
-
-        async Task SynchronizeProjectAssetCollectionAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, ChecksumCollection> getChecksums)
-        {
-            await Task.Yield();
-            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
-
-            foreach (var projectChecksums in allProjectChecksums)
-                AddAll(checksums, getChecksums(projectChecksums));
+                addAllChecksums(projectChecksums, checksums, arg);
 
             await SynchronizeAssetsAsync<TAsset>(assetPath, checksums).ConfigureAwait(false);
         }
