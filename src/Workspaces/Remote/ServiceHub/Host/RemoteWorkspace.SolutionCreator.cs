@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         !newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes.IsDefault)
                     {
                         var count = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value.Count;
-                        var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
+                        using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
 
                         for (var i = 0; i < count; i++)
                         {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             frozenDocuments.Add((identity, generationDateTime, text));
                         }
 
-                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutable());
+                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutableAndClear());
                     }
 
                     if (oldSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap !=

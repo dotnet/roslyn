@@ -20,7 +20,7 @@ internal readonly struct AssetPath
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
-    public static readonly AssetPath FullLookupForTesting = AssetPathKind.Solution | AssetPathKind.Projects | AssetPathKind.Documents;
+    public static readonly AssetPath FullLookupForTesting = AssetPathKind.SolutionCompilationState | AssetPathKind.SolutionState | AssetPathKind.Projects | AssetPathKind.Documents;
 
     [DataMember(Order = 0)]
     private readonly AssetPathKind _kind;
@@ -54,14 +54,18 @@ internal readonly struct AssetPath
     {
     }
 
-    public bool IncludeSolution => (_kind & AssetPathKind.Solution) != 0;
+    public bool IncludeSolutionCompilationState => (_kind & AssetPathKind.SolutionCompilationState) != 0;
+    public bool IncludeSolutionState => (_kind & AssetPathKind.SolutionState) != 0;
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) != 0;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) != 0;
 
     public bool IncludeSolutionCompilationStateChecksums => (_kind & AssetPathKind.SolutionCompilationStateChecksums) != 0;
-    public bool IncludeSolutionStateChecksums => (_kind & AssetPathKind.SolutionStateChecksums) != 0;
     public bool IncludeSolutionSourceGeneratorExecutionVersionMap => (_kind & AssetPathKind.SolutionSourceGeneratorExecutionVersionMap) != 0;
-    public bool IncludeSolutionFrozenSourceGeneratedDocumentStates => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentStates) != 0;
+    public bool IncludeSolutionFrozenSourceGeneratedDocumentIdentities => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentIdentities) != 0;
+    public bool IncludeSolutionFrozenSourceGeneratedDocumentStateChecksums => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentStateChecksums) != 0;
+    public bool IncludeSolutionFrozenSourceGeneratedDocumentText => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentText) != 0;
+
+    public bool IncludeSolutionStateChecksums => (_kind & AssetPathKind.SolutionStateChecksums) != 0;
     public bool IncludeSolutionAttributes => (_kind & AssetPathKind.SolutionAttributes) != 0;
     public bool IncludeSolutionAnalyzerReferences => (_kind & AssetPathKind.SolutionAnalyzerReferences) != 0;
 
@@ -95,7 +99,7 @@ internal readonly struct AssetPath
     /// <param name="projectId"></param>
     /// <returns></returns>
     public static AssetPath SolutionAndProjectForTesting(ProjectId projectId)
-        => new(AssetPathKind.Solution | AssetPathKind.Projects, projectId);
+        => new(AssetPathKind.SolutionCompilationState | AssetPathKind.SolutionState | AssetPathKind.Projects, projectId);
 
     /// <summary>
     /// Searches all documents within the specified project.
@@ -110,30 +114,39 @@ internal readonly struct AssetPath
 internal enum AssetPathKind
 {
     SolutionCompilationStateChecksums = 1 << 0,
-    SolutionStateChecksums = 1 << 1,
     SolutionSourceGeneratorExecutionVersionMap = 1 << 2,
-    SolutionFrozenSourceGeneratedDocumentStates = 1 << 3,
-    SolutionAttributes = 1 << 4,
-    SolutionAnalyzerReferences = 1 << 5,
+    SolutionFrozenSourceGeneratedDocumentIdentities = 1 << 3,
+    SolutionFrozenSourceGeneratedDocumentStateChecksums = 1 << 4,
+    SolutionFrozenSourceGeneratedDocumentText = 1 << 5,
+
+    // Keep a gap so we can easily add more solution compilation state kinds
+    SolutionStateChecksums = 1 << 10,
+    SolutionAttributes = 1 << 11,
+    SolutionAnalyzerReferences = 1 << 12,
 
     // Keep a gap so we can easily add more solution kinds
-    ProjectStateChecksums = 1 << 10,
-    ProjectAttributes = 1 << 11,
-    ProjectCompilationOptions = 1 << 12,
-    ProjectParseOptions = 1 << 13,
-    ProjectProjectReferences = 1 << 14,
-    ProjectMetadataReferences = 1 << 15,
-    ProjectAnalyzerReferences = 1 << 16,
+    ProjectStateChecksums = 1 << 15,
+    ProjectAttributes = 1 << 16,
+    ProjectCompilationOptions = 1 << 17,
+    ProjectParseOptions = 1 << 18,
+    ProjectProjectReferences = 1 << 19,
+    ProjectMetadataReferences = 1 << 20,
+    ProjectAnalyzerReferences = 1 << 21,
 
     // Keep a gap so we can easily add more project kinds
-    DocumentStateChecksums = 1 << 20,
-    DocumentAttributes = 1 << 21,
-    DocumentText = 1 << 22,
+    DocumentStateChecksums = 1 << 25,
+    DocumentAttributes = 1 << 26,
+    DocumentText = 1 << 27,
 
     /// <summary>
-    /// Search solution-level information.
+    /// Search solution-compilation-state level information.
     /// </summary>
-    Solution = SolutionCompilationStateChecksums | SolutionStateChecksums | SolutionSourceGeneratorExecutionVersionMap | SolutionFrozenSourceGeneratedDocumentStates | SolutionAttributes | SolutionAnalyzerReferences,
+    SolutionCompilationState = SolutionCompilationStateChecksums | SolutionSourceGeneratorExecutionVersionMap | SolutionFrozenSourceGeneratedDocumentIdentities | SolutionFrozenSourceGeneratedDocumentStateChecksums | SolutionFrozenSourceGeneratedDocumentText,
+
+    /// <summary>
+    /// Search solution-state level information.
+    /// </summary>
+    SolutionState = SolutionStateChecksums | SolutionAttributes | SolutionAnalyzerReferences,
 
     /// <summary>
     /// Search projects for results.  All project-level information will be searched.

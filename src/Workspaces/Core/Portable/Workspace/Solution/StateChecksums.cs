@@ -120,7 +120,7 @@ internal sealed class SolutionCompilationStateChecksums
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        if (assetPath.IncludeSolution)
+        if (assetPath.IncludeSolutionCompilationState)
         {
             if (assetPath.IncludeSolutionCompilationStateChecksums && searchingChecksumsLeft.Remove(this.Checksum))
                 result[this.Checksum] = this;
@@ -128,7 +128,7 @@ internal sealed class SolutionCompilationStateChecksums
             if (assetPath.IncludeSolutionSourceGeneratorExecutionVersionMap && searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
                 result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
 
-            if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentStates && compilationState.FrozenSourceGeneratedDocumentStates != null)
+            if (compilationState.FrozenSourceGeneratedDocumentStates != null)
             {
                 Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
 
@@ -245,7 +245,7 @@ internal sealed class SolutionStateChecksums(
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        if (assetPath.IncludeSolution)
+        if (assetPath.IncludeSolutionState)
         {
             if (assetPath.IncludeSolutionStateChecksums && searchingChecksumsLeft.Remove(Checksum))
                 result[Checksum] = this;
