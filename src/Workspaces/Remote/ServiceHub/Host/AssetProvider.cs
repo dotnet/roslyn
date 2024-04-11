@@ -108,6 +108,9 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
 
+            // Note: this search will be optimized on the host side.  It will search through the solution level values,
+            // and then the top level project-state-checksum values first (without diving into the projects).  This will
+            // then find all the checksums, avoiding any need to dive into the projects for a more costly search.
             await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
                 assetPath: AssetPath.SolutionAndProjects,
                 checksums,
