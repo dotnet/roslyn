@@ -21,8 +21,9 @@ internal sealed class SolutionCompilationStateChecksums
     public SolutionCompilationStateChecksums(
         Checksum solutionState,
         Checksum sourceGeneratorExecutionVersionMap,
-        ChecksumCollection? frozenSourceGeneratedDocumentIdentities,
+        // These arrays are all the same length if present, and reference the same documents in the same order.
         ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocumentTexts,
+        ChecksumCollection? frozenSourceGeneratedDocumentIdentities,
         ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes)
     {
         // For the frozen source generated document info, we expect two either have both checksum collections or neither, and they
@@ -32,8 +33,8 @@ internal sealed class SolutionCompilationStateChecksums
 
         SolutionState = solutionState;
         SourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
-        FrozenSourceGeneratedDocumentIdentities = frozenSourceGeneratedDocumentIdentities;
         FrozenSourceGeneratedDocumentTexts = frozenSourceGeneratedDocumentTexts;
+        FrozenSourceGeneratedDocumentIdentities = frozenSourceGeneratedDocumentIdentities;
         FrozenSourceGeneratedDocumentGenerationDateTimes = frozenSourceGeneratedDocumentGenerationDateTimes;
 
         // note: intentionally not mixing in FrozenSourceGeneratedDocumentGenerationDateTimes as that is not part of the
@@ -48,12 +49,12 @@ internal sealed class SolutionCompilationStateChecksums
     public Checksum Checksum { get; }
     public Checksum SolutionState { get; }
     public Checksum SourceGeneratorExecutionVersionMap { get; }
-    public ChecksumCollection? FrozenSourceGeneratedDocumentIdentities { get; }
 
     /// <summary>
     /// Checksums of the SourceTexts of the frozen documents directly.  Not checksums of their DocumentStates.
     /// </summary>
     public ChecksumsAndIds<DocumentId>? FrozenSourceGeneratedDocumentTexts { get; }
+    public ChecksumCollection? FrozenSourceGeneratedDocumentIdentities { get; }
 
     // note: intentionally not part of the identity contract of this type.
     public ImmutableArray<DateTime> FrozenSourceGeneratedDocumentGenerationDateTimes { get; }
@@ -78,8 +79,8 @@ internal sealed class SolutionCompilationStateChecksums
         writer.WriteBoolean(this.FrozenSourceGeneratedDocumentIdentities.HasValue);
         if (FrozenSourceGeneratedDocumentIdentities.HasValue)
         {
-            this.FrozenSourceGeneratedDocumentIdentities.Value.WriteTo(writer);
             this.FrozenSourceGeneratedDocumentTexts!.Value.WriteTo(writer);
+            this.FrozenSourceGeneratedDocumentIdentities.Value.WriteTo(writer);
             writer.WriteArray(this.FrozenSourceGeneratedDocumentGenerationDateTimes, static (w, d) => w.WriteInt64(d.Ticks));
         }
     }
@@ -91,22 +92,22 @@ internal sealed class SolutionCompilationStateChecksums
         var sourceGeneratorExecutionVersionMap = Checksum.ReadFrom(reader);
 
         var hasFrozenSourceGeneratedDocuments = reader.ReadBoolean();
+        ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocumentTexts = null;
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
-        ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
         ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
 
         if (hasFrozenSourceGeneratedDocuments)
         {
+            frozenSourceGeneratedDocumentTexts = ChecksumsAndIds<DocumentId>.ReadFrom(reader);
             frozenSourceGeneratedDocumentIdentities = ChecksumCollection.ReadFrom(reader);
-            frozenSourceGeneratedDocuments = ChecksumsAndIds<DocumentId>.ReadFrom(reader);
             frozenSourceGeneratedDocumentGenerationDateTimes = reader.ReadArray(r => new DateTime(r.ReadInt64()));
         }
 
         var result = new SolutionCompilationStateChecksums(
             solutionState: solutionState,
             sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap,
+            frozenSourceGeneratedDocumentTexts,
             frozenSourceGeneratedDocumentIdentities,
-            frozenSourceGeneratedDocuments,
             frozenSourceGeneratedDocumentGenerationDateTimes);
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;

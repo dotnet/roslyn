@@ -293,7 +293,7 @@ internal sealed class TextDocumentStates<TState>
         }
     }
 
-    public async ValueTask<ChecksumsAndIds<DocumentId>> GetChecksumsAndIdsAsync(CancellationToken cancellationToken)
+    public async ValueTask<ChecksumsAndIds<DocumentId>> GetTextChecksumsAndIdsAsync(CancellationToken cancellationToken)
     {
         var documentTextChecksums = await SelectAsArrayAsync(static async (state, _, cancellationToken) =>
         {
