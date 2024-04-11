@@ -27,17 +27,17 @@ internal abstract class AbstractAssetProvider
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
-        var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPathKind.Solution, solutionChecksum, cancellationToken).ConfigureAwait(false);
-        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetPathKind.Solution, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+        var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetPathKind.SolutionStateChecksums, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
-        var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.Solution, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
-        await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.Solution, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
+        var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.SolutionAttributes, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+        await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionChecksums.Projects.Length, out var projects);
         foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
             projects.Add(await CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken).ConfigureAwait(false));
 
-        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(AssetPathKind.Solution, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
         return SolutionInfo.Create(
             solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects.ToImmutableAndClear(), analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);

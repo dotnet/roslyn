@@ -122,16 +122,13 @@ internal sealed class SolutionCompilationStateChecksums
 
         if (assetPath.IncludeSolution)
         {
-            if (searchingChecksumsLeft.Remove(this.Checksum))
+            if (assetPath.IncludeSolutionCompilationStateChecksums && searchingChecksumsLeft.Remove(this.Checksum))
                 result[this.Checksum] = this;
 
-            if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
+            if (assetPath.IncludeSolutionSourceGeneratorExecutionVersionMap && searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
                 result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
 
-            if (searchingChecksumsLeft.Count == 0)
-                return;
-
-            if (compilationState.FrozenSourceGeneratedDocumentStates != null)
+            if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentStates && compilationState.FrozenSourceGeneratedDocumentStates != null)
             {
                 Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
 
@@ -249,13 +246,14 @@ internal sealed class SolutionStateChecksums(
 
         if (assetPath.IncludeSolution)
         {
-            if (searchingChecksumsLeft.Remove(Checksum))
+            if (assetPath.IncludeSolutionStateChecksums && searchingChecksumsLeft.Remove(Checksum))
                 result[Checksum] = this;
 
-            if (searchingChecksumsLeft.Remove(Attributes))
+            if (assetPath.IncludeSolutionAttributes && searchingChecksumsLeft.Remove(Attributes))
                 result[Attributes] = solution.SolutionAttributes;
 
-            ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+            if (assetPath.IncludeSolutionAnalyzerReferences)
+                ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
         }
 
         if (searchingChecksumsLeft.Count == 0)

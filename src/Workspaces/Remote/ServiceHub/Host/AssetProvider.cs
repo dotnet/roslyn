@@ -89,7 +89,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         {
             // first, get top level solution state for the given solution checksum
             var compilationStateChecksums = await this.GetAssetAsync<SolutionCompilationStateChecksums>(
-                assetPath: AssetPathKind.Solution, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                assetPath: AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
@@ -100,7 +100,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             // third, get direct children of the solution state.
             var stateChecksums = await this.GetAssetAsync<SolutionStateChecksums>(
-                assetPath: AssetPathKind.Solution, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+                assetPath: AssetPathKind.SolutionStateChecksums, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
             // Ask for solutions and top-level projects as the solution checksums will contain the checksums for
             // the project states and we want to get that all in one batch.
