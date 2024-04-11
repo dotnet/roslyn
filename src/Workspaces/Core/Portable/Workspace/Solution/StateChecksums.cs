@@ -284,37 +284,47 @@ internal sealed class SolutionStateChecksums(
                 // diving any deeper into them.
                 if (assetPath.IncludeProjects)
                 {
-                    foreach (var (projectId, projectState) in solution.ProjectStates)
-                    {
-                        if (searchingChecksumsLeft.Count == 0)
-                            break;
-
-                        if (projectCone != null && !projectCone.Contains(projectId))
-                            continue;
-
-                        if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
-                            searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+                    await FindInProjectAsync(
+                        static (_, projectStateChecksums, tuple, _) =>
                         {
-                            result[projectStateChecksums.Checksum] = projectStateChecksums;
-                        }
-                    }
+                            if (tuple.searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+                                tuple.result[projectStateChecksums.Checksum] = projectStateChecksums;
+
+                            return Task.CompletedTask;
+                        },
+                        (searchingChecksumsLeft, result),
+                        cancellationToken).ConfigureAwait(false);
                 }
 
-                foreach (var (projectId, projectState) in solution.ProjectStates)
-                {
-                    if (searchingChecksumsLeft.Count == 0)
-                        break;
+                await FindInProjectAsync(
+                    static (projectState, projectStateChecksums, tuple, cancellationToken) =>
+                        projectStateChecksums.FindAsync(projectState, tuple.assetPath, tuple.searchingChecksumsLeft, tuple.result, cancellationToken),
+                    (assetPath, searchingChecksumsLeft, result),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
 
-                    // If we're syncing a project cone, no point at all at looking at child projects of the solution that
-                    // are not in that cone.
-                    if (projectCone != null && !projectCone.Contains(projectId))
-                        continue;
+        return;
 
-                    // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
-                    // compute the checksum tree for a subset of projects that were all that a feature needed.
-                    if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                        await projectStateChecksums.FindAsync(projectState, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-                }
+        async Task FindInProjectAsync<TArg>(
+            Func<ProjectState, ProjectStateChecksums, TArg, CancellationToken, Task> findInProjectAsync, TArg arg, CancellationToken cancellationToken)
+        {
+            foreach (var (projectId, projectState) in solution.ProjectStates)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (searchingChecksumsLeft.Count == 0)
+                    break;
+
+                if (projectCone != null && !projectCone.Contains(projectId))
+                    continue;
+
+                // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
+                // compute the checksum tree for a subset of projects that were all that a feature needed.
+                if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
+                    continue;
+
+                await findInProjectAsync(projectState, projectStateChecksums, arg, cancellationToken).ConfigureAwait(false);
             }
         }
     }
