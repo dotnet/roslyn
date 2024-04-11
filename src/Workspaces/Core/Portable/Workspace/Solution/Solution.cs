@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -28,11 +27,7 @@ public partial class Solution
 {
     private readonly SolutionCompilationState _compilationState;
 
-    // Mapping from ProjectId to index in _projects
-    private readonly FrozenDictionary<ProjectId, int> _projectIdToIndex;
-
-    // Values for all these are created on demand.
-    private readonly Project?[] _projects;
+    private readonly ProjectIdMapping<Project> _projectIdMapping;
 
     /// <summary>
     /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
@@ -48,21 +43,17 @@ public partial class Solution
     private Solution(
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
+        : this(compilationState, ProjectIdMapping<Project>.Empty.WithProjectIds(compilationState.SolutionState.ProjectIds), cachedFrozenSolution)
     {
-        var projectIds = compilationState.SolutionState.ProjectIds;
+    }
 
-        using var _ = PooledDictionary<ProjectId, int>.GetInstance(out var dict);
-        _projects = new Project?[projectIds.Count];
-
-        for (int i = 0, n = projectIds.Count; i < n; i++)
-        {
-            var projectId = projectIds[i];
-            dict[projectId] = i;
-        }
-
-        _projectIdToIndex = dict.ToFrozenDictionary();
-
+    private Solution(
+        SolutionCompilationState compilationState,
+        ProjectIdMapping<Project> projectIdMapping,
+        AsyncLazy<Solution>? cachedFrozenSolution = null)
+    {
         _compilationState = compilationState;
+        _projectIdMapping = projectIdMapping;
 
         _cachedFrozenSolution = cachedFrozenSolution ??
             AsyncLazy.Create(synchronousComputeFunction: static (self, c) =>
@@ -155,25 +146,15 @@ public partial class Solution
     /// </summary>
     public Project? GetProject(ProjectId? projectId)
     {
-        if (projectId is null || !_projectIdToIndex.TryGetValue(projectId, out var projectIndex))
-            return null;
-
-        var project = _projects[projectIndex];
-        if (project == null)
-        {
-            project = CreateProject(projectId, this);
-            Interlocked.CompareExchange(ref _projects[projectIndex], project, null);
-        }
-
-        return project;
-    }
-
-    private static readonly Func<ProjectId, Solution, Project> s_createProjectFunction = CreateProject;
-    private static Project CreateProject(ProjectId projectId, Solution solution)
-    {
-        var state = solution.SolutionState.GetProjectState(projectId);
-        Contract.ThrowIfNull(state);
-        return new Project(solution, state);
+        return _projectIdMapping.GetOrAdd(
+            projectId,
+            static (projectId, self) =>
+            {
+                var state = self.SolutionState.GetProjectState(projectId);
+                Contract.ThrowIfNull(state);
+                return new Project(self, state);
+            },
+            arg: this);
     }
 
 #pragma warning disable IDE0060 // Remove unused parameter 'cancellationToken' - shipped public API
@@ -333,7 +314,7 @@ public partial class Solution
             {
                 // We have the underlying state, but we need to get the wrapper SourceGeneratedDocument object. The wrapping is maintained by
                 // the Project object, so we'll now fetch the project and ask it to get the SourceGeneratedDocument wrapper. Under the covers this
-                // implicity may call to fetch the SourceGeneratedDocumentState a second time but that's not expensive.
+                // implicitly may call to fetch the SourceGeneratedDocumentState a second time but that's not expensive.
                 var generatedDocument = this.GetRequiredProject(documentState.Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentState.Id);
                 Contract.ThrowIfNull(generatedDocument, "The call to GetDocumentState found a SourceGeneratedDocumentState, so we should have found it now.");
                 return generatedDocument;
@@ -348,7 +329,7 @@ public partial class Solution
     }
 
     private Solution WithCompilationState(SolutionCompilationState compilationState)
-        => compilationState == _compilationState ? this : new Solution(compilationState);
+        => compilationState == _compilationState ? this : new Solution(compilationState, _projectIdMapping.WithProjectIds(compilationState.SolutionState.ProjectIds));
 
     /// <summary>
     /// Creates a new solution instance that includes a project with the specified language and names.
@@ -1446,6 +1427,7 @@ public partial class Solution
 
         var frozenSolution = new Solution(
             newCompilationState,
+            _projectIdMapping.WithProjectIds(newCompilationState.SolutionState.ProjectIds),
             // Set the frozen solution to be its own frozen solution.  Freezing multiple times is a no-op.
             cachedFrozenSolution: _cachedFrozenSolution);
 
@@ -1470,7 +1452,7 @@ public partial class Solution
                 if (!_documentIdToFrozenSolution.TryGetValue(documentId, out var lazySolution))
                 {
                     // in a local function to prevent lambda allocations when not needed.
-                    lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId);
+                    lazySolution = CreateLazyFrozenSolution(this.CompilationState, documentId, _projectIdMapping);
                     _documentIdToFrozenSolution.Add(documentId, lazySolution);
                 }
 
@@ -1478,15 +1460,15 @@ public partial class Solution
             }
         }
 
-        static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
+        static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, ProjectIdMapping<Project> projectIdMapping)
             => AsyncLazy.Create(synchronousComputeFunction: static (arg, cancellationToken) =>
-                ComputeFrozenSolution(arg.compilationState, arg.documentId, cancellationToken),
-                arg: (compilationState, documentId));
+                ComputeFrozenSolution(arg.compilationState, arg.documentId, arg.projectIdMapping, cancellationToken),
+                arg: (compilationState, documentId, projectIdMapping));
 
-        static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
+        static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, ProjectIdMapping<Project> projectIdMapping, CancellationToken cancellationToken)
         {
             var newCompilationState = compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            var solution = new Solution(newCompilationState);
+            var solution = new Solution(newCompilationState, projectIdMapping.WithProjectIds(newCompilationState.SolutionState.ProjectIds));
 
             // ensure that this document is within the frozen-partial-document for the solution we're creating.  That
             // way, if we ask to freeze it again, we'll just the same document back.
