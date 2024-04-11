@@ -279,6 +279,27 @@ internal sealed class SolutionStateChecksums(
             else
             {
                 // Check all projects for the remaining checksums.
+
+                // Note: optimize the case where the caller is asking for all the project-state-checksums, but not
+                // diving any deeper into them.
+                if (assetPath.IncludeProjects)
+                {
+                    foreach (var (projectId, projectState) in solution.ProjectStates)
+                    {
+                        if (searchingChecksumsLeft.Count == 0)
+                            break;
+
+                        if (projectCone != null && !projectCone.Contains(projectId))
+                            continue;
+
+                        if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
+                            searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+                        {
+                            result[projectStateChecksums.Checksum] = projectStateChecksums;
+                        }
+                    }
+                }
+
                 foreach (var (projectId, projectState) in solution.ProjectStates)
                 {
                     if (searchingChecksumsLeft.Count == 0)
