@@ -120,9 +120,10 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);
 
             // fourth, get all projects and documents in the solution 
-            foreach (var (projectChecksum, _) in stateChecksums.Projects)
+            foreach (var (projectChecksum, projectId) in stateChecksums.Projects)
             {
                 var projectStateChecksums = (ProjectStateChecksums)checksumToObjects[projectChecksum];
+                Contract.ThrowIfTrue(projectStateChecksums.ProjectId != projectId);
                 allProjectStateChecksums.Add(projectStateChecksums);
             }
 
@@ -169,7 +170,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
                     // We want to synchronize the assets just for this project.  So we can pass the ProjectId as a hint
                     // to limit the search on the host side.
-                    tasks.Add(SynchronizeProjectAssetsWorkerAsync(tempBuffer, singleProjectChecksums.ProjectId, freeArrayBuilder: true));
+                    tasks.Add(SynchronizeProjectAssetsWorkerAsync(
+                        tempBuffer, singleProjectChecksums.ProjectId, freeArrayBuilder: true, cancellationToken));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -181,40 +183,42 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 await SynchronizeProjectAssetsWorkerAsync(
                     allProjectChecksums,
                     projectId: null,
-                    freeArrayBuilder: false).ConfigureAwait(false);
+                    freeArrayBuilder: false, cancellationToken).ConfigureAwait(false);
             }
         }
+    }
 
-        async Task SynchronizeProjectAssetsWorkerAsync(
-            ArrayBuilder<ProjectStateChecksums> allProjectChecksums, ProjectId? projectId, bool freeArrayBuilder)
+    private async Task SynchronizeProjectAssetsWorkerAsync(
+        ArrayBuilder<ProjectStateChecksums> allProjectChecksums, ProjectId? projectId, bool freeArrayBuilder, CancellationToken cancellationToken)
+    {
+        try
         {
-            try
-            {
-                await Task.Yield();
+            await Task.Yield();
 
-                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-                // Make parallel requests for all the project data across all projects at once. For each request, pass
-                // in the appropriate info to let the search avoid looking at data unnecessarily.
-                tasks.Add(SynchronizeProjectAssetAsync<ProjectInfo.ProjectAttributes>(new(AssetPathKind.ProjectAttributes, projectId), static p => p.Info));
-                tasks.Add(SynchronizeProjectAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), static p => p.CompilationOptions));
-                tasks.Add(SynchronizeProjectAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), static p => p.ParseOptions));
-                tasks.Add(SynchronizeProjectAssetCollectionAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), static p => p.ProjectReferences));
-                tasks.Add(SynchronizeProjectAssetCollectionAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), static p => p.MetadataReferences));
-                tasks.Add(SynchronizeProjectAssetCollectionAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), static p => p.AnalyzerReferences));
+            // Make parallel requests for all the project data across all projects at once. For each request, pass
+            // in the appropriate info to let the search avoid looking at data unnecessarily.
+            tasks.Add(SynchronizeProjectAssetAsync<ProjectInfo.ProjectAttributes>(new(AssetPathKind.ProjectAttributes, projectId), static p => p.Info));
+            tasks.Add(SynchronizeProjectAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), static p => p.CompilationOptions));
+            tasks.Add(SynchronizeProjectAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), static p => p.ParseOptions));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), static p => p.ProjectReferences));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), static p => p.MetadataReferences));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), static p => p.AnalyzerReferences));
 
-                // Then sync each project's documents in parallel with each other.
-                foreach (var projectChecksums in allProjectChecksums)
-                    tasks.Add(SynchronizeProjectDocumentsAsync(projectChecksums));
+            // Then sync each project's documents in parallel with each other.
+            foreach (var projectChecksums in allProjectChecksums)
+                tasks.Add(SynchronizeProjectDocumentsAsync(projectChecksums));
 
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-            }
-            finally
-            {
-                if (freeArrayBuilder)
-                    allProjectChecksums.Free();
-            }
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
+        finally
+        {
+            if (freeArrayBuilder)
+                allProjectChecksums.Free();
+        }
+
+        return;
 
         static void AddAll(HashSet<Checksum> checksums, ChecksumCollection checksumCollection)
         {
