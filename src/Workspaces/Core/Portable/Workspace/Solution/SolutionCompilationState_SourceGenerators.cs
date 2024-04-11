@@ -47,7 +47,7 @@ internal partial class SolutionCompilationState
     private static readonly Dictionary<string, AnalyzerReferenceMap> s_languageToAnalyzerReferenceMap = new()
     {
         { LanguageNames.CSharp, new() },
-        {LanguageNames.VisualBasic, new() },
+        { LanguageNames.VisualBasic, new() },
     };
 
     /// <summary>
