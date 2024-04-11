@@ -27,17 +27,17 @@ internal abstract class AbstractAssetProvider
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
-        var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPath.SolutionOnly, solutionChecksum, cancellationToken).ConfigureAwait(false);
-        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetPath.SolutionOnly, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+        var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPathKind.Solution, solutionChecksum, cancellationToken).ConfigureAwait(false);
+        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetPathKind.Solution, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
-        var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPath.SolutionOnly, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
-        await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPath.SolutionOnly, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
+        var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.Solution, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+        await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.Solution, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionChecksums.Projects.Length, out var projects);
         foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
             projects.Add(await CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken).ConfigureAwait(false));
 
-        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(AssetPath.SolutionOnly, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(AssetPathKind.Solution, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
         return SolutionInfo.Create(
             solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects.ToImmutableAndClear(), analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
@@ -45,19 +45,19 @@ internal abstract class AbstractAssetProvider
 
     public async Task<ProjectInfo> CreateProjectInfoAsync(ProjectId projectId, Checksum projectChecksum, CancellationToken cancellationToken)
     {
-        var projectChecksums = await GetAssetAsync<ProjectStateChecksums>(assetPath: projectId, projectChecksum, cancellationToken).ConfigureAwait(false);
+        var projectChecksums = await GetAssetAsync<ProjectStateChecksums>(new(AssetPathKind.ProjectStateChecksums, projectId), projectChecksum, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfFalse(projectId == projectChecksums.ProjectId);
 
-        var attributes = await GetAssetAsync<ProjectInfo.ProjectAttributes>(assetPath: projectId, projectChecksums.Info, cancellationToken).ConfigureAwait(false);
+        var attributes = await GetAssetAsync<ProjectInfo.ProjectAttributes>(new(AssetPathKind.ProjectAttributes, projectId), projectChecksums.Info, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfFalse(RemoteSupportedLanguages.IsSupported(attributes.Language));
 
         var compilationOptions = attributes.FixUpCompilationOptions(
-            await GetAssetAsync<CompilationOptions>(assetPath: projectId, projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
-        var parseOptions = await GetAssetAsync<ParseOptions>(assetPath: projectId, projectChecksums.ParseOptions, cancellationToken).ConfigureAwait(false);
+            await GetAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
+        var parseOptions = await GetAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), projectChecksums.ParseOptions, cancellationToken).ConfigureAwait(false);
 
-        var projectReferences = await GetAssetsAsync<ProjectReference>(assetPath: projectId, projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
-        var metadataReferences = await GetAssetsAsync<MetadataReference>(assetPath: projectId, projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
-        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(assetPath: projectId, projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var projectReferences = await GetAssetsAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
+        var metadataReferences = await GetAssetsAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
+        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
         var documentInfos = await CreateDocumentInfosAsync(projectChecksums.Documents).ConfigureAwait(false);
         var additionalDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments).ConfigureAwait(false);
@@ -92,11 +92,11 @@ internal abstract class AbstractAssetProvider
     public async Task<DocumentInfo> CreateDocumentInfoAsync(
         DocumentId documentId, Checksum documentChecksum, CancellationToken cancellationToken)
     {
-        var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(assetPath: documentId, documentChecksum, cancellationToken).ConfigureAwait(false);
+        var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(new(AssetPathKind.DocumentStateChecksums, documentId), documentChecksum, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfTrue(documentId != documentSnapshot.DocumentId);
 
-        var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(assetPath: documentId, documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-        var serializableSourceText = await GetAssetAsync<SerializableSourceText>(assetPath: documentId, documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
+        var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(new(AssetPathKind.DocumentAttributes, documentId), documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+        var serializableSourceText = await GetAssetAsync<SerializableSourceText>(new(AssetPathKind.DocumentText, documentId), documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
         var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), attributes.FilePath));

@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.Serialization;
 internal readonly struct AssetPath
 {
     /// <summary>
-    /// Instance that will only look up solution-level data when searching for checksums.
-    /// </summary>
-    public static readonly AssetPath SolutionOnly = AssetPathKind.Solution;
-
-    /// <summary>
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
@@ -49,6 +44,16 @@ internal readonly struct AssetPath
         DocumentId = documentId;
     }
 
+    public AssetPath(AssetPathKind kind, ProjectId projectId)
+        : this(kind, projectId, documentId: null)
+    {
+    }
+
+    public AssetPath(AssetPathKind kind, DocumentId documentId)
+        : this(kind, documentId.ProjectId, documentId)
+    {
+    }
+
     public bool IncludeSolution => (_kind & AssetPathKind.Solution) != 0;
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) != 0;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) != 0;
@@ -70,12 +75,12 @@ internal readonly struct AssetPath
     /// <summary>
     /// Searches only for information about this project.
     /// </summary>
-    public static implicit operator AssetPath(ProjectId projectId) => new(AssetPathKind.Projects, projectId, documentId: null);
+    public static implicit operator AssetPath(ProjectId projectId) => new(AssetPathKind.Projects, projectId);
 
     /// <summary>
     /// Searches only for information about this document.
     /// </summary>
-    public static implicit operator AssetPath(DocumentId documentId) => new(AssetPathKind.Documents, documentId.ProjectId, documentId);
+    public static implicit operator AssetPath(DocumentId documentId) => new(AssetPathKind.Documents, documentId);
 
     /// <summary>
     /// Searches the requested project, and all documents underneath it.  Used only in tests.
