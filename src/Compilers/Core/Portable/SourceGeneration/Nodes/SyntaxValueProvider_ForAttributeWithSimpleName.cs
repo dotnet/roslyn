@@ -76,7 +76,6 @@ public partial struct SyntaxValueProvider
         // file changes its global aliases or a file is added / removed from the compilation
         var collectedGlobalAliasesProvider = individualFileGlobalAliasesProvider
             .Collect()
-            .WithComparer(ImmutableArrayValueComparer<GlobalAliases>.Instance)
             .WithTrackingName("collectedGlobalAliases_ForAttribute");
 
         var allUpGlobalAliasesProvider = collectedGlobalAliasesProvider
