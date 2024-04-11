@@ -13,6 +13,14 @@
 "CS"="CA719A03-D55C-48F9-85DE-D934346E7F70"
 "VB"="EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
 
+// Register Hot Reload brokered service with the debugger.
+// This service is available once C# or VB project has been loaded.
+[$RootKey$\Debugger\ManagedHotReload\LanguageServices\{882A9AD6-1F3B-4AC0-BABC-DD6DB41714E7}]
+@="Roslyn"
+"UIContexts"="CA719A03-D55C-48F9-85DE-D934346E7F7;EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
+"ServiceMoniker"="Microsoft.CodeAnalysis.LanguageServer.ManagedHotReloadLanguageService"
+"ServiceVersion"="0.1"
+
 [$RootKey$\FeatureFlags\Roslyn\LSP\Editor]
 "Description"="Enables the LSP-powered C#/VB editing experience outside of CodeSpaces."
 "Value"=dword:00000000
