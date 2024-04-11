@@ -53,7 +53,7 @@ internal readonly struct AssetPath
     [DataMember(Order = 2)]
     public readonly DocumentId? DocumentId;
 
-    private AssetPath(AssetPathKind kind, ProjectId? projectId = null, DocumentId? documentId = null)
+    public AssetPath(AssetPathKind kind, ProjectId? projectId = null, DocumentId? documentId = null)
     {
         _kind = kind;
         ProjectId = projectId;
@@ -96,31 +96,31 @@ internal readonly struct AssetPath
     /// <returns></returns>
     public static AssetPath DocumentsInProject(ProjectId projectId)
         => new(AssetPathKind.Documents, projectId);
+}
 
-    [Flags]
-    private enum AssetPathKind
-    {
-        /// <summary>
-        /// Search solution-level information.
-        /// </summary>
-        Solution = 1 << 0,
+[Flags]
+internal enum AssetPathKind
+{
+    /// <summary>
+    /// Search solution-level information.
+    /// </summary>
+    Solution = 1 << 0,
 
-        ProjectChecksums = 1 << 1,
-        ProjectAttributes = 1 << 2,
-        ProjectCompilationOptions = 1 << 3,
-        ProjectParseOptions = 1 << 4,
-        ProjectProjectReferences = 1 << 5,
-        ProjectMetadataReferences = 1 << 6,
-        ProjectAnalyzerReferences = 1 << 7,
+    ProjectChecksums = 1 << 1,
+    ProjectAttributes = 1 << 2,
+    ProjectCompilationOptions = 1 << 3,
+    ProjectParseOptions = 1 << 4,
+    ProjectProjectReferences = 1 << 5,
+    ProjectMetadataReferences = 1 << 6,
+    ProjectAnalyzerReferences = 1 << 7,
 
-        /// <summary>
-        /// Search projects for results.  All project-level information will be searched.
-        /// </summary>
-        Projects = ProjectChecksums | ProjectAttributes | ProjectCompilationOptions | ProjectParseOptions | ProjectProjectReferences | ProjectMetadataReferences | ProjectAnalyzerReferences,
+    /// <summary>
+    /// Search projects for results.  All project-level information will be searched.
+    /// </summary>
+    Projects = ProjectChecksums | ProjectAttributes | ProjectCompilationOptions | ProjectParseOptions | ProjectProjectReferences | ProjectMetadataReferences | ProjectAnalyzerReferences,
 
-        /// <summary>
-        /// Search documents for results.
-        /// </summary>
-        Documents = 1 << 8,
-    }
+    /// <summary>
+    /// Search documents for results.
+    /// </summary>
+    Documents = 1 << 8,
 }

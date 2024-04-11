@@ -161,31 +161,32 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 using var _ = ArrayBuilder<Task>.GetInstance(allProjectChecksums.Count, out var tasks);
                 foreach (var singleProjectChecksums in allProjectChecksums)
                 {
-                    // We want to synchronize the assets just for this project.  So we can pass the project down as a
-                    // hint to limit the search on the host side.
-                    AssetPath assetPath = singleProjectChecksums.ProjectId;
-
                     // Make a fresh singleton array, containing just this project checksum, and pass into the helper
                     // below. That way we can have just a single helper for actually doing the syncing, regardless of if
                     // we are are doing a single project or multiple.
                     ArrayBuilder<ProjectStateChecksums>.GetInstance(capacity: 1, out var tempBuffer);
                     tempBuffer.Add(singleProjectChecksums);
 
-                    tasks.Add(SynchronizeProjectAssetsWorkerAsync(tempBuffer, assetPath, freeArrayBuilder: true));
+                    // We want to synchronize the assets just for this project.  So we can pass the ProjectId as a hint
+                    // to limit the search on the host side.
+                    tasks.Add(SynchronizeProjectAssetsWorkerAsync(tempBuffer, singleProjectChecksums.ProjectId, freeArrayBuilder: true));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
             else
             {
-                // We want to synchronize all assets in bulk.  Because of this, we can't narrow the search on the host side.
-                var assetPath = AssetPath.SolutionAndProjects;
-                await SynchronizeProjectAssetsWorkerAsync(allProjectChecksums, assetPath, freeArrayBuilder: false).ConfigureAwait(false);
+                // We want to synchronize all assets in bulk.  Because of this, we can't narrow the search on the host
+                // side to a particular ProjectId.
+                await SynchronizeProjectAssetsWorkerAsync(
+                    allProjectChecksums,
+                    projectId: null,
+                    freeArrayBuilder: false).ConfigureAwait(false);
             }
         }
 
         async Task SynchronizeProjectAssetsWorkerAsync(
-            ArrayBuilder<ProjectStateChecksums> allProjectChecksums, AssetPath assetPath, bool freeArrayBuilder)
+            ArrayBuilder<ProjectStateChecksums> allProjectChecksums, ProjectId? projectId, bool freeArrayBuilder)
         {
             try
             {
@@ -193,13 +194,14 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-                // Make parallel requests for all the project data across all projects at once.
-                tasks.Add(SynchronizeProjectAssetAsync<ProjectInfo.ProjectAttributes>(assetPath, static p => p.Info));
-                tasks.Add(SynchronizeProjectAssetAsync<CompilationOptions>(assetPath, static p => p.CompilationOptions));
-                tasks.Add(SynchronizeProjectAssetAsync<ParseOptions>(assetPath, static p => p.ParseOptions));
-                tasks.Add(SynchronizeProjectAssetCollectionAsync<ProjectReference>(assetPath, static p => p.ProjectReferences));
-                tasks.Add(SynchronizeProjectAssetCollectionAsync<MetadataReference>(assetPath, static p => p.MetadataReferences));
-                tasks.Add(SynchronizeProjectAssetCollectionAsync<AnalyzerReference>(assetPath, static p => p.AnalyzerReferences));
+                // Make parallel requests for all the project data across all projects at once. For each request, pass
+                // in the appropriate info to let the search avoid looking at data unnecessarily.
+                tasks.Add(SynchronizeProjectAssetAsync<ProjectInfo.ProjectAttributes>(new(AssetPathKind.ProjectAttributes, projectId), static p => p.Info));
+                tasks.Add(SynchronizeProjectAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), static p => p.CompilationOptions));
+                tasks.Add(SynchronizeProjectAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), static p => p.ParseOptions));
+                tasks.Add(SynchronizeProjectAssetCollectionAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), static p => p.ProjectReferences));
+                tasks.Add(SynchronizeProjectAssetCollectionAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), static p => p.MetadataReferences));
+                tasks.Add(SynchronizeProjectAssetCollectionAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), static p => p.AnalyzerReferences));
 
                 // Then sync each project's documents in parallel with each other.
                 foreach (var projectChecksums in allProjectChecksums)
