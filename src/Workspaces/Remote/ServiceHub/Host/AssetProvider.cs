@@ -58,6 +58,10 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         await this.SynchronizeAssetsAsync(assetPath, checksums, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// This is the function called when we are <em>not</em> doing an incremental update, but are instead doing a bulk
+    /// full sync.
+    /// </summary>
     public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
         var timer = SharedStopwatch.StartNew();
