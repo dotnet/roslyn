@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Remote
                         projectStateChecksumsToAdd.Add(newProjectChecksums);
                 }
 
-                // bulk sync added project assets fully since we'll definitely need that data, and we won't want
-
+                // bulk sync added project assets fully since we'll definitely need that data, and we can fetch more
+                // efficiently in bulkd and in parallel.
                 await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksumsToAdd, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
