@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -34,9 +36,24 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             CompletionOptionsStorage.ShowNewSnippetExperienceUserOption
         );
 
-        internal override ImmutableDictionary<IOption2, ImmutableArray<object>> EnumOptionsToValues => ImmutableDictionary<IOption2, ImmutableArray<object>>.Empty.
-                Add(CompletionOptionsStorage.SnippetsBehavior, ImmutableArray.Create<object>(SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)).
-                Add(CompletionOptionsStorage.EnterKeyBehavior, ImmutableArray.Create<object>(EnterKeyRule.Never, EnterKeyRule.AfterFullyTypedWord, EnterKeyRule.Always));
+        internal override object[] GetEnumOptionValues(IOption2 option)
+        {
+            var allValues = Enum.GetValues(option.Type).Cast<object>();
+            if (option == CompletionOptionsStorage.SnippetsBehavior)
+            {
+                // SnippetsRule.Default is used as a stub value, overridden per language at runtime.
+                // It is not shown in the option page
+                return allValues.Where(value => !value.Equals(SnippetsRule.Default)).ToArray();
+            }
+            else if (option == CompletionOptionsStorage.EnterKeyBehavior)
+            {
+                // EnterKeyRule.Default is used as a stub value, overridden per language at runtime.
+                // It is not shown in the option page
+                return allValues.Where(value => !value.Equals(EnterKeyRule.Default)).ToArray();
+            }
+
+            return base.GetEnumOptionValues(option);
+        }
 
         internal override object GetOptionsDefaultValue(IOption2 option)
         {

@@ -16,13 +16,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         ' Onboarded options in Unified Settings registration file
         Friend MustOverride ReadOnly Property OnboardedOptions As ImmutableArray(Of IOption2)
 
-        ' The default value of some enum options is overridden at runtime. And it's not shown in the unified settings page.
-        ' Use this dictionary to list all the possible enum values in settings page.
-        Friend MustOverride ReadOnly Property EnumOptionsToValues As ImmutableDictionary(Of IOption2, ImmutableArray(Of Object))
-
         ' Override this method to if the option use different default value.
         Friend Overridable Function GetOptionsDefaultValue([option] As IOption2) As Object
             Return [option].DefaultValue
+        End Function
+
+        ' Override this method to specify all possible enum values in option page.
+        Friend Overridable Function GetEnumOptionValues([option] As IOption2) As Object()
+            Dim type = [option].Definition.Type
+            Assert.True(type.IsEnum)
+            Return [Enum].GetValues(type).Cast(Of Object).AsArray()
         End Function
 
         Protected Sub TestUnifiedSettingsCategory(registrationJsonObject As JObject, categoryBasePath As String, languageName As String)
@@ -66,11 +69,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
         End Sub
 
         Private Sub VerifyEnum(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2, languageName As String)
-            Dim actualEnumValues = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').enum").SelectAsArray(Function(token) token.ToString())
-            Dim possibleEnumValues As ImmutableArray(Of Object) = ImmutableArray(Of Object).Empty
-            Dim expectedEnumValues = If(EnumOptionsToValues.TryGetValue([option], possibleEnumValues),
-                                         possibleEnumValues.SelectAsArray(Function(value) value.ToString().ToCamelCase()),
-                                         [option].Type.GetEnumValues().Cast(Of String).SelectAsArray(Function(value) value.ToCamelCase()))
+            Dim actualEnumValues = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingPath}').enum").Select(Function(token) token.ToString()).OrderBy(Function(value) value)
+            Dim expectedEnumValues = GetEnumOptionValues([option]).Select(Function(value) value.ToString().ToCamelCase()).OrderBy(Function(value) value)
             AssertEx.Equal(expectedEnumValues, actualEnumValues)
             VerifyEnumMigration(registrationJsonObject, unifiedSettingPath, [option], languageName)
         End Sub
