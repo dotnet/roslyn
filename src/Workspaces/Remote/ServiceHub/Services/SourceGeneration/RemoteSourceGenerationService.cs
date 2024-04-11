@@ -71,11 +71,11 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         }, cancellationToken);
     }
 
-    private static readonly ImmutableArray<(string language, AnalyzerReferenceMap analyzerReferenceMap, AnalyzerReferenceMap.CreateValueCallback callback)> s_languageToAnalyzerReferenceMap =
-    [
-        (LanguageNames.CSharp, new(), static analyzerReference => HasSourceGenerators(analyzerReference, LanguageNames.CSharp)),
-        (LanguageNames.VisualBasic, new(), static analyzerReference => HasSourceGenerators(analyzerReference, LanguageNames.VisualBasic))
-    ];
+    private static readonly Dictionary<string, (AnalyzerReferenceMap analyzerReferenceMap, AnalyzerReferenceMap.CreateValueCallback callback)> s_languageToAnalyzerReferenceMap = new()
+    {
+        { LanguageNames.CSharp, (new(), static analyzerReference => HasSourceGenerators(analyzerReference, LanguageNames.CSharp)) },
+        { LanguageNames.VisualBasic, (new(), static analyzerReference => HasSourceGenerators(analyzerReference, LanguageNames.VisualBasic)) },
+    };
 
     private static StrongBox<bool> HasSourceGenerators(
         AnalyzerReference analyzerReference, string language)
@@ -122,10 +122,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             analyzerReferences,
             cancellationToken).ConfigureAwait(false);
 
-        var tuple = s_languageToAnalyzerReferenceMap.Single(static (val, language) => val.language == language, language);
-        var analyzerReferenceMap = tuple.analyzerReferenceMap;
-        var callback = tuple.callback;
-
+        var (analyzerReferenceMap, callback) = s_languageToAnalyzerReferenceMap[language];
         foreach (var analyzerReference in analyzerReferences)
         {
             var hasGenerators = analyzerReferenceMap.GetValue(analyzerReference, callback);
