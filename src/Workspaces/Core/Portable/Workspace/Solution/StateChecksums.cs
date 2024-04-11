@@ -133,9 +133,12 @@ internal sealed class SolutionCompilationStateChecksums
                 Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
 
                 // This could either be the checksum for the text (which we'll use our regular helper for first)...
-                await ChecksumCollection.FindAsync(
-                    new AssetPath(AssetPathKind.Documents, assetPath.ProjectId, assetPath.DocumentId),
-                    compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentText)
+                {
+                    await ChecksumCollection.FindAsync(
+                        new AssetPath(AssetPathKind.DocumentText, assetPath.ProjectId, assetPath.DocumentId),
+                        compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                }
 
                 // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
                 // two collections we hold onto.
