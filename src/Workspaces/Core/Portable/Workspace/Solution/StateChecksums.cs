@@ -136,7 +136,8 @@ internal sealed class SolutionCompilationStateChecksums
                 Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
 
                 // This could either be the checksum for the text (which we'll use our regular helper for first)...
-                await ChecksumCollection.FindAsync(compilationState.FrozenSourceGeneratedDocumentStates, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await ChecksumCollection.FindAsync(
+                    assetPath: AssetPathKind.Documents, compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
 
                 // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
                 // two collections we hold onto.
@@ -417,7 +418,7 @@ internal sealed class ProjectStateChecksums(
 
         if (assetPath.IncludeProjects)
         {
-            if (assetPath.IncludeProjectChecksums && searchingChecksumsLeft.Remove(Checksum))
+            if (assetPath.IncludeProjectStateChecksums && searchingChecksumsLeft.Remove(Checksum))
                 result[Checksum] = this;
 
             if (assetPath.IncludeProjectAttributes && searchingChecksumsLeft.Remove(Info))
@@ -441,11 +442,9 @@ internal sealed class ProjectStateChecksums(
 
         if (assetPath.IncludeDocuments)
         {
-            var hintDocument = assetPath.DocumentId;
-
-            await ChecksumCollection.FindAsync(state.DocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, hintDocument, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(assetPath, state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(assetPath, state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(assetPath, state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
     }
 }
@@ -486,6 +485,7 @@ internal sealed class DocumentStateChecksums(
     }
 
     public async Task FindAsync(
+        AssetPath assetPath,
         TextDocumentState state,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
@@ -495,20 +495,14 @@ internal sealed class DocumentStateChecksums(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (searchingChecksumsLeft.Remove(Checksum))
-        {
+        if (assetPath.IncludeDocumentStateChecksums && searchingChecksumsLeft.Remove(Checksum))
             result[Checksum] = this;
-        }
 
-        if (searchingChecksumsLeft.Remove(Info))
-        {
+        if (assetPath.IncludeDocumentAttributes && searchingChecksumsLeft.Remove(Info))
             result[Info] = state.Attributes;
-        }
 
-        if (searchingChecksumsLeft.Remove(Text))
-        {
+        if (assetPath.IncludeDocumentText && searchingChecksumsLeft.Remove(Text))
             result[Text] = await SerializableSourceText.FromTextDocumentStateAsync(state, cancellationToken).ConfigureAwait(false);
-        }
     }
 }
 

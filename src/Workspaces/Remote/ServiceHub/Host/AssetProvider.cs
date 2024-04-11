@@ -258,7 +258,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             // First, fetch all the DocumentStateChecksums for all the documents in the project.
             using var _2 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
             await this.SynchronizeAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
-                assetPath: AssetPath.DocumentsInProject(projectChecksums.ProjectId), checksums,
+                assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId), checksums,
                 static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
                 allDocumentStateChecksums,
                 cancellationToken).ConfigureAwait(false);
@@ -274,7 +274,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             // We know we only need to search the documents in this particular project for those info/text values.  So
             // pass in the right path hint to limit the search on the host side to just the document in this project.
             await SynchronizeAssetsAsync<object>(
-                assetPath: AssetPath.DocumentsInProject(projectChecksums.ProjectId),
+                assetPath: new(AssetPathKind.DocumentAttributes | AssetPathKind.DocumentText, projectChecksums.ProjectId),
                 checksums).ConfigureAwait(false);
         }
 

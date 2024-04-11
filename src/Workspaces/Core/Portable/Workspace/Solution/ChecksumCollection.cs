@@ -55,19 +55,20 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
     internal static async Task FindAsync<TState>(
+        AssetPath assetPath,
         TextDocumentStates<TState> documentStates,
-        DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
+        var hintDocument = assetPath.DocumentId;
         if (hintDocument != null)
         {
             var state = documentStates.GetState(hintDocument);
             if (state != null)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
         else
@@ -80,7 +81,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
-                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
     }

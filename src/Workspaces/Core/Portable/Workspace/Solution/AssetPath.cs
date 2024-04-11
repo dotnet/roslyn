@@ -52,6 +52,7 @@ internal readonly struct AssetPath
     public bool IncludeSolution => (_kind & AssetPathKind.Solution) != 0;
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) != 0;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) != 0;
+
     public bool IncludeProjectStateChecksums => (_kind & AssetPathKind.ProjectStateChecksums) != 0;
     public bool IncludeProjectAttributes => (_kind & AssetPathKind.ProjectAttributes) != 0;
     public bool IncludeProjectCompilationOptions => (_kind & AssetPathKind.ProjectCompilationOptions) != 0;
@@ -59,6 +60,10 @@ internal readonly struct AssetPath
     public bool IncludeProjectProjectReferences => (_kind & AssetPathKind.ProjectProjectReferences) != 0;
     public bool IncludeProjectMetadataReferences => (_kind & AssetPathKind.ProjectMetadataReferences) != 0;
     public bool IncludeProjectAnalyzerReferences => (_kind & AssetPathKind.ProjectAnalyzerReferences) != 0;
+
+    public bool IncludeDocumentStateChecksums => (_kind & AssetPathKind.DocumentStateChecksums) != 0;
+    public bool IncludeDocumentAttributes => (_kind & AssetPathKind.DocumentAttributes) != 0;
+    public bool IncludeDocumentText => (_kind & AssetPathKind.DocumentText) != 0;
 
     public static implicit operator AssetPath(AssetPathKind kind) => new(kind);
 
@@ -110,8 +115,12 @@ internal enum AssetPathKind
     /// </summary>
     Projects = ProjectStateChecksums | ProjectAttributes | ProjectCompilationOptions | ProjectParseOptions | ProjectProjectReferences | ProjectMetadataReferences | ProjectAnalyzerReferences,
 
+    DocumentStateChecksums = 1 << 8,
+    DocumentAttributes = 1 << 9,
+    DocumentText = 1 << 10,
+
     /// <summary>
     /// Search documents for results.
     /// </summary>
-    Documents = 1 << 8,
+    Documents = DocumentStateChecksums | DocumentAttributes | DocumentText,
 }
