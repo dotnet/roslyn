@@ -417,28 +417,17 @@ internal sealed class ProjectStateChecksums(
 
         if (assetPath.IncludeProjects)
         {
-            if (searchingChecksumsLeft.Remove(Checksum))
+            if (assetPath.IncludeProjectChecksums && searchingChecksumsLeft.Remove(Checksum))
                 result[Checksum] = this;
-
-            // It's normal for callers to just want to sync a single ProjectStateChecksum.  So quickly check this, without
-            // doing all the expensive linear work below if we can bail out early here.
-            if (searchingChecksumsLeft.Count == 0)
-                return;
 
             if (assetPath.IncludeProjectAttributes && searchingChecksumsLeft.Remove(Info))
                 result[Info] = state.ProjectInfo.Attributes;
 
             if (assetPath.IncludeProjectCompilationOptions && searchingChecksumsLeft.Remove(CompilationOptions))
-            {
-                Contract.ThrowIfNull(state.CompilationOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
-                result[CompilationOptions] = state.CompilationOptions;
-            }
+                result[CompilationOptions] = state.CompilationOptions ?? throw new InvalidOperationException("We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
 
             if (assetPath.IncludeProjectParseOptions && searchingChecksumsLeft.Remove(ParseOptions))
-            {
-                Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
-                result[ParseOptions] = state.ParseOptions;
-            }
+                result[ParseOptions] = state.ParseOptions ?? throw new InvalidOperationException("We should not be trying to serialize a project with no parse options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
 
             if (assetPath.IncludeProjectProjectReferences)
                 ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);

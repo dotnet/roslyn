@@ -63,6 +63,7 @@ internal readonly struct AssetPath
     public bool IncludeSolution => (_kind & AssetPathKind.Solution) != 0;
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) != 0;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) != 0;
+    public bool IncludeProjectChecksums => (_kind & AssetPathKind.ProjectChecksums) != 0;
     public bool IncludeProjectAttributes => (_kind & AssetPathKind.ProjectAttributes) != 0;
     public bool IncludeProjectCompilationOptions => (_kind & AssetPathKind.ProjectCompilationOptions) != 0;
     public bool IncludeProjectParseOptions => (_kind & AssetPathKind.ProjectParseOptions) != 0;
@@ -104,21 +105,22 @@ internal readonly struct AssetPath
         /// </summary>
         Solution = 1 << 0,
 
-        ProjectAttributes = 1 << 1,
-        ProjectCompilationOptions = 1 << 2,
-        ProjectParseOptions = 1 << 3,
-        ProjectProjectReferences = 1 << 4,
-        ProjectMetadataReferences = 1 << 5,
-        ProjectAnalyzerReferences = 1 << 6,
+        ProjectChecksums = 1 << 1,
+        ProjectAttributes = 1 << 2,
+        ProjectCompilationOptions = 1 << 3,
+        ProjectParseOptions = 1 << 4,
+        ProjectProjectReferences = 1 << 5,
+        ProjectMetadataReferences = 1 << 6,
+        ProjectAnalyzerReferences = 1 << 7,
 
         /// <summary>
         /// Search projects for results.  All project-level information will be searched.
         /// </summary>
-        Projects = ProjectAttributes | ProjectCompilationOptions | ProjectParseOptions | ProjectProjectReferences | ProjectMetadataReferences | ProjectAnalyzerReferences,
+        Projects = ProjectChecksums | ProjectAttributes | ProjectCompilationOptions | ProjectParseOptions | ProjectProjectReferences | ProjectMetadataReferences | ProjectAnalyzerReferences,
 
         /// <summary>
         /// Search documents for results.
         /// </summary>
-        Documents = 1 << 7,
+        Documents = 1 << 8,
     }
 }
