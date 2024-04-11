@@ -112,7 +112,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             // and then the top level project-state-checksum values only.  No other project data or document data will be
             // looked at.
             await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
-                assetPath: new(AssetPathKind.Solution | AssetPathKind.ProjectStateChecksums),
+                assetPath: AssetPathKind.Solution | AssetPathKind.ProjectStateChecksums,
                 checksums,
                 static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
