@@ -134,7 +134,8 @@ internal sealed class SolutionCompilationStateChecksums
 
                 // This could either be the checksum for the text (which we'll use our regular helper for first)...
                 await ChecksumCollection.FindAsync(
-                    assetPath: AssetPathKind.Documents, compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                    new AssetPath(AssetPathKind.Documents, assetPath.ProjectId, assetPath.DocumentId),
+                    compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
 
                 // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
                 // two collections we hold onto.
