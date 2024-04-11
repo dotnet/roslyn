@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -344,17 +345,29 @@ public partial class Solution
     public Solution AddProject(ProjectId projectId, string name, string assemblyName, string language)
         => this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
 
-    /// <summary>
-    /// Create a new solution instance that includes a project with the specified project information.
-    /// </summary>
+    /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
     public Solution AddProject(ProjectInfo projectInfo)
-        => WithCompilationState(_compilationState.AddProject(projectInfo));
+    {
+        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(1, out var projectInfos);
+        projectInfos.Add(projectInfo);
+        return AddProjects(projectInfos);
+    }
 
-    /// <summary>
-    /// Create a new solution instance without the project specified.
-    /// </summary>
+    /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
+    internal Solution AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
+        => WithCompilationState(_compilationState.AddProjects(projectInfos));
+
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     public Solution RemoveProject(ProjectId projectId)
-        => WithCompilationState(_compilationState.RemoveProject(projectId));
+    {
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(1, out var projectIds);
+        projectIds.Add(projectId);
+        return RemoveProjects(projectIds);
+    }
+
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
+    internal Solution RemoveProjects(ArrayBuilder<ProjectId> projectIds)
+        => WithCompilationState(_compilationState.RemoveProjects(projectIds));
 
     /// <summary>
     /// Creates a new solution instance with the project specified updated to have the new

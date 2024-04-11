@@ -6,107 +6,156 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 [ExportWorkspaceServiceFactory(typeof(IBuildOnlyDiagnosticsService), ServiceLayer.Default), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class BuildOnlyDiagnosticsServiceFactory() : IWorkspaceServiceFactory
+internal sealed class BuildOnlyDiagnosticsServiceFactory(
+    IAsynchronousOperationListenerProvider asynchronousOperationProvider) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new BuildOnlyDiagnosticsService(workspaceServices.Workspace);
+        => new BuildOnlyDiagnosticsService(workspaceServices.Workspace, asynchronousOperationProvider.GetListener(FeatureAttribute.Workspace));
 
-    private sealed class BuildOnlyDiagnosticsService : IBuildOnlyDiagnosticsService
+    private sealed class BuildOnlyDiagnosticsService : IBuildOnlyDiagnosticsService, IDisposable
     {
-        private readonly object _gate = new();
+        private readonly CancellationTokenSource _disposalTokenSource = new();
+        private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _workQueue;
+
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
         private readonly Dictionary<DocumentId, ImmutableArray<DiagnosticData>> _documentDiagnostics = [];
 
-        public BuildOnlyDiagnosticsService(Workspace workspace)
+        public BuildOnlyDiagnosticsService(
+            Workspace workspace,
+            IAsynchronousOperationListener asyncListener)
         {
+            _workQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
+                TimeSpan.Zero,
+                ProcessWorkQueueAsync,
+                asyncListener,
+                _disposalTokenSource.Token);
             workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
+        public void Dispose()
+            => _disposalTokenSource.Dispose();
+
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
         {
+            // Keep this switch in sync with the switch in ProcessWorkQueueAsync
             switch (e.Kind)
             {
                 case WorkspaceChangeKind.SolutionAdded:
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    ClearAllDiagnostics();
+                    // Cancel existing work as we're going to clear out everything anyways, so no point processing any
+                    // document or project work.
+                    _workQueue.AddWork(e, cancelExistingWork: true);
                     break;
-
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    ClearDiagnostics(e.OldSolution.GetProject(e.ProjectId));
-                    break;
-
                 case WorkspaceChangeKind.DocumentRemoved:
                 case WorkspaceChangeKind.DocumentReloaded:
                 case WorkspaceChangeKind.AdditionalDocumentRemoved:
                 case WorkspaceChangeKind.AdditionalDocumentReloaded:
                 case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
-                    ClearDiagnostics(e.DocumentId);
+                    _workQueue.AddWork(e);
                     break;
             }
         }
 
-        public void AddBuildOnlyDiagnostics(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
+        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> list, CancellationToken cancellationToken)
         {
-            lock (_gate)
+            foreach (var e in list)
+            {
+                // Keep this switch in sync with the switch in OnWorkspaceChanged
+                switch (e.Kind)
+                {
+                    case WorkspaceChangeKind.SolutionAdded:
+                    case WorkspaceChangeKind.SolutionCleared:
+                    case WorkspaceChangeKind.SolutionReloaded:
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        await ClearAllDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.ProjectReloaded:
+                    case WorkspaceChangeKind.ProjectRemoved:
+                        await ClearDiagnosticsAsync(e.OldSolution.GetProject(e.ProjectId), cancellationToken).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.DocumentRemoved:
+                    case WorkspaceChangeKind.DocumentReloaded:
+                    case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                    case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+                        await ClearDiagnosticsAsync(e.DocumentId, cancellationToken).ConfigureAwait(false);
+                        break;
+                }
+            }
+        }
+
+        public async Task AddBuildOnlyDiagnosticsAsync(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+        {
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (documentId != null)
                     _documentDiagnostics[documentId] = diagnostics;
             }
         }
 
-        private void ClearAllDiagnostics()
+        private async Task ClearAllDiagnosticsAsync(CancellationToken cancellationToken)
         {
-            lock (_gate)
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 _documentDiagnostics.Clear();
             }
         }
 
-        private void ClearDiagnostics(DocumentId? documentId)
+        private async Task ClearDiagnosticsAsync(DocumentId? documentId, CancellationToken cancellationToken)
         {
             if (documentId == null)
                 return;
 
-            lock (_gate)
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 _documentDiagnostics.Remove(documentId);
             }
         }
 
-        private void ClearDiagnostics(Project? project)
+        private async Task ClearDiagnosticsAsync(Project? project, CancellationToken cancellationToken)
         {
             if (project == null)
                 return;
 
-            lock (_gate)
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 foreach (var documentId in project.DocumentIds)
                     _documentDiagnostics.Remove(documentId);
             }
         }
 
-        public void ClearBuildOnlyDiagnostics(Project project, DocumentId? documentId)
+        public Task ClearBuildOnlyDiagnosticsAsync(Project project, DocumentId? documentId, CancellationToken cancellationToken)
         {
             if (documentId != null)
-                ClearDiagnostics(documentId);
+                return ClearDiagnosticsAsync(documentId, cancellationToken);
             else
-                ClearDiagnostics(project);
+                return ClearDiagnosticsAsync(project, cancellationToken);
         }
 
-        public ImmutableArray<DiagnosticData> GetBuildOnlyDiagnostics(DocumentId documentId)
+        public async ValueTask<ImmutableArray<DiagnosticData>> GetBuildOnlyDiagnosticsAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            lock (_gate)
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 return _documentDiagnostics.TryGetValue(documentId, out var diagnostics) ? diagnostics : [];
             }

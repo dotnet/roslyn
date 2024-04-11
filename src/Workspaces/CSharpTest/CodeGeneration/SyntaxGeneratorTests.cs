@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -25,17 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     using static SyntaxFactory;
 
     [UseExportProvider]
-    public class SyntaxGeneratorTests
+    public sealed class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-            references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
+            references: [TestMetadata.Net451.mscorlib, TestMetadata.Net451.System]);
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;
-
-        public SyntaxGeneratorTests()
-        {
-        }
 
         private Workspace Workspace
             => _workspace ??= new AdhocWorkspace();
@@ -971,6 +966,20 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<ConversionOperatorDeclarationSyntax>(
                 Generator.OperatorDeclaration(OperatorKind.ExplicitConversion, parameters, returnType),
                 "explicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
+        }
+
+        [Fact, WorkItem(63410, "https://github.com/dotnet/roslyn/issues/63410")]
+        public void TestCheckedOperator()
+        {
+            var comp = CSharpCompilation.Create(null, new[] { SyntaxFactory.ParseSyntaxTree("""
+                public class C
+                {
+                    public static C operator checked ++(C x) => x;
+                    public static C operator ++(C x) => x;
+                }
+                """) });
+            var operatorSymbol = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.CheckedIncrementOperatorName).Single();
+            VerifySyntax<OperatorDeclarationSyntax>(Generator.OperatorDeclaration(operatorSymbol), "public static global::C operator checked ++(global::C x)\r\n{\r\n}");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65833")]

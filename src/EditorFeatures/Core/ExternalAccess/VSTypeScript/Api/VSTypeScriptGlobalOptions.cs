@@ -28,6 +28,8 @@ internal sealed class VSTypeScriptGlobalOptions(IGlobalOptionService globalOptio
     {
         _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript,
             openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
+        _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, InternalLanguageNames.TypeScript,
+            openFilesOnly ? CompilerDiagnosticsScope.OpenFiles : CompilerDiagnosticsScope.FullSolution);
 
         _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript,
             openFilesOnly);
