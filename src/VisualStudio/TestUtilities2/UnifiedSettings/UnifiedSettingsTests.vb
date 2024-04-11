@@ -64,7 +64,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             Next
         End Sub
 
-        Private Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2, languageName As String)
+        Private Shared Sub VerifySettings(registrationJsonObject As JObject, unifiedSettingPath As String, [option] As IOption2, languageName As String)
             VerifyMigration(registrationJsonObject, unifiedSettingPath, [option], languageName)
         End Sub
 
