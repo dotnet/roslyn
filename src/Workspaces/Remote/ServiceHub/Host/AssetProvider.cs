@@ -146,10 +146,11 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             //
             // So, we split up our strategy here based on how many projects we're syncing.  If it's 4 or less, we just
             // sync each project individually, passing the data to the host so it can limit its search to just that
-            // project.  If it's more than that, we do it in parallel, knowing that as we're searching for a ton of
+            // project.  If it's more than that, we do it in bulk, knowing that as we're searching for a ton of
             // data, it's fine for the host to do a full pass for each of the data types we're looking for.
             if (allProjectChecksums.Count <= 4)
             {
+                // Still sync the N projects in parallel.
                 using var _ = ArrayBuilder<Task>.GetInstance(allProjectChecksums.Count, out var tasks);
                 foreach (var singleProjectChecksums in allProjectChecksums)
                 {
