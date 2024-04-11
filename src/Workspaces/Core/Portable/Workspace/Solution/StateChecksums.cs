@@ -154,6 +154,7 @@ internal sealed class SolutionCompilationStateChecksums
                     var documentId = assetPath.DocumentId;
                     if (documentId != null)
                     {
+                        // If the caller is asking for a specific document, we can just look it up directly.
                         var index = FrozenSourceGeneratedDocumentTexts.Value.Ids.IndexOf(documentId);
                         if (index >= 0)
                         {
@@ -167,6 +168,7 @@ internal sealed class SolutionCompilationStateChecksums
                     }
                     else
                     {
+                        // Otherwise, we'll have to search through all of them.
                         for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
                         {
                             var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
