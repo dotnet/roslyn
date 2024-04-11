@@ -44,13 +44,13 @@ internal readonly struct AssetPath
         DocumentId = documentId;
     }
 
-    public AssetPath(AssetPathKind kind, ProjectId projectId)
+    public AssetPath(AssetPathKind kind, ProjectId? projectId)
         : this(kind, projectId, documentId: null)
     {
     }
 
-    public AssetPath(AssetPathKind kind, DocumentId documentId)
-        : this(kind, documentId.ProjectId, documentId)
+    public AssetPath(AssetPathKind kind, DocumentId? documentId)
+        : this(kind, documentId?.ProjectId, documentId)
     {
     }
 
