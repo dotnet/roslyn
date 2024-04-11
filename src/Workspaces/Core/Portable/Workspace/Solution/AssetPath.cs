@@ -22,10 +22,10 @@ internal readonly struct AssetPath
     public static readonly AssetPath SolutionOnly = new(AssetPathKind.Solution);
 
     /// <summary>
-    /// Instance that will only look up solution-level, as well and projects when searching for checksums.  It will not
-    /// descend into documents.
+    /// Instance that will only look up solution-level, as well ProjectStateChecksums when searching for checksums.  It
+    /// will not descend into any other project data, including not descending into documents.
     /// </summary>
-    public static readonly AssetPath SolutionAndProjects = new(AssetPathKind.Solution | AssetPathKind.Projects);
+    public static readonly AssetPath SolutionAndProjectChecksums = new(AssetPathKind.Solution | AssetPathKind.ProjectChecksums);
 
     /// <summary>
     /// Only search at the project level when searching for checksums.
