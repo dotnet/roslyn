@@ -257,32 +257,6 @@ internal sealed class SolutionStateChecksums(
             ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
         }
 
-        if (assetPath.IncludeTopLevelProjects)
-        {
-            // Caller is trying to fetch the top level ProjectStateChecksums as well. Look for those without diving deeper.
-            foreach (var (projectId, projectState) in solution.ProjectStates)
-            {
-                if (searchingChecksumsLeft.Count == 0)
-                    break;
-
-                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
-                // are not in that cone.
-                if (projectCone != null && !projectCone.Contains(projectId))
-                    continue;
-
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                {
-                    await projectStateChecksums.FindAsync(
-                        projectState,
-                        // Only search the project level info of the project we're diving into.  Do not go into documents.
-                        AssetPath.ProjectOnly,
-                        searchingChecksumsLeft,
-                        result,
-                        cancellationToken).ConfigureAwait(false);
-                }
-            }
-        }
-
         if (searchingChecksumsLeft.Count == 0)
             return;
 
@@ -304,7 +278,7 @@ internal sealed class SolutionStateChecksums(
             }
             else
             {
-                // Full search, used for test purposes.
+                // Check all projects for the remaining checksums.
                 foreach (var (projectId, projectState) in solution.ProjectStates)
                 {
                     if (searchingChecksumsLeft.Count == 0)

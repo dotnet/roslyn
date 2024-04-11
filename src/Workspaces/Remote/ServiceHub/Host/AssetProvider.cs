@@ -105,7 +105,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
 
             await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
-                assetPath: AssetPath.SolutionAndTopLevelProjectsOnly,
+                assetPath: AssetPath.SolutionAndProjects,
                 checksums,
                 static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
@@ -174,7 +174,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 checksums.Add(getChecksum(projectChecksums));
 
             await this.SynchronizeAssetsAsync<TAsset, VoidResult>(
-                AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                AssetPath.SolutionAndProjects, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
         }
 
         async Task SynchronizeProjectAssetCollectionAsync<TAsset>(Func<ProjectStateChecksums, ChecksumCollection> getChecksums, CancellationToken cancellationToken)
@@ -186,7 +186,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 AddAll(checksums, getChecksums(projectChecksums));
 
             await this.SynchronizeAssetsAsync<TAsset, VoidResult>(
-                AssetPath.SolutionAndTopLevelProjectsOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                AssetPath.SolutionAndProjects, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
         }
 
         async Task SynchronizeProjectDocumentsAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
