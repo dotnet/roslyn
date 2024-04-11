@@ -19,13 +19,13 @@ internal readonly struct AssetPath
     /// <summary>
     /// Instance that will only look up solution-level data when searching for checksums.
     /// </summary>
-    public static readonly AssetPath SolutionOnly = new(AssetPathKind.Solution);
+    public static readonly AssetPath SolutionOnly = AssetPathKind.Solution;
 
     /// <summary>
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
-    public static readonly AssetPath FullLookupForTesting = new(AssetPathKind.Solution | AssetPathKind.Projects | AssetPathKind.Documents);
+    public static readonly AssetPath FullLookupForTesting = AssetPathKind.Solution | AssetPathKind.Projects | AssetPathKind.Documents;
 
     [DataMember(Order = 0)]
     private readonly AssetPathKind _kind;
@@ -52,13 +52,15 @@ internal readonly struct AssetPath
     public bool IncludeSolution => (_kind & AssetPathKind.Solution) != 0;
     public bool IncludeProjects => (_kind & AssetPathKind.Projects) != 0;
     public bool IncludeDocuments => (_kind & AssetPathKind.Documents) != 0;
-    public bool IncludeProjectChecksums => (_kind & AssetPathKind.ProjectChecksums) != 0;
+    public bool IncludeProjectStateChecksums => (_kind & AssetPathKind.ProjectStateChecksums) != 0;
     public bool IncludeProjectAttributes => (_kind & AssetPathKind.ProjectAttributes) != 0;
     public bool IncludeProjectCompilationOptions => (_kind & AssetPathKind.ProjectCompilationOptions) != 0;
     public bool IncludeProjectParseOptions => (_kind & AssetPathKind.ProjectParseOptions) != 0;
     public bool IncludeProjectProjectReferences => (_kind & AssetPathKind.ProjectProjectReferences) != 0;
     public bool IncludeProjectMetadataReferences => (_kind & AssetPathKind.ProjectMetadataReferences) != 0;
     public bool IncludeProjectAnalyzerReferences => (_kind & AssetPathKind.ProjectAnalyzerReferences) != 0;
+
+    public static implicit operator AssetPath(AssetPathKind kind) => new(kind);
 
     /// <summary>
     /// Searches only for information about this project.
