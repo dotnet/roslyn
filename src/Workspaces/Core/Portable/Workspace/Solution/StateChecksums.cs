@@ -280,54 +280,24 @@ internal sealed class SolutionStateChecksums(
             {
                 // Check all projects for the remaining checksums.
 
-                // Note: optimize the case where the caller is asking for all the project-state-checksums, but not
-                // diving any deeper into them.  Do a first pass just checking the top level project checksum itself. If
-                // that finds all the remaining items, we'll bail out of the second pass below which dives into the
-                // projects.
-                if (assetPath.IncludeProjects)
+                foreach (var (projectId, projectState) in solution.ProjectStates)
                 {
-                    await FindInProjectAsync(
-                        static (_, projectStateChecksums, tuple, _) =>
-                        {
-                            if (tuple.searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
-                                tuple.result[projectStateChecksums.Checksum] = projectStateChecksums;
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                            return Task.CompletedTask;
-                        },
-                        (searchingChecksumsLeft, result),
-                        cancellationToken).ConfigureAwait(false);
+                    // If we have no more checksums, can immediately bail out.
+                    if (searchingChecksumsLeft.Count == 0)
+                        break;
+
+                    if (projectCone != null && !projectCone.Contains(projectId))
+                        continue;
+
+                    // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
+                    // compute the checksum tree for a subset of projects that were all that a feature needed.
+                    if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
+                        continue;
+
+                    await projectStateChecksums.FindAsync(projectState, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
                 }
-
-                await FindInProjectAsync(
-                    static (projectState, projectStateChecksums, tuple, cancellationToken) =>
-                        projectStateChecksums.FindAsync(projectState, tuple.assetPath, tuple.searchingChecksumsLeft, tuple.result, cancellationToken),
-                    (assetPath, searchingChecksumsLeft, result),
-                    cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        return;
-
-        async Task FindInProjectAsync<TArg>(
-            Func<ProjectState, ProjectStateChecksums, TArg, CancellationToken, Task> findInProjectAsync, TArg arg, CancellationToken cancellationToken)
-        {
-            foreach (var (projectId, projectState) in solution.ProjectStates)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // If we have no more checksums, can immediately bail out.
-                if (searchingChecksumsLeft.Count == 0)
-                    break;
-
-                if (projectCone != null && !projectCone.Contains(projectId))
-                    continue;
-
-                // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
-                // compute the checksum tree for a subset of projects that were all that a feature needed.
-                if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
-                    continue;
-
-                await findInProjectAsync(projectState, projectStateChecksums, arg, cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -455,24 +425,29 @@ internal sealed class ProjectStateChecksums(
             if (searchingChecksumsLeft.Count == 0)
                 return;
 
-            if (searchingChecksumsLeft.Remove(Info))
+            if (assetPath.IncludeProjectAttributes && searchingChecksumsLeft.Remove(Info))
                 result[Info] = state.ProjectInfo.Attributes;
 
-            if (searchingChecksumsLeft.Remove(CompilationOptions))
+            if (assetPath.IncludeProjectCompilationOptions && searchingChecksumsLeft.Remove(CompilationOptions))
             {
                 Contract.ThrowIfNull(state.CompilationOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
                 result[CompilationOptions] = state.CompilationOptions;
             }
 
-            if (searchingChecksumsLeft.Remove(ParseOptions))
+            if (assetPath.IncludeProjectParseOptions && searchingChecksumsLeft.Remove(ParseOptions))
             {
                 Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
                 result[ParseOptions] = state.ParseOptions;
             }
 
-            ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
-            ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
-            ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+            if (assetPath.IncludeProjectProjectReferences)
+                ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
+
+            if (assetPath.IncludeProjectMetadataReferences)
+                ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
+
+            if (assetPath.IncludeProjectAnalyzerReferences)
+                ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
         }
 
         if (assetPath.IncludeDocuments)

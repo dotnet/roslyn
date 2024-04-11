@@ -60,9 +60,15 @@ internal readonly struct AssetPath
         DocumentId = documentId;
     }
 
-    public bool IncludeSolution => (_kind & AssetPathKind.Solution) == AssetPathKind.Solution;
-    public bool IncludeProjects => (_kind & AssetPathKind.Projects) == AssetPathKind.Projects;
-    public bool IncludeDocuments => (_kind & AssetPathKind.Documents) == AssetPathKind.Documents;
+    public bool IncludeSolution => (_kind & AssetPathKind.Solution) != 0;
+    public bool IncludeProjects => (_kind & AssetPathKind.Projects) != 0;
+    public bool IncludeDocuments => (_kind & AssetPathKind.Documents) != 0;
+    public bool IncludeProjectAttributes => (_kind & AssetPathKind.ProjectAttributes) != 0;
+    public bool IncludeProjectCompilationOptions => (_kind & AssetPathKind.ProjectCompilationOptions) != 0;
+    public bool IncludeProjectParseOptions => (_kind & AssetPathKind.ProjectParseOptions) != 0;
+    public bool IncludeProjectProjectReferences => (_kind & AssetPathKind.ProjectProjectReferences) != 0;
+    public bool IncludeProjectMetadataReferences => (_kind & AssetPathKind.ProjectMetadataReferences) != 0;
+    public bool IncludeProjectAnalyzerReferences => (_kind & AssetPathKind.ProjectAnalyzerReferences) != 0;
 
     /// <summary>
     /// Searches only for information about this project.
@@ -98,14 +104,21 @@ internal readonly struct AssetPath
         /// </summary>
         Solution = 1 << 0,
 
+        ProjectAttributes = 1 << 1,
+        ProjectCompilationOptions = 1 << 2,
+        ProjectParseOptions = 1 << 3,
+        ProjectProjectReferences = 1 << 4,
+        ProjectMetadataReferences = 1 << 5,
+        ProjectAnalyzerReferences = 1 << 6,
+
         /// <summary>
-        /// Search projects for results.
+        /// Search projects for results.  All project-level information will be searched.
         /// </summary>
-        Projects = 1 << 1,
+        Projects = ProjectAttributes | ProjectCompilationOptions | ProjectParseOptions | ProjectProjectReferences | ProjectMetadataReferences | ProjectAnalyzerReferences,
 
         /// <summary>
         /// Search documents for results.
         /// </summary>
-        Documents = 1 << 2,
+        Documents = 1 << 7,
     }
 }
