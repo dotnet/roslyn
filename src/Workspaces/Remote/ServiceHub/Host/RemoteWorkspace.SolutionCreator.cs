@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 newChecksumsToSync.AddRange(newDocumentIdToChecksum.Values);
 
                 await _assetProvider.GetAssetsAsync<DocumentStateChecksums, Dictionary<DocumentId, DocumentStateChecksums>>(
-                    assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync,
+                    assetPath: AssetPath.DocumentsInProject(project.Id), newChecksumsToSync,
                     static (checksum, documentStateChecksum, newDocumentIdToStateChecksums) =>
                     {
                         Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);

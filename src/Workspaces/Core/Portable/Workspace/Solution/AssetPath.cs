@@ -35,8 +35,16 @@ internal readonly struct AssetPath
 
     [DataMember(Order = 0)]
     private readonly AssetPathKind _kind;
+
+    /// <summary>
+    /// If not null, the search should only descend into the single project with this id.
+    /// </summary>
     [DataMember(Order = 1)]
     public readonly ProjectId? ProjectId;
+
+    /// <summary>
+    /// If not null, the search should only descend into the single document with this id.
+    /// </summary>
     [DataMember(Order = 2)]
     public readonly DocumentId? DocumentId;
 
@@ -76,8 +84,8 @@ internal readonly struct AssetPath
     /// </summary>
     /// <param name="projectId"></param>
     /// <returns></returns>
-    public static AssetPath ProjectAndDocuments(ProjectId projectId)
-        => new(AssetPathKind.Projects | AssetPathKind.Documents, projectId);
+    public static AssetPath DocumentsInProject(ProjectId projectId)
+        => new(AssetPathKind.Documents, projectId);
 
     [Flags]
     private enum AssetPathKind
