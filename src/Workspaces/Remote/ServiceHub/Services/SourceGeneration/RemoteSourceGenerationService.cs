@@ -3,15 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
+
+using AnalyzerReferenceMap = ConditionalWeakTable<AnalyzerReference, AsyncLazy<bool>>;
 
 internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
     : BrokeredServiceBase(arguments), IRemoteSourceGenerationService
@@ -64,11 +70,57 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         }, cancellationToken);
     }
 
-    public ValueTask<bool> HasGeneratorsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
+    private static readonly ImmutableArray<(string language, AnalyzerReferenceMap analyzerReferenceMap, AnalyzerReferenceMap.CreateValueCallback callback)> s_languageToAnalyzerReferenceMap =
+    [
+        (LanguageNames.CSharp, new(), static analyzerReference => AsyncLazy.Create(cancellationToken => HasSourceGeneratorsAsync(analyzerReference, LanguageNames.CSharp, cancellationToken))),
+        (LanguageNames.VisualBasic, new(), static analyzerReference => AsyncLazy.Create(cancellationToken => HasSourceGeneratorsAsync(analyzerReference, LanguageNames.VisualBasic, cancellationToken)))
+    ];
+
+    private static async Task<object> HasSourceGeneratorsAsync(
+        AnalyzerReference analyzerReference, string language, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(solutionChecksum, async solution =>
+        var generators = analyzerReference.GetGenerators(langauge);
+        return generators.Any();
+    }
+
+    public async ValueTask<bool> HasGeneratorsAsync(
+        Checksum solutionChecksum,
+        ProjectId projectId,
+        ImmutableArray<Checksum> analyzerReferenceChecksums,
+        string language,
+        CancellationToken cancellationToken)
+    {
+        if (analyzerReferenceChecksums.Length == 0)
+            return false;
+
+        var workspace = GetWorkspace();
+        var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+        checksums.AddRange(analyzerReferenceChecksums);
+
+        // Fetch the analyzer references specified by the host.  Note: this will only serialize this information over
+        // the first time needed. After that, it will be cached in the WorkspaceManager.SolutionAssetCache on the remote
+        // side, so it will be a no-op to fetch them in the future.
+        using var _2 = ArrayBuilder<AnalyzerReference>.GetInstance(checksums.Count, out var analyzerReferences);
+        await assetProvider.GetAssetsAsync<AnalyzerReference, ArrayBuilder<AnalyzerReference>>(
+            projectId,
+            checksums,
+            static (_, analyzerReference, analyzerReferences) => analyzerReferences.Add(analyzerReference),
+            analyzerReferences,
+            cancellationToken).ConfigureAwait(false);
+
+        var tuple = s_languageToAnalyzerReferenceMap.Single(static (val, language) => val.language == language, language);
+        var analyzerReferenceMap = tuple.analyzerReferenceMap;
+        var callback = tuple.callback;
+
+        foreach (var analyzerReference in analyzerReferences)
         {
-            return await solution.CompilationState.HasSourceGeneratorsAsync(projectId, cancellationToken).ConfigureAwait(false);
-        }, cancellationToken);
+            var hasGeneratorsLazy = analyzerReferenceMap.GetValue(analyzerReference, callback);
+            if (await hasGeneratorsLazy.GetValueAsync(cancellationToken).ConfigureAwait(false))
+                return true;
+        }
+
+        return false;
     }
 }

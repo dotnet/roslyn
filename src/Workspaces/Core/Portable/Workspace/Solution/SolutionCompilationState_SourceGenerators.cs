@@ -94,6 +94,8 @@ internal partial class SolutionCompilationState
     public async Task<bool> HasSourceGeneratorsAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
         var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+        if (projectState.AnalyzerReferences.Count == 0)
+            return false;
 
         if (!s_hasSourceGeneratorsMap.TryGetValue(projectState, out var lazy))
         {
@@ -120,10 +122,13 @@ internal partial class SolutionCompilationState
 
             // Out of process, call to the remote to figure this out.
             var projectId = projectState.Id;
+            var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var analyzerReferences = projectStateChecksums.AnalyzerReferences.Children;
+
             var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, bool>(
                 solution,
                 projectId,
-                (service, solution, cancellationToken) => service.HasGeneratorsAsync(solution, projectId, cancellationToken),
+                (service, solution, cancellationToken) => service.HasGeneratorsAsync(solution, projectId, analyzerReferences, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return result.HasValue && result.Value;
         }
