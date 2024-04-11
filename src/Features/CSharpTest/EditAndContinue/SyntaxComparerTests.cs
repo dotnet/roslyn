@@ -14,6 +14,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    using static CSharpSyntaxTokens;
+
     [UseExportProvider]
     public class SyntaxComparerTests
     {
@@ -56,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public void GetSequenceEdits3()
         {
             var edits = SyntaxComparer.GetSequenceEdits(
-                [SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)],
-                [SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)]);
+                [PublicKeyword, StaticKeyword, AsyncKeyword],
+                [StaticKeyword, PublicKeyword, AsyncKeyword]);
 
             AssertEx.Equal(
             [
@@ -72,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public void GetSequenceEdits4()
         {
             var edits = SyntaxComparer.GetSequenceEdits(
-                ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)),
-                ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)));
+                ImmutableArray.Create(PublicKeyword, StaticKeyword, AsyncKeyword),
+                ImmutableArray.Create(StaticKeyword, PublicKeyword, AsyncKeyword));
 
             AssertEx.Equal(
             [
@@ -98,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public void ComputeDistance_Tokens()
         {
             var distance = SyntaxComparer.ComputeDistance(
-                [SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)],
-                [SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.AsyncKeyword)]);
+                [PublicKeyword, StaticKeyword, AsyncKeyword],
+                [StaticKeyword, PublicKeyword, AsyncKeyword]);
 
             Assert.Equal(0.33, Math.Round(distance, 2));
         }
@@ -149,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [Fact]
         public void ComputeDistance_LongSequences()
         {
-            var t1 = SyntaxFactory.Token(SyntaxKind.PublicKeyword);
-            var t2 = SyntaxFactory.Token(SyntaxKind.PrivateKeyword);
-            var t3 = SyntaxFactory.Token(SyntaxKind.ProtectedKeyword);
+            var t1 = PublicKeyword;
+            var t2 = PrivateKeyword;
+            var t3 = ProtectedKeyword;
 
             var distance = SyntaxComparer.ComputeDistance(
                 Enumerable.Range(0, 10000).Select(i => i < 2000 ? t1 : t2),

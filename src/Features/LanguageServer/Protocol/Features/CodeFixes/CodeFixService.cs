@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            allDiagnostics = allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
+            allDiagnostics = allDiagnostics.AddRange(
+                await buildOnlyDiagnosticsService.GetBuildOnlyDiagnosticsAsync(document.Id, cancellationToken).ConfigureAwait(false));
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             diagnostics = diagnostics.AddRange(copilotDiagnostics);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
+            var buildOnlyDiagnostics = await buildOnlyDiagnosticsService.GetBuildOnlyDiagnosticsAsync(document.Id, cancellationToken).ConfigureAwait(false);
 
             if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty)
                 yield break;

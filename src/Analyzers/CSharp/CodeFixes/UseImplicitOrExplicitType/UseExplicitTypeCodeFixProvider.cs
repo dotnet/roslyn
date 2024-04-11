@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
@@ -203,9 +204,9 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
         var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance(builder.Count - 1, Token(leading: default, SyntaxKind.CommaToken, trailing: default));
 
         return TupleExpression(
-            Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
+            OpenParenToken.WithTrailingTrivia(),
             SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
-            Token(SyntaxKind.CloseParenToken))
+            CloseParenToken)
             .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
     }
 

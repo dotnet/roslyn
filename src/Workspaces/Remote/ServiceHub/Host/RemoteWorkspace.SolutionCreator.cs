@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.Solution;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -218,14 +219,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
 
-                var newProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
-                    assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, newChecksumsToSync, cancellationToken).ConfigureAwait(false);
-
-                foreach (var (checksum, newProjectStateChecksum) in newProjectStateChecksums)
-                {
-                    Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
-                    newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
-                }
+                await _assetProvider.GetAssetsAsync<ProjectStateChecksums, Dictionary<ProjectId, ProjectStateChecksums>>(
+                    assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, newChecksumsToSync,
+                    static (checksum, newProjectStateChecksum, newProjectIdToStateChecksums) =>
+                    {
+                        Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
+                        newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
+                    },
+                    arg: newProjectIdToStateChecksums,
+                    cancellationToken).ConfigureAwait(false);
 
                 // Now that we've collected the old and new project state checksums, we can actually process them to
                 // determine what to remove, what to add, and what to change.
@@ -242,6 +244,27 @@ namespace Microsoft.CodeAnalysis.Remote
                 Dictionary<ProjectId, ProjectStateChecksums> newProjectIdToStateChecksums,
                 CancellationToken cancellationToken)
             {
+                // Note: it's common to need to collect a large set of project-attributes and compilation options.  So
+                // attempt to collect all of those in a single call for each kind instead of a call for each instance
+                // needed.
+                {
+                    using var _ = PooledHashSet<Checksum>.GetInstance(out var projectItemChecksums);
+                    foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
+                        projectItemChecksums.Add(newProjectChecksums.Info);
+
+                    await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
+                        assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+
+                    projectItemChecksums.Clear();
+                    foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
+                        projectItemChecksums.Add(newProjectChecksums.CompilationOptions);
+
+                    await _assetProvider.GetAssetsAsync<CompilationOptions, VoidResult>(
+                        assetPath: AssetPath.SolutionAndTopLevelProjectsOnly, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                }
+
+                using var _2 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
+
                 // added project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
@@ -252,9 +275,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         await _assetProvider.SynchronizeProjectAssetsAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
                         var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
-                        solution = solution.AddProject(projectInfo);
+                        projectInfos.Add(projectInfo);
                     }
                 }
+
+                // Add solutions in bulk.  Avoiding intermediary forking of it.
+                solution = solution.AddProjects(projectInfos);
 
                 // remove all project references from projects that changed. this ensures exceptions will not occur for
                 // cyclic references during an incremental update.
@@ -269,6 +295,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
+                using var _3 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRemove);
+
                 // removed project
                 foreach (var (projectId, _) in oldProjectIdToStateChecksums)
                 {
@@ -276,9 +304,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // Should never be removing projects during cone syncing.
                         Contract.ThrowIfTrue(isConeSync);
-                        solution = solution.RemoveProject(projectId);
+                        projectsToRemove.Add(projectId);
                     }
                 }
+
+                // Remove solutions in bulk.  Avoiding intermediary forking of it.
+                solution = solution.RemoveProjects(projectsToRemove);
 
                 // changed project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
@@ -503,14 +534,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newDocumentIdToChecksum.Values);
 
-                var documentStateChecksums = await _assetProvider.GetAssetsAsync<DocumentStateChecksums>(
-                    assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync, cancellationToken).ConfigureAwait(false);
-
-                foreach (var (checksum, documentStateChecksum) in documentStateChecksums)
-                {
-                    Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);
-                    newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
-                }
+                await _assetProvider.GetAssetsAsync<DocumentStateChecksums, Dictionary<DocumentId, DocumentStateChecksums>>(
+                    assetPath: AssetPath.ProjectAndDocuments(project.Id), newChecksumsToSync,
+                    static (checksum, documentStateChecksum, newDocumentIdToStateChecksums) =>
+                    {
+                        Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);
+                        newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
+                    },
+                    arg: newDocumentIdToStateChecksums,
+                    cancellationToken).ConfigureAwait(false);
 
                 // If more than two documents changed during a single update, perform a bulk synchronization on the
                 // project to avoid large numbers of small synchronization calls during document updates.

@@ -5,24 +5,28 @@
 using System;
 using System.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Settings;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer;
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
 
-[Export(typeof(VisualStudioCopilotOptionService)), Shared]
-internal sealed class VisualStudioCopilotOptionService
+[ExportLanguageService(typeof(ICopilotOptionsService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsService
 {
     private const string CopilotOptionNamePrefix = "Microsoft.VisualStudio.Conversations";
+
+    private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
+    private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
 
     private readonly Task<ISettingsManager> _settingsManagerTask;
 
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioCopilotOptionService(
+    public CSharpVisualStudioCopilotOptionsService(
         IVsService<SVsSettingsPersistenceManager, ISettingsManager> settingsManagerService,
         IThreadingContext threadingContext)
     {
@@ -36,4 +40,10 @@ internal sealed class VisualStudioCopilotOptionService
         return settingManager.TryGetValue($"{CopilotOptionNamePrefix}.{optionName}", out int isEnabled) == GetValueResult.Success
             && isEnabled == 1;
     }
+
+    public Task<bool> IsCodeAnalysisOptionEnabledAsync()
+        => IsCopilotOptionEnabledAsync(CopilotCodeAnalysisOptionName);
+
+    public Task<bool> IsRefineOptionEnabledAsync()
+        => IsCopilotOptionEnabledAsync(CopilotRefineOptionName);
 }

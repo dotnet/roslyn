@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 using static CodeGenerationHelpers;
 using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class EventGenerator
@@ -168,7 +169,7 @@ internal static class EventGenerator
     {
         return AddAnnotationsTo(accessor, AccessorDeclaration(kind)
                             .WithBody(hasBody ? GenerateBlock(accessor) : null)
-                            .WithSemicolonToken(hasBody ? default : Token(SyntaxKind.SemicolonToken)));
+                            .WithSemicolonToken(hasBody ? default : SemicolonToken));
     }
 
     private static BlockSyntax GenerateBlock(IMethodSymbol accessor)
@@ -197,7 +198,7 @@ internal static class EventGenerator
         if (@event.ExplicitInterfaceImplementations.Any())
         {
             if (@event.IsStatic)
-                tokens.Add(Token(SyntaxKind.StaticKeyword));
+                tokens.Add(StaticKeyword);
         }
         else
         {
@@ -206,11 +207,11 @@ internal static class EventGenerator
             {
                 if (@event.IsStatic)
                 {
-                    tokens.Add(Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(StaticKeyword);
 
                     // We only generate the abstract keyword in interfaces for static abstract members
                     if (@event.IsAbstract)
-                        tokens.Add(Token(SyntaxKind.AbstractKeyword));
+                        tokens.Add(AbstractKeyword);
                 }
             }
             else
@@ -218,7 +219,7 @@ internal static class EventGenerator
                 CSharpCodeGenerationHelpers.AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (@event.IsStatic)
-                    tokens.Add(Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(StaticKeyword);
 
                 // An event is readonly if its accessors are readonly.
                 // If one accessor is readonly and the other one is not,
@@ -226,18 +227,18 @@ internal static class EventGenerator
                 // See https://github.com/dotnet/roslyn/issues/34213
                 // Don't show the readonly modifier if the containing type is already readonly
                 if (@event.AddMethod?.IsReadOnly == true && !@event.ContainingType.IsReadOnly)
-                    tokens.Add(Token(SyntaxKind.ReadOnlyKeyword));
+                    tokens.Add(ReadOnlyKeyword);
 
                 if (@event.IsAbstract)
-                    tokens.Add(Token(SyntaxKind.AbstractKeyword));
+                    tokens.Add(AbstractKeyword);
 
                 if (@event.IsOverride)
-                    tokens.Add(Token(SyntaxKind.OverrideKeyword));
+                    tokens.Add(OverrideKeyword);
             }
         }
 
         if (CodeGenerationEventInfo.GetIsUnsafe(@event))
-            tokens.Add(Token(SyntaxKind.UnsafeKeyword));
+            tokens.Add(UnsafeKeyword);
 
         return tokens.ToSyntaxTokenListAndFree();
     }

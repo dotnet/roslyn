@@ -23,6 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IChangeNamespaceService), LanguageNames.CSharp), Shared]
@@ -210,7 +211,7 @@ internal sealed class CSharpChangeNamespaceService :
         {
             // If new namespace is "", then name will be declared in global namespace.
             // We will replace qualified reference with simple name qualified with alias (global if it's not alias qualified)
-            var aliasNode = aliasQualifier?.ToIdentifierName() ?? IdentifierName(Token(SyntaxKind.GlobalKeyword));
+            var aliasNode = aliasQualifier?.ToIdentifierName() ?? IdentifierName(GlobalKeyword);
             newNode = AliasQualifiedName(aliasNode, nameNode.WithoutTrivia());
             return true;
         }

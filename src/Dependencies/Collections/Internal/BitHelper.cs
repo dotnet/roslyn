@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/Common/src/System/Collections/Generic/BitHelper.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/Common/src/System/Collections/Generic/BitHelper.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Collections.Internal
 {
@@ -28,19 +29,29 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
         internal readonly void MarkBit(int bitPosition)
         {
-            var bitArrayIndex = bitPosition / IntSize;
-            if ((uint)bitArrayIndex < (uint)_span.Length)
+            Debug.Assert(bitPosition >= 0);
+
+            uint bitArrayIndex = (uint)bitPosition / IntSize;
+
+            // Workaround for https://github.com/dotnet/runtime/issues/72004
+            Span<int> span = _span;
+            if (bitArrayIndex < (uint)span.Length)
             {
-                _span[bitArrayIndex] |= (1 << (bitPosition % IntSize));
+                span[(int)bitArrayIndex] |= (1 << (int)((uint)bitPosition % IntSize));
             }
         }
 
         internal readonly bool IsMarked(int bitPosition)
         {
-            var bitArrayIndex = bitPosition / IntSize;
+            Debug.Assert(bitPosition >= 0);
+
+            uint bitArrayIndex = (uint)bitPosition / IntSize;
+
+            // Workaround for https://github.com/dotnet/runtime/issues/72004
+            Span<int> span = _span;
             return
-                (uint)bitArrayIndex < (uint)_span.Length &&
-                (_span[bitArrayIndex] & (1 << (bitPosition % IntSize))) != 0;
+                bitArrayIndex < (uint)span.Length &&
+                (span[(int)bitArrayIndex] & (1 << ((int)((uint)bitPosition % IntSize)))) != 0;
         }
 
         /// <summary>How many ints must be allocated to represent n bits. Returns (n+31)/32, but avoids overflow.</summary>

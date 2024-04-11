@@ -19,6 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStatementAsynchronous), Shared]
@@ -74,22 +75,22 @@ internal class CSharpMakeStatementAsynchronousCodeFixProvider : SyntaxEditorBase
             case ForEachStatementSyntax forEach:
                 newStatement = forEach
                     .WithForEachKeyword(forEach.ForEachKeyword.WithLeadingTrivia())
-                    .WithAwaitKeyword(Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(forEach.GetLeadingTrivia()));
+                    .WithAwaitKeyword(AwaitKeyword.WithLeadingTrivia(forEach.GetLeadingTrivia()));
                 break;
             case ForEachVariableStatementSyntax forEachDeconstruction:
                 newStatement = forEachDeconstruction
                     .WithForEachKeyword(forEachDeconstruction.ForEachKeyword.WithLeadingTrivia())
-                    .WithAwaitKeyword(Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(forEachDeconstruction.GetLeadingTrivia()));
+                    .WithAwaitKeyword(AwaitKeyword.WithLeadingTrivia(forEachDeconstruction.GetLeadingTrivia()));
                 break;
             case UsingStatementSyntax usingStatement:
                 newStatement = usingStatement
                     .WithUsingKeyword(usingStatement.UsingKeyword.WithLeadingTrivia())
-                    .WithAwaitKeyword(Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(usingStatement.GetLeadingTrivia()));
+                    .WithAwaitKeyword(AwaitKeyword.WithLeadingTrivia(usingStatement.GetLeadingTrivia()));
                 break;
             case LocalDeclarationStatementSyntax localDeclaration:
                 newStatement = localDeclaration
                     .WithUsingKeyword(localDeclaration.UsingKeyword.WithLeadingTrivia())
-                    .WithAwaitKeyword(Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(localDeclaration.GetLeadingTrivia()));
+                    .WithAwaitKeyword(AwaitKeyword.WithLeadingTrivia(localDeclaration.GetLeadingTrivia()));
                 break;
             default:
                 return;

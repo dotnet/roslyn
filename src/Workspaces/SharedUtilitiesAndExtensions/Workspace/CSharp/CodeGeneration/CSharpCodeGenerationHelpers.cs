@@ -19,6 +19,7 @@ using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class CSharpCodeGenerationHelpers
@@ -46,24 +47,24 @@ internal static class CSharpCodeGenerationHelpers
         switch (accessibility)
         {
             case Accessibility.Public:
-                tokens.Add(Token(SyntaxKind.PublicKeyword));
+                tokens.Add(PublicKeyword);
                 break;
             case Accessibility.Protected:
-                tokens.Add(Token(SyntaxKind.ProtectedKeyword));
+                tokens.Add(ProtectedKeyword);
                 break;
             case Accessibility.Private:
-                tokens.Add(Token(SyntaxKind.PrivateKeyword));
+                tokens.Add(PrivateKeyword);
                 break;
             case Accessibility.ProtectedAndInternal:
-                tokens.Add(Token(SyntaxKind.PrivateKeyword));
-                tokens.Add(Token(SyntaxKind.ProtectedKeyword));
+                tokens.Add(PrivateKeyword);
+                tokens.Add(ProtectedKeyword);
                 break;
             case Accessibility.Internal:
-                tokens.Add(Token(SyntaxKind.InternalKeyword));
+                tokens.Add(InternalKeyword);
                 break;
             case Accessibility.ProtectedOrInternal:
-                tokens.Add(Token(SyntaxKind.ProtectedKeyword));
-                tokens.Add(Token(SyntaxKind.InternalKeyword));
+                tokens.Add(ProtectedKeyword);
+                tokens.Add(InternalKeyword);
                 break;
         }
     }

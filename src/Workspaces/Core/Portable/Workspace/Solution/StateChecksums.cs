@@ -270,10 +270,16 @@ internal sealed class SolutionStateChecksums(
                 if (projectCone != null && !projectCone.Contains(projectId))
                     continue;
 
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
-                    searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
                 {
-                    result[projectStateChecksums.Checksum] = projectStateChecksums;
+                    if (searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+                        result[projectStateChecksums.Checksum] = projectStateChecksums;
+
+                    if (searchingChecksumsLeft.Remove(projectStateChecksums.Info))
+                        result[projectStateChecksums.Info] = projectState.Attributes;
+
+                    if (searchingChecksumsLeft.Remove(projectStateChecksums.CompilationOptions))
+                        result[projectStateChecksums.CompilationOptions] = projectState.CompilationOptions!;
                 }
             }
         }
@@ -435,9 +441,7 @@ internal sealed class ProjectStateChecksums(
         if (assetPath.IncludeProjects)
         {
             if (searchingChecksumsLeft.Remove(Checksum))
-            {
                 result[Checksum] = this;
-            }
 
             // It's normal for callers to just want to sync a single ProjectStateChecksum.  So quickly check this, without
             // doing all the expensive linear work below if we can bail out early here.
@@ -445,9 +449,7 @@ internal sealed class ProjectStateChecksums(
                 return;
 
             if (searchingChecksumsLeft.Remove(Info))
-            {
                 result[Info] = state.ProjectInfo.Attributes;
-            }
 
             if (searchingChecksumsLeft.Remove(CompilationOptions))
             {

@@ -16,6 +16,7 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class FieldGenerator
@@ -125,29 +126,29 @@ internal static class FieldGenerator
         CSharpCodeGenerationHelpers.AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
         if (field.IsConst)
         {
-            tokens.Add(Token(SyntaxKind.ConstKeyword));
+            tokens.Add(ConstKeyword);
         }
         else
         {
             if (field.IsStatic)
             {
-                tokens.Add(Token(SyntaxKind.StaticKeyword));
+                tokens.Add(StaticKeyword);
             }
 
             if (field.IsReadOnly)
             {
-                tokens.Add(Token(SyntaxKind.ReadOnlyKeyword));
+                tokens.Add(ReadOnlyKeyword);
             }
 
             if (field.IsRequired)
             {
-                tokens.Add(Token(SyntaxKind.RequiredKeyword));
+                tokens.Add(RequiredKeyword);
             }
         }
 
         if (CodeGenerationFieldInfo.GetIsUnsafe(field))
         {
-            tokens.Add(Token(SyntaxKind.UnsafeKeyword));
+            tokens.Add(UnsafeKeyword);
         }
 
         return tokens.ToSyntaxTokenListAndFree();
