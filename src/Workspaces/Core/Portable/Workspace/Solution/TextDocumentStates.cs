@@ -321,26 +321,19 @@ internal sealed class TextDocumentStates<TState>
 
     public async ValueTask<DocumentChecksumsAndIds> GetDocumentChecksumsAndIdsAsync(CancellationToken cancellationToken)
     {
-        var attributesChecksums = await SelectAsArrayAsync(
-            static async (state, _, cancellationToken) =>
-            {
-                var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                return stateChecksums.Info;
-            },
-            arg: default(VoidResult),
-            cancellationToken).ConfigureAwait(false);
-        var textChecksums = await SelectAsArrayAsync(
-            static async (state, _, cancellationToken) =>
-            {
-                var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                return stateChecksums.Text;
-            },
-            arg: default(VoidResult),
-            cancellationToken).ConfigureAwait(false);
+        using var _1 = ArrayBuilder<Checksum>.GetInstance(_map.Count, out var attributeChecksums);
+        using var _2 = ArrayBuilder<Checksum>.GetInstance(_map.Count, out var textChecksums);
+
+        foreach (var (_, state) in _map)
+        {
+            var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            attributeChecksums.Add(stateChecksums.Info);
+            textChecksums.Add(stateChecksums.Text);
+        }
 
         return new(
-            new ChecksumCollection(attributesChecksums),
-            new ChecksumCollection(textChecksums),
+            new ChecksumCollection(attributeChecksums.ToImmutableAndClear()),
+            new ChecksumCollection(textChecksums.ToImmutableAndClear()),
             SelectAsArray(static s => s.Id));
     }
 
