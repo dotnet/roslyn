@@ -34,7 +34,7 @@ internal abstract class AbstractAssetProvider
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.SolutionAttributes, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
         await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
-        // Fetch all the project state checksums up front.  That allows gettign all the data in a single call, and
+        // Fetch all the project state checksums up front.  That allows getting all the data in a single call, and
         // enables parallel fetching of the projects below.
         using var _1 = ArrayBuilder<ProjectStateChecksums>.GetInstance(solutionChecksums.Projects.Length, out var allProjectStateChecksums);
         await this.GetAssetsAsync<ProjectStateChecksums, ArrayBuilder<ProjectStateChecksums>>(
