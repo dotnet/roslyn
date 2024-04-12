@@ -42,7 +42,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         checksums.Add(checksum);
 
         using var _2 = ArrayBuilder<T>.GetInstance(1, out var builder);
-        await this.SynchronizeAssetsAsync<T, ArrayBuilder<T>>(
+        await this.GetAssetsAsync<T, ArrayBuilder<T>>(
             assetPath, checksums,
             static (_, asset, builder) => builder.Add(asset),
             builder, cancellationToken).ConfigureAwait(false);
@@ -52,7 +52,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         return builder[0];
     }
 
-    public override async ValueTask GetAssetsAsync<T, TArg>(
+    public override async Task GetAssetsAsync<T, TArg>(
         AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken) where TArg : default
     {
         await this.SynchronizeAssetsAsync(assetPath, checksums, callback, arg, cancellationToken).ConfigureAwait(false);
@@ -110,7 +110,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             solutionStateChecksum.Projects.Checksums.AddAllTo(checksums);
 
             using var _2 = PooledDictionary<Checksum, ProjectStateChecksums>.GetInstance(out var checksumToProjectStateChecksums);
-            await this.SynchronizeAssetsAsync<ProjectStateChecksums, Dictionary<Checksum, ProjectStateChecksums>>(
+            await this.GetAssetsAsync<ProjectStateChecksums, Dictionary<Checksum, ProjectStateChecksums>>(
                 assetPath: AssetPathKind.ProjectStateChecksums,
                 checksums,
                 static (checksum, asset, checksumToProjectStateChecksums) => checksumToProjectStateChecksums.Add(checksum, asset),
@@ -256,7 +256,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             // First, fetch all the DocumentStateChecksums for all the documents in the project.
             using var _2 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
-            await this.SynchronizeAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
+            await this.GetAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
                 assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId), checksums,
                 static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
                 allDocumentStateChecksums,
@@ -278,7 +278,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         }
     }
 
-    public async ValueTask SynchronizeAssetsAsync<T, TArg>(
+    private async ValueTask SynchronizeAssetsAsync<T, TArg>(
         AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
