@@ -454,14 +454,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
 
-            using var _ = ArrayBuilder<UnifiedSuggestedActionSet>.GetInstance(filteredRefactorings.Length, out var orderedRefactorings);
+            var orderedRefactorings = new FixedSizeArrayBuilder<UnifiedSuggestedActionSet>(filteredRefactorings.Length);
             foreach (var refactoring in filteredRefactorings)
             {
                 var orderedRefactoring = await OrganizeRefactoringsAsync(workspace, document, selection, refactoring, cancellationToken).ConfigureAwait(false);
                 orderedRefactorings.Add(orderedRefactoring);
             }
 
-            return orderedRefactorings.ToImmutableAndClear();
+            return orderedRefactorings.MoveToImmutable();
         }
 
         private static ImmutableArray<CodeRefactoring> FilterOnAnyThread(
