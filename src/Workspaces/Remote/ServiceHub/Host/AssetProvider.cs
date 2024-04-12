@@ -203,7 +203,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             // Then sync each project's documents in parallel with each other.
             foreach (var projectChecksums in allProjectChecksums)
-                tasks.Add(SynchronizeProjectDocumentsAsync(projectChecksums));
+                tasks.Add(SynchronizeProjectDocumentsAsync(projectChecksums, cancellationToken));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
@@ -215,12 +215,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
         return;
 
-        static void AddAll(HashSet<Checksum> checksums, ChecksumCollection checksumCollection)
-        {
-            foreach (var checksum in checksumCollection)
-                checksums.Add(checksum);
-        }
-
         Task SynchronizeProjectAssetAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, Checksum> getChecksum)
             => SynchronizeProjectAssetOrCollectionAsync<TAsset, Func<ProjectStateChecksums, Checksum>>(
                 assetPath,
@@ -230,7 +224,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         Task SynchronizeProjectAssetCollectionAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, ChecksumCollection> getChecksums)
             => SynchronizeProjectAssetOrCollectionAsync<TAsset, Func<ProjectStateChecksums, ChecksumCollection>>(
                 assetPath,
-                static (projectStateChecksums, checksums, getChecksums) => AddAll(checksums, getChecksums(projectStateChecksums)),
+                static (projectStateChecksums, checksums, getChecksums) => getChecksums(projectStateChecksums).AddAllTo(checksums),
                 getChecksums);
 
         async Task SynchronizeProjectAssetOrCollectionAsync<TAsset, TArg>(
@@ -244,36 +238,52 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             await GetAssetsAsync<TAsset>(assetPath, checksums, cancellationToken).ConfigureAwait(false);
         }
+    }
 
-        async Task SynchronizeProjectDocumentsAsync(ProjectStateChecksums projectChecksums)
+    private async Task SynchronizeProjectDocumentsAsync(
+        ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+
+        // First, fetch all the DocumentStateChecksums for all the documents in the project.
+        using var _1 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
         {
-            await Task.Yield();
-            using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+            using var _2 = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
-            AddAll(checksums, projectChecksums.Documents.Checksums);
-            AddAll(checksums, projectChecksums.AdditionalDocuments.Checksums);
-            AddAll(checksums, projectChecksums.AnalyzerConfigDocuments.Checksums);
+            projectChecksums.Documents.Checksums.AddAllTo(checksums);
+            projectChecksums.AdditionalDocuments.Checksums.AddAllTo(checksums);
+            projectChecksums.AnalyzerConfigDocuments.Checksums.AddAllTo(checksums);
 
-            // First, fetch all the DocumentStateChecksums for all the documents in the project.
-            using var _2 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
             await this.GetAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
                 assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId), checksums,
                 static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
                 allDocumentStateChecksums,
                 cancellationToken).ConfigureAwait(false);
+        }
 
-            // Now go and fetch the info and text for all of those documents.
-            checksums.Clear();
-            foreach (var docChecksums in allDocumentStateChecksums)
-            {
-                checksums.Add(docChecksums.Info);
-                checksums.Add(docChecksums.Text);
-            }
+        // Now go and fetch the info and text for all of those documents.
+        {
+            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            tasks.Add(GetDocumentItemsAsync<DocumentInfo.DocumentAttributes>(AssetPathKind.DocumentAttributes, static d => d.Info));
+            tasks.Add(GetDocumentItemsAsync<SerializableSourceText>(AssetPathKind.DocumentText, static d => d.Text));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        return;
+
+        async Task GetDocumentItemsAsync<TAsset>(
+            AssetPathKind assetPathKind, Func<DocumentStateChecksums, Checksum> getItemChecksum)
+        {
+            await Task.Yield();
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+            foreach (var documentStateChecksums in allDocumentStateChecksums)
+                checksums.Add(getItemChecksum(documentStateChecksums));
 
             // We know we only need to search the documents in this particular project for those info/text values.  So
             // pass in the right path hint to limit the search on the host side to just the document in this project.
-            await GetAssetsAsync<object>(
-                assetPath: new(AssetPathKind.DocumentAttributes | AssetPathKind.DocumentText, projectChecksums.ProjectId),
+            await GetAssetsAsync<TAsset>(
+                assetPath: new(assetPathKind, projectChecksums.ProjectId),
                 checksums, cancellationToken).ConfigureAwait(false);
         }
     }
