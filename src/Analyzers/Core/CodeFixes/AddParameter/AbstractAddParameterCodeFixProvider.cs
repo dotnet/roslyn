@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -281,7 +282,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
 
         ImmutableArray<CodeAction> NestByCascading()
         {
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
+            using var builder = TemporaryArray<CodeAction>.Empty;
 
             var nonCascadingActions = codeFixData.SelectAsArray(data =>
             {
@@ -312,7 +313,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
                 builder.Add(CodeAction.Create(nestedCascadingTitle, cascadingActions, isInlinable: false));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 
