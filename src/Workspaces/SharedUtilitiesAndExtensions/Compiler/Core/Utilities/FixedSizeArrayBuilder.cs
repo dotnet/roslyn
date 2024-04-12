@@ -21,20 +21,20 @@ using Roslyn.Utilities;
 /// <list type="number">
 /// <item>
 /// The number of elements is known up front, and is fixed.  In other words, it isn't just an initial-capacity, or a
-/// rough heuristic.  Rather it will always be the exact number of elements added.  If the capacity is just intended as
-/// a rough hint then <see cref="ArrayBuilder{T}.GetInstance(int, T)"/> should be used instead.
+/// rough heuristic.  Rather it will always be the exact number of elements added.
 /// </item>
 /// <item>
 /// Exactly that number of elements is actually added prior to calling <see cref="MoveToImmutable"/>.  This means no
-/// patterns like "AddIfNotNull".  If the exact number of calls is not guaranteed then <see
-/// cref="ArrayBuilder{T}.GetInstance(int, T)"/> should be used instead.
+/// patterns like "AddIfNotNull".
 /// </item>
 /// <item>
 /// The builder will be moved to an array (see <see cref="MoveToArray"/>) or <see cref="ImmutableArray{T}"/> (see <see
-/// cref="MoveToImmutable"/>).  If the builder is intended just for a scratch buffer, then <see
-/// cref="ArrayBuilder{T}.GetInstance(int, T)"/> should be used instead.
+/// cref="MoveToImmutable"/>).
 /// </item>
 /// </list>
+/// If any of the above are not true.  For example, the capacity is a rought hint, or the exact number of elements may
+/// not match the capacity specified, or if it's intended as a scratch buffer, and won't realize a final array, then
+/// <see cref="ArrayBuilder{T}.GetInstance(int, T)"/> should be used instead.
 /// </remarks>
 [NonCopyable]
 internal struct FixedSizeArrayBuilder<T>(int capacity)
