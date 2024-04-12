@@ -42,7 +42,11 @@ internal sealed class TextDocumentStates<TState>
     public static readonly TextDocumentStates<TState> Empty =
         new([],
             ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance),
-            filePathToDocumentIds: null);
+#if NET
+            FilePathToDocumentIds.Empty);
+#else
+            new(new Dictionary<string, OneOrMany<DocumentId>>()));
+#endif
 
     private readonly ImmutableList<DocumentId> _ids;
 
