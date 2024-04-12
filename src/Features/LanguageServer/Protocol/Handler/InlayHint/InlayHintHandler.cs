@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                     Data = new InlayHintResolveData(resultId, i, request.TextDocument)
                 };
 
-                inlayHints[0] = inlayHint;
+                inlayHints[i] = inlayHint;
             }
 
             return inlayHints;
