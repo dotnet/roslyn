@@ -220,7 +220,8 @@ internal static class ImportCompletionItem
     public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item)
     {
         var itemProperties = item.GetProperties();
-        return item.WithProperties([.. itemProperties, KeyValuePairUtil.Create(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey)]);
+        ImmutableArray<KeyValuePair<string, string>> properties = [.. itemProperties, KeyValuePairUtil.Create(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey)];
+        return item.WithProperties(properties);
     }
 
     public static bool ShouldAlwaysFullyQualify(CompletionItem item) => item.TryGetProperty(AlwaysFullyQualifyKey, out var _);
