@@ -95,15 +95,16 @@ internal abstract class AbstractAssetProvider
 
         async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(DocumentChecksumsAndIds checksumsAndIds)
         {
-            using var _ = ArrayBuilder<DocumentInfo>.GetInstance(checksumsAndIds.Length, out var documentInfos);
+            var documentInfos = new DocumentInfo[checksumsAndIds.Length];
 
+            var index = 0;
             foreach (var (attributeChecksum, textChecksum, documentId) in checksumsAndIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                documentInfos.Add(await CreateDocumentInfoAsync(documentId, attributeChecksum, textChecksum, cancellationToken).ConfigureAwait(false));
+                documentInfos[index++] = await CreateDocumentInfoAsync(documentId, attributeChecksum, textChecksum, cancellationToken).ConfigureAwait(false);
             }
 
-            return documentInfos.ToImmutableAndClear();
+            return ImmutableCollectionsMarshal.AsImmutableArray(documentInfos);
         }
     }
 
