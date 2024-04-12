@@ -97,22 +97,17 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             // Ask for solutions and top-level projects as the solution checksums will contain the checksums for
             // the project states and we want to get that all in one batch.
-            using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
-            solutionStateChecksum.AnalyzerReferences.AddAllTo(checksums);
-
             await this.GetAssetsAsync<AnalyzerReference>(
-                assetPath: AssetPathKind.SolutionAnalyzerReferences, checksums, cancellationToken).ConfigureAwait(false);
+                assetPath: AssetPathKind.SolutionAnalyzerReferences, solutionStateChecksum.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
             // Note: this search will be optimized on the host side.  It will search through the solution level values,
             // and then the top level project-state-checksum values only.  No other project data or document data will be
             // looked at.
-            checksums.Clear();
-            solutionStateChecksum.Projects.Checksums.AddAllTo(checksums);
 
             using var _2 = PooledDictionary<Checksum, ProjectStateChecksums>.GetInstance(out var checksumToProjectStateChecksums);
             await this.GetAssetsAsync<ProjectStateChecksums, Dictionary<Checksum, ProjectStateChecksums>>(
                 assetPath: AssetPathKind.ProjectStateChecksums,
-                checksums,
+                solutionStateChecksum.Projects.Checksums,
                 static (checksum, asset, checksumToProjectStateChecksums) => checksumToProjectStateChecksums.Add(checksum, asset),
                 arg: checksumToProjectStateChecksums, cancellationToken).ConfigureAwait(false);
 

@@ -25,9 +25,6 @@ internal abstract class AbstractAssetProvider
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
     public abstract Task GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken);
 
-    public async Task GetAssetsAsync<TAsset>(AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken)
-        => await this.GetAssetsAsync<TAsset, VoidResult>(assetPath, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
         var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
@@ -40,7 +37,7 @@ internal abstract class AbstractAssetProvider
         foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
             projects.Add(await CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken).ConfigureAwait(false));
 
-        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
         return SolutionInfo.Create(
             solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects.ToImmutableAndClear(), analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
@@ -58,9 +55,9 @@ internal abstract class AbstractAssetProvider
             await GetAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
         var parseOptions = await GetAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), projectChecksums.ParseOptions, cancellationToken).ConfigureAwait(false);
 
-        var projectReferences = await GetAssetsAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
-        var metadataReferences = await GetAssetsAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
-        var analyzerReferences = await GetAssetsAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var projectReferences = await this.GetAssetsArrayAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
+        var metadataReferences = await this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
+        var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
         var documentInfos = await CreateDocumentInfosAsync(projectChecksums.Documents).ConfigureAwait(false);
         var additionalDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments).ConfigureAwait(false);
@@ -107,16 +104,42 @@ internal abstract class AbstractAssetProvider
         // TODO: do we need version?
         return new DocumentInfo(attributes, textLoader, documentServiceProvider: null);
     }
+}
 
-    public async Task<ImmutableArray<T>> GetAssetsAsync<T>(
-        AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
+internal static class AbstractAssetProviderExtensions
+{
+    public static Task GetAssetsAsync<TAsset>(
+        this AbstractAssetProvider assetProvider, AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+    {
+        return assetProvider.GetAssetsAsync<TAsset, VoidResult>(
+            assetPath, checksums, callback: null, arg: default, cancellationToken);
+    }
+
+    public static Task GetAssetsAsync<T>(
+        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken)
+    {
+        return assetProvider.GetAssetsAsync<T, VoidResult>(
+            assetPath, checksums, callback: null, arg: default, cancellationToken);
+    }
+
+    public static async Task GetAssetsAsync<T, TArg>(
+        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+    {
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
+        checksumSet.AddAll(checksums.Children);
+
+        await assetProvider.GetAssetsAsync(assetPath, checksumSet, callback, arg, cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async Task<ImmutableArray<T>> GetAssetsArrayAsync<T>(
+        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
         checksumSet.AddAll(checksums.Children);
 
         using var _2 = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
 
-        await this.GetAssetsAsync<T, ArrayBuilder<T>>(
+        await assetProvider.GetAssetsAsync<T, ArrayBuilder<T>>(
             assetPath, checksumSet,
             static (checksum, asset, builder) => builder.Add(asset),
             builder,
