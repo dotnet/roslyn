@@ -115,7 +115,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         // the host will cache it.  We'll only actually fetch something new and compute something new when an actual new
         // analyzer reference is added.
         using var _2 = ArrayBuilder<AnalyzerReference>.GetInstance(checksums.Count, out var analyzerReferences);
-        await assetProvider.GetAssetsAsync<AnalyzerReference, ArrayBuilder<AnalyzerReference>>(
+        await assetProvider.GetAssetHelper<AnalyzerReference>().GetAssetsAsync(
             projectId,
             checksums,
             static (_, analyzerReference, analyzerReferences) => analyzerReferences.Add(analyzerReference),

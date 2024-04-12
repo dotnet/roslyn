@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
 
-                await _assetProvider.GetAssetsAsync<ProjectStateChecksums, Dictionary<ProjectId, ProjectStateChecksums>>(
+                await _assetProvider.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
                     assetPath: AssetPathKind.ProjectStateChecksums, newChecksumsToSync,
                     static (checksum, newProjectStateChecksum, newProjectIdToStateChecksums) =>
                     {
