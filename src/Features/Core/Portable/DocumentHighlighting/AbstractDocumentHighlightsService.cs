@@ -263,13 +263,11 @@ internal abstract partial class AbstractDocumentHighlightsService :
             await AddLocationSpanAsync(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
         }
 
-        using var _1 = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
+        var list = new FixedSizeArrayBuilder<DocumentHighlights>(tagMap.Count);
         foreach (var kvp in tagMap)
-        {
             list.Add(new DocumentHighlights(kvp.Key, [.. kvp.Value]));
-        }
 
-        return list.ToImmutableAndClear();
+        return list.MoveToImmutable();
     }
 
     private static bool ShouldIncludeDefinition(ISymbol symbol)
