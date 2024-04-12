@@ -236,8 +236,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             bool supportsVisualStudioExtensions,
             IReadOnlyDictionary<string, int> tokenTypesToIndex)
         {
-            using var _ = ArrayBuilder<int>.GetInstance(classifiedSpans.Count, out var data);
-
             // We keep track of the last line number and last start character since tokens are
             // reported relative to each other.
             var lastLineNumber = 0;
@@ -245,6 +243,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
 
+            var data = new FixedSizeArrayBuilder<int>(5 * classifiedSpans.Count);
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
             {
                 currentClassifiedSpanIndex = ComputeNextToken(
@@ -253,10 +252,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     out var deltaLine, out var startCharacterDelta, out var tokenLength,
                     out var tokenType, out var tokenModifiers);
 
-                data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
+                data.Add(deltaLine);
+                data.Add(startCharacterDelta);
+                data.Add(tokenLength);
+                data.Add(tokenType);
+                data.Add(tokenModifiers);
             }
 
-            return data.ToArray();
+            return data.MoveToArray();
         }
 
         private static int ComputeNextToken(
