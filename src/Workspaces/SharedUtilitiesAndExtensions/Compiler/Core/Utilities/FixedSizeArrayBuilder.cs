@@ -47,6 +47,7 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
 
     public void AddRange(ImmutableArray<T> values)
     {
+        Contract.ThrowIfTrue(_index + values.Length <= _values.Length)
         foreach (var v in values)
             Add(v);
     }
