@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -321,19 +322,21 @@ internal sealed class TextDocumentStates<TState>
 
     public async ValueTask<DocumentChecksumsAndIds> GetDocumentChecksumsAndIdsAsync(CancellationToken cancellationToken)
     {
-        using var _1 = ArrayBuilder<Checksum>.GetInstance(_map.Count, out var attributeChecksums);
-        using var _2 = ArrayBuilder<Checksum>.GetInstance(_map.Count, out var textChecksums);
+        var attributeChecksums = new Checksum[_map.Count];
+        var textChecksums = new Checksum[_map.Count];
 
+        var index = 0;
         foreach (var (_, state) in _map)
         {
             var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            attributeChecksums.Add(stateChecksums.Info);
-            textChecksums.Add(stateChecksums.Text);
+            attributeChecksums[index] = stateChecksums.Info;
+            textChecksums[index] = stateChecksums.Text;
+            index++;
         }
 
         return new(
-            new ChecksumCollection(attributeChecksums.ToImmutableAndClear()),
-            new ChecksumCollection(textChecksums.ToImmutableAndClear()),
+            new ChecksumCollection(ImmutableCollectionsMarshal.AsImmutableArray(attributeChecksums)),
+            new ChecksumCollection(ImmutableCollectionsMarshal.AsImmutableArray(textChecksums)),
             SelectAsArray(static s => s.Id));
     }
 
