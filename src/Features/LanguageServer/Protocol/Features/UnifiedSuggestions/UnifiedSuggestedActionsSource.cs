@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 if (codeAction.NestedActions.Length > 0)
                 {
-                    using var _1 = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(codeAction.NestedActions.Length, out var nestedActions);
+                    var nestedActions = new FixedSizeArrayBuilder<IUnifiedSuggestedAction>(codeAction.NestedActions.Length);
                     foreach (var nestedAction in codeAction.NestedActions)
                     {
                         var unifiedAction = await GetUnifiedSuggestedActionSetAsync(nestedAction, applicableToSpan, selection, cancellationToken).ConfigureAwait(false);
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     var set = new UnifiedSuggestedActionSet(
                         originalSolution,
                         categoryName: null,
-                        actions: nestedActions.ToImmutableAndClear(),
+                        actions: nestedActions.MoveToImmutable(),
                         title: null,
                         priority: codeAction.Priority,
                         applicableToSpan: applicableToSpan);
