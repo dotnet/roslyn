@@ -30,11 +30,16 @@ internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefaul
     {
         private readonly IRazorCohostDynamicRegistrationService? _dynamicRegistrationService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
+        private readonly JsonSerializerSettings _serializerSettings;
 
         public RazorDynamicRegistrationService(IRazorCohostDynamicRegistrationService? dynamicRegistrationService, IClientLanguageServerManager clientLanguageServerManager)
         {
             _dynamicRegistrationService = dynamicRegistrationService;
             _clientLanguageServerManager = clientLanguageServerManager;
+
+            var serializer = new JsonSerializer();
+            serializer.AddVSInternalExtensionConverters();
+            _serializerSettings = new JsonSerializerSettings { Converters = serializer.Converters };
         }
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
@@ -45,10 +50,7 @@ internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefaul
             }
 
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
-
-            var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities is VSInternalClientCapabilities internalClientCapabilities
-                ? internalClientCapabilities
-                : clientCapabilities);
+            var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities, _serializerSettings);
             var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(_clientLanguageServerManager);
 
             var requestContext = new RazorCohostRequestContext(context);
