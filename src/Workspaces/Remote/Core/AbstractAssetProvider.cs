@@ -126,6 +126,9 @@ internal static class AbstractAssetProviderExtensions
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
     {
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
+#if NET
+        checksumSet.EnsureCapacity(checksums.Children.Length);
+#endif
         checksumSet.AddAll(checksums.Children);
 
         await assetProvider.GetAssetsAsync(assetPath, checksumSet, callback, arg, cancellationToken).ConfigureAwait(false);
