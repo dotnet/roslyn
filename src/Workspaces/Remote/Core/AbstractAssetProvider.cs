@@ -196,7 +196,7 @@ internal static class AbstractAssetProviderExtensions
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
         checksumSet.AddAll(checksums.Children);
 
-        var builder = ImmutableArray.CreateBuilder<T>(checksumSet.Count);
+        using var _ = FixedSizeArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
 
         await assetProvider.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksumSet,
