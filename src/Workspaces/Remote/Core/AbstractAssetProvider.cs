@@ -59,6 +59,10 @@ internal abstract class AbstractAssetProvider
         var metadataReferences = await this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
+        // Attempt to fetch all the documents for this project in bulk.  This will allow for all the data to be fetched
+        // efficiently.  We can then go and create the DocumentInfos for each document in the project.
+        await SynchronizeProjectDocumentsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+
         var documentInfos = await CreateDocumentInfosAsync(projectChecksums.Documents).ConfigureAwait(false);
         var additionalDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments).ConfigureAwait(false);
         var analyzerConfigDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments).ConfigureAwait(false);
@@ -79,6 +83,11 @@ internal abstract class AbstractAssetProvider
         {
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(checksumsAndIds.Length, out var documentInfos);
 
+            await this.GetAssetsAsync<DocumentStateChecksums>(
+                new(AssetPathKind.DocumentStateChecksums, projectId),
+                checksumsAndIds.Checksums,
+                cancellationToken).ConfigureAwait(false);
+
             foreach (var (documentChecksum, documentId) in checksumsAndIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -86,6 +95,54 @@ internal abstract class AbstractAssetProvider
             }
 
             return documentInfos.ToImmutableAndClear();
+        }
+    }
+
+    protected async Task SynchronizeProjectDocumentsAsync(
+        ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+
+        // First, fetch all the DocumentStateChecksums for all the documents in the project.
+        using var _1 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
+        {
+            using var _2 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+            projectChecksums.Documents.Checksums.AddAllTo(checksums);
+            projectChecksums.AdditionalDocuments.Checksums.AddAllTo(checksums);
+            projectChecksums.AnalyzerConfigDocuments.Checksums.AddAllTo(checksums);
+
+            await this.GetAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
+                assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId), checksums,
+                static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
+                allDocumentStateChecksums,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        // Now go and fetch the info and text for all of those documents.
+        {
+            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            tasks.Add(GetDocumentItemsAsync<DocumentInfo.DocumentAttributes>(AssetPathKind.DocumentAttributes, static d => d.Info));
+            tasks.Add(GetDocumentItemsAsync<SerializableSourceText>(AssetPathKind.DocumentText, static d => d.Text));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        return;
+
+        async Task GetDocumentItemsAsync<TAsset>(
+            AssetPathKind assetPathKind, Func<DocumentStateChecksums, Checksum> getItemChecksum)
+        {
+            await Task.Yield();
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+            foreach (var documentStateChecksums in allDocumentStateChecksums)
+                checksums.Add(getItemChecksum(documentStateChecksums));
+
+            // We know we only need to search the documents in this particular project for those info/text values.  So
+            // pass in the right path hint to limit the search on the host side to just the document in this project.
+            await this.GetAssetsAsync<TAsset>(
+                assetPath: new(assetPathKind, projectChecksums.ProjectId),
+                checksums, cancellationToken).ConfigureAwait(false);
         }
     }
 

@@ -23,6 +23,14 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
     : AbstractAssetProvider
 {
+    private const string s_logFile = @"c:\temp\sync\synclog.txt";
+    private static readonly SharedStopwatch s_start = SharedStopwatch.StartNew();
+
+    static AssetProvider()
+    {
+        IOUtilities.PerformIO(() => File.Delete(s_logFile));
+    }
+
     private const int PooledChecksumArraySize = 1024;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
@@ -240,57 +248,11 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         }
     }
 
-    private async Task SynchronizeProjectDocumentsAsync(
-        ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
-    {
-        await Task.Yield();
-
-        // First, fetch all the DocumentStateChecksums for all the documents in the project.
-        using var _1 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
-        {
-            using var _2 = PooledHashSet<Checksum>.GetInstance(out var checksums);
-
-            projectChecksums.Documents.Checksums.AddAllTo(checksums);
-            projectChecksums.AdditionalDocuments.Checksums.AddAllTo(checksums);
-            projectChecksums.AnalyzerConfigDocuments.Checksums.AddAllTo(checksums);
-
-            await this.GetAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
-                assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId), checksums,
-                static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
-                allDocumentStateChecksums,
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        // Now go and fetch the info and text for all of those documents.
-        {
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            tasks.Add(GetDocumentItemsAsync<DocumentInfo.DocumentAttributes>(AssetPathKind.DocumentAttributes, static d => d.Info));
-            tasks.Add(GetDocumentItemsAsync<SerializableSourceText>(AssetPathKind.DocumentText, static d => d.Text));
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        return;
-
-        async Task GetDocumentItemsAsync<TAsset>(
-            AssetPathKind assetPathKind, Func<DocumentStateChecksums, Checksum> getItemChecksum)
-        {
-            await Task.Yield();
-            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
-
-            foreach (var documentStateChecksums in allDocumentStateChecksums)
-                checksums.Add(getItemChecksum(documentStateChecksums));
-
-            // We know we only need to search the documents in this particular project for those info/text values.  So
-            // pass in the right path hint to limit the search on the host side to just the document in this project.
-            await this.GetAssetsAsync<TAsset>(
-                assetPath: new(assetPathKind, projectChecksums.ProjectId),
-                checksums, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
     private async ValueTask SynchronizeAssetsAsync<T, TArg>(
         AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
     {
+        // Contract.ThrowIfTrue(typeof(T).Name == "Object");
+
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
             return;
@@ -343,6 +305,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 if (missingChecksumsCount > 0)
                 {
                     var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+                    var stopwatch = SharedStopwatch.StartNew();
 
                     await RequestAssetsAsync(
                         assetPath, missingChecksumsMemory,
@@ -358,6 +321,17 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                         },
                         (this, missingChecksums, callback, arg),
                         cancellationToken).ConfigureAwait(false);
+
+                    var time = stopwatch.Elapsed;
+                    var totalTime = s_start.Elapsed;
+
+                    IOUtilities.PerformIO(() =>
+                    {
+                        lock (this)
+                        {
+                            File.AppendAllText(s_logFile, $"{missingChecksumsCount},{checksums.Count},{time},{totalTime},{typeof(T).Name}\r\n");
+                        }
+                    });
                 }
             }
             finally
