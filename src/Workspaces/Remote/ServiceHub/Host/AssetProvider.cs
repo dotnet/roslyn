@@ -91,17 +91,19 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             var compilationStateChecksums = await this.GetAssetAsync<SolutionCompilationStateChecksums>(
                 AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            // second, get direct children of the solution compilation state.
+            // then grab the information we want off of the compilation state object.
             var solutionStateChecksum = await this.GetAssetAsync<SolutionStateChecksums>(
                 AssetPathKind.SolutionStateChecksums, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
-            var sourceGenerationExecutionMap = await this.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
-                AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, compilationStateChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
-
-            // Ask for solutions and top-level projects as the solution checksums will contain the checksums for
-            // the project states and we want to get that all in one batch.
-            await this.GetAssetsAsync<AnalyzerReference>(
-                AssetPathKind.SolutionAnalyzerReferences, solutionStateChecksum.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+            // Then grab the data we need off of hte state checksums
+            using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            tasks.Add(this.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
+                AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, compilationStateChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).AsTask());
+            tasks.Add(this.GetAssetAsync<SolutionInfo.SolutionAttributes>(
+                AssetPathKind.SolutionAttributes, solutionStateChecksum.Attributes, cancellationToken).AsTask());
+            tasks.Add(this.GetAssetsAsync<AnalyzerReference>(
+                AssetPathKind.SolutionAnalyzerReferences, solutionStateChecksum.AnalyzerReferences, cancellationToken));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             // Note: this search will be optimized on the host side.  It will search through the solution level values,
             // and then the top level project-state-checksum values only.  No other project data or document data will be
