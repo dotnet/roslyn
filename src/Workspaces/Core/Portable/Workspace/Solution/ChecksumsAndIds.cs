@@ -80,7 +80,6 @@ internal readonly struct ChecksumsAndIds<TId>
     }
 }
 
-
 internal readonly struct DocumentChecksumsAndIds
 {
     public readonly Checksum Checksum;
