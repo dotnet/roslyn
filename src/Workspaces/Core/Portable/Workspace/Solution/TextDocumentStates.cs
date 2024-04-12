@@ -6,6 +6,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -20,16 +21,33 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
+// On NetFx, frozen dictionary is very expensive when you give it a case insensitive comparer.  This is due to
+// unavoidable allocations it performs while doing its key-analysis that involve going through the non-span-aware
+// culture types.  So, on netfx, we use a plain ReadOnlyDictionary here.
+#if NET
+using FilePathToDocumentIds = FrozenDictionary<string, OneOrMany<DocumentId>>;
+#else
+using FilePathToDocumentIds = ReadOnlyDictionary<string, OneOrMany<DocumentId>>;
+#endif
+
 /// <summary>
 /// Holds on a <see cref="DocumentId"/> to <see cref="TextDocumentState"/> map and an ordering.
 /// </summary>
 internal sealed class TextDocumentStates<TState>
     where TState : TextDocumentState
 {
+#if NET
     private static readonly ObjectPool<Dictionary<string, OneOrMany<DocumentId>>> s_filePathPool = new(() => new(SolutionState.FilePathComparer));
+#endif
 
     public static readonly TextDocumentStates<TState> Empty =
-        new([], ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance), FrozenDictionary<string, OneOrMany<DocumentId>>.Empty);
+        new([],
+            ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance),
+#if NET
+            FilePathToDocumentIds.Empty);
+#else
+            new(new Dictionary<string, OneOrMany<DocumentId>>()));
+#endif
 
     private readonly ImmutableList<DocumentId> _ids;
 
@@ -40,12 +58,12 @@ internal sealed class TextDocumentStates<TState>
     /// </summary>
     private readonly ImmutableSortedDictionary<DocumentId, TState> _map;
 
-    private FrozenDictionary<string, OneOrMany<DocumentId>>? _filePathToDocumentIds;
+    private FilePathToDocumentIds? _filePathToDocumentIds;
 
     private TextDocumentStates(
         ImmutableList<DocumentId> ids,
         ImmutableSortedDictionary<DocumentId, TState> map,
-        FrozenDictionary<string, OneOrMany<DocumentId>>? filePathToDocumentIds)
+        FilePathToDocumentIds? filePathToDocumentIds)
     {
         Debug.Assert(map.KeyComparer == DocumentIdComparer.Instance);
 
@@ -312,10 +330,14 @@ internal sealed class TextDocumentStates<TState>
             : null;
     }
 
-    private FrozenDictionary<string, OneOrMany<DocumentId>> ComputeFilePathToDocumentIds()
+    private FilePathToDocumentIds ComputeFilePathToDocumentIds()
     {
+#if NET
         using var pooledDictionary = s_filePathPool.GetPooledObject();
         var result = pooledDictionary.Object;
+#else
+        var result = new Dictionary<string, OneOrMany<DocumentId>>(SolutionState.FilePathComparer);
+#endif
 
         foreach (var (documentId, state) in _map)
         {
@@ -328,6 +350,10 @@ internal sealed class TextDocumentStates<TState>
                 : OneOrMany.Create(documentId);
         }
 
+#if NET
         return result.ToFrozenDictionary(SolutionState.FilePathComparer);
+#else
+        return new(result);
+#endif
     }
 }
