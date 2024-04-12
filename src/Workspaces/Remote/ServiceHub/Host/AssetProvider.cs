@@ -231,7 +231,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             foreach (var projectChecksums in allProjectChecksums)
                 addAllChecksums(projectChecksums, checksums, arg);
 
-            await GetAssetsAsync<TAsset>(assetPath, checksums, cancellationToken).ConfigureAwait(false);
+            await this.GetAssetsAsync<TAsset>(assetPath, checksums, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -277,7 +277,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             // We know we only need to search the documents in this particular project for those info/text values.  So
             // pass in the right path hint to limit the search on the host side to just the document in this project.
-            await GetAssetsAsync<TAsset>(
+            await this.GetAssetsAsync<TAsset>(
                 assetPath: new(assetPathKind, projectChecksums.ProjectId),
                 checksums, cancellationToken).ConfigureAwait(false);
         }
