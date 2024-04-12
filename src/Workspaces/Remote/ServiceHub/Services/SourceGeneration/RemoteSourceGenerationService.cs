@@ -58,17 +58,17 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<string>.GetInstance(documentIds.Length, out var result);
-
+            var result = new string[documentIds.Length];
+            var index = 0;
             foreach (var id in documentIds)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
                 var state = documentStates.GetRequiredState(id);
                 var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                result.Add(text.ToString());
+                result[index++] = text.ToString();
             }
 
-            return result.ToImmutableAndClear();
+            return ImmutableCollectionsMarshal.AsImmutableArray(result);
         }, cancellationToken);
     }
 
