@@ -3802,13 +3802,43 @@ class C
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S).P = null;
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S).P").WithLocation(16, 9),
-                // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // (17,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(T).P = null; // Dev10: no error
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T).P").WithLocation(17, 9),
                 // (18,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(S)[0] = null;
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S)[0]").WithLocation(18, 9),
-                // (18,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // (19,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(T)[0] = null; // Dev10: no error
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(19, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73003")]
+        public void CS0131ERR_AssgLvalueExpected03_UnconstrainedTypeParameter()
+        {
+            var source = """
+struct S
+{
+    public object P { get; set; }
+    public object this[object index] { get { return null; } set { } }
+}
+interface I
+{
+    object P { get; set; }
+    object this[object index] { get; set; }
+}
+class C
+{
+    static void M<T>() where T : I
+    {
+        default(T).P = null;
+        default(T)[0] = null;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(538077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538077")]
@@ -14955,8 +14985,10 @@ class C<T, U, V>
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (20,9): error CS1612: Cannot modify the return value of 'C<T, U, V>.F1' because it is not a variable
+                //         F1.P = null;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "F1").WithArguments("C<T, U, V>.F1").WithLocation(20, 9),
-                // (20,9): error CS1612: Cannot modify the return value of 'C<T, U, V>.F2' because it is not a variable
+                // (21,9): error CS1612: Cannot modify the return value of 'C<T, U, V>.F2' because it is not a variable
+                //         F2.P = null;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "F2").WithArguments("C<T, U, V>.F2").WithLocation(21, 9));
         }
 
