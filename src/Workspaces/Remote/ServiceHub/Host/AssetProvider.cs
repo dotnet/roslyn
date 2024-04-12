@@ -5,15 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -43,7 +40,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         checksums.Add(checksum);
 
         using var _2 = ArrayBuilder<T>.GetInstance(1, out var builder);
-        await this.GetAssetsAsync<T, ArrayBuilder<T>>(
+        await this.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksums,
             static (_, asset, builder) => builder.Add(asset),
             builder, cancellationToken).ConfigureAwait(false);
@@ -107,7 +104,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);
-            await this.GetAssetsAsync<ProjectStateChecksums, ArrayBuilder<ProjectStateChecksums>>(
+            await this.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
                 AssetPathKind.ProjectStateChecksums,
                 solutionStateChecksum.Projects.Checksums,
                 static (_, asset, allProjectStateChecksums) => allProjectStateChecksums.Add(asset),

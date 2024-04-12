@@ -34,23 +34,19 @@ internal abstract class AbstractAssetProvider
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.SolutionAttributes, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
         await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
-        // Fetch all the project state checksums up front.  That allows gettign all the data in a single call, and
+        // Fetch all the project state checksums up front.  That allows getting all the data in a single call, and
         // enables parallel fetching of the projects below.
-        using var _1 = ArrayBuilder<ProjectStateChecksums>.GetInstance(solutionChecksums.Projects.Length, out var allProjectStateChecksums);
-        await this.GetAssetsAsync<ProjectStateChecksums, ArrayBuilder<ProjectStateChecksums>>(
+        using var _1 = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
+        await this.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
             AssetPathKind.ProjectStateChecksums,
             solutionChecksums.Projects.Checksums,
-            static (_, projectStateChecksums, allProjectStateChecksums) => allProjectStateChecksums.Add(projectStateChecksums),
-            allProjectStateChecksums,
+            static (_, projectStateChecksums, tuple) => tuple.projectsTasks.Add(tuple.@this.CreateProjectInfoAsync(projectStateChecksums, tuple.cancellationToken)),
+            (@this: this, projectsTasks, cancellationToken),
             cancellationToken).ConfigureAwait(false);
-
-        // Fetch the projects in parallel.
-        using var _2 = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
-        foreach (var projectStateChecksum in allProjectStateChecksums)
-            projectsTasks.Add(CreateProjectInfoAsync(projectStateChecksum, cancellationToken));
 
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
+        // Fetch the projects in parallel.
         var projects = await Task.WhenAll(projectsTasks).ConfigureAwait(false);
         return SolutionInfo.Create(
             solutionAttributes.Id,
@@ -71,43 +67,44 @@ internal abstract class AbstractAssetProvider
 
         var compilationOptions = attributes.FixUpCompilationOptions(
             await GetAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
-        var parseOptions = await GetAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), projectChecksums.ParseOptions, cancellationToken).ConfigureAwait(false);
+        var parseOptionsTask = GetAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), projectChecksums.ParseOptions, cancellationToken);
 
-        var projectReferences = await this.GetAssetsArrayAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
-        var metadataReferences = await this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
-        var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var projectReferencesTask = this.GetAssetsArrayAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken);
+        var metadataReferencesTask = this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken);
+        var analyzerReferencesTask = this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken);
 
         // Attempt to fetch all the documents for this project in bulk.  This will allow for all the data to be fetched
         // efficiently.  We can then go and create the DocumentInfos for each document in the project.
         await SynchronizeProjectDocumentsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
 
-        var documentInfos = await CreateDocumentInfosAsync(projectChecksums.Documents).ConfigureAwait(false);
-        var additionalDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments).ConfigureAwait(false);
-        var analyzerConfigDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments).ConfigureAwait(false);
+        var documentInfosTask = CreateDocumentInfosAsync(projectChecksums.Documents);
+        var additionalDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments);
+        var analyzerConfigDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments);
 
         return ProjectInfo.Create(
             attributes,
             compilationOptions,
-            parseOptions,
-            documentInfos,
-            projectReferences,
-            metadataReferences,
-            analyzerReferences,
-            additionalDocumentInfos,
-            analyzerConfigDocumentInfos,
+            await parseOptionsTask.ConfigureAwait(false),
+            await documentInfosTask.ConfigureAwait(false),
+            await projectReferencesTask.ConfigureAwait(false),
+            await metadataReferencesTask.ConfigureAwait(false),
+            await analyzerReferencesTask.ConfigureAwait(false),
+            await additionalDocumentInfosTask.ConfigureAwait(false),
+            await analyzerConfigDocumentInfosTask.ConfigureAwait(false),
             hostObjectType: null); // TODO: https://github.com/dotnet/roslyn/issues/62804
 
         async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(DocumentChecksumsAndIds checksumsAndIds)
         {
-            using var _ = ArrayBuilder<DocumentInfo>.GetInstance(checksumsAndIds.Length, out var documentInfos);
+            var documentInfos = new DocumentInfo[checksumsAndIds.Length];
 
+            var index = 0;
             foreach (var (attributeChecksum, textChecksum, documentId) in checksumsAndIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                documentInfos.Add(await CreateDocumentInfoAsync(documentId, attributeChecksum, textChecksum, cancellationToken).ConfigureAwait(false));
+                documentInfos[index++] = await CreateDocumentInfoAsync(documentId, attributeChecksum, textChecksum, cancellationToken).ConfigureAwait(false);
             }
 
-            return documentInfos.ToImmutableAndClear();
+            return ImmutableCollectionsMarshal.AsImmutableArray(documentInfos);
         }
     }
 
@@ -152,6 +149,18 @@ internal abstract class AbstractAssetProvider
         // TODO: do we need version?
         return new DocumentInfo(attributes, textLoader, documentServiceProvider: null);
     }
+
+    public AssetHelper<T> GetAssetHelper<T>()
+        => new(this);
+
+    public readonly struct AssetHelper<T>(AbstractAssetProvider assetProvider)
+    {
+        public Task GetAssetsAsync<TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+            => assetProvider.GetAssetsAsync(assetPath, checksums, callback, arg, cancellationToken);
+
+        public Task GetAssetsAsync<TArg>(AssetPath assetPath, ChecksumCollection checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+            => assetProvider.GetAssetsAsync(assetPath, checksums, callback, arg, cancellationToken);
+    }
 }
 
 internal static class AbstractAssetProviderExtensions
@@ -188,14 +197,14 @@ internal static class AbstractAssetProviderExtensions
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
         checksumSet.AddAll(checksums.Children);
 
-        using var _2 = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
+        var builder = ImmutableArray.CreateBuilder<T>(checksumSet.Count);
 
-        await assetProvider.GetAssetsAsync<T, ArrayBuilder<T>>(
+        await assetProvider.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksumSet,
             static (checksum, asset, builder) => builder.Add(asset),
             builder,
             cancellationToken).ConfigureAwait(false);
 
-        return builder.ToImmutableAndClear();
+        return builder.MoveToImmutable();
     }
 }

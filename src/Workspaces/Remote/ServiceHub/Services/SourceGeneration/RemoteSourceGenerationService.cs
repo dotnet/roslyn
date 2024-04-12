@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -37,15 +38,15 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>.GetInstance(documentStates.Ids.Count, out var result);
-
+            var result = new (SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)[documentStates.Ids.Count];
+            var index = 0;
             foreach (var (id, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
-                result.Add((state.Identity, state.GetContentIdentity(), state.GenerationDateTime));
+                result[index++] = (state.Identity, state.GetContentIdentity(), state.GenerationDateTime);
             }
 
-            return result.ToImmutableAndClear();
+            return ImmutableCollectionsMarshal.AsImmutableArray(result);
         }, cancellationToken);
     }
 
@@ -57,17 +58,17 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<string>.GetInstance(documentIds.Length, out var result);
-
+            var result = new string[documentIds.Length];
+            var index = 0;
             foreach (var id in documentIds)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
                 var state = documentStates.GetRequiredState(id);
                 var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                result.Add(text.ToString());
+                result[index++] = text.ToString();
             }
 
-            return result.ToImmutableAndClear();
+            return ImmutableCollectionsMarshal.AsImmutableArray(result);
         }, cancellationToken);
     }
 
@@ -115,7 +116,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         // the host will cache it.  We'll only actually fetch something new and compute something new when an actual new
         // analyzer reference is added.
         using var _2 = ArrayBuilder<AnalyzerReference>.GetInstance(checksums.Count, out var analyzerReferences);
-        await assetProvider.GetAssetsAsync<AnalyzerReference, ArrayBuilder<AnalyzerReference>>(
+        await assetProvider.GetAssetHelper<AnalyzerReference>().GetAssetsAsync(
             projectId,
             checksums,
             static (_, analyzerReference, analyzerReferences) => analyzerReferences.Add(analyzerReference),
