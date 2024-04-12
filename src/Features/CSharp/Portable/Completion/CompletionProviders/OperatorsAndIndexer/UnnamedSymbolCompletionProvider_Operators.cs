@@ -113,7 +113,7 @@ internal partial class UnnamedSymbolCompletionProvider
             symbols: operators.ToImmutableArray(),
             rules: s_operatorRules,
             contextPosition: context.Position,
-            properties: [.. OperatorProperties, new KeyValuePair<string, string>(OperatorName, opName)],
+            properties: [.. OperatorProperties, KeyValuePairUtil.Create(OperatorName, opName)],
             isComplexTextEdit: true));
     }
 
