@@ -561,11 +561,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // project to avoid large numbers of small synchronization calls during document updates.
                 // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
                 if (newDocumentIdToStateChecksums.Count > 2)
-                {
-                    using var _ = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectChecksums);
-                    allProjectChecksums.Add(projectChecksums);
-                    await _assetProvider.SynchronizeProjectAssetsAsync(allProjectChecksums, cancellationToken).ConfigureAwait(false);
-                }
+                    await _assetProvider.SynchronizeProjectDocumentsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
 
                 return await UpdateDocumentsAsync(project, addDocuments, removeDocuments, oldDocumentIdToStateChecksums, newDocumentIdToStateChecksums, cancellationToken).ConfigureAwait(false);
             }
@@ -614,6 +610,20 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = removeDocuments(project.Solution, lazyDocumentsToRemove.ToImmutable()).GetProject(project.Id)!;
                 }
+
+                // Bulk get info changes in one go.
+                using var _ = PooledHashSet<Checksum>.GetInstance(out var infoChecksums);
+                foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
+                {
+                    if (oldDocumentIdToStateChecksums.TryGetValue(documentId, out var oldDocumentChecksums) &&
+                        newDocumentChecksums.Info != oldDocumentChecksums.Info)
+                    {
+                        infoChecksums.Add(newDocumentChecksums.Info);
+                    }
+                }
+
+                await _assetProvider.GetAssetsAsync<DocumentInfo.DocumentAttributes>(
+                    assetPath: AssetPathKind.DocumentAttributes, infoChecksums, cancellationToken).ConfigureAwait(false);
 
                 // changed document
                 foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
