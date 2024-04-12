@@ -44,9 +44,9 @@ internal abstract class AbstractAssetProvider
             (@this: this, projectsTasks, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        // Fetch the projects in parallel.
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
+        // Fetch the projects in parallel.
         var projects = await Task.WhenAll(projectsTasks).ConfigureAwait(false);
         return SolutionInfo.Create(
             solutionAttributes.Id,
