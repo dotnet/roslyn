@@ -491,28 +491,10 @@ internal sealed class DocumentStateChecksums(
     public Checksum Info => infoChecksum;
     public Checksum Text => textChecksum;
 
-    public void Serialize(ObjectWriter writer)
-    {
-        // We don't write out the checksum itself as it would bloat the size of this message. If there is corruption
-        // (which should never ever happen), it will be detected at the project level.
-        this.DocumentId.WriteTo(writer);
-        this.Info.WriteTo(writer);
-        this.Text.WriteTo(writer);
-    }
-
     public void AddAllTo(HashSet<Checksum> checksums)
     {
-        checksums.AddIfNotNullChecksum(this.Checksum);
         checksums.AddIfNotNullChecksum(this.Info);
         checksums.AddIfNotNullChecksum(this.Text);
-    }
-
-    public static DocumentStateChecksums Deserialize(ObjectReader reader)
-    {
-        return new DocumentStateChecksums(
-            documentId: DocumentId.ReadFrom(reader),
-            infoChecksum: Checksum.ReadFrom(reader),
-            textChecksum: Checksum.ReadFrom(reader));
     }
 
     public async Task FindAsync(
@@ -525,9 +507,6 @@ internal sealed class DocumentStateChecksums(
         Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
 
         cancellationToken.ThrowIfCancellationRequested();
-
-        if (assetPath.IncludeDocumentStateChecksums && searchingChecksumsLeft.Remove(Checksum))
-            result[Checksum] = this;
 
         if (assetPath.IncludeDocumentAttributes && searchingChecksumsLeft.Remove(Info))
             result[Info] = state.Attributes;

@@ -76,7 +76,6 @@ internal readonly struct AssetPath
     public bool IncludeProjectMetadataReferences => (_kind & AssetPathKind.ProjectMetadataReferences) != 0;
     public bool IncludeProjectAnalyzerReferences => (_kind & AssetPathKind.ProjectAnalyzerReferences) != 0;
 
-    public bool IncludeDocumentStateChecksums => (_kind & AssetPathKind.DocumentStateChecksums) != 0;
     public bool IncludeDocumentAttributes => (_kind & AssetPathKind.DocumentAttributes) != 0;
     public bool IncludeDocumentText => (_kind & AssetPathKind.DocumentText) != 0;
 
@@ -132,9 +131,8 @@ internal enum AssetPathKind
     ProjectAnalyzerReferences = 1 << 21,
 
     // Keep a gap so we can easily add more project kinds
-    DocumentStateChecksums = 1 << 25,
-    DocumentAttributes = 1 << 26,
-    DocumentText = 1 << 27,
+    DocumentAttributes = 1 << 25,
+    DocumentText = 1 << 26,
 
     /// <summary>
     /// Search solution-compilation-state level information.
@@ -154,5 +152,5 @@ internal enum AssetPathKind
     /// <summary>
     /// Search documents for results.
     /// </summary>
-    Documents = DocumentStateChecksums | DocumentAttributes | DocumentText,
+    Documents = DocumentAttributes | DocumentText,
 }

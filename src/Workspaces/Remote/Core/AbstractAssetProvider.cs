@@ -130,12 +130,12 @@ internal abstract class AbstractAssetProvider
         using var _ = ArrayBuilder<Task>.GetInstance(2, out var tasks);
 
         tasks.Add(this.GetAssetsAsync<DocumentInfo.DocumentAttributes>(
-            assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId),
+            assetPath: new(AssetPathKind.DocumentAttributes, projectChecksums.ProjectId),
             attributeChecksums,
             cancellationToken));
 
         tasks.Add(this.GetAssetsAsync<SerializableSourceText>(
-            assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId),
+            assetPath: new(AssetPathKind.DocumentText, projectChecksums.ProjectId),
             textChecksums,
             cancellationToken));
 
