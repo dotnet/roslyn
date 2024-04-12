@@ -533,12 +533,11 @@ internal static class ChecksumCache
             references,
             static (references, tuple) =>
             {
-                var checksums = new Checksum[references.Count];
-                var index = 0;
+                using var _ = FixedSizeArrayBuilder<Checksum>.GetInstance(references.Count, out var checksums);
                 foreach (var reference in references)
-                    checksums[index++] = tuple.serializer.CreateChecksum(reference, tuple.cancellationToken);
+                    checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
 
-                return new ChecksumCollection(ImmutableCollectionsMarshal.AsImmutableArray(checksums));
+                return new ChecksumCollection(checksums.MoveToImmutable());
             },
             (serializer, cancellationToken));
     }

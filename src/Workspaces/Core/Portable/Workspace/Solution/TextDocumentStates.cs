@@ -117,12 +117,11 @@ internal sealed class TextDocumentStates<TState>
 
     public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
     {
-        var result = new TValue[_map.Count];
-        var index = 0;
+        using var _ = FixedSizeArrayBuilder<TValue>.GetInstance(_map.Count, out var result);
         foreach (var (_, state) in _map)
-            result[index++] = selector(state, arg);
+            result.Add(selector(state, arg));
 
-        return ImmutableCollectionsMarshal.AsImmutableArray(result);
+        return result.MoveToImmutable();
     }
 
     public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
@@ -272,24 +271,22 @@ internal sealed class TextDocumentStates<TState>
 
     public async ValueTask<DocumentChecksumsAndIds> GetDocumentChecksumsAndIdsAsync(CancellationToken cancellationToken)
     {
-        var attributeChecksums = new Checksum[_map.Count];
-        var textChecksums = new Checksum[_map.Count];
-        var documentIds = new DocumentId[_map.Count];
+        using var _1 = FixedSizeArrayBuilder<Checksum>.GetInstance(_map.Count, out var attributeChecksums);
+        using var _2 = FixedSizeArrayBuilder<Checksum>.GetInstance(_map.Count, out var textChecksums);
+        using var _3 = FixedSizeArrayBuilder<DocumentId>.GetInstance(_map.Count, out var documentIds);
 
-        var index = 0;
         foreach (var (documentId, state) in _map)
         {
             var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            attributeChecksums[index] = stateChecksums.Info;
-            textChecksums[index] = stateChecksums.Text;
-            documentIds[index] = documentId;
-            index++;
+            attributeChecksums.Add(stateChecksums.Info);
+            textChecksums.Add(stateChecksums.Text);
+            documentIds.Add(documentId);
         }
 
         return new(
-            new ChecksumCollection(ImmutableCollectionsMarshal.AsImmutableArray(attributeChecksums)),
-            new ChecksumCollection(ImmutableCollectionsMarshal.AsImmutableArray(textChecksums)),
-            ImmutableCollectionsMarshal.AsImmutableArray(documentIds));
+            new ChecksumCollection(attributeChecksums.MoveToImmutable()),
+            new ChecksumCollection(textChecksums.MoveToImmutable()),
+            documentIds.MoveToImmutable());
     }
 
     public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
