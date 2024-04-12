@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -15,8 +16,8 @@ internal static class XmlDocCommentCompletionItem
     public static CompletionItem Create(string displayText, string beforeCaretText, string afterCaretText, CompletionItemRules rules)
     {
         var props = ImmutableArray.Create(
-            new KeyValuePair<string, string>(BeforeCaretText, beforeCaretText),
-            new KeyValuePair<string, string>(AfterCaretText, afterCaretText));
+            KeyValuePairUtil.Create(BeforeCaretText, beforeCaretText),
+            KeyValuePairUtil.Create(AfterCaretText, afterCaretText));
 
         // Set isComplexTextEdit to be always true for simplicity, even
         // though we don't always need to make change outside the default
