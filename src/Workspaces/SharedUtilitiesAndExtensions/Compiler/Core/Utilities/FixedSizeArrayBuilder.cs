@@ -26,6 +26,11 @@ internal sealed class FixedSizeArrayBuilder<T>
     {
     }
 
+    /// <summary>
+    /// Gets a builder which wraps an array whose length is exactly <paramref name="capacity"/>.  This array can only be
+    /// moved into a <see cref="ImmutableArray{T}"/> through <see cref="MoveToImmutable"/>, and only when exactly that
+    /// number of elements have been added.
+    /// </summary>
     public static PooledFixedSizeArrayBuilder GetInstance(int capacity, out FixedSizeArrayBuilder<T> builder)
     {
         builder = s_pool.Allocate();
