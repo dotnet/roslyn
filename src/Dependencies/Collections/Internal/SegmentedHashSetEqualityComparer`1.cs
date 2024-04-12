@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSetEqualityComparer.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSetEqualityComparer.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Collections.Internal
 {
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 {
                     if (t != null)
                     {
-                        hashCode ^= t.GetHashCode(); // same hashcode as as default comparer
+                        hashCode ^= t.GetHashCode(); // same hashcode as default comparer
                     }
                 }
             }
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         }
 
         // Equals method for the comparer itself.
-        public override bool Equals(object? obj) => obj is SegmentedHashSetEqualityComparer<T>;
+        public override bool Equals([NotNullWhen(true)] object? obj) => obj is SegmentedHashSetEqualityComparer<T>;
 
         public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode();
     }

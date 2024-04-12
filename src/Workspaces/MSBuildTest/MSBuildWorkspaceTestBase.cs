@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             if (classBlock.Implements.Count > 0)
             {
-                return classBlock.Implements[classBlock.Implements.Count - 1].FullSpan.End;
+                return classBlock.Implements[^1].FullSpan.End;
             }
             else if (classBlock.Inherits.Count > 0)
             {
-                return classBlock.Inherits[classBlock.Inherits.Count - 1].FullSpan.End;
+                return classBlock.Inherits[^1].FullSpan.End;
             }
             else
             {

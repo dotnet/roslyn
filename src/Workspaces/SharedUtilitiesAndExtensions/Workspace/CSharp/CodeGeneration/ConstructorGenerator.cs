@@ -16,6 +16,7 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class ConstructorGenerator
@@ -60,7 +61,7 @@ internal static class ConstructorGenerator
             parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, isExplicit: false, info: info),
             initializer: GenerateConstructorInitializer(constructor),
             body: hasNoBody ? null : GenerateBlock(constructor),
-            semicolonToken: hasNoBody ? Token(SyntaxKind.SemicolonToken) : default);
+            semicolonToken: hasNoBody ? SemicolonToken : default);
 
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -120,7 +121,7 @@ internal static class ConstructorGenerator
 
         if (constructor.IsStatic)
         {
-            tokens.Add(Token(SyntaxKind.StaticKeyword));
+            tokens.Add(StaticKeyword);
         }
         else
         {
@@ -129,7 +130,7 @@ internal static class ConstructorGenerator
 
         if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))
         {
-            tokens.Add(Token(SyntaxKind.UnsafeKeyword));
+            tokens.Add(UnsafeKeyword);
         }
 
         return tokens.ToSyntaxTokenListAndFree();

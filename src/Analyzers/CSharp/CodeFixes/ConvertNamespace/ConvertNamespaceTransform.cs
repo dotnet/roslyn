@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class ConvertNamespaceTransform
@@ -322,7 +323,7 @@ internal static class ConvertNamespaceTransform
     private static FileScopedNamespaceDeclarationSyntax ConvertNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
     {
         // If the open-brace token has any special trivia, then move them to after the semicolon.
-        var semiColon = Token(SyntaxKind.SemicolonToken)
+        var semiColon = SemicolonToken
             .WithoutTrivia()
             .WithTrailingTrivia(namespaceDeclaration.Name.GetTrailingTrivia())
             .WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
@@ -382,7 +383,7 @@ internal static class ConvertNamespaceTransform
     {
         var nameSyntax = fileScopedNamespace.Name.WithAppendedTrailingTrivia(fileScopedNamespace.SemicolonToken.LeadingTrivia)
             .WithAppendedTrailingTrivia(newLinePlacement.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes) ? EndOfLine(lineEnding) : Space);
-        var openBraceToken = Token(SyntaxKind.OpenBraceToken).WithoutLeadingTrivia().WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia);
+        var openBraceToken = OpenBraceToken.WithoutLeadingTrivia().WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia);
 
         if (openBraceToken.TrailingTrivia is not [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
         {
@@ -390,7 +391,7 @@ internal static class ConvertNamespaceTransform
         }
 
         FileScopedNamespaceDeclarationSyntax adjustedFileScopedNamespace;
-        var closeBraceToken = Token(SyntaxKind.CloseBraceToken).WithoutLeadingTrivia().WithoutTrailingTrivia();
+        var closeBraceToken = CloseBraceToken.WithoutLeadingTrivia().WithoutTrailingTrivia();
 
         // Normally the block scoped namespace will have a newline after the closing brace. The only exception to
         // this occurs when there are no tokens after the closing brace and the document with a file scoped

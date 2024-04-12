@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -14,7 +15,7 @@ internal class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestCont
 {
     private readonly Action<IServiceCollection>? _addExtraHandlers;
 
-    public ExampleLanguageServer(JsonRpc jsonRpc, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, logger)
+    public ExampleLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, jsonSerializer, logger)
     {
         _addExtraHandlers = addExtraHandlers;
         // This spins up the queue and ensure the LSP is ready to start receiving requests

@@ -103,7 +103,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.3-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.234-preview.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.9.102" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.11.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioCoreVersion)" />

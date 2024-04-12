@@ -23,6 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
@@ -131,7 +132,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             methodDeclaration = methodDeclaration.WithAttributeLists(setAccessorDeclaration.AttributeLists);
@@ -186,7 +187,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             if (propertyDeclaration.ExpressionBody != null)

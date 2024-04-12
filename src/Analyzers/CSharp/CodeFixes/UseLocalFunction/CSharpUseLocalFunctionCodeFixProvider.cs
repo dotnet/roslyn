@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,12 +27,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseLocalFunction), Shared]
 internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    private static readonly TypeSyntax s_objectType = PredefinedType(Token(SyntaxKind.ObjectKeyword));
+    private static readonly TypeSyntax s_objectType = PredefinedType(ObjectKeyword);
 
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -214,7 +214,7 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
         var modifiers = new SyntaxTokenList();
         if (makeStatic)
         {
-            modifiers = modifiers.Add(Token(SyntaxKind.StaticKeyword));
+            modifiers = modifiers.Add(StaticKeyword);
         }
 
         if (anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))

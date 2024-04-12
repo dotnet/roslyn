@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class ITypeSymbolExtensions
@@ -67,7 +68,7 @@ internal partial class ITypeSymbolExtensions
                     {
                         return AddInformationTo(
                             AliasQualifiedName(
-                                IdentifierName(Token(SyntaxKind.GlobalKeyword)),
+                                IdentifierName(GlobalKeyword),
                                 simpleNameSyntax), symbol);
                     }
                 }
@@ -93,7 +94,7 @@ internal partial class ITypeSymbolExtensions
             {
                 return AddInformationTo(
                     AliasQualifiedName(
-                        IdentifierName(Token(SyntaxKind.GlobalKeyword)),
+                        IdentifierName(GlobalKeyword),
                         syntax), symbol);
             }
             else

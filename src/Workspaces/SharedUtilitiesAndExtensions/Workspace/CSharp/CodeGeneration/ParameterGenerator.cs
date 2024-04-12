@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class ParameterGenerator
@@ -81,12 +82,12 @@ internal static class ParameterGenerator
             parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
             methodSymbol.IsExtensionMethod)
         {
-            list = list.Add(Token(SyntaxKind.ThisKeyword));
+            list = list.Add(ThisKeyword);
         }
 
         if (parameter.IsParams)
         {
-            list = list.Add(Token(SyntaxKind.ParamsKeyword));
+            list = list.Add(ParamsKeyword);
         }
 
         return list;

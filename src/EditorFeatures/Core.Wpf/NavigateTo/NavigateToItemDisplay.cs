@@ -144,6 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             => _searchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
 
         public IReadOnlyList<Span> GetAdditionalInformationMatchRuns(string searchValue)
-            => SpecializedCollections.EmptyReadOnlyList<Span>();
+            => [];
     }
 }

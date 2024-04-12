@@ -47,12 +47,10 @@ internal class GenerateTypeCodeFixProvider : AbstractGenerateMemberCodeFixProvid
     {
         switch (node)
         {
-            case QualifiedNameSyntax _:
+            case QualifiedNameSyntax or MemberAccessExpressionSyntax:
                 return true;
             case SimpleNameSyntax simple:
                 return !simple.IsParentKind(SyntaxKind.QualifiedName);
-            case MemberAccessExpressionSyntax _:
-                return true;
         }
 
         return false;

@@ -56,7 +56,13 @@ internal static class DocumentBasedFixAllProviderHelpers
 
                 // TODO: consider computing this in parallel.
                 var singleContextDocIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
-                allContextsDocIdToNewRootOrText.AddRange(singleContextDocIdToNewRootOrText);
+
+                // Note: it is safe to blindly add the dictionary for a particular context to the full dictionary.  Each
+                // dictionary will only update documents within that context, and each context represents a distinct
+                // project, so these should all be distinct without collisions.  However, to be very safe, we use an
+                // overwriting policy here to ensure nothing causes any problems here.
+                foreach (var kvp in singleContextDocIdToNewRootOrText)
+                    allContextsDocIdToNewRootOrText[kvp.Key] = kvp.Value;
             }
         }
 

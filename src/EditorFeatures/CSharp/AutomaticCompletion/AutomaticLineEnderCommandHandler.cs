@@ -98,9 +98,7 @@ internal partial class AutomaticLineEnderCommandHandler(
         var endToken = root.FindToken(position);
         var span = GetFormattedTextSpan(root, endToken);
         if (span == null)
-        {
-            return SpecializedCollections.EmptyList<TextChange>();
-        }
+            return [];
 
         var formatter = document.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
         return formatter.GetFormattingResult(
