@@ -2303,12 +2303,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoModifiersOnUsing = 9229,
         ERR_CannotDynamicInvokeOnExpression = 9230,
 
-        // TODO2: pack
-        ERR_InterceptsLocationDataInvalidFormat = 9250,
-        ERR_InterceptsLocationUnsupportedVersion = 9251,
-        ERR_InterceptsLocationDuplicateFile = 9252,
-        ERR_InterceptsLocationFileNotFound = 9253,
-        ERR_InterceptsLocationDataInvalidPosition = 9254,
+        ERR_InterceptsLocationDataInvalidFormat = 9231,
+        ERR_InterceptsLocationUnsupportedVersion = 9232,
+        ERR_InterceptsLocationDuplicateFile = 9233,
+        ERR_InterceptsLocationFileNotFound = 9234,
+        ERR_InterceptsLocationDataInvalidPosition = 9235,
 
         #endregion
 

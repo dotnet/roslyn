@@ -3296,7 +3296,7 @@ public class InterceptorsTests : CSharpTestBase
             """, options: RegularWithInterceptors);
         var comp = CreateCompilation([sourceTree, interceptorTree, s_attributesTree]);
         comp.VerifyEmitDiagnostics(
-            // (6,6): error CS9234: The data argument to InterceptsLocationAttribute refers to an invalid position in file 'Error'.
+            // (6,6): error CS9235: The data argument to InterceptsLocationAttribute refers to an invalid position in file 'Error'.
             //     [InterceptsLocation(1, "ExWKMussA+NMlN5J0QNXiEMBAABFcnJvcg==")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, "InterceptsLocation").WithArguments("Error").WithLocation(6, 6)
         );
@@ -3346,7 +3346,7 @@ public class InterceptorsTests : CSharpTestBase
             """, options: RegularWithInterceptors);
         var comp = CreateCompilation([sourceTree, interceptorTree, s_attributesTree]);
         comp.VerifyEmitDiagnostics(
-            // (6,6): error CS9234: The data argument to InterceptsLocationAttribute refers to an invalid position in file 'Error'.
+            // (6,6): error CS9235: The data argument to InterceptsLocationAttribute refers to an invalid position in file 'Error'.
             //     [InterceptsLocation(1, "ExWKMussA+NMlN5J0QNXiJ+GAQBFcnJvcg==")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, "InterceptsLocation").WithArguments("Error").WithLocation(6, 6)
         );
@@ -6908,7 +6908,7 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,6): error CS9230: The data argument to InterceptsLocationAttribute is not in the correct format.
+            // Interceptors.cs(6,6): error CS9231: The data argument to InterceptsLocationAttribute is not in the correct format.
             //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw===")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "InterceptsLocation").WithLocation(6, 6));
     }
@@ -6940,7 +6940,7 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,6): error CS9230: The data argument to InterceptsLocationAttribute is not in the correct format.
+            // Interceptors.cs(6,6): error CS9231: The data argument to InterceptsLocationAttribute is not in the correct format.
             //     [InterceptsLocation(1, "AAAAAAAAAAAAAAAAAAAAAAAAAADA")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "InterceptsLocation").WithLocation(6, 6));
     }
@@ -6964,7 +6964,7 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,6): error CS9230: The data argument to InterceptsLocationAttribute is not in the correct format.
+            // Interceptors.cs(6,6): error CS9231: The data argument to InterceptsLocationAttribute is not in the correct format.
             //     [InterceptsLocation(1, "")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "InterceptsLocation").WithLocation(6, 6));
     }
@@ -6986,7 +6986,7 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,6): error CS9230: The data argument to InterceptsLocationAttribute is not in the correct format.
+            // Interceptors.cs(6,6): error CS9231: The data argument to InterceptsLocationAttribute is not in the correct format.
             //     [InterceptsLocation(1, null)]
             Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "InterceptsLocation").WithLocation(6, 6));
     }
@@ -7026,7 +7026,7 @@ partial struct CustomHandler
 
         var comp1 = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp1.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,6): error CS9233: Cannot intercept a call in file 'Program.cs' because a matching file was not found in the compilation.
+            // Interceptors.cs(6,6): error CS9234: Cannot intercept a call in file 'Program.cs' because a matching file was not found in the compilation.
             //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtLmNz")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, "InterceptsLocation").WithArguments("Program.cs").WithLocation(6, 6));
     }
@@ -7071,7 +7071,7 @@ partial struct CustomHandler
             interceptors,
             CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp1.GetDiagnostics().Where(d => d.Location.SourceTree == interceptors).Verify(
-            // Interceptors.cs(6,6): error CS9232: Cannot intercept a call in file 'Program1.cs' because it is duplicated elsewhere in the compilation.
+            // Interceptors.cs(6,6): error CS9233: Cannot intercept a call in file 'Program1.cs' because it is duplicated elsewhere in the compilation.
             //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtMS5jcw==")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationDuplicateFile, "InterceptsLocation").WithArguments("Program1.cs").WithLocation(6, 6));
     }
@@ -7169,7 +7169,7 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,6): error CS9231: Version '0' of the interceptors format is not supported. The latest supported version is '1'.
+            // Interceptors.cs(6,6): error CS9232: Version '0' of the interceptors format is not supported. The latest supported version is '1'.
             //     [InterceptsLocation(0, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw===")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationUnsupportedVersion, "InterceptsLocation").WithArguments($"{version}").WithLocation(6, 6));
     }
