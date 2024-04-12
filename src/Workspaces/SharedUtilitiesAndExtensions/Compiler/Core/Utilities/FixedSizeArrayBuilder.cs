@@ -16,6 +16,26 @@ using Roslyn.Utilities;
 /// (usually encountered when a cancellation token interrupts getting the final array), this will leak the intermediary
 /// array created to store the results.
 /// </summary>
+/// <remarks>
+/// This type should only used when all of the following is true:
+/// <list type="number">
+/// <item>
+/// The number of elements is known up front, and is fixed.  In other words, it isn't just an initial-capacity, or a
+/// rough heuristic.  Rather it will always be the exact number of elements added.  If the capacity is just intended as
+/// a rough hint then <see cref="ArrayBuilder{T}.GetInstance(int, T)"/> should be used instead.
+/// </item>
+/// <item>
+/// Exactly that number of elements is actually added prior to calling <see cref="MoveToImmutable"/>.  This means no
+/// patterns like "AddIfNotNull".  If the exact number of calls is not guaranteed then <see
+/// cref="ArrayBuilder{T}.GetInstance(int, T)"/> should be used instead.
+/// </item>
+/// <item>
+/// The builder will be moved to an array (see <see cref="MoveToArray"/>) or <see cref="ImmutableArray{T}"/> (see <see
+/// cref="MoveToImmutable"/>).  If the builder is intended just for a scratch buffer, then <see
+/// cref="ArrayBuilder{T}.GetInstance(int, T)"/> should be used instead.
+/// </item>
+/// </list>
+/// </remarks>
 [NonCopyable]
 internal struct FixedSizeArrayBuilder<T>(int capacity)
 {
