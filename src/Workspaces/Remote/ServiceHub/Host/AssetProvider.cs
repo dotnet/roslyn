@@ -43,7 +43,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         checksums.Add(checksum);
 
         using var _2 = ArrayBuilder<T>.GetInstance(1, out var builder);
-        await this.GetAssetsAsync<T, ArrayBuilder<T>>(
+        await this.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksums,
             static (_, asset, builder) => builder.Add(asset),
             builder, cancellationToken).ConfigureAwait(false);
