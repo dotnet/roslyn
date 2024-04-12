@@ -98,13 +98,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
             else
             {
-                using var _ = ArrayBuilder<TextSpan>.GetInstance(spans.Length, out var textSpansBuilder);
+                var textSpansBuilder = new FixedSizeArrayBuilder<TextSpan>(spans.Length);
                 foreach (var span in spans)
-                {
                     textSpansBuilder.Add(text.Lines.GetTextSpan(span));
-                }
 
-                textSpans = textSpansBuilder.ToImmutable();
+                textSpans = textSpansBuilder.MoveToImmutable();
             }
 
             await GetClassifiedSpansForDocumentAsync(
