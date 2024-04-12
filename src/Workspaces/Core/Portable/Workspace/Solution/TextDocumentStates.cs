@@ -360,9 +360,9 @@ internal sealed class TextDocumentStates<TState>
     {
 #if NET
         using var pooledObject = s_filePathPool.GetPooledObject();
-        var dictionary = pooledObject.Object;
+        var result = pooledObject.Object;
 #else
-        var dictionary = new Dictionary<string, OneOrMany<DocumentId>>(SolutionState.FilePathComparer);
+        var result = new Dictionary<string, OneOrMany<DocumentId>>(SolutionState.FilePathComparer);
 #endif
 
         foreach (var (documentId, state) in _map)
@@ -371,15 +371,15 @@ internal sealed class TextDocumentStates<TState>
             if (filePath is null)
                 continue;
 
-            dictionary[filePath] = dictionary.TryGetValue(filePath, out var existingValue)
+            result[filePath] = result.TryGetValue(filePath, out var existingValue)
                 ? existingValue.Add(documentId)
                 : OneOrMany.Create(documentId);
         }
 
 #if NET
-        return dictionary.ToFrozenDictionary(SolutionState.FilePathComparer);
+        return result.ToFrozenDictionary(SolutionState.FilePathComparer);
 #else
-        return new(dictionary);
+        return new(result);
 #endif
     }
 }
