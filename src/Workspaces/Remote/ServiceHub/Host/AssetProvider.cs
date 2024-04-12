@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
     : AbstractAssetProvider
 {
-    private const int PooledChecksumArraySize = 256;
+    private const int PooledChecksumArraySize = 1024;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
     private readonly Checksum _solutionChecksum = solutionChecksum;
@@ -57,6 +58,10 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         await this.SynchronizeAssetsAsync(assetPath, checksums, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// This is the function called when we are <em>not</em> doing an incremental update, but are instead doing a bulk
+    /// full sync.
+    /// </summary>
     public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
         var timer = SharedStopwatch.StartNew();
@@ -84,17 +89,18 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         {
             // first, get top level solution state for the given solution checksum
             var compilationStateChecksums = await this.GetAssetAsync<SolutionCompilationStateChecksums>(
-                assetPath: AssetPath.SolutionOnly, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                assetPath: AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
             // second, get direct children of the solution compilation state.
             compilationStateChecksums.AddAllTo(checksums);
-            await this.SynchronizeAssetsAsync<object, VoidResult>(assetPath: AssetPath.SolutionOnly, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+            await this.SynchronizeAssetsAsync<object, VoidResult>(
+                assetPath: AssetPathKind.SolutionCompilationState, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
 
             // third, get direct children of the solution state.
             var stateChecksums = await this.GetAssetAsync<SolutionStateChecksums>(
-                assetPath: AssetPath.SolutionOnly, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+                assetPath: AssetPathKind.SolutionStateChecksums, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
             // Ask for solutions and top-level projects as the solution checksums will contain the checksums for
             // the project states and we want to get that all in one batch.
@@ -103,22 +109,31 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
 
+            // Note: this search will be optimized on the host side.  It will search through the solution level values,
+            // and then the top level project-state-checksum values only.  No other project data or document data will be
+            // looked at.
             await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
-                assetPath: AssetPath.SolutionAndTopLevelProjectsOnly,
+                assetPath: AssetPathKind.SolutionState | AssetPathKind.ProjectStateChecksums,
                 checksums,
                 static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
                 arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
 
+            using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);
+
             // fourth, get all projects and documents in the solution 
-            foreach (var (projectChecksum, _) in stateChecksums.Projects)
+            foreach (var (projectChecksum, projectId) in stateChecksums.Projects)
             {
                 var projectStateChecksums = (ProjectStateChecksums)checksumToObjects[projectChecksum];
-                await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(projectStateChecksums.ProjectId != projectId);
+                allProjectStateChecksums.Add(projectStateChecksums);
             }
+
+            await SynchronizeProjectAssetsAsync(allProjectStateChecksums, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    public async ValueTask SynchronizeProjectAssetsAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
+    public async ValueTask SynchronizeProjectAssetsAsync(
+        ArrayBuilder<ProjectStateChecksums> allProjectChecksums, CancellationToken cancellationToken)
     {
         // this will pull in assets that belong to the given project checksum to this remote host. this one is not
         // supposed to be used for functionality but only for perf. that is why it doesn't return anything. to get
@@ -129,59 +144,147 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         // GetAssetAsync call will most likely cache hit. it is most likely since we might change cache heuristic in
         // future which make data to live a lot shorter in the cache, and the data might get expired before one actually
         // consume the data. 
-        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, Checksum.GetProjectChecksumsLogInfo, projectChecksums, cancellationToken))
+        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, message: null, cancellationToken))
         {
-            await SynchronizeProjectAssetsWorkerAsync().ConfigureAwait(false);
-        }
-
-        async ValueTask SynchronizeProjectAssetsWorkerAsync()
-        {
-            // get children of project checksum objects at once
-            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
-
-            checksums.Add(projectChecksums.Info);
-            checksums.Add(projectChecksums.CompilationOptions);
-            checksums.Add(projectChecksums.ParseOptions);
-            AddAll(checksums, projectChecksums.ProjectReferences);
-            AddAll(checksums, projectChecksums.MetadataReferences);
-            AddAll(checksums, projectChecksums.AnalyzerReferences);
-            AddAll(checksums, projectChecksums.Documents.Checksums);
-            AddAll(checksums, projectChecksums.AdditionalDocuments.Checksums);
-            AddAll(checksums, projectChecksums.AnalyzerConfigDocuments.Checksums);
-
-            // First synchronize all the top-level info about this project.
-            await this.SynchronizeAssetsAsync<object, VoidResult>(
-                assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-
-            checksums.Clear();
-
-            // Then synchronize the info about all the documents within.
-            await CollectChecksumChildrenAsync(checksums, projectChecksums.Documents).ConfigureAwait(false);
-            await CollectChecksumChildrenAsync(checksums, projectChecksums.AdditionalDocuments).ConfigureAwait(false);
-            await CollectChecksumChildrenAsync(checksums, projectChecksums.AnalyzerConfigDocuments).ConfigureAwait(false);
-
-            await this.SynchronizeAssetsAsync<object, VoidResult>(
-                assetPath: AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-        }
-
-        async ValueTask CollectChecksumChildrenAsync(HashSet<Checksum> checksums, ChecksumsAndIds<DocumentId> collection)
-        {
-            // This GetAssetsAsync call should be fast since they were just retrieved above.  There's a small chance
-            // the asset-cache GC pass may have cleaned them up, but that should be exceedingly rare.
-            var allDocChecksums = await this.GetAssetsAsync<DocumentStateChecksums>(
-                AssetPath.ProjectAndDocuments(projectChecksums.ProjectId), collection.Checksums, cancellationToken).ConfigureAwait(false);
-            foreach (var docChecksums in allDocChecksums)
+            // It's common to have two usage patterns of SynchronizeProjectAssetsAsync. Bulk syncing the majority of the
+            // solution over, or just syncing a single project (or small set of projects) in response to a small change
+            // (like a user edit).  For the bulk case, we want to make sure we're doing as few round trips as possible,
+            // getting as much of the data we can in each call.  For the single project case though, we don't want to
+            // have the host have to search the entire solution graph for data we know it contained within just that
+            // project.
+            //
+            // So, we split up our strategy here based on how many projects we're syncing.  If it's 4 or less, we just
+            // sync each project individually, passing the data to the host so it can limit its search to just that
+            // project.  If it's more than that, we do it in bulk, knowing that as we're searching for a ton of
+            // data, it's fine for the host to do a full pass for each of the data types we're looking for.
+            if (allProjectChecksums.Count <= 4)
             {
-                checksums.Add(docChecksums.Info);
-                checksums.Add(docChecksums.Text);
+                // Still sync the N projects in parallel.
+                using var _ = ArrayBuilder<Task>.GetInstance(allProjectChecksums.Count, out var tasks);
+                foreach (var singleProjectChecksums in allProjectChecksums)
+                {
+                    // Make a fresh singleton array, containing just this project checksum, and pass into the helper
+                    // below. That way we can have just a single helper for actually doing the syncing, regardless of if
+                    // we are are doing a single project or multiple.
+                    ArrayBuilder<ProjectStateChecksums>.GetInstance(capacity: 1, out var tempBuffer);
+                    tempBuffer.Add(singleProjectChecksums);
+
+                    // We want to synchronize the assets just for this project.  So we can pass the ProjectId as a hint
+                    // to limit the search on the host side.
+                    tasks.Add(SynchronizeProjectAssetsWorkerAsync(
+                        tempBuffer, singleProjectChecksums.ProjectId, freeArrayBuilder: true, cancellationToken));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+            else
+            {
+                // We want to synchronize all assets in bulk.  Because of this, we can't narrow the search on the host
+                // side to a particular ProjectId.
+                await SynchronizeProjectAssetsWorkerAsync(
+                    allProjectChecksums,
+                    projectId: null,
+                    freeArrayBuilder: false, cancellationToken).ConfigureAwait(false);
             }
         }
+    }
+
+    private async Task SynchronizeProjectAssetsWorkerAsync(
+        ArrayBuilder<ProjectStateChecksums> allProjectChecksums, ProjectId? projectId, bool freeArrayBuilder, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Yield();
+
+            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+            // Make parallel requests for all the project data across all projects at once. For each request, pass
+            // in the appropriate info to let the search avoid looking at data unnecessarily.
+            tasks.Add(SynchronizeProjectAssetAsync<ProjectInfo.ProjectAttributes>(new(AssetPathKind.ProjectAttributes, projectId), static p => p.Info));
+            tasks.Add(SynchronizeProjectAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), static p => p.CompilationOptions));
+            tasks.Add(SynchronizeProjectAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), static p => p.ParseOptions));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), static p => p.ProjectReferences));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), static p => p.MetadataReferences));
+            tasks.Add(SynchronizeProjectAssetCollectionAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), static p => p.AnalyzerReferences));
+
+            // Then sync each project's documents in parallel with each other.
+            foreach (var projectChecksums in allProjectChecksums)
+                tasks.Add(SynchronizeProjectDocumentsAsync(projectChecksums));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (freeArrayBuilder)
+                allProjectChecksums.Free();
+        }
+
+        return;
 
         static void AddAll(HashSet<Checksum> checksums, ChecksumCollection checksumCollection)
         {
             foreach (var checksum in checksumCollection)
                 checksums.Add(checksum);
         }
+
+        Task SynchronizeProjectAssetAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, Checksum> getChecksum)
+            => SynchronizeProjectAssetOrCollectionAsync<TAsset, Func<ProjectStateChecksums, Checksum>>(
+                assetPath,
+                static (projectStateChecksums, checksums, getChecksum) => checksums.Add(getChecksum(projectStateChecksums)),
+                getChecksum);
+
+        Task SynchronizeProjectAssetCollectionAsync<TAsset>(AssetPath assetPath, Func<ProjectStateChecksums, ChecksumCollection> getChecksums)
+            => SynchronizeProjectAssetOrCollectionAsync<TAsset, Func<ProjectStateChecksums, ChecksumCollection>>(
+                assetPath,
+                static (projectStateChecksums, checksums, getChecksums) => AddAll(checksums, getChecksums(projectStateChecksums)),
+                getChecksums);
+
+        async Task SynchronizeProjectAssetOrCollectionAsync<TAsset, TArg>(
+            AssetPath assetPath, Action<ProjectStateChecksums, HashSet<Checksum>, TArg> addAllChecksums, TArg arg)
+        {
+            await Task.Yield();
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+            foreach (var projectChecksums in allProjectChecksums)
+                addAllChecksums(projectChecksums, checksums, arg);
+
+            await SynchronizeAssetsAsync<TAsset>(assetPath, checksums).ConfigureAwait(false);
+        }
+
+        async Task SynchronizeProjectDocumentsAsync(ProjectStateChecksums projectChecksums)
+        {
+            await Task.Yield();
+            using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+            AddAll(checksums, projectChecksums.Documents.Checksums);
+            AddAll(checksums, projectChecksums.AdditionalDocuments.Checksums);
+            AddAll(checksums, projectChecksums.AnalyzerConfigDocuments.Checksums);
+
+            // First, fetch all the DocumentStateChecksums for all the documents in the project.
+            using var _2 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
+            await this.SynchronizeAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
+                assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId), checksums,
+                static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
+                allDocumentStateChecksums,
+                cancellationToken).ConfigureAwait(false);
+
+            // Now go and fetch the info and text for all of those documents.
+            checksums.Clear();
+            foreach (var docChecksums in allDocumentStateChecksums)
+            {
+                checksums.Add(docChecksums.Info);
+                checksums.Add(docChecksums.Text);
+            }
+
+            // We know we only need to search the documents in this particular project for those info/text values.  So
+            // pass in the right path hint to limit the search on the host side to just the document in this project.
+            await SynchronizeAssetsAsync<object>(
+                assetPath: new(AssetPathKind.DocumentAttributes | AssetPathKind.DocumentText, projectChecksums.ProjectId),
+                checksums).ConfigureAwait(false);
+        }
+
+        ValueTask SynchronizeAssetsAsync<TAsset>(AssetPath assetPath, HashSet<Checksum> checksums)
+            => this.SynchronizeAssetsAsync<TAsset, VoidResult>(assetPath, checksums, callback: null, arg: default, cancellationToken);
     }
 
     public async ValueTask SynchronizeAssetsAsync<T, TArg>(

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -137,7 +138,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeProjectAssetsAsync(await project.State.GetStateChecksumsAsync(CancellationToken.None), CancellationToken.None);
+
+            using var _ = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectChecksums);
+            allProjectChecksums.Add(await project.State.GetStateChecksumsAsync(CancellationToken.None));
+
+            await service.SynchronizeProjectAssetsAsync(allProjectChecksums, CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }
