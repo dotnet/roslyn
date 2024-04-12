@@ -107,7 +107,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);
-            await this.GetAssetsAsync<ProjectStateChecksums, ArrayBuilder<ProjectStateChecksums>>(
+            await this.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
                 AssetPathKind.ProjectStateChecksums,
                 solutionStateChecksum.Projects.Checksums,
                 static (_, asset, allProjectStateChecksums) => allProjectStateChecksums.Add(asset),
