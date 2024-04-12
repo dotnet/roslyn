@@ -145,9 +145,6 @@ internal abstract class AbstractAssetProvider
     public async Task<DocumentInfo> CreateDocumentInfoAsync(
         DocumentId documentId, Checksum attributeChecksum, Checksum textChecksum, CancellationToken cancellationToken)
     {
-        //var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(new(AssetPathKind.DocumentStateChecksums, documentId), documentChecksum, cancellationToken).ConfigureAwait(false);
-        //Contract.ThrowIfTrue(documentId != documentSnapshot.DocumentId);
-
         var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(new(AssetPathKind.DocumentAttributes, documentId), attributeChecksum, cancellationToken).ConfigureAwait(false);
         var serializableSourceText = await GetAssetAsync<SerializableSourceText>(new(AssetPathKind.DocumentText, documentId), textChecksum, cancellationToken).ConfigureAwait(false);
 
