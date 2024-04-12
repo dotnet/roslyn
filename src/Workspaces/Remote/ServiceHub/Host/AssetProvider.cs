@@ -129,23 +129,14 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 AssetPathKind.SolutionAnalyzerReferences, solutionStateChecksum.AnalyzerReferences, cancellationToken));
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            // Note: this search will be optimized on the host side.  It will search through the solution level values,
-            // and then the top level project-state-checksum values only.  No other project data or document data will be
-            // looked at.
-
-            using var _2 = PooledDictionary<Checksum, ProjectStateChecksums>.GetInstance(out var checksumToProjectStateChecksums);
-            await this.GetAssetsAsync<ProjectStateChecksums, Dictionary<Checksum, ProjectStateChecksums>>(
+            using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);
+            await this.GetAssetsAsync<ProjectStateChecksums, ArrayBuilder<ProjectStateChecksums>>(
                 AssetPathKind.ProjectStateChecksums,
                 solutionStateChecksum.Projects.Checksums,
-                static (checksum, asset, checksumToProjectStateChecksums) => checksumToProjectStateChecksums.Add(checksum, asset),
-                arg: checksumToProjectStateChecksums, cancellationToken).ConfigureAwait(false);
-
-            using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);
+                static (_, asset, allProjectStateChecksums) => allProjectStateChecksums.Add(asset),
+                arg: allProjectStateChecksums, cancellationToken).ConfigureAwait(false);
 
             // fourth, get all projects and documents in the solution 
-            foreach (var (_, projectStateChecksums) in checksumToProjectStateChecksums)
-                allProjectStateChecksums.Add(projectStateChecksums);
-
             await SynchronizeProjectAssetsAsync(allProjectStateChecksums, cancellationToken).ConfigureAwait(false);
         }
     }
