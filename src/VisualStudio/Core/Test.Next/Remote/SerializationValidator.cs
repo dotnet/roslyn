@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             if (solutionObject1.FrozenSourceGeneratedDocumentIdentities.HasValue)
                 AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocumentIdentities.Value, solutionObject2.FrozenSourceGeneratedDocumentIdentities!.Value);
 
-            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocuments.HasValue, solutionObject2.FrozenSourceGeneratedDocuments.HasValue);
-            if (solutionObject1.FrozenSourceGeneratedDocuments.HasValue)
-                AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocuments.Value, solutionObject2.FrozenSourceGeneratedDocuments!.Value);
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentTexts.HasValue, solutionObject2.FrozenSourceGeneratedDocumentTexts.HasValue);
+            if (solutionObject1.FrozenSourceGeneratedDocumentTexts.HasValue)
+                AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocumentTexts.Value, solutionObject2.FrozenSourceGeneratedDocumentTexts!.Value);
         }
 
         internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)

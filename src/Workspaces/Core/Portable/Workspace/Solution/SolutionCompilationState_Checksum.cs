@@ -125,16 +125,17 @@ internal partial class SolutionCompilationState
                 }
 
                 ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
-                ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
+                ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocumentTexts = null;
                 ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
 
                 if (FrozenSourceGeneratedDocumentStates != null)
                 {
                     var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
-                    var identityChecksums = FrozenSourceGeneratedDocumentStates
-                        .SelectAsArray(static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+                    var identityChecksums = FrozenSourceGeneratedDocumentStates.SelectAsArray(
+                        static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+
+                    frozenSourceGeneratedDocumentTexts = await FrozenSourceGeneratedDocumentStates.GetTextChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
                     frozenSourceGeneratedDocumentIdentities = new ChecksumCollection(identityChecksums);
-                    frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
                     frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
@@ -146,8 +147,8 @@ internal partial class SolutionCompilationState
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
                     versionMapChecksum,
+                    frozenSourceGeneratedDocumentTexts,
                     frozenSourceGeneratedDocumentIdentities,
-                    frozenSourceGeneratedDocuments,
                     frozenSourceGeneratedDocumentGenerationDateTimes);
                 return (compilationStateChecksums, projectCone);
             }
