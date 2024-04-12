@@ -100,8 +100,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
             solutionStateChecksum.AnalyzerReferences.AddAllTo(checksums);
 
-            await this.SynchronizeAssetsAsync<AnalyzerReference, VoidResult>(
-                assetPath: AssetPathKind.SolutionAnalyzerReferences, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+            await this.GetAssetsAsync<AnalyzerReference>(
+                assetPath: AssetPathKind.SolutionAnalyzerReferences, checksums, cancellationToken).ConfigureAwait(false);
 
             // Note: this search will be optimized on the host side.  It will search through the solution level values,
             // and then the top level project-state-checksum values only.  No other project data or document data will be
@@ -242,7 +242,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             foreach (var projectChecksums in allProjectChecksums)
                 addAllChecksums(projectChecksums, checksums, arg);
 
-            await SynchronizeAssetsAsync<TAsset>(assetPath, checksums).ConfigureAwait(false);
+            await GetAssetsAsync<TAsset>(assetPath, checksums, cancellationToken).ConfigureAwait(false);
         }
 
         async Task SynchronizeProjectDocumentsAsync(ProjectStateChecksums projectChecksums)
@@ -272,13 +272,10 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             // We know we only need to search the documents in this particular project for those info/text values.  So
             // pass in the right path hint to limit the search on the host side to just the document in this project.
-            await SynchronizeAssetsAsync<object>(
+            await GetAssetsAsync<object>(
                 assetPath: new(AssetPathKind.DocumentAttributes | AssetPathKind.DocumentText, projectChecksums.ProjectId),
-                checksums).ConfigureAwait(false);
+                checksums, cancellationToken).ConfigureAwait(false);
         }
-
-        async Task SynchronizeAssetsAsync<TAsset>(AssetPath assetPath, HashSet<Checksum> checksums)
-            => await this.SynchronizeAssetsAsync<TAsset, VoidResult>(assetPath, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask SynchronizeAssetsAsync<T, TArg>(

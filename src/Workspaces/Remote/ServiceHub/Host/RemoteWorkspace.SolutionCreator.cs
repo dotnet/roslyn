@@ -256,15 +256,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
                         projectItemChecksums.Add(newProjectChecksums.Info);
 
-                    await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
-                        assetPath: AssetPathKind.ProjectAttributes, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes>(
+                        assetPath: AssetPathKind.ProjectAttributes, projectItemChecksums, cancellationToken).ConfigureAwait(false);
 
                     projectItemChecksums.Clear();
                     foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
                         projectItemChecksums.Add(newProjectChecksums.CompilationOptions);
 
-                    await _assetProvider.GetAssetsAsync<CompilationOptions, VoidResult>(
-                        assetPath: AssetPathKind.ProjectCompilationOptions, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.GetAssetsAsync<CompilationOptions>(
+                        assetPath: AssetPathKind.ProjectCompilationOptions, projectItemChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
                 using var _2 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
