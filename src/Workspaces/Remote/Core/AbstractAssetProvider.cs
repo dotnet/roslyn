@@ -127,19 +127,17 @@ internal abstract class AbstractAssetProvider
         projectChecksums.AdditionalDocuments.TextChecksums.AddAllTo(textChecksums);
         projectChecksums.AnalyzerConfigDocuments.TextChecksums.AddAllTo(textChecksums);
 
-        using var _ = ArrayBuilder<Task>.GetInstance(2, out var tasks);
-
-        tasks.Add(this.GetAssetsAsync<DocumentInfo.DocumentAttributes>(
+        var attributesTask = this.GetAssetsAsync<DocumentInfo.DocumentAttributes>(
             assetPath: new(AssetPathKind.DocumentAttributes, projectChecksums.ProjectId),
             attributeChecksums,
-            cancellationToken));
+            cancellationToken);
 
-        tasks.Add(this.GetAssetsAsync<SerializableSourceText>(
+        var textTask = this.GetAssetsAsync<SerializableSourceText>(
             assetPath: new(AssetPathKind.DocumentText, projectChecksums.ProjectId),
             textChecksums,
-            cancellationToken));
+            cancellationToken);
 
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        await Task.WhenAll(attributesTask, textTask).ConfigureAwait(false);
     }
 
     public async Task<DocumentInfo> CreateDocumentInfoAsync(
