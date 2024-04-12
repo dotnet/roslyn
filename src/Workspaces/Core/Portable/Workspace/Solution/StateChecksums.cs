@@ -22,18 +22,18 @@ internal sealed class SolutionCompilationStateChecksums
         Checksum solutionState,
         Checksum sourceGeneratorExecutionVersionMap,
         // These arrays are all the same length if present, and reference the same documents in the same order.
-        DocumentChecksumsAndIds? frozenSourceGeneratedDocumentTexts,
+        DocumentChecksumsAndIds? frozenSourceGeneratedDocuments,
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities,
         ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes)
     {
         // For the frozen source generated document info, we expect two either have both checksum collections or neither, and they
         // should both be the same length as there is a 1:1 correspondence between them.
-        Contract.ThrowIfFalse(frozenSourceGeneratedDocumentIdentities.HasValue == frozenSourceGeneratedDocumentTexts.HasValue);
-        Contract.ThrowIfFalse(frozenSourceGeneratedDocumentIdentities?.Count == frozenSourceGeneratedDocumentTexts?.Length);
+        Contract.ThrowIfFalse(frozenSourceGeneratedDocumentIdentities.HasValue == frozenSourceGeneratedDocuments.HasValue);
+        Contract.ThrowIfFalse(frozenSourceGeneratedDocumentIdentities?.Count == frozenSourceGeneratedDocuments?.Length);
 
         SolutionState = solutionState;
         SourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
-        FrozenSourceGeneratedDocumentTexts = frozenSourceGeneratedDocumentTexts;
+        FrozenSourceGeneratedDocuments = frozenSourceGeneratedDocuments;
         FrozenSourceGeneratedDocumentIdentities = frozenSourceGeneratedDocumentIdentities;
         FrozenSourceGeneratedDocumentGenerationDateTimes = frozenSourceGeneratedDocumentGenerationDateTimes;
 
@@ -43,7 +43,7 @@ internal sealed class SolutionCompilationStateChecksums
             SolutionState,
             SourceGeneratorExecutionVersionMap,
             FrozenSourceGeneratedDocumentIdentities?.Checksum ?? Checksum.Null,
-            frozenSourceGeneratedDocumentTexts?.Checksum ?? Checksum.Null);
+            frozenSourceGeneratedDocuments?.Checksum ?? Checksum.Null);
     }
 
     public Checksum Checksum { get; }
@@ -53,7 +53,7 @@ internal sealed class SolutionCompilationStateChecksums
     /// <summary>
     /// Checksums of the SourceTexts of the frozen documents directly.  Not checksums of their DocumentStates.
     /// </summary>
-    public DocumentChecksumsAndIds? FrozenSourceGeneratedDocumentTexts { get; }
+    public DocumentChecksumsAndIds? FrozenSourceGeneratedDocuments { get; }
     public ChecksumCollection? FrozenSourceGeneratedDocumentIdentities { get; }
 
     // note: intentionally not part of the identity contract of this type.
@@ -65,7 +65,7 @@ internal sealed class SolutionCompilationStateChecksums
         checksums.AddIfNotNullChecksum(this.SolutionState);
         checksums.AddIfNotNullChecksum(this.SourceGeneratorExecutionVersionMap);
         this.FrozenSourceGeneratedDocumentIdentities?.AddAllTo(checksums);
-        this.FrozenSourceGeneratedDocumentTexts?.AddAllTo(checksums);
+        this.FrozenSourceGeneratedDocuments?.AddAllTo(checksums);
     }
 
     public void Serialize(ObjectWriter writer)
@@ -79,7 +79,7 @@ internal sealed class SolutionCompilationStateChecksums
         writer.WriteBoolean(this.FrozenSourceGeneratedDocumentIdentities.HasValue);
         if (FrozenSourceGeneratedDocumentIdentities.HasValue)
         {
-            this.FrozenSourceGeneratedDocumentTexts!.Value.WriteTo(writer);
+            this.FrozenSourceGeneratedDocuments!.Value.WriteTo(writer);
             this.FrozenSourceGeneratedDocumentIdentities.Value.WriteTo(writer);
             writer.WriteArray(this.FrozenSourceGeneratedDocumentGenerationDateTimes, static (w, d) => w.WriteInt64(d.Ticks));
         }
@@ -136,7 +136,7 @@ internal sealed class SolutionCompilationStateChecksums
             if (compilationState.FrozenSourceGeneratedDocumentStates != null)
             {
                 Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
-                Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentTexts.HasValue);
+                Contract.ThrowIfFalse(FrozenSourceGeneratedDocuments.HasValue);
 
                 // This could either be the checksum for the text (which we'll use our regular helper for first)...
                 if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentText)
@@ -154,7 +154,7 @@ internal sealed class SolutionCompilationStateChecksums
                     if (documentId != null)
                     {
                         // If the caller is asking for a specific document, we can just look it up directly.
-                        var index = FrozenSourceGeneratedDocumentTexts.Value.Ids.IndexOf(documentId);
+                        var index = FrozenSourceGeneratedDocuments.Value.Ids.IndexOf(documentId);
                         if (index >= 0)
                         {
                             var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value.Children[index];
@@ -173,7 +173,7 @@ internal sealed class SolutionCompilationStateChecksums
                             var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
                             if (searchingChecksumsLeft.Remove(identityChecksum))
                             {
-                                var id = FrozenSourceGeneratedDocumentTexts.Value.Ids[i];
+                                var id = FrozenSourceGeneratedDocuments.Value.Ids[i];
                                 Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
                                 result[identityChecksum] = state.Identity;
                             }
