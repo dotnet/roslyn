@@ -85,7 +85,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum>(map.Keys), callback: null, arg: default, CancellationToken.None);
+            await service.GetAssetsAsync<object>(AssetPath.FullLookupForTesting, new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
             foreach (var kv in map)
             {

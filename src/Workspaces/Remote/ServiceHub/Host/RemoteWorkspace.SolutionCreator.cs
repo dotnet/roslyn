@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
                     {
-                        solution = solution.WithAnalyzerReferences(await _assetProvider.GetAssetsAsync<AnalyzerReference>(
+                        solution = solution.WithAnalyzerReferences(await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                             AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                     }
 
@@ -256,15 +256,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
                         projectItemChecksums.Add(newProjectChecksums.Info);
 
-                    await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes, VoidResult>(
-                        assetPath: AssetPathKind.ProjectAttributes, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.GetAssetsAsync<ProjectInfo.ProjectAttributes>(
+                        assetPath: AssetPathKind.ProjectAttributes, projectItemChecksums, cancellationToken).ConfigureAwait(false);
 
                     projectItemChecksums.Clear();
                     foreach (var (_, newProjectChecksums) in newProjectIdToStateChecksums)
                         projectItemChecksums.Add(newProjectChecksums.CompilationOptions);
 
-                    await _assetProvider.GetAssetsAsync<CompilationOptions, VoidResult>(
-                        assetPath: AssetPathKind.ProjectCompilationOptions, projectItemChecksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.GetAssetsAsync<CompilationOptions>(
+                        assetPath: AssetPathKind.ProjectCompilationOptions, projectItemChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
                 using var _2 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // Now make a ProjectInfo corresponding to the new project checksums.  This should be fast due
                         // to the bulk sync we just performed above.
-                        var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
+                        var projectInfo = await _assetProvider.CreateProjectInfoAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
                         projectInfos.Add(projectInfo);
                     }
                 }
@@ -367,31 +367,29 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed project references
                 if (oldProjectChecksums.ProjectReferences.Checksum != newProjectChecksums.ProjectReferences.Checksum)
                 {
-                    project = project.WithProjectReferences(await _assetProvider.GetAssetsAsync<ProjectReference>(
+                    project = project.WithProjectReferences(await _assetProvider.GetAssetsArrayAsync<ProjectReference>(
                         assetPath: project.Id, newProjectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false));
                 }
 
                 // changed metadata references
                 if (oldProjectChecksums.MetadataReferences.Checksum != newProjectChecksums.MetadataReferences.Checksum)
                 {
-                    project = project.WithMetadataReferences(await _assetProvider.GetAssetsAsync<MetadataReference>(
+                    project = project.WithMetadataReferences(await _assetProvider.GetAssetsArrayAsync<MetadataReference>(
                         assetPath: project.Id, newProjectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false));
                 }
 
                 // changed analyzer references
                 if (oldProjectChecksums.AnalyzerReferences.Checksum != newProjectChecksums.AnalyzerReferences.Checksum)
                 {
-                    project = project.WithAnalyzerReferences(await _assetProvider.GetAssetsAsync<AnalyzerReference>(
+                    project = project.WithAnalyzerReferences(await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                         assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                 }
 
                 // changed analyzer references
                 if (oldProjectChecksums.Documents.Checksum != newProjectChecksums.Documents.Checksum)
                 {
-                    project = await UpdateDocumentsAsync(
+                    project = await UpdateDocumentsAsync<DocumentState>(
                         project,
-                        newProjectChecksums,
-                        project.State.DocumentStates,
                         oldProjectChecksums.Documents,
                         newProjectChecksums.Documents,
                         static (solution, documents) => solution.AddDocuments(documents),
@@ -402,10 +400,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed additional documents
                 if (oldProjectChecksums.AdditionalDocuments.Checksum != newProjectChecksums.AdditionalDocuments.Checksum)
                 {
-                    project = await UpdateDocumentsAsync(
+                    project = await UpdateDocumentsAsync<AdditionalDocumentState>(
                         project,
-                        newProjectChecksums,
-                        project.State.AdditionalDocumentStates,
                         oldProjectChecksums.AdditionalDocuments,
                         newProjectChecksums.AdditionalDocuments,
                         static (solution, documents) => solution.AddAdditionalDocuments(documents),
@@ -416,10 +412,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed analyzer config documents
                 if (oldProjectChecksums.AnalyzerConfigDocuments.Checksum != newProjectChecksums.AnalyzerConfigDocuments.Checksum)
                 {
-                    project = await UpdateDocumentsAsync(
+                    project = await UpdateDocumentsAsync<AnalyzerConfigDocumentState>(
                         project,
-                        newProjectChecksums,
-                        project.State.AnalyzerConfigDocumentStates,
                         oldProjectChecksums.AnalyzerConfigDocuments,
                         newProjectChecksums.AnalyzerConfigDocuments,
                         static (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
@@ -497,85 +491,57 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private async Task<Project> UpdateDocumentsAsync<TDocumentState>(
                 Project project,
-                ProjectStateChecksums projectChecksums,
-                TextDocumentStates<TDocumentState> existingTextDocumentStates,
-                ChecksumsAndIds<DocumentId> oldChecksums,
-                ChecksumsAndIds<DocumentId> newChecksums,
+                DocumentChecksumsAndIds oldChecksums,
+                DocumentChecksumsAndIds newChecksums,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
                 CancellationToken cancellationToken) where TDocumentState : TextDocumentState
             {
-                using var _1 = PooledDictionary<DocumentId, Checksum>.GetInstance(out var oldDocumentIdToChecksum);
-                using var _2 = PooledDictionary<DocumentId, Checksum>.GetInstance(out var newDocumentIdToChecksum);
+                using var _1 = PooledDictionary<DocumentId, (Checksum attributeChecksum, Checksum textChecksum)>.GetInstance(out var oldDocumentIdToChecksums);
+                using var _2 = PooledDictionary<DocumentId, (Checksum attributeChecksum, Checksum textChecksum)>.GetInstance(out var newDocumentIdToChecksums);
 
-                foreach (var (oldChecksum, documentId) in oldChecksums)
-                    oldDocumentIdToChecksum.Add(documentId, oldChecksum);
+                foreach (var (oldAttributeChecksum, oldTextChecksum, documentId) in oldChecksums)
+                    oldDocumentIdToChecksums.Add(documentId, (oldAttributeChecksum, oldTextChecksum));
 
-                foreach (var (newChecksum, documentId) in newChecksums)
-                    newDocumentIdToChecksum.Add(documentId, newChecksum);
+                foreach (var (newAttributeChecksum, newTextChecksum, documentId) in newChecksums)
+                    newDocumentIdToChecksums.Add(documentId, (newAttributeChecksum, newTextChecksum));
 
                 // remove documents that are the same on both sides.  We can just iterate over one of the maps as,
                 // definitionally, for the project to be on both sides, it will be contained in both.
-                foreach (var (oldChecksum, documentId) in oldChecksums)
+                foreach (var (oldAttributeChecksum, oldTextChecksum, documentId) in oldChecksums)
                 {
-                    if (newDocumentIdToChecksum.TryGetValue(documentId, out var newChecksum) &&
-                        oldChecksum == newChecksum)
+                    if (newDocumentIdToChecksums.TryGetValue(documentId, out var newChecksum) &&
+                        oldAttributeChecksum == newChecksum.attributeChecksum &&
+                        oldTextChecksum == newChecksum.textChecksum)
                     {
-                        oldDocumentIdToChecksum.Remove(documentId);
-                        newDocumentIdToChecksum.Remove(documentId);
+                        oldDocumentIdToChecksums.Remove(documentId);
+                        newDocumentIdToChecksums.Remove(documentId);
                     }
-                }
-
-                using var _3 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldDocumentIdToStateChecksums);
-                using var _4 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newDocumentIdToStateChecksums);
-
-                // Now, find the full state checksums for all the old documents
-                foreach (var (documentId, oldChecksum) in oldDocumentIdToChecksum)
-                {
-                    // this should be cheap since we already computed oldSolutionChecksums (which calls into this).
-                    var oldDocumentStateChecksums = await existingTextDocumentStates
-                        .GetRequiredState(documentId)
-                        .GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfTrue(oldDocumentStateChecksums.DocumentId != documentId);
-                    Contract.ThrowIfTrue(oldDocumentStateChecksums.Checksum != oldChecksum);
-
-                    oldDocumentIdToStateChecksums.Add(documentId, oldDocumentStateChecksums);
                 }
 
                 // sync over the *info* about all the added/changed documents.  We'll want the info so we can determine
                 // what actually changed.
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
-                newChecksumsToSync.AddRange(newDocumentIdToChecksum.Values);
+                newChecksumsToSync.AddRange(newDocumentIdToChecksums.Values.Select(v => v.attributeChecksum));
 
-                await _assetProvider.GetAssetsAsync<DocumentStateChecksums, Dictionary<DocumentId, DocumentStateChecksums>>(
-                    assetPath: AssetPath.DocumentsInProject(project.Id), newChecksumsToSync,
-                    static (checksum, documentStateChecksum, newDocumentIdToStateChecksums) =>
-                    {
-                        Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);
-                        newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
-                    },
-                    arg: newDocumentIdToStateChecksums,
-                    cancellationToken).ConfigureAwait(false);
+                await _assetProvider.GetAssetsAsync<DocumentInfo.DocumentAttributes>(
+                    assetPath: new(AssetPathKind.DocumentAttributes, project.Id), newChecksumsToSync, cancellationToken).ConfigureAwait(false);
 
-                // If more than two documents changed during a single update, perform a bulk synchronization on the
-                // project to avoid large numbers of small synchronization calls during document updates.
-                // 🔗 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1365014
-                if (newDocumentIdToStateChecksums.Count > 2)
-                {
-                    using var _ = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectChecksums);
-                    allProjectChecksums.Add(projectChecksums);
-                    await _assetProvider.SynchronizeProjectAssetsAsync(allProjectChecksums, cancellationToken).ConfigureAwait(false);
-                }
+                newChecksumsToSync.Clear();
+                newChecksumsToSync.AddRange(newDocumentIdToChecksums.Values.Select(v => v.textChecksum));
 
-                return await UpdateDocumentsAsync(project, addDocuments, removeDocuments, oldDocumentIdToStateChecksums, newDocumentIdToStateChecksums, cancellationToken).ConfigureAwait(false);
+                await _assetProvider.GetAssetsAsync<SerializableSourceText>(
+                    assetPath: new(AssetPathKind.DocumentText, project.Id), newChecksumsToSync, cancellationToken).ConfigureAwait(false);
+
+                return await UpdateDocumentsAsync(project, addDocuments, removeDocuments, oldDocumentIdToChecksums, newDocumentIdToChecksums, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<Project> UpdateDocumentsAsync(
                 Project project,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
-                Dictionary<DocumentId, DocumentStateChecksums> oldDocumentIdToStateChecksums,
-                Dictionary<DocumentId, DocumentStateChecksums> newDocumentIdToStateChecksums,
+                Dictionary<DocumentId, (Checksum attributeChecksum, Checksum textChecksum)> oldDocumentIdToStateChecksums,
+                Dictionary<DocumentId, (Checksum attributeChecksum, Checksum textChecksum)> newDocumentIdToStateChecksums,
                 CancellationToken cancellationToken)
             {
                 // added document
@@ -588,7 +554,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         // we have new document added
                         var documentInfo = await _assetProvider.CreateDocumentInfoAsync(
-                            documentId, newDocumentChecksums.Checksum, cancellationToken).ConfigureAwait(false);
+                            documentId, newDocumentChecksums.attributeChecksum, newDocumentChecksums.textChecksum, cancellationToken).ConfigureAwait(false);
                         lazyDocumentsToAdd.Add(documentInfo);
                     }
                 }
@@ -619,11 +585,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
                 {
                     if (!oldDocumentIdToStateChecksums.TryGetValue(documentId, out var oldDocumentChecksums))
-                    {
                         continue;
-                    }
 
-                    Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
+                    Contract.ThrowIfTrue(
+                        oldDocumentChecksums.attributeChecksum == newDocumentChecksums.attributeChecksum &&
+                        oldDocumentChecksums.textChecksum == newDocumentChecksums.textChecksum);
 
                     var document = project.GetDocument(documentId) ?? project.GetAdditionalDocument(documentId) ?? project.GetAnalyzerConfigDocument(documentId);
                     Contract.ThrowIfNull(document);
@@ -634,19 +600,23 @@ namespace Microsoft.CodeAnalysis.Remote
                 return project;
             }
 
-            private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums, CancellationToken cancellationToken)
+            private async Task<Project> UpdateDocumentAsync(
+                TextDocument document,
+                (Checksum attributeChecksum, Checksum textChecksum) oldDocumentChecksums,
+                (Checksum attributeChecksum, Checksum textChecksum) newDocumentChecksums,
+                CancellationToken cancellationToken)
             {
                 // changed info
-                if (oldDocumentChecksums.Info != newDocumentChecksums.Info)
+                if (oldDocumentChecksums.attributeChecksum != newDocumentChecksums.attributeChecksum)
                 {
-                    document = await UpdateDocumentInfoAsync(document, newDocumentChecksums.Info, cancellationToken).ConfigureAwait(false);
+                    document = await UpdateDocumentInfoAsync(document, newDocumentChecksums.attributeChecksum, cancellationToken).ConfigureAwait(false);
                 }
 
                 // changed text
-                if (oldDocumentChecksums.Text != newDocumentChecksums.Text)
+                if (oldDocumentChecksums.textChecksum != newDocumentChecksums.textChecksum)
                 {
                     var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
-                        assetPath: document.Id, newDocumentChecksums.Text, cancellationToken).ConfigureAwait(false);
+                        assetPath: document.Id, newDocumentChecksums.textChecksum, cancellationToken).ConfigureAwait(false);
                     var sourceText = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     document = document.Kind switch
