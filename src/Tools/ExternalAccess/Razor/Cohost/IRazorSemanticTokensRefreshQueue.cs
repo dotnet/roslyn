@@ -10,6 +10,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 internal interface IRazorSemanticTokensRefreshQueue : ILspService
 {
+    /// <summary>
+    /// Initialize the semantic tokens refresh queue in Roslyn
+    /// </summary>
+    /// <remarks>
+    /// This MUST be called synchronously from an IOnInitialized handler, to avoid dual initialization when
+    /// Roslyn and Razor both support semantic tokens
+    /// </remarks>
     void Initialize(string clientCapabilitiesString);
 
     Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken);

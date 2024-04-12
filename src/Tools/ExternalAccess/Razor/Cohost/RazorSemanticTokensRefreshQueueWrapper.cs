@@ -31,6 +31,9 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
         public void Initialize(string clientCapabilitiesString)
         {
             var clientCapabilities = JsonConvert.DeserializeObject<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
+            // If Roslyn and Razor both support semantic tokens, then this call to Initialize is redundant, but the
+            // Initialize method in the queue itself is resilient to being called twice, so it doesn't actually do
+            // any harm.
             semanticTokensRefreshQueue.Initialize(clientCapabilities);
         }
 
