@@ -34,12 +34,17 @@ internal abstract class AbstractAssetProvider
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.SolutionAttributes, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
         await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
-        var projectStateChecksums = await this.GetAssetsArrayAsync<ProjectStateChecksums>(
-            AssetPathKind.ProjectStateChecksums, solutionChecksums.Projects.Checksums, cancellationToken).ConfigureAwait(false);
+        using var _1 = ArrayBuilder<ProjectStateChecksums>.GetInstance(solutionChecksums.Projects.Length, out var allProjectStateChecksums);
+        await this.GetAssetsAsync<ProjectStateChecksums, ArrayBuilder<ProjectStateChecksums>>(
+            AssetPathKind.ProjectStateChecksums,
+            solutionChecksums.Projects.Checksums,
+            static (_, projectStateChecksums, allProjectStateChecksums) => allProjectStateChecksums.Add(projectStateChecksums),
+            allProjectStateChecksums,
+            cancellationToken).ConfigureAwait(false);
 
         // Fetch the projects in parallel.
-        using var _ = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
-        foreach (var projectStateChecksum in projectStateChecksums)
+        using var _2 = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
+        foreach (var projectStateChecksum in allProjectStateChecksums)
             projectsTasks.Add(CreateProjectInfoAsync(projectStateChecksum, cancellationToken));
 
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
