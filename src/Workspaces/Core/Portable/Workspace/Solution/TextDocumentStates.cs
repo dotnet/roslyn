@@ -359,8 +359,8 @@ internal sealed class TextDocumentStates<TState>
     private FilePathToDocumentIds ComputeFilePathToDocumentIds()
     {
 #if NET
-        using var pooledObject = s_filePathPool.GetPooledObject();
-        var result = pooledObject.Object;
+        using var pooledDictionary = s_filePathPool.GetPooledObject();
+        var result = pooledDictionary.Object;
 #else
         var result = new Dictionary<string, OneOrMany<DocumentId>>(SolutionState.FilePathComparer);
 #endif
