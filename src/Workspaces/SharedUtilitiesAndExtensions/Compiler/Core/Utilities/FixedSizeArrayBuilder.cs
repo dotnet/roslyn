@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,6 +29,18 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
     {
         foreach (var v in values)
             Add(v);
+    }
+
+    public void AddRange(IEnumerable<T> values)
+    {
+        foreach (var v in values)
+            Add(v);
+    }
+
+    public readonly void Sort()
+    {
+        if (_index > 1)
+            Array.Sort(_values, 0, _index, Comparer<T>.Default);
     }
 
     /// <summary>
