@@ -343,9 +343,9 @@ internal sealed class ProjectStateChecksums(
     ChecksumCollection projectReferenceChecksums,
     ChecksumCollection metadataReferenceChecksums,
     ChecksumCollection analyzerReferenceChecksums,
-    ChecksumsAndIds<DocumentId> documentChecksums,
-    ChecksumsAndIds<DocumentId> additionalDocumentChecksums,
-    ChecksumsAndIds<DocumentId> analyzerConfigDocumentChecksums) : IEquatable<ProjectStateChecksums>
+    DocumentChecksumsAndIds documentChecksums,
+    DocumentChecksumsAndIds additionalDocumentChecksums,
+    DocumentChecksumsAndIds analyzerConfigDocumentChecksums) : IEquatable<ProjectStateChecksums>
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
@@ -370,9 +370,9 @@ internal sealed class ProjectStateChecksums(
     public ChecksumCollection MetadataReferences => metadataReferenceChecksums;
     public ChecksumCollection AnalyzerReferences => analyzerReferenceChecksums;
 
-    public ChecksumsAndIds<DocumentId> Documents => documentChecksums;
-    public ChecksumsAndIds<DocumentId> AdditionalDocuments => additionalDocumentChecksums;
-    public ChecksumsAndIds<DocumentId> AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
+    public DocumentChecksumsAndIds Documents => documentChecksums;
+    public DocumentChecksumsAndIds AdditionalDocuments => additionalDocumentChecksums;
+    public DocumentChecksumsAndIds AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
 
     public override bool Equals(object? obj)
         => Equals(obj as ProjectStateChecksums);
@@ -392,9 +392,9 @@ internal sealed class ProjectStateChecksums(
         this.ProjectReferences.AddAllTo(checksums);
         this.MetadataReferences.AddAllTo(checksums);
         this.AnalyzerReferences.AddAllTo(checksums);
-        this.Documents.Checksums.AddAllTo(checksums);
-        this.AdditionalDocuments.Checksums.AddAllTo(checksums);
-        this.AnalyzerConfigDocuments.Checksums.AddAllTo(checksums);
+        this.Documents.AddAllTo(checksums);
+        this.AdditionalDocuments.AddAllTo(checksums);
+        this.AnalyzerConfigDocuments.AddAllTo(checksums);
     }
 
     public void Serialize(ObjectWriter writer)
@@ -425,9 +425,9 @@ internal sealed class ProjectStateChecksums(
             projectReferenceChecksums: ChecksumCollection.ReadFrom(reader),
             metadataReferenceChecksums: ChecksumCollection.ReadFrom(reader),
             analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
-            documentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
-            additionalDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
-            analyzerConfigDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader));
+            documentChecksums: DocumentChecksumsAndIds.ReadFrom(reader),
+            additionalDocumentChecksums: DocumentChecksumsAndIds.ReadFrom(reader),
+            analyzerConfigDocumentChecksums: DocumentChecksumsAndIds.ReadFrom(reader));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }

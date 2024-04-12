@@ -319,6 +319,31 @@ internal sealed class TextDocumentStates<TState>
         return new(documentChecksums, SelectAsArray(static s => s.Id));
     }
 
+    public async ValueTask<DocumentChecksumsAndIds> GetDocumentChecksumsAndIdsAsync(CancellationToken cancellationToken)
+    {
+        var attributesChecksums = await SelectAsArrayAsync(
+            static async (state, _, cancellationToken) =>
+            {
+                var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                return stateChecksums.Info;
+            },
+            arg: default(VoidResult),
+            cancellationToken).ConfigureAwait(false);
+        var textChecksums = await SelectAsArrayAsync(
+            static async (state, _, cancellationToken) =>
+            {
+                var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                return stateChecksums.Text;
+            },
+            arg: default(VoidResult),
+            cancellationToken).ConfigureAwait(false);
+
+        return new(
+            new ChecksumCollection(attributesChecksums),
+            new ChecksumCollection(textChecksums),
+            SelectAsArray(static s => s.Id));
+    }
+
     public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
     {
         // Lazily initialize the file path map if not computed.

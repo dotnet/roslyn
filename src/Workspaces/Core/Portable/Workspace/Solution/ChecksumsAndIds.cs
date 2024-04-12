@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -76,5 +77,66 @@ internal readonly struct ChecksumsAndIds<TId>
 
         public (Checksum checksum, TId id) Current
             => (_checksumsAndIds.Checksums.Children[_index], _checksumsAndIds.Ids[_index]);
+    }
+}
+
+
+internal readonly struct DocumentChecksumsAndIds
+{
+    public readonly Checksum Checksum;
+    public readonly ChecksumCollection AttributeChecksums;
+    public readonly ChecksumCollection TextChecksums;
+    public readonly ImmutableArray<DocumentId> Ids;
+
+    public DocumentChecksumsAndIds(ChecksumCollection attributeChecksums, ChecksumCollection textChecksums, ImmutableArray<DocumentId> ids)
+    {
+        Contract.ThrowIfTrue(ids.Length != attributeChecksums.Children.Length);
+        Contract.ThrowIfTrue(ids.Length != textChecksums.Children.Length);
+
+        AttributeChecksums = attributeChecksums;
+        TextChecksums = textChecksums;
+        Ids = ids;
+
+        Checksum = Checksum.Create(attributeChecksums.Checksum, textChecksums.Checksum);
+    }
+
+    public int Length => Ids.Length;
+
+    public void WriteTo(ObjectWriter writer)
+    {
+        this.AttributeChecksums.WriteTo(writer);
+        this.TextChecksums.WriteTo(writer);
+        writer.WriteArray(this.Ids, static (writer, id) => id.WriteTo(writer));
+    }
+
+    public static DocumentChecksumsAndIds ReadFrom(ObjectReader reader)
+    {
+        return new(
+            ChecksumCollection.ReadFrom(reader),
+            ChecksumCollection.ReadFrom(reader),
+            reader.ReadArray(static reader => DocumentId.ReadFrom(reader)));
+    }
+
+    public void AddAllTo(HashSet<Checksum> checksums)
+    {
+        this.AttributeChecksums.AddAllTo(checksums);
+        this.TextChecksums.AddAllTo(checksums);
+    }
+
+    public Enumerator GetEnumerator()
+        => new(this);
+
+    public struct Enumerator(DocumentChecksumsAndIds checksumsAndIds)
+    {
+        private readonly DocumentChecksumsAndIds _checksumsAndIds = checksumsAndIds;
+        private int _index = -1;
+
+        public bool MoveNext()
+            => ++_index < _checksumsAndIds.Length;
+
+        public (Checksum attributeChecksum, Checksum textChecksum, DocumentId id) Current
+            => (_checksumsAndIds.AttributeChecksums.Children[_index],
+                _checksumsAndIds.TextChecksums.Children[_index],
+                _checksumsAndIds.Ids[_index]);
     }
 }

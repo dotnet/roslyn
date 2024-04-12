@@ -97,14 +97,14 @@ internal abstract class AbstractAssetProvider
             analyzerConfigDocumentInfos,
             hostObjectType: null); // TODO: https://github.com/dotnet/roslyn/issues/62804
 
-        async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(ChecksumsAndIds<DocumentId> checksumsAndIds)
+        async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(DocumentChecksumsAndIds checksumsAndIds)
         {
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(checksumsAndIds.Length, out var documentInfos);
 
-            foreach (var (documentChecksum, documentId) in checksumsAndIds)
+            foreach (var (attributeChecksum, textChecksum, documentId) in checksumsAndIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                documentInfos.Add(await CreateDocumentInfoAsync(documentId, documentChecksum, cancellationToken).ConfigureAwait(false));
+                documentInfos.Add(await CreateDocumentInfoAsync(documentId, attributeChecksum, textChecksum, cancellationToken).ConfigureAwait(false));
             }
 
             return documentInfos.ToImmutableAndClear();
@@ -116,57 +116,40 @@ internal abstract class AbstractAssetProvider
     {
         await Task.Yield();
 
-        // First, fetch all the DocumentStateChecksums for all the documents in the project.
-        using var _1 = ArrayBuilder<DocumentStateChecksums>.GetInstance(out var allDocumentStateChecksums);
-        {
-            using var _2 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var attributeChecksums);
+        using var _2 = PooledHashSet<Checksum>.GetInstance(out var textChecksums);
 
-            projectChecksums.Documents.Checksums.AddAllTo(checksums);
-            projectChecksums.AdditionalDocuments.Checksums.AddAllTo(checksums);
-            projectChecksums.AnalyzerConfigDocuments.Checksums.AddAllTo(checksums);
+        projectChecksums.Documents.AttributeChecksums.AddAllTo(attributeChecksums);
+        projectChecksums.AdditionalDocuments.AttributeChecksums.AddAllTo(attributeChecksums);
+        projectChecksums.AnalyzerConfigDocuments.AttributeChecksums.AddAllTo(attributeChecksums);
 
-            await this.GetAssetsAsync<DocumentStateChecksums, ArrayBuilder<DocumentStateChecksums>>(
-                assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId), checksums,
-                static (_, documentStateChecksums, allDocumentStateChecksums) => allDocumentStateChecksums.Add(documentStateChecksums),
-                allDocumentStateChecksums,
-                cancellationToken).ConfigureAwait(false);
-        }
+        projectChecksums.Documents.TextChecksums.AddAllTo(textChecksums);
+        projectChecksums.AdditionalDocuments.TextChecksums.AddAllTo(textChecksums);
+        projectChecksums.AnalyzerConfigDocuments.TextChecksums.AddAllTo(textChecksums);
 
-        // Now go and fetch the info and text for all of those documents.
-        {
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            tasks.Add(GetDocumentItemsAsync<DocumentInfo.DocumentAttributes>(AssetPathKind.DocumentAttributes, static d => d.Info));
-            tasks.Add(GetDocumentItemsAsync<SerializableSourceText>(AssetPathKind.DocumentText, static d => d.Text));
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
+        using var _ = ArrayBuilder<Task>.GetInstance(2, out var tasks);
 
-        return;
+        tasks.Add(this.GetAssetsAsync<DocumentInfo.DocumentAttributes>(
+            assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId),
+            attributeChecksums,
+            cancellationToken));
 
-        async Task GetDocumentItemsAsync<TAsset>(
-            AssetPathKind assetPathKind, Func<DocumentStateChecksums, Checksum> getItemChecksum)
-        {
-            await Task.Yield();
-            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+        tasks.Add(this.GetAssetsAsync<SerializableSourceText>(
+            assetPath: new(AssetPathKind.DocumentStateChecksums, projectChecksums.ProjectId),
+            textChecksums,
+            cancellationToken));
 
-            foreach (var documentStateChecksums in allDocumentStateChecksums)
-                checksums.Add(getItemChecksum(documentStateChecksums));
-
-            // We know we only need to search the documents in this particular project for those info/text values.  So
-            // pass in the right path hint to limit the search on the host side to just the document in this project.
-            await this.GetAssetsAsync<TAsset>(
-                assetPath: new(assetPathKind, projectChecksums.ProjectId),
-                checksums, cancellationToken).ConfigureAwait(false);
-        }
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     public async Task<DocumentInfo> CreateDocumentInfoAsync(
-        DocumentId documentId, Checksum documentChecksum, CancellationToken cancellationToken)
+        DocumentId documentId, Checksum attributeChecksum, Checksum textChecksum, CancellationToken cancellationToken)
     {
-        var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(new(AssetPathKind.DocumentStateChecksums, documentId), documentChecksum, cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfTrue(documentId != documentSnapshot.DocumentId);
+        //var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(new(AssetPathKind.DocumentStateChecksums, documentId), documentChecksum, cancellationToken).ConfigureAwait(false);
+        //Contract.ThrowIfTrue(documentId != documentSnapshot.DocumentId);
 
-        var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(new(AssetPathKind.DocumentAttributes, documentId), documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-        var serializableSourceText = await GetAssetAsync<SerializableSourceText>(new(AssetPathKind.DocumentText, documentId), documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
+        var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(new(AssetPathKind.DocumentAttributes, documentId), attributeChecksum, cancellationToken).ConfigureAwait(false);
+        var serializableSourceText = await GetAssetAsync<SerializableSourceText>(new(AssetPathKind.DocumentText, documentId), textChecksum, cancellationToken).ConfigureAwait(false);
 
         var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), attributes.FilePath));
