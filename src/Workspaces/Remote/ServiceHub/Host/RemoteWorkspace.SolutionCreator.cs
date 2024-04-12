@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // Now make a ProjectInfo corresponding to the new project checksums.  This should be fast due
                         // to the bulk sync we just performed above.
-                        var projectInfo = await _assetProvider.CreateProjectInfoAsync(projectId, newProjectChecksums.Checksum, cancellationToken).ConfigureAwait(false);
+                        var projectInfo = await _assetProvider.CreateProjectInfoAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
                         projectInfos.Add(projectInfo);
                     }
                 }

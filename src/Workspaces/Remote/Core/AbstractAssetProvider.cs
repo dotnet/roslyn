@@ -34,10 +34,13 @@ internal abstract class AbstractAssetProvider
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.SolutionAttributes, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
         await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
+        var projectStateChecksums = await this.GetAssetsArrayAsync<ProjectStateChecksums>(
+            AssetPathKind.ProjectStateChecksums, solutionChecksums.Projects.Checksums, cancellationToken).ConfigureAwait(false);
+
         // Fetch the projects in parallel.
         using var _ = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
-        foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
-            projectsTasks.Add(CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken));
+        foreach (var projectStateChecksum in projectStateChecksums)
+            projectsTasks.Add(CreateProjectInfoAsync(projectStateChecksum, cancellationToken));
 
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
@@ -50,11 +53,11 @@ internal abstract class AbstractAssetProvider
             analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
     }
 
-    public async Task<ProjectInfo> CreateProjectInfoAsync(ProjectId projectId, Checksum projectChecksum, CancellationToken cancellationToken)
+    public async Task<ProjectInfo> CreateProjectInfoAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
     {
         await Task.Yield();
-        var projectChecksums = await GetAssetAsync<ProjectStateChecksums>(new(AssetPathKind.ProjectStateChecksums, projectId), projectChecksum, cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfFalse(projectId == projectChecksums.ProjectId);
+
+        var projectId = projectChecksums.ProjectId;
 
         var attributes = await GetAssetAsync<ProjectInfo.ProjectAttributes>(new(AssetPathKind.ProjectAttributes, projectId), projectChecksums.Info, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfFalse(RemoteSupportedLanguages.IsSupported(attributes.Language));
