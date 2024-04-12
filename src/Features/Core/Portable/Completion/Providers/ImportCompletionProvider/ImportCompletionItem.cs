@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -219,12 +220,7 @@ internal static class ImportCompletionItem
     public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item)
     {
         var itemProperties = item.GetProperties();
-
-        using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(itemProperties.Length + 1, out var builder);
-        builder.AddRange(itemProperties);
-        builder.Add(new KeyValuePair<string, string>(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey));
-
-        return item.WithProperties(builder.ToImmutable());
+        return item.WithProperties([.. itemProperties, KeyValuePairUtil.Create(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey)]);
     }
 
     public static bool ShouldAlwaysFullyQualify(CompletionItem item) => item.TryGetProperty(AlwaysFullyQualifyKey, out var _);
