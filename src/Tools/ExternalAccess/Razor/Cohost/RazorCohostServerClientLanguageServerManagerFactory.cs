@@ -9,11 +9,14 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
+// This will be removed in future when the cohost server is removed, and we move to dynamic registration.
+// It's already marked as Obsolete though, because Roslyn MEF rules :)
+
 [Shared]
-[ExportCohostLspServiceFactory(typeof(IRazorCohostClientLanguageServerManager))]
+[ExportRazorLspServiceFactory(typeof(IRazorCohostClientLanguageServerManager))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RazorCohostClientLanguageServerManagerFactory() : ILspServiceFactory
+internal class RazorCohostServerClientLanguageServerManagerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
