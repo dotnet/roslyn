@@ -24,8 +24,8 @@ internal class SnippetCompletionItem
         ImmutableArray<string> additionalFilterTexts)
     {
         var props = ImmutableArray.Create(
-            new KeyValuePair<string, string>("Position", position.ToString()),
-            new KeyValuePair<string, string>(SnippetIdentifierKey, snippetIdentifier));
+            KeyValuePairUtil.Create("Position", position.ToString()),
+            KeyValuePairUtil.Create(SnippetIdentifierKey, snippetIdentifier));
 
         return CommonCompletionItem.Create(
             displayText: displayText,
