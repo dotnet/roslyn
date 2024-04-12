@@ -15,6 +15,11 @@ using Roslyn.Utilities;
 /// (usually encountered when a cancellation token interrupts getting the final array), this will leak the intermediary
 /// array created to store the results.
 /// </summary>
+/// <remarks>
+/// It is an error for a client of this type to specify a capacity and then attempt to call <see
+/// cref="MoveToImmutable"/> without that number of elements actually having been added to the builder.  This will throw
+/// if attempted.
+/// </remarks>
 internal sealed class FixedSizeArrayBuilder<T>
 {
     private static readonly ObjectPool<FixedSizeArrayBuilder<T>> s_pool = new(() => new());
@@ -38,12 +43,6 @@ internal sealed class FixedSizeArrayBuilder<T>
 
     public void Add(T value)
         => _values[_index++] = value;
-
-    public T this[int index]
-    {
-        get => _values[index];
-        set => _values[index] = value;
-    }
 
     public ImmutableArray<T> MoveToImmutable()
     {
