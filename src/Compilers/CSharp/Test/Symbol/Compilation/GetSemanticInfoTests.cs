@@ -5043,7 +5043,7 @@ public class T
 
             var compilation = CreateCompilation(sourceCode);
             var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree) as CSharpSemanticModel;
+            var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
 
             var symbolInfo = symbolInfoAt("Z //bind region");
             Assert.Null(symbolInfo.Symbol);
