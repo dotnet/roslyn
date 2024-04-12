@@ -45,7 +45,10 @@ internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefaul
             }
 
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
-            var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities);
+
+            var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities is VSInternalClientCapabilities internalClientCapabilities
+                ? internalClientCapabilities
+                : clientCapabilities);
             var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(_clientLanguageServerManager);
 
             var requestContext = new RazorCohostRequestContext(context);
