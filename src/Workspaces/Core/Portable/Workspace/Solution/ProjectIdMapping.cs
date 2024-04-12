@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -25,7 +23,7 @@ internal sealed class ProjectIdMapping<T>
     /// <summary>
     /// Mapping from ProjectId to index in _projects
     /// </summary>
-    private FrozenDictionary<ProjectId, int>? _projectIdToIndex;
+    private readonly FrozenDictionary<ProjectId, int> _projectIdToIndex;
 
     /// <summary>
     /// Values are created on demand by calls to <see cref="GetOrAdd{TArg}(ProjectId?, Func{ProjectId, TArg, T}, TArg)" />
@@ -42,6 +40,20 @@ internal sealed class ProjectIdMapping<T>
     private ProjectIdMapping(IReadOnlyList<ProjectId> projectIds, FrozenDictionary<ProjectId, int>? projectIdToIndex)
     {
         _projectIds = projectIds;
+
+        if (projectIdToIndex == null)
+        {
+            using var _ = PooledDictionary<ProjectId, int>.GetInstance(out var pooledProjectIdToIndex);
+
+            for (int i = 0, n = _projectIds.Count; i < n; i++)
+            {
+                var projectId = _projectIds[i];
+                pooledProjectIdToIndex[projectId] = i;
+            }
+
+            projectIdToIndex = pooledProjectIdToIndex.ToFrozenDictionary();
+        }
+
         _projectIdToIndex = projectIdToIndex;
     }
 
@@ -72,10 +84,11 @@ internal sealed class ProjectIdMapping<T>
     /// project id.</returns>
     public T? GetOrAdd<TArg>(ProjectId? projectId, Func<ProjectId, TArg, T> createValue, TArg arg)
     {
-        EnsureInitialized();
-
         if (projectId is null || !_projectIdToIndex.TryGetValue(projectId, out var projectIndex))
             return null;
+
+        if (_projects is null)
+            Interlocked.CompareExchange(ref _projects, new T?[_projectIds.Count], null);
 
         if (_projects[projectIndex] == null)
         {
@@ -85,26 +98,5 @@ internal sealed class ProjectIdMapping<T>
         }
 
         return _projects[projectIndex];
-    }
-
-    [MemberNotNull(nameof(_projects))]
-    [MemberNotNull(nameof(_projectIdToIndex))]
-    private void EnsureInitialized()
-    {
-        if (_projects is null)
-            Interlocked.CompareExchange(ref _projects, new T?[_projectIds.Count], null);
-
-        if (_projectIdToIndex is null)
-        {
-            using var _ = PooledDictionary<ProjectId, int>.GetInstance(out var projectIdToIndex);
-
-            for (int i = 0, n = _projectIds.Count; i < n; i++)
-            {
-                var projectId = _projectIds[i];
-                projectIdToIndex[projectId] = i;
-            }
-
-            Interlocked.CompareExchange(ref _projectIdToIndex, projectIdToIndex.ToFrozenDictionary(), null);
-        }
     }
 }
