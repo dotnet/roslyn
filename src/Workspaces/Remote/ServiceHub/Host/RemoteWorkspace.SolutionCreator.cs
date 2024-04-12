@@ -499,27 +499,28 @@ namespace Microsoft.CodeAnalysis.Remote
                 Project project,
                 ProjectStateChecksums projectChecksums,
                 TextDocumentStates<TDocumentState> existingTextDocumentStates,
-                ChecksumsAndIds<DocumentId> oldChecksums,
-                ChecksumsAndIds<DocumentId> newChecksums,
+                DocumentChecksumsAndIds oldChecksums,
+                DocumentChecksumsAndIds newChecksums,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
                 CancellationToken cancellationToken) where TDocumentState : TextDocumentState
             {
-                using var _1 = PooledDictionary<DocumentId, Checksum>.GetInstance(out var oldDocumentIdToChecksum);
-                using var _2 = PooledDictionary<DocumentId, Checksum>.GetInstance(out var newDocumentIdToChecksum);
+                using var _1 = PooledDictionary<DocumentId, (Checksum attributeChecksum, Checksum textChecksum)>.GetInstance(out var oldDocumentIdToChecksum);
+                using var _2 = PooledDictionary<DocumentId, (Checksum attributeChecksum, Checksum textChecksum)>.GetInstance(out var newDocumentIdToChecksum);
 
-                foreach (var (oldChecksum, documentId) in oldChecksums)
-                    oldDocumentIdToChecksum.Add(documentId, oldChecksum);
+                foreach (var (oldAttributeChecksum, oldTextChecksum, documentId) in oldChecksums)
+                    oldDocumentIdToChecksum.Add(documentId, (oldAttributeChecksum, oldTextChecksum));
 
-                foreach (var (newChecksum, documentId) in newChecksums)
-                    newDocumentIdToChecksum.Add(documentId, newChecksum);
+                foreach (var (newAttributeChecksum, newTextChecksum, documentId) in newChecksums)
+                    newDocumentIdToChecksum.Add(documentId, (newAttributeChecksum, newTextChecksum));
 
                 // remove documents that are the same on both sides.  We can just iterate over one of the maps as,
                 // definitionally, for the project to be on both sides, it will be contained in both.
-                foreach (var (oldChecksum, documentId) in oldChecksums)
+                foreach (var (oldAttributeChecksum, oldTextChecksum, documentId) in oldChecksums)
                 {
                     if (newDocumentIdToChecksum.TryGetValue(documentId, out var newChecksum) &&
-                        oldChecksum == newChecksum)
+                        oldAttributeChecksum == newChecksum.attributeChecksum &&
+                        oldTextChecksum == newChecksum.textChecksum)
                     {
                         oldDocumentIdToChecksum.Remove(documentId);
                         newDocumentIdToChecksum.Remove(documentId);
