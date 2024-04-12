@@ -39,13 +39,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var options = globalOptions.GetClassificationOptions(project.Language);
             var supportsVisualStudioExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
 
-            using var _ = ArrayBuilder<LinePositionSpan>.GetInstance(ranges.Length, out var spans);
+            var spans = new FixedSizeArrayBuilder<LinePositionSpan>(ranges.Length);
             foreach (var range in ranges)
-            {
                 spans.Add(ProtocolConversions.RangeToLinePositionSpan(range));
-            }
 
-            var tokensData = await HandleRequestHelperAsync(contextDocument, spans.ToImmutable(), supportsVisualStudioExtensions, options, cancellationToken).ConfigureAwait(false);
+            var tokensData = await HandleRequestHelperAsync(contextDocument, spans.MoveToImmutable(), supportsVisualStudioExtensions, options, cancellationToken).ConfigureAwait(false);
 
             // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick
             // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
