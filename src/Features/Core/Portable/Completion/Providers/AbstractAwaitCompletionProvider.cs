@@ -101,15 +101,15 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 
         using var builder = TemporaryArray<KeyValuePair<string, string>>.Empty;
 
-        builder.Add(new KeyValuePair<string, string>(AwaitCompletionTargetTokenPosition, token.SpanStart.ToString()));
+        builder.Add(KeyValuePairUtil.Create(AwaitCompletionTargetTokenPosition, token.SpanStart.ToString()));
 
         var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
         if (makeContainerAsync)
-            builder.Add(new KeyValuePair<string, string>(MakeContainerAsync, string.Empty));
+            builder.Add(KeyValuePairUtil.Create(MakeContainerAsync, string.Empty));
 
         if (isAwaitKeywordContext)
         {
-            builder.Add(new KeyValuePair<string, string>(AddAwaitAtCurrentPosition, string.Empty));
+            builder.Add(KeyValuePairUtil.Create(AddAwaitAtCurrentPosition, string.Empty));
             var properties = builder.ToImmutableAndClear();
 
             context.AddItem(CreateCompletionItem(
@@ -134,7 +134,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
             {
                 // add the `awaitf` option to do the same, but also add .ConfigureAwait(false);
-                properties = properties.Add(new KeyValuePair<string, string>(AppendConfigureAwait, string.Empty));
+                properties = properties.Add(KeyValuePairUtil.Create(AppendConfigureAwait, string.Empty));
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitfDisplayText, _awaitfFilterText,
                     string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
