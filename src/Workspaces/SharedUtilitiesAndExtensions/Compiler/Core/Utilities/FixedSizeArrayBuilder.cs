@@ -45,12 +45,37 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
     public void Add(T value)
         => _values[_index++] = value;
 
+    #region AddRange overloads.  These allow us to add these collections directly, without allocating an enumerator.
+
     public void AddRange(ImmutableArray<T> values)
     {
         Contract.ThrowIfTrue(_index + values.Length <= _values.Length);
+        Array.Copy(ImmutableCollectionsMarshal.AsArray(values)!, 0, _values, _index, values.Length);
+        _index += values.Length;
+    }
+
+    public void AddRange(List<T> values)
+    {
+        Contract.ThrowIfTrue(_index + values.Count <= _values.Length);
         foreach (var v in values)
             Add(v);
     }
+
+    public void AddRange(HashSet<T> values)
+    {
+        Contract.ThrowIfTrue(_index + values.Count <= _values.Length);
+        foreach (var v in values)
+            Add(v);
+    }
+
+    public void AddRange(ArrayBuilder<T> values)
+    {
+        Contract.ThrowIfTrue(_index + values.Count <= _values.Length);
+        foreach (var v in values)
+            Add(v);
+    }
+
+    #endregion
 
     public void AddRange(IEnumerable<T> values)
     {
