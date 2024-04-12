@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -163,8 +164,12 @@ internal partial class SolutionCompilationState
             // We want the projects in sorted order so we can generate the checksum for the
             // source-generation-execution-map consistently.
             var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(@this.SolutionState.ProjectIds);
+            var supportedCount = sortedProjectIds.Count(
+                static (projectId, @this) => RemoteSupportedLanguages.IsSupported(@this.SolutionState.GetRequiredProjectState(projectId).Language),
+                @this);
 
-            using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksums);
+            // For each project, we'll add one checksum for the project id and one for the version map.
+            using var _ = ArrayBuilder<Checksum>.GetInstance(2 * supportedCount, out var checksums);
 
             foreach (var projectId in sortedProjectIds)
             {

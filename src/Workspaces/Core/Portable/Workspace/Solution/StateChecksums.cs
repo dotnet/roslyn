@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -534,11 +535,12 @@ internal static class ChecksumCache
             references,
             static (references, tuple) =>
             {
-                using var _ = ArrayBuilder<Checksum>.GetInstance(references.Count, out var checksums);
+                var checksums = new Checksum[references.Count];
+                var index = 0;
                 foreach (var reference in references)
-                    checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
+                    checksums[index++] = tuple.serializer.CreateChecksum(reference, tuple.cancellationToken);
 
-                return new ChecksumCollection(checksums.ToImmutableAndClear());
+                return new ChecksumCollection(ImmutableCollectionsMarshal.AsImmutableArray(checksums));
             },
             (serializer, cancellationToken));
     }
