@@ -67,30 +67,30 @@ internal abstract class AbstractAssetProvider
 
         var compilationOptions = attributes.FixUpCompilationOptions(
             await GetAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
-        var parseOptions = await GetAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), projectChecksums.ParseOptions, cancellationToken).ConfigureAwait(false);
+        var parseOptionsTask = GetAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), projectChecksums.ParseOptions, cancellationToken);
 
-        var projectReferences = await this.GetAssetsArrayAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
-        var metadataReferences = await this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
-        var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var projectReferencesTask = this.GetAssetsArrayAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken);
+        var metadataReferencesTask = this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken);
+        var analyzerReferencesTask = this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken);
 
         // Attempt to fetch all the documents for this project in bulk.  This will allow for all the data to be fetched
         // efficiently.  We can then go and create the DocumentInfos for each document in the project.
         await SynchronizeProjectDocumentsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
 
-        var documentInfos = await CreateDocumentInfosAsync(projectChecksums.Documents).ConfigureAwait(false);
-        var additionalDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments).ConfigureAwait(false);
-        var analyzerConfigDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments).ConfigureAwait(false);
+        var documentInfosTask = CreateDocumentInfosAsync(projectChecksums.Documents);
+        var additionalDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments);
+        var analyzerConfigDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments);
 
         return ProjectInfo.Create(
             attributes,
             compilationOptions,
-            parseOptions,
-            documentInfos,
-            projectReferences,
-            metadataReferences,
-            analyzerReferences,
-            additionalDocumentInfos,
-            analyzerConfigDocumentInfos,
+            await parseOptionsTask.ConfigureAwait(false),
+            await documentInfosTask.ConfigureAwait(false),
+            await projectReferencesTask.ConfigureAwait(false),
+            await metadataReferencesTask.ConfigureAwait(false),
+            await analyzerReferencesTask.ConfigureAwait(false),
+            await additionalDocumentInfosTask.ConfigureAwait(false),
+            await analyzerConfigDocumentInfosTask.ConfigureAwait(false),
             hostObjectType: null); // TODO: https://github.com/dotnet/roslyn/issues/62804
 
         async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(DocumentChecksumsAndIds checksumsAndIds)
