@@ -97,7 +97,7 @@ internal static class ImportCompletionItem
         var attributeItems = attributeItem.GetProperties();
 
         // Remember the full type name so we can get the symbol when description is displayed.
-        using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(attributeItems.Length + 1, out var builder);
+        var builder = new FixedSizeArrayBuilder<KeyValuePair<string, string>>(attributeItems.Length + 1);
         builder.AddRange(attributeItems);
         builder.Add(new KeyValuePair<string, string>(AttributeFullName, attributeItem.DisplayText));
 
@@ -107,7 +107,7 @@ internal static class ImportCompletionItem
         var item = CompletionItem.CreateInternal(
              displayText: attributeNameWithoutSuffix,
              sortText: sortTextBuilder.ToStringAndFree(),
-             properties: builder.ToImmutable(),
+             properties: builder.MoveToImmutable(),
              tags: attributeItem.Tags,
              rules: attributeItem.Rules,
              displayTextPrefix: attributeItem.DisplayTextPrefix,

@@ -24,6 +24,12 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
     public void Add(T value)
         => _values[_index++] = value;
 
+    public void AddRange(ImmutableArray<T> values)
+    {
+        foreach (var v in values)
+            Add(v);
+    }
+
     /// <summary>
     /// Moves the underlying buffer out of control of this type, into the returned <see cref="ImmutableArray{T}"/>. It
     /// is an error for a client of this type to specify a capacity and then attempt to call <see
