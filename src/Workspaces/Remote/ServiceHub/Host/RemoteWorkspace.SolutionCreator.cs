@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         var newSolutionFrozenSourceGeneratedDocuments = newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value;
                         var count = newSolutionFrozenSourceGeneratedDocuments.Ids.Length;
 
-                        using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
+                        var frozenDocuments = new FixedSizeArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>(count);
                         for (var i = 0; i < count; i++)
                         {
                             var frozenDocumentId = newSolutionFrozenSourceGeneratedDocuments.Ids[i];
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             frozenDocuments.Add((identity, generationDateTime, text));
                         }
 
-                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutableAndClear());
+                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.MoveToImmutable());
                     }
 
                     if (oldSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap !=
