@@ -1260,7 +1260,7 @@ outerDefault:
         /// <paramref name="members"/> are all in a type that derives from the type containing
         /// <paramref name="member"/>.</param>
         private static bool MemberGroupContainsMoreDerivedOverride<TMember>(
-            IReadOnlyList<TMember> members,
+            ArrayBuilder<TMember> members,
             TMember member,
             bool checkOverrideContainingType,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1288,38 +1288,84 @@ outerDefault:
         }
 
 #nullable enable
-        internal static ImmutableArray<TMember> WithoutLessDerivedMembers<TMember>(ImmutableArray<TMember> members) where TMember : Symbol
+        /// <returns>false if the set does not have a unique signature</returns>
+        internal bool FilterMethodsForUniqueSignature(ArrayBuilder<MethodSymbol> methods)
         {
-            if (members.Length < 2)
+            if (methods.Count < 2)
             {
-                return members;
+                return true;
             }
 
-            ArrayBuilder<TMember>? result = null;
+            var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
+            var results = result.ResultsBuilder;
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
-            for (int i = 0; i < members.Length; i++)
+            foreach (var method in methods)
             {
-                var member = members[i];
-                if (MemberGroupContainsMoreDerivedOverride(members, member, checkOverrideContainingType: true, ref useSiteInfo))
+                if (MemberGroupContainsMoreDerivedOverride(methods, method, checkOverrideContainingType: true, ref useSiteInfo))
                 {
-                    if (result is null)
+                    continue;
+                }
+
+                if (MemberGroupHidesByName(methods, method, ref useSiteInfo))
+                {
+                    continue;
+                }
+
+                var leastOverriddenMember = method.GetConstructedLeastOverriddenMethod(_binder.ContainingType, requireSameReturnType: false);
+                results.Add(new MemberResolutionResult<MethodSymbol>(
+                    method,
+                    leastOverriddenMember,
+                    MemberAnalysisResult.NormalForm(argsToParamsOpt: default, conversions: default, hasAnyRefOmittedArgument: false),
+                    hasTypeArgumentInferredFromFunctionType: false));
+            }
+
+            RemoveLessDerivedMembers(results, ref useSiteInfo);
+
+            // Consider the signatures ambiguous
+            // if there's at least one with `params` and at least one without.
+            if (hasParamsAndNonParamsMethods(_binder, results))
+            {
+                result.Free();
+                return false;
+            }
+
+            var applicableMethods = result.GetAllApplicableMembers();
+            result.Free();
+
+            if (applicableMethods.Length != methods.Count)
+            {
+                methods.Clear();
+                methods.AddRange(applicableMethods);
+            }
+
+            return true;
+
+            static bool hasParamsAndNonParamsMethods(Binder binder, ArrayBuilder<MemberResolutionResult<MethodSymbol>> results)
+            {
+                var seenValidParams = false;
+                var seenInvalidParams = false;
+                foreach (var res in results)
+                {
+                    if (res.IsApplicable)
                     {
-                        // Allocate the result array only if we actually filter some member out.
-                        result = ArrayBuilder<TMember>.GetInstance(capacity: members.Length);
-                        for (int j = 0; j < i; j++)
+                        if (IsValidParams(binder, res.LeastOverriddenMember))
                         {
-                            result.Add(members[j]);
+                            seenValidParams = true;
+                        }
+                        else
+                        {
+                            seenInvalidParams = true;
+                        }
+
+                        if (seenValidParams && seenInvalidParams)
+                        {
+                            return true;
                         }
                     }
                 }
-                else
-                {
-                    result?.Add(member);
-                }
+                return seenValidParams && seenInvalidParams;
             }
-
-            return result?.ToImmutableAndFree() ?? members;
         }
 #nullable disable
 

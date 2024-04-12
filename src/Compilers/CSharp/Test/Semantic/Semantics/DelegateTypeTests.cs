@@ -1087,8 +1087,6 @@ class Program
         public static IEnumerable<object?[]> GetBaseAndDerivedTypesData()
         {
             yield return getData("internal void F(object x) { }", "internal static new void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // instance and static
-            // https://github.com/dotnet/roslyn/issues/52701: Assert failure: Unexpected value 'LessDerived' of type 'Microsoft.CodeAnalysis.CSharp.MemberResolutionKind'
-#if !DEBUG
             yield return getData("internal void F(object x) { }", "internal static new void F(object x) { }", "this.F", "F",
                 new[]
                 {
@@ -1096,37 +1094,36 @@ class Program
                     //         System.Delegate d = this.F;
                     Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.F").WithArguments("B.F(object)").WithLocation(5, 29)
                 }); // instance and static
-#endif
             yield return getData("internal void F(object x) { }", "internal static new void F(object x) { }", "base.F", "F", null, "System.Action<System.Object>"); // instance and static
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // static and instance
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "this.F", "F", null, "System.Action<System.Object>"); // static and instance
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "base.F", "F"); // static and instance
-            yield return getData("internal void F(object x) { }", "internal static void F() { }", "F", "F"); // instance and static, different number of parameters
+            yield return getData("internal void F(object x) { }", "internal static void F() { }", "F", "F", null, "System.Action"); // instance and static, different number of parameters
             yield return getData("internal void F(object x) { }", "internal static void F() { }", "B.F", "F", null, "System.Action"); // instance and static, different number of parameters
             yield return getData("internal void F(object x) { }", "internal static void F() { }", "this.F", "F", null, "System.Action<System.Object>"); // instance and static, different number of parameters
             yield return getData("internal void F(object x) { }", "internal static void F() { }", "base.F", "F", null, "System.Action<System.Object>"); // instance and static, different number of parameters
-            yield return getData("internal static void F() { }", "internal void F(object x) { }", "F", "F"); // static and instance, different number of parameters
+            yield return getData("internal static void F() { }", "internal void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // static and instance, different number of parameters
             yield return getData("internal static void F() { }", "internal void F(object x) { }", "B.F", "F", null, "System.Action"); // static and instance, different number of parameters
             yield return getData("internal static void F() { }", "internal void F(object x) { }", "this.F", "F", null, "System.Action<System.Object>"); // static and instance, different number of parameters
             yield return getData("internal static void F() { }", "internal void F(object x) { }", "base.F", "F"); // static and instance, different number of parameters
-            yield return getData("internal static void F(object x) { }", "private static void F() { }", "F", "F"); // internal and private
+            yield return getData("internal static void F(object x) { }", "private static void F() { }", "F", "F", null, "System.Action"); // internal and private
             yield return getData("private static void F(object x) { }", "internal static void F() { }", "F", "F", null, "System.Action"); // internal and private
             yield return getData("internal abstract void F(object x);", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // override
             yield return getData("internal virtual void F(object x) { }", "internal override void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // override
             yield return getData("internal void F(object x) { }", "internal void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // hiding
             yield return getData("internal void F(object x) { }", "internal new void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // hiding
             yield return getData("internal void F(object x) { }", "internal new void F(object y) { }", "F", "F", null, "System.Action<System.Object>"); // different parameter name
-            yield return getData("internal void F(object x) { }", "internal void F(string x) { }", "F", "F"); // different parameter type
-            yield return getData("internal void F(object x) { }", "internal void F(object x, object y) { }", "F", "F"); // different number of parameters
-            yield return getData("internal void F(object x) { }", "internal void F(ref object x) { }", "F", "F"); // different parameter ref kind
-            yield return getData("internal void F(ref object x) { }", "internal void F(object x) { }", "F", "F"); // different parameter ref kind
+            yield return getData("internal void F(object x) { }", "internal void F(string x) { }", "F", "F", null, "System.Action<System.String>"); // different parameter type
+            yield return getData("internal void F(object x) { }", "internal void F(object x, object y) { }", "F", "F", null, "System.Action<System.Object, System.Object>"); // different number of parameters
+            yield return getData("internal void F(object x) { }", "internal void F(ref object x) { }", "F", "F", null, "<>A{00000001}<System.Object>"); // different parameter ref kind
+            yield return getData("internal void F(ref object x) { }", "internal void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // different parameter ref kind
             yield return getData("internal abstract object F();", "internal override object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // override
             yield return getData("internal virtual object F() => throw null;", "internal override object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // override
             yield return getData("internal object F() => throw null;", "internal object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // hiding
             yield return getData("internal object F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // hiding
-            yield return getData("internal string F() => throw null;", "internal new object F() => throw null;", "F", "F"); // different return type
-            yield return getData("internal object F() => throw null;", "internal new ref object F() => throw null;", "F", "F"); // different return ref kind
-            yield return getData("internal ref object F() => throw null;", "internal new object F() => throw null;", "F", "F"); // different return ref kind
+            yield return getData("internal string F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // different return type
+            yield return getData("internal object F() => throw null;", "internal new ref object F() => throw null;", "F", "F", null, "<>F{00000001}<System.Object>"); // different return ref kind
+            yield return getData("internal ref object F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // different return ref kind
             yield return getData("internal void F(object x) { }", "internal new void F(dynamic x) { }", "F", "F", null, "System.Action<System.Object>"); // object/dynamic
             yield return getData("internal dynamic F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // object/dynamic
             yield return getData("internal void F((object, int) x) { }", "internal new void F((object a, int b) x) { }", "F", "F", null, "System.Action<System.ValueTuple<System.Object, System.Int32>>"); // tuple names
@@ -1150,8 +1147,6 @@ internal object? F() => throw null!;
             yield return getData("internal void F<T>(T t) { }", "internal new void F<T>(T t) where T : class { }", "F<object>", "F<object>", null, "System.Action<System.Object>"); // different type parameter constraints
             yield return getData("internal void F<T>(T t) { }", "internal new void F<T>(T t) where T : class { }", "base.F<object>", "F<object>", null, "System.Action<System.Object>"); // different type parameter constraints
             yield return getData("internal void F<T>(T t) where T : class { }", "internal new void F<T>(T t) where T : struct { }", "F<int>", "F<int>", null, "System.Action<System.Int32>"); // different type parameter constraints
-            // https://github.com/dotnet/roslyn/issues/52701: Assert failure: Unexpected value 'LessDerived' of type 'Microsoft.CodeAnalysis.CSharp.MemberResolutionKind'
-#if !DEBUG
             yield return getData("internal void F<T>(T t) where T : class { }", "internal new void F<T>(T t) where T : struct { }", "F<object>", "F<object>",
                 new[]
                 {
@@ -1159,7 +1154,6 @@ internal object? F() => throw null!;
                     //         System.Delegate d = F<object>;
                     Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(5, 29)
                 }); // different type parameter constraints
-#endif
 
             static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedType = null)
             {
@@ -6481,11 +6475,47 @@ class Program
 
                 static class E
                 {
-                    static public void Test1(this Program p, long[] a) => Console.Write(a.Length);
-                    static public void Test1(this object p, params long[] a) => Console.Write(a.Length);
+                    static public void Test1(this Program p, long[] a) => Console.Write("1a" + a.Length + " ");
+                    static public void Test1(this object p, params long[] a) => Console.Write("1b" + a.Length + " ");
 
-                    static public void Test2(this object p, params long[] a) => Console.Write(a.Length);
-                    static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
+                    static public void Test2(this object p, params long[] a) => Console.Write("2a" + a.Length + " ");
+                    static public void Test2(this Program p, long[] a) => Console.Write("2b" + a.Length + " ");
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_Instance()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+
+                    public void Test1(int x, long[] a) => Console.Write(a.Length);
+                    public void Test1(long x, params long[] a) => Console.Write(a.Length);
+
+                    public void Test2(int x, params long[] a) => Console.Write(a.Length);
+                    public void Test2(long x, long[] a) => Console.Write(a.Length);
                 }
                 """;
             foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
@@ -6542,6 +6572,135 @@ class Program
                     // (20,45): error CS0231: A params parameter must be the last parameter in a parameter list
                     //     static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
                     Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(20, 45));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter_Instance()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+
+                    public void Test1(int x, long[] a, long[] b) => Console.Write(a.Length);
+                    public void Test1(long x, params long[] a, long[] b) => Console.Write(a.Length);
+
+                    public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
+                    public void Test2(long x, long[] a, long[] b) => Console.Write(a.Length);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18),
+                    // (15,31): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     public void Test1(long x, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(15, 31),
+                    // (17,30): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(17, 30));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter_02()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long[] a, params long[] b) => Console.Write(a.Length);
+                    static public void Test1(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+
+                    static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    static public void Test2(this Program p, long[] a, params long[] b) => Console.Write(a.Length);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18),
+                    // (18,45): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     static public void Test1(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(18, 45),
+                    // (20,45): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(20, 45));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter_02_Instance()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+
+                    public void Test1(int x, long[] a, params long[] b) => Console.Write(a.Length);
+                    public void Test1(long x, params long[] a, long[] b) => Console.Write(a.Length);
+
+                    public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
+                    public void Test2(long x, long[] a, params long[] b) => Console.Write(a.Length);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18),
+                    // (15,31): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     public void Test1(long x, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(15, 31),
+                    // (17,30): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(17, 30));
             }
         }
 
@@ -6799,6 +6958,249 @@ class Program
                 CompileAndVerify(source, expectedOutput: "33",
                     parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
             }
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_01()
+        {
+            var source = """
+                var d1 = new Z().M;
+                System.Console.WriteLine(d1.GetType());
+                d1();
+
+                var d2 = ((Y<long>)(new Z())).M;
+                System.Console.WriteLine(d2.GetType());
+                d2();
+
+                var d3 = ((X)(new Z())).M;
+                System.Console.WriteLine(d3.GetType());
+                d3();
+
+                public class Z : Y<long>
+                {
+                    public override void M(int x = 3) => System.Console.WriteLine("I" + x);
+                    public override void M(long x = 4) => System.Console.WriteLine("L" + x);
+                }
+
+                public abstract class Y<T> : X
+                {
+                    public abstract void M(T x = default);
+                    public override void M(int x = 2) => System.Console.WriteLine("Y" + x);
+                }
+
+                public abstract class X
+                {
+                    public abstract void M(int x = 1);
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                L4
+                <>f__AnonymousDelegate1`1[System.Int64]
+                L0
+                <>f__AnonymousDelegate2`1[System.Int32]
+                I1
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_02()
+        {
+            var source = """
+                public class Z : Y<int>
+                {
+                    public override void M(int x = default) { }
+                }
+
+                public abstract class Y<T> : X
+                {
+                    public abstract void M(T x = default);
+                    public override void M(int x) { }
+                }
+
+                public abstract class X
+                {
+                    public abstract void M(int x = 42);
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,26): error CS0462: The inherited members 'Y<T>.M(T)' and 'Y<T>.M(int)' have the same signature in type 'Z', so they cannot be overridden
+                //     public override void M(int x = default) { }
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Y<T>.M(T)", "Y<T>.M(int)", "Z").WithLocation(3, 26),
+                // (8,26): warning CS1957: Member 'Z.M(int)' overrides 'Y<int>.M(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                //     public abstract void M(T x = default);
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Y<int>.M(int)", "Z.M(int)").WithLocation(8, 26));
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_03()
+        {
+            var source = """
+                D d = new Z().M;
+                d();
+
+                public class Z : Y<long>
+                {
+                    public override void M(int x = 3) { }
+                    public override void M(long x = 4) => System.Console.Write(x);
+                }
+
+                public abstract class Y<T> : X
+                {
+                    public abstract void M(T x = default);
+                    public override void M(int x = 2) { }
+                }
+
+                public abstract class X
+                {
+                    public abstract void M(int x = 1);
+                }
+
+                public delegate void D(long x = 5);
+                """;
+            CompileAndVerify(source, expectedOutput: "5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_04()
+        {
+            var source = """
+                D d = new Z().M;
+                d();
+
+                public class Z : Y<long>
+                {
+                    public override void M(int x = 3) { }
+                }
+
+                public abstract class Y<T> : X
+                {
+                    public virtual void M(T x = default) => System.Console.Write(x);
+                    public override void M(int x = 2) { }
+                }
+
+                public abstract class X
+                {
+                    public abstract void M(int x = 1);
+                }
+
+                public delegate void D(long x = 5);
+                """;
+            CompileAndVerify(source, expectedOutput: "5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_05()
+        {
+            var source = """
+                D d = new Z().M;
+                d();
+
+                public class Z : Y<long>
+                {
+                    public override void M(int x = 3) { }
+                }
+
+                public abstract class Y<T> : X
+                {
+                    public virtual void M(T x = default) => System.Console.Write(x);
+                    public override void M(int x = 2) { }
+                }
+
+                public abstract class X
+                {
+                    public abstract void M(int x = 1);
+                }
+
+                public delegate void D(long x = 5);
+                """;
+            CompileAndVerify(source, expectedOutput: "5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_06()
+        {
+            var source = """
+                var d = new Z().M;
+                d();
+
+                public class Z : Y<long>
+                {
+                    public new void M(int x = 3) => System.Console.Write(x);
+                }
+
+                public abstract class Y<T> : X
+                {
+                    public virtual void M(T x = default) { }
+                    public override void M(int x = 2) { }
+                }
+
+                public abstract class X
+                {
+                    public abstract void M(int x = 1);
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "3").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_07()
+        {
+            var source = """
+                new B().M();
+
+                partial class B
+                {
+                    internal void M()
+                    {
+                        System.Delegate d = F;
+                        System.Console.WriteLine(d.GetType());
+                        d.DynamicInvoke(3);
+                    }
+                }
+                abstract class A
+                {
+                    internal void F(int x = 1) => System.Console.WriteLine("A" + x);
+                }
+                partial class B : A
+                {
+                    internal static new void F(int x = 2) => System.Console.WriteLine("B" + x);
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                B3
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_08()
+        {
+            var source = """
+                new B().M();
+
+                partial class B
+                {
+                    internal void M()
+                    {
+                        var d = F;
+                        System.Console.WriteLine(d.GetType());
+                        d(3);
+                    }
+                }
+                abstract class A
+                {
+                    internal void F(int x = 1) => System.Console.WriteLine("A" + x);
+                }
+                partial class B : A
+                {
+                    internal static new void F(int x = 2) => System.Console.WriteLine("B" + x);
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                B3
+                """).VerifyDiagnostics();
         }
 
         [Fact]

@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
             considerArity: true,
-            considerParamsAndDefaultValues: true,
+            considerDefaultValues: true,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
             considerArity: false,
-            considerParamsAndDefaultValues: true,
+            considerDefaultValues: true,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         // Compare the "unqualified" part of the member name (no explicit part)
@@ -372,8 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Compare the full calling conventions.  Still compares varargs if false.
         private readonly bool _considerCallingConvention;
 
-        // Compare params modifiers and explicit default values
-        private readonly bool _considerParamsAndDefaultValues;
+        // Compare explicit default values
+        private readonly bool _considerDefaultValues;
 
         private readonly RefKindCompareMode _refKindCompareMode;
 
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerCallingConvention,
             RefKindCompareMode refKindCompareMode,
             bool considerArity = true,
-            bool considerParamsAndDefaultValues = false,
+            bool considerDefaultValues = false,
             TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic | TypeCompareKind.IgnoreNativeIntegers)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerCallingConvention = considerCallingConvention;
             _refKindCompareMode = refKindCompareMode;
             _considerArity = considerArity;
-            _considerParamsAndDefaultValues = considerParamsAndDefaultValues;
+            _considerDefaultValues = considerDefaultValues;
             _typeComparison = typeComparison;
             Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) == 0,
                          $"Rely on the {nameof(refKindCompareMode)} flag to set this to ensure all cases are handled.");
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters().AsSpan(), typeMap1, member2.GetParameters().AsSpan(), typeMap2,
-                                                                           _refKindCompareMode, considerParamsAndDefaultValues: _considerParamsAndDefaultValues, _typeComparison))
+                                                                           _refKindCompareMode, considerDefaultValues: _considerDefaultValues, _typeComparison))
             {
                 return false;
             }
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ReadOnlySpan<ParameterSymbol> params2,
             TypeMap? typeMap2,
             RefKindCompareMode refKindCompareMode,
-            bool considerParamsAndDefaultValues,
+            bool considerDefaultValues,
             TypeCompareKind typeComparison)
         {
             Debug.Assert(params1.Length == params2.Length);
@@ -781,8 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                if (considerParamsAndDefaultValues && (i == numParams - 1 && param1.IsParams != param2.IsParams ||
-                    param1.ExplicitDefaultConstantValue != param2.ExplicitDefaultConstantValue))
+                if (considerDefaultValues && param1.ExplicitDefaultConstantValue != param2.ExplicitDefaultConstantValue)
                 {
                     return false;
                 }
