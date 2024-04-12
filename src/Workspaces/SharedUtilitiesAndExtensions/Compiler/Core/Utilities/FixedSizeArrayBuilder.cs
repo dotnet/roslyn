@@ -51,13 +51,7 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
     /// The internal buffer will reset to an empty array, meaning no more items could ever be added to it.
     /// </summary>
     public ImmutableArray<T> MoveToImmutable()
-    {
-        Contract.ThrowIfTrue(_index != _values.Length);
-        var result = ImmutableCollectionsMarshal.AsImmutableArray(_values);
-        _values = Array.Empty<T>();
-        _index = 0;
-        return result;
-    }
+        => ImmutableCollectionsMarshal.AsImmutableArray(MoveToArray());
 
     public T[] MoveToArray()
     {
