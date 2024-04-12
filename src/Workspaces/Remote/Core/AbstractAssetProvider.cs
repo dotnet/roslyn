@@ -95,7 +95,7 @@ internal abstract class AbstractAssetProvider
 
         async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(DocumentChecksumsAndIds checksumsAndIds)
         {
-            using var _ = FixedSizeArrayBuilder<DocumentInfo>.GetInstance(checksumsAndIds.Length, out var documentInfos);
+            var documentInfos = new FixedSizeArrayBuilder<DocumentInfo>(checksumsAndIds.Length);
 
             foreach (var (attributeChecksum, textChecksum, documentId) in checksumsAndIds)
             {
@@ -196,7 +196,7 @@ internal static class AbstractAssetProviderExtensions
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
         checksumSet.AddAll(checksums.Children);
 
-        using var _ = FixedSizeArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
+        using var _ = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
 
         await assetProvider.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksumSet,
@@ -204,6 +204,6 @@ internal static class AbstractAssetProviderExtensions
             builder,
             cancellationToken).ConfigureAwait(false);
 
-        return builder.MoveToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

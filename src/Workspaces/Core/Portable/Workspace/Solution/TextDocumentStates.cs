@@ -117,7 +117,7 @@ internal sealed class TextDocumentStates<TState>
 
     public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
     {
-        using var _ = FixedSizeArrayBuilder<TValue>.GetInstance(_map.Count, out var result);
+        var result = new FixedSizeArrayBuilder<TValue>(_map.Count);
         foreach (var (_, state) in _map)
             result.Add(selector(state, arg));
 
@@ -271,9 +271,9 @@ internal sealed class TextDocumentStates<TState>
 
     public async ValueTask<DocumentChecksumsAndIds> GetDocumentChecksumsAndIdsAsync(CancellationToken cancellationToken)
     {
-        using var _1 = FixedSizeArrayBuilder<Checksum>.GetInstance(_map.Count, out var attributeChecksums);
-        using var _2 = FixedSizeArrayBuilder<Checksum>.GetInstance(_map.Count, out var textChecksums);
-        using var _3 = FixedSizeArrayBuilder<DocumentId>.GetInstance(_map.Count, out var documentIds);
+        var attributeChecksums = new FixedSizeArrayBuilder<Checksum>(_map.Count);
+        var textChecksums = new FixedSizeArrayBuilder<Checksum>(_map.Count);
+        var documentIds = new FixedSizeArrayBuilder<DocumentId>(_map.Count);
 
         foreach (var (documentId, state) in _map)
         {

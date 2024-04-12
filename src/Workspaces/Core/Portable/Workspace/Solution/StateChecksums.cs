@@ -533,7 +533,7 @@ internal static class ChecksumCache
             references,
             static (references, tuple) =>
             {
-                using var _ = FixedSizeArrayBuilder<Checksum>.GetInstance(references.Count, out var checksums);
+                var checksums = new FixedSizeArrayBuilder<Checksum>(references.Count);
                 foreach (var reference in references)
                     checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
 

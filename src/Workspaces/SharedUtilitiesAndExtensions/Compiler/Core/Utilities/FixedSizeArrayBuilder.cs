@@ -15,31 +15,11 @@ using Roslyn.Utilities;
 /// (usually encountered when a cancellation token interrupts getting the final array), this will leak the intermediary
 /// array created to store the results.
 /// </summary>
-internal sealed class FixedSizeArrayBuilder<T>
+[NonCopyable]
+internal struct FixedSizeArrayBuilder<T>(int capacity)
 {
-    private static readonly ObjectPool<FixedSizeArrayBuilder<T>> s_pool = new(() => new());
-
-    private T[] _values = Array.Empty<T>();
+    private T[] _values = new T[capacity];
     private int _index;
-
-    private FixedSizeArrayBuilder()
-    {
-    }
-
-    /// <summary>
-    /// Gets a builder which wraps an array whose length is exactly <paramref name="capacity"/>.  This array can only be
-    /// moved into a <see cref="ImmutableArray{T}"/> through <see cref="MoveToImmutable"/>, and only when exactly that
-    /// number of elements have been added.
-    /// </summary>
-    public static PooledFixedSizeArrayBuilder GetInstance(int capacity, out FixedSizeArrayBuilder<T> builder)
-    {
-        builder = s_pool.Allocate();
-        Contract.ThrowIfTrue(builder._values != Array.Empty<T>());
-        Contract.ThrowIfTrue(builder._index != 0);
-        builder._values = new T[capacity];
-
-        return new(builder);
-    }
 
     public void Add(T value)
         => _values[_index++] = value;
@@ -58,24 +38,5 @@ internal sealed class FixedSizeArrayBuilder<T>
         _values = Array.Empty<T>();
         _index = 0;
         return result;
-    }
-
-    public struct PooledFixedSizeArrayBuilder(FixedSizeArrayBuilder<T> builder) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
-        {
-            Contract.ThrowIfTrue(_disposed);
-            _disposed = true;
-
-            // Put the builder back in the pool.  If we were in the middle of creating hte array, but never moved it
-            // out, this will leak the array (can happen during things like cancellation).  That's acceptable as that
-            // should not be the mainline path.  And, in that event, it's not like we can use that array anyways as it
-            // won't be the right size for the next caller that needs a FixedSizeArrayBuilder of a different size.
-            builder._values = Array.Empty<T>();
-            builder._index = 0;
-            s_pool.Free(builder);
-        }
     }
 }
