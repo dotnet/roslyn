@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -30,6 +31,21 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     {
         IOUtilities.PerformIO(() => File.Delete(s_logFile));
     }
+
+    private static readonly AsyncBatchingWorkQueue<string> s_writeQueue = new(
+        TimeSpan.Zero,
+        (list, _) =>
+        {
+            IOUtilities.PerformIO(() =>
+            {
+                var fullString = string.Join("", list);
+                File.AppendAllText(s_logFile, fullString);
+            });
+
+            return default;
+        },
+        AsynchronousOperationListenerProvider.NullListener,
+        CancellationToken.None);
 
     private const int PooledChecksumArraySize = 1024;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
@@ -325,13 +341,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     var time = stopwatch.Elapsed;
                     var totalTime = s_start.Elapsed;
 
-                    IOUtilities.PerformIO(() =>
-                    {
-                        lock (this)
-                        {
-                            File.AppendAllText(s_logFile, $"{missingChecksumsCount},{checksums.Count},{time},{totalTime},{typeof(T).Name}\r\n");
-                        }
-                    });
+                    s_writeQueue.AddWork($"{missingChecksumsCount},{checksums.Count},{time},{totalTime},{typeof(T).Name}\r\n");
                 }
             }
             finally
