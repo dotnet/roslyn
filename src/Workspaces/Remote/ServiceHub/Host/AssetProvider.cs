@@ -235,8 +235,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private async ValueTask SynchronizeAssetsAsync<T, TArg>(
         AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
     {
-        // Contract.ThrowIfTrue(typeof(T).Name == "Object");
-
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
             return;
