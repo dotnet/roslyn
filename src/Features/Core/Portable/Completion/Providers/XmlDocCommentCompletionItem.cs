@@ -15,10 +15,6 @@ internal static class XmlDocCommentCompletionItem
 
     public static CompletionItem Create(string displayText, string beforeCaretText, string afterCaretText, CompletionItemRules rules)
     {
-        var props = ImmutableArray.Create(
-            KeyValuePairUtil.Create(BeforeCaretText, beforeCaretText),
-            KeyValuePairUtil.Create(AfterCaretText, afterCaretText));
-
         // Set isComplexTextEdit to be always true for simplicity, even
         // though we don't always need to make change outside the default
         // completion list Span.
@@ -28,7 +24,9 @@ internal static class XmlDocCommentCompletionItem
             displayText: displayText,
             displayTextSuffix: "",
             glyph: Glyph.Keyword,
-            properties: props,
+            properties: [
+                KeyValuePairUtil.Create(BeforeCaretText, beforeCaretText),
+                KeyValuePairUtil.Create(AfterCaretText, afterCaretText)],
             rules: rules,
             isComplexTextEdit: true);
     }

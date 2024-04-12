@@ -24,17 +24,15 @@ internal class MemberInsertionCompletionItem
         int descriptionPosition,
         CompletionItemRules rules)
     {
-        var props = ImmutableArray.Create(
-            KeyValuePairUtil.Create("Line", line.ToString()),
-            KeyValuePairUtil.Create("Modifiers", modifiers.ToString()),
-            KeyValuePairUtil.Create("TokenSpanEnd", token.Span.End.ToString()));
-
         return SymbolCompletionItem.CreateWithSymbolId(
             displayText: displayText,
             displayTextSuffix: displayTextSuffix,
             symbols: [symbol],
             contextPosition: descriptionPosition,
-            properties: props,
+            properties: [
+                KeyValuePairUtil.Create("Line", line.ToString()),
+                KeyValuePairUtil.Create("Modifiers", modifiers.ToString()),
+                KeyValuePairUtil.Create("TokenSpanEnd", token.Span.End.ToString())],
             rules: rules,
             isComplexTextEdit: true);
     }
