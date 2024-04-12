@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 /// created to store the results.
 /// </summary>
 /// <remarks>
-/// This type should only used when all of the following is true:
+/// This type should only be used when all of the following are true:
 /// <list type="number">
 /// <item>
 /// The number of elements is known up front, and is fixed.  In other words, it isn't just an initial-capacity, or a
