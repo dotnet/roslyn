@@ -91,42 +91,36 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             var compilationStateChecksums = await this.GetAssetAsync<SolutionCompilationStateChecksums>(
                 assetPath: AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
-
             // second, get direct children of the solution compilation state.
-            compilationStateChecksums.AddAllTo(checksums);
-            await this.SynchronizeAssetsAsync<object, VoidResult>(
-                assetPath: AssetPathKind.SolutionCompilationState, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
-
-            // third, get direct children of the solution state.
-            var stateChecksums = await this.GetAssetAsync<SolutionStateChecksums>(
+            var solutionStateChecksum = await this.GetAssetAsync<SolutionStateChecksums>(
                 assetPath: AssetPathKind.SolutionStateChecksums, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
             // Ask for solutions and top-level projects as the solution checksums will contain the checksums for
             // the project states and we want to get that all in one batch.
-            checksums.Clear();
-            stateChecksums.AddAllTo(checksums);
+            using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+            solutionStateChecksum.AnalyzerReferences.AddAllTo(checksums);
 
-            using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var checksumToObjects);
+            await this.SynchronizeAssetsAsync<AnalyzerReference, VoidResult>(
+                assetPath: AssetPathKind.SolutionAnalyzerReferences, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
 
             // Note: this search will be optimized on the host side.  It will search through the solution level values,
             // and then the top level project-state-checksum values only.  No other project data or document data will be
             // looked at.
-            await this.SynchronizeAssetsAsync<object, Dictionary<Checksum, object>>(
-                assetPath: AssetPathKind.SolutionState | AssetPathKind.ProjectStateChecksums,
+            checksums.Clear();
+            solutionStateChecksum.Projects.Checksums.AddAllTo(checksums);
+
+            using var _2 = PooledDictionary<Checksum, ProjectStateChecksums>.GetInstance(out var checksumToProjectStateChecksums);
+            await this.SynchronizeAssetsAsync<ProjectStateChecksums, Dictionary<Checksum, ProjectStateChecksums>>(
+                assetPath: AssetPathKind.ProjectStateChecksums,
                 checksums,
-                static (checksum, asset, checksumToObjects) => checksumToObjects.Add(checksum, asset),
-                arg: checksumToObjects, cancellationToken).ConfigureAwait(false);
+                static (checksum, asset, checksumToProjectStateChecksums) => checksumToProjectStateChecksums.Add(checksum, asset),
+                arg: checksumToProjectStateChecksums, cancellationToken).ConfigureAwait(false);
 
             using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);
 
             // fourth, get all projects and documents in the solution 
-            foreach (var (projectChecksum, projectId) in stateChecksums.Projects)
-            {
-                var projectStateChecksums = (ProjectStateChecksums)checksumToObjects[projectChecksum];
-                Contract.ThrowIfTrue(projectStateChecksums.ProjectId != projectId);
+            foreach (var (_, projectStateChecksums) in checksumToProjectStateChecksums)
                 allProjectStateChecksums.Add(projectStateChecksums);
-            }
 
             await SynchronizeProjectAssetsAsync(allProjectStateChecksums, cancellationToken).ConfigureAwait(false);
         }
