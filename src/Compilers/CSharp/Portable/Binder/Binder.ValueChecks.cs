@@ -1476,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return symbol.RequiresInstanceReceiver()
                 && symbol.Kind != SymbolKind.Event
-                && symbol.ContainingType.IsStructType();
+                && symbol.ContainingType.IsValueType;
         }
 
         protected bool CheckMethodReturnValueKind(
