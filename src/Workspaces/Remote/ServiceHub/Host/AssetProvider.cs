@@ -277,8 +277,8 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 checksums).ConfigureAwait(false);
         }
 
-        ValueTask SynchronizeAssetsAsync<TAsset>(AssetPath assetPath, HashSet<Checksum> checksums)
-            => this.SynchronizeAssetsAsync<TAsset, VoidResult>(assetPath, checksums, callback: null, arg: default, cancellationToken);
+        async Task SynchronizeAssetsAsync<TAsset>(AssetPath assetPath, HashSet<Checksum> checksums)
+            => await this.SynchronizeAssetsAsync<TAsset, VoidResult>(assetPath, checksums, callback: null, arg: default, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask SynchronizeAssetsAsync<T, TArg>(
