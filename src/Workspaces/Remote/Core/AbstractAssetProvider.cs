@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,18 +34,25 @@ internal abstract class AbstractAssetProvider
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.SolutionAttributes, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
         await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionChecksums.Projects.Length, out var projects);
+        // Fetch the projects in parallel.
+        using var _ = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
         foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
-            projects.Add(await CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken).ConfigureAwait(false));
+            projectsTasks.Add(CreateProjectInfoAsync(projectId, projectChecksum, cancellationToken));
 
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
+        var projects = await Task.WhenAll(projectsTasks).ConfigureAwait(false);
         return SolutionInfo.Create(
-            solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects.ToImmutableAndClear(), analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
+            solutionAttributes.Id,
+            solutionAttributes.Version,
+            solutionAttributes.FilePath,
+            ImmutableCollectionsMarshal.AsImmutableArray(projects),
+            analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
     }
 
     public async Task<ProjectInfo> CreateProjectInfoAsync(ProjectId projectId, Checksum projectChecksum, CancellationToken cancellationToken)
     {
+        await Task.Yield();
         var projectChecksums = await GetAssetAsync<ProjectStateChecksums>(new(AssetPathKind.ProjectStateChecksums, projectId), projectChecksum, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfFalse(projectId == projectChecksums.ProjectId);
 
@@ -82,11 +90,6 @@ internal abstract class AbstractAssetProvider
         async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(ChecksumsAndIds<DocumentId> checksumsAndIds)
         {
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(checksumsAndIds.Length, out var documentInfos);
-
-            await this.GetAssetsAsync<DocumentStateChecksums>(
-                new(AssetPathKind.DocumentStateChecksums, projectId),
-                checksumsAndIds.Checksums,
-                cancellationToken).ConfigureAwait(false);
 
             foreach (var (documentChecksum, documentId) in checksumsAndIds)
             {
