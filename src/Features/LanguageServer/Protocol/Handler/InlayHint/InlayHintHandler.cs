@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             // member we can re-use the inline hint.
             var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints, syntaxVersion));
 
-            var inlayHints = new FixedSizeArrayBuilder<LSP.InlayHint>(hints.Length);
+            var inlayHints = new LSP.InlayHint[hints.Length];
             for (var i = 0; i < hints.Length; i++)
             {
                 var hint = hints[i];
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                     Data = new InlayHintResolveData(resultId, i, request.TextDocument)
                 };
 
-                inlayHints.Add(inlayHint);
+                inlayHints[0] = inlayHint;
             }
 
-            return inlayHints.MoveToArray();
+            return inlayHints;
         }
 
         /// <summary>
