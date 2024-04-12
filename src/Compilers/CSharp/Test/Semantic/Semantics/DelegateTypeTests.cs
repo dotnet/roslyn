@@ -6475,11 +6475,11 @@ class Program
 
                 static class E
                 {
-                    static public void Test1(this Program p, long[] a) => Console.Write("1a" + a.Length + " ");
-                    static public void Test1(this object p, params long[] a) => Console.Write("1b" + a.Length + " ");
+                    static public void Test1(this Program p, long[] a) => Console.Write(a.Length);
+                    static public void Test1(this object p, params long[] a) => Console.Write(a.Length);
 
-                    static public void Test2(this object p, params long[] a) => Console.Write("2a" + a.Length + " ");
-                    static public void Test2(this Program p, long[] a) => Console.Write("2b" + a.Length + " ");
+                    static public void Test2(this object p, params long[] a) => Console.Write(a.Length);
+                    static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
                 }
                 """;
             foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
@@ -6701,6 +6701,96 @@ class Program
                     // (17,30): error CS0231: A params parameter must be the last parameter in a parameter list
                     //     public void Test2(int x, params long[] a, long[] b) => Console.Write(a.Length);
                     Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(17, 30));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotArray_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a) => Console.Write(a);
+                    static public void Test1(this object p, params long a) => Console.Write(a);
+
+                    static public void Test2(this object p, params long a) => Console.Write(a);
+                    static public void Test2(this Program p, long a) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'Action<long>'
+                    //         x1();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x1").WithArguments("obj", "System.Action<long>").WithLocation(10, 9),
+                    // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'Action<long>'
+                    //         x2();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x2").WithArguments("obj", "System.Action<long>").WithLocation(11, 9),
+                    // (18,45): error CS0225: The params parameter must have a valid collection type
+                    //     static public void Test1(this object p, params long a) => Console.Write(a);
+                    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(18, 45),
+                    // (20,45): error CS0225: The params parameter must have a valid collection type
+                    //     static public void Test2(this object p, params long a) => Console.Write(a);
+                    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(20, 45));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotArray_02()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, params long[] a) => Console.Write(a);
+                    static public void Test1(this object p, params long a) => Console.Write(a);
+
+                    static public void Test2(this object p, params long a) => Console.Write(a);
+                    static public void Test2(this Program p, params long[] a) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18),
+                    // (18,45): error CS0225: The params parameter must have a valid collection type
+                    //     static public void Test1(this object p, params long a) => Console.Write(a);
+                    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(18, 45),
+                    // (20,45): error CS0225: The params parameter must have a valid collection type
+                    //     static public void Test2(this object p, params long a) => Console.Write(a);
+                    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(20, 45));
             }
         }
 
@@ -13384,6 +13474,180 @@ class Program
             cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
             dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().IsParams);
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Generic_01()
+        {
+            var source = """
+                var c = ((C<long>)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                var m = new D().M;
+                System.Console.WriteLine(m.GetType());
+                m(null);
+
+                abstract class C<T>
+                {
+                    public abstract void M(params T[] xs);
+                }
+
+                class D : C<long>
+                {
+                    public override void M(long[] xs) => System.Console.WriteLine("A");
+                    public void M<T>(T[] xs) => System.Console.WriteLine("B");
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                <>f__AnonymousDelegate0`1[System.Int64]
+                B
+                """).VerifyDiagnostics();
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
+            Assert.True(dm.Parameters.Single().IsParams);
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Different_Generic_01()
+        {
+            var source1a = """
+                public abstract class C<T>
+                {
+                    public abstract void M(T[] xs);
+                }
+                """;
+            var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1aRef = comp1a.EmitToImageReference();
+
+            var source2 = """
+                public class D : C<long>
+                {
+                    public override void M(long[] xs) => System.Console.WriteLine("A");
+                    public void M<T>(T[] xs) => System.Console.WriteLine("B");
+                }
+                """;
+            var comp2 = CreateCompilation(source2, [comp1aRef]).VerifyDiagnostics();
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var source1b = """
+                public abstract class C<T>
+                {
+                    public abstract void M(params T[] xs);
+                }
+                """;
+            var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+
+            var source3 = """
+                var c = ((C<long>)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+                d(null);
+                """;
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
+                expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                System.Action`1[System.Int64[]]
+                B
+                """).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
+            Assert.False(dm.Parameters.Single().IsParams);
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Generic_02()
+        {
+            var source = """
+                var c = ((C)new D<long>()).M<long>;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                var d = new D<long>().M;
+                System.Console.WriteLine(d.GetType());
+                d(null);
+
+                abstract class C
+                {
+                    public abstract void M<T>(params T[] xs);
+                }
+
+                class D<T2> : C
+                {
+                    public override void M<T>(T[] xs) => System.Console.WriteLine("A");
+                    public void M(T2[] xs) => System.Console.WriteLine("B");
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                System.Action`1[System.Int64[]]
+                B
+                """).VerifyDiagnostics();
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
+            Assert.True(dm.Parameters.Single().IsParams);
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Different_Generic_02()
+        {
+            var source1a = """
+                public abstract class C
+                {
+                    public abstract void M<T>(T[] xs);
+                }
+                """;
+            var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1aRef = comp1a.EmitToImageReference();
+
+            var source2 = """
+                public class D<T2> : C
+                {
+                    public override void M<T>(T[] xs) => System.Console.WriteLine("A");
+                    public void M(T2[] xs) => System.Console.WriteLine("B");
+                }
+                """;
+            var comp2 = CreateCompilation(source2, [comp1aRef]).VerifyDiagnostics();
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var source1b = """
+                public abstract class C
+                {
+                    public abstract void M<T>(params T[] xs);
+                }
+                """;
+            var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+
+            var source3 = """
+                var c = ((C)new D<long>()).M<long>;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                var d = new D<long>().M;
+                System.Console.WriteLine(d.GetType());
+                d(null);
+                """;
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
+                expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                System.Action`1[System.Int64[]]
+                B
+                """).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
             Assert.False(dm.Parameters.Single().IsParams);
         }
 

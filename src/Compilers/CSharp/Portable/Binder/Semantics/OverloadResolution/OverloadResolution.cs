@@ -1312,10 +1312,10 @@ outerDefault:
                     continue;
                 }
 
-                var leastOverriddenMember = method.GetConstructedLeastOverriddenMethod(_binder.ContainingType, requireSameReturnType: false);
+                MethodSymbol leastOverriddenMethod = method.GetConstructedLeastOverriddenMethod(_binder.ContainingType, requireSameReturnType: false);
                 results.Add(new MemberResolutionResult<MethodSymbol>(
                     method,
-                    leastOverriddenMember,
+                    leastOverriddenMethod,
                     MemberAnalysisResult.NormalForm(argsToParamsOpt: default, conversions: default, hasAnyRefOmittedArgument: false),
                     hasTypeArgumentInferredFromFunctionType: false));
             }
