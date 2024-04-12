@@ -38,9 +38,12 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
     }
 
     public readonly void Sort()
+        => Sort(Comparer<T>.Default);
+
+    public readonly void Sort(IComparer<T> comparer)
     {
         if (_index > 1)
-            Array.Sort(_values, 0, _index, Comparer<T>.Default);
+            Array.Sort(_values, 0, _index, comparer);
     }
 
     /// <summary>
