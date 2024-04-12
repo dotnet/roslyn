@@ -58,4 +58,13 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
         _index = 0;
         return result;
     }
+
+    public T[] MoveToArray()
+    {
+        Contract.ThrowIfTrue(_index != _values.Length);
+        var result = _values;
+        _values = Array.Empty<T>();
+        _index = 0;
+        return result;
+    }
 }
