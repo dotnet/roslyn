@@ -24,29 +24,6 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
     : AbstractAssetProvider
 {
-    private const string s_logFile = @"c:\temp\sync\synclog.txt";
-    private static readonly SharedStopwatch s_start = SharedStopwatch.StartNew();
-
-    static AssetProvider()
-    {
-        IOUtilities.PerformIO(() => File.Delete(s_logFile));
-    }
-
-    private static readonly AsyncBatchingWorkQueue<string> s_writeQueue = new(
-        TimeSpan.Zero,
-        (list, _) =>
-        {
-            IOUtilities.PerformIO(() =>
-            {
-                var fullString = string.Join("", list);
-                File.AppendAllText(s_logFile, fullString);
-            });
-
-            return default;
-        },
-        AsynchronousOperationListenerProvider.NullListener,
-        CancellationToken.None);
-
     private const int PooledChecksumArraySize = 1024;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
@@ -312,7 +289,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 if (missingChecksumsCount > 0)
                 {
                     var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
-                    var stopwatch = SharedStopwatch.StartNew();
 
                     await RequestAssetsAsync(
                         assetPath, missingChecksumsMemory,
@@ -328,11 +304,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                         },
                         (this, missingChecksums, callback, arg),
                         cancellationToken).ConfigureAwait(false);
-
-                    var time = stopwatch.Elapsed;
-                    var totalTime = s_start.Elapsed;
-
-                    s_writeQueue.AddWork($"{missingChecksumsCount},{checksums.Count},{time},{totalTime},{typeof(T).Name}\r\n");
                 }
             }
             finally
