@@ -88,18 +88,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
-                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentTexts.HasValue &&
+                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue &&
                         !newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes.IsDefault)
                     {
                         var newSolutionFrozenSourceGeneratedDocumentIdentities = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value;
-                        var newSolutionFrozenSourceGeneratedDocumentTexts = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentTexts.Value;
-                        var count = newSolutionFrozenSourceGeneratedDocumentTexts.Checksums.Count;
+                        var newSolutionFrozenSourceGeneratedDocuments = newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value;
+                        var count = newSolutionFrozenSourceGeneratedDocuments.Ids.Length;
 
                         using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
                         for (var i = 0; i < count; i++)
                         {
-                            var frozenDocumentId = newSolutionFrozenSourceGeneratedDocumentTexts.Ids[i];
-                            var frozenDocumentTextChecksum = newSolutionFrozenSourceGeneratedDocumentTexts.Checksums[i];
+                            var frozenDocumentId = newSolutionFrozenSourceGeneratedDocuments.Ids[i];
+                            var frozenDocumentTextChecksum = newSolutionFrozenSourceGeneratedDocuments.TextChecksums[i];
                             var frozenDocumentIdentity = newSolutionFrozenSourceGeneratedDocumentIdentities[i];
 
                             var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
