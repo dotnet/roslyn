@@ -174,36 +174,24 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
             }
 
-            foreach (var (checksum, documentId) in projectObject.Documents)
-            {
-                var documentObject = await GetValueAsync<DocumentStateChecksums>(checksum).ConfigureAwait(false);
-                Assert.Equal(documentObject.DocumentId, documentId);
-                await VerifyAssetAsync(documentObject).ConfigureAwait(false);
-            }
+            foreach (var (attributeChecksum, textChecksum, documentId) in projectObject.Documents)
+                await VerifyAssetAsync(attributeChecksum, textChecksum).ConfigureAwait(false);
 
-            foreach (var (checksum, documentId) in projectObject.AdditionalDocuments)
-            {
-                var documentObject = await GetValueAsync<DocumentStateChecksums>(checksum).ConfigureAwait(false);
-                Assert.Equal(documentObject.DocumentId, documentId);
-                await VerifyAssetAsync(documentObject).ConfigureAwait(false);
-            }
+            foreach (var(attributeChecksum, textChecksum, documentId) in projectObject.AdditionalDocuments)
+                await VerifyAssetAsync(attributeChecksum, textChecksum).ConfigureAwait(false);
 
-            foreach (var (checksum, documentId) in projectObject.AnalyzerConfigDocuments)
-            {
-                var documentObject = await GetValueAsync<DocumentStateChecksums>(checksum).ConfigureAwait(false);
-                Assert.Equal(documentObject.DocumentId, documentId);
-                await VerifyAssetAsync(documentObject).ConfigureAwait(false);
-            }
+            foreach (var(attributeChecksum, textChecksum, documentId) in projectObject.AnalyzerConfigDocuments)
+                await VerifyAssetAsync(attributeChecksum, textChecksum).ConfigureAwait(false);
         }
 
-        internal async Task VerifyAssetAsync(DocumentStateChecksums documentObject)
+        internal async Task VerifyAssetAsync(Checksum attributeChecksum, Checksum textChecksum)
         {
             var info = await VerifyAssetSerializationAsync<DocumentInfo.DocumentAttributes>(
-                documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes,
+                attributeChecksum, WellKnownSynchronizationKind.DocumentAttributes,
                 (v, k, s) => new SolutionAsset(v.Checksum, v)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SerializableSourceText>(
-                documentObject.Text, WellKnownSynchronizationKind.SerializableSourceText,
+                textChecksum, WellKnownSynchronizationKind.SerializableSourceText,
                 (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
         }
 

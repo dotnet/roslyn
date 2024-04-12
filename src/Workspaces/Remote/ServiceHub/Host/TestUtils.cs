@@ -128,22 +128,12 @@ namespace Microsoft.CodeAnalysis.Remote
                         assetPath: projectId, projectChecksum, CancellationToken.None).ConfigureAwait(false);
                     projectChecksums.AddAllTo(set);
 
-                    await AddDocumentsAsync(projectId, projectChecksums.Documents, set).ConfigureAwait(false);
-                    await AddDocumentsAsync(projectId, projectChecksums.AdditionalDocuments, set).ConfigureAwait(false);
-                    await AddDocumentsAsync(projectId, projectChecksums.AnalyzerConfigDocuments, set).ConfigureAwait(false);
+                    projectChecksums.Documents.AddAllTo(set);
+                    projectChecksums.AdditionalDocuments.AddAllTo(set);
+                    projectChecksums.AnalyzerConfigDocuments.AddAllTo(set);
                 }
 
                 return set;
-            }
-
-            async Task AddDocumentsAsync(ProjectId projectId, ChecksumsAndIds<DocumentId> documents, HashSet<Checksum> checksums)
-            {
-                foreach (var (documentChecksum, documentId) in documents)
-                {
-                    var documentChecksums = await assetService.GetAssetAsync<DocumentStateChecksums>(
-                        assetPath: documentId, documentChecksum, CancellationToken.None).ConfigureAwait(false);
-                    AddAllTo(documentChecksums, checksums);
-                }
             }
 
 #else
