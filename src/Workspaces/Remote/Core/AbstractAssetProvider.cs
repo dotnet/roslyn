@@ -194,6 +194,9 @@ internal static class AbstractAssetProviderExtensions
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
+#if NET
+        checksumSet.EnsureCapacity(checksums.Children.Length);
+#endif
         checksumSet.AddAll(checksums.Children);
 
         using var _ = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
