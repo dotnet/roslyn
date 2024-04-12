@@ -36,19 +36,15 @@ internal abstract class AbstractAssetProvider
 
         // Fetch all the project state checksums up front.  That allows getting all the data in a single call, and
         // enables parallel fetching of the projects below.
-        using var _1 = ArrayBuilder<ProjectStateChecksums>.GetInstance(solutionChecksums.Projects.Length, out var allProjectStateChecksums);
-        await this.GetAssetsAsync<ProjectStateChecksums, ArrayBuilder<ProjectStateChecksums>>(
+        using var _1 = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
+        await this.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
             AssetPathKind.ProjectStateChecksums,
             solutionChecksums.Projects.Checksums,
-            static (_, projectStateChecksums, allProjectStateChecksums) => allProjectStateChecksums.Add(projectStateChecksums),
-            allProjectStateChecksums,
+            static (_, projectStateChecksums, tuple) => tuple.projectsTasks.Add(tuple.@this.CreateProjectInfoAsync(projectStateChecksums, tuple.cancellationToken)),
+            (@this: this, projectsTasks, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         // Fetch the projects in parallel.
-        using var _2 = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
-        foreach (var projectStateChecksum in allProjectStateChecksums)
-            projectsTasks.Add(CreateProjectInfoAsync(projectStateChecksum, cancellationToken));
-
         var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
         var projects = await Task.WhenAll(projectsTasks).ConfigureAwait(false);
@@ -151,6 +147,18 @@ internal abstract class AbstractAssetProvider
 
         // TODO: do we need version?
         return new DocumentInfo(attributes, textLoader, documentServiceProvider: null);
+    }
+
+    public AssetHelper<T> GetAssetHelper<T>()
+        => new(this);
+
+    public readonly struct AssetHelper<T>(AbstractAssetProvider assetProvider)
+    {
+        public Task GetAssetsAsync<TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+            => assetProvider.GetAssetsAsync(assetPath, checksums, callback, arg, cancellationToken);
+
+        public Task GetAssetsAsync<TArg>(AssetPath assetPath, ChecksumCollection checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+            => assetProvider.GetAssetsAsync(assetPath, checksums, callback, arg, cancellationToken);
     }
 }
 
