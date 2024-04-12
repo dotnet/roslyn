@@ -89,16 +89,19 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         {
             // first, get top level solution state for the given solution checksum
             var compilationStateChecksums = await this.GetAssetAsync<SolutionCompilationStateChecksums>(
-                assetPath: AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // second, get direct children of the solution compilation state.
             var solutionStateChecksum = await this.GetAssetAsync<SolutionStateChecksums>(
-                assetPath: AssetPathKind.SolutionStateChecksums, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+                AssetPathKind.SolutionStateChecksums, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+
+            var sourceGenerationExecutionMap = await this.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
+                AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, compilationStateChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
             // Ask for solutions and top-level projects as the solution checksums will contain the checksums for
             // the project states and we want to get that all in one batch.
             await this.GetAssetsAsync<AnalyzerReference>(
-                assetPath: AssetPathKind.SolutionAnalyzerReferences, solutionStateChecksum.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+                AssetPathKind.SolutionAnalyzerReferences, solutionStateChecksum.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
             // Note: this search will be optimized on the host side.  It will search through the solution level values,
             // and then the top level project-state-checksum values only.  No other project data or document data will be
@@ -106,7 +109,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
             using var _2 = PooledDictionary<Checksum, ProjectStateChecksums>.GetInstance(out var checksumToProjectStateChecksums);
             await this.GetAssetsAsync<ProjectStateChecksums, Dictionary<Checksum, ProjectStateChecksums>>(
-                assetPath: AssetPathKind.ProjectStateChecksums,
+                AssetPathKind.ProjectStateChecksums,
                 solutionStateChecksum.Projects.Checksums,
                 static (checksum, asset, checksumToProjectStateChecksums) => checksumToProjectStateChecksums.Add(checksum, asset),
                 arg: checksumToProjectStateChecksums, cancellationToken).ConfigureAwait(false);
