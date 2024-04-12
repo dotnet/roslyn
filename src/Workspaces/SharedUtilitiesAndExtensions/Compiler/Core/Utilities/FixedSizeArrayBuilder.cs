@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 /// <summary>
-/// A bare-bones, pooled builder, focused on the case of producing <see cref="ImmutableArray{T}"/>s where the final
-/// array size is known at construction time.  In the golden path, where all the expected items are added to the
-/// builder, and <see cref="MoveToImmutable"/> is called, this type is entirely garbage free.  In the non-golden path
-/// (usually encountered when a cancellation token interrupts getting the final array), this will leak the intermediary
-/// array created to store the results.
+/// A bare-bones array builder, focused on the case of producing <see cref="ImmutableArray{T}"/>s where the final array
+/// size is known at construction time.  In the golden path, where all the expected items are added to the builder, and
+/// <see cref="MoveToImmutable"/> is called, this type is entirely garbage free.  In the non-golden path (usually
+/// encountered when a cancellation token interrupts getting the final array), this will leak the intermediary array
+/// created to store the results.
 /// </summary>
 /// <remarks>
 /// This type should only used when all of the following is true:
