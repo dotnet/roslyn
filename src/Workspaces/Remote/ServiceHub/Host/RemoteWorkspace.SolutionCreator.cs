@@ -267,8 +267,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         assetPath: AssetPathKind.ProjectCompilationOptions, projectItemChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
-                using var _2 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
-                using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var projectStateChecksumsToAdd);
+                using var _2 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var projectStateChecksumsToAdd);
 
                 // added project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
@@ -281,6 +280,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // efficiently in bulk and in parallel.
                 await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksumsToAdd, cancellationToken).ConfigureAwait(false);
 
+                using var _3 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
                     if (!oldProjectIdToStateChecksums.ContainsKey(projectId))
