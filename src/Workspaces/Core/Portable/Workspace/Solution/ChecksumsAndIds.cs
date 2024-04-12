@@ -80,6 +80,51 @@ internal readonly struct ChecksumsAndIds<TId>
     }
 }
 
+internal readonly struct ProjectChecksumsAndIds
+{
+    public readonly ChecksumCollection Checksums;
+    public readonly ImmutableArray<ProjectId> Ids;
+
+    public ProjectChecksumsAndIds(ChecksumCollection checksums, ImmutableArray<ProjectId> ids)
+    {
+        Contract.ThrowIfTrue(ids.Length != checksums.Children.Length);
+
+        Checksums = checksums;
+        Ids = ids;
+    }
+
+    public int Length => Ids.Length;
+    public Checksum Checksum => Checksums.Checksum;
+
+    public void WriteTo(ObjectWriter writer)
+    {
+        this.Checksums.WriteTo(writer);
+        writer.WriteArray(this.Ids, static (writer, p) => p.WriteTo(writer));
+    }
+
+    public static ProjectChecksumsAndIds ReadFrom(ObjectReader reader)
+    {
+        return new(
+            ChecksumCollection.ReadFrom(reader),
+            reader.ReadArray(static reader => ProjectId.ReadFrom(reader)));
+    }
+
+    public Enumerator GetEnumerator()
+        => new(this);
+
+    public struct Enumerator(ProjectChecksumsAndIds checksumsAndIds)
+    {
+        private readonly ProjectChecksumsAndIds _checksumsAndIds = checksumsAndIds;
+        private int _index = -1;
+
+        public bool MoveNext()
+            => ++_index < _checksumsAndIds.Length;
+
+        public (Checksum checksum, ProjectId id) Current
+            => (_checksumsAndIds.Checksums.Children[_index], _checksumsAndIds.Ids[_index]);
+    }
+}
+
 internal readonly struct DocumentChecksumsAndIds
 {
     public readonly Checksum Checksum;
