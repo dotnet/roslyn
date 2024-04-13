@@ -101,6 +101,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 tempStream.Position = 0;
                 tempStream.SetLength(0);
 
+                // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
+                // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
+                // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fasion.
                 WriteAssetToTempStream(tempStream, checksum, asset);
 
                 // Write the length of the asset to the pipe writer so the reader knows how much data to read.
@@ -122,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             void WriteAssetToTempStream(Stream tempStream, Checksum checksum, object asset)
             {
-                // Write the asset to a temporary buffer so we can calculate its length.
                 using var objectWriter = new ObjectWriter(tempStream, leaveOpen: true, cancellationToken);
                 {
                     // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
@@ -147,6 +149,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+#if false
         /// <summary>
         /// Simple port of
         /// https://github.com/AArnott/Nerdbank.Streams/blob/dafeb5846702bc29e261c9ddf60f42feae01654c/src/Nerdbank.Streams/BufferWriterStream.cs#L16.
@@ -160,7 +163,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// is holding onto (including within <see cref="Flush"/>, <see cref="FlushAsync"/>, or <see cref="Dispose"/>).
         /// Responsibility for that is solely in the hands of <see cref="WriteAssetsAsync"/>.
         /// </remarks>
-#if false
         private class PipeWriterStream : Stream, IDisposableObservable
         {
             private readonly PipeWriter _writer;
