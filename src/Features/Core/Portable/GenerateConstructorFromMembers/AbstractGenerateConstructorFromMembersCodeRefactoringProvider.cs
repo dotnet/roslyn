@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -274,7 +275,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
     private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CleanCodeGenerationOptionsProvider fallbackOptions)
     {
-        using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
+        var result = TemporaryArray<CodeAction>.Empty;
 
         result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
         if (state.DelegatedConstructor != null)
