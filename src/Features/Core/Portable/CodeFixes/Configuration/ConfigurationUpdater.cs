@@ -360,7 +360,7 @@ internal sealed partial class ConfigurationUpdater
                     builder.Add((option.Definition.ConfigName, optionValue, option.IsPerLanguage));
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndClear();
             }
             finally
             {

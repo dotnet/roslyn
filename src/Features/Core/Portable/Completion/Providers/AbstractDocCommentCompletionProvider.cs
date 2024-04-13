@@ -246,7 +246,7 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
             }
         }
 
-        return items.ToImmutable();
+        return items.ToImmutableAndClear();
     }
 
     protected IEnumerable<CompletionItem> GetItemTagItems()

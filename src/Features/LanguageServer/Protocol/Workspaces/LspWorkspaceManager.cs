@@ -285,7 +285,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             solutions.Add((workspace, lspSolution, isForked));
         }
 
-        return solutions.ToImmutable();
+        return solutions.ToImmutableAndClear();
 
         async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(Workspace workspace, CancellationToken cancellationToken)
         {

@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     }
                 }
 
-                return list.ToImmutable();
+                return list.ToImmutableAndClear();
             }
 
             public void Dispose()

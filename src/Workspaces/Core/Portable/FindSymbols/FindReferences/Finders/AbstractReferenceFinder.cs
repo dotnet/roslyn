@@ -108,7 +108,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                 documents.Add(document);
         }
 
-        return documents.ToImmutable();
+        return documents.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -197,7 +197,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             }
         }
 
-        return locations.ToImmutable();
+        return locations.ToImmutableAndClear();
     }
 
     protected static FinderLocation CreateFinderLocation(FindReferencesDocumentState state, SyntaxToken token, CandidateReason reason, CancellationToken cancellationToken)
@@ -300,7 +300,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             }
         }
 
-        return allAliasReferences.ToImmutable();
+        return allAliasReferences.ToImmutableAndClear();
     }
 
     private static async Task<ImmutableArray<FinderLocation>> FindReferencesThroughLocalAliasSymbolsAsync(
@@ -324,7 +324,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             }
         }
 
-        return allAliasReferences.ToImmutable();
+        return allAliasReferences.ToImmutableAndClear();
     }
 
     protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync<T>(
@@ -381,7 +381,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                 collectMatchingReferences(node, state, locations);
             }
 
-            return locations.ToImmutable();
+            return locations.ToImmutableAndClear();
         }
 
         return [];

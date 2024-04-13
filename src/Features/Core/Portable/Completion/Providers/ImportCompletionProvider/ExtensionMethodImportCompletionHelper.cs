@@ -205,7 +205,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
             itemsBuilder.Add(item);
         }
 
-        return itemsBuilder.ToImmutable();
+        return itemsBuilder.ToImmutableAndClear();
     }
 
     private static bool ShouldIncludeInTargetTypedCompletion(

@@ -215,7 +215,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
             result.Add(diagnostic);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static Diagnostic RemapLocation(Document designTimeDocument, DiagnosticData data)

@@ -104,7 +104,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             results.AddIfNotNull(intentResult);
         }
 
-        return results.ToImmutable();
+        return results.ToImmutableAndClear();
 
         static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(
             Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
@@ -280,7 +280,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         if (state.DelegatedConstructor != null)
             result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)

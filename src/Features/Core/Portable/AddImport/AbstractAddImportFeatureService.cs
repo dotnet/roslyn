@@ -121,7 +121,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -496,7 +496,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             result.Add((diagnostic, fixes));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
@@ -562,7 +562,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        return fixes.ToImmutable();
+        return fixes.ToImmutableAndClear();
     }
 
     public ImmutableArray<CodeAction> GetCodeActionsForFixes(
@@ -578,7 +578,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 break;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService? installerService)

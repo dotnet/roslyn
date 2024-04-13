@@ -57,7 +57,7 @@ internal static class ParameterGenerator
             isFirstParam = false;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CSharpCodeGenerationContextInfo info, bool isExplicit, bool isFirstParam, bool seenOptional)

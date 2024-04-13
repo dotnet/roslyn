@@ -312,7 +312,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
                 builder.Add(CodeAction.Create(nestedCascadingTitle, cascadingActions, isInlinable: false));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 
@@ -343,7 +343,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             builder.Add(codeFixData);
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)

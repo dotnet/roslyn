@@ -44,7 +44,7 @@ internal class StreamingProgressCollector(
             foreach (var (symbol, locations) in _symbolToLocations)
                 result.Add(new ReferencedSymbol(symbol, locations.ToImmutableArray()));
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 

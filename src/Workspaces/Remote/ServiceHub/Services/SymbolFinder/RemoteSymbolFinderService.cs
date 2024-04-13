@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
             foreach (var item in items)
                 result.Add(SerializableSymbolAndProjectId.Dehydrate(solution, item, cancellationToken));
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(

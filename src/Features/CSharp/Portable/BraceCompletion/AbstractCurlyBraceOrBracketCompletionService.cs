@@ -200,7 +200,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
                 mergedChanges.Add(new TextChange(newTextChangeSpan, newTextChangeText));
             }
 
-            return mergedChanges.ToImmutable();
+            return mergedChanges.ToImmutableAndClear();
         }
     }
 

@@ -77,7 +77,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     {
                         {{pattern}}
                         builder.Add(0);
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,
@@ -100,7 +100,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     {
                         {{pattern}}
                         builder.Add(0);
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,
@@ -123,7 +123,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     {
                         {{pattern}}
                         [|builder.Add(|]0);
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,
@@ -1256,7 +1256,7 @@ public partial class UseCollectionExpressionForBuilderTests
 
                         // Leading
                         [|builder.Add(|]0); // Trailing
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,
@@ -1295,7 +1295,7 @@ public partial class UseCollectionExpressionForBuilderTests
                         {{pattern}}
                         [|builder.Add(|]1 +
                             2);
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,
@@ -1336,7 +1336,7 @@ public partial class UseCollectionExpressionForBuilderTests
                             2);
                         [|builder.Add(|]3 +
                             4);
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,
@@ -1376,7 +1376,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     {
                         using var _ = ArrayBuilder<int>.GetInstance(10, 0, out var builder);
                         builder.Add(0);
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,
@@ -1540,7 +1540,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     {
                         {{pattern}}
                         [|builder.Add(|]0);
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,
@@ -1577,7 +1577,7 @@ public partial class UseCollectionExpressionForBuilderTests
                     {
                         {{pattern}}
                         builder.Add(0);
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
                 """ + s_arrayBuilderApi,

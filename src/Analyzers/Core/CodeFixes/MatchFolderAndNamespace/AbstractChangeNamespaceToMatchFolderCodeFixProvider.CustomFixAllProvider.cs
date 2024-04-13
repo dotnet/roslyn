@@ -63,7 +63,7 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
                     diagnostics.AddRange(projectDiagnostics);
                 }
 
-                return diagnostics.ToImmutable();
+                return diagnostics.ToImmutableAndClear();
             }
         }
 

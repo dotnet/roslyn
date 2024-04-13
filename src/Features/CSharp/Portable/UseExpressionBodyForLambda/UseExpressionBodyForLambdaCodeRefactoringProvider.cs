@@ -194,7 +194,7 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
                 title));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<Document> UpdateDocumentAsync(

@@ -115,7 +115,7 @@ internal static partial class SyntaxGeneratorExtensions
         if (containingType.IsRefLikeType)
         {
             statements.Add(factory.ReturnStatement(factory.FalseLiteralExpression()));
-            return statements.ToImmutable();
+            return statements.ToImmutableAndClear();
         }
 
         // Come up with a good name for the local variable we're going to compare against.
@@ -203,7 +203,7 @@ internal static partial class SyntaxGeneratorExtensions
         statements.Add(factory.ReturnStatement(
             expressions.Aggregate(factory.LogicalAndExpression)));
 
-        return statements.ToImmutable();
+        return statements.ToImmutableAndClear();
     }
 
     private static void AddMemberChecks(

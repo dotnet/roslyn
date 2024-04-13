@@ -159,7 +159,7 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
             result.Add(updated);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(

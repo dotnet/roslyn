@@ -62,7 +62,7 @@ internal static class ImplementHelpers
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         bool IsAssignedToFieldOrProperty(ImmutableArray<IFieldSymbol> fields, ImmutableArray<IPropertySymbol> properties, IParameterSymbol parameter)

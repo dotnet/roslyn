@@ -109,7 +109,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (_state.IsException)
                 AddExceptionConstructors(members);
 
-            return members.ToImmutable();
+            return members.ToImmutableAndClear();
         }
 
         private async Task AddMembersAsync(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)

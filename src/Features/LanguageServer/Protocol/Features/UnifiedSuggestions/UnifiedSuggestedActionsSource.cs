@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private static UnifiedSuggestedActionSet? FilterActionSetByTitle(UnifiedSuggestedActionSet set, HashSet<string> seenTitles)

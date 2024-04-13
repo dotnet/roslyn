@@ -100,7 +100,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
                 cancellationToken));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static SyntaxNode GetSetMethod(

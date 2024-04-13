@@ -763,7 +763,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             index++;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(

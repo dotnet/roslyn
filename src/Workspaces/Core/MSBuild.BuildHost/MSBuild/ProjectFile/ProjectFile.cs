@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 _loadedProject.ReevaluateIfNecessary();
 
-                return results.ToImmutable();
+                return results.ToImmutableAndClear();
             }
             else
             {

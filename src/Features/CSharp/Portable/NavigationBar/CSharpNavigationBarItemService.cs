@@ -108,7 +108,7 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
             }
 
             items.Sort((x1, x2) => x1.Text.CompareTo(x2.Text));
-            return items.ToImmutable();
+            return items.ToImmutableAndClear();
         }
     }
 

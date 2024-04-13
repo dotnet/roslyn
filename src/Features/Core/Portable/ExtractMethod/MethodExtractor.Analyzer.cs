@@ -444,7 +444,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             list.AddRange(variableInfoMap.Values);
 
             list.Sort();
-            return list.ToImmutable();
+            return list.ToImmutableAndClear();
         }
 
         /// <param name="bestEffort">When false, variables whose data flow is not understood

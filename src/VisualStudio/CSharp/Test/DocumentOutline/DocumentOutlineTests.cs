@@ -88,7 +88,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                     sortedDocumentSymbols.Add(ReplaceChildren(documentSymbol, sortedChildren));
                 }
 
-                return sortedDocumentSymbols.ToImmutable();
+                return sortedDocumentSymbols.ToImmutableAndClear();
             }
 
             static ImmutableArray<DocumentSymbolDataViewModel> Sort(ImmutableArray<DocumentSymbolDataViewModel> items, SortOption sortOption)

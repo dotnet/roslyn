@@ -216,7 +216,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                     name: names[i].BestNameForParameter));
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private Accessibility DetermineAccessibility(bool isAbstract)

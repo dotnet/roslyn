@@ -99,7 +99,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
                     list.Add(typeParameter);
                 }
 
-                return list.ToImmutable();
+                return list.ToImmutableAndClear();
             }
         }
 
@@ -158,7 +158,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 }

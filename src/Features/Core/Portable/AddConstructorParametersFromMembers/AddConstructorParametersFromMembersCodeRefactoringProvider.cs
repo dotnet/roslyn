@@ -108,7 +108,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             actions.Add(result.OptionalParameterActions.Single());
         }
 
-        return actions.ToImmutable();
+        return actions.ToImmutableAndClear();
     }
 
     private static AddConstructorParameterResult CreateCodeActions(Document document, CodeGenerationContextInfo info, State state)
@@ -192,6 +192,6 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             results.Add(intent);
         }
 
-        return results.ToImmutable();
+        return results.ToImmutableAndClear();
     }
 }

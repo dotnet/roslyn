@@ -68,7 +68,7 @@ internal record PositionalParameterInfo(
                 _ => throw ExceptionUtilities.Unreachable(),
             }).WhereNotNull());
 
-        return resultBuilder.ToImmutable();
+        return resultBuilder.ToImmutableAndClear();
     }
 
     public static ImmutableArray<IPropertySymbol> GetInheritedPositionalParams(

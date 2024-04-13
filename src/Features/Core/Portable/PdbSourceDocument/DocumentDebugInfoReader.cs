@@ -54,7 +54,7 @@ internal sealed class DocumentDebugInfoReader : IDisposable
             sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedTextBytes, sourceLinkUrl));
         }
 
-        return sourceDocuments.ToImmutable();
+        return sourceDocuments.ToImmutableAndClear();
     }
 
     private string? TryGetSourceLinkUrl(DocumentHandle handle)

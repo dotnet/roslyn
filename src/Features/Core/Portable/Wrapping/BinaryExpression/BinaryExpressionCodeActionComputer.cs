@@ -115,7 +115,7 @@ internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private ImmutableArray<Edit> GetUnwrapEdits()
@@ -129,7 +129,7 @@ internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>
                     NoTrivia, _exprsAndOperators[i + 1]));
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 }

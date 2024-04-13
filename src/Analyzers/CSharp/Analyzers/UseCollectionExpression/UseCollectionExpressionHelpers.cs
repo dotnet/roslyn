@@ -906,7 +906,7 @@ internal static class UseCollectionExpressionHelpers
             return default;
         }
 
-        return matches.ToImmutable();
+        return matches.ToImmutableAndClear();
     }
 
     public static bool IsCollectionFactoryCreate(

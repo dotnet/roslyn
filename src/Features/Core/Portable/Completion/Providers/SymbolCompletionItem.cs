@@ -155,7 +155,7 @@ internal static class SymbolCompletionItem
                 }
             }
 
-            return symbols.ToImmutable();
+            return symbols.ToImmutableAndClear();
         }
 
         return [];

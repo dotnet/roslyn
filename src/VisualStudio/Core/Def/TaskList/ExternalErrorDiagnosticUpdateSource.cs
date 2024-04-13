@@ -697,7 +697,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 allLiveErrorsBuilder.AddRange(errors);
             }
 
-            return allLiveErrorsBuilder.ToImmutable();
+            return allLiveErrorsBuilder.ToImmutableAndClear();
 
             // Local functions.
             IEnumerable<ProjectId> GetProjectsWithErrors()
@@ -728,7 +728,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         public void AddErrors(DocumentId key, HashSet<DiagnosticData> diagnostics)

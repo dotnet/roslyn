@@ -746,7 +746,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                 : CommaTokenWithElasticSpace());
         }
 
-        return separators.ToImmutable();
+        return separators.ToImmutableAndClear();
     }
 
     protected virtual async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
@@ -1029,7 +1029,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
 
         extraNodeList.Free();
 
-        return updatedLeadingTrivia.ToImmutable();
+        return updatedLeadingTrivia.ToImmutableAndClear();
     }
 
     protected static bool IsParamsArrayExpandedHelper(ISymbol symbol, int argumentCount, bool lastArgumentIsNamed, SemanticModel semanticModel, SyntaxNode lastArgumentExpression, CancellationToken cancellationToken)

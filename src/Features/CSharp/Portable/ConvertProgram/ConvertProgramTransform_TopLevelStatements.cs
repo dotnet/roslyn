@@ -231,7 +231,7 @@ internal static partial class ConvertProgramTransform
         foreach (var statement in statements)
             globalStatements.Add(GlobalStatement(statement).WithAdditionalAnnotations(Formatter.Annotation));
 
-        return globalStatements.ToImmutable();
+        return globalStatements.ToImmutableAndClear();
     }
 
     private static VariableDeclarationSyntax ConvertDeclaration(
