@@ -1552,15 +1552,11 @@ class Customer2
             using System;
             //[
             // {{ServicesVSResources.Prefer_colon}}
-            Func<int, int> f1 = static i => i * i;
-            Func<int, int> f2 = static delegate (int i) { return i * i; };
-            Func<int, int, int> f3 = static (i, j) => i * j;
+            Func<int, int> f = static i => i * i;
             //]
             //[
             // {{ServicesVSResources.Over_colon}}
-            Func<int, int> f1 = i => i * i;
-            Func<int, int> f2 = delegate (int i) { return i * i; };
-            Func<int, int, int> f3 = (i, j) => i * j;
+            Func<int, int> f = i => i * i;
             //]
             """;
 
