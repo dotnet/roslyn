@@ -95,16 +95,15 @@ internal abstract class AbstractAssetProvider
 
         async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(DocumentChecksumsAndIds checksumsAndIds)
         {
-            var documentInfos = new DocumentInfo[checksumsAndIds.Length];
+            var documentInfos = new FixedSizeArrayBuilder<DocumentInfo>(checksumsAndIds.Length);
 
-            var index = 0;
             foreach (var (attributeChecksum, textChecksum, documentId) in checksumsAndIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                documentInfos[index++] = await CreateDocumentInfoAsync(documentId, attributeChecksum, textChecksum, cancellationToken).ConfigureAwait(false);
+                documentInfos.Add(await CreateDocumentInfoAsync(documentId, attributeChecksum, textChecksum, cancellationToken).ConfigureAwait(false));
             }
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(documentInfos);
+            return documentInfos.MoveToImmutable();
         }
     }
 
@@ -195,9 +194,12 @@ internal static class AbstractAssetProviderExtensions
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
+#if NET
+        checksumSet.EnsureCapacity(checksums.Children.Length);
+#endif
         checksumSet.AddAll(checksums.Children);
 
-        var builder = ImmutableArray.CreateBuilder<T>(checksumSet.Count);
+        using var _ = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
 
         await assetProvider.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksumSet,
@@ -205,6 +207,6 @@ internal static class AbstractAssetProviderExtensions
             builder,
             cancellationToken).ConfigureAwait(false);
 
-        return builder.MoveToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

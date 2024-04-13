@@ -205,7 +205,7 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 
         return TupleExpression(
             OpenParenToken.WithTrailingTrivia(),
-            SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
+            SeparatedList(builder, separatorBuilder),
             CloseParenToken)
             .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
     }

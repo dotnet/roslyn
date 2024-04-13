@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -97,7 +98,7 @@ internal static class ImportCompletionItem
         var attributeItems = attributeItem.GetProperties();
 
         // Remember the full type name so we can get the symbol when description is displayed.
-        using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(attributeItems.Length + 1, out var builder);
+        var builder = new FixedSizeArrayBuilder<KeyValuePair<string, string>>(attributeItems.Length + 1);
         builder.AddRange(attributeItems);
         builder.Add(new KeyValuePair<string, string>(AttributeFullName, attributeItem.DisplayText));
 
@@ -107,7 +108,7 @@ internal static class ImportCompletionItem
         var item = CompletionItem.CreateInternal(
              displayText: attributeNameWithoutSuffix,
              sortText: sortTextBuilder.ToStringAndFree(),
-             properties: builder.ToImmutable(),
+             properties: builder.MoveToImmutable(),
              tags: attributeItem.Tags,
              rules: attributeItem.Rules,
              displayTextPrefix: attributeItem.DisplayTextPrefix,
@@ -219,12 +220,8 @@ internal static class ImportCompletionItem
     public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item)
     {
         var itemProperties = item.GetProperties();
-
-        using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(itemProperties.Length + 1, out var builder);
-        builder.AddRange(itemProperties);
-        builder.Add(new KeyValuePair<string, string>(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey));
-
-        return item.WithProperties(builder.ToImmutable());
+        ImmutableArray<KeyValuePair<string, string>> properties = [.. itemProperties, KeyValuePairUtil.Create(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey)];
+        return item.WithProperties(properties);
     }
 
     public static bool ShouldAlwaysFullyQualify(CompletionItem item) => item.TryGetProperty(AlwaysFullyQualifyKey, out var _);

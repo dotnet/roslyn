@@ -440,11 +440,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private static ImmutableArray<VariableInfo> GetMethodParameters(Dictionary<ISymbol, VariableInfo> variableInfoMap)
         {
-            using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfoMap.Count, out var list);
+            var list = new FixedSizeArrayBuilder<VariableInfo>(variableInfoMap.Count);
             list.AddRange(variableInfoMap.Values);
-
             list.Sort();
-            return list.ToImmutable();
+            return list.MoveToImmutable();
         }
 
         /// <param name="bestEffort">When false, variables whose data flow is not understood
