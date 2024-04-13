@@ -7197,7 +7197,15 @@ done:;
 
                             var nextTokenKind = PeekToken(1).Kind;
 
-                            // These token either 100% end a pattern or start a new one
+                            // These token either 100% end a pattern or start a new one:
+                            // - Literal starts a new pattern. Can occur in list pattern with missing separation `,`: x is [int[]? arr 5] -- missing `,` after `arr`
+                            // - Predefined type is basically the same case: x is [string[]? slice char ch] -- missing `,` after `slice`
+                            // - `)`, `]` and `}` obviously end a pattern: if (x is int? i), indexable[x is string? s], x is { Prop: Type? typeVar }
+                            // - `{` starts a new pattern. Note, that `[` and `(` are not in the list because they can start an invocation/indexer
+                            //   in cases we want a conditional expression: x is char ? dict[a] : 2, x is byte ? func(x) : null
+                            // - `,` end a pattern in list/property pattern: x is { Prop1: Type1? type, Prop2: Type2 }
+                            // - `;` end a pattern if it finishes an expression statement: var y = x is bool? b;
+                            // - EndOfFileToken is obviously the end of parsing. We are better parsing a pattern rather than an unfinished conditional expression
                             return SyntaxFacts.IsLiteral(nextTokenKind) ||
                                    SyntaxFacts.IsPredefinedType(nextTokenKind) ||
                                    nextTokenKind is SyntaxKind.CloseParenToken
