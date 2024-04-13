@@ -84,9 +84,10 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
             }
             else
             {
-                using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var list);
+                var list = new FixedSizeArrayBuilder<ITypeParameterSymbol>(genericName.TypeArgumentList.Arguments.Count);
 
-                var usedIdentifiers = new HashSet<string> { "T" };
+                using var _ = PooledHashSet<string>.GetInstance(out var usedIdentifiers);
+                usedIdentifiers.Add("T");
                 foreach (var type in genericName.TypeArgumentList.Arguments)
                 {
                     var typeParameter = GetUniqueTypeParameter(
@@ -99,7 +100,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
                     list.Add(typeParameter);
                 }
 
-                return list.ToImmutableAndClear();
+                return list.MoveToImmutable();
             }
         }
 
