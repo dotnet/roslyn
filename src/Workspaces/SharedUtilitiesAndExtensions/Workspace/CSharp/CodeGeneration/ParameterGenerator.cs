@@ -45,10 +45,10 @@ internal static class ParameterGenerator
         bool isExplicit,
         CSharpCodeGenerationContextInfo info)
     {
-        using var _ = ArrayBuilder<ParameterSyntax>.GetInstance(out var result);
         var seenOptional = false;
         var isFirstParam = true;
 
+        var result = new FixedSizeArrayBuilder<ParameterSyntax>(parameterDefinitions.Length);
         foreach (var p in parameterDefinitions)
         {
             var parameter = GetParameter(p, info, isExplicit, isFirstParam, seenOptional);
@@ -57,7 +57,7 @@ internal static class ParameterGenerator
             isFirstParam = false;
         }
 
-        return result.ToImmutableAndClear();
+        return result.MoveToImmutable();
     }
 
     internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CSharpCodeGenerationContextInfo info, bool isExplicit, bool isFirstParam, bool seenOptional)
