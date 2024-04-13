@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
             {
-                var results = ImmutableArray.CreateBuilder<DocumentInfo>();
+                var results = new FixedSizeArrayBuilder<DocumentInfo>(documentFileInfos.Count);
 
                 foreach (var info in documentFileInfos)
                 {
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     results.Add(documentInfo);
                 }
 
-                return results.ToImmutableAndClear();
+                return results.MoveToImmutable();
             }
 
             private static readonly char[] s_directorySplitChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
