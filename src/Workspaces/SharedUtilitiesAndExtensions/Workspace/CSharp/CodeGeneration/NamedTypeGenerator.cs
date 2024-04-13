@@ -304,7 +304,7 @@ internal static class NamedTypeGenerator
         if (namedType.IsRefLikeType)
             tokens.Add(RefKeyword);
 
-        return tokens.ToSyntaxTokenList();
+        return [.. tokens];
     }
 
     private static TypeParameterListSyntax? GenerateTypeParameterList(
