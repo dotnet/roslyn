@@ -33,7 +33,7 @@ internal sealed class SolutionAssetSource(ServiceBrokerClient client) : IAssetSo
             SolutionAssetProvider.ServiceDescriptor,
             (callback, cancellationToken) => callback.InvokeAsync(
                 (proxy, pipeWriter, cancellationToken) => proxy.WriteAssetsAsync(pipeWriter, solutionChecksum, assetPath, checksums, cancellationToken),
-                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums.Length, serializerService, assetCallback, arg, cancellationToken),
+                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, checksums.Length, serializerService, assetCallback, arg, cancellationToken),
                 cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }

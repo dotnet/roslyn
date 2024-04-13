@@ -3,16 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Nerdbank.Streams;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static ValueTask ReadDataAsync<T, TArg>(
-            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+            PipeReader pipeReader, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
         {
             // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
             // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
@@ -114,42 +112,45 @@ namespace Microsoft.CodeAnalysis.Remote
             // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
             // same thread where SuppressFlow was originally run.
             using var _ = FlowControlHelper.TrySuppressFlow();
-            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, callback, arg, cancellationToken);
+            return ReadDataSuppressedFlowAsync(pipeReader, objectCount, serializerService, callback, arg, cancellationToken);
 
             static async ValueTask ReadDataSuppressedFlowAsync(
-                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+                PipeReader pipeReader, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
             {
+                using var pipeReaderStream = pipeReader.AsStream(leaveOpen: true);
+
                 for (var i = 0; i < objectCount; i++)
                 {
                     // First, read the length of the asset (and header) we'll be reading.
                     var readResult = await pipeReader.ReadAtLeastAsync(sizeof(int), cancellationToken).ConfigureAwait(false);
-                
-                    var sequenceReader = new 
+                    var length = ReadLength(readResult);
+
+                    // Advance past the length.
+                    pipeReader.AdvanceTo(readResult.Buffer.GetPosition(sizeof(int)));
+
+                    // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as
+                    // we'll need to consume, all further reading (for this single item) can handle synchronously
+                    // without worrying about this blocking the reading thread on cross-process pipe io.
+                    await pipeReader.ReadAtLeastAsync(length, cancellationToken).ConfigureAwait(false);
+
+                    using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, cancellationToken);
+                    {
+                        var checksum = Checksum.ReadFrom(reader);
+                        var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
+
+                        // in service hub, cancellation means simply closed stream
+                        var result = serializerService.Deserialize(kind, reader, cancellationToken);
+                        Contract.ThrowIfNull(result);
+                        callback(checksum, (T)result, arg);
+                    }
                 }
-
-                ReadData(stream, solutionChecksum, objectCount, serializerService, callback, arg, cancellationToken);
             }
-        }
 
-        public static void ReadData<T, TArg>(
-            Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
-        {
-            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
-
-            // Ensure that no invariants were broken and that both sides of the communication channel are talking about
-            // the same pinned solution.
-            var responseSolutionChecksum = Checksum.ReadFrom(reader);
-            Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
-
-            for (int i = 0, n = objectCount; i < n; i++)
+            static int ReadLength(ReadResult readResult)
             {
-                var checksum = Checksum.ReadFrom(reader);
-                var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
-
-                // in service hub, cancellation means simply closed stream
-                var result = serializerService.Deserialize(kind, reader, cancellationToken);
-                Contract.ThrowIfNull(result);
-                callback(checksum, (T)result, arg);
+                var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
+                Contract.ThrowIfFalse(sequenceReader.TryReadLittleEndian(out int length));
+                return length;
             }
         }
     }
