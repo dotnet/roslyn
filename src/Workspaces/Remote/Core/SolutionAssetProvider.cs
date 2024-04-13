@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SolutionAssetProvider(SolutionServices services) : ISolutionAssetProvider
     {
-        private static readonly ObjectPool<Stream> s_streamPool = new(SerializableBytes.CreateWritableStream);
-
         public const string ServiceName = "SolutionAssetProvider";
 
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async ValueTask WriteAssetsWorkerAsync(
+        private ValueTask WriteAssetsWorkerAsync(
             PipeWriter pipeWriter,
             Checksum solutionChecksum,
             AssetPath assetPath,
@@ -74,79 +72,12 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 
-            var pipeWriterStream = pipeWriter.AsStream();
+            var serializer = _services.GetRequiredService<ISerializerService>();
 
-            var foundChecksumCount = 0;
-
-            await scope.AddAssetsAsync(
-                assetPath,
-                checksums,
-                WriteAssetToPipeAsync,
-                cancellationToken).ConfigureAwait(false);
-
-            Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
-
-            return;
-
-            async ValueTask WriteAssetToPipeAsync(Checksum checksum, object asset, CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfNull(asset);
-                foundChecksumCount++;
-
-                using var pooledObject = s_streamPool.GetPooledObject();
-                var tempStream = pooledObject.Object;
-                tempStream.Position = 0;
-                tempStream.SetLength(0);
-
-                // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
-                // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
-                // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fasion.
-                WriteAssetToTempStream(tempStream, checksum, asset);
-
-                // Write the length of the asset to the pipe writer so the reader knows how much data to read.
-                WriteLengthToPipeWriter(tempStream.Length);
-
-                // Ensure we flush out the length so the reading side knows how much data to read.
-                await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-                // Now, asynchronously copy the temp buffer over to the writer stream.
-                tempStream.Position = 0;
-                await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
-
-                // We flush after each item as that forms a reasonably sized chunk of data to want to then send over
-                // the pipe for the reader on the other side to read.  This allows the item-writing to remain
-                // entirely synchronous without any blocking on async flushing, while also ensuring that we're not
-                // buffering the entire stream of data into the pipe before it gets sent to the other side.
-                await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            void WriteAssetToTempStream(Stream tempStream, Checksum checksum, object asset)
-            {
-                using var objectWriter = new ObjectWriter(tempStream, leaveOpen: true, cancellationToken);
-                {
-                    // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
-                    checksum.WriteTo(objectWriter);
-
-                    // Write out the kind so the receiving end knows how to deserialize this asset.
-                    var kind = asset.GetWellKnownSynchronizationKind();
-                    objectWriter.WriteInt32((int)kind);
-
-                    // Now serialize out the asset itself.
-                    serializer.Serialize(asset, objectWriter, scope.ReplicationContext, cancellationToken);
-                }
-            }
-
-            void WriteLengthToPipeWriter(long length)
-            {
-                Contract.ThrowIfTrue(length > int.MaxValue);
-
-                var span = pipeWriter.GetSpan(sizeof(int));
-                BinaryPrimitives.WriteInt32LittleEndian(span, (int)length);
-                pipeWriter.Advance(span.Length);
-            }
+            return RemoteHostAssetSerialization.WriteDataAsync(
+                pipeWriter, assetPath, checksums, scope, serializer, cancellationToken);
         }
 
 #if false
