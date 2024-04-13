@@ -350,22 +350,15 @@ internal sealed partial class ConfigurationUpdater
         var codeStyleOptions = GetCodeStyleOptionsForDiagnostic(diagnostic, project);
         if (!codeStyleOptions.IsEmpty)
         {
-            var builder = ArrayBuilder<(string optionName, string currentOptionValue, bool isPerLanguage)>.GetInstance();
+            var builder = new FixedSizeArrayBuilder<(string optionName, string currentOptionValue, bool isPerLanguage)>(codeStyleOptions.Length);
 
-            try
+            foreach (var option in codeStyleOptions)
             {
-                foreach (var option in codeStyleOptions)
-                {
-                    var optionValue = option.Definition.Serializer.Serialize(option.DefaultValue);
-                    builder.Add((option.Definition.ConfigName, optionValue, option.IsPerLanguage));
-                }
+                var optionValue = option.Definition.Serializer.Serialize(option.DefaultValue);
+                builder.Add((option.Definition.ConfigName, optionValue, option.IsPerLanguage));
+            }
 
-                return builder.ToImmutableAndClear();
-            }
-            finally
-            {
-                builder.Free();
-            }
+            return builder.MoveToImmutable();
         }
 
         return [];
