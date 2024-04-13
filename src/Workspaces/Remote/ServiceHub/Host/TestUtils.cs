@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var callback = (Checksum checksum, object asset, CancellationToken cancellationToken) =>
             {
-                map.Add(checksum, asset);
+                map[checksum] = asset;
                 return ValueTaskFactory.CompletedTask;
             };
 
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var callback = (Checksum checksum, object asset, CancellationToken cancellationToken) =>
             {
-                map.Add(checksum, asset);
+                map[checksum] = asset;
                 return ValueTaskFactory.CompletedTask;
             };
 
