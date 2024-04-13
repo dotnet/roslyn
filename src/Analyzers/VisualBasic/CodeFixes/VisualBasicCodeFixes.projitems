@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\VisualBasicRemoveDocCommentNodeCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\VisualBasicResolveConflictMarkerCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\VisualBasicConvertToAsyncFunctionCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToInterpolatedString\VisualBasicConvertToInterpolatedStringCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\VisualBasicConvertGetTypeToNameOfCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicFormattingCodeFixProvider.vb" />

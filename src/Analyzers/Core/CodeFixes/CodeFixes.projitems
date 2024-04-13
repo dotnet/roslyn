@@ -31,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\AbstractConvertToAsyncCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToInterpolatedString\AbstractConvertToInterpolatedStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\AbstractConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractAddDocCommentNodesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />

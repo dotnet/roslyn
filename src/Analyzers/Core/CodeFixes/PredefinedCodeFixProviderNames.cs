@@ -38,6 +38,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string ConvertNamespace = nameof(ConvertNamespace);
     public const string ConvertSwitchStatementToExpression = nameof(ConvertSwitchStatementToExpression);
     public const string ConvertToAsync = nameof(ConvertToAsync);
+    public const string ConvertToInterpolatedString = nameof(ConvertToInterpolatedString);
     public const string ConvertToIterator = nameof(ConvertToIterator);
     public const string ConvertToProgramMain = nameof(ConvertToProgramMain);
     public const string ConvertToRecord = nameof(ConvertToRecord);

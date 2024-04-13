@@ -52,6 +52,11 @@
         <target state="translated">"{0}" と比較</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_interpolated_string">
+        <source>Convert to interpolated string</source>
+        <target state="new">Convert to interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_positional_record">
         <source>Convert to positional record</source>
         <target state="translated">位置指定 record に変換</target>
