@@ -86,7 +86,7 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
                 InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static void AddParts(

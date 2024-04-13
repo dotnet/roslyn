@@ -171,7 +171,7 @@ internal class DefinitionContextTracker(
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         // We didn't have regular source references, but possibly:

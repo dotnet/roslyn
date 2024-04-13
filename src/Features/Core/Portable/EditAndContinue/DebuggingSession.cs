@@ -739,7 +739,7 @@ internal sealed class DebuggingSession : IDisposable
             activeStatementsInChangedDocuments.FreeValues();
 
             Debug.Assert(spans.Count == documentIds.Length);
-            return spans.ToImmutable();
+            return spans.ToImmutableAndClear();
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
@@ -816,7 +816,7 @@ internal sealed class DebuggingSession : IDisposable
                 }
             }
 
-            return adjustedMappedSpans.ToImmutable();
+            return adjustedMappedSpans.ToImmutableAndClear();
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {

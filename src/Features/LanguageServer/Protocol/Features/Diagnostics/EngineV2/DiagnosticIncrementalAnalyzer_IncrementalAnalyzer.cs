@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                return diagnostics.ToImmutable();
+                return diagnostics.ToImmutableAndClear();
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

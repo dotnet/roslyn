@@ -104,7 +104,7 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
         for (int i = 0, n = result.Count; i < n; i++)
             result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static SyntaxTriviaList Expand(ArrayBuilder<StatementSyntax> result, UsingStatementSyntax usingStatement)

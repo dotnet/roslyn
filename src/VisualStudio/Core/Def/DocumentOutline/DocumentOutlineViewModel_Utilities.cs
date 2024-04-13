@@ -120,7 +120,7 @@ internal sealed partial class DocumentOutlineViewModel
         while (currentStart < allSymbols.Length)
             finalResult.Add(NestDescendantSymbols(allSymbols, currentStart, out currentStart));
 
-        return finalResult.ToImmutable();
+        return finalResult.ToImmutableAndClear();
 
         // Returns the symbol in the list at index start (the parent symbol) with the following symbols in the list
         // (descendants) appropriately nested into the parent.
@@ -226,7 +226,7 @@ internal sealed partial class DocumentOutlineViewModel
                 filteredDocumentSymbols.Add(documentSymbol with { Children = filteredChildren });
         }
 
-        return filteredDocumentSymbols.ToImmutable();
+        return filteredDocumentSymbols.ToImmutableAndClear();
 
         // Returns true if the name of one of the tree nodes results in a pattern match.
         static bool SearchNodeTree(DocumentSymbolData tree, PatternMatcher patternMatcher, CancellationToken cancellationToken)

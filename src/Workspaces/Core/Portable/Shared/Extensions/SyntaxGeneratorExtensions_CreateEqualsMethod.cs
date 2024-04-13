@@ -107,16 +107,16 @@ internal static partial class SyntaxGeneratorExtensions
         ImmutableArray<ISymbol> members,
         string localNameOpt)
     {
-        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);
 
         // A ref like type can not be boxed. Because of this an overloaded Equals taking object in the general case
         // can never be true, because an equivalent object can never be boxed into the object itself. Therefore only
         // need to return false.
         if (containingType.IsRefLikeType)
         {
-            statements.Add(factory.ReturnStatement(factory.FalseLiteralExpression()));
-            return statements.ToImmutable();
+            return [factory.ReturnStatement(factory.FalseLiteralExpression())];
         }
+
+        using var statements = TemporaryArray<SyntaxNode>.Empty;
 
         // Come up with a good name for the local variable we're going to compare against.
         // For example, if the class name is "CustomerOrder" then we'll generate:
@@ -203,7 +203,7 @@ internal static partial class SyntaxGeneratorExtensions
         statements.Add(factory.ReturnStatement(
             expressions.Aggregate(factory.LogicalAndExpression)));
 
-        return statements.ToImmutable();
+        return statements.ToImmutableAndClear();
     }
 
     private static void AddMemberChecks(

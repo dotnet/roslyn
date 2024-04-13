@@ -56,7 +56,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

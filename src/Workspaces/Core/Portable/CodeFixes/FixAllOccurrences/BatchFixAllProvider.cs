@@ -175,7 +175,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                     }
                 }
 
-                return changedDocuments.ToImmutable();
+                return changedDocuments.ToImmutableAndClear();
             }, cancellationToken));
         }
 
@@ -188,7 +188,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         foreach (var task in tasks)
             result.AddRange(await task.ConfigureAwait(false));
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     /// <summary>

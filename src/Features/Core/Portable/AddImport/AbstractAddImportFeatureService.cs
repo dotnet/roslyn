@@ -121,7 +121,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -484,7 +484,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // We might have multiple different diagnostics covering the same span.  Have to
         // process them all as we might produce different fixes for each diagnostic.
 
-        using var _ = ArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>.GetInstance(out var result);
+        var result = new FixedSizeArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>(diagnostics.Length);
 
         foreach (var diagnostic in diagnostics)
         {
@@ -496,7 +496,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             result.Add((diagnostic, fixes));
         }
 
-        return result.ToImmutable();
+        return result.MoveToImmutable();
     }
 
     public async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
@@ -562,7 +562,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        return fixes.ToImmutable();
+        return fixes.ToImmutableAndClear();
     }
 
     public ImmutableArray<CodeAction> GetCodeActionsForFixes(
@@ -578,7 +578,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 break;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService? installerService)

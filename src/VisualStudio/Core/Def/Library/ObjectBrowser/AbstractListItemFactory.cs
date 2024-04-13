@@ -174,7 +174,7 @@ internal abstract class AbstractListItemFactory
 
         AddListItemsFromSymbols(symbols, compilation, projectId, listItemCreator, builder);
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static void AddListItemsFromSymbols<TSymbol>(
@@ -283,7 +283,7 @@ internal abstract class AbstractListItemFactory
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private ImmutableArray<ObjectListItem> GetMemberListItems(
@@ -309,7 +309,7 @@ internal abstract class AbstractListItemFactory
             AddListItemsFromSymbols(inheritedMembers, compilation, projectId, CreateInheritedMemberListItem, builder);
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static ImmutableArray<ISymbol> GetMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
@@ -325,7 +325,7 @@ internal abstract class AbstractListItemFactory
             }
         }
 
-        return symbolBuilder.ToImmutable();
+        return symbolBuilder.ToImmutableAndClear();
     }
 
     private static ImmutableArray<ISymbol> GetInheritedMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
@@ -367,7 +367,7 @@ internal abstract class AbstractListItemFactory
             }
         }
 
-        return symbolBuilder.ToImmutable();
+        return symbolBuilder.ToImmutableAndClear();
     }
 
     private static void AddOverriddenMembers(INamedTypeSymbol namedTypeSymbol, ref HashSet<ISymbol> overriddenMembers)
@@ -451,7 +451,7 @@ internal abstract class AbstractListItemFactory
 
         CollectNamespaceListItems(assemblySymbol, parentListItem.ProjectId, builder, searchString: null);
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private class AssemblySymbolComparer : IEqualityComparer<Tuple<ProjectId, IAssemblySymbol>>
@@ -562,7 +562,7 @@ internal abstract class AbstractListItemFactory
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static bool IncludeTypeMember(INamedTypeSymbol typeMember, IAssemblySymbol assemblySymbol)
@@ -636,7 +636,7 @@ internal abstract class AbstractListItemFactory
 
         projectListItemBuilder.AddRange(referenceListItemBuilder);
 
-        return projectListItemBuilder.ToImmutable();
+        return projectListItemBuilder.ToImmutableAndClear();
     }
 
     public ImmutableArray<ObjectListItem> GetReferenceListItems(ObjectListItem parentListItem, Compilation compilation)
@@ -687,7 +687,7 @@ internal abstract class AbstractListItemFactory
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private ImmutableArray<ObjectListItem> GetTypeListItems(
@@ -718,7 +718,7 @@ internal abstract class AbstractListItemFactory
             }
         }
 
-        return finalBuilder.ToImmutable();
+        return finalBuilder.ToImmutableAndClear();
     }
 
     public ImmutableArray<ObjectListItem> GetTypeListItems(ObjectListItem parentListItem, Compilation compilation)

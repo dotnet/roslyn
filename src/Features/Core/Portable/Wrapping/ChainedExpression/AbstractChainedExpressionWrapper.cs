@@ -132,7 +132,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
 
         using var _2 = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance(out var chunks);
         BreakPiecesIntoChunks(pieces, chunks);
-        return chunks.ToImmutable();
+        return chunks.ToImmutableAndClear();
     }
 
     private void BreakPiecesIntoChunks(

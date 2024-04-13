@@ -56,7 +56,7 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
                 result.Add(document);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
