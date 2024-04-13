@@ -108,7 +108,7 @@ namespace BuildValidator
             excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
             excludes.Add(@".resources.dll");
 
-            var options = new Options(assembliesPath, referencesPath, [.. excludes], sourcePath, verbose, quiet, debug, debugPath);
+            var options = new Options(assembliesPath, referencesPath, excludes.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
 
             // TODO: remove the DemoLoggerProvider or convert it to something more permanent
             var loggerFactory = LoggerFactory.Create(builder =>
@@ -221,7 +221,7 @@ namespace BuildValidator
                 }
             }
 
-            return [.. map.Values.OrderBy(x => x.FileName, FileNameEqualityComparer.StringComparer)];
+            return map.Values.OrderBy(x => x.FileName, FileNameEqualityComparer.StringComparer).ToArray();
 
             static IEnumerable<string> getAssemblyPaths(string directory)
             {

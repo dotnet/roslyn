@@ -117,10 +117,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation, [.. readers]);
+                var verifier = new GenerationVerifier(index, generation, readers.ToImmutableArray());
                 generation.Verifier(verifier);
 
-                exceptions.Add([.. verifier.Exceptions]);
+                exceptions.Add(verifier.Exceptions.ToImmutableArray());
 
                 index++;
             }

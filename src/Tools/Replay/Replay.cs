@@ -196,7 +196,7 @@ static async Task<BuildData> BuildAsync(
     var request = BuildServerConnection.CreateBuildRequest(
         outputName,
         compilerCall.IsCSharp ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile,
-        [.. args],
+        args.ToList(),
         workingDirectory: compilerCall.ProjectDirectory,
         tempDirectory: options.TempDirectory,
         keepAlive: null,

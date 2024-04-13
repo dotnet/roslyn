@@ -176,7 +176,7 @@ namespace BuildValidator
                 {
                     if (hasEmbeddedPdb)
                     {
-                        var peReader = new PEReader([.. rebuildBytes]);
+                        var peReader = new PEReader(rebuildBytes.ToImmutableArray());
                         return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable();
                     }
                     else
@@ -261,8 +261,8 @@ namespace BuildValidator
                 Debug.Assert(_rebuildPdbReader is object);
                 Debug.Assert(_rebuildCompilation is object);
 
-                var originalPeReader = new PEReader([.. _originalPortableExecutableBytes]);
-                var rebuildPeReader = new PEReader([.. _rebuildPortableExecutableBytes]);
+                var originalPeReader = new PEReader(_originalPortableExecutableBytes.ToImmutableArray());
+                var rebuildPeReader = new PEReader(_rebuildPortableExecutableBytes.ToImmutableArray());
                 var originalInfo = new BuildInfo(
                     AssemblyBytes: _originalPortableExecutableBytes,
                     AssemblyReader: originalPeReader,
@@ -401,7 +401,7 @@ namespace BuildValidator
                     {
                         if (!info.CompressedHash.IsDefaultOrEmpty)
                         {
-                            var hashString = BitConverter.ToString([.. info.CompressedHash]).Replace("-", "");
+                            var hashString = BitConverter.ToString(info.CompressedHash.ToArray()).Replace("-", "");
                             writer.WriteLine($@"\t""{Path.GetFileName(info.SourceTextInfo.OriginalSourceFilePath)}"" - {hashString}");
                         }
                     }

@@ -351,7 +351,7 @@ namespace RunTests
             }
 
             list.Sort();
-            return [.. list];
+            return list.ToImmutableArray();
 
             static bool shouldInclude(string name, Options options)
             {

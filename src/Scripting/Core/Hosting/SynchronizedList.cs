@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             lock (_guard)
             {
                 // make a copy to ensure thread-safe enumeration
-                return ((IEnumerable<T>)[.. _list]).GetEnumerator();
+                return ((IEnumerable<T>)_list.ToArray()).GetEnumerator();
             }
         }
 

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             => new Data()
             {
                 HasGlobalAssemblyCache = HasGlobalAssemblyCache,
-                PlatformAssemblyPaths = [.. PlatformAssemblyPaths],
+                PlatformAssemblyPaths = PlatformAssemblyPaths.ToArray(),
             };
 
         public static InteractiveHostPlatformInfo GetCurrentPlatformInfo()

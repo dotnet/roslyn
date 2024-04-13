@@ -406,7 +406,7 @@ namespace RunTests
                 processResults.AddRange(c.ProcessResults);
             }
 
-            return new RunAllResult((failures == 0), [.. completed], processResults.ToImmutable());
+            return new RunAllResult((failures == 0), completed.ToImmutableArray(), processResults.ToImmutable());
         }
 
         private void Print(List<TestResult> testResults)

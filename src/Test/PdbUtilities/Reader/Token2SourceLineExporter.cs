@@ -1467,7 +1467,7 @@ namespace Roslyn.Test.PdbUtilities
 
             if (modList.Count > 0)
             {
-                modules = [.. modList];
+                modules = modList.ToArray();
             }
             else
             {

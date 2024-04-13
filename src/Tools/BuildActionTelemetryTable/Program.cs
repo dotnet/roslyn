@@ -493,10 +493,11 @@ namespace BuildActionTelemetryTable
 
         internal static ImmutableArray<(string TypeName, string Hash)> GetTelemetryInfos(ImmutableArray<Type> codeActionAndProviderTypes)
         {
-            return [.. codeActionAndProviderTypes
+            return codeActionAndProviderTypes
                 .Distinct(FullNameTypeComparer.Instance)
                 .Select(GetTelemetryInfo)
-                .OrderBy(info => info.TypeName)];
+                .OrderBy(info => info.TypeName)
+                .ToImmutableArray();
 
             static (string TypeName, string Hash) GetTelemetryInfo(Type type)
             {

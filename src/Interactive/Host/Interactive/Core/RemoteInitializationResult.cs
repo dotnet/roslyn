@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             => new Data()
             {
                 ScriptPath = ScriptPath,
-                MetadataReferencePaths = [.. MetadataReferencePaths],
-                Imports = [.. Imports],
+                MetadataReferencePaths = MetadataReferencePaths.ToArray(),
+                Imports = Imports.ToArray(),
             };
     }
 }

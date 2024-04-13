@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             => new Data()
             {
                 Success = Success,
-                SourcePaths = [.. SourcePaths],
-                ReferencePaths = [.. ReferencePaths],
+                SourcePaths = SourcePaths.ToArray(),
+                ReferencePaths = ReferencePaths.ToArray(),
                 WorkingDirectory = WorkingDirectory,
                 InitializationResult = InitializationResult?.Serialize(),
             };
