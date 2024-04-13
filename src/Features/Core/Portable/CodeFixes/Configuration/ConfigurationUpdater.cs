@@ -392,10 +392,10 @@ internal sealed partial class ConfigurationUpdater
     {
         if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
         {
-            return [.. (from option in options
-                    where option.DefaultValue is ICodeStyleOption
-                    orderby option.Definition.ConfigName
-                    select option)];
+            return [.. from option in options
+                       where option.DefaultValue is ICodeStyleOption
+                       orderby option.Definition.ConfigName
+                       select option];
         }
 
         return [];

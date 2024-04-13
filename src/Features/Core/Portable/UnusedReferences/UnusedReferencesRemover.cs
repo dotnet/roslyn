@@ -256,8 +256,7 @@ internal static class UnusedReferencesRemover
     {
         var transitiveCompilationAssemblies = reference.Dependencies
             .SelectMany(dependency => GetAllCompilationAssemblies(dependency));
-        return [.. reference.CompilationAssemblies
-, .. transitiveCompilationAssemblies];
+        return [.. reference.CompilationAssemblies, .. transitiveCompilationAssemblies];
     }
 
     public static async Task UpdateReferencesAsync(
