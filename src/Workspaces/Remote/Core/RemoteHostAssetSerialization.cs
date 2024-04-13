@@ -39,10 +39,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Debug.Assert(assetMap != null);
 
-            for (var i = 0; i < checksums.Span.Length; i++)
+            foreach (var (checksum, asset) in assetMap)
             {
-                var checksum = checksums.Span[i];
-                var asset = assetMap[checksum];
                 Contract.ThrowIfNull(asset);
 
                 var kind = asset.GetWellKnownSynchronizationKind();
