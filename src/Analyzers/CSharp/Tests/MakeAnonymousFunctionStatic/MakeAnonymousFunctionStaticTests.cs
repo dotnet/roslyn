@@ -185,6 +185,51 @@ public class MakeAnonymousFunctionStaticTests
     }
 
     [Theory]
+    [InlineData("i => GetValueFromStaticMethod()")]
+    [InlineData("(i) => GetValueFromStaticMethod()")]
+    [InlineData("delegate (int i) { return GetValueFromStaticMethod(); }")]
+    public async Task TestNoCaptures_ReferencesStaticMethod(string anonymousFunctionSyntax)
+    {
+        var code = $$"""
+            using System;
+            
+            class C
+            {
+                private static int GetValueFromStaticMethod() => 0;
+
+                void M()
+                {
+                    N({|IDE0320:{{anonymousFunctionSyntax}}|});
+                }
+            
+                void N(Func<int, int> f)
+                {
+                }
+            }
+            """;
+
+        var fixedCode = $$"""
+            using System;
+            
+            class C
+            {
+                private static int GetValueFromStaticMethod() => 0;
+
+                void M()
+                {
+                    N(static {{anonymousFunctionSyntax}});
+                }
+            
+                void N(Func<int, int> f)
+                {
+                }
+            }
+            """;
+
+        await TestWithCSharp9Async(code, fixedCode);
+    }
+
+    [Theory]
     [InlineData("i => x")]
     [InlineData("(i) => x")]
     [InlineData("delegate (int i) { return x; }")]
