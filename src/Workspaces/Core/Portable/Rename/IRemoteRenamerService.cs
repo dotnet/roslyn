@@ -185,11 +185,11 @@ internal sealed class SerializableRenameLocations(
     public async ValueTask<ImmutableArray<RenameLocation>> RehydrateLocationsAsync(
         Solution solution, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<RenameLocation>.GetInstance(this.Locations.Length, out var locBuilder);
+        var locBuilder = new FixedSizeArrayBuilder<RenameLocation>(this.Locations.Length);
         foreach (var loc in this.Locations)
             locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
-        return locBuilder.ToImmutableAndClear();
+        return locBuilder.MoveToImmutable();
     }
 }
 

@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     classificationTypes.Add(reader.ReadRequiredString());
 
                 var classifiedSpanCount = reader.ReadInt32();
-                using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(classifiedSpanCount, out var classifiedSpans);
+                var classifiedSpans = new FixedSizeArrayBuilder<ClassifiedSpan>(classifiedSpanCount);
 
                 for (var i = 0; i < classifiedSpanCount; i++)
                 {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                return classifiedSpans.ToImmutableAndClear();
+                return classifiedSpans.MoveToImmutable();
             }
             catch
             {

@@ -230,11 +230,11 @@ internal abstract partial class AbstractChainedExpressionWrapper<
     private static ImmutableArray<SyntaxNodeOrToken> GetSubRange(
         ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
     {
-        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);
+        var result = new FixedSizeArrayBuilder<SyntaxNodeOrToken>(end - start);
         for (var i = start; i < end; i++)
             result.Add(pieces[i]);
 
-        return result.ToImmutableAndClear();
+        return result.MoveToImmutable();
     }
 
     private bool IsDecomposableChainPart(SyntaxNode? node)

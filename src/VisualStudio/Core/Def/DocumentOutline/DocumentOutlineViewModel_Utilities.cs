@@ -180,7 +180,7 @@ internal sealed partial class DocumentOutlineViewModel
         SortOption sortOption,
         ImmutableArray<DocumentSymbolData> documentSymbolData)
     {
-        using var _ = ArrayBuilder<DocumentSymbolDataViewModel>.GetInstance(documentSymbolData.Length, out var documentSymbolItems);
+        var documentSymbolItems = new FixedSizeArrayBuilder<DocumentSymbolDataViewModel>(documentSymbolData.Length);
         foreach (var documentSymbol in documentSymbolData)
         {
             var children = GetDocumentSymbolItemViewModels(sortOption, documentSymbol.Children);
@@ -189,7 +189,7 @@ internal sealed partial class DocumentOutlineViewModel
         }
 
         documentSymbolItems.Sort(DocumentSymbolDataViewModelSorter.GetComparer(sortOption));
-        return documentSymbolItems.ToImmutableAndClear();
+        return documentSymbolItems.MoveToImmutable();
     }
 
     public static void SetExpansionOption(

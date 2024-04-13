@@ -403,11 +403,11 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
     private static ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
+        var builder = new FixedSizeArrayBuilder<SyntaxNode>(names.Length);
         for (var i = 0; i < names.Length; ++i)
             builder.Add(CreateImport(generator, names[i], withFormatterAnnotation));
 
-        return builder.ToImmutableAndClear();
+        return builder.MoveToImmutable();
     }
 
     private static SyntaxNode CreateImport(SyntaxGenerator syntaxGenerator, string name, bool withFormatterAnnotation)
