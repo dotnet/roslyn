@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
+using static CSharpSyntaxTokens;
+
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -24,5 +26,5 @@ internal sealed class CSharpPropiSnippetProvider() : AbstractCSharpAutoPropertyS
     public override string Description => CSharpFeaturesResources.init_only_property;
 
     protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
-        => SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        => SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SemicolonToken);
 }

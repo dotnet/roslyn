@@ -440,11 +440,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private static ImmutableArray<VariableInfo> GetMethodParameters(Dictionary<ISymbol, VariableInfo> variableInfoMap)
         {
-            using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfoMap.Count, out var list);
+            var list = new FixedSizeArrayBuilder<VariableInfo>(variableInfoMap.Count);
             list.AddRange(variableInfoMap.Values);
-
             list.Sort();
-            return list.ToImmutable();
+            return list.MoveToImmutable();
         }
 
         /// <param name="bestEffort">When false, variables whose data flow is not understood
@@ -887,21 +886,15 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             ITypeSymbol type, HashSet<ITypeSymbol> visited)
         {
             if (visited.Contains(type))
-            {
-                return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
-            }
+                return [];
 
             visited.Add(type);
 
             if (type.OriginalDefinition.Equals(type))
-            {
-                return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
-            }
+                return [];
 
             if (type is not INamedTypeSymbol constructedType)
-            {
-                return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
-            }
+                return [];
 
             var parameters = constructedType.GetAllTypeParameters().ToList();
             var arguments = constructedType.GetAllTypeArguments().ToList();

@@ -6,9 +6,11 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,14 +21,33 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
+// On NetFx, frozen dictionary is very expensive when you give it a case insensitive comparer.  This is due to
+// unavoidable allocations it performs while doing its key-analysis that involve going through the non-span-aware
+// culture types.  So, on netfx, we use a plain ReadOnlyDictionary here.
+#if NET
+using FilePathToDocumentIds = FrozenDictionary<string, OneOrMany<DocumentId>>;
+#else
+using FilePathToDocumentIds = ReadOnlyDictionary<string, OneOrMany<DocumentId>>;
+#endif
+
 /// <summary>
 /// Holds on a <see cref="DocumentId"/> to <see cref="TextDocumentState"/> map and an ordering.
 /// </summary>
 internal sealed class TextDocumentStates<TState>
     where TState : TextDocumentState
 {
+#if NET
+    private static readonly ObjectPool<Dictionary<string, OneOrMany<DocumentId>>> s_filePathPool = new(() => new(SolutionState.FilePathComparer));
+#endif
+
     public static readonly TextDocumentStates<TState> Empty =
-        new([], ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance), FrozenDictionary<string, OneOrMany<DocumentId>>.Empty);
+        new([],
+            ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance),
+#if NET
+            FilePathToDocumentIds.Empty);
+#else
+            new(new Dictionary<string, OneOrMany<DocumentId>>()));
+#endif
 
     private readonly ImmutableList<DocumentId> _ids;
 
@@ -37,12 +58,12 @@ internal sealed class TextDocumentStates<TState>
     /// </summary>
     private readonly ImmutableSortedDictionary<DocumentId, TState> _map;
 
-    private FrozenDictionary<string, OneOrMany<DocumentId>>? _filePathToDocumentIds;
+    private FilePathToDocumentIds? _filePathToDocumentIds;
 
     private TextDocumentStates(
         ImmutableList<DocumentId> ids,
         ImmutableSortedDictionary<DocumentId, TState> map,
-        FrozenDictionary<string, OneOrMany<DocumentId>>? filePathToDocumentIds)
+        FilePathToDocumentIds? filePathToDocumentIds)
     {
         Debug.Assert(map.KeyComparer == DocumentIdComparer.Instance);
 
@@ -108,42 +129,17 @@ internal sealed class TextDocumentStates<TState>
     }
 
     public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)
-    {
-        // Directly use ImmutableArray.Builder as we know the final size
-        var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
-
-        foreach (var (_, state) in _map)
-        {
-            builder.Add(selector(state));
-        }
-
-        return builder.MoveToImmutable();
-    }
+        => SelectAsArray(
+            static (state, selector) => selector(state),
+            selector);
 
     public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
     {
-        // Directly use ImmutableArray.Builder as we know the final size
-        var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
-
+        var result = new FixedSizeArrayBuilder<TValue>(_map.Count);
         foreach (var (_, state) in _map)
-        {
-            builder.Add(selector(state, arg));
-        }
+            result.Add(selector(state, arg));
 
-        return builder.MoveToImmutable();
-    }
-
-    public async ValueTask<ImmutableArray<TValue>> SelectAsArrayAsync<TValue, TArg>(Func<TState, TArg, CancellationToken, ValueTask<TValue>> selector, TArg arg, CancellationToken cancellationToken)
-    {
-        // Directly use ImmutableArray.Builder as we know the final size
-        var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
-
-        foreach (var (_, state) in _map)
-        {
-            builder.Add(await selector(state, arg, cancellationToken).ConfigureAwait(true));
-        }
-
-        return builder.MoveToImmutable();
+        return result.MoveToImmutable();
     }
 
     public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
@@ -237,13 +233,13 @@ internal sealed class TextDocumentStates<TState>
     /// Returns a <see cref="DocumentId"/>s of added documents.
     /// </summary>
     public IEnumerable<DocumentId> GetAddedStateIds(TextDocumentStates<TState> oldStates)
-        => (_ids == oldStates._ids) ? SpecializedCollections.EmptyEnumerable<DocumentId>() : Except(_ids, oldStates._map);
+        => (_ids == oldStates._ids) ? [] : Except(_ids, oldStates._map);
 
     /// <summary>
     /// Returns a <see cref="DocumentId"/>s of removed documents.
     /// </summary>
     public IEnumerable<DocumentId> GetRemovedStateIds(TextDocumentStates<TState> oldStates)
-        => (_ids == oldStates._ids) ? SpecializedCollections.EmptyEnumerable<DocumentId>() : Except(oldStates._ids, _map);
+        => (_ids == oldStates._ids) ? [] : Except(oldStates._ids, _map);
 
     private static IEnumerable<DocumentId> Except(ImmutableList<DocumentId> ids, ImmutableSortedDictionary<DocumentId, TState> map)
     {
@@ -291,11 +287,24 @@ internal sealed class TextDocumentStates<TState>
         }
     }
 
-    public async ValueTask<ChecksumsAndIds<DocumentId>> GetChecksumsAndIdsAsync(CancellationToken cancellationToken)
+    public async ValueTask<DocumentChecksumsAndIds> GetDocumentChecksumsAndIdsAsync(CancellationToken cancellationToken)
     {
-        var documentChecksumTasks = SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
-        var documentChecksums = new ChecksumCollection(await documentChecksumTasks.WhenAll().ConfigureAwait(false));
-        return new(documentChecksums, SelectAsArray(static s => s.Id));
+        var attributeChecksums = new FixedSizeArrayBuilder<Checksum>(_map.Count);
+        var textChecksums = new FixedSizeArrayBuilder<Checksum>(_map.Count);
+        var documentIds = new FixedSizeArrayBuilder<DocumentId>(_map.Count);
+
+        foreach (var (documentId, state) in _map)
+        {
+            var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            attributeChecksums.Add(stateChecksums.Info);
+            textChecksums.Add(stateChecksums.Text);
+            documentIds.Add(documentId);
+        }
+
+        return new(
+            new ChecksumCollection(attributeChecksums.MoveToImmutable()),
+            new ChecksumCollection(textChecksums.MoveToImmutable()),
+            documentIds.MoveToImmutable());
     }
 
     public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
@@ -321,9 +330,14 @@ internal sealed class TextDocumentStates<TState>
             : null;
     }
 
-    private FrozenDictionary<string, OneOrMany<DocumentId>> ComputeFilePathToDocumentIds()
+    private FilePathToDocumentIds ComputeFilePathToDocumentIds()
     {
-        using var _ = PooledDictionary<string, OneOrMany<DocumentId>>.GetInstance(out var result);
+#if NET
+        using var pooledDictionary = s_filePathPool.GetPooledObject();
+        var result = pooledDictionary.Object;
+#else
+        var result = new Dictionary<string, OneOrMany<DocumentId>>(SolutionState.FilePathComparer);
+#endif
 
         foreach (var (documentId, state) in _map)
         {
@@ -336,6 +350,10 @@ internal sealed class TextDocumentStates<TState>
                 : OneOrMany.Create(documentId);
         }
 
-        return result.ToFrozenDictionary();
+#if NET
+        return result.ToFrozenDictionary(SolutionState.FilePathComparer);
+#else
+        return new(result);
+#endif
     }
 }

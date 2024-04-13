@@ -34,34 +34,17 @@ internal static class FormattingExtensions
     }
 
     public static IEnumerable<AbstractFormattingRule> Concat(this AbstractFormattingRule rule, IEnumerable<AbstractFormattingRule> rules)
-        => SpecializedCollections.SingletonEnumerable(rule).Concat(rules);
-
-    public static void AddRange<T>(this IList<T> list, IEnumerable<T> values)
-    {
-        foreach (var v in values)
-        {
-            list.Add(v);
-        }
-    }
+        => [rule, .. rules];
 
     [return: NotNullIfNotNull(nameof(list1)), NotNullIfNotNull(nameof(list2))]
     public static List<T>? Combine<T>(this List<T>? list1, List<T>? list2)
-    {
-        if (list1 == null)
+        => (list1, list2) switch
         {
-            return list2;
-        }
-        else if (list2 == null)
-        {
-            return list1;
-        }
-
-        // normal case
-        var combinedList = new List<T>(list1);
-        combinedList.AddRange(list2);
-
-        return combinedList;
-    }
+            (null, _) => list2,
+            (_, null) => list1,
+            // normal case
+            _ => [.. list1, .. list2]
+        };
 
     public static bool ContainsElasticTrivia(this SuppressOperation operation, TokenStream tokenStream)
     {

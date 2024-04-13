@@ -23,6 +23,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
 internal partial class CSharpReplacePropertyWithMethodsService :
     AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax, PropertyDeclarationSyntax>
@@ -129,7 +132,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             methodDeclaration = methodDeclaration.WithAttributeLists(setAccessorDeclaration.AttributeLists);
@@ -147,7 +150,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             }
             else if (propertyBackingField != null)
             {
-                return methodDeclaration.WithBody(SyntaxFactory.Block(
+                return methodDeclaration.WithBody(Block(
                     (StatementSyntax)generator.ExpressionStatement(
                         generator.AssignmentStatement(
                             GetFieldReference(generator, propertyBackingField),
@@ -184,7 +187,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             if (propertyDeclaration.ExpressionBody != null)
@@ -214,7 +217,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
                 {
                     var fieldReference = GetFieldReference(generator, propertyBackingField);
                     return methodDeclaration.WithBody(
-                        SyntaxFactory.Block(
+                        Block(
                             (StatementSyntax)generator.ReturnStatement(fieldReference)));
                 }
             }
@@ -248,7 +251,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         var structure = trivia.GetStructure();
         var rewritten = rewriter.Visit(structure);
         Contract.ThrowIfNull(rewritten);
-        return SyntaxFactory.Trivia((StructuredTriviaSyntax)rewritten);
+        return Trivia((StructuredTriviaSyntax)rewritten);
     }
 
     private static SyntaxNode UseExpressionOrBlockBodyIfDesired(
@@ -306,17 +309,17 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         CrefParameterListSyntax parameterList;
         if (parameterType is TypeSyntax typeSyntax)
         {
-            var parameter = SyntaxFactory.CrefParameter(typeSyntax);
-            parameterList = SyntaxFactory.CrefParameterList([parameter]);
+            var parameter = CrefParameter(typeSyntax);
+            parameterList = CrefParameterList([parameter]);
         }
         else
         {
-            parameterList = SyntaxFactory.CrefParameterList();
+            parameterList = CrefParameterList();
         }
 
         // XmlCrefAttribute replaces <T> with {T}, which is required for C# documentation comments
-        var crefAttribute = SyntaxFactory.XmlCrefAttribute(
-            SyntaxFactory.NameMemberCref(SyntaxFactory.IdentifierName(identifierToken), parameterList));
+        var crefAttribute = XmlCrefAttribute(
+            NameMemberCref(IdentifierName(identifierToken), parameterList));
         return (NameMemberCrefSyntax)crefAttribute.Cref;
     }
 
@@ -345,6 +348,6 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         if (operatorKind is SyntaxKind.None)
             return parent;
 
-        return SyntaxFactory.BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
+        return BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
     }
 }

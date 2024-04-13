@@ -20,42 +20,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpDoWhileLoopStatementProvider() : AbstractConditionalBlockSnippetProvider
+internal sealed class CSharpDoWhileLoopStatementProvider()
+    : AbstractConditionalBlockSnippetProvider<DoStatementSyntax, ExpressionSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.Do;
 
     public override string Description => CSharpFeaturesResources.do_while_loop;
 
-    protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+    protected override DoStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
     {
         return SyntaxFactory.DoStatement(
             SyntaxFactory.Block(),
             (ExpressionSyntax)(inlineExpressionInfo?.Node.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression()));
     }
 
-    protected override SyntaxNode GetCondition(SyntaxNode node)
-    {
-        var doStatement = (DoStatementSyntax)node;
-        return doStatement.Condition;
-    }
+    protected override ExpressionSyntax GetCondition(DoStatementSyntax node)
+        => node.Condition;
 
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        => static node => node is DoStatementSyntax;
-
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<DoStatementSyntax>(
-            caretTarget,
+    protected override int GetTargetCaretPosition(DoStatementSyntax doStatement, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            doStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<DoStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, DoStatementSyntax doStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            doStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }

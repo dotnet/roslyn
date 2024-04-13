@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -129,26 +130,6 @@ internal partial class SolutionAssetStorage
         public async ValueTask<object> GetRequiredAssetAsync(Checksum checksum, CancellationToken cancellationToken)
         {
             return await _solutionAssetStorage._checksumToScope.Single().Value.GetTestAccessor().GetAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
-        }
-
-        public bool IsPinned(Checksum checksum)
-        {
-            lock (_solutionAssetStorage._gate)
-            {
-                return _solutionAssetStorage._checksumToScope.TryGetValue(checksum, out var scope) &&
-                    scope.RefCount >= 1;
-            }
-        }
-
-        public int PinnedScopesCount
-        {
-            get
-            {
-                lock (_solutionAssetStorage._gate)
-                {
-                    return _solutionAssetStorage._checksumToScope.Count;
-                }
-            }
         }
     }
 }

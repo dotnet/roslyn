@@ -259,8 +259,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                     v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken));
 
             default:
-                return SpecializedCollections.SingletonEnumerable(
-                    semanticModel.GetRequiredDeclaredSymbol(memberDeclaration, cancellationToken));
+                return [semanticModel.GetRequiredDeclaredSymbol(memberDeclaration, cancellationToken)];
         }
     }
 

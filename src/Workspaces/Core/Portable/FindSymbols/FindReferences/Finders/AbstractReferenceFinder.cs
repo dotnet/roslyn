@@ -660,9 +660,9 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                 var operation = semanticModel.GetOperation(node, cancellationToken);
                 switch (operation?.Parent)
                 {
-                    case INameOfOperation _:
-                    case ITypeOfOperation _:
-                    case ISizeOfOperation _:
+                    case INameOfOperation:
+                    case ITypeOfOperation:
+                    case ISizeOfOperation:
                         return SymbolUsageInfo.Create(ValueUsageInfo.Name);
                 }
 
@@ -814,7 +814,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             return false;
         }
 
-        additionalProperty = new KeyValuePair<string, string>(propertyName, symbol.Name);
+        additionalProperty = KeyValuePairUtil.Create(propertyName, symbol.Name);
         return true;
     }
 }

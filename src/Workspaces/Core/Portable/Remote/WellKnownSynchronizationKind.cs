@@ -14,7 +14,6 @@ internal enum WellKnownSynchronizationKind
     // Solution snapshot state, only referencing actual user (non-generated) documents, options, and references.
     SolutionState,
     ProjectState,
-    DocumentState,
 
     ChecksumCollection,
 

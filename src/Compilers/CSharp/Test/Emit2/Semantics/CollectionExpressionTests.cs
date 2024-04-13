@@ -20452,6 +20452,34 @@ partial class Program
             CompileAndVerify(new[] { source, s_collectionExtensions }, verify: Verification.Skipped, expectedOutput: "[0, 1], ");
         }
 
+        [Fact]
+        public void RefStruct_04()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                dynamic d = null;
+                S s = [d];
+
+                ref struct S : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add<T>(T t) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,7): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // S s = [d];
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "[d]").WithArguments("S").WithLocation(5, 7),
+                // (7,16): error CS8343: 'S': ref structs cannot implement interfaces
+                // ref struct S : IEnumerable<int>
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<int>").WithArguments("S").WithLocation(7, 16)
+            );
+        }
+
         [CombinatorialData]
         [Theory]
         public void RefSafety_Return_01([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)

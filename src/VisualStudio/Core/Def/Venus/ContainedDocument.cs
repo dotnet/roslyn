@@ -714,7 +714,7 @@ internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObj
         }
         else
         {
-            return SpecializedCollections.EmptyEnumerable<TextSpan>();
+            return [];
         }
     }
 
@@ -1073,7 +1073,7 @@ internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObj
 
     private static bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag, bool checkAt = true)
     {
-        if (ch != tag[tag.Length - 1] || position < tag.Length)
+        if (ch != tag[^1] || position < tag.Length)
         {
             return false;
         }

@@ -8,9 +8,13 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 [MetadataAttribute]
-internal sealed class RazorMethodAttribute : LanguageServerEndpointAttribute
+internal class RazorMethodAttribute : LanguageServerEndpointAttribute
 {
     public RazorMethodAttribute(string method) : base(method, LanguageServerConstants.DefaultLanguageName)
+    {
+    }
+
+    public RazorMethodAttribute(string method, string language) : base(method, language)
     {
     }
 }

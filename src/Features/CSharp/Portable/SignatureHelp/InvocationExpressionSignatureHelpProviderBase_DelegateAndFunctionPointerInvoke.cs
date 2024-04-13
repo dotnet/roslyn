@@ -53,7 +53,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase
         // Since we're returning a single item, we can selected it as the "best one".
         selectedItem = 0;
 
-        return SpecializedCollections.SingletonList(item);
+        return [item];
     }
 
     private static IList<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
@@ -96,8 +96,5 @@ internal partial class InvocationExpressionSignatureHelpProviderBase
     }
 
     private static IList<SymbolDisplayPart> GetDelegateOrFunctionPointerInvokePostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.CloseParenToken));
-    }
+        => [Punctuation(SyntaxKind.CloseParenToken)];
 }

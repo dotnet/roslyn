@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -344,17 +345,29 @@ public partial class Solution
     public Solution AddProject(ProjectId projectId, string name, string assemblyName, string language)
         => this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
 
-    /// <summary>
-    /// Create a new solution instance that includes a project with the specified project information.
-    /// </summary>
+    /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
     public Solution AddProject(ProjectInfo projectInfo)
-        => WithCompilationState(_compilationState.AddProject(projectInfo));
+    {
+        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(1, out var projectInfos);
+        projectInfos.Add(projectInfo);
+        return AddProjects(projectInfos);
+    }
 
-    /// <summary>
-    /// Create a new solution instance without the project specified.
-    /// </summary>
+    /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
+    internal Solution AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
+        => WithCompilationState(_compilationState.AddProjects(projectInfos));
+
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     public Solution RemoveProject(ProjectId projectId)
-        => WithCompilationState(_compilationState.RemoveProject(projectId));
+    {
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(1, out var projectIds);
+        projectIds.Add(projectId);
+        return RemoveProjects(projectIds);
+    }
+
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
+    internal Solution RemoveProjects(ArrayBuilder<ProjectId> projectIds)
+        => WithCompilationState(_compilationState.RemoveProjects(projectIds));
 
     /// <summary>
     /// Creates a new solution instance with the project specified updated to have the new
@@ -535,8 +548,7 @@ public partial class Solution
     public Solution AddProjectReference(ProjectId projectId, ProjectReference projectReference)
     {
         return AddProjectReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                projectReference ?? throw new ArgumentNullException(nameof(projectReference))));
+            [projectReference ?? throw new ArgumentNullException(nameof(projectReference))]);
     }
 
     /// <summary>
@@ -627,8 +639,7 @@ public partial class Solution
     public Solution AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
     {
         return AddMetadataReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                metadataReference ?? throw new ArgumentNullException(nameof(metadataReference))));
+            [metadataReference ?? throw new ArgumentNullException(nameof(metadataReference))]);
     }
 
     /// <summary>
@@ -708,8 +719,7 @@ public partial class Solution
     public Solution AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
     {
         return AddAnalyzerReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+            [analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
     }
 
     /// <summary>
@@ -791,8 +801,7 @@ public partial class Solution
     public Solution AddAnalyzerReference(AnalyzerReference analyzerReference)
     {
         return AddAnalyzerReferences(
-            SpecializedCollections.SingletonEnumerable(
-                analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+            [analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
     }
 
     /// <summary>
@@ -1456,7 +1465,14 @@ public partial class Solution
         static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
         {
             var newCompilationState = compilationState.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
-            return new Solution(newCompilationState);
+            var solution = new Solution(newCompilationState);
+
+            // ensure that this document is within the frozen-partial-document for the solution we're creating.  That
+            // way, if we ask to freeze it again, we'll just the same document back.
+            Contract.ThrowIfTrue(solution._documentIdToFrozenSolution.Count != 0);
+            solution._documentIdToFrozenSolution.Add(documentId, AsyncLazy.Create(solution));
+
+            return solution;
         }
     }
 
