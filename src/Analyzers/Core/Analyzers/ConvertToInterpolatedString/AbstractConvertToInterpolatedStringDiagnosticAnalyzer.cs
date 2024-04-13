@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,18 +9,19 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString;
 
 internal abstract class AbstractConvertToInterpolatedStringDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    protected AbstractConvertToInterpolatedStringDiagnosticAnalyzer(LocalizableString title)
-        : base(diagnosticId: IDEDiagnosticIds.ConvertToInterpolatedStringDiagnosticId,
-              EnforceOnBuildValues.ConvertToInterpolatedString,
-              option: null,
-              title: title)
-    {
-    }
+	protected AbstractConvertToInterpolatedStringDiagnosticAnalyzer()
+		: base(IDEDiagnosticIds.ConvertToInterpolatedStringDiagnosticId,
+			  EnforceOnBuildValues.ConvertToInterpolatedString,
+			  options: null,
+			  new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_interpolated_string), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+			  new LocalizableResourceString(nameof(AnalyzersResources.Interpolated_string_should_be_used_for_performance), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+	{
+	}
 
-    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+	public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+		=> DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-    protected override void InitializeWorker(AnalysisContext context)
-    {
-    }
+	protected override void InitializeWorker(AnalysisContext context)
+	{
+	}
 }

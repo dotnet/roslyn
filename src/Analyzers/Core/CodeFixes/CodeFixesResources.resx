@@ -165,6 +165,9 @@
   <data name="Alias_ambiguous_type_0" xml:space="preserve">
     <value>Alias ambiguous type '{0}'</value>
   </data>
+  <data name="Convert_to_interpolated_string" xml:space="preserve">
+    <value>Convert to interpolated string</value>
+  </data>
   <data name="Convert_type_to_0" xml:space="preserve">
     <value>Convert type to '{0}'</value>
   </data>

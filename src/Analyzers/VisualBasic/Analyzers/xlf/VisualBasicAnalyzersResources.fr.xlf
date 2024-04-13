@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../VisualBasicAnalyzersResources.resx">
     <body>
-      <trans-unit id="Convert_to_interpolated_string">
-        <source>Convert to interpolated string</source>
-        <target state="new">Convert to interpolated string</target>
-        <note />
-      </trans-unit>
       <trans-unit id="GetType_can_be_converted_to_NameOf">
         <source>'GetType' can be converted to 'NameOf'</source>
         <target state="translated">'GetType' peut être converti en 'NameOf'</target>

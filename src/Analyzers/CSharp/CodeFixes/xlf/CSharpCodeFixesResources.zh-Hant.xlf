@@ -52,11 +52,6 @@
         <target state="translated">與 '{0}' 比較</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_interpolated_string">
-        <source>Convert to interpolated string</source>
-        <target state="new">Convert to interpolated string</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_positional_record">
         <source>Convert to positional record</source>
         <target state="translated">轉換為位置 record</target>

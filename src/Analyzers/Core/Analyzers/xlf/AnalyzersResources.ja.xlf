@@ -122,6 +122,11 @@
         <target state="translated">条件式に変換します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_interpolated_string">
+        <source>Convert to interpolated string</source>
+        <target state="new">Convert to interpolated string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="translated">式の値が使用されていません</target>
@@ -145,6 +150,11 @@
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
         <target state="translated">'GetHashCode' の実装を簡素化できます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interpolated_string_should_be_used_for_performance">
+        <source>Interpolated string should be used for performance</source>
+        <target state="new">Interpolated string should be used for performance</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">

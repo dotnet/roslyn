@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,12 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal abstract class ConvertToInterpolatedStringDiagnosticAnalyzer : AbstractConvertToInterpolatedStringDiagnosticAnalyzer
 {
-    protected ConvertToInterpolatedStringDiagnosticAnalyzer(LocalizableString title)
-        : base(
-            IDEDiagnosticIds.ConvertToInterpolatedStringDiagnosticId,
-            EnforceOnBuildValues.ConvertToInterpolatedString,
-            option: null,
-            title: title)
+    protected ConvertToInterpolatedStringDiagnosticAnalyzer() : base()
     {
     }
 }

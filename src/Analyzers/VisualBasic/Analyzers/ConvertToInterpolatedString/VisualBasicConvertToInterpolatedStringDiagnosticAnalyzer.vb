@@ -12,10 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
     Friend NotInheritable Class VisualBasicConvertToInterpolatedStringDiagnosticAnalyzer
         Inherits AbstractConvertToInterpolatedStringDiagnosticAnalyzer
 
-        Private Shared ReadOnly s_title As String = VisualBasicAnalyzersResources.Convert_to_interpolated_string
-
         Public Sub New()
-            MyBase.New(s_title)
+            MyBase.New()
         End Sub
     End Class
 End Namespace

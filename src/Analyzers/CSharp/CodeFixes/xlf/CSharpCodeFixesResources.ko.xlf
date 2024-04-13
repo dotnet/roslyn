@@ -52,11 +52,6 @@
         <target state="translated">'{0}'과(와) 비교</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_interpolated_string">
-        <source>Convert to interpolated string</source>
-        <target state="new">Convert to interpolated string</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_positional_record">
         <source>Convert to positional record</source>
         <target state="translated">위치 record로 변환</target>
