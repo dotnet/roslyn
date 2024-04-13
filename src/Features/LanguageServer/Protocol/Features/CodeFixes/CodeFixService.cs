@@ -931,14 +931,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             static ImmutableArray<IConfigurationFixProvider> GetConfigurationFixProviders(ImmutableArray<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
             {
-                using var builderDisposer = ArrayBuilder<IConfigurationFixProvider>.GetInstance(out var builder);
                 var orderedLanguageKindAndFixers = ExtensionOrderer.Order(languageKindAndFixers);
+                var builder = new FixedSizeArrayBuilder<IConfigurationFixProvider>(orderedLanguageKindAndFixers.Count);
                 foreach (var languageKindAndFixersValue in orderedLanguageKindAndFixers)
-                {
                     builder.Add(languageKindAndFixersValue.Value);
-                }
 
-                return builder.ToImmutableAndClear();
+                return builder.MoveToImmutable();
             }
         }
 
