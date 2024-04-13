@@ -1013,7 +1013,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             updatedLeadingTrivia.Add(newTrivia);
         }
 
-        var extraNodeList = ArrayBuilder<SyntaxNode>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var extraNodeList);
         while (index < permutedParamNodes.Length)
         {
             extraNodeList.Add(permutedParamNodes[index]);
@@ -1030,8 +1030,6 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
 
             updatedLeadingTrivia.Add(newTrivia);
         }
-
-        extraNodeList.Free();
 
         return updatedLeadingTrivia.ToImmutableAndClear();
     }
