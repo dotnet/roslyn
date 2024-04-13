@@ -43,29 +43,23 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var checksum = checksums.Span[i];
                 var asset = assetMap[checksum];
+                Contract.ThrowIfNull(asset);
+
+                var kind = asset.GetWellKnownSynchronizationKind();
+                checksum.WriteTo(writer);
+                writer.WriteInt32((int)kind);
+                serializer.Serialize(asset, writer, context, cancellationToken);
 
                 // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the
                 // pipe for the reader on the other side to read.  This allows the item-writing to remain entirely
                 // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
                 // entire stream of data into the pipe before it gets sent to the other side.
-                WriteAsset(writer, serializer, context, asset, cancellationToken);
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return;
-
-            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, object asset, CancellationToken cancellationToken)
-            {
-                Contract.ThrowIfNull(asset);
-                var kind = asset.GetWellKnownSynchronizationKind();
-                writer.WriteInt32((int)kind);
-
-                serializer.Serialize(asset, writer, context, cancellationToken);
             }
         }
 
         public static ValueTask ReadDataAsync<T, TArg>(
-            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
         {
             // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
             // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
@@ -77,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, callback, arg, cancellationToken);
 
             static async ValueTask ReadDataSuppressedFlowAsync(
-                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
             {
                 using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
                 ReadData(stream, solutionChecksum, objectCount, serializerService, callback, arg, cancellationToken);
@@ -85,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static void ReadData<T, TArg>(
-            Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+            Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
         {
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
@@ -96,12 +90,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             for (int i = 0, n = objectCount; i < n; i++)
             {
+                var checksum = Checksum.ReadFrom(reader);
                 var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize(kind, reader, cancellationToken);
                 Contract.ThrowIfNull(result);
-                callback(i, (T)result, arg);
+                callback(checksum, (T)result, arg);
             }
         }
     }

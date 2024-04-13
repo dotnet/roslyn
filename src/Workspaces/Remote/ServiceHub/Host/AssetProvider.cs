@@ -284,16 +284,21 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 if (missingChecksumsCount > 0)
                 {
                     var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+                    Contract.ThrowIfTrue(missingChecksumsMemory.Length == 0);
 
-                    await RequestAssetsAsync(
-                        assetPath, missingChecksumsMemory,
+#if NETCOREAPP
+                    Contract.ThrowIfTrue(missingChecksumsMemory.Span.Contains(Checksum.Null));
+#else
+                    Contract.ThrowIfTrue(missingChecksumsMemory.Span.IndexOf(Checksum.Null) >= 0);
+#endif
+
+                    await _assetSource.GetAssetsAsync(
+                        _solutionChecksum, assetPath, missingChecksumsMemory, _serializerService,
                         static (
-                            int index,
+                            Checksum missingChecksum,
                             T missingAsset,
                             (AssetProvider assetProvider, Checksum[] missingChecksums, Action<Checksum, T, TArg>? callback, TArg? arg) tuple) =>
                         {
-                            var missingChecksum = tuple.missingChecksums[index];
-
                             tuple.callback?.Invoke(missingChecksum, missingAsset, tuple.arg!);
                             tuple.assetProvider._assetCache.GetOrAdd(missingChecksum, missingAsset!);
                         },
@@ -307,22 +312,5 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     s_checksumPool.Free(missingChecksums);
             }
         }
-
-        return;
-    }
-
-    private async ValueTask RequestAssetsAsync<T, TArg>(
-        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, Action<int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
-    {
-#if NETCOREAPP
-        Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));
-#else
-        Contract.ThrowIfTrue(checksums.Span.IndexOf(Checksum.Null) >= 0);
-#endif
-
-        if (checksums.Length == 0)
-            return;
-
-        await _assetSource.GetAssetsAsync(_solutionChecksum, assetPath, checksums, _serializerService, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 }
