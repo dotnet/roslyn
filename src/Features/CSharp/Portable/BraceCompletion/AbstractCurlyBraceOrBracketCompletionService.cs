@@ -183,7 +183,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
                 [newLineEdit.Value.ToTextChangeRange()],
                 formattingChanges.SelectAsArray(f => f.ToTextChangeRange()));
 
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var mergedChanges);
+            var mergedChanges = new FixedSizeArrayBuilder<TextChange>(newRanges.Length);
             var amountToShift = 0;
             foreach (var newRange in newRanges)
             {
@@ -200,7 +200,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
                 mergedChanges.Add(new TextChange(newTextChangeSpan, newTextChangeText));
             }
 
-            return mergedChanges.ToImmutableAndClear();
+            return mergedChanges.MoveToImmutable();
         }
     }
 
