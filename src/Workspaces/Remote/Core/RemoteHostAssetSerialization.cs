@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
-        private static readonly ObjectPool<Stream> s_streamPool = new(SerializableBytes.CreateWritableStream);
+        private static readonly ObjectPool<SerializableBytes.ReadWriteStream> s_streamPool = new(SerializableBytes.CreateWritableStream);
 
         public static async ValueTask WriteDataAsync(
             PipeWriter pipeWriter,
@@ -51,7 +51,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var pooledObject = s_streamPool.GetPooledObject();
                 var tempStream = pooledObject.Object;
                 tempStream.Position = 0;
-                tempStream.SetLength(0);
+
+                // Don't truncate the stream as we're going to be writing to it multiple times.  This will allow us to
+                // reuse the internal chunks of the buffer, without having to reallocate them over and over again.
+                tempStream.SetLength(0, truncate: false);
 
                 // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
                 // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
@@ -116,7 +119,14 @@ namespace Microsoft.CodeAnalysis.Remote
             static async ValueTask ReadDataSuppressedFlowAsync(
                 PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
             {
-                using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
+                for (var i = 0; i < objectCount; i++)
+                {
+                    // First, read the length of the asset (and header) we'll be reading.
+                    var readResult = await pipeReader.ReadAtLeastAsync(sizeof(int), cancellationToken).ConfigureAwait(false);
+                
+                    var sequenceReader = new 
+                }
+
                 ReadData(stream, solutionChecksum, objectCount, serializerService, callback, arg, cancellationToken);
             }
         }

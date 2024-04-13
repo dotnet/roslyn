@@ -89,7 +89,7 @@ internal static class SerializableBytes
         }
     }
 
-    internal static PooledStream CreateWritableStream()
+    internal static ReadWriteStream CreateWritableStream()
         => new ReadWriteStream();
 
     public abstract class PooledStream : Stream
@@ -276,7 +276,7 @@ internal static class SerializableBytes
     {
     }
 
-    private sealed class ReadWriteStream : PooledStream
+    public sealed class ReadWriteStream : PooledStream
     {
         public ReadWriteStream()
             : base(length: 0, chunks: SharedPools.BigDefault<List<byte[]>>().AllocateAndClear())
@@ -318,25 +318,32 @@ internal static class SerializableBytes
         }
 
         public override void SetLength(long value)
+            => SetLength(value, truncate: true);
+
+        public void SetLength(long value, bool truncate)
         {
             EnsureCapacity(value);
 
             if (value < length)
             {
-                // truncate the stream
-
-                var chunkIndex = GetChunkIndex(value);
-                var chunkOffset = GetChunkOffset(value);
-
-                Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
-
-                var trimIndex = chunkIndex + 1;
-                for (var i = trimIndex; i < chunks.Count; i++)
+                if (truncate)
                 {
-                    SharedPools.ByteArray.Free(chunks[i]);
-                }
+                    var chunkIndex = GetChunkIndex(value);
+                    var chunkOffset = GetChunkOffset(value);
 
-                chunks.RemoveRange(trimIndex, chunks.Count - trimIndex);
+                    Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
+
+                    var trimIndex = chunkIndex + 1;
+                    for (var i = trimIndex; i < chunks.Count; i++)
+                        SharedPools.ByteArray.Free(chunks[i]);
+
+                    chunks.RemoveRange(trimIndex, chunks.Count - trimIndex);
+                }
+                else
+                {
+                    // TODO: do we want to clear out the remaining arrays?  Or is it fine to keep the existing data in
+                    // it just as garbage?
+                }
             }
 
             length = value;
