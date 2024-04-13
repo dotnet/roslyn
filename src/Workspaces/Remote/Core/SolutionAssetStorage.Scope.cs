@@ -47,7 +47,7 @@ internal partial class SolutionAssetStorage
         public async Task AddAssetsAsync(
             AssetPath assetPath,
             ReadOnlyMemory<Checksum> checksums,
-            Dictionary<Checksum, object> assetMap,
+            Func<Checksum, object, CancellationToken, ValueTask> onAssetFoundAsync,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -58,14 +58,16 @@ internal partial class SolutionAssetStorage
             var numberOfChecksumsToSearch = checksumsToFind.Count;
             Contract.ThrowIfTrue(checksumsToFind.Contains(Checksum.Null));
 
-            await FindAssetsAsync(assetPath, checksumsToFind, assetMap, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(assetPath, checksumsToFind, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(checksumsToFind.Count > 0);
-            Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
         }
 
         private async Task FindAssetsAsync(
-            AssetPath assetPath, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
+            AssetPath assetPath,
+            HashSet<Checksum> remainingChecksumsToFind,
+            Func<Checksum, object, CancellationToken, ValueTask> onAssetFoundAsync,
+            CancellationToken cancellationToken)
         {
             var solutionState = this.CompilationState;
 
@@ -74,13 +76,13 @@ internal partial class SolutionAssetStorage
                 // If we're not in a project cone, start the search at the top most state-checksum corresponding to the
                 // entire solution.
                 Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetPath, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetPath, remainingChecksumsToFind, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // Otherwise, grab the top-most state checksum for this cone and search within that.
                 Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(this.ProjectCone.RootProjectId, out var stateChecksums));
-                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetPath, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetPath, remainingChecksumsToFind, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -98,15 +100,19 @@ internal partial class SolutionAssetStorage
                 Contract.ThrowIfTrue(checksum == Checksum.Null);
 
                 using var checksumPool = Creator.CreateChecksumSet(checksum);
-                using var _ = Creator.CreateResultMap(out var resultPool);
 
-                await scope.FindAssetsAsync(AssetPath.FullLookupForTesting, checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfTrue(resultPool.Count != 1);
+                object? asset = null;
+                await scope.FindAssetsAsync(AssetPath.FullLookupForTesting, checksumPool.Object, (foundChecksum, foundAsset, _) =>
+                {
+                    Contract.ThrowIfTrue(asset != null); // We should only find one asset
+                    Contract.ThrowIfTrue(checksum != foundChecksum);
+                    asset = foundAsset;
+                    return ValueTaskFactory.CompletedTask;
+                }, cancellationToken).ConfigureAwait(false);
 
-                var (resultingChecksum, value) = resultPool.First();
-                Contract.ThrowIfFalse(checksum == resultingChecksum);
+                Contract.ThrowIfNull(asset);
 
-                return value;
+                return asset;
             }
         }
     }

@@ -58,7 +58,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
         AssetPath assetPath,
         TextDocumentStates<TState> documentStates,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object> result,
+        Func<Checksum, object, CancellationToken, ValueTask> onAssetFoundAsync,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
         var hintDocument = assetPath.DocumentId;
@@ -68,7 +68,8 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
             if (state != null)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(
+                    assetPath, state, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
             }
         }
         else
@@ -81,16 +82,17 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
-                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(
+                    assetPath, state, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
             }
         }
     }
 
-    internal static void Find<T>(
+    internal static async Task FindAsync<T>(
         IReadOnlyList<T> values,
         ChecksumCollection checksums,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object> result,
+        Func<Checksum, object, CancellationToken, ValueTask> onAssetFoundAsync,
         CancellationToken cancellationToken) where T : class
     {
         Contract.ThrowIfFalse(values.Count == checksums.Children.Length);
@@ -103,7 +105,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
             var checksum = checksums.Children[i];
             if (searchingChecksumsLeft.Remove(checksum))
-                result[checksum] = values[i];
+                await onAssetFoundAsync(checksum, values[i], cancellationToken).ConfigureAwait(false);
         }
     }
 
