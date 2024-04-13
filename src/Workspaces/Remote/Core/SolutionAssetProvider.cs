@@ -84,38 +84,41 @@ namespace Microsoft.CodeAnalysis.Remote
             await scope.AddAssetsAsync(
                 assetPath,
                 checksums,
-                async (checksum, asset, cancellationToken) =>
-                {
-                    Contract.ThrowIfNull(asset);
-                    foundChecksumCount++;
-
-                    using var pooledObject = s_streamPool.GetPooledObject();
-                    var tempStream = pooledObject.Object;
-                    tempStream.Position = 0;
-                    tempStream.SetLength(0);
-
-                    WriteAssetToTempStream(tempStream, checksum, asset);
-
-                    // Write the length of the asset to the pipe writer so the reader knows how much data to read.
-                    WriteLengthToPipeWriter(tempStream.Length);
-
-                    // Ensure we flush out the length so the reading side knows how much data to read.
-                    await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-                    // Now, asynchronously copy the temp buffer over to the writer stream.
-                    tempStream.Position = 0;
-                    await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
-
-                    // We flush after each item as that forms a reasonably sized chunk of data to want to then send over
-                    // the pipe for the reader on the other side to read.  This allows the item-writing to remain
-                    // entirely synchronous without any blocking on async flushing, while also ensuring that we're not
-                    // buffering the entire stream of data into the pipe before it gets sent to the other side.
-                    await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
-                }, cancellationToken).ConfigureAwait(false);
+                WriteAssetToPipeAsync,
+                cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
 
             return;
+
+            async ValueTask WriteAssetToPipeAsync(Checksum checksum, object asset, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfNull(asset);
+                foundChecksumCount++;
+
+                using var pooledObject = s_streamPool.GetPooledObject();
+                var tempStream = pooledObject.Object;
+                tempStream.Position = 0;
+                tempStream.SetLength(0);
+
+                WriteAssetToTempStream(tempStream, checksum, asset);
+
+                // Write the length of the asset to the pipe writer so the reader knows how much data to read.
+                WriteLengthToPipeWriter(tempStream.Length);
+
+                // Ensure we flush out the length so the reading side knows how much data to read.
+                await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+                // Now, asynchronously copy the temp buffer over to the writer stream.
+                tempStream.Position = 0;
+                await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
+
+                // We flush after each item as that forms a reasonably sized chunk of data to want to then send over
+                // the pipe for the reader on the other side to read.  This allows the item-writing to remain
+                // entirely synchronous without any blocking on async flushing, while also ensuring that we're not
+                // buffering the entire stream of data into the pipe before it gets sent to the other side.
+                await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
 
             void WriteAssetToTempStream(Stream tempStream, Checksum checksum, object asset)
             {
