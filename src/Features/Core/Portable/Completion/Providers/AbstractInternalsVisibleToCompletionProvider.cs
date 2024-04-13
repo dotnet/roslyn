@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -157,7 +158,7 @@ internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPComple
                 displayTextSuffix: "",
                 rules: CompletionItemRules.Default,
                 glyph: project.GetGlyph(),
-                properties: [new KeyValuePair<string, string>(ProjectGuidKey, projectGuid)]);
+                properties: [KeyValuePairUtil.Create(ProjectGuidKey, projectGuid)]);
             context.AddItem(completionItem);
         }
 
