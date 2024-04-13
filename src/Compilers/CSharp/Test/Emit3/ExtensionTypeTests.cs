@@ -33098,7 +33098,6 @@ implicit extension E for object
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
-        // TODO2
         var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.Fails).VerifyDiagnostics();
         verifier.VerifyIL("C.Main", """
 {

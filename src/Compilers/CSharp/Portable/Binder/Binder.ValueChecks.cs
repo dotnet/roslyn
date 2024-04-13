@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefKind.Ref:
                         return true;
                     case RefKind.RefReadOnly:
-                        ReportReadOnlyError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics); // TODO2 test
+                        ReportReadOnlyError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
                         return false;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
