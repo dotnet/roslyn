@@ -46,23 +46,12 @@ internal sealed class MakeAnonymousFunctionStaticDiagnosticAnalyzer : AbstractBu
         if (anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
             return;
 
-        if (CanAnonymousFunctionByMadeStatic(anonymousFunction, context.SemanticModel))
+        if (context.SemanticModel.AnalyzeDataFlow(anonymousFunction) is { Succeeded: true, Captured.IsEmpty: true })
         {
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     Descriptor,
                     anonymousFunction.GetLocation()));
         }
-    }
-
-    private static bool CanAnonymousFunctionByMadeStatic(AnonymousFunctionExpressionSyntax anonymousFunction, SemanticModel semanticModel)
-    {
-        var dataFlow = semanticModel.AnalyzeDataFlow(anonymousFunction);
-        if (dataFlow is not { Succeeded: true })
-        {
-            return false;
-        }
-
-        return dataFlow.Captured.IsEmpty;
     }
 }
