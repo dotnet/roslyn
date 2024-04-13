@@ -241,8 +241,8 @@
   <data name="Convert_to_conditional_expression" xml:space="preserve">
     <value>Convert to conditional expression</value>
   </data>
-  <data name="Convert_to_interpolated_string" xml:space="preserve">
-    <value>Convert to interpolated string</value>
+  <data name="Use_interpolated_string" xml:space="preserve">
+    <value>Use interpolated string</value>
   </data>
   <data name="Interpolated_string_should_be_used_for_performance" xml:space="preserve">
     <value>Interpolated string should be used for performance</value>

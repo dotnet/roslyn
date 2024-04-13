@@ -31,7 +31,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\AbstractConvertToAsyncCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertToInterpolatedString\AbstractConvertToInterpolatedStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\AbstractConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractAddDocCommentNodesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
@@ -83,6 +82,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\AbstractUseConditionalExpressionForReturnCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\AbstractUseInferredMemberNameCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedString\AbstractUseInterpolatedStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\AbstractUseIsNullForReferenceEqualsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />

@@ -35,7 +35,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceTransform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertToInterpolatedString\ConvertToInterpolatedStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\ConvertToRecordEngine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\ConvertToRecordHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToRecord\CSharpConvertToRecordCodeFixProvider.cs" />
@@ -89,6 +88,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTypeForConst\UseExplicitTypeForConstCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeActionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedString\CSharpUseInterpolatedStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedVerbatimString\CSharpUseInterpolatedVerbatimStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\CSharpUseLocalFunctionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNameofInAttribute\CSharpUseNameofInAttributeCodeFixProvider.cs" />

@@ -38,7 +38,6 @@ internal static class PredefinedCodeFixProviderNames
     public const string ConvertNamespace = nameof(ConvertNamespace);
     public const string ConvertSwitchStatementToExpression = nameof(ConvertSwitchStatementToExpression);
     public const string ConvertToAsync = nameof(ConvertToAsync);
-    public const string ConvertToInterpolatedString = nameof(ConvertToInterpolatedString);
     public const string ConvertToIterator = nameof(ConvertToIterator);
     public const string ConvertToProgramMain = nameof(ConvertToProgramMain);
     public const string ConvertToRecord = nameof(ConvertToRecord);
@@ -154,6 +153,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseImplicitType = nameof(UseImplicitType);
     public const string UseIndexOperator = nameof(UseIndexOperator);
     public const string UseInferredMemberName = nameof(UseInferredMemberName);
+    public const string UseInterpolatedString = nameof(UseInterpolatedString);
     public const string UseInterpolatedVerbatimString = nameof(UseInterpolatedVerbatimString);
     public const string UseIsNotExpression = nameof(UseIsNotExpression);
     public const string UseIsNullCheck = nameof(UseIsNullCheck);

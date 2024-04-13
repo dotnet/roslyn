@@ -121,9 +121,9 @@
         <target state="translated">转换为条件表达式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_interpolated_string">
-        <source>Convert to interpolated string</source>
-        <target state="new">Convert to interpolated string</target>
+      <trans-unit id="Use_interpolated_string">
+        <source>Use interpolated string</source>
+        <target state="new">Use interpolated string</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">

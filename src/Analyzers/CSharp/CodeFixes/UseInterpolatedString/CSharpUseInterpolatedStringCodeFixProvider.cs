@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.UseInterpolatedString;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -18,16 +18,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
+namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedString;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToInterpolatedString), Shared]
-internal partial class ConvertToInterpolatedStringCodeFixProvider : AbstractConvertToInterpolatedStringCodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseInterpolatedString), Shared]
+internal partial class CSharpUseInterpolatedStringCodeFixProvider : AbstractUseInterpolatedStringCodeFixProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ConvertToInterpolatedStringCodeFixProvider()
+    public CSharpUseInterpolatedStringCodeFixProvider()
     {
     }
 
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.ConvertToInterpolatedStringDiagnosticId];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseInterpolatedStringDiagnosticId];
 }

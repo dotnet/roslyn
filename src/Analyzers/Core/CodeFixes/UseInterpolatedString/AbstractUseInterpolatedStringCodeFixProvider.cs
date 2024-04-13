@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString;
+namespace Microsoft.CodeAnalysis.UseInterpolatedString;
 
-internal abstract partial class AbstractConvertToInterpolatedStringCodeFixProvider : CodeFixProvider
+internal abstract partial class AbstractUseInterpolatedStringCodeFixProvider : CodeFixProvider
 {
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 

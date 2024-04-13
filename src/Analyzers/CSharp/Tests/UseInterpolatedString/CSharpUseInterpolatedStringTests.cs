@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
+using Microsoft.CodeAnalysis.CSharp.UseInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedString;
 
 using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
-    ConvertToInterpolatedStringCodeFixProvider>;
+    CSharpUseInterpolatedStringCodeFixProvider>;
 
-public sealed class ConvertToInterpolatedStringTests
+public sealed class CSharpUseInterpolatedStringTests
 {
     [Fact]
     public async Task CantHandleMultipleFormatItems()

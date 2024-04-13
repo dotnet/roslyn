@@ -8,15 +8,15 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.ConvertToInterpolatedString
+Imports Microsoft.CodeAnalysis.UseInterpolatedString
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertToInterpolatedString), [Shared]>
-    Friend Class VisualBasicConvertToInterpolatedString
-        Inherits AbstractConvertToInterpolatedStringCodeFixProvider
+Namespace Microsoft.CodeAnalysis.VisualBasic.UseInterpolatedString
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseInterpolatedString), [Shared]>
+    Friend Class VisualBasicUseInterpolatedString
+        Inherits AbstractUseInterpolatedStringCodeFixProvider
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -24,6 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
-            ImmutableArray.Create(IDEDiagnosticIds.ConvertToInterpolatedStringDiagnosticId)
+            ImmutableArray.Create(IDEDiagnosticIds.UseInterpolatedStringDiagnosticId)
     End Class
 End Namespace

@@ -17,7 +17,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\VisualBasicAddRequiredParenthesesDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\VisualBasicAnalyzerOptionsProvider.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertToInterpolatedString\VisualBasicConvertToInterpolatedStringDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderHelper.vb" />
@@ -58,6 +57,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForAssignmentDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForReturnDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\VisualBasicUseInferredMemberNameDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedString\VisualBasicUseInterpolatedStringDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNotExpression\VisualBasicUseIsNotDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\VisualBasicUseNullPropagationDiagnosticAnalyzer.vb" />
