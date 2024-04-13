@@ -37,10 +37,7 @@ internal sealed class CSharpMakeAnonymousFunctionStaticCodeFixProvider() : Synta
         foreach (var diagnostic in diagnostics)
         {
             var anonymousFunction = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var modifiers = generator.GetModifiers(anonymousFunction);
-
-            var fixedAnonymousFunction = generator.WithModifiers(anonymousFunction, modifiers.WithIsStatic(true));
-            editor.ReplaceNode(anonymousFunction, fixedAnonymousFunction);
+            editor.ReplaceNode(anonymousFunction, static (node, generator) => generator.WithModifiers(node, generator.GetModifiers(node).WithIsStatic(true)));
         }
 
         return Task.CompletedTask;

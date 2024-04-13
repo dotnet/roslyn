@@ -318,4 +318,92 @@ public class MakeAnonymousFunctionStaticTests
 
         await TestWithCSharp9Async(code, fixedCode);
     }
+
+    [Fact]
+    public async Task TestNestedLambdasWithNoCaptures()
+    {
+        var code = """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    N({|IDE0310:() =>
+                    {
+                        Action a = {|IDE0310:() => { }|};
+                    }|});
+                }
+            
+                void N(Action a)
+                {
+                }
+            }
+            """;
+
+        var fixedCode = """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    N(static () =>
+                    {
+                        Action a = static () => { };
+                    });
+                }
+            
+                void N(Action a)
+                {
+                }
+            }
+            """;
+
+        await TestWithCSharp9Async(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestNestedAnonymousMethodsWithNoCaptures()
+    {
+        var code = """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    N({|IDE0310:delegate ()
+                    {
+                        Action a = {|IDE0310:delegate () { }|};
+                    }|});
+                }
+            
+                void N(Action a)
+                {
+                }
+            }
+            """;
+
+        var fixedCode = """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    N(static delegate ()
+                    {
+                        Action a = static delegate () { };
+                    });
+                }
+            
+                void N(Action a)
+                {
+                }
+            }
+            """;
+
+        await TestWithCSharp9Async(code, fixedCode);
+    }
 }
