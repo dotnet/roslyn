@@ -37,6 +37,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """);
         }
 
+        public override async Task InsertSnippetInReadonlyStruct_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
+        {
+            await VerifyDefaultPropertyAsync("""
+                struct MyStruct
+                {
+                    $$
+                }
+
+                readonly partial struct MyStruct
+                {
+                }
+                """);
+        }
+
         public override async Task InsertSnippetInInterface()
         {
             await VerifyDefaultPropertyAsync("""
