@@ -77,6 +77,7 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     public CodeStyleOption2<bool> PreferConditionalExpressionOverAssignment => GetOption(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, FallbackCodeStyleOptions.PreferConditionalExpressionOverAssignment);
     public CodeStyleOption2<bool> PreferConditionalExpressionOverReturn => GetOption(CodeStyleOptions2.PreferConditionalExpressionOverReturn, FallbackCodeStyleOptions.PreferConditionalExpressionOverReturn);
     public CodeStyleOption2<bool> PreferCompoundAssignment => GetOption(CodeStyleOptions2.PreferCompoundAssignment, FallbackCodeStyleOptions.PreferCompoundAssignment);
+    public CodeStyleOption2<bool> PreferInterpolatedString => GetOption(CodeStyleOptions2.PreferInterpolatedString, FallbackCodeStyleOptions.PreferInterpolatedString);
     public CodeStyleOption2<bool> PreferSimplifiedInterpolation => GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, FallbackCodeStyleOptions.PreferSimplifiedInterpolation);
     public CodeStyleOption2<UnusedParametersPreference> UnusedParameters => GetOption(CodeStyleOptions2.UnusedParameters, FallbackCodeStyleOptions.UnusedParameters);
     public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers => GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCodeStyleOptions.AccessibilityModifiersRequired);
