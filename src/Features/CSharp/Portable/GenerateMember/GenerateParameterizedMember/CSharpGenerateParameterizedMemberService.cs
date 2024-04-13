@@ -148,18 +148,18 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
 
         protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var result);
 
-            if (State.SimpleNameOpt is GenericNameSyntax genericName)
+            if (State.SimpleNameOpt is not GenericNameSyntax genericName)
+                return [];
+
+            var result = new FixedSizeArrayBuilder<ITypeSymbol>(genericName.TypeArgumentList.Arguments.Count);
+            foreach (var typeArgument in genericName.TypeArgumentList.Arguments)
             {
-                foreach (var typeArgument in genericName.TypeArgumentList.Arguments)
-                {
-                    var typeInfo = Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
-                    result.Add(typeInfo.Type);
-                }
+                var typeInfo = Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
+                result.Add(typeInfo.Type);
             }
 
-            return result.ToImmutableAndClear();
+            return result.MoveToImmutable();
         }
     }
 }
