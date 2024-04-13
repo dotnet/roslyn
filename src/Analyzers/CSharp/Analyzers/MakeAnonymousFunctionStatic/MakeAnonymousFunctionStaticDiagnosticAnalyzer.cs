@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -47,7 +46,7 @@ internal sealed class MakeAnonymousFunctionStaticDiagnosticAnalyzer : AbstractBu
         if (anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
             return;
 
-        if (TryGetCaptures(anonymousFunction, context.SemanticModel, out var captures) && captures.IsEmpty)
+        if (CanAnonymousFunctionByMadeStatic(anonymousFunction, context.SemanticModel))
         {
             context.ReportDiagnostic(
                 Diagnostic.Create(
@@ -56,16 +55,14 @@ internal sealed class MakeAnonymousFunctionStaticDiagnosticAnalyzer : AbstractBu
         }
     }
 
-    private static bool TryGetCaptures(AnonymousFunctionExpressionSyntax anonymousFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
+    private static bool CanAnonymousFunctionByMadeStatic(AnonymousFunctionExpressionSyntax anonymousFunction, SemanticModel semanticModel)
     {
         var dataFlow = semanticModel.AnalyzeDataFlow(anonymousFunction);
-        if (dataFlow is null)
+        if (dataFlow is not { Succeeded: true })
         {
-            captures = default;
             return false;
         }
 
-        captures = dataFlow.Captured;
-        return dataFlow.Succeeded;
+        return dataFlow.Captured.IsEmpty;
     }
 }
