@@ -92,6 +92,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options, I
     public CodeStyleOption2<bool> PreferReadOnlyStruct => GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, FallbackCodeStyleOptions.PreferReadOnlyStruct);
     public CodeStyleOption2<bool> PreferReadOnlyStructMember => GetOption(CSharpCodeStyleOptions.PreferReadOnlyStructMember, FallbackCodeStyleOptions.PreferReadOnlyStructMember);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);
+    public CodeStyleOption2<bool> PreferStaticAnonymousFunction => GetOption(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, FallbackCodeStyleOptions.PreferStaticAnonymousFunction);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetOption(option, defaultValue);
