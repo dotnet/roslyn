@@ -738,6 +738,9 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
     protected ImmutableArray<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip) where T : SyntaxNode
     {
         var count = arguments.SeparatorCount - numSeparatorsToSkip;
+        if (count < 0)
+            return [];
+
         var separators = new FixedSizeArrayBuilder<SyntaxToken>(count);
 
         for (var i = 0; i < count; i++)
