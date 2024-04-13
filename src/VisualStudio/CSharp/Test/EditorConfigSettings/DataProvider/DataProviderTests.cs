@@ -165,10 +165,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
 
-            // We don't support PreferredModifierOrder and PreferStaticAnonymousFunction yet:
+            // We don't support PreferredModifierOrder yet:
             var optionsWithUI = CSharpCodeStyleOptions.AllOptions
-                .Remove(CSharpCodeStyleOptions.PreferredModifierOrder)
-                .Remove(CSharpCodeStyleOptions.PreferStaticAnonymousFunction);
+                .Remove(CSharpCodeStyleOptions.PreferredModifierOrder);
 
             AssertEx.SetEqual(optionsWithUI, dataSnapShot.Select(setting => setting.Key.Option));
         }

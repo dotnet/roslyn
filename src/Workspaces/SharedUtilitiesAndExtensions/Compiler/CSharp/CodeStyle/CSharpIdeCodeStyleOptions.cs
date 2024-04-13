@@ -121,6 +121,7 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
         PreferReadOnlyStruct = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, fallbackOptions.PreferReadOnlyStruct);
         PreferReadOnlyStructMember = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStructMember, fallbackOptions.PreferReadOnlyStructMember);
         PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction);
+        PreferStaticAnonymousFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, fallbackOptions.PreferStaticAnonymousFunction);
         PreferPrimaryConstructors = options.GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors, fallbackOptions.PreferPrimaryConstructors);
     }
 }
