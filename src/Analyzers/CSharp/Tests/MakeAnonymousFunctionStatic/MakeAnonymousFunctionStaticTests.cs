@@ -129,7 +129,7 @@ public class MakeAnonymousFunctionStaticTests
             {
                 void M()
                 {
-                    N({|IDE0310:{{anonymousFunctionSyntax}}|});
+                    N({|IDE0320:{{anonymousFunctionSyntax}}|});
                 }
             
                 void N(Action<int> a)
@@ -222,7 +222,7 @@ public class MakeAnonymousFunctionStaticTests
             {
                 void M(int i)
                 {
-                    N({|IDE0310:{{anonymousFunctionSyntax}}|});
+                    N({|IDE0320:{{anonymousFunctionSyntax}}|});
                 }
             
                 void N(Func<int, int> f)
@@ -290,7 +290,7 @@ public class MakeAnonymousFunctionStaticTests
                 void M()
                 {
                     int i = 0;
-                    N({|IDE0310:{{anonymousFunctionSyntax}}|});
+                    N({|IDE0320:{{anonymousFunctionSyntax}}|});
                 }
             
                 void N(Func<int, int> f)
@@ -329,9 +329,9 @@ public class MakeAnonymousFunctionStaticTests
             {
                 void M()
                 {
-                    N({|IDE0310:() =>
+                    N({|IDE0320:() =>
                     {
-                        Action a = {|IDE0310:() => { }|};
+                        Action a = {|IDE0320:() => { }|};
                     }|});
                 }
             
@@ -373,9 +373,9 @@ public class MakeAnonymousFunctionStaticTests
             {
                 void M()
                 {
-                    N({|IDE0310:delegate ()
+                    N({|IDE0320:delegate ()
                     {
-                        Action a = {|IDE0310:delegate () { }|};
+                        Action a = {|IDE0320:delegate () { }|};
                     }|});
                 }
             
