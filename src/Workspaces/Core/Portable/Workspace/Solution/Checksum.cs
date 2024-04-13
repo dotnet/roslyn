@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -23,6 +26,8 @@ internal readonly partial record struct Checksum(
     [field: FieldOffset(0)][property: DataMember(Order = 0)] long Data1,
     [field: FieldOffset(8)][property: DataMember(Order = 1)] long Data2)
 {
+    private static readonly ObjectPool<byte[]> s_bytesPool = new(() => new byte[HashSize]);
+
     /// <summary>
     /// The intended size of the <see cref="Checksum"/> structure. 
     /// </summary>
@@ -82,6 +87,21 @@ internal readonly partial record struct Checksum(
         writer.WriteInt64(Data1);
         writer.WriteInt64(Data2);
     }
+#if false
+    public void WriteTo(Stream stream)
+    {
+#if NET
+        Span<byte> bytes = stackalloc byte[HashSize];
+        this.WriteTo(bytes);
+        stream.Write(bytes);
+#else
+        var bytes = s_bytesPool.Allocate();
+        this.WriteTo(bytes);
+        stream.Write(bytes, 0, HashSize);
+        s_bytesPool.Free(bytes);
+#endif
+    }
+#endif
 
     public void WriteTo(Span<byte> span)
     {
@@ -91,6 +111,23 @@ internal readonly partial record struct Checksum(
 
     public static Checksum ReadFrom(ObjectReader reader)
         => new(reader.ReadInt64(), reader.ReadInt64());
+
+#if false
+    public static Checksum ReadFrom(Stream stream)
+    {
+#if NET
+        Span<byte> bytes = stackalloc byte[HashSize];
+        stream.Read(bytes);
+        return From(bytes);
+#else
+        var bytes = s_bytesPool.Allocate();
+        stream.Read(bytes, 0, HashSize);
+        var checksum = From(bytes);
+        s_bytesPool.Free(bytes);
+        return checksum;
+#endif
+    }
+#endif
 
     public static Func<Checksum, string> GetChecksumLogInfo { get; }
         = checksum => checksum.ToString();

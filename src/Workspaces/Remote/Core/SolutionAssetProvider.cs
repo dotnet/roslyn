@@ -4,11 +4,15 @@
 
 using System;
 using System.Buffers;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -19,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SolutionAssetProvider(SolutionServices services) : ISolutionAssetProvider
     {
+        private static readonly ObjectPool<Stream> s_streamPool = new(SerializableBytes.CreateWritableStream);
+
         public const string ServiceName = "SolutionAssetProvider";
 
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
@@ -73,18 +79,93 @@ namespace Microsoft.CodeAnalysis.Remote
             var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 
-            using var stream = new PipeWriterStream(pipeWriter);
+            var pipeWriterStream = pipeWriter.AsStream();
 
-            using var _ = Creator.CreateResultMap(out var resultMap);
+            var foundChecksumCount = 0;
 
-            await scope.AddAssetsAsync(assetPath, checksums, resultMap, cancellationToken).ConfigureAwait(false);
+            await scope.AddAssetsAsync(
+                assetPath,
+                checksums,
+                async (Checksum checksum, object asset) =>
+                {
+                    Contract.ThrowIfNull(asset);
+                    Interlocked.Increment(ref foundChecksumCount);
 
-            cancellationToken.ThrowIfCancellationRequested();
+                    using var pooledObject = s_streamPool.GetPooledObject();
+                    var tempStream = pooledObject.Object;
+                    tempStream.Position = 0;
+                    tempStream.SetLength(0);
 
-            await RemoteHostAssetSerialization.WriteDataAsync(
-                stream, resultMap, serializer, scope.ReplicationContext,
-                solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
+                    // Write the asset to a temporary buffer so we can calculate its length.
+                    using var objectWriter = new ObjectWriter(tempStream, leaveOpen: true, cancellationToken);
+                    {
+                        // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
+                        checksum.WriteTo(objectWriter);
+
+                        // Write out the kind so the receiving end knows how to deserialize this asset.
+                        var kind = asset.GetWellKnownSynchronizationKind();
+                        objectWriter.WriteInt32((int)kind);
+
+                        // Now serialize out the asset itself.
+                        serializer.Serialize(asset, objectWriter, scope.ReplicationContext, cancellationToken);
+                    }
+
+                    // Write the length of the asset to the pipe writer.
+                    Contract.ThrowIfTrue(tempStream.Length > int.MaxValue);
+                    WriteInt32(pipeWriterStream, (int)tempStream.Length);
+
+                    // Ensure we flush out the length so the reading side knows how much data to read.
+                    await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Now, asynchronously copy the temp buffer over to the writer stream.
+                    tempStream.Position = 0;
+                    await tempStream.CopyToAsync(pipeWriterStream, cancellationToken).ConfigureAwait(false);
+
+                    // We flush after each item as that forms a reasonably sized chunk of data to want to then send over
+                    // the pipe for the reader on the other side to read.  This allows the item-writing to remain
+                    // entirely synchronous without any blocking on async flushing, while also ensuring that we're not
+                    // buffering the entire stream of data into the pipe before it gets sent to the other side.
+                    await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }, cancellationToken).ConfigureAwait(false);
+
+            Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
+
+            //cancellationToken.ThrowIfCancellationRequested();
+
+            //await RemoteHostAssetSerialization.WriteDataAsync(
+            //    stream, resultMap, serializer, scope.ReplicationContext,
+            //    solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
         }
+
+#if false
+        public static async ValueTask WriteDataAsync(
+            Stream stream,
+            Dictionary<Checksum, object> assetMap,
+            ISerializerService serializer,
+            SolutionReplicationContext context,
+            Checksum solutionChecksum,
+            ReadOnlyMemory<Checksum> checksums,
+            CancellationToken cancellationToken)
+        {
+            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+
+            // special case
+            if (checksums.Length == 0)
+                return;
+
+            Debug.Assert(assetMap != null);
+
+            foreach (var (checksum, asset) in assetMap)
+            {
+                Contract.ThrowIfNull(asset);
+
+                var kind = asset.GetWellKnownSynchronizationKind();
+                checksum.WriteTo(writer);
+                writer.WriteInt32((int)kind);
+
+            }
+        }
+#endif
 
         /// <summary>
         /// Simple port of

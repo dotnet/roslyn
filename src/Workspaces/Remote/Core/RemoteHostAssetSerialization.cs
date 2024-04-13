@@ -17,45 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
-        public static async ValueTask WriteDataAsync(
-            Stream stream,
-            Dictionary<Checksum, object> assetMap,
-            ISerializerService serializer,
-            SolutionReplicationContext context,
-            Checksum solutionChecksum,
-            ReadOnlyMemory<Checksum> checksums,
-            CancellationToken cancellationToken)
-        {
-            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
-
-            // This information is not actually needed on the receiving end.  However, we still send it so that the
-            // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
-            // breaks have occurred.
-            solutionChecksum.WriteTo(writer);
-
-            // special case
-            if (checksums.Length == 0)
-                return;
-
-            Debug.Assert(assetMap != null);
-
-            foreach (var (checksum, asset) in assetMap)
-            {
-                Contract.ThrowIfNull(asset);
-
-                var kind = asset.GetWellKnownSynchronizationKind();
-                checksum.WriteTo(writer);
-                writer.WriteInt32((int)kind);
-                serializer.Serialize(asset, writer, context, cancellationToken);
-
-                // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the
-                // pipe for the reader on the other side to read.  This allows the item-writing to remain entirely
-                // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
-                // entire stream of data into the pipe before it gets sent to the other side.
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
         public static ValueTask ReadDataAsync<T, TArg>(
             PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
         {
