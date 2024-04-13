@@ -3,14 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Buffers;
-using System.Buffers.Binary;
-using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -79,151 +75,5 @@ namespace Microsoft.CodeAnalysis.Remote
             return RemoteHostAssetSerialization.WriteDataAsync(
                 pipeWriter, assetPath, checksums, scope, serializer, cancellationToken);
         }
-
-#if false
-        /// <summary>
-        /// Simple port of
-        /// https://github.com/AArnott/Nerdbank.Streams/blob/dafeb5846702bc29e261c9ddf60f42feae01654c/src/Nerdbank.Streams/BufferWriterStream.cs#L16.
-        /// Wraps a <see cref="PipeWriter"/> in a <see cref="Stream"/> interface.  Preferred over <see
-        /// cref="PipeWriter.AsStream(bool)"/> as that API produces a stream that will synchronously flush after
-        /// <em>every</em> write.  That's undesirable as that will then block a thread pool thread on the actual
-        /// asynchronous flush call to the underlying PipeWriter
-        /// </summary>
-        /// <remarks>
-        /// Note: this stream does not have to <see cref="PipeWriter.Complete"/> the underlying <see cref="_writer"/> it
-        /// is holding onto (including within <see cref="Flush"/>, <see cref="FlushAsync"/>, or <see cref="Dispose"/>).
-        /// Responsibility for that is solely in the hands of <see cref="WriteAssetsAsync"/>.
-        /// </remarks>
-        private class PipeWriterStream : Stream, IDisposableObservable
-        {
-            private readonly PipeWriter _writer;
-
-            public bool IsDisposed { get; private set; }
-
-            public override bool CanRead => false;
-            public override bool CanSeek => false;
-            public override bool CanWrite => !this.IsDisposed;
-
-            internal PipeWriterStream(PipeWriter writer)
-            {
-                _writer = writer;
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                this.IsDisposed = true;
-                base.Dispose(disposing);
-
-                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
-            }
-
-            private Exception ThrowDisposedOr(Exception ex)
-            {
-                Verify.NotDisposed(this);
-                throw ex;
-            }
-
-            /// <summary>
-            /// Intentionally a no op. We know that we and <see cref="RemoteHostAssetSerialization.WriteDataAsync"/>
-            /// will call <see cref="FlushAsync"/> at appropriate times to ensure data is being sent through the writer
-            /// at a reasonable cadence (once per asset).
-            /// </summary>
-            public override void Flush()
-            {
-                Verify.NotDisposed(this);
-
-                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
-            }
-
-            public override async Task FlushAsync(CancellationToken cancellationToken)
-            {
-                await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                Requires.NotNull(buffer, nameof(buffer));
-                Verify.NotDisposed(this);
-
-#if NET
-                _writer.Write(buffer.AsSpan(offset, count));
-#else
-                var span = _writer.GetSpan(count);
-                buffer.AsSpan(offset, count).CopyTo(span);
-                _writer.Advance(count);
-#endif
-            }
-
-            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                this.Write(buffer, offset, count);
-                return Task.CompletedTask;
-            }
-
-            public override void WriteByte(byte value)
-            {
-                Verify.NotDisposed(this);
-                var span = _writer.GetSpan(1);
-                span[0] = value;
-                _writer.Advance(1);
-            }
-
-#if NET
-
-            public override void Write(ReadOnlySpan<byte> buffer)
-            {
-                Verify.NotDisposed(this);
-                _writer.Write(buffer);
-            }
-
-            public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                this.Write(buffer.Span);
-                return default;
-            }
-
-#endif
-
-            #region read/seek api (not supported)
-
-            public override long Length => throw this.ThrowDisposedOr(new NotSupportedException());
-            public override long Position
-            {
-                get => throw this.ThrowDisposedOr(new NotSupportedException());
-                set => this.ThrowDisposedOr(new NotSupportedException());
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-#if NET
-
-            public override int Read(Span<byte> buffer)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-#endif
-
-            public override int ReadByte()
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override long Seek(long offset, SeekOrigin origin)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override void SetLength(long value)
-                => this.ThrowDisposedOr(new NotSupportedException());
-
-            #endregion
-        }
-#endif
     }
 }
