@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> builderMap,
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
         {
-            using var _ = ArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>.GetInstance(out var diagnostics);
+            var diagnostics = new FixedSizeArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>(builderMap.Count);
 
             foreach (var (analyzer, analyzerResults) in builderMap)
             {
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         analyzerResults.Others)));
             }
 
-            return diagnostics.ToImmutableAndClear();
+            return diagnostics.MoveToImmutable();
         }
 
         private static ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> GetTelemetryInfo(
