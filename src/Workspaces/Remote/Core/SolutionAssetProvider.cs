@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// is holding onto (including within <see cref="Flush"/>, <see cref="FlushAsync"/>, or <see cref="Dispose"/>).
         /// Responsibility for that is solely in the hands of <see cref="WriteAssetsAsync"/>.
         /// </remarks>
+#if false
         private class PipeWriterStream : Stream, IDisposableObservable
         {
             private readonly PipeWriter _writer;
@@ -290,5 +291,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             #endregion
         }
+#endif
     }
 }
