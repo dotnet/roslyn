@@ -275,7 +275,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
     private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CleanCodeGenerationOptionsProvider fallbackOptions)
     {
-        var result = TemporaryArray<CodeAction>.Empty;
+        using var result = TemporaryArray<CodeAction>.Empty;
 
         result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
         if (state.DelegatedConstructor != null)
