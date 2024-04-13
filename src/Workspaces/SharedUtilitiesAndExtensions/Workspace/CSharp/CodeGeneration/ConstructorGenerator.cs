@@ -117,7 +117,7 @@ internal static class ConstructorGenerator
 
     private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (constructor.IsStatic)
         {
@@ -129,10 +129,8 @@ internal static class ConstructorGenerator
         }
 
         if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))
-        {
             tokens.Add(UnsafeKeyword);
-        }
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return tokens.ToSyntaxTokenList();
     }
 }

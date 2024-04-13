@@ -121,7 +121,7 @@ internal static class FieldGenerator
 
     private static SyntaxTokenList GenerateModifiers(IFieldSymbol field, CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         CSharpCodeGenerationHelpers.AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
         if (field.IsConst)
@@ -131,26 +131,18 @@ internal static class FieldGenerator
         else
         {
             if (field.IsStatic)
-            {
                 tokens.Add(StaticKeyword);
-            }
 
             if (field.IsReadOnly)
-            {
                 tokens.Add(ReadOnlyKeyword);
-            }
 
             if (field.IsRequired)
-            {
                 tokens.Add(RequiredKeyword);
-            }
         }
 
         if (CodeGenerationFieldInfo.GetIsUnsafe(field))
-        {
             tokens.Add(UnsafeKeyword);
-        }
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return tokens.ToSyntaxTokenList();
     }
 }

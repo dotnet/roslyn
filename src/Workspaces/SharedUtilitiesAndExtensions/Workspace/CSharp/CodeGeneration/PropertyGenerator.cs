@@ -327,12 +327,12 @@ internal static class PropertyGenerator
         IMethodSymbol accessor,
         CSharpCodeGenerationContextInfo info)
     {
-        var modifiers = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var modifiers);
 
         if (accessor.DeclaredAccessibility != Accessibility.NotApplicable &&
             accessor.DeclaredAccessibility != property.DeclaredAccessibility)
         {
-            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
+            AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
         }
 
         var hasNonReadOnlyAccessor = property.GetMethod?.IsReadOnly == false || property.SetMethod?.IsReadOnly == false;
@@ -341,7 +341,7 @@ internal static class PropertyGenerator
             modifiers.Add(ReadOnlyKeyword);
         }
 
-        return modifiers.ToSyntaxTokenListAndFree();
+        return modifiers.ToSyntaxTokenList();
     }
 
     private static SyntaxTokenList GenerateModifiers(

@@ -11,11 +11,4 @@ internal static class SyntaxTokenListExtensions
 {
     public static SyntaxTokenList ToSyntaxTokenList(this IEnumerable<SyntaxToken> tokens)
         => new(tokens);
-
-    public static SyntaxTokenList ToSyntaxTokenListAndFree(this ArrayBuilder<SyntaxToken> tokens)
-    {
-        var tokenList = new SyntaxTokenList(tokens);
-        tokens.Free();
-        return tokenList;
-    }
 }
