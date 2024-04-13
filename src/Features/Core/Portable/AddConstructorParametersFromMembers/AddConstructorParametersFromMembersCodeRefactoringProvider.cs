@@ -181,7 +181,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             return [];
         }
 
-        using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+        var results = new FixedSizeArrayBuilder<IntentProcessorResult>(actions.Length);
         foreach (var action in actions)
         {
             // Intents currently have no way to report progress.
@@ -192,6 +192,6 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             results.Add(intent);
         }
 
-        return results.ToImmutableAndClear();
+        return results.MoveToImmutable();
     }
 }
