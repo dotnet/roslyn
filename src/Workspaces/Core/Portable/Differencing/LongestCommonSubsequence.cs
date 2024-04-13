@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Differencing;
 
@@ -284,7 +285,7 @@ internal abstract class LongestCommonSubsequence<TSequence> : LongestCommonSubse
                 Debug.Assert(yEnd > yMid);
                 xEnd--;
                 yEnd--;
-                yield return new KeyValuePair<int, int>(xEnd, yEnd);
+                yield return KeyValuePairUtil.Create(xEnd, yEnd);
             }
 
             x = xStart;

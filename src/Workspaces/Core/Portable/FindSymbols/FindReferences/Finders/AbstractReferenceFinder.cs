@@ -814,7 +814,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             return false;
         }
 
-        additionalProperty = new KeyValuePair<string, string>(propertyName, symbol.Name);
+        additionalProperty = KeyValuePairUtil.Create(propertyName, symbol.Name);
         return true;
     }
 }
