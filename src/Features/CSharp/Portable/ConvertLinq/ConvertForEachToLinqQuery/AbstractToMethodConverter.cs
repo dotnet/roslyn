@@ -124,8 +124,8 @@ internal abstract class AbstractToMethodConverter(
                 //  Output:
                 //  return queryGenerated.ToList(); or return queryGenerated.Count();
                 replacingExpression = returnStatement.Expression;
-                leadingTrivia = GetTriviaFromNode(nodeToRemoveIfFollowedByReturn)
-                    .Concat(SyntaxNodeOrTokenExtensions.GetTrivia(replacingExpression)).ToArray();
+                leadingTrivia = [.. GetTriviaFromNode(nodeToRemoveIfFollowedByReturn)
+, .. SyntaxNodeOrTokenExtensions.GetTrivia(replacingExpression)];
                 editor.RemoveNode(nodeToRemoveIfFollowedByReturn);
             }
             else

@@ -501,7 +501,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
         }
         else if (destinationMember is AccessorDeclarationSyntax accessorDeclaration)
         {
-            return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements([.. StatementGenerator.GenerateStatements(statements)]));
         }
         else if (destinationMember is CompilationUnitSyntax compilationUnit && info.Context.BestLocation is null)
         {
@@ -520,7 +520,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
             // statement container. If the global statement is not already a block, create a block which can hold
             // both the original statement and any new statements we are adding to it.
             var block = statement as BlockSyntax ?? Block(statement);
-            return Cast<TDeclarationNode>(block.AddStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            return Cast<TDeclarationNode>(block.AddStatements([.. StatementGenerator.GenerateStatements(statements)]));
         }
         else
         {

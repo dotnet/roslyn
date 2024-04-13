@@ -532,7 +532,7 @@ x
             var portableLibRef = portableLib.ToMetadataReference();
 
             var loader = new InteractiveAssemblyLoader();
-            loader.RegisterDependency(Assembly.Load(portableLib.EmitToArray().ToArray()));
+            loader.RegisterDependency(Assembly.Load([.. portableLib.EmitToArray()]));
 
             var s0 = await CSharpScript.Create("new C()", options: ScriptOptions.Default.AddReferences(portableLibRef), assemblyLoader: loader).RunAsync();
             var c0 = s0.Script.GetCompilation();
@@ -569,7 +569,7 @@ x
             var libImage = lib.EmitToArray();
             var libRef = MetadataImageReference.CreateFromImage(libImage);
 
-            var libAssembly = Assembly.Load(libImage.ToArray());
+            var libAssembly = Assembly.Load([.. libImage]);
             var globalsType = libAssembly.GetType("C");
             var globals = Activator.CreateInstance(globalsType);
 

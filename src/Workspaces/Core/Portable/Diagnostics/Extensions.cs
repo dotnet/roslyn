@@ -404,7 +404,7 @@ internal static partial class Extensions
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
-                return bag.ToImmutableArray();
+                return [.. bag];
             }
             else
             {

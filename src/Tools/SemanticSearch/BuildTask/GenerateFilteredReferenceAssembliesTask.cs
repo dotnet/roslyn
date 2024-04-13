@@ -106,7 +106,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             }
 
             var peImageBuffer = File.ReadAllBytes(originalReferencePath);
-            Rewrite(peImageBuffer, patterns.ToImmutableArray());
+            Rewrite(peImageBuffer, [.. patterns]);
 
             try
             {
@@ -302,21 +302,21 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             writer,
             metadataReader,
             patterns,
-            types.OrderBy(t => t.MetadataToken).ToImmutableArray(),
+            [.. types.OrderBy(t => t.MetadataToken)],
             metadataOffset);
 
         UpdateMethodDefinitions(
             writer,
             metadataReader,
             patterns,
-            methods.OrderBy(t => t.MetadataToken).ToImmutableArray(),
+            [.. methods.OrderBy(t => t.MetadataToken)],
             metadataOffset);
 
         UpdateFieldDefinitions(
             writer,
             metadataReader,
             patterns,
-            fields.OrderBy(t => t.MetadataToken).ToImmutableArray(),
+            [.. fields.OrderBy(t => t.MetadataToken)],
             metadataOffset);
 
         // unsign:

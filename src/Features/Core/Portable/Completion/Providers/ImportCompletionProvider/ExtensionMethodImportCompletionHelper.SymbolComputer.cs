@@ -482,7 +482,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
         {
             using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
             AddNamesForTypeWorker(receiverTypeSymbol, allTypeNamesBuilder);
-            return allTypeNamesBuilder.ToImmutableArray();
+            return [.. allTypeNamesBuilder];
 
             static void AddNamesForTypeWorker(ITypeSymbol receiverTypeSymbol, PooledHashSet<string> builder)
             {

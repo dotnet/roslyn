@@ -212,7 +212,7 @@ internal sealed class CodeRefactoringService(
         : AbstractProjectExtensionProvider<ProjectCodeRefactoringProvider, CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
     {
         protected override ImmutableArray<string> GetLanguages(ExportCodeRefactoringProviderAttribute exportAttribute)
-            => exportAttribute.Languages.ToImmutableArray();
+            => [.. exportAttribute.Languages];
 
         protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeRefactoringProvider> extensions)
         {

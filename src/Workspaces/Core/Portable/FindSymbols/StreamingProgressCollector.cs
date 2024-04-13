@@ -42,7 +42,7 @@ internal class StreamingProgressCollector(
         {
             using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
             foreach (var (symbol, locations) in _symbolToLocations)
-                result.Add(new ReferencedSymbol(symbol, locations.ToImmutableArray()));
+                result.Add(new ReferencedSymbol(symbol, [.. locations]));
 
             return result.ToImmutable();
         }

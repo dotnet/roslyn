@@ -109,7 +109,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     {
         lock (_debuggingSessions)
         {
-            return _debuggingSessions.ToImmutableArray();
+            return [.. _debuggingSessions];
         }
     }
 

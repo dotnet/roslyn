@@ -36,7 +36,7 @@ internal sealed class AggregateLogger : ILogger
             set.Add(logger);
         }
 
-        return new AggregateLogger(set.ToImmutableArray());
+        return new AggregateLogger([.. set]);
     }
 
     public static ILogger AddOrReplace(ILogger newLogger, ILogger oldLogger, Func<ILogger, bool> predicate)
@@ -81,7 +81,7 @@ internal sealed class AggregateLogger : ILogger
 
         // add new logger. if we already added one, this will be ignored.
         set.Add(newLogger);
-        return new AggregateLogger(set.ToImmutableArray());
+        return new AggregateLogger([.. set]);
     }
 
     public static ILogger Remove(ILogger logger, Func<ILogger, bool> predicate)
@@ -105,7 +105,7 @@ internal sealed class AggregateLogger : ILogger
             return set.Single();
         }
 
-        return new AggregateLogger(set.ToImmutableArray());
+        return new AggregateLogger([.. set]);
     }
 
     private AggregateLogger(ImmutableArray<ILogger> loggers)

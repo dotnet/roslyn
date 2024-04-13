@@ -277,7 +277,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
         return CreateItems(
-            completionContext, symbolToContextMap.Keys.ToImmutableArray(), symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects);
+            completionContext, [.. symbolToContextMap.Keys], symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects);
     }
 
     protected virtual bool IsExclusive()

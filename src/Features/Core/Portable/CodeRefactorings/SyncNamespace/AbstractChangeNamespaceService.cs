@@ -259,7 +259,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
             solutionAfterImportsRemoved,
-            referenceDocuments.ToImmutableArray(),
+            [.. referenceDocuments],
             [declaredNamespace, targetNamespace],
             fallbackOptions,
             cancellationToken).ConfigureAwait(false);

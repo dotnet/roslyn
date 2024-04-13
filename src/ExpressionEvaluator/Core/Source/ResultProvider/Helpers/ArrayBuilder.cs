@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
 
         public T[] ToArray()
         {
-            return _items.ToArray();
+            return [.. _items];
         }
 
         public T[] ToArrayAndFree()

@@ -138,12 +138,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         private ImmutableArray<SymbolReference> DeDupeAndSortReferences(ImmutableArray<SymbolReference> allReferences)
         {
-            return allReferences
+            return [.. allReferences
                 .Distinct()
                 .Where(NotNull)
                 .Where(NotGlobalNamespace)
-                .OrderBy((r1, r2) => r1.CompareTo(_document, r2))
-                .ToImmutableArray();
+                .OrderBy((r1, r2) => r1.CompareTo(_document, r2))];
         }
 
         private static void CalculateContext(

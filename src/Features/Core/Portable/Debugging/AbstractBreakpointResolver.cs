@@ -147,7 +147,7 @@ internal abstract partial class AbstractBreakpointResolver
                 default:
                     // They have a namespace or nested type qualified name.  Walk up to the root namespace trying to match.
                     var containers = await _solution.GetGlobalNamespacesAsync(cancellationToken).ConfigureAwait(false);
-                    return FindMembers(containers, nameParts.ToArray());
+                    return FindMembers(containers, [.. nameParts]);
             }
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

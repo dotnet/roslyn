@@ -93,7 +93,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         {
             var document = scope.First();
             if (document.Project == project)
-                return scope.ToImmutableArray();
+                return [.. scope];
 
             return [];
         }

@@ -382,9 +382,9 @@ namespace D
             {
                 switch (token)
                 {
-                    case methodToken1: return new MethodDebugInfoBytes.Builder().AddForward(methodToken2).Build().Bytes.ToArray();
-                    case methodToken2: return new MethodDebugInfoBytes.Builder().AddForward(methodToken3).Build().Bytes.ToArray();
-                    case methodToken3: return new MethodDebugInfoBytes.Builder([new[] { importString }]).Build().Bytes.ToArray();
+                    case methodToken1: return [.. new MethodDebugInfoBytes.Builder().AddForward(methodToken2).Build().Bytes];
+                    case methodToken2: return [.. new MethodDebugInfoBytes.Builder().AddForward(methodToken3).Build().Bytes];
+                    case methodToken3: return [.. new MethodDebugInfoBytes.Builder([new[] { importString }]).Build().Bytes];
                     default: throw null;
                 }
             });
@@ -421,7 +421,7 @@ namespace D
             {
                 switch (token)
                 {
-                    case methodToken1: return new MethodDebugInfoBytes.Builder().AddForward(methodToken1).Build().Bytes.ToArray();
+                    case methodToken1: return [.. new MethodDebugInfoBytes.Builder().AddForward(methodToken1).Build().Bytes];
                     default: throw null;
                 }
             });

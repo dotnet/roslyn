@@ -110,7 +110,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        return fixesBag.ToImmutableArray();
+        return [.. fixesBag];
     }
 
     private async Task AddDocumentFixesAsync(

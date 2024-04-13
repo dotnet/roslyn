@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Log = log;
         }
 
-        public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => Log.ToImmutableArray();
+        public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => [.. Log];
 
         protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var linkPath = documentItem.GetMetadata(MetadataNames.Link);
             if (!RoslynString.IsNullOrEmpty(linkPath))
             {
-                return PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                return [.. PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar)];
             }
             else
             {

@@ -153,7 +153,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 }
 
                 return await base.TryGetMergedFixAsync(
-                    newBatchOfFixes.ToImmutableArray(), fixAllState, progressTracker, cancellationToken).ConfigureAwait(false);
+                    [.. newBatchOfFixes], fixAllState, progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)

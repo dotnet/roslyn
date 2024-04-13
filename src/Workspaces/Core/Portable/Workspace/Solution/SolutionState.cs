@@ -1178,7 +1178,7 @@ internal sealed partial class SolutionState
                 state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();
 
-        return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
+        return new ProjectDependencyGraph([.. projectIds], map);
     }
 
     public SolutionState WithOptions(SolutionOptionSet options)

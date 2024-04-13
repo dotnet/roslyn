@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             {
                 return new Request[0];
             }
-            return requests.ToArray();
+            return [.. requests];
         }
 
         internal override string GetRequestModuleName(Request request)

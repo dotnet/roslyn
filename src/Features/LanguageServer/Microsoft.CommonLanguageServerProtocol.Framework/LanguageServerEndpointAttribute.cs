@@ -45,6 +45,6 @@ internal class LanguageServerEndpointAttribute : Attribute
     public LanguageServerEndpointAttribute(string method, string language, params string[] additionalLanguages)
     {
         Method = method;
-        Languages = new[] { language }.Concat(additionalLanguages).ToArray();
+        Languages = [language, .. additionalLanguages];
     }
 }
