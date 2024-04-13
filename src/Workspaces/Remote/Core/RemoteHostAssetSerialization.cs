@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Nerdbank.Streams;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 for (var i = 0; i < objectCount; i++)
                 {
-                    // First, read the length of the asset (and header) we'll be reading.
+                    // First, read the length of the data chunk we'll be reading.
                     var readResult = await pipeReader.ReadAtLeastAsync(sizeof(int), cancellationToken).ConfigureAwait(false);
                     var length = ReadLength(readResult);
 
