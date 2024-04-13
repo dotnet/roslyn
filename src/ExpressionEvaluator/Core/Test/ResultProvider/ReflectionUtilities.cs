@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal static Assembly Load(ImmutableArray<byte> assembly)
         {
-            return Assembly.Load([.. assembly]);
+            return Assembly.Load(assembly.ToArray());
         }
 
         internal static object Instantiate(this Type type, params object[] args)
