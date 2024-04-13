@@ -737,16 +737,17 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
 
     protected ImmutableArray<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip) where T : SyntaxNode
     {
-        var separators = ImmutableArray.CreateBuilder<SyntaxToken>();
+        var count = arguments.SeparatorCount - numSeparatorsToSkip;
+        var separators = new FixedSizeArrayBuilder<SyntaxToken>(count);
 
-        for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+        for (var i = 0; i < count; i++)
         {
             separators.Add(i < arguments.SeparatorCount
                 ? arguments.GetSeparator(i)
                 : CommaTokenWithElasticSpace());
         }
 
-        return separators.ToImmutableAndClear();
+        return separators.MoveToImmutable();
     }
 
     protected virtual async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
