@@ -26,7 +26,12 @@ internal sealed class CSharpMakeAnonymousFunctionStaticCodeFixProvider() : Synta
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CSharpAnalyzersResources.Make_anonymous_function_static, nameof(CSharpAnalyzersResources.Make_anonymous_function_static));
+        RegisterCodeFix(
+            context,
+            CSharpAnalyzersResources.Make_anonymous_function_static,
+            nameof(CSharpAnalyzersResources.Make_anonymous_function_static),
+            context.Diagnostics[0].Severity > DiagnosticSeverity.Hidden ? CodeActionPriority.Default : CodeActionPriority.Low);
+
         return Task.CompletedTask;
     }
 
