@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal abstract class ConvertToInterpolatedStringDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal abstract class ConvertToInterpolatedStringDiagnosticAnalyzer : AbstractConvertToInterpolatedStringDiagnosticAnalyzer
 {
     protected ConvertToInterpolatedStringDiagnosticAnalyzer(LocalizableString title)
         : base(
