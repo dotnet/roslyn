@@ -9,37 +9,36 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    EmptyDiagnosticAnalyzer,
+    ConvertToInterpolatedStringCodeFixProvider>;
+
+public sealed class ConvertToInterpolatedStringTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        EmptyDiagnosticAnalyzer,
-        ConvertToInterpolatedStringCodeFixProvider>;
-
-    public sealed class ConvertToInterpolatedStringTests
+    [Fact]
+    public async Task CantHandleMultipleFormatItems()
     {
-        [Fact]
-        public async Task CantHandleMultipleFormatItems()
-        {
-            var initial =
-                """
-                using System.Threading.Tasks;
+        var initial =
+            """
+            using System.Threading.Tasks;
 
-                class Program
-                {
-                    private string FormattedString => [|string.Format("{0} + {1} - {2}", "first", "second")|];
-                }
-                """;
+            class Program
+            {
+                private string FormattedString => [|string.Format("{0} + {1} - {2}", "first", "second")|];
+            }
+            """;
 
-            var expected =
-                """
-                using System.Threading.Tasks;
+        var expected =
+            """
+            using System.Threading.Tasks;
 
-                class Program
-                {
-                    private string FormattedString => [|string.Format("{0} + {1} - {2}", "first", "second")|];
-                }
-                """;
-            await VerifyCS.VerifyCodeFixAsync(initial, expected);
-        }
+            class Program
+            {
+                private string FormattedString => [|string.Format("{0} + {1} - {2}", "first", "second")|];
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(initial, expected);
     }
 }
