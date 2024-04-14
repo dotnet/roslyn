@@ -67,13 +67,12 @@ internal static class RemoteHostAssetSerialization
 
     private static readonly UnboundedChannelOptions s_channelOptions = new()
     {
-        // We have a single task reading the data from the channel and writing it to the pipe.  This option
-        // allows the channel to operate in a more efficient manner knowing it won't have to sychronize data
-        // for multiple readers.
+        // We have a single task reading the data from the channel and writing it to the pipe.  This option allows the
+        // channel to operate in a more efficient manner knowing it won't have to synchronize data for multiple readers.
         SingleReader = true,
 
-        // Currently we only have a single writer writing to the channel when we call FindAllAssetsAsync.
-        // However, we could change this in the future to allow the search to happen in parallel.
+        // Currently we only have a single writer writing to the channel when we call FindAllAssetsAsync. However, we
+        // could change this in the future to allow the search to happen in parallel.
         SingleWriter = true,
     };
 
