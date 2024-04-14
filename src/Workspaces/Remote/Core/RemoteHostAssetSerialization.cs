@@ -202,8 +202,8 @@ internal static class RemoteHostAssetSerialization
             // Write the length of the asset to the pipe writer so the reader knows how much data to read.
             WriteLength(tempStream.Length);
 
-            // Ensure we flush out the length so the reading side can immediately read the header to determine qhow
-            // much data to it will need to prebuffer.
+            // Ensure we flush out the length so the reading side can immediately read the header to determine how much
+            // data to it will need to prebuffer.
             await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             // Now, asynchronously copy the temp buffer over to the writer stream.
@@ -211,10 +211,10 @@ internal static class RemoteHostAssetSerialization
             await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
         }
 
-        // We flush after each item as that forms a reasonably sized chunk of data to want to then send over
-        // the pipe for the reader on the other side to read.  This allows the item-writing to remain
-        // entirely synchronous without any blocking on async flushing, while also ensuring that we're not
-        // buffering the entire stream of data into the pipe before it gets sent to the other side.
+        // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the pipe
+        // for the reader on the other side to read.  This allows the item-writing to remain entirely synchronous
+        // without any blocking on async flushing, while also ensuring that we're not buffering the entire stream of
+        // data into the pipe before it gets sent to the other side.
         await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
         return;
