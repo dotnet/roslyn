@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using ICSharpCode.Decompiler.IL;
-
 
 #if DEBUG
 using System.Diagnostics;
