@@ -90,9 +90,9 @@ internal sealed partial class ObjectWriter : IDisposable
     {
     }
 
-    /// <inheritdoc cref="ObjectWriter.ObjectWriter(Stream, bool, CancellationToken)"/>
-    /// <param name="writeValidationBytes">Whether or not the validation bytes should be immediately written into the
-    /// stream.</param>
+    /// <inheritdoc cref="ObjectWriter(Stream, bool, CancellationToken)"/>
+    /// <param name="writeValidationBytes">Whether or not the validation bytes (see <see cref="WriteValidationBytes"/>)
+    /// should be immediately written into the stream.</param>
     public ObjectWriter(
         Stream stream,
         bool leaveOpen,
@@ -111,6 +111,11 @@ internal sealed partial class ObjectWriter : IDisposable
             WriteValidationBytes();
     }
 
+    /// <summary>
+    /// Writes out a special sequence of bytes indicating that the stream is a serialized object stream.  Used by the
+    /// <see cref="ObjectReader"/> to be able to easily detect if it is being improperly used, or if the stream is
+    /// corrupt.
+    /// </summary>
     public void WriteValidationBytes()
     {
         WriteByte(ObjectReader.VersionByte1);

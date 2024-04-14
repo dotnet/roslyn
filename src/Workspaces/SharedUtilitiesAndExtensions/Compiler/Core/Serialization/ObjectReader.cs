@@ -95,28 +95,32 @@ internal sealed partial class ObjectReader : IDisposable
     }
 
     /// <summary>
-    /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-    /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version
-    /// of the data in the stream to exactly match the current format version.
-    /// Should only be used to read data written by the same version of Roslyn.
+    /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>. Unlike <see
+    /// cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version of the data in the stream to
+    /// exactly match the current format version. Should only be used to read data written by the same version of
+    /// Roslyn.
     /// </summary>
     public static ObjectReader GetReader(Stream stream, bool leaveOpen, CancellationToken cancellationToken)
-        => GetReader(stream, leaveOpen, checkVersionBytes: true, cancellationToken);
+        => GetReader(stream, leaveOpen, checkValidationBytes: true, cancellationToken);
 
+    /// <inheritdoc cref="GetReader(Stream, bool, CancellationToken)"/>
+    /// <param name="checkValidationBytes">Whether or not the validation bytes (see <see
+    /// cref="ObjectWriter.WriteValidationBytes"/> should be checked immediately at the stream's current
+    /// position.</param>
     public static ObjectReader GetReader(
         Stream stream,
         bool leaveOpen,
-        bool checkVersionBytes,
+        bool checkValidationBytes,
         CancellationToken cancellationToken)
     {
         var reader = new ObjectReader(stream, leaveOpen, cancellationToken);
-        if (checkVersionBytes)
-            reader.CheckVersionBytes();
+        if (checkValidationBytes)
+            reader.CheckValidationBytes();
 
         return reader;
     }
 
-    public void CheckVersionBytes()
+    public void CheckValidationBytes()
     {
         var stream = _reader.BaseStream;
         var b = stream.ReadByte();

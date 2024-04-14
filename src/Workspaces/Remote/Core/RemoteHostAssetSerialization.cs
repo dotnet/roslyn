@@ -285,10 +285,10 @@ internal static class RemoteHostAssetSerialization
         {
             using var pipeReaderStream = pipeReader.AsStream(leaveOpen: true);
 
-            // Get an object reader over the stream.  Note: we do not check the version bytes here, as the stream is
-            // currently pointing at header data prior to the object data.  Instead, we will check the version bytes
+            // Get an object reader over the stream.  Note: we do not check the validation bytes here as the stream is
+            // currently pointing at header data prior to the object data.  Instead, we will check the validation bytes
             // prior to reading each asset out.
-            using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkVersionBytes: false, cancellationToken);
+            using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkValidationBytes: false, cancellationToken);
 
             for (var i = 0; i < objectCount; i++)
             {
@@ -330,7 +330,7 @@ internal static class RemoteHostAssetSerialization
             ObjectReader reader, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // Let the object reader do it's own individual object checking.
-            reader.CheckVersionBytes();
+            reader.CheckValidationBytes();
 
             // Now do the actual read of the data, synchronously, from the buffers that are now in memory within our
             // process.  These reads will move the pipe-reader forward, without causing any blocking on async-io.
