@@ -16,8 +16,42 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Contains the utilities for writing assets from the host to a pipe-writer and for reading those assets on the
+    /// server.  The format we use is as follows.  For each asset we're writing we write:
+    /// <code>
+    /// -------------------------------------------------------------------------
+    /// | header (5 bytes)                             | data (variable length) |
+    /// -------------------------------------------------------------------------
+    /// 
+    /// Where the header is
+    /// ------------------------------------------------
+    /// | header (5 bytes)                             |
+    /// ------------------------------------------------
+    /// | sentinel (1 byte) | length of data (4 bytes) |
+    /// ------------------------------------------------
+    /// </code>
+    /// The writing code will write out the header, ensuring it is flushed to the pipe-writer.  This allows the
+    /// pipe-reader to immediately read that information so it can then pre-allocate the space for the data to go into.
+    /// After writing the data the writer will also flush, so the reader can then read the data out of the pipe into its
+    /// buffer.  Once present in the buffer, synchronous deserialization can happen without any blocking on async-io.
+    /// <para>
+    /// The sentinel byte serves to let us detect immediately on the reading side if something has gone wrong with this
+    /// system.
+    /// </para>
+    /// <para>
+    /// In order to be able to write out the data-length, the writer will first synchronously write the asset to an
+    /// in-memory buffer, then write that buffer's length to the pipe-writer, then copy the in-memory buffer to the
+    /// writer.
+    /// </para>
+    /// </summary>
     internal static class RemoteHostAssetSerialization
     {
+        /// <summary>
+        /// A sentinel byte we place between messages.  Ensures we can detect when something has gone wrong as soon as possible.
+        /// </summary>
+        private const byte s_messageSentinelByte = 0b01010101;
+
         private static readonly ObjectPool<SerializableBytes.ReadWriteStream> s_streamPool = new(SerializableBytes.CreateWritableStream);
 
         public static async ValueTask WriteDataAsync(
@@ -46,6 +80,10 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Contract.ThrowIfNull(asset);
                 foundChecksumCount++;
+
+                // We're about to send a message.  Write out our sentinel byte to ensure the reading side can detect
+                // problems with our writing.
+                WriteSentinelByte();
 
                 using var pooledObject = s_streamPool.GetPooledObject();
                 var tempStream = pooledObject.Object;
@@ -93,6 +131,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
+            void WriteSentinelByte()
+            {
+                var span = pipeWriter.GetSpan(1);
+                span[0] = s_messageSentinelByte;
+                pipeWriter.Advance(1);
+            }
+
             void WriteLengthToPipeWriter(long length)
             {
                 Contract.ThrowIfTrue(length > int.MaxValue);
@@ -122,12 +167,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 for (var i = 0; i < objectCount; i++)
                 {
-                    // First, read the length of the data chunk we'll be reading.
-                    var lengthReadResult = await pipeReader.ReadAtLeastAsync(sizeof(int), cancellationToken).ConfigureAwait(false);
+                    // First, read the sentinel byte and the length of the data chunk we'll be reading.
+                    const int HeaderSize = 1 + sizeof(int);
+                    var lengthReadResult = await pipeReader.ReadAtLeastAsync(HeaderSize, cancellationToken).ConfigureAwait(false);
+                    var (sentinelByte, length) = ReadSentinelAndLength(lengthReadResult);
 
-                    // read and advance past the length.
-                    var length = ReadLength(lengthReadResult);
-                    pipeReader.AdvanceTo(lengthReadResult.Buffer.GetPosition(sizeof(int)));
+                    // Check that the sentinel is correct.
+                    Contract.ThrowIfTrue(sentinelByte != s_messageSentinelByte);
+
+                    // If so, move the pipe reader forward to the end of the header.
+                    pipeReader.AdvanceTo(lengthReadResult.Buffer.GetPosition(HeaderSize));
 
                     // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as
                     // we'll need to consume, all further reading (for this single item) can handle synchronously
@@ -154,11 +203,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            static int ReadLength(ReadResult readResult)
+            static (byte, int) ReadSentinelAndLength(ReadResult readResult)
             {
                 var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
+                Contract.ThrowIfFalse(sequenceReader.TryRead(out var sentinel));
                 Contract.ThrowIfFalse(sequenceReader.TryReadLittleEndian(out int length));
-                return length;
+                return (sentinel, length);
             }
         }
     }
