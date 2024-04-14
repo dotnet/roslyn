@@ -51,8 +51,8 @@ internal partial class SolutionAssetStorage
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var obj = Creator.CreateChecksumSet(checksums);
-            var checksumsToFind = obj.Object;
+            using var _ = SharedPools.Default<HashSet<Checksum>>().GetPooledObject(out var checksumsToFind);
+            AddChecksums(checksums, checksumsToFind);
 
             var numberOfChecksumsToSearch = checksumsToFind.Count;
             Contract.ThrowIfTrue(checksumsToFind.Contains(Checksum.Null));
@@ -60,6 +60,14 @@ internal partial class SolutionAssetStorage
             await FindAssetsAsync(assetPath, checksumsToFind, onAssetFound, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(checksumsToFind.Count > 0);
+
+            return;
+
+            static void AddChecksums(ReadOnlyMemory<Checksum> checksums, HashSet<Checksum> checksumsToFind)
+            {
+                foreach (var checksum in checksums.Span)
+                    checksumsToFind.Add(checksum);
+            }
         }
 
         private async Task FindAssetsAsync(
