@@ -449,8 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int count = pair.Value;
                     if (count > maxLambdaBinding)
                     {
-                        int truncatedToHundredsCount = ((count - 1) / 100) * 100;
-                        diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, GetAnonymousFunctionLocation(pair.Key), truncatedToHundredsCount);
+                        int truncatedToHundreds = (count / 100) * 100;
+                        diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, GetAnonymousFunctionLocation(pair.Key), truncatedToHundreds);
                     }
                 }
 

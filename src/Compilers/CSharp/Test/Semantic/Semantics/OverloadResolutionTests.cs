@@ -7607,16 +7607,16 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (8,34): info CS9231: Compilation requires binding the nested lambda expression more than 200 times. Consider declaring some or all of the lambda expressions with explicit parameter types.
+                // (8,34): info CS9231: Compiling requires binding the nested lambda expression at least 200 times. Consider declaring some or all of the lambda expressions with explicit parameter types.
                 //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
                 Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("200").WithLocation(8, 34),
-                // (8,41): info CS9231: Compilation requires binding the nested lambda expression more than 1000 times. Consider declaring some or all of the lambda expressions with explicit parameter types.
+                // (8,41): info CS9231: Compiling requires binding the nested lambda expression at least 1000 times. Consider declaring some or all of the lambda expressions with explicit parameter types.
                 //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
                 Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1000").WithLocation(8, 41),
                 // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(Func<bool, T>)' and 'C.M<T>(Func<byte, T>)'
                 //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44),
-                // (8,48): info CS9231: Compilation requires binding the nested lambda expression more than 4000 times. Consider declaring some or all of the lambda expressions with explicit parameter types.
+                // (8,48): info CS9231: Compiling requires binding the nested lambda expression at least 4000 times. Consider declaring some or all of the lambda expressions with explicit parameter types.
                 //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
                 Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("4000").WithLocation(8, 48));
         }
