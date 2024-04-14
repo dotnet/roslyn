@@ -469,7 +469,7 @@ internal sealed class ProjectStateChecksums(
 
             if (assetPath.IncludeProjectParseOptions && searchingChecksumsLeft.Remove(ParseOptions))
             {
-                var parseOptions = state.ParseOptions ?? throw new InvalidOperationException("We should not be trying to serialize a project with no parse options; RemoteSupportedLanguages.IsSupported should have filtered it out."); ;
+                var parseOptions = state.ParseOptions ?? throw new InvalidOperationException("We should not be trying to serialize a project with no parse options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
                 await onAssetFoundAsync(ParseOptions, parseOptions, cancellationToken).ConfigureAwait(false);
             }
 
