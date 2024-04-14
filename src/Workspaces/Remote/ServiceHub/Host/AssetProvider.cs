@@ -299,7 +299,10 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                             T missingAsset,
                             (AssetProvider assetProvider, Checksum[] missingChecksums, Action<Checksum, T, TArg>? callback, TArg? arg) tuple) =>
                         {
+                            // Add to cache, returning the existing asset if it was added by another thread.
                             missingAsset = (T)tuple.assetProvider._assetCache.GetOrAdd(missingChecksum, missingAsset!);
+
+                            // Let our caller know about the asset if they're asking for it.
                             tuple.callback?.Invoke(missingChecksum, missingAsset, tuple.arg!);
                         },
                         (this, missingChecksums, callback, arg),
