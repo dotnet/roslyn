@@ -20,7 +20,7 @@ internal interface IAssetSource
         AssetPath assetPath,
         ReadOnlyMemory<Checksum> checksums,
         ISerializerService serializerService,
-        Action<int, T, TArg> callback,
+        Action<Checksum, T, TArg> callback,
         TArg arg,
         CancellationToken cancellationToken);
 }
