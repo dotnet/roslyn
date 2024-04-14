@@ -5,12 +5,17 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
+using System.Security.AccessControl;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
 
@@ -61,6 +66,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static readonly ObjectPool<SerializableBytes.ReadWriteStream> s_streamPool = new(SerializableBytes.CreateWritableStream);
 
+        private static async IAsyncEnumerable<T> ReadAllAsync<T>(
+            this ChannelReader<T> reader, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                while (reader.TryRead(out var item))
+                    yield return item;
+            }
+        }
+
         public static async ValueTask WriteDataAsync(
             PipeWriter pipeWriter,
             AssetPath assetPath,
@@ -71,12 +86,51 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var foundChecksumCount = 0;
 
-            await scope.AddAssetsAsync(
-                assetPath,
-                checksums,
-                onAssetFoundAsync: WriteAssetToPipeAsync,
-                cancellationToken).ConfigureAwait(false);
+            var channel = Channel.CreateUnbounded<(Checksum checksum, object asset)>(new UnboundedChannelOptions()
+            {
+                AllowSynchronousContinuations = false,
+                SingleReader = true,
+            });
 
+            // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets
+            // to the pipe.
+            using var _ = cancellationToken.Register(() => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
+
+            // Spin up a task to go search for all the requested checksums, adding results to the channel.
+            var addAssetsTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await scope.AddAssetsAsync(
+                        assetPath,
+                        checksums,
+                        (checksum, asset) => channel.Writer.TryWrite((checksum, asset)),
+                        cancellationToken).ConfigureAwait(false);
+
+                    // We finished searching for all the checksums, let the writer know.
+                    channel.Writer.TryComplete();
+                }
+                catch (Exception ex)
+                {
+                    // If Something went wrong ensure that we complete the channel so that the writing task will stop.
+                    // Also bubble the exception out so that the outer Task.WhenAll will bubble it up.
+                    channel.Writer.TryComplete(ex);
+                    throw;
+                }
+            }, cancellationToken);
+
+            // Spin up a task to read from the channel and write out the assets to the pipe-writer.
+            var writeAssetsTask = Task.Run(async () =>
+            {
+                await foreach (var (checksum, asset) in ReadAllAsync(channel.Reader, cancellationToken))
+                    await WriteAssetToPipeAsync(checksum, asset, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+
+            // Wait for both the searching and writing tasks to finish.
+            await Task.WhenAll(addAssetsTask, writeAssetsTask).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // If we weren't canceled, we better have found and written out all the expected assets.
             Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
 
             return;

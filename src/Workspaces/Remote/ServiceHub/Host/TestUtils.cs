@@ -184,11 +184,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task AppendAssetMapAsync(
             this Solution solution, Dictionary<Checksum, object> map, ProjectId? projectId, CancellationToken cancellationToken)
         {
-            var callback = (Checksum checksum, object asset, CancellationToken cancellationToken) =>
-            {
-                map[checksum] = asset;
-                return ValueTaskFactory.CompletedTask;
-            };
+            var callback = (Checksum checksum, object asset) => { map[checksum] = asset; };
 
             if (projectId == null)
             {
@@ -231,11 +227,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            var callback = (Checksum checksum, object asset, CancellationToken cancellationToken) =>
-            {
-                map[checksum] = asset;
-                return ValueTaskFactory.CompletedTask;
-            };
+            var callback = (Checksum checksum, object asset) => { map[checksum] = asset; };
 
             var projectChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             await projectChecksums.FindAsync(project.State, AssetPath.FullLookupForTesting, Flatten(projectChecksums), callback, cancellationToken).ConfigureAwait(false);

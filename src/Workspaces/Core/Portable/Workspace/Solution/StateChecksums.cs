@@ -118,7 +118,7 @@ internal sealed class SolutionCompilationStateChecksums
         ProjectCone? projectCone,
         AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
-        Func<Checksum, object, CancellationToken, ValueTask> onAssetFoundAsync,
+        Action<Checksum, object> onAssetFound,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -128,10 +128,10 @@ internal sealed class SolutionCompilationStateChecksums
         if (assetPath.IncludeSolutionCompilationState)
         {
             if (assetPath.IncludeSolutionCompilationStateChecksums && searchingChecksumsLeft.Remove(this.Checksum))
-                await onAssetFoundAsync(this.Checksum, this, cancellationToken).ConfigureAwait(false);
+                onAssetFound(this.Checksum, this);
 
             if (assetPath.IncludeSolutionSourceGeneratorExecutionVersionMap && searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
-                await onAssetFoundAsync(this.SourceGeneratorExecutionVersionMap, compilationState.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
+                onAssetFound(this.SourceGeneratorExecutionVersionMap, compilationState.SourceGeneratorExecutionVersionMap);
 
             if (compilationState.FrozenSourceGeneratedDocumentStates != null)
             {
@@ -143,7 +143,7 @@ internal sealed class SolutionCompilationStateChecksums
                 {
                     await ChecksumCollection.FindAsync(
                         new AssetPath(AssetPathKind.DocumentText, assetPath.ProjectId, assetPath.DocumentId),
-                        compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
+                        compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
                 }
 
                 // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
@@ -161,7 +161,7 @@ internal sealed class SolutionCompilationStateChecksums
                             if (searchingChecksumsLeft.Remove(identityChecksum))
                             {
                                 Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(documentId, out var state));
-                                await onAssetFoundAsync(identityChecksum, state.Identity, cancellationToken).ConfigureAwait(false);
+                                onAssetFound(identityChecksum, state.Identity);
                             }
                         }
                     }
@@ -175,7 +175,7 @@ internal sealed class SolutionCompilationStateChecksums
                             {
                                 var id = FrozenSourceGeneratedDocuments.Value.Ids[i];
                                 Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
-                                await onAssetFoundAsync(identityChecksum, state.Identity, cancellationToken).ConfigureAwait(false);
+                                onAssetFound(identityChecksum, state.Identity);
                             }
                         }
                     }
@@ -190,14 +190,14 @@ internal sealed class SolutionCompilationStateChecksums
             // entire solution.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var solutionChecksums));
             await solutionChecksums.FindAsync(
-                solutionState, projectCone, assetPath, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
+                solutionState, projectCone, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             // Otherwise, grab the top-most state checksum for this cone and search within that.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.RootProjectId, out var solutionChecksums));
             await solutionChecksums.FindAsync(
-                solutionState, projectCone, assetPath, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
+                solutionState, projectCone, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
         }
     }
 }
@@ -271,7 +271,7 @@ internal sealed class SolutionStateChecksums(
         ProjectCone? projectCone,
         AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
-        Func<Checksum, object, CancellationToken, ValueTask> onAssetFoundAsync,
+        Action<Checksum, object> onAssetFound,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -281,16 +281,13 @@ internal sealed class SolutionStateChecksums(
         if (assetPath.IncludeSolutionState)
         {
             if (assetPath.IncludeSolutionStateChecksums && searchingChecksumsLeft.Remove(Checksum))
-                await onAssetFoundAsync(Checksum, this, cancellationToken).ConfigureAwait(false);
+                onAssetFound(Checksum, this);
 
             if (assetPath.IncludeSolutionAttributes && searchingChecksumsLeft.Remove(Attributes))
-                await onAssetFoundAsync(Attributes, solution.SolutionAttributes, cancellationToken).ConfigureAwait(false);
+                onAssetFound(Attributes, solution.SolutionAttributes);
 
             if (assetPath.IncludeSolutionAnalyzerReferences)
-            {
-                await ChecksumCollection.FindAsync(
-                    solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
-            }
+                ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, onAssetFound, cancellationToken);
         }
 
         if (searchingChecksumsLeft.Count == 0)
@@ -310,7 +307,7 @@ internal sealed class SolutionStateChecksums(
                     projectState.TryGetStateChecksums(out var projectStateChecksums))
                 {
                     await projectStateChecksums.FindAsync(
-                        projectState, assetPath, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
+                        projectState, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
                 }
             }
             else
@@ -334,7 +331,7 @@ internal sealed class SolutionStateChecksums(
                         continue;
 
                     await projectStateChecksums.FindAsync(
-                        projectState, assetPath, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
+                        projectState, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -442,7 +439,7 @@ internal sealed class ProjectStateChecksums(
         ProjectState state,
         AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
-        Func<Checksum, object, CancellationToken, ValueTask> onAssetFoundAsync,
+        Action<Checksum, object> onAssetFound,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -456,47 +453,38 @@ internal sealed class ProjectStateChecksums(
         if (assetPath.IncludeProjects)
         {
             if (assetPath.IncludeProjectStateChecksums && searchingChecksumsLeft.Remove(Checksum))
-                await onAssetFoundAsync(Checksum, this, cancellationToken).ConfigureAwait(false);
+                onAssetFound(Checksum, this);
 
             if (assetPath.IncludeProjectAttributes && searchingChecksumsLeft.Remove(Info))
-                await onAssetFoundAsync(Info, state.ProjectInfo.Attributes, cancellationToken).ConfigureAwait(false);
+                onAssetFound(Info, state.ProjectInfo.Attributes);
 
             if (assetPath.IncludeProjectCompilationOptions && searchingChecksumsLeft.Remove(CompilationOptions))
             {
                 var compilationOptions = state.CompilationOptions ?? throw new InvalidOperationException("We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
-                await onAssetFoundAsync(CompilationOptions, compilationOptions, cancellationToken).ConfigureAwait(false);
+                onAssetFound(CompilationOptions, compilationOptions);
             }
 
             if (assetPath.IncludeProjectParseOptions && searchingChecksumsLeft.Remove(ParseOptions))
             {
                 var parseOptions = state.ParseOptions ?? throw new InvalidOperationException("We should not be trying to serialize a project with no parse options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
-                await onAssetFoundAsync(ParseOptions, parseOptions, cancellationToken).ConfigureAwait(false);
+                onAssetFound(ParseOptions, parseOptions);
             }
 
             if (assetPath.IncludeProjectProjectReferences)
-            {
-                await ChecksumCollection.FindAsync(
-                    state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
-            }
+                ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, onAssetFound, cancellationToken);
 
             if (assetPath.IncludeProjectMetadataReferences)
-            {
-                await ChecksumCollection.FindAsync(
-                    state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
-            }
+                ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, onAssetFound, cancellationToken);
 
             if (assetPath.IncludeProjectAnalyzerReferences)
-            {
-                await ChecksumCollection.FindAsync(
-                    state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
-            }
+                ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, onAssetFound, cancellationToken);
         }
 
         if (assetPath.IncludeDocuments)
         {
-            await ChecksumCollection.FindAsync(assetPath, state.DocumentStates, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
-            await ChecksumCollection.FindAsync(assetPath, state.AdditionalDocumentStates, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
-            await ChecksumCollection.FindAsync(assetPath, state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, onAssetFoundAsync, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(assetPath, state.DocumentStates, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(assetPath, state.AdditionalDocumentStates, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(assetPath, state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
         }
     }
 }
@@ -522,7 +510,7 @@ internal sealed class DocumentStateChecksums(
         AssetPath assetPath,
         TextDocumentState state,
         HashSet<Checksum> searchingChecksumsLeft,
-        Func<Checksum, object, CancellationToken, ValueTask> onAssetFoundAsync,
+        Action<Checksum, object> onAssetFound,
         CancellationToken cancellationToken)
     {
         Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
@@ -530,12 +518,12 @@ internal sealed class DocumentStateChecksums(
         cancellationToken.ThrowIfCancellationRequested();
 
         if (assetPath.IncludeDocumentAttributes && searchingChecksumsLeft.Remove(Info))
-            await onAssetFoundAsync(Info, state.Attributes, cancellationToken).ConfigureAwait(false);
+            onAssetFound(Info, state.Attributes);
 
         if (assetPath.IncludeDocumentText && searchingChecksumsLeft.Remove(Text))
         {
             var text = await SerializableSourceText.FromTextDocumentStateAsync(state, cancellationToken).ConfigureAwait(false);
-            await onAssetFoundAsync(Text, text, cancellationToken).ConfigureAwait(false);
+            onAssetFound(Text, text);
         }
     }
 }
