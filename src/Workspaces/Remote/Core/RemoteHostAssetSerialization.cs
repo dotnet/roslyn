@@ -120,17 +120,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
             void WriteAssetToTempStream(Stream tempStream, Checksum checksum, object asset)
             {
-                using var objectWriter = new ObjectWriter(tempStream, leaveOpen: true, cancellationToken);
+                using var writer = new ObjectWriter(tempStream, leaveOpen: true, cancellationToken);
                 {
                     // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
-                    checksum.WriteTo(objectWriter);
+                    checksum.WriteTo(writer);
 
                     // Write out the kind so the receiving end knows how to deserialize this asset.
                     var kind = asset.GetWellKnownSynchronizationKind();
-                    objectWriter.WriteInt32((int)kind);
+                    writer.WriteInt32((int)kind);
 
                     // Now serialize out the asset itself.
-                    serializer.Serialize(asset, objectWriter, scope.ReplicationContext, cancellationToken);
+                    serializer.Serialize(asset, writer, scope.ReplicationContext, cancellationToken);
                 }
             }
 
