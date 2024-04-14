@@ -68,11 +68,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // each value, and build the project.
 
                 var targetFrameworks = targetFrameworksValue.Split(';');
-                var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(targetFrameworks.Length);
 
                 if (!_loadedProject.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
                     initialGlobalTargetFrameworkValue = null;
 
+                var results = new FixedSizeArrayBuilder<ProjectFileInfo>(targetFrameworks.Length);
                 foreach (var targetFramework in targetFrameworks)
                 {
                     _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 _loadedProject.ReevaluateIfNecessary();
 
-                return results.ToImmutable();
+                return results.MoveToImmutable();
             }
             else
             {

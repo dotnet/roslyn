@@ -38,15 +38,14 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            var result = new (SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)[documentStates.Ids.Count];
-            var index = 0;
+            var result = new FixedSizeArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>(documentStates.States.Count);
             foreach (var (id, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
-                result[index++] = (state.Identity, state.GetContentIdentity(), state.GenerationDateTime);
+                result.Add((state.Identity, state.GetContentIdentity(), state.GenerationDateTime));
             }
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(result);
+            return result.MoveToImmutable();
         }, cancellationToken);
     }
 
@@ -58,17 +57,16 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            var result = new string[documentIds.Length];
-            var index = 0;
+            var result = new FixedSizeArrayBuilder<string>(documentIds.Length);
             foreach (var id in documentIds)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
                 var state = documentStates.GetRequiredState(id);
                 var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                result[index++] = text.ToString();
+                result.Add(text.ToString());
             }
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(result);
+            return result.MoveToImmutable();
         }, cancellationToken);
     }
 

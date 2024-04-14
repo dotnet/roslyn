@@ -147,7 +147,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             itemListBuilder.Add(item);
         }
 
-        return itemListBuilder.ToImmutable();
+        return itemListBuilder.ToImmutableAndClear();
     }
 
     protected static bool TryFindFirstSymbolMatchesTargetTypes(
@@ -337,7 +337,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
                 perContextSymbols.Add((relatedDocumentId, syntaxContext, symbols));
         }
 
-        return perContextSymbols.ToImmutable();
+        return perContextSymbols.ToImmutableAndClear();
     }
 
     /// <summary>

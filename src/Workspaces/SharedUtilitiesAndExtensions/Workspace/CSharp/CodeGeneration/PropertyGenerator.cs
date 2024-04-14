@@ -327,21 +327,19 @@ internal static class PropertyGenerator
         IMethodSymbol accessor,
         CSharpCodeGenerationContextInfo info)
     {
-        var modifiers = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var modifiers);
 
         if (accessor.DeclaredAccessibility != Accessibility.NotApplicable &&
             accessor.DeclaredAccessibility != property.DeclaredAccessibility)
         {
-            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
+            AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
         }
 
         var hasNonReadOnlyAccessor = property.GetMethod?.IsReadOnly == false || property.SetMethod?.IsReadOnly == false;
         if (hasNonReadOnlyAccessor && accessor.IsReadOnly)
-        {
             modifiers.Add(ReadOnlyKeyword);
-        }
 
-        return modifiers.ToSyntaxTokenListAndFree();
+        return [.. modifiers];
     }
 
     private static SyntaxTokenList GenerateModifiers(
@@ -370,7 +368,7 @@ internal static class PropertyGenerator
             }
             else if (destination is not CodeGenerationDestination.CompilationUnit)
             {
-                CSharpCodeGenerationHelpers.AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (property.IsStatic)
                     tokens.Add(StaticKeyword);
@@ -404,6 +402,6 @@ internal static class PropertyGenerator
         if (CodeGenerationPropertyInfo.GetIsUnsafe(property))
             tokens.Add(UnsafeKeyword);
 
-        return tokens.ToSyntaxTokenList();
+        return [.. tokens];
     }
 }

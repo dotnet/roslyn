@@ -254,7 +254,7 @@ internal static class MethodGenerator
     private static SyntaxTokenList GenerateModifiers(
         IMethodSymbol method, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         // Only "static" and "unsafe" modifiers allowed if we're an explicit impl.
         if (method.ExplicitInterfaceImplementations.Any())
@@ -282,7 +282,7 @@ internal static class MethodGenerator
             else if (destination is not CodeGenerationDestination.CompilationUnit and
                 not CodeGenerationDestination.Namespace)
             {
-                CSharpCodeGenerationHelpers.AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (method.IsStatic)
                     tokens.Add(StaticKeyword);
@@ -323,16 +323,12 @@ internal static class MethodGenerator
         if (destination != CodeGenerationDestination.InterfaceType)
         {
             if (CodeGenerationMethodInfo.GetIsAsyncMethod(method))
-            {
                 tokens.Add(AsyncKeyword);
-            }
         }
 
         if (CodeGenerationMethodInfo.GetIsPartial(method) && method.IsAsync)
-        {
             tokens.Add(PartialKeyword);
-        }
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return [.. tokens];
     }
 }

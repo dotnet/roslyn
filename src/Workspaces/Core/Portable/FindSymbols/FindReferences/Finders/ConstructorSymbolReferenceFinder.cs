@@ -67,7 +67,7 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
             ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
             : []);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
@@ -140,7 +140,7 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
         result.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
             methodSymbol, state, cancellationToken).ConfigureAwait(false));
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     /// <summary>

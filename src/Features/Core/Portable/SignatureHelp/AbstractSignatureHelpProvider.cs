@@ -313,7 +313,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData)

@@ -3809,7 +3809,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         foreach (var (_, indices) in deletedTypes)
             indices.Free();
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static bool IsReloadable(INamedTypeSymbol type)

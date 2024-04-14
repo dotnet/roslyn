@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return nestedCodeActions.ToImmutable();
+            return nestedCodeActions.ToImmutableAndClear();
         }
 
         private static void AddLSPCodeActions(
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
             }
 
-            return codeActions.ToImmutable();
+            return codeActions.ToImmutableAndClear();
         }
 
         /// <summary>

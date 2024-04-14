@@ -63,7 +63,7 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         CascadeBetweenPrimaryConstructorParameterAndProperties(parameter, symbols, cancellationToken);
         CascadeBetweenAnonymousDelegateParameters(parameter, symbols);
 
-        return symbols.ToImmutable();
+        return symbols.ToImmutableAndClear();
     }
 
     private static void CascadeBetweenAnonymousDelegateParameters(IParameterSymbol parameter, ArrayBuilder<ISymbol> symbols)

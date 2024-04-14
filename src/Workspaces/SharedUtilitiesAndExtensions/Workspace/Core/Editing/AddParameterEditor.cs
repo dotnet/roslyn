@@ -145,7 +145,7 @@ internal static class AddParameterEditor
             triviaList.Add(lastWhitespace);
         }
 
-        return triviaList.ToImmutable();
+        return triviaList.ToImmutableAndClear();
     }
 
     private static bool ShouldPlaceParametersOnNewLine(
