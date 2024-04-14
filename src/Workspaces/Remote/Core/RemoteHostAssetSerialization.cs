@@ -84,37 +84,32 @@ namespace Microsoft.CodeAnalysis.Remote
             async ValueTask WriteAssetToPipeAsync(Checksum checksum, object asset, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(asset);
+
                 foundChecksumCount++;
 
                 // We're about to send a message.  Write out our sentinel byte to ensure the reading side can detect
                 // problems with our writing.
                 WriteSentinelByte();
 
-                using var pooledObject = s_streamPool.GetPooledObject();
-                var tempStream = pooledObject.Object;
-                tempStream.Position = 0;
-
-                // Don't truncate the stream as we're going to be writing to it multiple times.  This will allow us to
-                // reuse the internal chunks of the buffer, without having to reallocate them over and over again.
-                // Note: this stream internally keeps a list of byte[]s that it writes to.  Each byte[] is less than the
-                // LOH size, so there's no concern about LOH fragmentation here.
-                tempStream.SetLength(0, truncate: false);
-
                 // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
                 // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
                 // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
-                WriteAssetToTempStream(tempStream, checksum, asset);
 
-                // Write the length of the asset to the pipe writer so the reader knows how much data to read.
-                WriteLengthToPipeWriter(tempStream.Length);
+                using (var _ = GetTempStream(out var tempStream))
+                {
+                    WriteAssetToTempStream(tempStream, checksum, asset);
 
-                // Ensure we flush out the length so the reading side can immediately read the header to determine qhow
-                // much data to it will need to prebuffer.
-                await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+                    // Write the length of the asset to the pipe writer so the reader knows how much data to read.
+                    WriteLengthToPipeWriter(tempStream.Length);
 
-                // Now, asynchronously copy the temp buffer over to the writer stream.
-                tempStream.Position = 0;
-                await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
+                    // Ensure we flush out the length so the reading side can immediately read the header to determine qhow
+                    // much data to it will need to prebuffer.
+                    await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Now, asynchronously copy the temp buffer over to the writer stream.
+                    tempStream.Position = 0;
+                    await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
+                }
 
                 // We flush after each item as that forms a reasonably sized chunk of data to want to then send over
                 // the pipe for the reader on the other side to read.  This allows the item-writing to remain
@@ -153,6 +148,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 var span = pipeWriter.GetSpan(sizeof(int));
                 BinaryPrimitives.WriteInt32LittleEndian(span, (int)length);
                 pipeWriter.Advance(sizeof(int));
+            }
+
+            PooledObject<SerializableBytes.ReadWriteStream> GetTempStream(out Stream stream)
+            {
+                var pooledObject = s_streamPool.GetPooledObject();
+                var tempStream = pooledObject.Object;
+                tempStream.Position = 0;
+
+                // Don't truncate the stream as we're going to be writing to it multiple times.  This will allow us to
+                // reuse the internal chunks of the buffer, without having to reallocate them over and over again.
+                // Note: this stream internally keeps a list of byte[]s that it writes to.  Each byte[] is less than the
+                // LOH size, so there's no concern about LOH fragmentation here.
+                tempStream.SetLength(0, truncate: false);
+                stream = tempStream;
+                return pooledObject;
             }
         }
 
