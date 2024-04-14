@@ -123,27 +123,34 @@ namespace Microsoft.CodeAnalysis.Remote
                 for (var i = 0; i < objectCount; i++)
                 {
                     // First, read the length of the data chunk we'll be reading.
-                    var readResult = await pipeReader.ReadAtLeastAsync(sizeof(int), cancellationToken).ConfigureAwait(false);
-                    var length = ReadLength(readResult);
+                    var lengthReadResult = await pipeReader.ReadAtLeastAsync(sizeof(int), cancellationToken).ConfigureAwait(false);
+                    var length = ReadLength(lengthReadResult);
 
                     // Advance past the length.
-                    pipeReader.AdvanceTo(readResult.Buffer.GetPosition(sizeof(int)));
+                    pipeReader.AdvanceTo(lengthReadResult.Buffer.GetPosition(sizeof(int)));
 
                     // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as
                     // we'll need to consume, all further reading (for this single item) can handle synchronously
                     // without worrying about this blocking the reading thread on cross-process pipe io.
-                    await pipeReader.ReadAtLeastAsync(length, cancellationToken).ConfigureAwait(false);
+                    var fillReadResult = await pipeReader.ReadAtLeastAsync(length, cancellationToken).ConfigureAwait(false);
 
+                    // Note: we have let the pipe reader know that we're done with 'read at least' call, but that we
+                    // haven't consumed anything from it yet.  Otherwise it will throw that another read can't start
+                    // from within ObjectReader.GetReader below.
+                    pipeReader.AdvanceTo(fillReadResult.Buffer.Start);
+
+                    // Now do the actual read of the data, synchronously, from the buffers that are now in memory within
+                    // our process.  These reads will move the pipe-reader forward, without causing any blocking on
+                    // async-io.
                     using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, cancellationToken);
-                    {
-                        var checksum = Checksum.ReadFrom(reader);
-                        var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
-                        // in service hub, cancellation means simply closed stream
-                        var result = serializerService.Deserialize(kind, reader, cancellationToken);
-                        Contract.ThrowIfNull(result);
-                        callback(checksum, (T)result, arg);
-                    }
+                    var checksum = Checksum.ReadFrom(reader);
+                    var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
+
+                    // in service hub, cancellation means simply closed stream
+                    var result = serializerService.Deserialize(kind, reader, cancellationToken);
+                    Contract.ThrowIfNull(result);
+                    callback(checksum, (T)result, arg);
                 }
             }
 
