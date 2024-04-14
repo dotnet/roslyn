@@ -73,14 +73,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 
-            using var stream = new PipeWriterStream(pipeWriter);
-
             using var _ = Creator.CreateResultMap(out var resultMap);
 
             await scope.AddAssetsAsync(assetPath, checksums, resultMap, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            using var stream = new PipeWriterStream(pipeWriter);
             await RemoteHostAssetSerialization.WriteDataAsync(
                 stream, resultMap, serializer, scope.ReplicationContext,
                 solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
