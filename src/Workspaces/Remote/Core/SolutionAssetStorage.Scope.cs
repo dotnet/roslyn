@@ -43,7 +43,7 @@ internal partial class SolutionAssetStorage
         /// Retrieve assets of specified <paramref name="checksums"/> available within <see langword="this"/> from
         /// the storage.
         /// </summary>
-        public async Task AddAssetsAsync(
+        public async Task FindAssetsAsync(
             AssetPath assetPath,
             ReadOnlyMemory<Checksum> checksums,
             Action<Checksum, object> onAssetFound,
