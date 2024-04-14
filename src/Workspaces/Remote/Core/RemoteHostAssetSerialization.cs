@@ -63,16 +63,6 @@ internal static class RemoteHostAssetSerialization
 
     private static readonly ObjectPool<SerializableBytes.ReadWriteStream> s_streamPool = new(SerializableBytes.CreateWritableStream);
 
-    private static async IAsyncEnumerable<T> ReadAllAsync<T>(
-        this ChannelReader<T> reader, [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-        {
-            while (reader.TryRead(out var item))
-                yield return item;
-        }
-    }
-
     public static async ValueTask WriteDataAsync(
         PipeWriter pipeWriter,
         AssetPath assetPath,
@@ -147,8 +137,12 @@ internal static class RemoteHostAssetSerialization
         async Task WriteAllAssetsToPipeAsync()
         {
             await Task.Yield();
-            await foreach (var (checksum, asset) in ReadAllAsync(channel.Reader, cancellationToken))
-                await WriteSingleAssetToPipeAsync(checksum, asset, cancellationToken).ConfigureAwait(false);
+
+            while (await channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                while (channel.Reader.TryRead(out var item))
+                    await WriteSingleAssetToPipeAsync(item.checksum, item.asset, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         async ValueTask WriteSingleAssetToPipeAsync(Checksum checksum, object asset, CancellationToken cancellationToken)
