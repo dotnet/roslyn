@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseInterpolatedString
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseInterpolatedString), [Shared]>
-    Friend Class VisualBasicUseInterpolatedString
+    Friend Class VisualBasicUseInterpolatedStringCodeFixProvider
         Inherits AbstractUseInterpolatedStringCodeFixProvider
 
         <ImportingConstructor>
