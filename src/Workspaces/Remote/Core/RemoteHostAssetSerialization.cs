@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
+using ChecksumChannel = Channel<(Checksum checksum, object asset)>;
+
 /// <summary>
 /// Contains the utilities for writing assets from the host to a pipe-writer and for reading those assets on the
 /// server.  The format we use is as follows.  For each asset we're writing we write:
@@ -92,7 +94,7 @@ internal static class RemoteHostAssetSerialization
         // to the pipe. Capture-free version is only available on netcore unfortunately.
 #if NET
         using var _ = cancellationToken.Register(
-            static (obj, cancellationToken) => ((Channel<(Checksum, object)>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
+            static (obj, cancellationToken) => ((ChecksumChannel)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
             state: channel);
 #else
         using var _ = cancellationToken.Register(
@@ -103,7 +105,7 @@ internal static class RemoteHostAssetSerialization
         var foundChecksumCount = 0;
 
         // Spin up a task to go search for all the requested checksums, adding results to the channel.
-        var findAssetsTask = FindAllAssetsAsync();
+        var findAssetsTask = FindAllAssetsAsync(assetPath, checksums, scope, channel, cancellationToken);
 
         // Spin up a task to read from the channel and write out the assets to the pipe-writer.
         var writeAssetsTask = WriteAllAssetsToPipeAsync();
@@ -117,7 +119,12 @@ internal static class RemoteHostAssetSerialization
 
         return;
 
-        async Task FindAllAssetsAsync()
+        static async Task FindAllAssetsAsync(
+            AssetPath assetPath,
+            ReadOnlyMemory<Checksum> checksums,
+            SolutionAssetStorage.Scope scope,
+            ChecksumChannel channel,
+            CancellationToken cancellationToken)
         {
             await Task.Yield();
 
