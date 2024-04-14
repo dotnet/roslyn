@@ -122,18 +122,11 @@ internal sealed partial class ObjectReader : IDisposable
 
     public void CheckValidationBytes()
     {
-        var stream = _reader.BaseStream;
-        var b = stream.ReadByte();
-        if (b == -1)
-            throw new EndOfStreamException();
-
+        var b = this.ReadByte();
         if (b != VersionByte1)
             throw ExceptionUtilities.UnexpectedValue(b);
 
-        b = stream.ReadByte();
-        if (b == -1)
-            throw new EndOfStreamException();
-
+        b = this.ReadByte();
         if (b != VersionByte2)
             throw ExceptionUtilities.UnexpectedValue(b);
     }
