@@ -101,21 +101,15 @@ internal static class RemoteHostAssetSerialization
             () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
 #endif
 
-        // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
-        var foundChecksumCount = 0;
-
         // Spin up a task to go search for all the requested checksums, adding results to the channel.
         var findAssetsTask = FindAllAssetsAsync(assetPath, checksums, scope, channel, cancellationToken);
 
         // Spin up a task to read from the channel and write out the assets to the pipe-writer.
-        var writeAssetsTask = WriteAllAssetsToPipeAsync();
+        var writeAssetsTask = WriteAllAssetsToPipeAsync(
+            pipeWriter, channel, checksums.Length, scope, serializer, cancellationToken);
 
         // Wait for both the searching and writing tasks to finish.
         await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // If we weren't canceled, we better have found and written out all the expected assets.
-        Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
 
         return;
 
@@ -150,26 +144,48 @@ internal static class RemoteHostAssetSerialization
             }
         }
 
-        async Task WriteAllAssetsToPipeAsync()
+        static async Task WriteAllAssetsToPipeAsync(
+            PipeWriter pipeWriter,
+            ChecksumChannel channel,
+            int checksumCount,
+            SolutionAssetStorage.Scope scope,
+            ISerializerService serializer,
+            CancellationToken cancellationToken)
         {
             await Task.Yield();
+
+            // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
+            var foundChecksumCount = 0;
 
             while (await channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 while (channel.Reader.TryRead(out var item))
-                    await WriteSingleAssetToPipeAsync(item.checksum, item.asset, cancellationToken).ConfigureAwait(false);
+                {
+                    await WriteSingleAssetToPipeAsync(
+                        pipeWriter, item.checksum, item.asset, scope, serializer, cancellationToken).ConfigureAwait(false);
+                    foundChecksumCount++;
+                }
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // If we weren't canceled, we better have found and written out all the expected assets.
+            Contract.ThrowIfTrue(foundChecksumCount != checksumCount);
         }
 
-        async ValueTask WriteSingleAssetToPipeAsync(Checksum checksum, object asset, CancellationToken cancellationToken)
+        static async ValueTask WriteSingleAssetToPipeAsync(
+            PipeWriter pipeWriter,
+            Checksum checksum,
+            object asset,
+            SolutionAssetStorage.Scope scope,
+            ISerializerService serializer,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(asset);
 
-            foundChecksumCount++;
-
             // We're about to send a message.  Write out our sentinel byte to ensure the reading side can detect
             // problems with our writing.
-            WriteSentinelByte();
+            WriteSentinelByte(pipeWriter);
 
             // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
             // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
@@ -177,10 +193,10 @@ internal static class RemoteHostAssetSerialization
 
             using (var _ = GetTempStream(out var tempStream))
             {
-                WriteAssetToTempStream(tempStream, checksum, asset);
+                WriteAssetToTempStream(pipeWriter, tempStream, checksum, asset, scope, serializer, cancellationToken);
 
                 // Write the length of the asset to the pipe writer so the reader knows how much data to read.
-                WriteLength(tempStream.Length);
+                WriteLength(pipeWriter, tempStream.Length);
 
                 // Ensure we flush out the length so the reading side can immediately read the header to determine qhow
                 // much data to it will need to prebuffer.
@@ -198,7 +214,14 @@ internal static class RemoteHostAssetSerialization
             await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        void WriteAssetToTempStream(Stream tempStream, Checksum checksum, object asset)
+        static void WriteAssetToTempStream(
+            PipeWriter pipeWriter,
+            Stream tempStream,
+            Checksum checksum,
+            object asset,
+            SolutionAssetStorage.Scope scope,
+            ISerializerService serializer,
+            CancellationToken cancellationToken)
         {
             using var writer = new ObjectWriter(tempStream, leaveOpen: true, cancellationToken);
             {
@@ -214,14 +237,14 @@ internal static class RemoteHostAssetSerialization
             }
         }
 
-        void WriteSentinelByte()
+        static void WriteSentinelByte(PipeWriter pipeWriter)
         {
             var span = pipeWriter.GetSpan(1);
             span[0] = MessageSentinelByte;
             pipeWriter.Advance(1);
         }
 
-        void WriteLength(long length)
+        static void WriteLength(PipeWriter pipeWriter, long length)
         {
             Contract.ThrowIfTrue(length > int.MaxValue);
 
@@ -230,7 +253,7 @@ internal static class RemoteHostAssetSerialization
             pipeWriter.Advance(sizeof(int));
         }
 
-        PooledObject<SerializableBytes.ReadWriteStream> GetTempStream(out Stream stream)
+        static PooledObject<SerializableBytes.ReadWriteStream> GetTempStream(out Stream stream)
         {
             var pooledObject = s_streamPool.GetPooledObject();
             var tempStream = pooledObject.Object;
