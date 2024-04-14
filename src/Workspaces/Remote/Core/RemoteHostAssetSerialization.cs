@@ -248,7 +248,7 @@ internal static class RemoteHostAssetSerialization
             for (var i = 0; i < objectCount; i++)
             {
                 // First, read the sentinel byte and the length of the data chunk we'll be reading.
-                const int HeaderSize = 1 + sizeof(int);
+                const int HeaderSize = sizeof(byte) + sizeof(int);
                 var lengthReadResult = await pipeReader.ReadAtLeastAsync(HeaderSize, cancellationToken).ConfigureAwait(false);
                 var (sentinelByte, length) = ReadSentinelAndLength(lengthReadResult);
 
