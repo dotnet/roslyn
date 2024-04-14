@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             /// </summary>
             public readonly Checksum Checksum;
 
-            public ChecksumObjectCollection(SerializationValidator validator, ChecksumCollection collection)
+            public ChecksumObjectCollection(SerializationValidator validator, WellKnownSynchronizationKind kind, ChecksumCollection collection)
             {
                 Checksum = collection.Checksum;
-                Kind = collection.GetWellKnownSynchronizationKind();
+                Kind = kind;
 
                 // using .Result here since we don't want to convert all calls to this to async.
                 // and none of ChecksumWithChildren actually use async
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         public ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(ChecksumCollection collection)
-            => new(this, collection);
+            => new(this, WellKnownSynchronizationKind.ProjectState, collection);
 
         internal async Task VerifyAssetAsync(SolutionStateChecksums solutionObject)
         {
