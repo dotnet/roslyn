@@ -17,6 +17,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote;
 
 using ChecksumChannel = Channel<(Checksum checksum, object asset)>;
+using ChecksumChannelReader = ChannelReader<(Checksum checksum, object asset)>;
+using ChecksumChannelWriter = ChannelWriter<(Checksum checksum, object asset)>;
 
 /// <summary>
 /// Contains the utilities for writing assets from the host to a pipe-writer and for reading those assets on the
@@ -101,11 +103,12 @@ internal static class RemoteHostAssetSerialization
 #endif
 
         // Spin up a task to go search for all the requested checksums, adding results to the channel.
-        var findAssetsTask = FindAssetsFromScopeAndWriteToChannelAsync(assetPath, checksums, scope, channel, cancellationToken);
+        var findAssetsTask = FindAssetsFromScopeAndWriteToChannelAsync(
+            assetPath, checksums, scope, channel.Writer, cancellationToken);
 
         // Spin up a task to read from the channel and write out the assets to the pipe-writer.
         var writeAssetsTask = ReadAssetsFromChannelAndWriteToPipeAsync(
-            pipeWriter, channel, checksums.Length, scope, serializer, cancellationToken);
+            pipeWriter, channel.Reader, checksums.Length, scope, serializer, cancellationToken);
 
         // Wait for both the searching and writing tasks to finish.
         await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
@@ -116,7 +119,7 @@ internal static class RemoteHostAssetSerialization
             AssetPath assetPath,
             ReadOnlyMemory<Checksum> checksums,
             SolutionAssetStorage.Scope scope,
-            ChecksumChannel channel,
+            ChecksumChannelWriter channelWriter,
             CancellationToken cancellationToken)
         {
             await Task.Yield();
@@ -131,8 +134,8 @@ internal static class RemoteHostAssetSerialization
                     // channel is only ever completed by us (after FindAssetsAsync completed) or if cancellation
                     // happens.  In that latter case, it's ok for writing to the channel to do nothing as we no longer
                     // need to write out those assets to the pipe.
-                    static (checksum, asset, channel) => channel.Writer.TryWrite((checksum, asset)),
-                    channel,
+                    static (checksum, asset, channelWriter) => channelWriter.TryWrite((checksum, asset)),
+                    channelWriter,
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
@@ -143,13 +146,13 @@ internal static class RemoteHostAssetSerialization
             {
                 // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
                 // writing task knows it's done.
-                channel.Writer.TryComplete(exception);
+                channelWriter.TryComplete(exception);
             }
         }
 
         static async Task ReadAssetsFromChannelAndWriteToPipeAsync(
             PipeWriter pipeWriter,
-            ChecksumChannel channel,
+            ChecksumChannelReader channelReader,
             int checksumCount,
             SolutionAssetStorage.Scope scope,
             ISerializerService serializer,
@@ -160,9 +163,9 @@ internal static class RemoteHostAssetSerialization
             // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
             var foundChecksumCount = 0;
 
-            while (await channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                while (channel.Reader.TryRead(out var item))
+                while (channelReader.TryRead(out var item))
                 {
                     await WriteSingleAssetToPipeAsync(
                         pipeWriter, item.checksum, item.asset, scope, serializer, cancellationToken).ConfigureAwait(false);
