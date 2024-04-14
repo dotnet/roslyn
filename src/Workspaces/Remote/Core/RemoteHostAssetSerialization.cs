@@ -172,56 +172,51 @@ internal static class RemoteHostAssetSerialization
             // If we weren't canceled, we better have found and written out all the expected assets.
             Contract.ThrowIfTrue(foundChecksumCount != checksumCount);
         }
+    }
 
-        static async ValueTask WriteSingleAssetToPipeAsync(
-            PipeWriter pipeWriter,
-            Checksum checksum,
-            object asset,
-            SolutionAssetStorage.Scope scope,
-            ISerializerService serializer,
-            CancellationToken cancellationToken)
+    private static async ValueTask WriteSingleAssetToPipeAsync(
+        PipeWriter pipeWriter,
+        Checksum checksum,
+        object asset,
+        SolutionAssetStorage.Scope scope,
+        ISerializerService serializer,
+        CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(asset);
+
+        // We're about to send a message.  Write out our sentinel byte to ensure the reading side can detect
+        // problems with our writing.
+        WriteSentinelByte();
+
+        // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
+        // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
+        // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
+
+        using (var _ = GetTempStream(out var tempStream))
         {
-            Contract.ThrowIfNull(asset);
+            WriteAssetToTempStream(tempStream);
 
-            // We're about to send a message.  Write out our sentinel byte to ensure the reading side can detect
-            // problems with our writing.
-            WriteSentinelByte(pipeWriter);
+            // Write the length of the asset to the pipe writer so the reader knows how much data to read.
+            WriteLength(tempStream.Length);
 
-            // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
-            // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
-            // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
-
-            using (var _ = GetTempStream(out var tempStream))
-            {
-                WriteAssetToTempStream(pipeWriter, tempStream, checksum, asset, scope, serializer, cancellationToken);
-
-                // Write the length of the asset to the pipe writer so the reader knows how much data to read.
-                WriteLength(pipeWriter, tempStream.Length);
-
-                // Ensure we flush out the length so the reading side can immediately read the header to determine qhow
-                // much data to it will need to prebuffer.
-                await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-                // Now, asynchronously copy the temp buffer over to the writer stream.
-                tempStream.Position = 0;
-                await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
-            }
-
-            // We flush after each item as that forms a reasonably sized chunk of data to want to then send over
-            // the pipe for the reader on the other side to read.  This allows the item-writing to remain
-            // entirely synchronous without any blocking on async flushing, while also ensuring that we're not
-            // buffering the entire stream of data into the pipe before it gets sent to the other side.
+            // Ensure we flush out the length so the reading side can immediately read the header to determine qhow
+            // much data to it will need to prebuffer.
             await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+            // Now, asynchronously copy the temp buffer over to the writer stream.
+            tempStream.Position = 0;
+            await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
         }
 
-        static void WriteAssetToTempStream(
-            PipeWriter pipeWriter,
-            Stream tempStream,
-            Checksum checksum,
-            object asset,
-            SolutionAssetStorage.Scope scope,
-            ISerializerService serializer,
-            CancellationToken cancellationToken)
+        // We flush after each item as that forms a reasonably sized chunk of data to want to then send over
+        // the pipe for the reader on the other side to read.  This allows the item-writing to remain
+        // entirely synchronous without any blocking on async flushing, while also ensuring that we're not
+        // buffering the entire stream of data into the pipe before it gets sent to the other side.
+        await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+        return;
+
+        void WriteAssetToTempStream(Stream tempStream)
         {
             using var writer = new ObjectWriter(tempStream, leaveOpen: true, cancellationToken);
             {
@@ -237,14 +232,14 @@ internal static class RemoteHostAssetSerialization
             }
         }
 
-        static void WriteSentinelByte(PipeWriter pipeWriter)
+        void WriteSentinelByte()
         {
             var span = pipeWriter.GetSpan(1);
             span[0] = MessageSentinelByte;
             pipeWriter.Advance(1);
         }
 
-        static void WriteLength(PipeWriter pipeWriter, long length)
+        void WriteLength(long length)
         {
             Contract.ThrowIfTrue(length > int.MaxValue);
 
@@ -253,7 +248,7 @@ internal static class RemoteHostAssetSerialization
             pipeWriter.Advance(sizeof(int));
         }
 
-        static PooledObject<SerializableBytes.ReadWriteStream> GetTempStream(out Stream stream)
+        PooledObject<SerializableBytes.ReadWriteStream> GetTempStream(out Stream stream)
         {
             var pooledObject = s_streamPool.GetPooledObject();
             var tempStream = pooledObject.Object;
