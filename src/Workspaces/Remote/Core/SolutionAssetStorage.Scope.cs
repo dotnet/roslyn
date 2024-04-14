@@ -63,10 +63,7 @@ internal partial class SolutionAssetStorage
         }
 
         private async Task FindAssetsAsync(
-            AssetPath assetPath,
-            HashSet<Checksum> remainingChecksumsToFind,
-            Action<Checksum, object> onAssetFound,
-            CancellationToken cancellationToken)
+            AssetPath assetPath, HashSet<Checksum> remainingChecksumsToFind, Action<Checksum, object> onAssetFound, CancellationToken cancellationToken)
         {
             var solutionState = this.CompilationState;
 
