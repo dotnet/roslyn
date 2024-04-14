@@ -137,6 +137,8 @@ internal static class RemoteHostAssetSerialization
             }
             finally
             {
+                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
+                // writing task knows it's done.
                 channel.Writer.TryComplete(exception);
             }
         }
