@@ -21,20 +21,14 @@ namespace Microsoft.CodeAnalysis.Remote
     /// server.  The format we use is as follows.  For each asset we're writing we write:
     /// <code>
     /// -------------------------------------------------------------------------
-    /// | header (5 bytes)                             | data (variable length) |
+    /// | sentinel (1 byte) | length of data (4 bytes) | data (variable length) |
     /// -------------------------------------------------------------------------
-    /// 
-    /// Where the header is
-    /// ------------------------------------------------
-    /// | header (5 bytes)                             |
-    /// ------------------------------------------------
-    /// | sentinel (1 byte) | length of data (4 bytes) |
-    /// ------------------------------------------------
     /// </code>
-    /// The writing code will write out the header, ensuring it is flushed to the pipe-writer.  This allows the
-    /// pipe-reader to immediately read that information so it can then pre-allocate the space for the data to go into.
-    /// After writing the data the writer will also flush, so the reader can then read the data out of the pipe into its
-    /// buffer.  Once present in the buffer, synchronous deserialization can happen without any blocking on async-io.
+    /// The writing code will write out the sentinel-byte and data-length, ensuring it is flushed to the pipe-writer.
+    /// This allows the pipe-reader to immediately read that information so it can then pre-allocate the space for the
+    /// data to go into. After writing the data the writer will also flush, so the reader can then read the data out of
+    /// the pipe into its buffer.  Once present in the reader's buffer, synchronous deserialization can happen without
+    /// any sync-over-async blocking on async-io.
     /// <para>
     /// The sentinel byte serves to let us detect immediately on the reading side if something has gone wrong with this
     /// system.
@@ -53,17 +47,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// | ObjectWriter validation (2 bytes) | checksum (16 bytes) | kind (4 bytes) | asset-data (asset specified) |
     /// -----------------------------------------------------------------------------------------------------------
     /// </code>
-    /// The validation bytes are followed by the checksum.  This is needed in the message as assets can be found in any
-    /// order (they are not reported in the order of the array of checksums passed into the writing method). Following
-    /// this is the kind of the asset.  This is used by the reading code to know which asset-deserialization routine to
-    /// invoke. Finally, the asset data itself is written out.
+    /// The validation bytes are followed by the checksum.  The checksum is needed in the message as assets can be found
+    /// in any order (they are not reported in the order of the array of checksums passed into the writing method).
+    /// Following this is the kind of the asset.  This kind is used by the reading code to know which
+    /// asset-deserialization routine to invoke. Finally, the asset data itself is written out.
     /// </summary>
     internal static class RemoteHostAssetSerialization
     {
         /// <summary>
         /// A sentinel byte we place between messages.  Ensures we can detect when something has gone wrong as soon as possible.
         /// </summary>
-        private const byte s_messageSentinelByte = 0b01010101;
+        private const byte MessageSentinelByte = 0b01010101;
 
         private static readonly ObjectPool<SerializableBytes.ReadWriteStream> s_streamPool = new(SerializableBytes.CreateWritableStream);
 
@@ -148,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote
             void WriteSentinelByte()
             {
                 var span = pipeWriter.GetSpan(1);
-                span[0] = s_messageSentinelByte;
+                span[0] = MessageSentinelByte;
                 pipeWriter.Advance(1);
             }
 
@@ -187,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var (sentinelByte, length) = ReadSentinelAndLength(lengthReadResult);
 
                     // Check that the sentinel is correct.
-                    Contract.ThrowIfTrue(sentinelByte != s_messageSentinelByte);
+                    Contract.ThrowIfTrue(sentinelByte != MessageSentinelByte);
 
                     // If so, move the pipe reader forward to the end of the header.
                     pipeReader.AdvanceTo(lengthReadResult.Buffer.GetPosition(HeaderSize));
