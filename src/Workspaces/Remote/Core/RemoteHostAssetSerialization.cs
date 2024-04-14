@@ -101,10 +101,10 @@ internal static class RemoteHostAssetSerialization
 #endif
 
         // Spin up a task to go search for all the requested checksums, adding results to the channel.
-        var findAssetsTask = FindAllAssetsAsync(assetPath, checksums, scope, channel, cancellationToken);
+        var findAssetsTask = FindAssetsFromScopeAndWriteToChannelAsync(assetPath, checksums, scope, channel, cancellationToken);
 
         // Spin up a task to read from the channel and write out the assets to the pipe-writer.
-        var writeAssetsTask = WriteAllAssetsToPipeAsync(
+        var writeAssetsTask = ReadAssetsFromChannelAndWriteToPipeAsync(
             pipeWriter, channel, checksums.Length, scope, serializer, cancellationToken);
 
         // Wait for both the searching and writing tasks to finish.
@@ -112,7 +112,7 @@ internal static class RemoteHostAssetSerialization
 
         return;
 
-        static async Task FindAllAssetsAsync(
+        static async Task FindAssetsFromScopeAndWriteToChannelAsync(
             AssetPath assetPath,
             ReadOnlyMemory<Checksum> checksums,
             SolutionAssetStorage.Scope scope,
@@ -147,7 +147,7 @@ internal static class RemoteHostAssetSerialization
             }
         }
 
-        static async Task WriteAllAssetsToPipeAsync(
+        static async Task ReadAssetsFromChannelAndWriteToPipeAsync(
             PipeWriter pipeWriter,
             ChecksumChannel channel,
             int checksumCount,
