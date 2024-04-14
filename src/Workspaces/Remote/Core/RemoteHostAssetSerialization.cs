@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var span = pipeWriter.GetSpan(sizeof(int));
                 BinaryPrimitives.WriteInt32LittleEndian(span, (int)length);
-                pipeWriter.Advance(span.Length);
+                pipeWriter.Advance(sizeof(int));
             }
         }
 
@@ -124,9 +124,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // First, read the length of the data chunk we'll be reading.
                     var lengthReadResult = await pipeReader.ReadAtLeastAsync(sizeof(int), cancellationToken).ConfigureAwait(false);
-                    var length = ReadLength(lengthReadResult);
 
-                    // Advance past the length.
+                    // read and advance past the length.
+                    var length = ReadLength(lengthReadResult);
                     pipeReader.AdvanceTo(lengthReadResult.Buffer.GetPosition(sizeof(int)));
 
                     // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as
