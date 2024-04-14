@@ -287,6 +287,11 @@ internal static class RemoteHostAssetSerialization
         {
             using var pipeReaderStream = pipeReader.AsStream(leaveOpen: true);
 
+            // Get an object reader over the stream.  Note; we do not check the version bytes here, as the stream is
+            // currently pointing at header data prior to the object data.  Instead, after reading the header data, we
+            // will 'Reset' the reader to ensure it checks the version bytes and clears its internal state.
+            using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkVersionBytes: false, cancellationToken);
+
             for (var i = 0; i < objectCount; i++)
             {
                 // First, read the sentinel byte and the length of the data chunk we'll be reading.
@@ -310,11 +315,12 @@ internal static class RemoteHostAssetSerialization
                 // from within ObjectReader.GetReader below.
                 pipeReader.AdvanceTo(fillReadResult.Buffer.Start);
 
-                // Now do the actual read of the data, synchronously, from the buffers that are now in memory within
-                // our process.  These reads will move the pipe-reader forward, without causing any blocking on
-                // async-io.
-                using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, cancellationToken);
+                // Let the object reader know we're resetting (so it will check its validation bits and clear its
+                // internal state.
+                reader.Reset();
 
+                // Now do the actual read of the data, synchronously, from the buffers that are now in memory within our
+                // process.  These reads will move the pipe-reader forward, without causing any blocking on async-io.
                 var checksum = Checksum.ReadFrom(reader);
                 var kind = (WellKnownSynchronizationKind)reader.ReadByte();
 

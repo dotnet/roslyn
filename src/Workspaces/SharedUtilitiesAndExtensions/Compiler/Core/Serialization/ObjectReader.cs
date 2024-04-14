@@ -100,39 +100,50 @@ internal sealed partial class ObjectReader : IDisposable
     /// of the data in the stream to exactly match the current format version.
     /// Should only be used to read data written by the same version of Roslyn.
     /// </summary>
+    public static ObjectReader GetReader(Stream stream, bool leaveOpen, CancellationToken cancellationToken)
+        => GetReader(stream, leaveOpen, checkVersionBytes: true, cancellationToken);
+
     public static ObjectReader GetReader(
         Stream stream,
         bool leaveOpen,
+        bool checkVersionBytes,
         CancellationToken cancellationToken)
+    {
+        if (checkVersionBytes)
+            ReadVersionBytes(stream);
+        return new ObjectReader(stream, leaveOpen, cancellationToken);
+    }
+
+    private static void ReadVersionBytes(Stream stream)
     {
         var b = stream.ReadByte();
         if (b == -1)
-        {
             throw new EndOfStreamException();
-        }
 
         if (b != VersionByte1)
-        {
             throw ExceptionUtilities.UnexpectedValue(b);
-        }
 
         b = stream.ReadByte();
         if (b == -1)
-        {
             throw new EndOfStreamException();
-        }
 
         if (b != VersionByte2)
-        {
             throw ExceptionUtilities.UnexpectedValue(b);
-        }
-
-        return new ObjectReader(stream, leaveOpen, cancellationToken);
     }
 
     public void Dispose()
     {
         _stringReferenceMap.Dispose();
+    }
+
+    /// <summary>
+    /// Resets this ObjectReader to its initial state.  This will re-read the version-bytes from the stream (throwing if
+    /// they are invalid), allowing the reader to then read the next object from the stream.
+    /// </summary>
+    public void Reset()
+    {
+        ReadVersionBytes(_reader.BaseStream);
+        _stringReferenceMap.Reset();
     }
 
     public bool ReadBoolean() => _reader.ReadBoolean();
