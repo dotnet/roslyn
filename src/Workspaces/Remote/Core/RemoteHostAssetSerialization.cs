@@ -44,6 +44,19 @@ namespace Microsoft.CodeAnalysis.Remote
     /// in-memory buffer, then write that buffer's length to the pipe-writer, then copy the in-memory buffer to the
     /// writer.
     /// </para>
+    /// When writing/reading the data-segment, we use an the <see cref="ObjectWriter"/>/<see cref="ObjectReader"/>
+    /// subsystem.  This will write its own validation bits, and then the data describing the asset.  This data is:
+    /// <code>
+    /// -----------------------------------------------------------------------------------------------------------
+    /// | data (variable length)                                                                                  |
+    /// -----------------------------------------------------------------------------------------------------------
+    /// | ObjectWriter validation (2 bytes) | checksum (16 bytes) | kind (4 bytes) | asset-data (asset specified) |
+    /// -----------------------------------------------------------------------------------------------------------
+    /// </code>
+    /// The validation bytes are followed by the checksum.  This is needed in the message as assets can be found in any
+    /// order (they are not reported in the order of the array of checksums passed into the writing method). Following
+    /// this is the kind of the asset.  This is used by the reading code to know which asset-deserialization routine to
+    /// invoke. Finally, the asset data itself is written out.
     /// </summary>
     internal static class RemoteHostAssetSerialization
     {
@@ -101,7 +114,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Write the length of the asset to the pipe writer so the reader knows how much data to read.
                 WriteLengthToPipeWriter(tempStream.Length);
 
-                // Ensure we flush out the length so the reading side knows how much data to read.
+                // Ensure we flush out the length so the reading side can immediately read the header to determine qhow
+                // much data to it will need to prebuffer.
                 await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
                 // Now, asynchronously copy the temp buffer over to the writer stream.
