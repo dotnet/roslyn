@@ -14,17 +14,6 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal static class Creator
 {
-    public static PooledObject<HashSet<Checksum>> CreateChecksumSet(ReadOnlyMemory<Checksum> checksums)
-    {
-        var items = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-
-        var hashSet = items.Object;
-        foreach (var checksum in checksums.Span)
-            hashSet.Add(checksum);
-
-        return items;
-    }
-
     public static PooledObject<List<T>> CreateList<T>()
         => SharedPools.Default<List<T>>().GetPooledObject();
 }

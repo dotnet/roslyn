@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// When writing/reading the data-segment, we use an the <see cref="ObjectWriter"/>/<see cref="ObjectReader"/>
 /// subsystem.  This will write its own validation bits, and then the data describing the asset.  This data is:
 /// <code>
-/// -----------------------------------------------------------------------------------------------------------
-/// | data (variable length)                                                                                  |
-/// -----------------------------------------------------------------------------------------------------------
-/// | ObjectWriter validation (2 bytes) | checksum (16 bytes) | kind (4 bytes) | asset-data (asset specified) |
-/// -----------------------------------------------------------------------------------------------------------
+/// ----------------------------------------------------------------------------------------------------------
+/// | data (variable length)                                                                                 |
+/// ----------------------------------------------------------------------------------------------------------
+/// | ObjectWriter validation (2 bytes) | checksum (16 bytes) | kind (1 byte) | asset-data (asset specified) |
+/// ----------------------------------------------------------------------------------------------------------
 /// </code>
 /// The validation bytes are followed by the checksum.  The checksum is needed in the message as assets can be found
 /// in any order (they are not reported in the order of the array of checksums passed into the writing method).
@@ -189,7 +189,7 @@ internal static class RemoteHostAssetSerialization
 
                 // Write out the kind so the receiving end knows how to deserialize this asset.
                 var kind = asset.GetWellKnownSynchronizationKind();
-                writer.WriteInt32((int)kind);
+                writer.WriteByte((byte)kind);
 
                 // Now serialize out the asset itself.
                 serializer.Serialize(asset, writer, scope.ReplicationContext, cancellationToken);
@@ -274,7 +274,7 @@ internal static class RemoteHostAssetSerialization
                 using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, cancellationToken);
 
                 var checksum = Checksum.ReadFrom(reader);
-                var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
+                var kind = (WellKnownSynchronizationKind)reader.ReadByte();
 
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize(kind, reader, cancellationToken);
