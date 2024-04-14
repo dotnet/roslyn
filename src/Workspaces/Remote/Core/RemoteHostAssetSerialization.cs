@@ -63,6 +63,18 @@ internal static class RemoteHostAssetSerialization
 
     private static readonly ObjectPool<SerializableBytes.ReadWriteStream> s_streamPool = new(SerializableBytes.CreateWritableStream);
 
+    private static readonly UnboundedChannelOptions s_channelOptions = new()
+    {
+        // We have a single task reading the data from the channel and writing it to the pipe.  This option
+        // allows the channel to operate in a more efficient manner knowing it won't have to sychronize data
+        // for multiple readers.
+        SingleReader = true,
+
+        // Currently we only have a single writer writing to the channel when we call FindAllAssetsAsync.
+        // However, we could change this in the future to allow the search to happen in parallel.
+        SingleWriter = true,
+    };
+
     public static async ValueTask WriteDataAsync(
         PipeWriter pipeWriter,
         AssetPath assetPath,
@@ -74,17 +86,7 @@ internal static class RemoteHostAssetSerialization
         // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
         // find items, add them to the channel synchronously, and immediately continue searching for more items.
         // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
-        var channel = Channel.CreateUnbounded<(Checksum checksum, object asset)>(new UnboundedChannelOptions()
-        {
-            // We have a single task reading the data from the channel and writing it to the pipe.  This option
-            // allows the channel to operate in a more efficient manner knowing it won't have to sychronize data
-            // for multiple readers.
-            SingleReader = true,
-
-            // Currently we only have a single writer writing to the channel when we call FindAllAssetsAsync.
-            // However, we could change this in the future to allow the search to happen in parallel.
-            SingleWriter = true,
-        });
+        var channel = Channel.CreateUnbounded<(Checksum checksum, object asset)>(s_channelOptions);
 
         // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets
         // to the pipe.
