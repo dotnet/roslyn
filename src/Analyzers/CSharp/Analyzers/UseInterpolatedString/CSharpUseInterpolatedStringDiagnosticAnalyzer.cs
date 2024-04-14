@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedString;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal abstract class CSharpUseInterpolatedStringDiagnosticAnalyzer : AbstractUseInterpolatedStringDiagnosticAnalyzer
+internal class CSharpUseInterpolatedStringDiagnosticAnalyzer : AbstractUseInterpolatedStringDiagnosticAnalyzer
 {
     protected CSharpUseInterpolatedStringDiagnosticAnalyzer() : base()
     {
