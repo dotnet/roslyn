@@ -62,14 +62,12 @@ namespace Microsoft.CodeAnalysis.Remote
             ISerializerService serializer,
             CancellationToken cancellationToken)
         {
-            var pipeWriterStream = pipeWriter.AsStream();
-
             var foundChecksumCount = 0;
 
             await scope.AddAssetsAsync(
                 assetPath,
                 checksums,
-                WriteAssetToPipeAsync,
+                onAssetFoundAsync: WriteAssetToPipeAsync,
                 cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
@@ -91,18 +89,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // Don't truncate the stream as we're going to be writing to it multiple times.  This will allow us to
                 // reuse the internal chunks of the buffer, without having to reallocate them over and over again.
+                // Note: this stream internally keeps a list of byte[]s that it writes to.  Each byte[] is less than the
+                // LOH size, so there's no concern about LOH fragmentation here.
                 tempStream.SetLength(0, truncate: false);
 
                 // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
                 // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
-                // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fasion.
+                // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
                 WriteAssetToTempStream(tempStream, checksum, asset);
 
                 // Write the length of the asset to the pipe writer so the reader knows how much data to read.
                 WriteLengthToPipeWriter(tempStream.Length);
 
                 // Ensure we flush out the length so the reading side knows how much data to read.
-                await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
                 // Now, asynchronously copy the temp buffer over to the writer stream.
                 tempStream.Position = 0;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // the pipe for the reader on the other side to read.  This allows the item-writing to remain
                 // entirely synchronous without any blocking on async flushing, while also ensuring that we're not
                 // buffering the entire stream of data into the pipe before it gets sent to the other side.
-                await pipeWriterStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             void WriteAssetToTempStream(Stream tempStream, Checksum checksum, object asset)
