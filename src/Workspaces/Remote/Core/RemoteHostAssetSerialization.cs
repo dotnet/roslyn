@@ -164,7 +164,9 @@ internal static class RemoteHostAssetSerialization
             var foundChecksumCount = 0;
 
             // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
-            // validation bytes at this point in time.  We'll write them between each asset we write out.
+            // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a
+            // single object writer across all assets means we get the benefit of string deduplication across all assets
+            // we write out.
             using var pooledStream = s_streamPool.GetPooledObject();
             using var writer = new ObjectWriter(pooledStream.Object, leaveOpen: true, writeValidationBytes: false, cancellationToken);
 
