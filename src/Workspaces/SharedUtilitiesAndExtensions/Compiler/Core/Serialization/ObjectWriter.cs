@@ -85,6 +85,7 @@ internal sealed partial class ObjectWriter : IDisposable
     public ObjectWriter(
         Stream stream,
         bool leaveOpen = false,
+        bool writeValidationBytes = true,
         CancellationToken cancellationToken = default)
     {
         // String serialization assumes both reader and writer to be of the same endianness.
@@ -95,10 +96,11 @@ internal sealed partial class ObjectWriter : IDisposable
         _stringReferenceMap = new WriterReferenceMap();
         _cancellationToken = cancellationToken;
 
-        WriteVersion();
+        if (writeValidationBytes)
+            WriteValidationBytes();
     }
 
-    private void WriteVersion()
+    public void WriteValidationBytes()
     {
         WriteByte(ObjectReader.VersionByte1);
         WriteByte(ObjectReader.VersionByte2);

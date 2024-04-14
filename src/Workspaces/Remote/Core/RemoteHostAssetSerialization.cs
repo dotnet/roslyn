@@ -163,12 +163,17 @@ internal static class RemoteHostAssetSerialization
             // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
             var foundChecksumCount = 0;
 
+            // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
+            // validation bytes at this point in time.  We'll write them between each asset we write out.
+            using var pooledStream = s_streamPool.GetPooledObject();
+            using var writer = new ObjectWriter(pooledStream.Object, leaveOpen: true, writeValidationBytes: false, cancellationToken);
+
             while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 while (channelReader.TryRead(out var item))
                 {
                     await WriteSingleAssetToPipeAsync(
-                        pipeWriter, item.checksum, item.asset, scope, serializer, cancellationToken).ConfigureAwait(false);
+                        pipeWriter, pooledStream.Object, writer, item.checksum, item.asset, scope, serializer, cancellationToken).ConfigureAwait(false);
                     foundChecksumCount++;
                 }
             }
@@ -182,6 +187,8 @@ internal static class RemoteHostAssetSerialization
 
     private static async ValueTask WriteSingleAssetToPipeAsync(
         PipeWriter pipeWriter,
+        SerializableBytes.ReadWriteStream tempStream,
+        ObjectWriter writer,
         Checksum checksum,
         object asset,
         SolutionAssetStorage.Scope scope,
@@ -192,27 +199,23 @@ internal static class RemoteHostAssetSerialization
 
         // We're about to send a message.  Write out our sentinel byte to ensure the reading side can detect
         // problems with our writing.
-        WriteSentinelByte();
+        WriteSentinelByteToPipeWriter();
 
         // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
         // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
         // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
+        WriteAssetToTempStream();
 
-        using (var _ = GetTempStream(out var tempStream))
-        {
-            WriteAssetToTempStream(tempStream);
+        // Write the length of the asset to the pipe writer so the reader knows how much data to read.
+        WriteTempStreamLengthToPipeWriter();
 
-            // Write the length of the asset to the pipe writer so the reader knows how much data to read.
-            WriteLength(tempStream.Length);
+        // Ensure we flush out the length so the reading side can immediately read the header to determine how much
+        // data to it will need to prebuffer.
+        await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-            // Ensure we flush out the length so the reading side can immediately read the header to determine how much
-            // data to it will need to prebuffer.
-            await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-            // Now, asynchronously copy the temp buffer over to the writer stream.
-            tempStream.Position = 0;
-            await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
-        }
+        // Now, asynchronously copy the temp buffer over to the writer stream.
+        tempStream.Position = 0;
+        await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
 
         // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the pipe
         // for the reader on the other side to read.  This allows the item-writing to remain entirely synchronous
@@ -222,51 +225,44 @@ internal static class RemoteHostAssetSerialization
 
         return;
 
-        void WriteAssetToTempStream(Stream tempStream)
+        void WriteAssetToTempStream()
         {
-            using var writer = new ObjectWriter(tempStream, leaveOpen: true, cancellationToken);
-            {
-                // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
-                checksum.WriteTo(writer);
+            // Reset the temp stream to the beginning and clear it out. Don't truncate the stream as we're going to be
+            // writing to it multiple times.  This will allow us to reuse the internal chunks of the buffer, without
+            // having to reallocate them over and over again. Note: this stream internally keeps a list of byte[]s that
+            // it writes to.  Each byte[] is less than the LOH size, so there's no concern about LOH fragmentation here.
+            tempStream.Position = 0;
+            tempStream.SetLength(0, truncate: false);
 
-                // Write out the kind so the receiving end knows how to deserialize this asset.
-                var kind = asset.GetWellKnownSynchronizationKind();
-                writer.WriteByte((byte)kind);
+            // Write out the object writer validation bytes.  This will help us detect issues when reading if we've
+            // screwed something up.
+            writer.WriteValidationBytes();
 
-                // Now serialize out the asset itself.
-                serializer.Serialize(asset, writer, scope.ReplicationContext, cancellationToken);
-            }
+            // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
+            checksum.WriteTo(writer);
+
+            // Write out the kind so the receiving end knows how to deserialize this asset.
+            writer.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
+
+            // Now serialize out the asset itself.
+            serializer.Serialize(asset, writer, scope.ReplicationContext, cancellationToken);
         }
 
-        void WriteSentinelByte()
+        void WriteSentinelByteToPipeWriter()
         {
             var span = pipeWriter.GetSpan(1);
             span[0] = MessageSentinelByte;
             pipeWriter.Advance(1);
         }
 
-        void WriteLength(long length)
+        void WriteTempStreamLengthToPipeWriter()
         {
+            var length = tempStream.Length;
             Contract.ThrowIfTrue(length > int.MaxValue);
 
             var span = pipeWriter.GetSpan(sizeof(int));
             BinaryPrimitives.WriteInt32LittleEndian(span, (int)length);
             pipeWriter.Advance(sizeof(int));
-        }
-
-        PooledObject<SerializableBytes.ReadWriteStream> GetTempStream(out Stream stream)
-        {
-            var pooledObject = s_streamPool.GetPooledObject();
-            var tempStream = pooledObject.Object;
-            tempStream.Position = 0;
-
-            // Don't truncate the stream as we're going to be writing to it multiple times.  This will allow us to
-            // reuse the internal chunks of the buffer, without having to reallocate them over and over again.
-            // Note: this stream internally keeps a list of byte[]s that it writes to.  Each byte[] is less than the
-            // LOH size, so there's no concern about LOH fragmentation here.
-            tempStream.SetLength(0, truncate: false);
-            stream = tempStream;
-            return pooledObject;
         }
     }
 
@@ -287,9 +283,9 @@ internal static class RemoteHostAssetSerialization
         {
             using var pipeReaderStream = pipeReader.AsStream(leaveOpen: true);
 
-            // Get an object reader over the stream.  Note; we do not check the version bytes here, as the stream is
-            // currently pointing at header data prior to the object data.  Instead, after reading the header data, we
-            // will 'Reset' the reader to ensure it checks the version bytes and clears its internal state.
+            // Get an object reader over the stream.  Note: we do not check the version bytes here, as the stream is
+            // currently pointing at header data prior to the object data.  Instead, we will check the version bytes
+            // prior to reading each asset out.
             using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkVersionBytes: false, cancellationToken);
 
             for (var i = 0; i < objectCount; i++)
@@ -315,19 +311,8 @@ internal static class RemoteHostAssetSerialization
                 // from within ObjectReader.GetReader below.
                 pipeReader.AdvanceTo(fillReadResult.Buffer.Start);
 
-                // Let the object reader know we're resetting (so it will check its validation bits and clear its
-                // internal state.
-                reader.Reset();
-
-                // Now do the actual read of the data, synchronously, from the buffers that are now in memory within our
-                // process.  These reads will move the pipe-reader forward, without causing any blocking on async-io.
-                var checksum = Checksum.ReadFrom(reader);
-                var kind = (WellKnownSynchronizationKind)reader.ReadByte();
-
-                // in service hub, cancellation means simply closed stream
-                var result = serializerService.Deserialize(kind, reader, cancellationToken);
-                Contract.ThrowIfNull(result);
-                callback(checksum, (T)result, arg);
+                var (checksum, asset) = ReadSingleAssetFromObjectReader(reader, serializerService, cancellationToken);
+                callback(checksum, asset, arg);
             }
         }
 
@@ -337,6 +322,23 @@ internal static class RemoteHostAssetSerialization
             Contract.ThrowIfFalse(sequenceReader.TryRead(out var sentinel));
             Contract.ThrowIfFalse(sequenceReader.TryReadLittleEndian(out int length));
             return (sentinel, length);
+        }
+
+        static (Checksum checksum, T asset) ReadSingleAssetFromObjectReader(
+            ObjectReader reader, ISerializerService serializerService, CancellationToken cancellationToken)
+        {
+            // Let the object reader do it's own individual object checking.
+            reader.CheckVersionBytes();
+
+            // Now do the actual read of the data, synchronously, from the buffers that are now in memory within our
+            // process.  These reads will move the pipe-reader forward, without causing any blocking on async-io.
+            var checksum = Checksum.ReadFrom(reader);
+            var kind = (WellKnownSynchronizationKind)reader.ReadByte();
+
+            // in service hub, cancellation means simply closed stream
+            var result = serializerService.Deserialize(kind, reader, cancellationToken);
+            Contract.ThrowIfNull(result);
+            return (checksum, (T)result);
         }
     }
 }

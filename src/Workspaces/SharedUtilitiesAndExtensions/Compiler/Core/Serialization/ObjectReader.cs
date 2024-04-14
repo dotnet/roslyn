@@ -109,13 +109,16 @@ internal sealed partial class ObjectReader : IDisposable
         bool checkVersionBytes,
         CancellationToken cancellationToken)
     {
+        var reader = new ObjectReader(stream, leaveOpen, cancellationToken);
         if (checkVersionBytes)
-            ReadVersionBytes(stream);
-        return new ObjectReader(stream, leaveOpen, cancellationToken);
+            reader.CheckVersionBytes();
+
+        return reader;
     }
 
-    private static void ReadVersionBytes(Stream stream)
+    public void CheckVersionBytes()
     {
+        var stream = _reader.BaseStream;
         var b = stream.ReadByte();
         if (b == -1)
             throw new EndOfStreamException();
@@ -136,15 +139,15 @@ internal sealed partial class ObjectReader : IDisposable
         _stringReferenceMap.Dispose();
     }
 
-    /// <summary>
-    /// Resets this ObjectReader to its initial state.  This will re-read the version-bytes from the stream (throwing if
-    /// they are invalid), allowing the reader to then read the next object from the stream.
-    /// </summary>
-    public void Reset()
-    {
-        ReadVersionBytes(_reader.BaseStream);
-        _stringReferenceMap.Reset();
-    }
+    ///// <summary>
+    ///// Resets this ObjectReader to its initial state.  This will re-read the version-bytes from the stream (throwing if
+    ///// they are invalid), allowing the reader to then read the next object from the stream.
+    ///// </summary>
+    //public void Reset()
+    //{
+    //    CheckVersionBytes(_reader.BaseStream);
+    //    _stringReferenceMap.Reset();
+    //}
 
     public bool ReadBoolean() => _reader.ReadBoolean();
     public byte ReadByte() => _reader.ReadByte();

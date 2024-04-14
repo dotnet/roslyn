@@ -32,9 +32,6 @@ internal sealed partial class ObjectReader
             s_objectListPool.Free(_values);
         }
 
-        public void Reset()
-            => _values.Clear();
-
         public void AddValue(string value)
             => _values.Add(value);
 
