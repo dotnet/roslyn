@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             using var stream = SerializableBytes.CreateWritableStream();
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 WriteTo(classifiedSpans, writer);
             }
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var persistenceName = GetPersistenceName(type);
             using var stream = await storage.ReadStreamAsync(documentKey, persistenceName, checksum, cancellationToken).ConfigureAwait(false);
-            using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
+            using var reader = ObjectReader.TryGetReader(stream);
             if (reader == null)
                 return default;
 

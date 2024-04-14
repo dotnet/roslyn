@@ -53,7 +53,6 @@ internal sealed partial class ObjectWriter : IDisposable
     public const byte Byte4Marker = 2 << 6;
 
     private readonly BinaryWriter _writer;
-    private readonly CancellationToken _cancellationToken;
 
     /// <summary>
     /// Map of serialized string reference ids.  The string-reference-map uses value-equality for greater cache hits
@@ -81,11 +80,9 @@ internal sealed partial class ObjectWriter : IDisposable
     /// </summary>
     /// <param name="stream">The stream to write to.</param>
     /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     public ObjectWriter(
         Stream stream,
-        bool leaveOpen = false,
-        CancellationToken cancellationToken = default)
+        bool leaveOpen = false)
     {
         // String serialization assumes both reader and writer to be of the same endianness.
         // It can be adjusted for BigEndian if needed.
@@ -93,7 +90,6 @@ internal sealed partial class ObjectWriter : IDisposable
 
         _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
         _stringReferenceMap = new WriterReferenceMap();
-        _cancellationToken = cancellationToken;
 
         WriteVersion();
     }

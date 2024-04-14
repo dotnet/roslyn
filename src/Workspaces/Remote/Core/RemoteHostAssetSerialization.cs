@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ReadOnlyMemory<Checksum> checksums,
             CancellationToken cancellationToken)
         {
-            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+            using var writer = new ObjectWriter(stream, leaveOpen: true);
 
             // This information is not actually needed on the receiving end.  However, we still send it so that the
             // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var (checksum, asset) in assetMap)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 Contract.ThrowIfNull(asset);
 
                 var kind = asset.GetWellKnownSynchronizationKind();
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static void ReadData<T, TArg>(
             Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
         {
-            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true);
 
             // Ensure that no invariants were broken and that both sides of the communication channel are talking about
             // the same pinned solution.
@@ -88,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             for (int i = 0, n = objectCount; i < n; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var checksum = Checksum.ReadFrom(reader);
                 var kind = (WellKnownSynchronizationKind)reader.ReadByte();
 
