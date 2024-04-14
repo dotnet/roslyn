@@ -30,4 +30,9 @@ internal partial class CSharpUseInterpolatedStringCodeFixProvider : AbstractUseI
     }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseInterpolatedStringDiagnosticId];
+
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }

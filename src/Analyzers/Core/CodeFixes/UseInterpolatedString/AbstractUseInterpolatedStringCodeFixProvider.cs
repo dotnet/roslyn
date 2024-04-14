@@ -8,10 +8,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseInterpolatedString;
 
-internal abstract partial class AbstractUseInterpolatedStringCodeFixProvider : CodeFixProvider
+internal abstract partial class AbstractUseInterpolatedStringCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
-
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
