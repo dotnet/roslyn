@@ -55,9 +55,11 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal static class RemoteHostAssetSerialization
 {
     /// <summary>
-    /// A sentinel byte we place between messages.  Ensures we can detect when something has gone wrong as soon as possible.
+    /// A sentinel byte we place between messages.  Ensures we can detect when something has gone wrong as soon as
+    /// possible. Note: the value we pick is neither ascii nor extended ascii.  So it's very unlikely to appear
+    /// accidentally.
     /// </summary>
-    private const byte MessageSentinelByte = 0b01010101;
+    private const byte MessageSentinelByte = 0b10010000;
 
     private static readonly ObjectPool<SerializableBytes.ReadWriteStream> s_streamPool = new(SerializableBytes.CreateWritableStream);
 
