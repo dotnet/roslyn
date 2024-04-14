@@ -304,8 +304,7 @@ internal sealed class SolutionStateChecksums(
                 if (projectState != null &&
                     projectState.TryGetStateChecksums(out var projectStateChecksums))
                 {
-                    await projectStateChecksums.FindAsync(
-                        projectState, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
+                    await projectStateChecksums.FindAsync(projectState, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
                 }
             }
             else
@@ -328,8 +327,7 @@ internal sealed class SolutionStateChecksums(
                     if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
                         continue;
 
-                    await projectStateChecksums.FindAsync(
-                        projectState, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
+                    await projectStateChecksums.FindAsync(projectState, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
