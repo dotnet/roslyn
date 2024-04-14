@@ -122,6 +122,7 @@ internal static class RemoteHostAssetSerialization
         {
             await Task.Yield();
 
+            Exception? exception = null;
             try
             {
                 await scope.FindAssetsAsync(
@@ -130,17 +131,13 @@ internal static class RemoteHostAssetSerialization
                     (checksum, asset) => channel.Writer.TryWrite((checksum, asset)),
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when ((exception = ex) == null)
             {
-                // If Something went wrong ensure that we complete the channel so that the writing task will stop.
-                // Also bubble the exception out so that the outer Task.WhenAll will bubble it up.
-                channel.Writer.TryComplete(ex);
-                throw;
+                throw ExceptionUtilities.Unreachable();
             }
             finally
             {
-                // We finished searching for all the checksums, let the writer know.
-                channel.Writer.TryComplete();
+                channel.Writer.TryComplete(exception);
             }
         }
 
