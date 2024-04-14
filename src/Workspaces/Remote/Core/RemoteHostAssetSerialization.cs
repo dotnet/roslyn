@@ -335,7 +335,6 @@ internal static class RemoteHostAssetSerialization
             var checksum = Checksum.ReadFrom(reader);
             var kind = (WellKnownSynchronizationKind)reader.ReadByte();
 
-            // in service hub, cancellation means simply closed stream
             var result = serializerService.Deserialize(kind, reader, cancellationToken);
             Contract.ThrowIfNull(result);
             return (checksum, (T)result);

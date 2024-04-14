@@ -85,8 +85,19 @@ internal sealed partial class ObjectWriter : IDisposable
     public ObjectWriter(
         Stream stream,
         bool leaveOpen = false,
-        bool writeValidationBytes = true,
         CancellationToken cancellationToken = default)
+        : this(stream, leaveOpen, writeValidationBytes: true, cancellationToken)
+    {
+    }
+
+    /// <inheritdoc cref="ObjectWriter.ObjectWriter(Stream, bool, CancellationToken)"/>
+    /// <param name="writeValidationBytes">Whether or not the validation bytes should be immediately written into the
+    /// stream.</param>
+    public ObjectWriter(
+        Stream stream,
+        bool leaveOpen,
+        bool writeValidationBytes,
+        CancellationToken cancellationToken)
     {
         // String serialization assumes both reader and writer to be of the same endianness.
         // It can be adjusted for BigEndian if needed.

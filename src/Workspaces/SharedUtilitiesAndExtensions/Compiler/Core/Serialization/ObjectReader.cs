@@ -139,16 +139,6 @@ internal sealed partial class ObjectReader : IDisposable
         _stringReferenceMap.Dispose();
     }
 
-    ///// <summary>
-    ///// Resets this ObjectReader to its initial state.  This will re-read the version-bytes from the stream (throwing if
-    ///// they are invalid), allowing the reader to then read the next object from the stream.
-    ///// </summary>
-    //public void Reset()
-    //{
-    //    CheckVersionBytes(_reader.BaseStream);
-    //    _stringReferenceMap.Reset();
-    //}
-
     public bool ReadBoolean() => _reader.ReadBoolean();
     public byte ReadByte() => _reader.ReadByte();
     // read as ushort because BinaryWriter fails on chars that are unicode surrogates
