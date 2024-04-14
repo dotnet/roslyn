@@ -323,6 +323,8 @@ internal static class SerializableBytes
         /// <summary>
         /// Sets the length of this stream (see <see cref="SetLength(long)"/>.  If <paramref name="truncate"/> is <see
         /// langword="false"/>, the internal buffers will be left as is, and the data in them will be left as garbage.
+        /// If it is <see langword="true"/> then any fully unused chunks will be discarded.  If there is a final chunk
+        /// the stream is partway through, the remainder of that chunk will be zeroed out.
         /// </summary>
         public void SetLength(long value, bool truncate)
         {
