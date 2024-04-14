@@ -95,11 +95,12 @@ internal partial class SolutionAssetStorage
             {
                 Contract.ThrowIfTrue(checksum == Checksum.Null);
 
-                using var checksumPool = Creator.CreateChecksumSet(checksum);
+                var checksums = new ReadOnlyMemory<Checksum>([checksum]);
 
                 object? asset = null;
-                await scope.FindAssetsAsync(AssetPath.FullLookupForTesting, checksumPool.Object, (foundChecksum, foundAsset) =>
+                await scope.FindAssetsAsync(AssetPath.FullLookupForTesting, checksums, (foundChecksum, foundAsset) =>
                 {
+                    Contract.ThrowIfNull(foundAsset);
                     Contract.ThrowIfTrue(asset != null); // We should only find one asset
                     Contract.ThrowIfTrue(checksum != foundChecksum);
                     asset = foundAsset;
