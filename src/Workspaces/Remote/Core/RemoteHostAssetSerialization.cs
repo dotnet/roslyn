@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     WriteAssetToTempStream(tempStream, checksum, asset);
 
                     // Write the length of the asset to the pipe writer so the reader knows how much data to read.
-                    WriteLengthToPipeWriter(tempStream.Length);
+                    WriteLength(tempStream.Length);
 
                     // Ensure we flush out the length so the reading side can immediately read the header to determine qhow
                     // much data to it will need to prebuffer.
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 pipeWriter.Advance(1);
             }
 
-            void WriteLengthToPipeWriter(long length)
+            void WriteLength(long length)
             {
                 Contract.ThrowIfTrue(length > int.MaxValue);
 
