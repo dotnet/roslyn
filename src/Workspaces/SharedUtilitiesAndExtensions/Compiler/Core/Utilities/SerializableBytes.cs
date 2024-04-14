@@ -320,30 +320,26 @@ internal static class SerializableBytes
         public override void SetLength(long value)
             => SetLength(value, truncate: true);
 
+        /// <summary>
+        /// Sets the length of this stream (see <see cref="SetLength(long)"/>.  If <paramref name="truncate"/> is <see
+        /// langword="false"/>, the internal buffers will be left as is, and the data in them will be left as garbage.
+        /// </summary>
         public void SetLength(long value, bool truncate)
         {
             EnsureCapacity(value);
 
-            if (value < length)
+            if (value < length && truncate)
             {
-                if (truncate)
-                {
-                    var chunkIndex = GetChunkIndex(value);
-                    var chunkOffset = GetChunkOffset(value);
+                var chunkIndex = GetChunkIndex(value);
+                var chunkOffset = GetChunkOffset(value);
 
-                    Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
+                Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
 
-                    var trimIndex = chunkIndex + 1;
-                    for (var i = trimIndex; i < chunks.Count; i++)
-                        SharedPools.ByteArray.Free(chunks[i]);
+                var trimIndex = chunkIndex + 1;
+                for (var i = trimIndex; i < chunks.Count; i++)
+                    SharedPools.ByteArray.Free(chunks[i]);
 
-                    chunks.RemoveRange(trimIndex, chunks.Count - trimIndex);
-                }
-                else
-                {
-                    // TODO: do we want to clear out the remaining arrays?  Or is it fine to keep the existing data in
-                    // it just as garbage?
-                }
+                chunks.RemoveRange(trimIndex, chunks.Count - trimIndex);
             }
 
             length = value;
