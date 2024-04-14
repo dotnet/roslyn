@@ -81,8 +81,9 @@ internal static class RemoteHostAssetSerialization
         ISerializerService serializer,
         CancellationToken cancellationToken)
     {
-        var foundChecksumCount = 0;
-
+        // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
+        // find items, add them to the channel synchronously, and immediately continue searching for more items.
+        // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
         var channel = Channel.CreateUnbounded<(Checksum checksum, object asset)>(new UnboundedChannelOptions()
         {
             // We have a single task reading the data from the channel and writing it to the pipe.  This option
@@ -98,6 +99,9 @@ internal static class RemoteHostAssetSerialization
         // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets
         // to the pipe.
         using var _ = cancellationToken.Register(() => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
+
+        // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
+        var foundChecksumCount = 0;
 
         // Spin up a task to go search for all the requested checksums, adding results to the channel.
         var findAssetsTask = FindAllAssetsAsync();
