@@ -89,8 +89,15 @@ internal static class RemoteHostAssetSerialization
         var channel = Channel.CreateUnbounded<(Checksum checksum, object asset)>(s_channelOptions);
 
         // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets
-        // to the pipe.
-        using var _ = cancellationToken.Register(() => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
+        // to the pipe. Capture-free version is only available on netcore unfortunately.
+#if NET
+        using var _ = cancellationToken.Register(
+            static (obj, cancellationToken) => ((Channel<(Checksum, object)>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
+            state: channel);
+#else
+        using var _ = cancellationToken.Register(
+            () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
+#endif
 
         // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
         var foundChecksumCount = 0;
