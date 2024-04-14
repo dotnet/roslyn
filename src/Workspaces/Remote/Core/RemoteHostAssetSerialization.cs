@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var kind = asset.GetWellKnownSynchronizationKind();
                 checksum.WriteTo(writer);
-                writer.WriteInt32((int)kind);
+                writer.WriteByte((byte)kind);
                 serializer.Serialize(asset, writer, context, cancellationToken);
 
                 // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
             for (int i = 0, n = objectCount; i < n; i++)
             {
                 var checksum = Checksum.ReadFrom(reader);
-                var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
+                var kind = (WellKnownSynchronizationKind)reader.ReadByte();
 
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize(kind, reader, cancellationToken);
