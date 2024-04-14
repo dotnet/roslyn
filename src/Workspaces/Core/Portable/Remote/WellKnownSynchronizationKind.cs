@@ -15,19 +15,17 @@ internal enum WellKnownSynchronizationKind : byte
     SolutionState = 2,
     ProjectState = 3,
 
-    ChecksumCollection = 4,
+    SolutionAttributes = 4,
+    ProjectAttributes = 5,
+    DocumentAttributes = 6,
+    SourceGeneratedDocumentIdentity = 7,
+    SourceGeneratorExecutionVersionMap = 8,
 
-    SolutionAttributes = 5,
-    ProjectAttributes = 6,
-    DocumentAttributes = 7,
-    SourceGeneratedDocumentIdentity = 8,
-    SourceGeneratorExecutionVersionMap = 9,
+    CompilationOptions = 9,
+    ParseOptions = 10,
+    ProjectReference = 11,
+    MetadataReference = 12,
+    AnalyzerReference = 13,
 
-    CompilationOptions = 10,
-    ParseOptions = 11,
-    ProjectReference = 12,
-    MetadataReference = 13,
-    AnalyzerReference = 14,
-
-    SerializableSourceText = 15,
+    SerializableSourceText = 14,
 }
