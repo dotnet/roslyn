@@ -25,13 +25,6 @@ internal static class Creator
         return items;
     }
 
-    public static PooledObject<HashSet<Checksum>> CreateChecksumSet(Checksum checksum)
-    {
-        var items = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-        items.Object.Add(checksum);
-        return items;
-    }
-
     public static PooledObject<List<T>> CreateList<T>()
         => SharedPools.Default<List<T>>().GetPooledObject();
 
