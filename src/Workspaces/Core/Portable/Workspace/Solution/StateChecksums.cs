@@ -189,15 +189,13 @@ internal sealed class SolutionCompilationStateChecksums
             // If we're not in a project cone, start the search at the top most state-checksum corresponding to the
             // entire solution.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var solutionChecksums));
-            await solutionChecksums.FindAsync(
-                solutionState, projectCone, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
+            await solutionChecksums.FindAsync(solutionState, projectCone, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             // Otherwise, grab the top-most state checksum for this cone and search within that.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.RootProjectId, out var solutionChecksums));
-            await solutionChecksums.FindAsync(
-                solutionState, projectCone, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
+            await solutionChecksums.FindAsync(solutionState, projectCone, assetPath, searchingChecksumsLeft, onAssetFound, cancellationToken).ConfigureAwait(false);
         }
     }
 }
