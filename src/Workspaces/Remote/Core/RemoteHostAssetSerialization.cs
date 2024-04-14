@@ -128,6 +128,10 @@ internal static class RemoteHostAssetSerialization
                 await scope.FindAssetsAsync(
                     assetPath,
                     checksums,
+                    // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
+                    // channel is only ever completed by us (after FindAssetsAsync completed) or if cancellation
+                    // happens.  In that latter case, it's ok for writing to the channel to do nothing as we no longer
+                    // need to write out those assets to the pipe.
                     static (checksum, asset, channel) => channel.Writer.TryWrite((checksum, asset)),
                     channel,
                     cancellationToken).ConfigureAwait(false);
