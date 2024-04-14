@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -666,6 +667,51 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(reader);
             var deserialized = reader.ReadEncoding();
             EncodingTestHelpers.AssertEncodingsEqual(original, deserialized);
+        }
+
+        [Fact]
+        public void TestMultipleAssetWritingAndReader()
+        {
+            using var stream = new MemoryStream();
+
+            // Write out some initial bytes, to demonstrate the reader not throwing, even if we don't have the right
+            // validation bytes at the start.
+            stream.WriteByte(1);
+            stream.WriteByte(2);
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, writeValidationBytes: false, CancellationToken.None))
+            {
+                writer.WriteValidationBytes();
+                writer.WriteString("Goo");
+                writer.WriteString("Bar");
+
+                // Random data, not going through the writer.
+                stream.WriteByte(3);
+                stream.WriteByte(4);
+
+                // We should be able to write out a new object, using strings we've already seen.
+                writer.WriteValidationBytes();
+                writer.WriteString("Bar");
+                writer.WriteString("Goo");
+            }
+
+            stream.Position = 0;
+
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, checkValidationBytes: false, CancellationToken.None);
+
+            Assert.Equal(1, reader.ReadByte());
+            Assert.Equal(2, reader.ReadByte());
+
+            reader.CheckValidationBytes();
+            Assert.Equal("Goo", reader.ReadString());
+            Assert.Equal("Bar", reader.ReadString());
+
+            Assert.Equal(3, stream.ReadByte());
+            Assert.Equal(4, stream.ReadByte());
+
+            reader.CheckValidationBytes();
+            Assert.Equal("Bar", reader.ReadString());
+            Assert.Equal("Goo", reader.ReadString());
         }
 
         // keep these around for analyzing perf issues
