@@ -128,7 +128,8 @@ internal static class RemoteHostAssetSerialization
                 await scope.FindAssetsAsync(
                     assetPath,
                     checksums,
-                    (checksum, asset) => channel.Writer.TryWrite((checksum, asset)),
+                    static (checksum, asset, channel) => channel.Writer.TryWrite((checksum, asset)),
+                    channel,
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
