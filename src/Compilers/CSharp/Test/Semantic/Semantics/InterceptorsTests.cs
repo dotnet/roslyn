@@ -7201,8 +7201,9 @@ partial struct CustomHandler
     }
 
     [Fact]
-    public void ConditionalAccess_01()
+    public void ConditionalAccess_ReferenceType_01()
     {
+        // Conditional access on a non-null value
         var source = CSharpTestSource.Parse("""
             class C
             {
@@ -7228,16 +7229,66 @@ partial struct CustomHandler
             static class Interceptors
             {
                 {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
-                public static void M1(this C? c) => Console.Write(1);
+                public static void M1(this C c) => Console.Write(1);
             }
             """, "Interceptors.cs", RegularWithInterceptors);
 
         var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
         verifier.VerifyDiagnostics();
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void Interceptors.M1(this C c)", method.ToTestDisplayString());
     }
 
     [Fact]
-    public void ConditionalAccess_02()
+    public void ConditionalAccess_ReferenceType_02()
+    {
+        // Conditional access on a null value
+        var source = CSharpTestSource.Parse("""
+            #nullable enable
+            using System;
+
+            class C
+            {
+                void M() => throw null!;
+
+                static void Main()
+                {
+                    C? c = null;
+                    c?.M();
+                    Console.Write(1);
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            #nullable enable
+
+            static class Interceptors
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this C c) => throw null!;
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void Interceptors.M1(this C c)", method.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ConditionalAccess_NotAnInvocation()
     {
         // use a location specifier which refers to a conditional access that is not being invoked.
         var source = CSharpTestSource.Parse("""
@@ -7265,7 +7316,7 @@ partial struct CustomHandler
             static class Interceptors
             {
                 {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
-                public static void M1(this C? c) => Console.Write(1);
+                public static void M1(this C c) => Console.Write(1);
             }
             """, "Interceptors.cs", RegularWithInterceptors);
 
@@ -7277,10 +7328,51 @@ partial struct CustomHandler
     }
 
     [Fact]
-    public void ConditionalAccess_03()
+    public void ConditionalAccess_ValueType_01()
     {
-        // Conditional access on a nullable value type, original and interceptor use non-nullable value type.
+        // Conditional access on a nullable value type with a non-null value
         // Note that we can't intercept a conditional-access with an extension due to https://github.com/dotnet/roslyn/issues/71657
+        var source = CSharpTestSource.Parse("""
+            partial struct S
+            {
+                void M() => throw null!;
+
+                static void Main()
+                {
+                    S? s = new S();
+                    s?.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            partial struct S
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void S.M1()", method.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ConditionalAccess_ValueType_02()
+    {
+        // Conditional access on a nullable value type with a null value
         var source = CSharpTestSource.Parse("""
             using System;
 
@@ -7306,12 +7398,17 @@ partial struct CustomHandler
             partial struct S
             {
                 {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
-                public void M1() { }
+                public void M1() => throw null!;
             }
             """, "Interceptors.cs", RegularWithInterceptors);
 
         var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
         verifier.VerifyDiagnostics();
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void S.M1()", method.ToTestDisplayString());
     }
 
     [Theory]
