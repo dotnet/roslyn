@@ -79,9 +79,9 @@ internal static class RemoteHostAssetSerialization
 
     public static async ValueTask WriteDataAsync(
         PipeWriter pipeWriter,
+        SolutionAssetStorage.Scope scope,
         AssetPath assetPath,
         ReadOnlyMemory<Checksum> checksums,
-        SolutionAssetStorage.Scope scope,
         ISerializerService serializer,
         CancellationToken cancellationToken)
     {
@@ -103,11 +103,11 @@ internal static class RemoteHostAssetSerialization
 
         // Spin up a task to go search for all the requested checksums, adding results to the channel.
         var findAssetsTask = FindAssetsFromScopeAndWriteToChannelAsync(
-            assetPath, checksums, scope, channel.Writer, cancellationToken);
+            assetPath, scope, checksums, channel.Writer, cancellationToken);
 
         // Spin up a task to read from the channel and write out the assets to the pipe-writer.
         var writeAssetsTask = ReadAssetsFromChannelAndWriteToPipeAsync(
-            pipeWriter, channel.Reader, checksums, scope, serializer, cancellationToken);
+            pipeWriter, scope, checksums, serializer, channel.Reader, cancellationToken);
 
         // Wait for both the searching and writing tasks to finish.
         await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
@@ -116,8 +116,8 @@ internal static class RemoteHostAssetSerialization
 
         static async Task FindAssetsFromScopeAndWriteToChannelAsync(
             AssetPath assetPath,
-            ReadOnlyMemory<Checksum> checksums,
             SolutionAssetStorage.Scope scope,
+            ReadOnlyMemory<Checksum> checksums,
             ChecksumChannelWriter channelWriter,
             CancellationToken cancellationToken)
         {
@@ -151,10 +151,10 @@ internal static class RemoteHostAssetSerialization
 
         static async Task ReadAssetsFromChannelAndWriteToPipeAsync(
             PipeWriter pipeWriter,
-            ChecksumChannelReader channelReader,
-            ReadOnlyMemory<Checksum> checksums,
             SolutionAssetStorage.Scope scope,
+            ReadOnlyMemory<Checksum> checksums,
             ISerializerService serializer,
+            ChecksumChannelReader channelReader,
             CancellationToken cancellationToken)
         {
             await Task.Yield();
