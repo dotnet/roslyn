@@ -54,8 +54,8 @@ internal readonly struct RemoteHostAssetReader<T, TArg>(
         // prior to reading each asset out.
         using var objectReader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkValidationBytes: false);
 
-        // Ensure that no invariants were broken and that both sides of the communication channel are talking about
-        // the same pinned solution.
+        // Ensure that no invariants were broken and that both sides of the communication channel are talking about the
+        // same pinned solution.
         var responseSolutionChecksum = await ReadChecksumFromPipeReaderAsync(cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfFalse(_solutionChecksum == responseSolutionChecksum);
 
@@ -69,14 +69,14 @@ internal readonly struct RemoteHostAssetReader<T, TArg>(
         // For each message, read the sentinel byte and the length of the data chunk we'll be reading.
         var length = await CheckSentinelByteAndReadLengthAsync(cancellationToken).ConfigureAwait(false);
 
-        // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as
-        // we'll need to consume, all further reading (for this single item) can handle synchronously
-        // without worrying about this blocking the reading thread on cross-process pipe io.
+        // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as we'll need to
+        // consume, all further reading (for this single item) can handle synchronously without worrying about this
+        // blocking the reading thread on cross-process pipe io.
         var fillReadResult = await _pipeReader.ReadAtLeastAsync(length, cancellationToken).ConfigureAwait(false);
 
-        // Note: we have let the pipe reader know that we're done with 'read at least' call, but that we
-        // haven't consumed anything from it yet.  Otherwise it will throw that another read can't start
-        // from within ObjectReader.GetReader below.
+        // Note: we have let the pipe reader know that we're done with 'read at least' call, but that we haven't
+        // consumed anything from it yet.  Otherwise it will throw that another read can't start the objectReader
+        // reading calls below.
         _pipeReader.AdvanceTo(fillReadResult.Buffer.Start);
 
         // Let the object reader do it's own individual object checking.
@@ -106,8 +106,8 @@ internal readonly struct RemoteHostAssetReader<T, TArg>(
         return length;
     }
 
-    // Note on Checksum itself as it depends on SequenceReader, which is provided by nerdbank.streams on
-    // netstandard2.0 (which the Workspace layer does not depend on).
+    // Note on Checksum itself as it depends on SequenceReader, which is provided by nerdbank.streams on netstandard2.0
+    // (which the Workspace layer does not depend on).
     private async ValueTask<Checksum> ReadChecksumFromPipeReaderAsync(CancellationToken cancellationToken)
     {
         var readChecksumResult = await _pipeReader.ReadAtLeastAsync(Checksum.HashSize, cancellationToken).ConfigureAwait(false);

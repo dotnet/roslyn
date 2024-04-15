@@ -85,8 +85,8 @@ internal readonly struct RemoteHostAssetWriter(
         // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
         var channel = Channel.CreateUnbounded<ChecksumAndAsset>(s_channelOptions);
 
-        // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets
-        // to the pipe. Capture-free version is only available on netcore unfortunately.
+        // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets to
+        // the pipe. Capture-free version is only available on netcore unfortunately.
         using var _ = cancellationToken.Register(
 #if NET
             static (obj, cancellationToken) => ((Channel<ChecksumAndAsset>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
@@ -135,15 +135,15 @@ internal readonly struct RemoteHostAssetWriter(
         await Task.Yield();
 
         // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
-        // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a
-        // single object writer across all assets means we get the benefit of string deduplication across all assets
-        // we write out.
+        // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a single
+        // object writer across all assets means we get the benefit of string deduplication across all assets we write
+        // out.
         using var pooledStream = s_streamPool.GetPooledObject();
         using var objectWriter = new ObjectWriter(pooledStream.Object, leaveOpen: true, writeValidationBytes: false);
 
-        // This information is not actually needed on the receiving end.  However, we still send it so that the
-        // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
-        // breaks have occurred.
+        // This information is not actually needed on the receiving end.  However, we still send it so that the receiver
+        // can assert that both sides are talking about the same solution snapshot and no weird invariant breaks have
+        // occurred.
         _scope.SolutionChecksum.WriteTo(_pipeWriter);
         await _pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
@@ -171,20 +171,20 @@ internal readonly struct RemoteHostAssetWriter(
     {
         Contract.ThrowIfNull(asset);
 
-        // We're about to send a message.  Write out our sentinel byte to ensure the reading side can detect
-        // problems with our writing.
+        // We're about to send a message.  Write out our sentinel byte to ensure the reading side can detect problems
+        // with our writing.
         WriteSentinelByteToPipeWriter();
 
         // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
-        // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
-        // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
+        // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer. Instead,
+        // we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
         WriteAssetToTempStream(tempStream, objectWriter, checksum, asset, cancellationToken);
 
         // Write the length of the asset to the pipe writer so the reader knows how much data to read.
         WriteTempStreamLengthToPipeWriter(tempStream);
 
-        // Ensure we flush out the length so the reading side can immediately read the header to determine how much
-        // data to it will need to prebuffer.
+        // Ensure we flush out the length so the reading side can immediately read the header to determine how much data
+        // to it will need to prebuffer.
         await _pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
         // Now, asynchronously copy the temp buffer over to the writer stream.
@@ -202,14 +202,14 @@ internal readonly struct RemoteHostAssetWriter(
         ReadWriteStream tempStream, ObjectWriter objectWriter, Checksum checksum, object asset, CancellationToken cancellationToken)
     {
         // Reset the temp stream to the beginning and clear it out. Don't truncate the stream as we're going to be
-        // writing to it multiple times.  This will allow us to reuse the internal chunks of the buffer, without
-        // having to reallocate them over and over again. Note: this stream internally keeps a list of byte[]s that
-        // it writes to.  Each byte[] is less than the LOH size, so there's no concern about LOH fragmentation here.
+        // writing to it multiple times.  This will allow us to reuse the internal chunks of the buffer, without having
+        // to reallocate them over and over again. Note: this stream internally keeps a list of byte[]s that it writes
+        // to.  Each byte[] is less than the LOH size, so there's no concern about LOH fragmentation here.
         tempStream.Position = 0;
         tempStream.SetLength(0, truncate: false);
 
-        // Write out the object writer validation bytes.  This will help us detect issues when reading if we've
-        // screwed something up.
+        // Write out the object writer validation bytes.  This will help us detect issues when reading if we've screwed
+        // something up.
         objectWriter.WriteValidationBytes();
 
         // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
