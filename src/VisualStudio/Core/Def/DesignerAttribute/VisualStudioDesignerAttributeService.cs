@@ -29,7 +29,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
 
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-internal class VisualStudioDesignerAttributeService :
+internal sealed class VisualStudioDesignerAttributeService :
     IDesignerAttributeDiscoveryService.ICallback, IEventListener<object>, IDisposable
 {
     private readonly VisualStudioWorkspaceImpl _workspace;

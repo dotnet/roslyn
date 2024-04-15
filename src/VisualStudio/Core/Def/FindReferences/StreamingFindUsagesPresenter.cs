@@ -34,7 +34,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
 [Export(typeof(IStreamingFindUsagesPresenter)), Shared]
-internal partial class StreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
+internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
 {
     public const string RoslynFindUsagesTableDataSourceIdentifier =
         nameof(RoslynFindUsagesTableDataSourceIdentifier);
@@ -267,7 +267,7 @@ internal partial class StreamingFindUsagesPresenter : IStreamingFindUsagesPresen
         tableControl.SetColumnStates(newColumns);
     }
 
-    protected static (Guid, string projectName, string? projectFlavor) GetGuidAndProjectInfo(Document document)
+    private static (Guid, string projectName, string? projectFlavor) GetGuidAndProjectInfo(Document document)
     {
         // The FAR system needs to know the guid for the project that a def/reference is 
         // from (to support features like filtering).  Normally that would mean we could

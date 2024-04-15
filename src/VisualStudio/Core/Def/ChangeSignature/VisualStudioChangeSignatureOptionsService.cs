@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VisualStudioChangeSignatureOptionsService(
+internal sealed class VisualStudioChangeSignatureOptionsService(
     IClassificationFormatMapService classificationFormatMapService,
     ClassificationTypeMap classificationTypeMap,
     IThreadingContext threadingContext) : IChangeSignatureOptionsService
