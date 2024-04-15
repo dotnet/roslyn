@@ -180,7 +180,6 @@ internal sealed class VisualStudioDesignerAttributeService :
     {
         // legacy project system can only be talked to on the UI thread.
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-        _threadingContext.ThrowIfNotOnUIThread();
 
         var designerService = _legacyDesignerService ??= (IVSMDDesignerService)_serviceProvider.GetService(typeof(SVSMDDesignerService));
         if (designerService == null)
@@ -278,7 +277,6 @@ internal sealed class VisualStudioDesignerAttributeService :
         if (!_cpsProjects.TryGetValue(projectId, out var updateService))
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            _threadingContext.ThrowIfNotOnUIThread();
 
             updateService = ComputeUpdateService();
             _cpsProjects.TryAdd(projectId, updateService);
