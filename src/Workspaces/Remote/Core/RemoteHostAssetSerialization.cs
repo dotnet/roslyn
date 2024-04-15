@@ -19,6 +19,7 @@ using ChecksumChannel = Channel<(Checksum checksum, object asset)>;
 using ChecksumChannelReader = ChannelReader<(Checksum checksum, object asset)>;
 using ChecksumChannelWriter = ChannelWriter<(Checksum checksum, object asset)>;
 using static SerializableBytes;
+using static SolutionAssetStorage;
 
 /// <summary>
 /// Contains the utilities for writing assets from the host to a pipe-writer and for reading those assets on the
@@ -52,11 +53,7 @@ using static SerializableBytes;
 /// invoke. Finally, the asset data itself is written out.
 /// </summary>
 internal readonly struct RemoteHostAssetWriter(
-    PipeWriter pipeWriter,
-    SolutionAssetStorage.Scope scope,
-    AssetPath assetPath,
-    ReadOnlyMemory<Checksum> checksums,
-    ISerializerService serializer)
+    PipeWriter pipeWriter, Scope scope, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService serializer)
 {
     /// <summary>
     /// A sentinel byte we place between messages.  Ensures we can detect when something has gone wrong as soon as
@@ -79,7 +76,7 @@ internal readonly struct RemoteHostAssetWriter(
     };
 
     private readonly PipeWriter _pipeWriter = pipeWriter;
-    private readonly SolutionAssetStorage.Scope _scope = scope;
+    private readonly Scope _scope = scope;
     private readonly AssetPath _assetPath = assetPath;
     private readonly ReadOnlyMemory<Checksum> _checksums = checksums;
     private readonly ISerializerService _serializer = serializer;
