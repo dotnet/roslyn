@@ -28,13 +28,13 @@ internal sealed class SimpleAssetSource(ISerializerService serializerService, IR
             using var stream = new MemoryStream();
             using var context = new SolutionReplicationContext();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 serializerService.Serialize(data, writer, context, cancellationToken);
             }
 
             stream.Position = 0;
-            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true);
             var asset = deserializerService.Deserialize(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
             Contract.ThrowIfNull(asset);
             callback(checksum, (T)asset, arg);
