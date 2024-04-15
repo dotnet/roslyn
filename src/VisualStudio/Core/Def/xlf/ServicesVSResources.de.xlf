@@ -1112,6 +1112,11 @@
         <target state="translated">Vereinfachte Interpolation bevorzugen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_static_anonymous_functions">
+        <source>Prefer static anonymous functions</source>
+        <target state="new">Prefer static anonymous functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Statische lokale Funktionen bevorzugen</target>
@@ -2336,7 +2341,7 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
       </trans-unit>
       <trans-unit id="camel_Case_Name">
         <source>camel Case Name</source>
-        <target state="translated">Name mit gemischter Groß-/Kleinschreibung</target>
+        <target state="translated">Name in CamelCase </target>
         <note />
       </trans-unit>
       <trans-unit id="First_word_upper">

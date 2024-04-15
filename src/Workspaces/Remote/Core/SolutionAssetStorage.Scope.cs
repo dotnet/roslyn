@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -44,28 +43,32 @@ internal partial class SolutionAssetStorage
         /// Retrieve assets of specified <paramref name="checksums"/> available within <see langword="this"/> from
         /// the storage.
         /// </summary>
-        public async Task AddAssetsAsync(
+        public async Task FindAssetsAsync<TArg>(
             AssetPath assetPath,
             ReadOnlyMemory<Checksum> checksums,
-            Dictionary<Checksum, object> assetMap,
+            Action<Checksum, object, TArg> onAssetFound,
+            TArg arg,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var obj = Creator.CreateChecksumSet(checksums);
-            var checksumsToFind = obj.Object;
+            using var _ = SharedPools.Default<HashSet<Checksum>>().GetPooledObject(out var checksumsToFind);
+            AddChecksums(checksums, checksumsToFind);
 
             var numberOfChecksumsToSearch = checksumsToFind.Count;
             Contract.ThrowIfTrue(checksumsToFind.Contains(Checksum.Null));
 
-            await FindAssetsAsync(
-                assetPath, checksumsToFind,
-                static (checksum, asset, assetMap) => assetMap[checksum] = asset,
-                assetMap,
-                cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(assetPath, checksumsToFind, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
 
             Contract.ThrowIfTrue(checksumsToFind.Count > 0);
-            Contract.ThrowIfTrue(assetMap.Count != numberOfChecksumsToSearch);
+
+            return;
+
+            static void AddChecksums(ReadOnlyMemory<Checksum> checksums, HashSet<Checksum> checksumsToFind)
+            {
+                foreach (var checksum in checksums.Span)
+                    checksumsToFind.Add(checksum);
+            }
         }
 
         private async Task FindAssetsAsync<TArg>(
@@ -101,16 +104,20 @@ internal partial class SolutionAssetStorage
             {
                 Contract.ThrowIfTrue(checksum == Checksum.Null);
 
-                using var _ = Creator.CreateResultMap(out var resultPool);
-
                 var checksums = new ReadOnlyMemory<Checksum>([checksum]);
-                await scope.AddAssetsAsync(AssetPath.FullLookupForTesting, checksums, resultPool, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfTrue(resultPool.Count != 1);
 
-                var (resultingChecksum, value) = resultPool.First();
-                Contract.ThrowIfFalse(checksum == resultingChecksum);
+                object? asset = null;
+                await scope.FindAssetsAsync(AssetPath.FullLookupForTesting, checksums, (foundChecksum, foundAsset, _) =>
+                {
+                    Contract.ThrowIfNull(foundAsset);
+                    Contract.ThrowIfTrue(asset != null); // We should only find one asset
+                    Contract.ThrowIfTrue(checksum != foundChecksum);
+                    asset = foundAsset;
+                }, default(VoidResult), cancellationToken).ConfigureAwait(false);
 
-                return value;
+                Contract.ThrowIfNull(asset);
+
+                return asset;
             }
         }
     }

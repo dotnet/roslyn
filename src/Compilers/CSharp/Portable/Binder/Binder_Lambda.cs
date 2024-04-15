@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -421,6 +422,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return lambda;
+        }
+
+        // Please don't use thread local storage widely. This should be one of only a few uses.
+        [ThreadStatic] private static PooledDictionary<SyntaxNode, int>? s_lambdaBindings;
+
+        internal TResult BindWithLambdaBindingCountDiagnostics<TSyntax, TArg, TResult>(
+            TSyntax syntax,
+            TArg arg,
+            BindingDiagnosticBag diagnostics,
+            Func<Binder, TSyntax, TArg, BindingDiagnosticBag, TResult> bind)
+            where TSyntax : SyntaxNode
+            where TResult : BoundNode
+        {
+            Debug.Assert(s_lambdaBindings is null);
+            var bindings = PooledDictionary<SyntaxNode, int>.GetInstance();
+            s_lambdaBindings = bindings;
+
+            try
+            {
+                TResult result = bind(this, syntax, arg, diagnostics);
+
+                foreach (var pair in bindings)
+                {
+                    const int maxLambdaBinding = 100;
+                    int count = pair.Value;
+                    if (count > maxLambdaBinding)
+                    {
+                        int truncatedToHundreds = (count / 100) * 100;
+                        diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, GetAnonymousFunctionLocation(pair.Key), truncatedToHundreds);
+                    }
+                }
+
+                return result;
+            }
+            finally
+            {
+                bindings.Free();
+                s_lambdaBindings = null;
+            }
+        }
+
+        internal static void RecordLambdaBinding(SyntaxNode syntax)
+        {
+            var bindings = s_lambdaBindings;
+            if (bindings is null)
+            {
+                return;
+            }
+            if (bindings.TryGetValue(syntax, out int count))
+            {
+                bindings[syntax] = ++count;
+            }
+            else
+            {
+                bindings.Add(syntax, 1);
+            }
         }
     }
 }

@@ -2437,6 +2437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptsLocationDuplicateFile:
                 case ErrorCode.ERR_InterceptsLocationFileNotFound:
                 case ErrorCode.ERR_InterceptsLocationDataInvalidPosition:
+                case ErrorCode.INF_TooManyBoundLambdas:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
