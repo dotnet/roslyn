@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DesignerAttribute;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -29,9 +30,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal class VisualStudioDesignerAttributeService :
-    ForegroundThreadAffinitizedObject, IDesignerAttributeDiscoveryService.ICallback, IEventListener<object>, IDisposable
+    IDesignerAttributeDiscoveryService.ICallback, IEventListener<object>, IDisposable
 {
     private readonly VisualStudioWorkspaceImpl _workspace;
+    private readonly IThreadingContext _threadingContext;
 
     /// <summary>
     /// Used to acquire the legacy project designer service.
@@ -64,9 +66,9 @@ internal class VisualStudioDesignerAttributeService :
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         Shell.SVsServiceProvider serviceProvider)
-        : base(threadingContext)
     {
         _workspace = workspace;
+        _threadingContext = threadingContext;
         _serviceProvider = serviceProvider;
 
         _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
@@ -75,13 +77,13 @@ internal class VisualStudioDesignerAttributeService :
             DelayTimeSpan.Idle,
             this.ProcessWorkspaceChangeAsync,
             _listener,
-            ThreadingContext.DisposalToken);
+            _threadingContext.DisposalToken);
 
         _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
             DelayTimeSpan.Idle,
             this.NotifyProjectSystemAsync,
             _listener,
-            ThreadingContext.DisposalToken);
+            _threadingContext.DisposalToken);
     }
 
     public void Dispose()
@@ -177,9 +179,8 @@ internal class VisualStudioDesignerAttributeService :
         CancellationToken cancellationToken)
     {
         // legacy project system can only be talked to on the UI thread.
-        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
-        AssertIsForeground();
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var designerService = _legacyDesignerService ??= (IVSMDDesignerService)_serviceProvider.GetService(typeof(SVSMDDesignerService));
         if (designerService == null)
@@ -201,7 +202,7 @@ internal class VisualStudioDesignerAttributeService :
         IVsHierarchy hierarchy,
         DesignerAttributeData data)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var itemId = hierarchy.TryGetItemId(data.FilePath);
         if (itemId == VSConstants.VSITEMID_NIL)
@@ -276,8 +277,8 @@ internal class VisualStudioDesignerAttributeService :
     {
         if (!_cpsProjects.TryGetValue(projectId, out var updateService))
         {
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            this.AssertIsForeground();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             updateService = ComputeUpdateService();
             _cpsProjects.TryAdd(projectId, updateService);
