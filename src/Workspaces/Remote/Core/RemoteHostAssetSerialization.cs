@@ -321,8 +321,17 @@ internal static class RemoteHostAssetSerialization
             // from within ObjectReader.GetReader below.
             pipeReader.AdvanceTo(fillReadResult.Buffer.Start);
 
-            var (checksum, asset) = ReadSingleAssetFromObjectReader(reader, serializer, cancellationToken);
-            callback(checksum, asset, arg);
+            // Let the object reader do it's own individual object checking.
+            reader.CheckValidationBytes();
+
+            // Now do the actual read of the data, synchronously, from the buffers that are now in memory within our
+            // process.  These reads will move the pipe-reader forward, without causing any blocking on async-io.
+            var checksum = Checksum.ReadFrom(reader);
+            var kind = (WellKnownSynchronizationKind)reader.ReadByte();
+
+            var asset = serializer.Deserialize(kind, reader, cancellationToken);
+            Contract.ThrowIfNull(asset);
+            callback(checksum, (T)asset, arg);
         }
 
         static async ValueTask<int> CheckSentinelByteAndReadLengthAsync(PipeReader pipeReader, CancellationToken cancellationToken)
@@ -339,30 +348,6 @@ internal static class RemoteHostAssetSerialization
             return length;
         }
 
-        static (byte, int) ReadSentinelAndLength(ReadResult readResult)
-        {
-            var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
-            Contract.ThrowIfFalse(sequenceReader.TryRead(out var sentinel));
-            Contract.ThrowIfFalse(sequenceReader.TryReadLittleEndian(out int length));
-            return (sentinel, length);
-        }
-
-        static (Checksum checksum, T asset) ReadSingleAssetFromObjectReader(
-            ObjectReader reader, ISerializerService serializer, CancellationToken cancellationToken)
-        {
-            // Let the object reader do it's own individual object checking.
-            reader.CheckValidationBytes();
-
-            // Now do the actual read of the data, synchronously, from the buffers that are now in memory within our
-            // process.  These reads will move the pipe-reader forward, without causing any blocking on async-io.
-            var checksum = Checksum.ReadFrom(reader);
-            var kind = (WellKnownSynchronizationKind)reader.ReadByte();
-
-            var result = serializer.Deserialize(kind, reader, cancellationToken);
-            Contract.ThrowIfNull(result);
-            return (checksum, (T)result);
-        }
-
         // Note on Checksum itself as it depends on SequenceReader, which is provided by nerdbank.streams on
         // netstandard2.0 (which the Workspace layer does not depend on).
         static async ValueTask<Checksum> ReadChecksumFromPipeReaderAsync(PipeReader pipeReader, CancellationToken cancellationToken)
@@ -372,14 +357,22 @@ internal static class RemoteHostAssetSerialization
             var checksum = ReadChecksum(readChecksumResult);
             pipeReader.AdvanceTo(readChecksumResult.Buffer.GetPosition(Checksum.HashSize));
             return checksum;
+        }
 
-            static Checksum ReadChecksum(ReadResult readResult)
-            {
-                var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
-                Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
-                Contract.ThrowIfFalse(sequenceReader.TryCopyTo(checksumBytes));
-                return Checksum.From(checksumBytes);
-            }
+        static (byte, int) ReadSentinelAndLength(ReadResult readResult)
+        {
+            var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
+            Contract.ThrowIfFalse(sequenceReader.TryRead(out var sentinel));
+            Contract.ThrowIfFalse(sequenceReader.TryReadLittleEndian(out int length));
+            return (sentinel, length);
+        }
+
+        static Checksum ReadChecksum(ReadResult readResult)
+        {
+            var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
+            Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
+            Contract.ThrowIfFalse(sequenceReader.TryCopyTo(checksumBytes));
+            return Checksum.From(checksumBytes);
         }
     }
 }
