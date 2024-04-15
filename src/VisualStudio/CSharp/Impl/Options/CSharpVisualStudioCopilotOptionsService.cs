@@ -24,13 +24,9 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private const string CopilotHasLoadedGuid = "871c3e1c-e58c-4ce9-b6a7-26600555739a";
 
     /// <summary>
-    /// Guid for UI Context that is set from Copilot when sign in related UI contexts have been properly. Used to determine when UI context status is final
+    /// Guid for UI Context that is set from Copilot when sign in related UI contexts have been set properly. Used to determine when UI context status is final
     /// for a set of operations. When this UI context is not active, the signed in and entitled contexts values may not be correct.
     /// </summary>
-    /// <remarks>
-    /// This UI context should always be set to false at the beginning of other UI context operations and then to true after operations finish.
-    /// This ensures that the UI contexts are only read when they are finalized and not after each UI context is set.
-    /// </remarks>
     private const string GitHubAccountStatusDetermined = "3049be7e-71ee-4045-a510-f8ee1a967723";
 
     /// <summary>
@@ -43,14 +39,14 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     /// </summary>
     private const string GitHubAccountStatusIsCopilotEntitled = "3DE3FA6E-91B2-46C1-9E9E-DD04975BB890";
 
+    private const string CopilotOptionNamePrefix = "Microsoft.VisualStudio.Conversations";
+    private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
+    private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
+
     private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
     private static readonly UIContext s_gitHubAccountStatusDeterminedContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusDetermined));
     private static readonly UIContext s_gitHubAccountStatusIsCopilotEntitledUIContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusIsCopilotEntitled));
     private static readonly UIContext s_gitHubAccountStatusSignedInUIContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusSignedIn));
-
-    private const string CopilotOptionNamePrefix = "Microsoft.VisualStudio.Conversations";
-    private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
-    private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
 
     private readonly Task<ISettingsManager> _settingsManagerTask;
 
@@ -74,7 +70,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
 
     public async Task<bool> IsCopilotOptionEnabledAsync(string optionName)
     {
-        if (IsGithubCopilotLoadedAndSignedIn is false)
+        if (!IsGithubCopilotLoadedAndSignedIn)
             return false;
 
         var settingManager = await _settingsManagerTask.ConfigureAwait(false);
