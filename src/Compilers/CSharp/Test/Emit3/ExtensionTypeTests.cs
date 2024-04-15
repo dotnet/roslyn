@@ -33205,7 +33205,7 @@ implicit extension E for S
     }
 
     [Fact]
-    public void PropertyAccess_CanModifyStructReceiver_StructTypeParameterReceiver()
+    public void PropertyAccess_Instance_CanModifyStructReceiver_StructTypeParameterReceiver()
     {
         var src = """
 S s = default;
@@ -33245,7 +33245,7 @@ implicit extension E for I
     }
 
     [Fact]
-    public void PropertyAccess_CanModifyStructReceiver_UnconstrainedTypeParameterReceiver()
+    public void PropertyAccess_Instance_CanModifyStructReceiver_UnconstrainedTypeParameterReceiver()
     {
         var src = """
 S s = default;
