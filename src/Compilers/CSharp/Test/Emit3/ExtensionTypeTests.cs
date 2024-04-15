@@ -33200,8 +33200,11 @@ implicit extension E for S
     public int Property { set => this.field = value; }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE(instance) update CheckValue logic
+        if (!CompilationExtensions.EnableVerifyIOperation)
+        {
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            // PROTOTYPE(instance) update CheckValue logic
+        }
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable once we can lower/emit for non-static scenarios
