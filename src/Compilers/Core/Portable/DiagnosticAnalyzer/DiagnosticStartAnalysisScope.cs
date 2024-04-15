@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterCompilationStartAction(_analyzer, action);
         }
 
+        public override void RegisterCompilationUnitStartAction(Action<CompilationUnitStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterCompilationUnitStartAction(_analyzer, action);
+        }
+
         public override void RegisterCompilationAction(Action<CompilationAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
@@ -387,6 +393,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationStartAction(analyzerAction);
         }
 
+        public void RegisterCompilationUnitStartAction(DiagnosticAnalyzer analyzer, Action<CompilationUnitStartAnalysisContext> action)
+        {
+            var analyzerAction = new CompilationUnitStartAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationUnitStartAction(analyzerAction);
+        }
+
         public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
         {
             _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
@@ -670,6 +682,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly AnalyzerActions Empty = new AnalyzerActions(concurrent: false);
 
         private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions;
+        private ImmutableArray<CompilationUnitStartAnalyzerAction> _compilationUnitStartActions;
         private ImmutableArray<CompilationAnalyzerAction> _compilationEndActions;
         private ImmutableArray<CompilationAnalyzerAction> _compilationActions;
         private ImmutableArray<SyntaxTreeAnalyzerAction> _syntaxTreeActions;
@@ -878,6 +891,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void AddCompilationStartAction(CompilationStartAnalyzerAction action)
         {
             _compilationStartActions = _compilationStartActions.Add(action);
+            IsEmpty = false;
+        }
+
+        internal void AddCompilationUnitStartAction(CompilationUnitStartAnalyzerAction action)
+        {
+            _compilationUnitStartActions = _compilationUnitStartActions.Add(action);
             IsEmpty = false;
         }
 

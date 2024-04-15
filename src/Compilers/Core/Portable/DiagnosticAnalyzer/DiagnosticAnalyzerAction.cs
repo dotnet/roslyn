@@ -114,6 +114,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 
+    internal sealed class CompilationUnitStartAnalyzerAction(Action<CompilationUnitStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
+        : AnalyzerAction(analyzer)
+    {
+        public Action<CompilationUnitStartAnalysisContext> Action { get; } = action;
+    }
+
     internal sealed class CompilationAnalyzerAction : AnalyzerAction
     {
         public Action<CompilationAnalysisContext> Action { get; }
