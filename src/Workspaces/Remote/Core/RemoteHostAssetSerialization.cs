@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-using ChecksumAndAsset = (Checksum checksum, object asset);
 using static SerializableBytes;
 using static SolutionAssetStorage;
+using ChecksumAndAsset = (Checksum checksum, object asset);
 
 /// <summary>
 /// Contains the utilities for writing assets from the host to a pipe-writer and for reading those assets on the
