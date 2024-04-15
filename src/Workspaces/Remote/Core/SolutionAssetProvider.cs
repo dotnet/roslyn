@@ -49,8 +49,8 @@ internal sealed class SolutionAssetProvider(SolutionServices services) : ISoluti
             try
             {
                 var scope = _assetStorage.GetScope(solutionChecksum);
-                await RemoteHostAssetSerialization.WriteDataAsync(
-                    pipeWriter, scope, assetPath, checksums, _serializer, cancellationToken).ConfigureAwait(false); ;
+                using var writer = new RemoteHostAssetWriter(pipeWriter, scope, assetPath, checksums, _serializer);
+                await writer.WriteDataAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
             {
