@@ -96,7 +96,7 @@ internal class ForegroundThreadAffinitizedObject
     /// <summary>
     /// Returns true if any keyboard or mouse button input is pending on the message queue.
     /// </summary>
-    protected static bool IsInputPending()
+    public static bool IsInputPending()
     {
         // The code below invokes into user32.dll, which is not available in non-Windows.
         if (PlatformInformation.IsUnix)

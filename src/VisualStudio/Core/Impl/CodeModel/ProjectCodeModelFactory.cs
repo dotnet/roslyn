@@ -5,33 +5,27 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     [Export(typeof(IProjectCodeModelFactory))]
     [Export(typeof(ProjectCodeModelFactory))]
-    internal sealed class ProjectCodeModelFactory : ForegroundThreadAffinitizedObject, IProjectCodeModelFactory
+    internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
     {
         private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = [];
 
@@ -51,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, assertIsForeground: false)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
@@ -117,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 // Keep firing events for this doc, as long as we haven't exceeded the max amount
                 // of waiting time, and there's no user input that should take precedence.
-                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
+                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || ForegroundThreadAffinitizedObject.IsInputPending())
                 {
                     await this.Listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
                     stopwatch = SharedStopwatch.StartNew();
