@@ -5208,12 +5208,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckSyntaxNode(node);
 
-            if (node.GetInterceptableNameSyntax() is { } nameSyntax && Compilation.TryGetInterceptor(nameSyntax.GetLocation()) is (_, MethodSymbol interceptor))
+            if (node.GetInterceptableNameSyntax() is { } nameSyntax && Compilation.TryGetInterceptor(nameSyntax) is (_, MethodSymbol interceptor))
             {
                 return interceptor.GetPublicSymbol();
             }
 
             return null;
+        }
+
+#pragma warning disable RSEXPERIMENTAL002 // Internal usage of experimental API
+        public InterceptableLocation? GetInterceptableLocation(InvocationExpressionSyntax node, CancellationToken cancellationToken)
+        {
+            CheckSyntaxNode(node);
+            if (node.GetInterceptableNameSyntax() is not { } nameSyntax)
+            {
+                return null;
+            }
+
+            return GetInterceptableLocationInternal(nameSyntax, cancellationToken);
+        }
+
+        // Factored out for ease of test authoring, especially for scenarios involving unsupported syntax.
+        internal InterceptableLocation GetInterceptableLocationInternal(SyntaxNode nameSyntax, CancellationToken cancellationToken)
+        {
+            var tree = nameSyntax.SyntaxTree;
+            var text = tree.GetText(cancellationToken);
+            var path = tree.FilePath;
+            var checksum = text.GetContentHash();
+
+            var lineSpan = nameSyntax.Location.GetLineSpan().Span.Start;
+            var lineNumberOneIndexed = lineSpan.Line + 1;
+            var characterNumberOneIndexed = lineSpan.Character + 1;
+
+            return new InterceptableLocation1(checksum, path, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
         }
 #nullable disable
 
