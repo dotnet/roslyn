@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities;
@@ -39,9 +38,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// </summary>
     /// <param name="stream">The stream to read objects from.</param>
     /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
-    private ObjectReader(
-        Stream stream,
-        bool leaveOpen)
+    private ObjectReader(Stream stream, bool leaveOpen)
     {
         // String serialization assumes both reader and writer to be of the same endianness.
         // It can be adjusted for BigEndian if needed.
@@ -56,9 +53,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// If the <paramref name="stream"/> does not start with a valid header, then <see langword="null"/> will
     /// be returned.
     /// </summary>
-    public static ObjectReader? TryGetReader(
-        Stream? stream,
-        bool leaveOpen = false)
+    public static ObjectReader? TryGetReader(Stream? stream, bool leaveOpen = false)
     {
         if (stream == null)
         {
@@ -101,10 +96,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// <param name="checkValidationBytes">Whether or not the validation bytes (see <see
     /// cref="ObjectWriter.WriteValidationBytes"/> should be checked immediately at the stream's current
     /// position.</param>
-    public static ObjectReader GetReader(
-        Stream stream,
-        bool leaveOpen,
-        bool checkValidationBytes)
+    public static ObjectReader GetReader(Stream stream, bool leaveOpen, bool checkValidationBytes)
     {
         var reader = new ObjectReader(stream, leaveOpen);
         if (checkValidationBytes)
