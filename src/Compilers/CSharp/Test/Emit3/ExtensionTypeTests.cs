@@ -33182,8 +33182,8 @@ static class D
 """);
     }
 
-    [Fact]
-    public void PropertyAccess_CanModifyStructReceiver()
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
+    public void PropertyAccess_Instance_CanModifyStructReceiver()
     {
         var src = """
 S s = default;
