@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol typedReferenceType = GetSpecialType(SpecialType.System_TypedReference, diagnostics, node);
 
-            if ((object)argument.Type != null && argument.Type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+            if ((object)argument.Type != null && argument.Type.IsRestrictedType())
             {
                 // CS1601: Cannot make reference to variable of type '{0}'
                 Error(diagnostics, ErrorCode.ERR_MethodArgCantBeRefAny, node, argument.Type);
@@ -3126,7 +3126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
-                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrRefLikeType())
+                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike())
                 {
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                 }

@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ScopedKind? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
 
                 Debug.Assert(parameter is SourceComplexParameterSymbolBase || !parameter.IsParams); // Only SourceComplexParameterSymbolBase validates 'params' type.
+                Debug.Assert(parameter is SourceComplexParameterSymbolBase || declaredScope is null || declaredScope == ScopedKind.None); // Only SourceComplexParameterSymbolBase validates 'scope'.
                 ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
                                       parameter.RefKind, declaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
@@ -701,11 +702,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // error CS0231: A params parameter must be the last parameter in a parameter list
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
-            }
-
-            if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsRefLikeType()) // PROTOTYPE(RefStructInterfaces): adjust?
-            {
-                diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
             }
         }
 

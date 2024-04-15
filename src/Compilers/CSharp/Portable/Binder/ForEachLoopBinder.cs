@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
-                        if (local.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrRefLikeType())
+                        if (local.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike())
                         {
                             diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                         }
@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol collectionType = (NamedTypeSymbol)builder.CollectionType;
 
-            if (unwrappedCollectionExprType.IsRefLikeType || unwrappedCollectionExprType is TypeParameterSymbol { AllowByRefLike: true })
+            if (unwrappedCollectionExprType.IsRefLikeTypeOrAllowByRefLike())
             {
                 builder.CollectionType = unwrappedCollectionExprType;
             }

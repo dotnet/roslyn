@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is { IsValueType: true }
                    && !type.IsNullableType()
                    && !type.IsPointerOrFunctionPointer()
-                   && !type.IsRestrictedType(); // PROTOTYPE(RefStructInterfaces): Add a test for 'allows ref struct' type parameters? 
+                   && !type.IsRestrictedType();
         }
 
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
@@ -527,9 +527,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        internal static bool IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike(this TypeSymbol type)
         {
-            return type.IsErrorType() || type.IsRefLikeType; // PROTOTYPE(RefStructInterfaces): adjust?
+            return type.IsErrorType() || type.IsRefLikeTypeOrAllowByRefLike();
+        }
+
+        internal static bool IsRefLikeTypeOrAllowByRefLike(this TypeSymbol type)
+        {
+            return type is { IsRefLikeType: true } or TypeParameterSymbol { AllowByRefLike: true };
         }
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
@@ -1386,9 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
             }
 
-            return ignoreSpanLikeTypes ?
-                        false :
-                        (type.IsRefLikeType || type is TypeParameterSymbol { AllowByRefLike: true });
+            return ignoreSpanLikeTypes ? false : type.IsRefLikeTypeOrAllowByRefLike();
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)

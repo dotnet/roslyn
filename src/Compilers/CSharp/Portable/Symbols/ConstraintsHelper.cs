@@ -934,7 +934,7 @@ hasRelatedInterfaces:
                 return false;
             }
 
-            if (typeArgument.IsRefLikeType() || typeArgument.Type is TypeParameterSymbol { AllowByRefLike: true })
+            if (typeArgument.Type.IsRefLikeTypeOrAllowByRefLike())
             {
                 if (typeParameter.AllowByRefLike)
                 {
