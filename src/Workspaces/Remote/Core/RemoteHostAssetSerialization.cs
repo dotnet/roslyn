@@ -5,7 +5,6 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
-using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Channels;
@@ -56,7 +55,12 @@ using ChecksumChannelWriter = ChannelWriter<(Checksum checksum, object asset)>;
 /// Following this is the kind of the asset.  This kind is used by the reading code to know which
 /// asset-deserialization routine to invoke. Finally, the asset data itself is written out.
 /// </summary>
-internal readonly struct RemoteHostAssetWriter : IDisposable
+internal readonly struct RemoteHostAssetWriter(
+    PipeWriter pipeWriter,
+    SolutionAssetStorage.Scope scope,
+    AssetPath assetPath,
+    ReadOnlyMemory<Checksum> checksums,
+    ISerializerService serializer)
 {
     /// <summary>
     /// A sentinel byte we place between messages.  Ensures we can detect when something has gone wrong as soon as
@@ -78,37 +82,11 @@ internal readonly struct RemoteHostAssetWriter : IDisposable
         SingleWriter = true,
     };
 
-    private readonly PipeWriter _pipeWriter;
-    private readonly SolutionAssetStorage.Scope _scope;
-    private readonly AssetPath _assetPath;
-    private readonly ReadOnlyMemory<Checksum> _checksums;
-    private readonly ISerializerService _serializer;
-
-    private readonly PooledObject<SerializableBytes.ReadWriteStream> _pooledStream;
-    private readonly SerializableBytes.ReadWriteStream TempStream => _pooledStream.Object;
-    private readonly ObjectWriter _writer;
-
-    public RemoteHostAssetWriter(PipeWriter pipeWriter, SolutionAssetStorage.Scope scope, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService serializer)
-    {
-        _pipeWriter = pipeWriter;
-        _scope = scope;
-        _assetPath = assetPath;
-        _checksums = checksums;
-        _serializer = serializer;
-
-        // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
-        // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a
-        // single object writer across all assets means we get the benefit of string deduplication across all assets
-        // we write out.
-        _pooledStream = s_streamPool.GetPooledObject();
-        _writer = new ObjectWriter(_pooledStream.Object, leaveOpen: true, writeValidationBytes: false);
-    }
-
-    public void Dispose()
-    {
-        _writer.Dispose();
-        _pooledStream.Dispose();
-    }
+    private readonly PipeWriter _pipeWriter = pipeWriter;
+    private readonly SolutionAssetStorage.Scope _scope = scope;
+    private readonly AssetPath _assetPath = assetPath;
+    private readonly ReadOnlyMemory<Checksum> _checksums = checksums;
+    private readonly ISerializerService _serializer = serializer;
 
     public async ValueTask WriteDataAsync(CancellationToken cancellationToken)
     {
@@ -174,6 +152,13 @@ internal readonly struct RemoteHostAssetWriter : IDisposable
     {
         await Task.Yield();
 
+        // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
+        // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a
+        // single object writer across all assets means we get the benefit of string deduplication across all assets
+        // we write out.
+        using var pooledStream = s_streamPool.GetPooledObject();
+        using var objectWriter = new ObjectWriter(pooledStream.Object, leaveOpen: true, writeValidationBytes: false);
+
         // This information is not actually needed on the receiving end.  However, we still send it so that the
         // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
         // breaks have occurred.
@@ -188,7 +173,7 @@ internal readonly struct RemoteHostAssetWriter : IDisposable
             while (channelReader.TryRead(out var item))
             {
                 await WriteSingleAssetToPipeAsync(
-                    item.checksum, item.asset, cancellationToken).ConfigureAwait(false);
+                    pooledStream.Object, objectWriter, item.checksum, item.asset, cancellationToken).ConfigureAwait(false);
                 foundChecksumCount++;
             }
         }
@@ -200,6 +185,8 @@ internal readonly struct RemoteHostAssetWriter : IDisposable
     }
 
     private async ValueTask WriteSingleAssetToPipeAsync(
+        SerializableBytes.ReadWriteStream tempStream,
+        ObjectWriter objectWriter,
         Checksum checksum,
         object asset,
         CancellationToken cancellationToken)
@@ -213,18 +200,18 @@ internal readonly struct RemoteHostAssetWriter : IDisposable
         // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
         // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
         // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
-        WriteAssetToTempStream(checksum, asset, cancellationToken);
+        WriteAssetToTempStream(tempStream, objectWriter, checksum, asset, cancellationToken);
 
         // Write the length of the asset to the pipe writer so the reader knows how much data to read.
-        WriteTempStreamLengthToPipeWriter();
+        WriteTempStreamLengthToPipeWriter(tempStream);
 
         // Ensure we flush out the length so the reading side can immediately read the header to determine how much
         // data to it will need to prebuffer.
         await _pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
         // Now, asynchronously copy the temp buffer over to the writer stream.
-        this.TempStream.Position = 0;
-        await this.TempStream.CopyToAsync(_pipeWriter, cancellationToken).ConfigureAwait(false);
+        tempStream.Position = 0;
+        await tempStream.CopyToAsync(_pipeWriter, cancellationToken).ConfigureAwait(false);
 
         // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the pipe
         // for the reader on the other side to read.  This allows the item-writing to remain entirely synchronous
@@ -234,27 +221,27 @@ internal readonly struct RemoteHostAssetWriter : IDisposable
     }
 
     private void WriteAssetToTempStream(
-        Checksum checksum, object asset, CancellationToken cancellationToken)
+        SerializableBytes.ReadWriteStream tempStream, ObjectWriter objectWriter, Checksum checksum, object asset, CancellationToken cancellationToken)
     {
         // Reset the temp stream to the beginning and clear it out. Don't truncate the stream as we're going to be
         // writing to it multiple times.  This will allow us to reuse the internal chunks of the buffer, without
         // having to reallocate them over and over again. Note: this stream internally keeps a list of byte[]s that
         // it writes to.  Each byte[] is less than the LOH size, so there's no concern about LOH fragmentation here.
-        this.TempStream.Position = 0;
-        this.TempStream.SetLength(0, truncate: false);
+        tempStream.Position = 0;
+        tempStream.SetLength(0, truncate: false);
 
         // Write out the object writer validation bytes.  This will help us detect issues when reading if we've
         // screwed something up.
-        _writer.WriteValidationBytes();
+        objectWriter.WriteValidationBytes();
 
         // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
-        checksum.WriteTo(_writer);
+        checksum.WriteTo(objectWriter);
 
         // Write out the kind so the receiving end knows how to deserialize this asset.
-        _writer.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
+        objectWriter.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
 
         // Now serialize out the asset itself.
-        _serializer.Serialize(asset, _writer, _scope.ReplicationContext, cancellationToken);
+        _serializer.Serialize(asset, objectWriter, _scope.ReplicationContext, cancellationToken);
     }
 
     private void WriteSentinelByteToPipeWriter()
@@ -264,9 +251,9 @@ internal readonly struct RemoteHostAssetWriter : IDisposable
         _pipeWriter.Advance(1);
     }
 
-    private void WriteTempStreamLengthToPipeWriter()
+    private void WriteTempStreamLengthToPipeWriter(SerializableBytes.ReadWriteStream tempStream)
     {
-        var length = this.TempStream.Length;
+        var length = tempStream.Length;
         Contract.ThrowIfTrue(length > int.MaxValue);
 
         var span = _pipeWriter.GetSpan(sizeof(int));
@@ -275,41 +262,20 @@ internal readonly struct RemoteHostAssetWriter : IDisposable
     }
 }
 
-internal readonly struct RemoteHostAssetReader<T, TArg> : IDisposable
+internal readonly struct RemoteHostAssetReader<T, TArg>(
+    PipeReader pipeReader,
+    Checksum solutionChecksum,
+    int objectCount,
+    ISerializerService serializer,
+    Action<Checksum, T, TArg> callback,
+    TArg arg)
 {
-    private readonly PipeReader _pipeReader;
-    private readonly Checksum _solutionChecksum;
-    private readonly int _objectCount;
-    private readonly ISerializerService _serializer;
-    private readonly Action<Checksum, T, TArg> _callback;
-    private readonly TArg _arg;
-
-    private readonly Stream _pipeReaderStream;
-    private readonly ObjectReader _reader;
-
-    public RemoteHostAssetReader(
-        PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializer, Action<Checksum, T, TArg> callback, TArg arg)
-    {
-        _pipeReader = pipeReader;
-        _solutionChecksum = solutionChecksum;
-        _objectCount = objectCount;
-        _serializer = serializer;
-        _callback = callback;
-        _arg = arg;
-
-        _pipeReaderStream = pipeReader.AsStream(leaveOpen: true);
-
-        // Get an object reader over the stream.  Note: we do not check the validation bytes here as the stream is
-        // currently pointing at header data prior to the object data.  Instead, we will check the validation bytes
-        // prior to reading each asset out.
-        _reader = ObjectReader.GetReader(_pipeReaderStream, leaveOpen: true, checkValidationBytes: false);
-    }
-
-    public void Dispose()
-    {
-        _pipeReaderStream.Dispose();
-        _reader.Dispose();
-    }
+    private readonly PipeReader _pipeReader = pipeReader;
+    private readonly Checksum _solutionChecksum = solutionChecksum;
+    private readonly int _objectCount = objectCount;
+    private readonly ISerializerService _serializer = serializer;
+    private readonly Action<Checksum, T, TArg> _callback = callback;
+    private readonly TArg _arg = arg;
 
     public ValueTask ReadDataAsync(CancellationToken cancellationToken)
     {
@@ -325,6 +291,13 @@ internal readonly struct RemoteHostAssetReader<T, TArg> : IDisposable
 
     private async ValueTask ReadDataSuppressedFlowAsync(CancellationToken cancellationToken)
     {
+        using var pipeReaderStream = _pipeReader.AsStream(leaveOpen: true);
+
+        // Get an object reader over the stream.  Note: we do not check the validation bytes here as the stream is
+        // currently pointing at header data prior to the object data.  Instead, we will check the validation bytes
+        // prior to reading each asset out.
+        using var objectReader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkValidationBytes: false);
+
         // Ensure that no invariants were broken and that both sides of the communication channel are talking about
         // the same pinned solution.
         var responseSolutionChecksum = await ReadChecksumFromPipeReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -332,10 +305,11 @@ internal readonly struct RemoteHostAssetReader<T, TArg> : IDisposable
 
         // Now actually read all the messages we expect to get.
         for (int i = 0, n = _objectCount; i < n; i++)
-            await ReadSingleMessageAsync(cancellationToken).ConfigureAwait(false);
+            await ReadSingleMessageAsync(objectReader, cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask ReadSingleMessageAsync(CancellationToken cancellationToken)
+    private async ValueTask ReadSingleMessageAsync(
+        ObjectReader objectReader, CancellationToken cancellationToken)
     {
         // For each message, read the sentinel byte and the length of the data chunk we'll be reading.
         var length = await CheckSentinelByteAndReadLengthAsync(cancellationToken).ConfigureAwait(false);
@@ -351,14 +325,14 @@ internal readonly struct RemoteHostAssetReader<T, TArg> : IDisposable
         _pipeReader.AdvanceTo(fillReadResult.Buffer.Start);
 
         // Let the object reader do it's own individual object checking.
-        _reader.CheckValidationBytes();
+        objectReader.CheckValidationBytes();
 
         // Now do the actual read of the data, synchronously, from the buffers that are now in memory within our
         // process.  These reads will move the pipe-reader forward, without causing any blocking on async-io.
-        var checksum = Checksum.ReadFrom(_reader);
-        var kind = (WellKnownSynchronizationKind)_reader.ReadByte();
+        var checksum = Checksum.ReadFrom(objectReader);
+        var kind = (WellKnownSynchronizationKind)objectReader.ReadByte();
 
-        var asset = _serializer.Deserialize(kind, _reader, cancellationToken);
+        var asset = _serializer.Deserialize(kind, objectReader, cancellationToken);
         Contract.ThrowIfNull(asset);
         _callback(checksum, (T)asset, _arg);
     }
