@@ -349,7 +349,7 @@ internal partial class VisualStudioWorkspaceImpl
 
         public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
         {
-            ForegroundThreadAffinitizedObject.ThisCanBeCalledOnAnyThread();
+            // ThisCanBeCalledOnAnyThread();
 
             return _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w =>
             {
