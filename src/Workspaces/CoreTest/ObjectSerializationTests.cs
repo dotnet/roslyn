@@ -673,6 +673,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var stream = new MemoryStream();
 
+            const string GooString = "Goo";
+            const string BarString = "Bar";
             var largeString = new string('a', 1024);
 
             // Write out some initial bytes, to demonstrate the reader not throwing, even if we don't have the right
@@ -683,7 +685,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var writer = new ObjectWriter(stream, leaveOpen: true, writeValidationBytes: false))
             {
                 writer.WriteValidationBytes();
-                writer.WriteString("Goo");
+                writer.WriteString(GooString);
                 writer.WriteString("Bar");
                 writer.WriteString(largeString);
 
@@ -695,7 +697,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.WriteValidationBytes();
                 writer.WriteString(largeString);
                 writer.WriteString("Bar");
-                writer.WriteString("Goo");
+                writer.WriteString(GooString);
             }
 
             stream.Position = 0;
@@ -706,12 +708,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, reader.ReadByte());
 
             reader.CheckValidationBytes();
+
             var string1 = reader.ReadString();
             var string2 = reader.ReadString();
             var string3 = reader.ReadString();
-            Assert.Equal("Goo", string1);
-            Assert.Equal("Bar", string2);
+            Assert.Equal(GooString, string1);
+            Assert.Equal(BarString, string2);
             Assert.Equal(largeString, string3);
+            Assert.NotSame(GooString, string1);
+            Assert.NotSame(BarString, string2);
+            Assert.NotSame(largeString, string3);
 
             Assert.Equal(3, stream.ReadByte());
             Assert.Equal(4, stream.ReadByte());
@@ -721,8 +727,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var string5 = reader.ReadString();
             var string6 = reader.ReadString();
             Assert.Equal(largeString, string4);
-            Assert.Equal("Bar", string5);
-            Assert.Equal("Goo", string6);
+            Assert.Equal(BarString, string5);
+            Assert.Equal(GooString, string6);
+            Assert.NotSame(largeString, string4);
+            Assert.NotSame(BarString, string5);
+            Assert.NotSame(GooString, string6);
 
             // These should be references to the same strings in the format string and should return the values already
             // returned.
