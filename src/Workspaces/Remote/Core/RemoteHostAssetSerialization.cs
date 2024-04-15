@@ -88,12 +88,11 @@ internal readonly struct RemoteHostAssetWriter(
 
         // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets
         // to the pipe. Capture-free version is only available on netcore unfortunately.
-#if NET
         using var _ = cancellationToken.Register(
+#if NET
             static (obj, cancellationToken) => ((Channel<ChecksumAndAsset>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
             state: channel);
 #else
-        using var _ = cancellationToken.Register(
             () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
 #endif
 
