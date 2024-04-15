@@ -2341,7 +2341,7 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
       </trans-unit>
       <trans-unit id="camel_Case_Name">
         <source>camel Case Name</source>
-        <target state="translated">Name mit gemischter Groß-/Kleinschreibung</target>
+        <target state="translated">Name in CamelCase </target>
         <note />
       </trans-unit>
       <trans-unit id="First_word_upper">

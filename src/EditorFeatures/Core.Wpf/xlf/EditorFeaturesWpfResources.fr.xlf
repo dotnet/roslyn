@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Toggle_AI_suggestions">
         <source>Toggle rename suggestions (Ctrl+Space)</source>
-        <target state="new">Toggle rename suggestions (Ctrl+Space)</target>
+        <target state="translated">Activer/désactiver les suggestions de changement de nom (Ctrl+Space)</target>
         <note />
       </trans-unit>
     </body>
