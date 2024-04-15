@@ -155,6 +155,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterCompilationEndAction(_analyzer, action);
         }
 
+        public override void RegisterCompilationUnitStartAction(Action<CompilationUnitStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterCompilationUnitStartAction(_analyzer, action);
+        }
+
         public override void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
@@ -528,6 +534,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             CompilationAnalyzerAction analyzerAction = new CompilationAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationEndAction(analyzerAction);
+        }
+
+        public void RegisterCompilationUnitStartAction(DiagnosticAnalyzer analyzer, Action<CompilationUnitStartAnalysisContext> action)
+        {
+            var analyzerAction = new CompilationUnitStartAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationUnitStartAction(analyzerAction);
         }
 
         public void RegisterSemanticModelAction(DiagnosticAnalyzer analyzer, Action<SemanticModelAnalysisContext> action)
