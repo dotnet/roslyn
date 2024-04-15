@@ -312,7 +312,7 @@ internal static class RemoteHostAssetSerialization
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
             pipeReader.AdvanceTo(readChecksumResult.Buffer.GetPosition(Checksum.HashSize));
 
-            for (var i = 0; i < objectCount; i++)
+            for (int i = 0, n = objectCount; i < n; i++)
             {
                 // For each message, read the sentinel byte and the length of the data chunk we'll be reading.
                 const int HeaderSize = sizeof(byte) + sizeof(int);
