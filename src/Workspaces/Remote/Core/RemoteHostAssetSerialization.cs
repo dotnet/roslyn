@@ -80,7 +80,6 @@ internal static class RemoteHostAssetSerialization
     public static async ValueTask WriteDataAsync(
         PipeWriter pipeWriter,
         AssetPath assetPath,
-        Checksum solutionChecksum,
         ReadOnlyMemory<Checksum> checksums,
         SolutionAssetStorage.Scope scope,
         ISerializerService serializer,
@@ -108,7 +107,7 @@ internal static class RemoteHostAssetSerialization
 
         // Spin up a task to read from the channel and write out the assets to the pipe-writer.
         var writeAssetsTask = ReadAssetsFromChannelAndWriteToPipeAsync(
-            pipeWriter, channel.Reader, solutionChecksum, checksums, scope, serializer, cancellationToken);
+            pipeWriter, channel.Reader, checksums, scope, serializer, cancellationToken);
 
         // Wait for both the searching and writing tasks to finish.
         await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
@@ -153,7 +152,6 @@ internal static class RemoteHostAssetSerialization
         static async Task ReadAssetsFromChannelAndWriteToPipeAsync(
             PipeWriter pipeWriter,
             ChecksumChannelReader channelReader,
-            Checksum solutionChecksum,
             ReadOnlyMemory<Checksum> checksums,
             SolutionAssetStorage.Scope scope,
             ISerializerService serializer,
@@ -174,7 +172,7 @@ internal static class RemoteHostAssetSerialization
             // This information is not actually needed on the receiving end.  However, we still send it so that the
             // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
             // breaks have occurred.
-            WriteSolutionChecksum(pipeWriter, solutionChecksum);
+            WriteSolutionChecksum(pipeWriter, scope.SolutionChecksum);
             await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))

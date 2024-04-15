@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var serializer = _services.GetRequiredService<ISerializerService>();
 
             return RemoteHostAssetSerialization.WriteDataAsync(
-                pipeWriter, assetPath, solutionChecksum, checksums, scope, serializer, cancellationToken);
+                pipeWriter, assetPath, checksums, scope, serializer, cancellationToken);
         }
     }
 }
