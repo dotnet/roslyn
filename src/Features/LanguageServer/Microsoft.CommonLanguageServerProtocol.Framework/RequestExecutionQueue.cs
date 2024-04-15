@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
