@@ -13468,7 +13468,7 @@ class Program
             verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int32]
-                System.Action`1[System.Int32[]]
+                <>f__AnonymousDelegate0`1[System.Int32]
                 """).VerifyDiagnostics();
 
             cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13554,7 +13554,7 @@ class Program
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
-                System.Action`1[System.Int64[]]
+                <>f__AnonymousDelegate0`1[System.Int64]
                 B
                 """).VerifyDiagnostics();
 
@@ -13738,7 +13738,7 @@ class Program
             verifier = CompileAndVerify(source3, [comp1aRef, comp2b.EmitToImageReference()],
                 expectedOutput: """
                 System.Action`1[System.Int32[]]
-                <>f__AnonymousDelegate0`1[System.Int32]
+                System.Action`1[System.Int32[]]
                 """).VerifyDiagnostics();
 
             cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");

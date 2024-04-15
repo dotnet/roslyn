@@ -10365,7 +10365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
 
-            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol);
+            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol.GetLeastOverriddenMethod(ContainingType));
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);
