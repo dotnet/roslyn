@@ -211,6 +211,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private ImmutableHashSet<DiagnosticAnalyzer>? _lazyCompilationUnitStartAnalyzers;
+
+        /// <summary>
+        /// Set of analyzers that have registered compilation start analyzer actions.
+        /// </summary>
+        private ImmutableHashSet<DiagnosticAnalyzer> CompilationUnitStartAnalyzers
+        {
+            get
+            {
+                Debug.Assert(_lazyCompilationUnitStartAnalyzers != null);
+                return _lazyCompilationUnitStartAnalyzers;
+            }
+        }
+
         private bool? _lazyTreatAllCodeAsNonGeneratedCode;
 
         /// <summary>
@@ -412,6 +426,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazyAnalyzerGateMap = await CreateAnalyzerGateMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyNonConfigurableAndCustomConfigurableAnalyzers = ComputeNonConfigurableAndCustomConfigurableAnalyzers(UnsuppressedAnalyzers, cancellationToken);
                     _lazySymbolStartAnalyzers = ComputeSymbolStartAnalyzers(UnsuppressedAnalyzers);
+                    _lazyCompilationUnitStartAnalyzers = ComputeCompilationUnitStartAnalyzers(UnsuppressedAnalyzers);
                     _lazyGeneratedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyTreatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap);
                     _lazyDoNotAnalyzeGeneratedCode = ComputeShouldSkipAnalysisOnGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap, TreatAllCodeAsNonGeneratedCode);
