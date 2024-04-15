@@ -62,7 +62,7 @@ namespace System.Runtime.CompilerServices
 
 Any "ordinary method" (i.e. with `MethodKind.Ordinary`) can have its calls intercepted.
 
-In addition to "ordinary" forms `M()` and `reciever.M()`, a call within a conditional access, e.g. of the form `receiver?.M()` can be intercepted. A call whose receiver is a pointer member access, e.g. of the form `ptr->M()`, can also be intercepted.
+In addition to "ordinary" forms `M()` and `receiver.M()`, a call within a conditional access, e.g. of the form `receiver?.M()` can be intercepted. A call whose receiver is a pointer member access, e.g. of the form `ptr->M()`, can also be intercepted.
 
 `[InterceptsLocation]` attributes included in source are emitted to the resulting assembly, just like other custom attributes.
 
