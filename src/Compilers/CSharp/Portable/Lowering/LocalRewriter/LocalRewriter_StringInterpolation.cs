@@ -549,6 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (part is not BoundCall { Method.Name: not null, } call)
                 {
+                    mergeReusableIntoResult();
                     result.Add(part);
                     continue;
                 }
