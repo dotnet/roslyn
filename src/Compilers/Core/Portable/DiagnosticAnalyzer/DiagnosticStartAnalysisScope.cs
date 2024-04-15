@@ -768,6 +768,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public readonly int CompilationStartActionsCount { get { return _compilationStartActions.Length; } }
+        public readonly int CompilationUnitStartActionsCount => _compilationUnitStartActions.Length;
         public readonly int CompilationEndActionsCount { get { return _compilationEndActions.Length; } }
         public readonly int CompilationActionsCount { get { return _compilationActions.Length; } }
         public readonly int SyntaxTreeActionsCount { get { return _syntaxTreeActions.Length; } }
@@ -792,6 +793,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get { return _compilationStartActions; }
         }
+
+        internal readonly ImmutableArray<CompilationUnitStartAnalyzerAction> CompilationUnitStartActions
+            => _compilationUnitStartActions;
 
         internal readonly ImmutableArray<CompilationAnalyzerAction> CompilationEndActions
         {
@@ -1014,6 +1018,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             AnalyzerActions actions = new AnalyzerActions(concurrent: _concurrent || otherActions.Concurrent);
             actions._compilationStartActions = _compilationStartActions.AddRange(otherActions._compilationStartActions);
+            actions._compilationUnitStartActions = _compilationUnitStartActions.AddRange(otherActions._compilationUnitStartActions);
             actions._compilationEndActions = _compilationEndActions.AddRange(otherActions._compilationEndActions);
             actions._compilationActions = _compilationActions.AddRange(otherActions._compilationActions);
             actions._syntaxTreeActions = _syntaxTreeActions.AddRange(otherActions._syntaxTreeActions);
