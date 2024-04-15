@@ -7199,4 +7199,173 @@ partial struct CustomHandler
         Assert.Equal("(7,9)", locationSpecifier.GetDisplayLocation());
         AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "jB4qgCy292LkEGCwmD+R6FIAAAA=")]""", locationSpecifier.GetInterceptsLocationAttributeSyntax());
     }
+
+    [Fact]
+    public void ConditionalAccess_01()
+    {
+        var source = CSharpTestSource.Parse("""
+            class C
+            {
+                void M() => throw null!;
+
+                static void Main()
+                {
+                    var c = new C();
+                    c?.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            #nullable enable
+            using System;
+
+            static class Interceptors
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this C? c) => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConditionalAccess_02()
+    {
+        // use a location specifier which refers to a conditional access that is not being invoked.
+        var source = CSharpTestSource.Parse("""
+            class C
+            {
+                int P => throw null!;
+
+                static void Main()
+                {
+                    var c = new C();
+                    _ = c?.P;
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = (CSharpSemanticModel)comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocationInternal(node.Name, cancellationToken: default)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            #nullable enable
+            using System;
+
+            static class Interceptors
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this C? c) => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        comp = CreateCompilation([source, interceptors, s_attributesTree]);
+        comp.VerifyEmitDiagnostics(
+            // Interceptors.cs(6,6): error CS9151: Possible method name 'P' cannot be intercepted because it is not being invoked.
+            //     [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "q2jDXUSFcU71GJHh7313cHEAAABQcm9ncmFtLmNz")]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("P").WithLocation(6, 6));
+    }
+
+    [Theory]
+    [InlineData("p->M();")]
+    [InlineData("(*p).M();")]
+    public void PointerAccess_01(string invocation)
+    {
+        var source = CSharpTestSource.Parse($$"""
+            struct S
+            {
+                void M() => throw null!;
+
+                static unsafe void Main()
+                {
+                    S s = default;
+                    S* p = &s;
+                    {{invocation}}
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
+        CompileAndVerify(comp, verify: Verification.Fails);
+
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            #nullable enable
+            using System;
+
+            static class Interceptors
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify(
+            [source, interceptors, s_attributesTree],
+            options: TestOptions.UnsafeDebugExe,
+            verify: Verification.Fails,
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void PointerAccess_02([CombinatorialValues("p->M();", "(*p).M();")] string invocation, [CombinatorialValues("", "ref")] string refKind)
+    {
+        // Original method is an extension
+        var source = CSharpTestSource.Parse($$"""
+            struct S
+            {
+                static unsafe void Main()
+                {
+                    S s = default;
+                    S* p = &s;
+                    {{invocation}}
+                }
+            }
+
+            static class Ext
+            {
+                public static void M(this {{refKind}} S s) => throw null!;
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
+        CompileAndVerify(comp, verify: Verification.Fails);
+
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            #nullable enable
+            using System;
+
+            static class Interceptors
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this {{refKind}} S s) => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify(
+            [source, interceptors, s_attributesTree],
+            options: TestOptions.UnsafeDebugExe,
+            verify: Verification.Fails,
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
 }
