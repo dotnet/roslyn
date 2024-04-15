@@ -122,11 +122,11 @@ internal static class RemoteHostAssetSerialization
             ChecksumChannelWriter channelWriter,
             CancellationToken cancellationToken)
         {
-            await Task.Yield();
-
             Exception? exception = null;
             try
             {
+                await Task.Yield();
+
                 await scope.FindAssetsAsync(
                     assetPath,
                     checksums,
