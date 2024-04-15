@@ -283,7 +283,7 @@ internal readonly struct RemoteHostAssetReader<T, TArg>(
         Contract.ThrowIfFalse(_solutionChecksum == responseSolutionChecksum);
 
         // Now actually read all the messages we expect to get.
-        for (int i = 0, n = _objectCount; i < n; i++)
+        for (var i = 0; i < _objectCount; i++)
             await ReadSingleMessageAsync(objectReader, cancellationToken).ConfigureAwait(false);
     }
 
