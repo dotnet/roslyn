@@ -62,6 +62,8 @@ namespace System.Runtime.CompilerServices
 
 Any "ordinary method" (i.e. with `MethodKind.Ordinary`) can have its calls intercepted.
 
+In addition to "ordinary" forms `M()` and `reciever.M()`, a call within a conditional access, e.g. of the form `receiver?.M()` can be intercepted. A call whose receiver is a pointer member access, e.g. of the form `ptr->M()`, can also be intercepted.
+
 `[InterceptsLocation]` attributes included in source are emitted to the resulting assembly, just like other custom attributes.
 
 File-local declarations of this type (`file class InterceptsLocationAttribute`) are valid and usages are recognized by the compiler when they are within the same file and compilation. A generator which needs to declare this attribute should use a file-local declaration to ensure it doesn't conflict with other generators that need to do the same thing.
@@ -85,7 +87,7 @@ The location of the call is the location of the simple name syntax which denotes
 
 #### Attribute creation
 
-Roslyn provides a convenience API, `GetInterceptableLocation(this SemanticModel, InvocationExpressionSyntax, CancellationToken)` for inserting `[InterceptsLocation]` into generated source code. We recommend that source generators depend on this API in order to intercept calls.
+Roslyn provides an API `GetInterceptableLocation(this SemanticModel, InvocationExpressionSyntax, CancellationToken)` for inserting `[InterceptsLocation]` into generated source code. We recommend that source generators depend on this API in order to intercept calls. See https://github.com/dotnet/roslyn/issues/72133 for further details.
 
 ### Non-invocation method usages
 
@@ -180,6 +182,8 @@ We may also want to consider adjusting behavior of `[EditorBrowsable]` to work i
 ### Editor experience
 
 Interceptors are treated like a post-compilation step in this design. Diagnostics are given for misuse of interceptors, but some diagnostics are only given in the command-line build and not in the IDE. There is limited traceability in the editor for which calls in a compilation are actually being intercepted. If this feature is brought forward past the experimental stage, this limitation will need to be re-examined.
+
+There is an experimental public API `GetInterceptorMethod(this SemanticModel, InvocationExpressionSyntax, CancellationToken)` which enables analyzers to determine if a call is being intercepted, and if so, which method is intercepting the call. See https://github.com/dotnet/roslyn/issues/72093 for further details.
 
 ### User opt-in
 
