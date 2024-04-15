@@ -28,7 +28,6 @@ internal sealed partial class ObjectReader : IDisposable
     internal const byte VersionByte2 = 0b00001101;
 
     private readonly BinaryReader _reader;
-    private readonly CancellationToken _cancellationToken;
 
     /// <summary>
     /// Map of reference id's to deserialized strings.
@@ -40,11 +39,9 @@ internal sealed partial class ObjectReader : IDisposable
     /// </summary>
     /// <param name="stream">The stream to read objects from.</param>
     /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
-    /// <param name="cancellationToken"></param>
     private ObjectReader(
         Stream stream,
-        bool leaveOpen,
-        CancellationToken cancellationToken)
+        bool leaveOpen)
     {
         // String serialization assumes both reader and writer to be of the same endianness.
         // It can be adjusted for BigEndian if needed.
@@ -52,8 +49,6 @@ internal sealed partial class ObjectReader : IDisposable
 
         _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
         _stringReferenceMap = ReaderReferenceMap.Create();
-
-        _cancellationToken = cancellationToken;
     }
 
     /// <summary>
@@ -63,8 +58,7 @@ internal sealed partial class ObjectReader : IDisposable
     /// </summary>
     public static ObjectReader? TryGetReader(
         Stream? stream,
-        bool leaveOpen = false,
-        CancellationToken cancellationToken = default)
+        bool leaveOpen = false)
     {
         if (stream == null)
         {
@@ -91,29 +85,28 @@ internal sealed partial class ObjectReader : IDisposable
 #endif
         }
 
-        return new ObjectReader(stream, leaveOpen, cancellationToken);
+        return new ObjectReader(stream, leaveOpen);
     }
 
     /// <summary>
     /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>. Unlike <see
-    /// cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version of the data in the stream to
+    /// cref="TryGetReader(Stream, bool)"/>, it requires the version of the data in the stream to
     /// exactly match the current format version. Should only be used to read data written by the same version of
     /// Roslyn.
     /// </summary>
-    public static ObjectReader GetReader(Stream stream, bool leaveOpen, CancellationToken cancellationToken)
-        => GetReader(stream, leaveOpen, checkValidationBytes: true, cancellationToken);
+    public static ObjectReader GetReader(Stream stream, bool leaveOpen)
+        => GetReader(stream, leaveOpen, checkValidationBytes: true);
 
-    /// <inheritdoc cref="GetReader(Stream, bool, CancellationToken)"/>
+    /// <inheritdoc cref="GetReader(Stream, bool)"/>
     /// <param name="checkValidationBytes">Whether or not the validation bytes (see <see
     /// cref="ObjectWriter.WriteValidationBytes"/> should be checked immediately at the stream's current
     /// position.</param>
     public static ObjectReader GetReader(
         Stream stream,
         bool leaveOpen,
-        bool checkValidationBytes,
-        CancellationToken cancellationToken)
+        bool checkValidationBytes)
     {
-        var reader = new ObjectReader(stream, leaveOpen, cancellationToken);
+        var reader = new ObjectReader(stream, leaveOpen);
         if (checkValidationBytes)
             reader.CheckValidationBytes();
 

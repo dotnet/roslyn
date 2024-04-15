@@ -5,7 +5,6 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
-using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Channels;
@@ -168,7 +167,7 @@ internal static class RemoteHostAssetSerialization
             // single object writer across all assets means we get the benefit of string deduplication across all assets
             // we write out.
             using var pooledStream = s_streamPool.GetPooledObject();
-            using var writer = new ObjectWriter(pooledStream.Object, leaveOpen: true, writeValidationBytes: false, cancellationToken);
+            using var writer = new ObjectWriter(pooledStream.Object, leaveOpen: true, writeValidationBytes: false);
 
             while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -288,7 +287,7 @@ internal static class RemoteHostAssetSerialization
             // Get an object reader over the stream.  Note: we do not check the validation bytes here as the stream is
             // currently pointing at header data prior to the object data.  Instead, we will check the validation bytes
             // prior to reading each asset out.
-            using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkValidationBytes: false, cancellationToken);
+            using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkValidationBytes: false);
 
             for (var i = 0; i < objectCount; i++)
             {

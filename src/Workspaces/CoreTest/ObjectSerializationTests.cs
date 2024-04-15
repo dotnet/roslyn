@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -679,7 +678,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             stream.WriteByte(1);
             stream.WriteByte(2);
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, writeValidationBytes: false, CancellationToken.None))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, writeValidationBytes: false))
             {
                 writer.WriteValidationBytes();
                 writer.WriteString("Goo");
@@ -697,7 +696,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             stream.Position = 0;
 
-            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, checkValidationBytes: false, CancellationToken.None);
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, checkValidationBytes: false);
 
             Assert.Equal(1, reader.ReadByte());
             Assert.Equal(2, reader.ReadByte());
