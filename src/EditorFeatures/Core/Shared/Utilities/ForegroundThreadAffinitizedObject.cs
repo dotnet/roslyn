@@ -70,28 +70,7 @@ internal class ForegroundThreadAffinitizedObject
     }
 
     public Task InvokeBelowInputPriorityAsync(Action action, CancellationToken cancellationToken = default)
-    {
-        if (IsForeground() && !IsInputPending())
-        {
-            // Optimize to inline the action if we're already on the foreground thread
-            // and there's no pending user input.
-            action();
-
-            return Task.CompletedTask;
-        }
-        else
-        {
-            return Task.Factory.SafeStartNewFromAsync(
-                async () =>
-                {
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                    action();
-                },
-                cancellationToken,
-                TaskScheduler.Default);
-        }
-    }
+        => _threadingContext.InvokeBelowInputPriorityAsync(action, cancellationToken);
 
     /// <summary>
     /// Returns true if any keyboard or mouse button input is pending on the message queue.
@@ -110,5 +89,32 @@ internal class ForegroundThreadAffinitizedObject
 
         const uint InputMask = NativeMethods.QS_INPUT | (NativeMethods.QS_INPUT << 16);
         return (result & InputMask) != 0;
+    }
+}
+
+internal static class IThreadingContextExtensions
+{
+    public static Task InvokeBelowInputPriorityAsync(this IThreadingContext threadingContext, Action action, CancellationToken cancellationToken = default)
+    {
+        if (threadingContext.JoinableTaskContext.IsOnMainThread && !ForegroundThreadAffinitizedObject.IsInputPending())
+        {
+            // Optimize to inline the action if we're already on the foreground thread
+            // and there's no pending user input.
+            action();
+
+            return Task.CompletedTask;
+        }
+        else
+        {
+            return Task.Factory.SafeStartNewFromAsync(
+                async () =>
+                {
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                    action();
+                },
+                cancellationToken,
+                TaskScheduler.Default);
+        }
     }
 }
