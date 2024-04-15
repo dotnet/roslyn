@@ -7083,7 +7083,7 @@ class Program
                     public abstract void M(int x = 1);
                 }
                 """;
-            CompileAndVerify(source, expectedOutput: """
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 L4
                 <>f__AnonymousDelegate1`1[System.Int64]
@@ -7091,6 +7091,18 @@ class Program
                 <>f__AnonymousDelegate2`1[System.Int32]
                 I1
                 """).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 4])", m.ToTestDisplayString());
+
+                m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate1.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate1<T1>.Invoke([T1 arg = default(T1)])", m.ToTestDisplayString());
+
+                m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate2.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate2<T1>.Invoke([T1 arg = 1])", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -7212,6 +7224,7 @@ class Program
         {
             var source = """
                 var d = new Z().M;
+                System.Console.WriteLine(d.GetType());
                 d();
 
                 public class Z : Y<long>
@@ -7230,7 +7243,16 @@ class Program
                     public abstract void M(int x = 1);
                 }
                 """;
-            CompileAndVerify(source, expectedOutput: "3").VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                3
+                """).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 3])", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -7257,10 +7279,16 @@ class Program
                     internal static new void F(int x = 2) => System.Console.WriteLine("B" + x);
                 }
                 """;
-            CompileAndVerify(source, expectedOutput: """
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 B3
                 """).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 2])", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -7287,10 +7315,16 @@ class Program
                     internal static new void F(int x = 2) => System.Console.WriteLine("B" + x);
                 }
                 """;
-            CompileAndVerify(source, expectedOutput: """
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 B3
                 """).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 2])", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13334,7 +13368,7 @@ class Program
                     public abstract void M(int x = 42);
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: """
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 System.Action`1[System.Int32]
                 """).VerifyDiagnostics();
@@ -13342,6 +13376,12 @@ class Program
             Assert.Equal(42, cm.Parameters.Single().ExplicitDefaultValue);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
             Assert.False(dm.Parameters.Single().HasExplicitDefaultValue);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 42])", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13363,7 +13403,7 @@ class Program
                     public abstract void M(int x);
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: """
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
                 System.Action`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.Int32]
                 """).VerifyDiagnostics();
@@ -13371,6 +13411,12 @@ class Program
             Assert.False(cm.Parameters.Single().HasExplicitDefaultValue);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
             Assert.Equal(42, dm.Parameters.Single().ExplicitDefaultValue);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 42])", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13410,6 +13456,7 @@ class Program
                 }
                 """;
             var verifier = CompileAndVerify(source,
+                symbolValidator: validateSymbols,
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.Int32]
@@ -13418,6 +13465,12 @@ class Program
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
             Assert.True(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13466,6 +13519,7 @@ class Program
                 """;
             var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
             verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
+                symbolValidator: validateSymbols,
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.Int32]
@@ -13475,6 +13529,12 @@ class Program
             Assert.True(cm.Parameters.Single().IsParams);
             dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
             Assert.False(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13500,6 +13560,7 @@ class Program
                 }
                 """;
             var verifier = CompileAndVerify(source,
+                symbolValidator: validateSymbols,
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
@@ -13510,6 +13571,12 @@ class Program
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
             Assert.True(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13551,6 +13618,7 @@ class Program
                 d(null);
                 """;
             var verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
+                symbolValidator: validateSymbols,
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
@@ -13562,6 +13630,12 @@ class Program
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
             Assert.False(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13587,6 +13661,7 @@ class Program
                 }
                 """;
             var verifier = CompileAndVerify(source,
+                symbolValidator: validateSymbols,
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
@@ -13597,6 +13672,12 @@ class Program
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
             Assert.True(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13638,6 +13719,7 @@ class Program
                 d(null);
                 """;
             var verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
+                symbolValidator: validateSymbols,
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
@@ -13649,6 +13731,12 @@ class Program
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
             Assert.False(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
         }
 
         [Fact]
@@ -13709,6 +13797,7 @@ class Program
                 System.Console.WriteLine(d.GetType());
                 """;
             var verifier = CompileAndVerify(source3, [comp2Ref, comp1aRef],
+                symbolValidator: validateSymbols,
                 expectedOutput: """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.Int32]
@@ -13718,6 +13807,12 @@ class Program
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
             Assert.True(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
 
             var source1b = """
                 public abstract class C
