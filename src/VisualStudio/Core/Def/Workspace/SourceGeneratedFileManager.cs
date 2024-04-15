@@ -232,7 +232,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     {
     }
 
-    private sealed class OpenSourceGeneratedFile : ForegroundThreadAffinitizedObject, IDisposable
+    private sealed class OpenSourceGeneratedFile : IDisposable
     {
         private readonly SourceGeneratedFileManager _fileManager;
         private readonly ITextBuffer _textBuffer;
@@ -267,8 +267,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private InfoBarInfo? _infoToShow = null;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, SourceGeneratedDocumentIdentity documentIdentity)
-            : base(fileManager._threadingContext, assertIsForeground: true)
         {
+            fileManager._threadingContext.ThrowIfNotOnUIThread();
             _fileManager = fileManager;
             _textBuffer = textBuffer;
             _documentIdentity = documentIdentity;
@@ -300,7 +300,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
         private void DisconnectFromWorkspaceIfOpen()
         {
-            AssertIsForeground();
+            _fileManager._threadingContext.ThrowIfNotOnUIThread();
 
             if (this.Workspace.IsDocumentOpen(_documentIdentity.DocumentId))
             {
@@ -312,7 +312,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
         public void Dispose()
         {
-            AssertIsForeground();
+            _fileManager._threadingContext.ThrowIfNotOnUIThread();
 
             this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
@@ -370,7 +370,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 }
             }
 
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _infoToShow = infoToShow;
 
@@ -476,7 +476,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 return;
 
             _infoBar = new VisualStudioInfoBar(
-                this.ThreadingContext, _fileManager._vsInfoBarUIFactory, _fileManager._vsShell, _fileManager._listenerProvider, windowFrame);
+                _fileManager._threadingContext, _fileManager._vsInfoBarUIFactory, _fileManager._vsShell, _fileManager._listenerProvider, windowFrame);
 
             // We'll override the window frame and never show it as dirty, even if there's an underlying edit
             windowFrame.SetProperty((int)__VSFPROPID2.VSFPROPID_OverrideDirtyState, false);
