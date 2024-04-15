@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("C", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("F", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("F", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -91,7 +91,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("M", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("M", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -136,7 +136,7 @@ End Namespace
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("C", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -185,7 +185,7 @@ End Namespace
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("Goo", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("Goo", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -230,7 +230,7 @@ End Namespace
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("Z", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("Z", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -266,7 +266,7 @@ End Namespace
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("D.B", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("D.B", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -298,7 +298,7 @@ End Namespace
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("C.B", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C.B", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -321,7 +321,7 @@ End Namespace
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("D.B", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("D.B", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -353,7 +353,7 @@ End Namespace
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("A.D.B", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("A.D.B", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -385,7 +385,7 @@ End Namespace
                     </Workspace>)
 
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery("A.D.B", NavigateToDocumentSupport.AllDocuments, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("A.D.B", NavigateToDocumentSupport.AllDocuments), GraphContextDirection.Custom)
 
                 ' When searching, don't descend into projects with a null FilePath because they are artifacts and not
                 ' representable in the Solution Explorer, e.g., Venus projects create sub-projects with a null file

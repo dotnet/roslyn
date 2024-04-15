@@ -82,14 +82,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analyzer == FileContentLoadAnalyzer.Instance)
             {
                 return loadDiagnostic != null
-                    ? SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, textDocument))
-                    : SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+                    ? [DiagnosticData.Create(loadDiagnostic, textDocument)]
+                    : [];
             }
 
             if (loadDiagnostic != null)
-            {
-                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-            }
+                return [];
 
             if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
             {
@@ -101,16 +99,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+                    return [];
                 }
             }
 
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
             {
                 if (document == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-                }
+                    return [];
 
                 var documentDiagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
                     documentAnalyzer, document, kind, _compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
@@ -127,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", _compilationWithAnalyzers, textDocument, analyzer, kind);
                 }
 
-                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+                return [];
             }
 
             // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
@@ -139,16 +135,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a}, ({d.Id}, {d.Project.Id}), Enabled:{e}", analyzer, textDocument, isEnabled);
 
                 if (!isEnabled)
-                {
-                    return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-                }
+                    return [];
             }
 
+            // We currently support document analysis only for source documents and additional documents.
             if (document == null && textDocument is not AdditionalDocument)
-            {
-                // We currently support document analysis only for source documents and additional documents.
-                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
-            }
+                return [];
 
             var diagnostics = kind switch
             {
@@ -403,14 +395,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Round tripping the diagnostics should ensure they get correctly remapped.
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(diagnostics.Length, out var builder);
+            var builder = new FixedSizeArrayBuilder<DiagnosticData>(diagnostics.Length);
             foreach (var diagnosticData in diagnostics)
             {
                 var diagnostic = await diagnosticData.ToDiagnosticAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
                 builder.Add(DiagnosticData.Create(diagnostic, textDocument));
             }
 
-            return builder.ToImmutableAndClear();
+            return builder.MoveToImmutable();
         }
     }
 }

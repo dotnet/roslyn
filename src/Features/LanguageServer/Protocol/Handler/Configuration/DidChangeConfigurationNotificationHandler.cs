@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         /// <summary>

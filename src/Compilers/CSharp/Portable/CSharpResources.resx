@@ -7914,4 +7914,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CannotDynamicInvokeOnExpression" xml:space="preserve">
     <value>Cannot perform a dynamic invocation on an expression with type '{0}'.</value>
   </data>
+  <data name="ERR_InterceptsLocationDataInvalidFormat" xml:space="preserve">
+    <value>The data argument to InterceptsLocationAttribute is not in the correct format.</value>
+  </data>
+  <data name="ERR_InterceptsLocationUnsupportedVersion" xml:space="preserve">
+    <value>Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</value>
+  </data>
+  <data name="ERR_InterceptsLocationDuplicateFile" xml:space="preserve">
+    <value>Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</value>
+  </data>
+  <data name="ERR_InterceptsLocationFileNotFound" xml:space="preserve">
+    <value>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</value>
+  </data>
+  <data name="ERR_InterceptsLocationDataInvalidPosition" xml:space="preserve">
+    <value>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</value>
+  </data>
 </root>

@@ -108,7 +108,7 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
             }
 
             items.Sort((x1, x2) => x1.Text.CompareTo(x2.Text));
-            return items.ToImmutable();
+            return items.ToImmutableAndClear();
         }
     }
 
@@ -131,9 +131,7 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
             while (!nodesToVisit.IsEmpty())
             {
                 if (cancellationToken.IsCancellationRequested)
-                {
-                    return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
-                }
+                    return [];
 
                 var node = nodesToVisit.Pop();
                 var type = GetType(semanticModel, node, cancellationToken);

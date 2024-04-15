@@ -60,7 +60,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
             GetRecommendedNames(names, nameInfo, context, result, namingStyleOptions, cancellationToken);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)

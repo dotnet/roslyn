@@ -18,11 +18,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing;
 /// </summary>
 internal sealed class SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map) : IAssetSource
 {
-    public ValueTask<ImmutableArray<object>> GetAssetsAsync(
-        Checksum solutionChecksum, AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
+    public ValueTask GetAssetsAsync<T, TArg>(
+        Checksum solutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService deserializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
-        var results = new List<object>();
-
         foreach (var checksum in checksums.Span)
         {
             Contract.ThrowIfFalse(map.TryGetValue(checksum, out var data));
@@ -30,18 +28,18 @@ internal sealed class SimpleAssetSource(ISerializerService serializerService, IR
             using var stream = new MemoryStream();
             using var context = new SolutionReplicationContext();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 serializerService.Serialize(data, writer, context, cancellationToken);
             }
 
             stream.Position = 0;
-            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true);
             var asset = deserializerService.Deserialize(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
             Contract.ThrowIfNull(asset);
-            results.Add(asset);
+            callback(checksum, (T)asset, arg);
         }
 
-        return ValueTaskFactory.FromResult(results.ToImmutableArray());
+        return ValueTaskFactory.CompletedTask;
     }
 }

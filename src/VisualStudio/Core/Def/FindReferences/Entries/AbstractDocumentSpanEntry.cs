@@ -81,7 +81,7 @@ internal partial class StreamingFindUsagesPresenter
             }
 
             var results = await service.MapSpansAsync(
-                documentSpan.Document, SpecializedCollections.SingletonEnumerable(documentSpan.SourceSpan), cancellationToken).ConfigureAwait(false);
+                documentSpan.Document, [documentSpan.SourceSpan], cancellationToken).ConfigureAwait(false);
 
             if (results.IsDefaultOrEmpty)
             {

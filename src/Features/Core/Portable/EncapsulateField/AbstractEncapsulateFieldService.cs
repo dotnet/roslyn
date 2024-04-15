@@ -70,7 +70,7 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         }
 
         builder.AddRange(EncapsulateAllFields(document, fields, fallbackOptions));
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, CleanCodeGenerationOptionsProvider fallbackOptions)

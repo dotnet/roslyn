@@ -602,7 +602,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     references.Add(scope.CreateReference(mappedResult));
             }
 
-            return references.ToImmutable();
+            return references.ToImmutableAndClear();
         }
 
         private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
@@ -20,6 +19,8 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+using static CSharpSyntaxTokens;
 
 internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider<PropertyDeclarationSyntax>
 {
@@ -54,7 +55,7 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
         // If there are no preceding accessibility modifiers create default `public` one
         if (!syntaxContext.PrecedingModifiers.Any(SyntaxFacts.IsAccessibilityModifier))
         {
-            modifiers = SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            modifiers = SyntaxTokenList.Create(PublicKeyword);
         }
 
         return SyntaxFactory.PropertyDeclaration(
@@ -66,7 +67,7 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
             accessorList: SyntaxFactory.AccessorList([.. accessors.Where(a => a is not null)!]));
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, PropertyDeclarationSyntax propertyDeclaration, SourceText sourceText)
+    protected override int GetTargetCaretPosition(PropertyDeclarationSyntax propertyDeclaration, SourceText sourceText)
         => propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
 
     protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax propertyDeclaration, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)

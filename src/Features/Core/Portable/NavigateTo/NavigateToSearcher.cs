@@ -46,7 +46,6 @@ internal sealed class NavigateToSearcher
     private readonly INavigateToSearchCallback _callback;
     private readonly string _searchPattern;
     private readonly IImmutableSet<string> _kinds;
-    private readonly IAsynchronousOperationListener _listener;
     private readonly IStreamingProgressTracker _progress_doNotAccessDirectly;
 
     private readonly Document? _activeDocument;
@@ -59,15 +58,13 @@ internal sealed class NavigateToSearcher
         Solution solution,
         INavigateToSearchCallback callback,
         string searchPattern,
-        IImmutableSet<string> kinds,
-        IAsynchronousOperationListener listener)
+        IImmutableSet<string> kinds)
     {
         _host = host;
         _solution = solution;
         _callback = callback;
         _searchPattern = searchPattern;
         _kinds = kinds;
-        _listener = listener;
         _progress_doNotAccessDirectly = new StreamingProgressTracker((current, maximum, ct) =>
         {
             callback.ReportProgress(current, maximum);
@@ -101,18 +98,17 @@ internal sealed class NavigateToSearcher
         CancellationToken disposalToken)
     {
         var host = new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-        return Create(solution, asyncListener, callback, searchPattern, kinds, host);
+        return Create(solution, callback, searchPattern, kinds, host);
     }
 
     public static NavigateToSearcher Create(
         Solution solution,
-        IAsynchronousOperationListener asyncListener,
         INavigateToSearchCallback callback,
         string searchPattern,
         IImmutableSet<string> kinds,
         INavigateToSearcherHost host)
     {
-        return new NavigateToSearcher(host, solution, callback, searchPattern, kinds, asyncListener);
+        return new NavigateToSearcher(host, solution, callback, searchPattern, kinds);
     }
 
     private async Task AddProgressItemsAsync(int count, CancellationToken cancellationToken)
@@ -247,7 +243,7 @@ internal sealed class NavigateToSearcher
         {
             // We're potentially about to make many calls over to our OOP service to perform searches.  Ensure the
             // solution we're searching stays pinned between us and it while this is happening.
-            using var _2 = RemoteKeepAliveSession.Create(_solution, _listener);
+            using var _2 = await RemoteKeepAliveSession.CreateAsync(_solution, cancellationToken).ConfigureAwait(false);
 
             // We may do up to two passes.  One for loaded docs.  One for source generated docs.
             await AddProgressItemsAsync(
@@ -343,7 +339,7 @@ internal sealed class NavigateToSearcher
         }
 
         result.RemoveDuplicates();
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task ProcessOrderedProjectsAsync(

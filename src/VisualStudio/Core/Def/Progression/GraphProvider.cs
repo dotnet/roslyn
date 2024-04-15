@@ -69,9 +69,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
         _initialized = true;
     }
 
-    public static ImmutableArray<IGraphQuery> GetGraphQueries(
-        IGraphContext context,
-        IAsynchronousOperationListener asyncListener)
+    public static ImmutableArray<IGraphQuery> GetGraphQueries(IGraphContext context)
     {
         using var _ = ArrayBuilder<IGraphQuery>.GetInstance(out var graphQueries);
 
@@ -152,19 +150,19 @@ internal sealed class RoslynGraphProvider : IGraphProvider
                 // Create two queries.  One to find results in normal docs, and one to find results in generated
                 // docs.  That way if the generated docs take a long time we can still report the regular doc
                 // results immediately.
-                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.RegularDocuments, asyncListener));
-                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.GeneratedDocuments, asyncListener));
+                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.RegularDocuments));
+                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.GeneratedDocuments));
             }
         }
 
-        return graphQueries.ToImmutable();
+        return graphQueries.ToImmutableAndClear();
     }
 
     public void BeginGetGraphData(IGraphContext context)
     {
         EnsureInitialized();
 
-        var graphQueries = GetGraphQueries(context, _asyncListener);
+        var graphQueries = GetGraphQueries(context);
 
         // Perform the queries asynchronously  in a fire-and-forget fashion.  This helper will be responsible
         // for always completing the context. AddQueriesAsync is `async`, so it always returns a task and will never

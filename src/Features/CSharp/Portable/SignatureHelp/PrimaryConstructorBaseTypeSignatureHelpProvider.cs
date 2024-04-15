@@ -151,8 +151,6 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
         }
 
         static IList<SymbolDisplayPart> GetPostambleParts()
-        {
-            return SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseParenToken));
-        }
+            => [Punctuation(SyntaxKind.CloseParenToken)];
     }
 }

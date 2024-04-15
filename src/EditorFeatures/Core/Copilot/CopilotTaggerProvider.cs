@@ -64,27 +64,29 @@ internal sealed class CopilotTaggerProvider(
         Contract.ThrowIfNull(textView);
 
         // We only care about the cases where we have caret.
-        if (textView.GetCaretPoint(subjectBuffer) is { } caret)
-            return SpecializedCollections.SingletonEnumerable(new SnapshotSpan(caret, 0));
-
-        return SpecializedCollections.EmptyEnumerable<SnapshotSpan>();
+        return textView.GetCaretPoint(subjectBuffer) is { } caret ? [new SnapshotSpan(caret, 0)] : [];
     }
 
     protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
     {
         if (spanToTag.Document is not { } document
-            || document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } service
-            || !await service.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
+            || document.GetLanguageService<ICopilotOptionsService>() is not { } optionsService
+            || await optionsService.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false) is false)
+        {
+            return;
+        }
+
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } analysisService)
         {
             return;
         }
 
         // Fetch the Copilot code analysis prompt titles, each title can define a separate code analysis prompt.
         // Currently, we only support running the primary (first) code analysis prompt.
-        var prompts = await service.GetAvailablePromptTitlesAsync(document, cancellationToken).ConfigureAwait(false);
+        var prompts = await analysisService.GetAvailablePromptTitlesAsync(document, cancellationToken).ConfigureAwait(false);
         if (prompts.Length > 0)
         {
-            await service.AnalyzeDocumentAsync(document, spanToTag.SnapshotSpan.Span.ToTextSpan(), prompts[0], cancellationToken).ConfigureAwait(false);
+            await analysisService.AnalyzeDocumentAsync(document, spanToTag.SnapshotSpan.Span.ToTextSpan(), prompts[0], cancellationToken).ConfigureAwait(false);
         }
     }
 }

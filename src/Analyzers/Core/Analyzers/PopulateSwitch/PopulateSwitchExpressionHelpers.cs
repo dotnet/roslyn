@@ -35,7 +35,7 @@ internal static class PopulateSwitchExpressionHelpers
             }
         }
 
-        return SpecializedCollections.EmptyCollection<ISymbol>();
+        return [];
     }
 
     public static bool HasNullSwitchArm(ISwitchExpressionOperation operation)

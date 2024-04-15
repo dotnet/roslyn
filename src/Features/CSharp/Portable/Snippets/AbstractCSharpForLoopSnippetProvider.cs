@@ -108,7 +108,7 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         return result.ToImmutableAndClear();
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ForStatementSyntax forStatement, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ForStatementSyntax forStatement, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             forStatement,
             static s => (BlockSyntax)s.Statement,

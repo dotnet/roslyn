@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -36,7 +37,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <para>
 /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
 /// and any consumers observing the results of the task returned from
-/// <see cref="ExecuteAsync{TRequestType, TResponseType}(TRequestType, string, ILspServices, CancellationToken)"/>
+/// <see cref="ExecuteAsync{TRequestType, TResponseType}(TRequestType, string, string, ILspServices, CancellationToken)"/>
 /// will see the results of the handling of the request, whenever it occurred.
 /// </para>
 /// <para>
@@ -126,6 +127,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     public virtual Task<TResponse> ExecuteAsync<TRequest, TResponse>(
         TRequest request,
         string methodName,
+        string languageName,
         ILspServices lspServices,
         CancellationToken requestCancellationToken)
     {
@@ -137,6 +139,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         var combinedCancellationToken = combinedTokenSource.Token;
         var (item, resultTask) = CreateQueueItem<TRequest, TResponse>(
             methodName,
+            languageName,
             request,
             lspServices,
             combinedCancellationToken);
@@ -158,22 +161,18 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
     internal (IQueueItem<TRequestContext>, Task<TResponse>) CreateQueueItem<TRequest, TResponse>(
         string methodName,
+        string languageName,
         TRequest request,
         ILspServices lspServices,
         CancellationToken cancellationToken)
     {
-        var language = GetLanguageForRequest<TRequest>(methodName, request);
-
         return QueueItem<TRequest, TResponse, TRequestContext>.Create(methodName,
-            language,
+            languageName,
             request,
             lspServices,
             _logger,
             cancellationToken);
     }
-
-    protected virtual string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
-        => LanguageServerConstants.DefaultLanguageName;
 
     private async Task ProcessQueueAsync()
     {
@@ -306,6 +305,16 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             await DisposeAsync().ConfigureAwait(false);
             return;
         }
+    }
+
+    /// <summary>
+    /// Allows XAML to inspect the request before its dispatched.
+    /// Should not generally be used, this will be replaced by the OOP XAML server.
+    /// </summary>
+    [Obsolete("Only for use by legacy XAML LSP")]
+    protected internal virtual void BeforeRequest<TRequest>(TRequest request)
+    {
+        return;
     }
 
     /// <summary>

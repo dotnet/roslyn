@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             if (scope == FixAllScope.Custom)
             {
                 // Bulk fixing diagnostics in selected scope.                    
-                var diagnosticsToFix = ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(document, diagnostics.ToImmutableArray())));
+                var diagnosticsToFix = ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(document, diagnostics.ToImmutableArray())]);
                 return FixAllState.Create(fixAllProvider, diagnosticsToFix, fixer, equivalenceKey, optionsProvider);
             }
 

@@ -60,7 +60,7 @@ internal partial class CSharpMethodExtractor
                     }
                 }
 
-                return list.ToImmutable();
+                return list.ToImmutableAndClear();
             }
 
             private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)

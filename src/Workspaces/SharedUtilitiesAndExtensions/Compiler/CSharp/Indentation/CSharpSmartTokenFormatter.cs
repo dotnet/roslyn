@@ -84,7 +84,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
         if (previousToken.Kind() == SyntaxKind.None)
         {
             // no previous token. nothing to format
-            return SpecializedCollections.EmptyList<TextChange>();
+            return [];
         }
 
         // This is a heuristic to prevent brace completion from breaking user expectation/muscle memory in common scenarios (see Devdiv:823958).

@@ -2304,6 +2304,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotDynamicInvokeOnExpression = 9230,
         INF_TooManyBoundLambdas = 9231,
 
+        ERR_InterceptsLocationDataInvalidFormat = 9231,
+        ERR_InterceptsLocationUnsupportedVersion = 9232,
+        ERR_InterceptsLocationDuplicateFile = 9233,
+        ERR_InterceptsLocationFileNotFound = 9234,
+        ERR_InterceptsLocationDataInvalidPosition = 9235,
+
         #endregion
 
         // Note: you will need to do the following after adding errors:

@@ -181,7 +181,7 @@ internal sealed class EditSession
             diagnostics.Add(Diagnostic.Create(descriptor, location, messageArgs));
         }
 
-        return diagnostics.ToImmutable();
+        return diagnostics.ToImmutableAndClear();
     }
 
     private static async IAsyncEnumerable<Location> CreateChangedLocationsAsync(Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, [EnumeratorCancellation] CancellationToken cancellationToken)
