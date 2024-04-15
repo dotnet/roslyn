@@ -116,8 +116,7 @@ internal readonly struct RemoteHostAssetWriter(
         await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
     }
 
-    private async Task FindAssetsFromScopeAndWriteToChannelAsync(
-        ChecksumChannelWriter channelWriter, CancellationToken cancellationToken)
+    private async Task FindAssetsFromScopeAndWriteToChannelAsync(ChecksumChannelWriter channelWriter, CancellationToken cancellationToken)
     {
         Exception? exception = null;
         try
@@ -125,15 +124,13 @@ internal readonly struct RemoteHostAssetWriter(
             await Task.Yield();
 
             await _scope.FindAssetsAsync(
-                _assetPath,
-                _checksums,
+                _assetPath, _checksums,
                 // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
                 // channel is only ever completed by us (after FindAssetsAsync completed) or if cancellation
                 // happens.  In that latter case, it's ok for writing to the channel to do nothing as we no longer
                 // need to write out those assets to the pipe.
                 static (checksum, asset, channelWriter) => channelWriter.TryWrite((checksum, asset)),
-                channelWriter,
-                cancellationToken).ConfigureAwait(false);
+                channelWriter, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when ((exception = ex) == null)
         {
@@ -185,11 +182,7 @@ internal readonly struct RemoteHostAssetWriter(
     }
 
     private async ValueTask WriteSingleAssetToPipeAsync(
-        SerializableBytes.ReadWriteStream tempStream,
-        ObjectWriter objectWriter,
-        Checksum checksum,
-        object asset,
-        CancellationToken cancellationToken)
+        SerializableBytes.ReadWriteStream tempStream, ObjectWriter objectWriter, Checksum checksum, object asset, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(asset);
 
@@ -308,8 +301,7 @@ internal readonly struct RemoteHostAssetReader<T, TArg>(
             await ReadSingleMessageAsync(objectReader, cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask ReadSingleMessageAsync(
-        ObjectReader objectReader, CancellationToken cancellationToken)
+    private async ValueTask ReadSingleMessageAsync(ObjectReader objectReader, CancellationToken cancellationToken)
     {
         // For each message, read the sentinel byte and the length of the data chunk we'll be reading.
         var length = await CheckSentinelByteAndReadLengthAsync(cancellationToken).ConfigureAwait(false);
