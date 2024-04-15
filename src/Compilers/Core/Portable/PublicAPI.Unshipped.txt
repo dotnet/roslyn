@@ -35,6 +35,7 @@ static Microsoft.CodeAnalysis.SyntaxNodeOrTokenList.Create(System.ReadOnlySpan<M
 static Microsoft.CodeAnalysis.SyntaxTokenList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxToken> tokens) -> Microsoft.CodeAnalysis.SyntaxTokenList
 static Microsoft.CodeAnalysis.SyntaxTriviaList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxTrivia> trivias) -> Microsoft.CodeAnalysis.SyntaxTriviaList
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterCompilationUnitStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext!>! action) -> void
+virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterCompilationUnitStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext!>! action) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSpread(Microsoft.CodeAnalysis.Operations.ISpreadOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation, TArgument argument) -> TResult?

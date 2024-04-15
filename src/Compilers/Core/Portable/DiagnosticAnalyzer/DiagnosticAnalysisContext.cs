@@ -364,6 +364,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterCompilationEndAction(Action<CompilationAnalysisContext> action);
 
         /// <summary>
+        /// Register an action to be executed at compilation unit start. A compilation unit start action can register
+        /// other actions and/or collect state information to be used in diagnostic analysis, but cannot itself report
+        /// any <see cref="Diagnostic"/>s.
+        /// </summary>
+        /// <param name="action">Action to be executed at compilation start.</param>
+        public virtual void RegisterCompilationUnitStartAction(Action<CompilationUnitStartAnalysisContext> action)
+            => throw new NotImplementedException();
+
+        /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a document,
         /// which will operate on the <see cref="SemanticModel"/> of the document. A semantic model action
         /// reports <see cref="Diagnostic"/>s about the model.
