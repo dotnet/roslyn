@@ -15,9 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-using ChecksumChannel = Channel<(Checksum checksum, object asset)>;
-using ChecksumChannelReader = ChannelReader<(Checksum checksum, object asset)>;
-using ChecksumChannelWriter = ChannelWriter<(Checksum checksum, object asset)>;
+using ChecksumAndAsset = (Checksum checksum, object asset);
 using static SerializableBytes;
 using static SolutionAssetStorage;
 
@@ -86,13 +84,13 @@ internal readonly struct RemoteHostAssetWriter(
         // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
         // find items, add them to the channel synchronously, and immediately continue searching for more items.
         // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
-        var channel = Channel.CreateUnbounded<(Checksum checksum, object asset)>(s_channelOptions);
+        var channel = Channel.CreateUnbounded<ChecksumAndAsset>(s_channelOptions);
 
         // When cancellation happens, attempt to close the channel.  That will unblock the task writing the assets
         // to the pipe. Capture-free version is only available on netcore unfortunately.
 #if NET
         using var _ = cancellationToken.Register(
-            static (obj, cancellationToken) => ((ChecksumChannel)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
+            static (obj, cancellationToken) => ((Channel<ChecksumAndAsset>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
             state: channel);
 #else
         using var _ = cancellationToken.Register(
@@ -109,7 +107,7 @@ internal readonly struct RemoteHostAssetWriter(
         await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
     }
 
-    private async Task FindAssetsFromScopeAndWriteToChannelAsync(ChecksumChannelWriter channelWriter, CancellationToken cancellationToken)
+    private async Task FindAssetsFromScopeAndWriteToChannelAsync(ChannelWriter<ChecksumAndAsset> channelWriter, CancellationToken cancellationToken)
     {
         Exception? exception = null;
         try
@@ -137,8 +135,7 @@ internal readonly struct RemoteHostAssetWriter(
         }
     }
 
-    private async Task ReadAssetsFromChannelAndWriteToPipeAsync(
-        ChecksumChannelReader channelReader, CancellationToken cancellationToken)
+    private async Task ReadAssetsFromChannelAndWriteToPipeAsync(ChannelReader<ChecksumAndAsset> channelReader, CancellationToken cancellationToken)
     {
         await Task.Yield();
 
