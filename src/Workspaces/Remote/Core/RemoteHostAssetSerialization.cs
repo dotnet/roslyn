@@ -28,21 +28,16 @@ using static SerializableBytes;
 /// | sentinel (1 byte) | length of data (4 bytes) | data (variable length) |
 /// -------------------------------------------------------------------------
 /// </code>
-/// The writing code will write out the sentinel-byte and data-length, ensuring it is flushed to the pipe-writer.
-/// This allows the pipe-reader to immediately read that information so it can then pre-allocate the space for the
-/// data to go into. After writing the data the writer will also flush, so the reader can then read the data out of
-/// the pipe into its buffer.  Once present in the reader's buffer, synchronous deserialization can happen without
-/// any sync-over-async blocking on async-io.
-/// <para>
-/// The sentinel byte serves to let us detect immediately on the reading side if something has gone wrong with this
-/// system.
-/// </para>
-/// <para>
-/// In order to be able to write out the data-length, the writer will first synchronously write the asset to an
-/// in-memory buffer, then write that buffer's length to the pipe-writer, then copy the in-memory buffer to the
-/// writer.
-/// </para>
-/// When writing/reading the data-segment, we use an the <see cref="ObjectWriter"/>/<see cref="ObjectReader"/>
+/// The writing code will write out the sentinel-byte and data-length, ensuring it is flushed to the pipe-writer. This
+/// allows the pipe-reader to immediately read that information so it can then pre-allocate the space for the data to go
+/// into. After writing the data the writer will also flush, so the reader can then read the data out of the pipe into
+/// its buffer.  Once present in the reader's buffer, synchronous deserialization can happen without any sync-over-async
+/// blocking on async-io.
+/// <para/> The sentinel byte serves to let us detect immediately on the reading side if something has gone wrong with
+/// this system.
+/// <para/> In order to be able to write out the data-length, the writer will first synchronously write the asset to an
+/// in-memory buffer, then write that buffer's length to the pipe-writer, then copy the in-memory buffer to the writer.
+/// <para/> When writing/reading the data-segment, we use an the <see cref="ObjectWriter"/>/<see cref="ObjectReader"/>
 /// subsystem.  This will write its own validation bits, and then the data describing the asset.  This data is:
 /// <code>
 /// ----------------------------------------------------------------------------------------------------------
@@ -51,10 +46,10 @@ using static SerializableBytes;
 /// | ObjectWriter validation (2 bytes) | checksum (16 bytes) | kind (1 byte) | asset-data (asset specified) |
 /// ----------------------------------------------------------------------------------------------------------
 /// </code>
-/// The validation bytes are followed by the checksum.  The checksum is needed in the message as assets can be found
-/// in any order (they are not reported in the order of the array of checksums passed into the writing method).
-/// Following this is the kind of the asset.  This kind is used by the reading code to know which
-/// asset-deserialization routine to invoke. Finally, the asset data itself is written out.
+/// The validation bytes are followed by the checksum.  The checksum is needed in the message as assets can be found in
+/// any order (they are not reported in the order of the array of checksums passed into the writing method). Following
+/// this is the kind of the asset.  This kind is used by the reading code to know which asset-deserialization routine to
+/// invoke. Finally, the asset data itself is written out.
 /// </summary>
 internal readonly struct RemoteHostAssetWriter(
     PipeWriter pipeWriter,
