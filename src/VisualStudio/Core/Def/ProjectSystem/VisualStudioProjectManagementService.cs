@@ -10,6 +10,7 @@ using System.Composition;
 using System.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectManagement;
@@ -20,18 +21,15 @@ using Roslyn.Utilities;
 namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem;
 
 [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Host), Shared]
-internal class VisualStudioProjectManagementService : ForegroundThreadAffinitizedObject, IProjectManagementService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VisualStudioProjectManagementService(IThreadingContext threadingContext) : IProjectManagementService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioProjectManagementService(IThreadingContext threadingContext)
-        : base(threadingContext)
-    {
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
 
     public string GetDefaultNamespace(Microsoft.CodeAnalysis.Project project, Workspace workspace)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (project.Language == LanguageNames.VisualBasic)
         {
