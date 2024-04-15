@@ -547,18 +547,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutableHashSet();
         }
 
-        private ImmutableHashSet<DiagnosticAnalyzer> ComputeCompilationUnitStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
-        {
-            var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
-            foreach (var action in this.AnalyzerActions.CompilationUnitStartActions)
-            {
-                if (unsuppressedAnalyzers.Contains(action.Analyzer))
-                    builder.Add(action.Analyzer);
-            }
-
-            return builder.ToImmutableHashSet();
-        }
-
         private ImmutableHashSet<DiagnosticAnalyzer> ComputeSymbolStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
         {
             var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
@@ -568,6 +556,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     builder.Add(action.Analyzer);
                 }
+            }
+
+            return builder.ToImmutableHashSet();
+        }
+
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeCompilationUnitStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+            foreach (var action in this.AnalyzerActions.CompilationUnitStartActions)
+            {
+                if (unsuppressedAnalyzers.Contains(action.Analyzer))
+                    builder.Add(action.Analyzer);
             }
 
             return builder.ToImmutableHashSet();
@@ -2058,12 +2058,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return (allAnalyzerActions, unsuppressedAnalyzers);
         }
 
-        public bool HasSymbolStartedActions(AnalysisScope analysisScope)
+        private bool HasStartedActions<TAction>(
+            AnalysisScope analysisScope,
+            Func<AnalyzerActions, ImmutableArray<TAction>> getActions) where TAction : AnalyzerAction
         {
-            if (this.AnalyzerActions.SymbolStartActionsCount == 0)
-            {
+            var actions = getActions(this.AnalyzerActions);
+            if (actions.Length == 0)
                 return false;
-            }
 
             // Perform simple checks for when we are executing all analyzers (batch compilation mode) OR
             // executing just a single analyzer (IDE open file analysis).
@@ -2076,41 +2077,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // We are executing a single analyzer.
                 var analyzer = analysisScope.Analyzers[0];
-                foreach (var action in this.AnalyzerActions.SymbolStartActions)
+                foreach (var action in actions)
                 {
                     if (action.Analyzer == analyzer)
-                    {
                         return true;
-                    }
                 }
 
                 return false;
             }
 
             // Slow check when we are executing more than one analyzer, but it is still a strict subset of all analyzers.
-            var symbolStartAnalyzers = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
+            var startAnalyzers = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
             try
             {
-                foreach (var action in this.AnalyzerActions.SymbolStartActions)
-                {
-                    symbolStartAnalyzers.Add(action.Analyzer);
-                }
+                foreach (var action in actions)
+                    startAnalyzers.Add(action.Analyzer);
 
                 foreach (var analyzer in analysisScope.Analyzers)
                 {
-                    if (symbolStartAnalyzers.Contains(analyzer))
-                    {
+                    if (startAnalyzers.Contains(analyzer))
                         return true;
-                    }
                 }
 
                 return false;
             }
             finally
             {
-                symbolStartAnalyzers.Free();
+                startAnalyzers.Free();
             }
         }
+
+        public bool HasSymbolStartedActions(AnalysisScope analysisScope)
+            => HasStartedActions(analysisScope, static actions => actions.SymbolStartActions);
+
+        public bool HasCompilationUnitStartedActions(AnalysisScope analysisScope)
+            => HasStartedActions(analysisScope, static actions => actions.CompilationStartActions);
 
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/805524/ctrl-suggestions-are-very-slow-and-produce-gatheri.html",
