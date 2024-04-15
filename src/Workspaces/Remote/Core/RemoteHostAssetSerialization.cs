@@ -80,6 +80,7 @@ internal static class RemoteHostAssetSerialization
     public static async ValueTask WriteDataAsync(
         PipeWriter pipeWriter,
         AssetPath assetPath,
+        Checksum solutionChecksum,
         ReadOnlyMemory<Checksum> checksums,
         SolutionAssetStorage.Scope scope,
         ISerializerService serializer,
@@ -107,7 +108,7 @@ internal static class RemoteHostAssetSerialization
 
         // Spin up a task to read from the channel and write out the assets to the pipe-writer.
         var writeAssetsTask = ReadAssetsFromChannelAndWriteToPipeAsync(
-            pipeWriter, channel.Reader, checksums.Length, scope, serializer, cancellationToken);
+            pipeWriter, channel.Reader, solutionChecksum, checksums, scope, serializer, cancellationToken);
 
         // Wait for both the searching and writing tasks to finish.
         await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
@@ -152,7 +153,8 @@ internal static class RemoteHostAssetSerialization
         static async Task ReadAssetsFromChannelAndWriteToPipeAsync(
             PipeWriter pipeWriter,
             ChecksumChannelReader channelReader,
-            int checksumCount,
+            Checksum solutionChecksum,
+            ReadOnlyMemory<Checksum> checksums,
             SolutionAssetStorage.Scope scope,
             ISerializerService serializer,
             CancellationToken cancellationToken)
@@ -169,6 +171,12 @@ internal static class RemoteHostAssetSerialization
             using var pooledStream = s_streamPool.GetPooledObject();
             using var writer = new ObjectWriter(pooledStream.Object, leaveOpen: true, writeValidationBytes: false);
 
+            // This information is not actually needed on the receiving end.  However, we still send it so that the
+            // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
+            // breaks have occurred.
+            WriteSolutionChecksum(pipeWriter, solutionChecksum);
+            await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
             while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 while (channelReader.TryRead(out var item))
@@ -182,7 +190,14 @@ internal static class RemoteHostAssetSerialization
             cancellationToken.ThrowIfCancellationRequested();
 
             // If we weren't canceled, we better have found and written out all the expected assets.
-            Contract.ThrowIfTrue(foundChecksumCount != checksumCount);
+            Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
+        }
+
+        static void WriteSolutionChecksum(PipeWriter pipeWriter, Checksum solutionChecksum)
+        {
+            var span = pipeWriter.GetSpan(Checksum.HashSize);
+            solutionChecksum.WriteTo(span);
+            pipeWriter.Advance(Checksum.HashSize);
         }
     }
 
@@ -268,7 +283,7 @@ internal static class RemoteHostAssetSerialization
     }
 
     public static ValueTask ReadDataAsync<T, TArg>(
-        PipeReader pipeReader, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+        PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
         // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
         // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
@@ -277,10 +292,10 @@ internal static class RemoteHostAssetSerialization
         // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
         // same thread where SuppressFlow was originally run.
         using var _ = FlowControlHelper.TrySuppressFlow();
-        return ReadDataSuppressedFlowAsync(pipeReader, objectCount, serializerService, callback, arg, cancellationToken);
+        return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, callback, arg, cancellationToken);
 
         static async ValueTask ReadDataSuppressedFlowAsync(
-            PipeReader pipeReader, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
         {
             using var pipeReaderStream = pipeReader.AsStream(leaveOpen: true);
 
@@ -289,17 +304,23 @@ internal static class RemoteHostAssetSerialization
             // prior to reading each asset out.
             using var reader = ObjectReader.GetReader(pipeReaderStream, leaveOpen: true, checkValidationBytes: false);
 
+            // Ensure that no invariants were broken and that both sides of the communication channel are talking about
+            // the same pinned solution.
+            var readChecksumResult = await pipeReader.ReadAtLeastAsync(Checksum.HashSize, cancellationToken).ConfigureAwait(false);
+
+            var responseSolutionChecksum = ReadChecksum(readChecksumResult);
+            Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
+            pipeReader.AdvanceTo(readChecksumResult.Buffer.GetPosition(Checksum.HashSize));
+
             for (var i = 0; i < objectCount; i++)
             {
-                // First, read the sentinel byte and the length of the data chunk we'll be reading.
+                // For each message, read the sentinel byte and the length of the data chunk we'll be reading.
                 const int HeaderSize = sizeof(byte) + sizeof(int);
                 var lengthReadResult = await pipeReader.ReadAtLeastAsync(HeaderSize, cancellationToken).ConfigureAwait(false);
                 var (sentinelByte, length) = ReadSentinelAndLength(lengthReadResult);
 
-                // Check that the sentinel is correct.
+                // Check that the sentinel is correct, and move the pipe reader forward to the end of the header.
                 Contract.ThrowIfTrue(sentinelByte != MessageSentinelByte);
-
-                // If so, move the pipe reader forward to the end of the header.
                 pipeReader.AdvanceTo(lengthReadResult.Buffer.GetPosition(HeaderSize));
 
                 // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as
@@ -315,6 +336,14 @@ internal static class RemoteHostAssetSerialization
                 var (checksum, asset) = ReadSingleAssetFromObjectReader(reader, serializerService, cancellationToken);
                 callback(checksum, asset, arg);
             }
+        }
+
+        static Checksum ReadChecksum(ReadResult readResult)
+        {
+            var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
+            Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
+            Contract.ThrowIfFalse(sequenceReader.TryCopyTo(checksumBytes));
+            return Checksum.From(checksumBytes);
         }
 
         static (byte, int) ReadSentinelAndLength(ReadResult readResult)
