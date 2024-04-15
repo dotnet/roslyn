@@ -7276,6 +7276,44 @@ partial struct CustomHandler
             Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("P").WithLocation(6, 6));
     }
 
+    [Fact]
+    public void ConditionalAccess_03()
+    {
+        // Conditional access on a nullable value type, original and interceptor use non-nullable value type.
+        // Note that we can't intercept a conditional-access with an extension due to https://github.com/dotnet/roslyn/issues/71657
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            partial struct S
+            {
+                void M() => throw null!;
+
+                static void Main()
+                {
+                    S? s = null;
+                    s?.M();
+                    Console.Write(1);
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            partial struct S
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public void M1() { }
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
     [Theory]
     [InlineData("p->M();")]
     [InlineData("(*p).M();")]
