@@ -252,8 +252,9 @@ internal static class FaultReporter
         {
         }
 
-        // If we couldn't get a stack, do this
-        return exception.Message;
+        // If we couldn't get a stack, report a generic message.
+        // The exception message is already reported in a separate cred-scanned property.
+        return "Roslyn NonFatal Watson";
     }
 
     private static IList<string> CollectLogHubFilePaths()
