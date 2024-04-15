@@ -3689,17 +3689,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// NOTE: unless the type of expression is ref-like, the result is Binder.ExternalScope since ordinary values can always be returned from methods. 
         /// </summary>
-        internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression
-#if DEBUG
-            , bool assertVisited = true
-#endif
-            )
+        internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
 #if DEBUG
-            if (assertVisited)
-            {
-                AssertVisited(expr);
-            }
+            AssertVisited(expr);
 #endif
 
             // cannot infer anything from errors
@@ -4076,21 +4069,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRefEscape: false);
                     }
 
-#if DEBUG
-                    // Nested binary operators on the left side are not visited by BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator.
-                    var assertNestedVisited = binary.Left is not BoundBinaryOperator;
-#endif
-
-                    return Math.Max(GetValEscape(binary.Left, scopeOfTheContainingExpression
-#if DEBUG
-                                        , assertNestedVisited
-#endif
-                                    ),
-                                    GetValEscape(binary.Right, scopeOfTheContainingExpression
-#if DEBUG
-                                        , assertNestedVisited
-#endif
-                                    ));
+                    return Math.Max(GetValEscape(binary.Left, scopeOfTheContainingExpression),
+                                    GetValEscape(binary.Right, scopeOfTheContainingExpression));
 
                 case BoundKind.RangeExpression:
                     var range = (BoundRangeExpression)expr;
