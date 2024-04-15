@@ -155,12 +155,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterCompilationEndAction(_analyzer, action);
         }
 
-        public override void RegisterCompilationUnitStartAction(Action<CompilationUnitStartAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterCompilationUnitStartAction(_analyzer, action);
-        }
-
         public override void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
@@ -189,6 +183,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterSymbolStartAction(_analyzer, action, symbolKind);
+        }
+
+        public override void RegisterCompilationUnitStartAction(Action<CompilationUnitStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterCompilationUnitStartAction(_analyzer, action);
         }
 
         public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action)
@@ -536,12 +536,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationEndAction(analyzerAction);
         }
 
-        public void RegisterCompilationUnitStartAction(DiagnosticAnalyzer analyzer, Action<CompilationUnitStartAnalysisContext> action)
-        {
-            var analyzerAction = new CompilationUnitStartAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationUnitStartAction(analyzerAction);
-        }
-
         public void RegisterSemanticModelAction(DiagnosticAnalyzer analyzer, Action<SemanticModelAnalysisContext> action)
         {
             SemanticModelAnalyzerAction analyzerAction = new SemanticModelAnalyzerAction(action, analyzer);
@@ -622,6 +616,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolStartAction(analyzerAction);
         }
 
+        public void RegisterCompilationUnitStartAction(DiagnosticAnalyzer analyzer, Action<CompilationUnitStartAnalysisContext> action)
+        {
+            var analyzerAction = new CompilationUnitStartAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationUnitStartAction(analyzerAction);
+        }
+
         public void RegisterSymbolEndAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action)
         {
             var analyzerAction = new SymbolEndAnalyzerAction(action, analyzer);
@@ -694,7 +694,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly AnalyzerActions Empty = new AnalyzerActions(concurrent: false);
 
         private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions;
-        private ImmutableArray<CompilationUnitStartAnalyzerAction> _compilationUnitStartActions;
         private ImmutableArray<CompilationAnalyzerAction> _compilationEndActions;
         private ImmutableArray<CompilationAnalyzerAction> _compilationActions;
         private ImmutableArray<SyntaxTreeAnalyzerAction> _syntaxTreeActions;
@@ -702,6 +701,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<SemanticModelAnalyzerAction> _semanticModelActions;
         private ImmutableArray<SymbolAnalyzerAction> _symbolActions;
         private ImmutableArray<SymbolStartAnalyzerAction> _symbolStartActions;
+        private ImmutableArray<CompilationUnitStartAnalyzerAction> _compilationUnitStartActions;
         private ImmutableArray<SymbolEndAnalyzerAction> _symbolEndActions;
         private ImmutableArray<AnalyzerAction> _codeBlockStartActions;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions;
@@ -780,7 +780,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public readonly int CompilationStartActionsCount { get { return _compilationStartActions.Length; } }
-        public readonly int CompilationUnitStartActionsCount => _compilationUnitStartActions.Length;
         public readonly int CompilationEndActionsCount { get { return _compilationEndActions.Length; } }
         public readonly int CompilationActionsCount { get { return _compilationActions.Length; } }
         public readonly int SyntaxTreeActionsCount { get { return _syntaxTreeActions.Length; } }
@@ -788,6 +787,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
         public readonly int SymbolActionsCount { get { return _symbolActions.Length; } }
         public readonly int SymbolStartActionsCount { get { return _symbolStartActions.Length; } }
+        public readonly int CompilationUnitStartActionsCount => _compilationUnitStartActions.Length;
         public readonly int SymbolEndActionsCount { get { return _symbolEndActions.Length; } }
         public readonly int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
         public readonly int OperationActionsCount { get { return _operationActions.Length; } }
@@ -805,9 +805,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get { return _compilationStartActions; }
         }
-
-        internal readonly ImmutableArray<CompilationUnitStartAnalyzerAction> CompilationUnitStartActions
-            => _compilationUnitStartActions;
 
         internal readonly ImmutableArray<CompilationAnalyzerAction> CompilationEndActions
         {
@@ -843,6 +840,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get { return _symbolStartActions; }
         }
+
+        internal readonly ImmutableArray<CompilationUnitStartAnalyzerAction> CompilationUnitStartActions
+            => _compilationUnitStartActions;
 
         internal readonly ImmutableArray<SymbolEndAnalyzerAction> SymbolEndActions
         {
@@ -910,12 +910,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IsEmpty = false;
         }
 
-        internal void AddCompilationUnitStartAction(CompilationUnitStartAnalyzerAction action)
-        {
-            _compilationUnitStartActions = _compilationUnitStartActions.Add(action);
-            IsEmpty = false;
-        }
-
         internal void AddCompilationEndAction(CompilationAnalyzerAction action)
         {
             _compilationEndActions = _compilationEndActions.Add(action);
@@ -955,6 +949,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void AddSymbolStartAction(SymbolStartAnalyzerAction action)
         {
             _symbolStartActions = _symbolStartActions.Add(action);
+            IsEmpty = false;
+        }
+
+        internal void AddCompilationUnitStartAction(CompilationUnitStartAnalyzerAction action)
+        {
+            _compilationUnitStartActions = _compilationUnitStartActions.Add(action);
             IsEmpty = false;
         }
 

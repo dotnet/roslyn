@@ -547,6 +547,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutableHashSet();
         }
 
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeCompilationUnitStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+            foreach (var action in this.AnalyzerActions.CompilationUnitStartActions)
+            {
+                if (unsuppressedAnalyzers.Contains(action.Analyzer))
+                    builder.Add(action.Analyzer);
+            }
+
+            return builder.ToImmutableHashSet();
+        }
+
         private ImmutableHashSet<DiagnosticAnalyzer> ComputeSymbolStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
         {
             var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
