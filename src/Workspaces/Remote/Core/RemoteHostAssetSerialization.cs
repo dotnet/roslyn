@@ -96,14 +96,11 @@ internal readonly struct RemoteHostAssetWriter(
             () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
 #endif
 
-        // Spin up a task to go search for all the requested checksums, adding results to the channel.
-        var findAssetsTask = FindAssetsFromScopeAndWriteToChannelAsync(channel.Writer, cancellationToken);
-
-        // Spin up a task to read from the channel and write out the assets to the pipe-writer.
-        var writeAssetsTask = ReadAssetsFromChannelAndWriteToPipeAsync(channel.Reader, cancellationToken);
-
-        // Wait for both the searching and writing tasks to finish.
-        await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
+        // Spin up a task to go find all the requested checksums, adding results to the channel.
+        // Spin up a task to read from the channel, writing out the assets to the pipe-writer.
+        await Task.WhenAll(
+            FindAssetsFromScopeAndWriteToChannelAsync(channel.Writer, cancellationToken),
+            ReadAssetsFromChannelAndWriteToPipeAsync(channel.Reader, cancellationToken)).ConfigureAwait(false);
     }
 
     private async Task FindAssetsFromScopeAndWriteToChannelAsync(ChannelWriter<ChecksumAndAsset> channelWriter, CancellationToken cancellationToken)
