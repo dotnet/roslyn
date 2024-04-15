@@ -33,7 +33,6 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
     private readonly Glyph _topLevelGlyph;
     private readonly string _helpString;
     private readonly string _description;
-    private readonly IThreadingContext _threadingContext;
     private readonly string _title;
     private readonly IComponentModel _componentModel;
     private readonly IVsImageService2 _imageService;
@@ -44,13 +43,12 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
     public Solution FinalSolution { get; private set; }
     public bool ShowCheckBoxes { get; private set; }
 
-    public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
-        : this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
+    public PreviewEngine(string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
+        : this(title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
     {
     }
 
     public PreviewEngine(
-        IThreadingContext threadingContext,
         string title,
         string helpString,
         string description,
@@ -64,7 +62,6 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
     {
         _topLevelName = topLevelItemName;
         _topLevelGlyph = topLevelGlyph;
-        _threadingContext = threadingContext;
         _title = title ?? throw new ArgumentNullException(nameof(title));
         _helpString = helpString ?? throw new ArgumentNullException(nameof(helpString));
         _description = description ?? throw new ArgumentNullException(nameof(description));
@@ -227,7 +224,7 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
     // However, once they've called it once, it's always the same TextView.
     public void SetTextView(object textView)
     {
-        _updater ??= new PreviewUpdater(_threadingContext, EnsureTextViewIsInitialized(textView));
+        _updater ??= new PreviewUpdater(EnsureTextViewIsInitialized(textView));
     }
 
     private ITextView EnsureTextViewIsInitialized(object previewTextView)
