@@ -8,7 +8,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
@@ -80,9 +79,7 @@ internal sealed partial class ObjectWriter : IDisposable
     /// </summary>
     /// <param name="stream">The stream to write to.</param>
     /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
-    public ObjectWriter(
-        Stream stream,
-        bool leaveOpen = false)
+    public ObjectWriter(Stream stream, bool leaveOpen = false)
     {
         // String serialization assumes both reader and writer to be of the same endianness.
         // It can be adjusted for BigEndian if needed.
