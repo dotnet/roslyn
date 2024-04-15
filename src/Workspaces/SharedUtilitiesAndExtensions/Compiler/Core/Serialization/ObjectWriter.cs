@@ -80,7 +80,7 @@ internal sealed partial class ObjectWriter : IDisposable
     /// <param name="stream">The stream to write to.</param>
     /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
     public ObjectWriter(Stream stream, bool leaveOpen = false)
-    : this(stream, leaveOpen, writeValidationBytes: true)
+        : this(stream, leaveOpen, writeValidationBytes: true)
     {
     }
 
