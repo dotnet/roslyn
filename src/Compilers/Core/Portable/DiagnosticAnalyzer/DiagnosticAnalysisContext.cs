@@ -53,6 +53,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action);
 
         /// <summary>
+        /// Register an action to be executed at compilation unit start. A compilation unit start action can register
+        /// other actions and/or collect state information to be used in diagnostic analysis, but cannot itself report
+        /// any <see cref="Diagnostic"/>s.
+        /// </summary>
+        /// <param name="action">Action to be executed at compilation start.</param>
+        public virtual void RegisterCompilationUnitStartAction(Action<CompilationUnitStartAnalysisContext> action)
+            => throw new NotImplementedException();
+
+        /// <summary>
         /// Register an action to be executed for a complete compilation.
         /// A compilation action reports <see cref="Diagnostic"/>s about the <see cref="Compilation"/>.
         /// </summary>
@@ -549,6 +558,84 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             throw new NotImplementedException();
         }
+    }
+
+    /// <summary>
+    /// Context for a compilation unit start action.
+    /// A compilation unit start action can use a <see cref="CompilationUnitStartAnalysisContext"/> to register actions to be executed at any of:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>start of semantic analysis of a method body or an expression appearing outside a method body,</description>
+    /// </item>
+    /// <item>
+    /// <description>completion of semantic analysis of a method body or an expression appearing outside a method body, or</description>
+    /// </item>
+    /// <item>
+    /// <description>completion of semantic analysis of a syntax node.</description>
+    /// </item>
+    /// </list>
+    /// </summary>
+    public abstract class CompilationUnitStartAnalysisContext
+    {
+        private readonly Compilation _compilation;
+        private readonly AnalyzerOptions _options;
+        private readonly CancellationToken _cancellationToken;
+        private readonly SyntaxTree _compilationUnit;
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
+        /// </summary>
+        public Compilation Compilation { get { return _compilation; } }
+
+        /// <summary>
+        /// Options specified for the analysis.
+        /// </summary>
+        public AnalyzerOptions Options { get { return _options; } }
+
+        /// <summary>
+        /// Token to check for requested cancellation of the analysis.
+        /// </summary>
+        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+
+        public SyntaxTree CompilationUnit => _compilationUnit;
+
+        protected CompilationUnitStartAnalysisContext(Compilation compilation, AnalyzerOptions options, SyntaxTree compilationUnit, CancellationToken cancellationToken)
+        {
+            _compilation = compilation;
+            _options = options;
+            _compilationUnit = compilationUnit;
+            _cancellationToken = cancellationToken;
+        }
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterCodeBlockStartAction"/>
+        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterCodeBlockAction"/>
+        public abstract void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action);
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterOperationBlockStartAction"/>
+        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterOperationBlockAction"/>
+        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterSyntaxNodeAction{TLanguageKindEnum}(Action{SyntaxNodeAnalysisContext}, TLanguageKindEnum[])"/>
+        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
+        {
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
+        }
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterSyntaxNodeAction{TLanguageKindEnum}(Action{SyntaxNodeAnalysisContext}, ImmutableArray{TLanguageKindEnum})"/>
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterOperationAction(Action{OperationAnalysisContext}, OperationKind[])"/>
+        public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        {
+            this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
+        }
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterOperationAction(Action{OperationAnalysisContext}, ImmutableArray{OperationKind})"/>
+        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
     }
 
     /// <summary>
