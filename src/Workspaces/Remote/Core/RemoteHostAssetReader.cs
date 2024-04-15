@@ -12,6 +12,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
+/// <summary>
+/// See <see cref="RemoteHostAssetWriter"/> for an explanation of the wire format we use when communicating assets
+/// between the host and our OOP server.  This implements the code for reading assets transmitted over the wire.
+/// </summary>
 internal readonly struct RemoteHostAssetReader<T, TArg>(
     PipeReader pipeReader,
     Checksum solutionChecksum,
