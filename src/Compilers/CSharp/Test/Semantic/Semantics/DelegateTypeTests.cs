@@ -13687,20 +13687,20 @@ class Program
             var source1a = """
                 public abstract class C
                 {
-                    public abstract void M(int[] xs);
+                    public abstract void M(params int[] xs);
                 }
                 """;
             var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
             var comp1aRef = comp1a.EmitToImageReference();
 
-            var source2a = """
+            var source2 = """
                 public class D : C
                 {
                     public override void M(int[] xs) { }
                 }
                 """;
-            var comp2a = CreateCompilation(source2a, [comp1aRef], assemblyName: "Lib2").VerifyDiagnostics();
-            var comp2aRef = comp2a.EmitToImageReference();
+            var comp2 = CreateCompilation(source2, [comp1aRef]).VerifyDiagnostics();
+            var comp2Ref = comp2.EmitToImageReference();
 
             var source3 = """
                 var c = ((C)new D()).M;
@@ -13708,34 +13708,25 @@ class Program
                 var d = new D().M;
                 System.Console.WriteLine(d.GetType());
                 """;
-            var verifier = CompileAndVerify(source3, [comp1aRef, comp2aRef],
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1aRef],
                 expectedOutput: """
-                System.Action`1[System.Int32[]]
-                System.Action`1[System.Int32[]]
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Int32]
                 """).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
-            Assert.False(cm.Parameters.Single().IsParams);
+            Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
-            Assert.False(dm.Parameters.Single().IsParams);
+            Assert.True(dm.Parameters.Single().IsParams);
 
             var source1b = """
                 public abstract class C
                 {
-                    public abstract void M(params int[] xs);
+                    public abstract void M(int[] xs);
                 }
                 """;
             var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
-            var comp1bRef = comp1b.EmitToImageReference();
-
-            var source2b = """
-                public class D : C
-                {
-                    public override void M(params int[] xs) { }
-                }
-                """;
-            var comp2b = CreateCompilation(source2b, [comp1bRef], assemblyName: "Lib2").VerifyDiagnostics();
-            verifier = CompileAndVerify(source3, [comp1aRef, comp2b.EmitToImageReference()],
+            verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
                 expectedOutput: """
                 System.Action`1[System.Int32[]]
                 System.Action`1[System.Int32[]]
