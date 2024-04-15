@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset;
 /// If we find other extensions that do this in the future, we'll re-use this same mechanism
 /// </para>
 [Export(typeof(KeybindingResetDetector))]
-internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObject, IOleCommandTarget
+internal sealed class KeybindingResetDetector : IOleCommandTarget
 {
     private const string KeybindingsFwLink = "https://go.microsoft.com/fwlink/?linkid=864209";
     private const string ReSharperExtensionName = "ReSharper Ultimate";
@@ -60,7 +61,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
     private static readonly Guid s_resharperCommandGroup = new("47F03277-5055-4922-899C-0F7F30D26BF1");
 
     private static readonly ImmutableArray<OptionKey2> s_statusOptions = [new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), new OptionKey2(KeybindingResetOptionsStorage.NeedsReset)];
-
+    private readonly IThreadingContext _threadingContext;
     private readonly IGlobalOptionService _globalOptions;
     private readonly System.IServiceProvider _serviceProvider;
     private readonly VisualStudioInfoBar _infoBar;
@@ -94,8 +95,8 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
         IVsService<SVsShell, IVsShell> vsShell,
         SVsServiceProvider serviceProvider,
         IAsynchronousOperationListenerProvider listenerProvider)
-        : base(threadingContext)
     {
+        _threadingContext = threadingContext;
         _globalOptions = globalOptions;
         _serviceProvider = serviceProvider;
 
@@ -111,12 +112,12 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
             return Task.CompletedTask;
         }
 
-        return InvokeBelowInputPriorityAsync(InitializeCore);
+        return _threadingContext.InvokeBelowInputPriorityAsync(InitializeCore);
     }
 
     private void InitializeCore()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (!_globalOptions.GetOption(KeybindingResetOptionsStorage.EnabledFeatureFlag))
         {
@@ -316,7 +317,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
             cmds[0].cmdID = cmdId;
             cmds[0].cmdf = 0;
 
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var hr = _oleCommandTarget.QueryStatus(s_resharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
             if (ErrorHandler.Failed(hr))
@@ -337,7 +338,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
                 return;
             }
 
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _oleCommandTarget = _serviceProvider.GetServiceOnMainThread<SUIHostCommandDispatcher, IOleCommandTarget>();
         }
@@ -345,7 +346,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
 
     private void RestoreVsKeybindings()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         _uiShell ??= _serviceProvider.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
 
@@ -362,7 +363,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
 
     private void OpenExtensionsHyperlink()
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         VisualStudioNavigateToLinkService.StartBrowser(KeybindingsFwLink);
 
@@ -377,19 +378,20 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
         KeybindingsResetLogger.Log("NeverShowAgain");
 
         // The only external references to this object are as callbacks, which are removed by the Shutdown method.
-        ThreadingContext.JoinableTaskFactory.Run(ShutdownAsync);
+        _threadingContext.JoinableTaskFactory.Run(ShutdownAsync);
     }
 
     private void InfoBarClose()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         _infoBarOpen = false;
     }
 
     public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
     {
         // Technically can be called on any thread, though VS will only ever call it on the UI thread.
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
+
         // We don't care about query status, only when the command is actually executed
         return (int)OLE.Interop.Constants.OLECMDERR_E_NOTSUPPORTED;
     }
@@ -397,7 +399,8 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
     public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
     {
         // Technically can be called on any thread, though VS will only ever call it on the UI thread.
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
+
         if (pguidCmdGroup == s_resharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
         {
             // Don't delay command processing to update resharper status
@@ -410,7 +413,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
 
     private void OnModalStateChanged(object sender, StateChangedEventArgs args)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         // Only monitor for StateTransitionType.Exit. This will be fired when the shell is leaving a modal state, including
         // Tools->Options being exited. This will fire more than just on Options close, but there's no harm from running an
@@ -426,7 +429,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
         // we are shutting down, cancel any pending work.
         _cancellationTokenSource.Cancel();
 
-        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         if (_priorityCommandTargetCookie != VSConstants.VSCOOKIE_NIL)
         {
