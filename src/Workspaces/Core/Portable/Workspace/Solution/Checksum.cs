@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -86,6 +87,13 @@ internal readonly partial record struct Checksum(
     {
         Contract.ThrowIfTrue(span.Length < HashSize);
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), this);
+    }
+
+    public void WriteTo(PipeWriter pipeWriter)
+    {
+        var span = pipeWriter.GetSpan(HashSize);
+        this.WriteTo(span);
+        pipeWriter.Advance(HashSize);
     }
 
     public static Checksum ReadFrom(ObjectReader reader)

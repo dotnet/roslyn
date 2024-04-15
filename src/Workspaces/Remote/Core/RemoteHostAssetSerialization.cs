@@ -169,7 +169,7 @@ internal static class RemoteHostAssetSerialization
             // This information is not actually needed on the receiving end.  However, we still send it so that the
             // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
             // breaks have occurred.
-            WriteSolutionChecksum(pipeWriter, scope.SolutionChecksum);
+            scope.SolutionChecksum.WriteTo(pipeWriter);
             await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
@@ -189,13 +189,6 @@ internal static class RemoteHostAssetSerialization
 
             // If we weren't canceled, we better have found and written out all the expected assets.
             Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
-        }
-
-        static void WriteSolutionChecksum(PipeWriter pipeWriter, Checksum solutionChecksum)
-        {
-            var span = pipeWriter.GetSpan(Checksum.HashSize);
-            solutionChecksum.WriteTo(span);
-            pipeWriter.Advance(Checksum.HashSize);
         }
     }
 
