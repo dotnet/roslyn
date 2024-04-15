@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             /// </summary>
             public readonly Checksum Checksum;
 
-            public ChecksumObjectCollection(SerializationValidator validator, ChecksumCollection collection)
+            public ChecksumObjectCollection(SerializationValidator validator, WellKnownSynchronizationKind kind, ChecksumCollection collection)
             {
                 Checksum = collection.Checksum;
-                Kind = collection.GetWellKnownSynchronizationKind();
+                Kind = kind;
 
                 // using .Result here since we don't want to convert all calls to this to async.
                 // and none of ChecksumWithChildren actually use async
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         public ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(ChecksumCollection collection)
-            => new(this, collection);
+            => new(this, WellKnownSynchronizationKind.ProjectState, collection);
 
         internal async Task VerifyAssetAsync(SolutionStateChecksums solutionObject)
         {
@@ -222,13 +222,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
         }
 
-        private static void AssertChecksumCollectionEqual<TId>(
-            ChecksumsAndIds<TId> collection1, ChecksumsAndIds<TId> collection2)
-        {
-            AssertChecksumCollectionEqual(collection1.Checksums, collection2.Checksums);
-            AssertEx.Equal(collection1.Ids, collection2.Ids);
-        }
-
         private static void AssertChecksumCollectionEqual(
             ChecksumCollection collection1, ChecksumCollection collection2)
         {
@@ -252,16 +245,17 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             if (solutionObject1.FrozenSourceGeneratedDocumentIdentities.HasValue)
                 AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocumentIdentities.Value, solutionObject2.FrozenSourceGeneratedDocumentIdentities!.Value);
 
-            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentTexts.HasValue, solutionObject2.FrozenSourceGeneratedDocumentTexts.HasValue);
-            if (solutionObject1.FrozenSourceGeneratedDocumentTexts.HasValue)
-                AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocumentTexts.Value, solutionObject2.FrozenSourceGeneratedDocumentTexts!.Value);
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocuments.HasValue, solutionObject2.FrozenSourceGeneratedDocuments.HasValue);
+            if (solutionObject1.FrozenSourceGeneratedDocuments.HasValue)
+                AssertDocumentChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocuments.Value, solutionObject2.FrozenSourceGeneratedDocuments!.Value);
         }
 
         internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)
         {
             Assert.Equal(solutionObject1.Checksum, solutionObject2.Checksum);
             Assert.Equal(solutionObject1.Attributes, solutionObject2.Attributes);
-            AssertChecksumCollectionEqual(solutionObject1.Projects, solutionObject2.Projects);
+            AssertEx.Equals(solutionObject1.Projects.Ids, solutionObject2.Projects.Ids);
+            AssertChecksumCollectionEqual(solutionObject1.Projects.Checksums, solutionObject2.Projects.Checksums);
             AssertChecksumCollectionEqual(solutionObject1.AnalyzerReferences, solutionObject2.AnalyzerReferences);
 
             ProjectStatesEqual(ToProjectObjects(solutionObject1.Projects.Checksums), ToProjectObjects(solutionObject2.Projects.Checksums));

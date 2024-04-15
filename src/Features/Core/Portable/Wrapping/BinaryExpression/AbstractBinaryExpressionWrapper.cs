@@ -98,7 +98,7 @@ internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressio
     {
         using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var result);
         AddExpressionsAndOperators(precedence, binaryExpr, result);
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private void AddExpressionsAndOperators(

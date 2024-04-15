@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -128,42 +129,17 @@ internal sealed class TextDocumentStates<TState>
     }
 
     public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)
-    {
-        // Directly use ImmutableArray.Builder as we know the final size
-        var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
-
-        foreach (var (_, state) in _map)
-        {
-            builder.Add(selector(state));
-        }
-
-        return builder.MoveToImmutable();
-    }
+        => SelectAsArray(
+            static (state, selector) => selector(state),
+            selector);
 
     public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
     {
-        // Directly use ImmutableArray.Builder as we know the final size
-        var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
-
+        var result = new FixedSizeArrayBuilder<TValue>(_map.Count);
         foreach (var (_, state) in _map)
-        {
-            builder.Add(selector(state, arg));
-        }
+            result.Add(selector(state, arg));
 
-        return builder.MoveToImmutable();
-    }
-
-    public async ValueTask<ImmutableArray<TValue>> SelectAsArrayAsync<TValue, TArg>(Func<TState, TArg, CancellationToken, ValueTask<TValue>> selector, TArg arg, CancellationToken cancellationToken)
-    {
-        // Directly use ImmutableArray.Builder as we know the final size
-        var builder = ImmutableArray.CreateBuilder<TValue>(_map.Count);
-
-        foreach (var (_, state) in _map)
-        {
-            builder.Add(await selector(state, arg, cancellationToken).ConfigureAwait(true));
-        }
-
-        return builder.MoveToImmutable();
+        return result.MoveToImmutable();
     }
 
     public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
@@ -311,48 +287,24 @@ internal sealed class TextDocumentStates<TState>
         }
     }
 
-    public async ValueTask<ChecksumsAndIds<DocumentId>> GetChecksumsAndIdsAsync(CancellationToken cancellationToken)
-    {
-        var documentTextChecksums = await SelectAsArrayAsync(
-            static async (state, _, cancellationToken) => await state.GetChecksumAsync(cancellationToken).ConfigureAwait(false),
-            arg: default(VoidResult),
-            cancellationToken).ConfigureAwait(false);
-
-        var documentChecksums = new ChecksumCollection(documentTextChecksums);
-        return new(documentChecksums, SelectAsArray(static s => s.Id));
-    }
-
-    public async ValueTask<ChecksumsAndIds<DocumentId>> GetTextChecksumsAndIdsAsync(CancellationToken cancellationToken)
-    {
-        var documentTextChecksums = await SelectAsArrayAsync(
-            static async (state, _, cancellationToken) =>
-            {
-                var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                return stateChecksums.Text;
-            },
-            arg: default(VoidResult),
-            cancellationToken).ConfigureAwait(false);
-
-        var documentChecksums = new ChecksumCollection(documentTextChecksums);
-        return new(documentChecksums, SelectAsArray(static s => s.Id));
-    }
-
     public async ValueTask<DocumentChecksumsAndIds> GetDocumentChecksumsAndIdsAsync(CancellationToken cancellationToken)
     {
-        using var _1 = ArrayBuilder<Checksum>.GetInstance(_map.Count, out var attributeChecksums);
-        using var _2 = ArrayBuilder<Checksum>.GetInstance(_map.Count, out var textChecksums);
+        var attributeChecksums = new FixedSizeArrayBuilder<Checksum>(_map.Count);
+        var textChecksums = new FixedSizeArrayBuilder<Checksum>(_map.Count);
+        var documentIds = new FixedSizeArrayBuilder<DocumentId>(_map.Count);
 
-        foreach (var (_, state) in _map)
+        foreach (var (documentId, state) in _map)
         {
             var stateChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             attributeChecksums.Add(stateChecksums.Info);
             textChecksums.Add(stateChecksums.Text);
+            documentIds.Add(documentId);
         }
 
         return new(
-            new ChecksumCollection(attributeChecksums.ToImmutableAndClear()),
-            new ChecksumCollection(textChecksums.ToImmutableAndClear()),
-            SelectAsArray(static s => s.Id));
+            new ChecksumCollection(attributeChecksums.MoveToImmutable()),
+            new ChecksumCollection(textChecksums.MoveToImmutable()),
+            documentIds.MoveToImmutable());
     }
 
     public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)

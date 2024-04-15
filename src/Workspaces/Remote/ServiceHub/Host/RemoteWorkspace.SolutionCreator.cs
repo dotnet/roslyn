@@ -88,18 +88,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
-                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentTexts.HasValue &&
+                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue &&
                         !newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes.IsDefault)
                     {
                         var newSolutionFrozenSourceGeneratedDocumentIdentities = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value;
-                        var newSolutionFrozenSourceGeneratedDocumentTexts = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentTexts.Value;
-                        var count = newSolutionFrozenSourceGeneratedDocumentTexts.Checksums.Count;
+                        var newSolutionFrozenSourceGeneratedDocuments = newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value;
+                        var count = newSolutionFrozenSourceGeneratedDocuments.Ids.Length;
 
-                        using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
+                        var frozenDocuments = new FixedSizeArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>(count);
                         for (var i = 0; i < count; i++)
                         {
-                            var frozenDocumentId = newSolutionFrozenSourceGeneratedDocumentTexts.Ids[i];
-                            var frozenDocumentTextChecksum = newSolutionFrozenSourceGeneratedDocumentTexts.Checksums[i];
+                            var frozenDocumentId = newSolutionFrozenSourceGeneratedDocuments.Ids[i];
+                            var frozenDocumentTextChecksum = newSolutionFrozenSourceGeneratedDocuments.TextChecksums[i];
                             var frozenDocumentIdentity = newSolutionFrozenSourceGeneratedDocumentIdentities[i];
 
                             var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             frozenDocuments.Add((identity, generationDateTime, text));
                         }
 
-                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutableAndClear());
+                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.MoveToImmutable());
                     }
 
                     if (oldSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap !=
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
 
-                await _assetProvider.GetAssetsAsync<ProjectStateChecksums, Dictionary<ProjectId, ProjectStateChecksums>>(
+                await _assetProvider.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
                     assetPath: AssetPathKind.ProjectStateChecksums, newChecksumsToSync,
                     static (checksum, newProjectStateChecksum, newProjectIdToStateChecksums) =>
                     {
@@ -267,8 +267,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         assetPath: AssetPathKind.ProjectCompilationOptions, projectItemChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
-                using var _2 = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
-                using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var projectStateChecksumsToAdd);
+                using var _2 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var projectStateChecksumsToAdd);
 
                 // added project
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
@@ -281,6 +280,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // efficiently in bulk and in parallel.
                 await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksumsToAdd, cancellationToken).ConfigureAwait(false);
 
+                using var _3 = ArrayBuilder<ProjectInfo>.GetInstance(projectStateChecksumsToAdd.Count, out var projectInfos);
                 foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
                 {
                     if (!oldProjectIdToStateChecksums.ContainsKey(projectId))

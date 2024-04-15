@@ -146,7 +146,7 @@ internal static partial class ConvertProgramTransform
             }
         }
 
-        return statements.ToImmutable();
+        return statements.ToImmutableAndClear();
     }
 
     private static TSyntaxNode FixupComments<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode

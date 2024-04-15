@@ -288,7 +288,7 @@ internal sealed class ImplementAbstractClassData(
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static bool InheritsFromOrEquals(ITypeSymbol type, ITypeSymbol baseType)

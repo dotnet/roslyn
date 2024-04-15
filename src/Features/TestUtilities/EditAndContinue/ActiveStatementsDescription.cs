@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
 
             activeStatements.Sort((x, y) => x.Statement.Id.Ordinal.CompareTo(y.Statement.Id.Ordinal));
-            return activeStatements.ToImmutable();
+            return activeStatements.ToImmutableAndClear();
         }
 
         internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(

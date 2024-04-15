@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
             await task.ConfigureAwait(false);
-            return fixes.ToImmutable();
+            return fixes.ToImmutableAndClear();
 
             static ImmutableArray<Diagnostic> FilterApplicableDiagnostics(
                 ImmutableArray<Diagnostic> applicableDiagnostics,
@@ -931,14 +931,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             static ImmutableArray<IConfigurationFixProvider> GetConfigurationFixProviders(ImmutableArray<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
             {
-                using var builderDisposer = ArrayBuilder<IConfigurationFixProvider>.GetInstance(out var builder);
                 var orderedLanguageKindAndFixers = ExtensionOrderer.Order(languageKindAndFixers);
+                var builder = new FixedSizeArrayBuilder<IConfigurationFixProvider>(orderedLanguageKindAndFixers.Count);
                 foreach (var languageKindAndFixersValue in orderedLanguageKindAndFixers)
-                {
                     builder.Add(languageKindAndFixersValue.Value);
-                }
 
-                return builder.ToImmutable();
+                return builder.MoveToImmutable();
             }
         }
 

@@ -5,15 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -43,7 +40,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         checksums.Add(checksum);
 
         using var _2 = ArrayBuilder<T>.GetInstance(1, out var builder);
-        await this.GetAssetsAsync<T, ArrayBuilder<T>>(
+        await this.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksums,
             static (_, asset, builder) => builder.Add(asset),
             builder, cancellationToken).ConfigureAwait(false);
@@ -107,7 +104,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);
-            await this.GetAssetsAsync<ProjectStateChecksums, ArrayBuilder<ProjectStateChecksums>>(
+            await this.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
                 AssetPathKind.ProjectStateChecksums,
                 solutionStateChecksum.Projects.Checksums,
                 static (_, asset, allProjectStateChecksums) => allProjectStateChecksums.Add(asset),
@@ -287,18 +284,26 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 if (missingChecksumsCount > 0)
                 {
                     var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+                    Contract.ThrowIfTrue(missingChecksumsMemory.Length == 0);
 
-                    await RequestAssetsAsync(
-                        assetPath, missingChecksumsMemory,
+#if NETCOREAPP
+                    Contract.ThrowIfTrue(missingChecksumsMemory.Span.Contains(Checksum.Null));
+#else
+                    Contract.ThrowIfTrue(missingChecksumsMemory.Span.IndexOf(Checksum.Null) >= 0);
+#endif
+
+                    await _assetSource.GetAssetsAsync(
+                        _solutionChecksum, assetPath, missingChecksumsMemory, _serializerService,
                         static (
-                            int index,
+                            Checksum missingChecksum,
                             T missingAsset,
                             (AssetProvider assetProvider, Checksum[] missingChecksums, Action<Checksum, T, TArg>? callback, TArg? arg) tuple) =>
                         {
-                            var missingChecksum = tuple.missingChecksums[index];
+                            // Add to cache, returning the existing asset if it was added by another thread.
+                            missingAsset = (T)tuple.assetProvider._assetCache.GetOrAdd(missingChecksum, missingAsset!);
 
+                            // Let our caller know about the asset if they're asking for it.
                             tuple.callback?.Invoke(missingChecksum, missingAsset, tuple.arg!);
-                            tuple.assetProvider._assetCache.GetOrAdd(missingChecksum, missingAsset!);
                         },
                         (this, missingChecksums, callback, arg),
                         cancellationToken).ConfigureAwait(false);
@@ -310,22 +315,5 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     s_checksumPool.Free(missingChecksums);
             }
         }
-
-        return;
-    }
-
-    private async ValueTask RequestAssetsAsync<T, TArg>(
-        AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, Action<int, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
-    {
-#if NETCOREAPP
-        Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));
-#else
-        Contract.ThrowIfTrue(checksums.Span.IndexOf(Checksum.Null) >= 0);
-#endif
-
-        if (checksums.Length == 0)
-            return;
-
-        await _assetSource.GetAssetsAsync(_solutionChecksum, assetPath, checksums, _serializerService, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 }

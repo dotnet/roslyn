@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 if (action.NestedActions.Length > 0)
                 {
-                    using var _ = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(action.NestedActions.Length, out var unifiedNestedActions);
+                    var unifiedNestedActions = new FixedSizeArrayBuilder<IUnifiedSuggestedAction>(action.NestedActions.Length);
                     foreach (var nestedAction in action.NestedActions)
                     {
                         var unifiedNestedAction = await GetUnifiedSuggestedActionAsync(originalSolution, nestedAction, fix).ConfigureAwait(false);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     var set = new UnifiedSuggestedActionSet(
                         originalSolution,
                         categoryName: null,
-                        actions: unifiedNestedActions.ToImmutableAndClear(),
+                        actions: unifiedNestedActions.MoveToImmutable(),
                         title: null,
                         priority: action.Priority,
                         applicableToSpan: fix.PrimaryDiagnostic.Location.SourceSpan);
@@ -454,14 +454,14 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);
 
-            using var _ = ArrayBuilder<UnifiedSuggestedActionSet>.GetInstance(filteredRefactorings.Length, out var orderedRefactorings);
+            var orderedRefactorings = new FixedSizeArrayBuilder<UnifiedSuggestedActionSet>(filteredRefactorings.Length);
             foreach (var refactoring in filteredRefactorings)
             {
                 var orderedRefactoring = await OrganizeRefactoringsAsync(workspace, document, selection, refactoring, cancellationToken).ConfigureAwait(false);
                 orderedRefactorings.Add(orderedRefactoring);
             }
 
-            return orderedRefactorings.ToImmutableAndClear();
+            return orderedRefactorings.MoveToImmutable();
         }
 
         private static ImmutableArray<CodeRefactoring> FilterOnAnyThread(
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             {
                 if (codeAction.NestedActions.Length > 0)
                 {
-                    using var _1 = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(codeAction.NestedActions.Length, out var nestedActions);
+                    var nestedActions = new FixedSizeArrayBuilder<IUnifiedSuggestedAction>(codeAction.NestedActions.Length);
                     foreach (var nestedAction in codeAction.NestedActions)
                     {
                         var unifiedAction = await GetUnifiedSuggestedActionSetAsync(nestedAction, applicableToSpan, selection, cancellationToken).ConfigureAwait(false);
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                     var set = new UnifiedSuggestedActionSet(
                         originalSolution,
                         categoryName: null,
-                        actions: nestedActions.ToImmutableAndClear(),
+                        actions: nestedActions.MoveToImmutable(),
                         title: null,
                         priority: codeAction.Priority,
                         applicableToSpan: applicableToSpan);
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private static UnifiedSuggestedActionSet? FilterActionSetByTitle(UnifiedSuggestedActionSet set, HashSet<string> seenTitles)

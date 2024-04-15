@@ -158,7 +158,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
             activeStatementSpansBuilder.Add(new ActiveStatementLineSpan(newMappedDocumentActiveSpan.Id, unmappedSpan));
         }
 
-        return activeStatementSpansBuilder.ToImmutable();
+        return activeStatementSpansBuilder.ToImmutableAndClear();
     }
 
     private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)

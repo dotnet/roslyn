@@ -432,7 +432,7 @@ internal struct StackFrameLexer
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private readonly bool IsStringAtPosition(string val)

@@ -44,7 +44,7 @@ internal abstract class AbstractReferenceDirectiveCompletionProvider : AbstractD
             builder.Add(',');
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)

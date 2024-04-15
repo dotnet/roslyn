@@ -155,7 +155,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             }
         }
 
-        return graphQueries.ToImmutable();
+        return graphQueries.ToImmutableAndClear();
     }
 
     public void BeginGetGraphData(IGraphContext context)
