@@ -141,15 +141,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod,
             Syntax.SimpleNameSyntax? nameSyntax)
         {
-            var interceptableLocation = nameSyntax?.Location;
-            if (this._compilation.TryGetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
+            if (this._compilation.TryGetInterceptor(nameSyntax) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
             }
 
             Debug.Assert(nameSyntax != null);
-            Debug.Assert(interceptableLocation != null);
             Debug.Assert(interceptor.IsDefinition);
             Debug.Assert(!interceptor.ContainingType.IsGenericType);
 
