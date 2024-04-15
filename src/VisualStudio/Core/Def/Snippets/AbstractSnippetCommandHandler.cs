@@ -37,7 +37,7 @@ internal abstract class AbstractSnippetCommandHandler(
     ICommandHandler<InsertSnippetCommandArgs>,
     IChainedCommandHandler<AutomaticLineEnderCommandArgs>
 {
-    private readonly IThreadingContext _threadingContext = threadingContext;
+    protected readonly IThreadingContext ThreadingContext = threadingContext;
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
     private readonly IVsService<IVsTextManager2> _textManager = textManager;
 
@@ -54,7 +54,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public bool ExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
         if (AreSnippetsEnabledWithClient(args, out var snippetExpansionClient)
             && snippetExpansionClient.TryHandleTab())
         {
@@ -85,7 +85,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public CommandState GetCommandState(TabKeyCommandArgs args)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
         if (!AreSnippetsEnabled(args))
         {
@@ -107,7 +107,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
         if (AreSnippetsEnabledWithClient(args, out var snippetExpansionClient)
             && snippetExpansionClient.IsFullMethodCallSnippet)
         {
@@ -122,7 +122,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
         if (!AreSnippetsEnabledWithClient(args, out var snippetExpansionClient))
         {
             return false;
@@ -138,7 +138,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public CommandState GetCommandState(ReturnKeyCommandArgs args)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
         if (!AreSnippetsEnabled(args))
         {
@@ -155,7 +155,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
         if (!AreSnippetsEnabledWithClient(args, out var snippetExpansionClient))
         {
             return false;
@@ -171,7 +171,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public CommandState GetCommandState(EscapeKeyCommandArgs args)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
         if (!AreSnippetsEnabled(args))
         {
@@ -188,7 +188,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public bool ExecuteCommand(BackTabKeyCommandArgs args, CommandExecutionContext context)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
         if (!AreSnippetsEnabledWithClient(args, out var snippetExpansionClient))
         {
             return false;
@@ -204,7 +204,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public CommandState GetCommandState(BackTabKeyCommandArgs args)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
         if (!AreSnippetsEnabled(args))
         {
@@ -221,7 +221,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public bool ExecuteCommand(InsertSnippetCommandArgs args, CommandExecutionContext context)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
         if (!AreSnippetsEnabled(args))
         {
@@ -233,7 +233,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     public CommandState GetCommandState(InsertSnippetCommandArgs args)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
         if (!AreSnippetsEnabled(args))
         {
@@ -251,7 +251,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     protected bool TryHandleTypedSnippet(ITextView textView, ITextBuffer subjectBuffer, CancellationToken cancellationToken)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
         var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
@@ -283,7 +283,7 @@ internal abstract class AbstractSnippetCommandHandler(
 
     protected bool TryGetExpansionManager(out IVsExpansionManager expansionManager)
     {
-        var textManager = _threadingContext.JoinableTaskFactory.Run(() => _textManager.GetValueOrNullAsync(CancellationToken.None));
+        var textManager = this.ThreadingContext.JoinableTaskFactory.Run(() => _textManager.GetValueOrNullAsync(CancellationToken.None));
         if (textManager == null)
         {
             expansionManager = null;
