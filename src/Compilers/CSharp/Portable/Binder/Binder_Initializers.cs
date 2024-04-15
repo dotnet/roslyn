@@ -306,7 +306,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             binder = new ExecutableCodeBinder(equalsValueClauseNode, fieldSymbol, new LocalScopeBinder(binder));
-            BoundFieldEqualsValue boundInitValue = binder.BindFieldInitializer(fieldSymbol, equalsValueClauseNode, initializerDiagnostics);
+            BoundFieldEqualsValue boundInitValue = binder.BindWithLambdaBindingCountDiagnostics(
+                equalsValueClauseNode,
+                fieldSymbol,
+                initializerDiagnostics,
+                static (binder, equalsValueClauseNode, fieldSymbol, initializerDiagnostics) => binder.BindFieldInitializer(fieldSymbol, equalsValueClauseNode, initializerDiagnostics));
 
             return boundInitValue;
         }

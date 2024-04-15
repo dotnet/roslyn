@@ -2308,6 +2308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptsLocationDuplicateFile = 9233,
         ERR_InterceptsLocationFileNotFound = 9234,
         ERR_InterceptsLocationDataInvalidPosition = 9235,
+        INF_TooManyBoundLambdas = 9236,
 
         #endregion
 

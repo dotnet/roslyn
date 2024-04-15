@@ -6874,6 +6874,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionExpressionEscape" xml:space="preserve">
     <value>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</value>
   </data>
+  <data name="INF_TooManyBoundLambdas" xml:space="preserve">
+    <value>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
+  </data>
+  <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
+    <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>
