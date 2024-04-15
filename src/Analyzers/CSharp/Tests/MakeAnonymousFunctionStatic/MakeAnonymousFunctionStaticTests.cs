@@ -129,7 +129,7 @@ public class MakeAnonymousFunctionStaticTests
             {
                 void M()
                 {
-                    N({|IDE0320:{{anonymousFunctionSyntax}}|});
+                    N([|{{anonymousFunctionSyntax}}|]);
                 }
             
                 void N(Action<int> a)
@@ -199,7 +199,7 @@ public class MakeAnonymousFunctionStaticTests
 
                 void M()
                 {
-                    N({|IDE0320:{{anonymousFunctionSyntax}}|});
+                    N([|{{anonymousFunctionSyntax}}|]);
                 }
             
                 void N(Func<int, int> f)
@@ -267,7 +267,7 @@ public class MakeAnonymousFunctionStaticTests
             {
                 void M(int i)
                 {
-                    N({|IDE0320:{{anonymousFunctionSyntax}}|});
+                    N([|{{anonymousFunctionSyntax}}|]);
                 }
             
                 void N(Func<int, int> f)
@@ -335,7 +335,7 @@ public class MakeAnonymousFunctionStaticTests
                 void M()
                 {
                     int i = 0;
-                    N({|IDE0320:{{anonymousFunctionSyntax}}|});
+                    N([|{{anonymousFunctionSyntax}}|]);
                 }
             
                 void N(Func<int, int> f)
@@ -374,10 +374,10 @@ public class MakeAnonymousFunctionStaticTests
             {
                 void M()
                 {
-                    N({|IDE0320:() =>
+                    N([|() =>
                     {
-                        Action a = {|IDE0320:() => { }|};
-                    }|});
+                        Action a = [|() => { }|];
+                    }|]);
                 }
             
                 void N(Action a)
@@ -418,10 +418,10 @@ public class MakeAnonymousFunctionStaticTests
             {
                 void M()
                 {
-                    N({|IDE0320:delegate ()
+                    N([|delegate ()
                     {
-                        Action a = {|IDE0320:delegate () { }|};
-                    }|});
+                        Action a = [|delegate () { }|];
+                    }|]);
                 }
             
                 void N(Action a)
