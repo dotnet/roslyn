@@ -33204,7 +33204,7 @@ implicit extension E for S
         // PROTOTYPE(instance) update CheckValue logic
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable once we can lower/emit for non-static scenarios
     public void PropertyAccess_Instance_CanModifyStructReceiver_StructTypeParameterReceiver()
     {
         var src = """
@@ -33244,7 +33244,7 @@ implicit extension E for I
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("T", "Property").WithLocation(7, 7));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable once we can lower/emit for non-static scenarios
     public void PropertyAccess_Instance_CanModifyStructReceiver_UnconstrainedTypeParameterReceiver()
     {
         var src = """
