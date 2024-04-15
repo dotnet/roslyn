@@ -297,11 +297,8 @@ internal static class RemoteHostAssetSerialization
 
             // Ensure that no invariants were broken and that both sides of the communication channel are talking about
             // the same pinned solution.
-            var readChecksumResult = await pipeReader.ReadAtLeastAsync(Checksum.HashSize, cancellationToken).ConfigureAwait(false);
-
-            var responseSolutionChecksum = ReadChecksum(readChecksumResult);
+            var responseSolutionChecksum = await ReadChecksumFromPipeReaderAsync(pipeReader, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
-            pipeReader.AdvanceTo(readChecksumResult.Buffer.GetPosition(Checksum.HashSize));
 
             for (int i = 0, n = objectCount; i < n; i++)
             {
@@ -329,14 +326,6 @@ internal static class RemoteHostAssetSerialization
             }
         }
 
-        static Checksum ReadChecksum(ReadResult readResult)
-        {
-            var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
-            Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
-            Contract.ThrowIfFalse(sequenceReader.TryCopyTo(checksumBytes));
-            return Checksum.From(checksumBytes);
-        }
-
         static (byte, int) ReadSentinelAndLength(ReadResult readResult)
         {
             var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
@@ -359,6 +348,25 @@ internal static class RemoteHostAssetSerialization
             var result = serializerService.Deserialize(kind, reader, cancellationToken);
             Contract.ThrowIfNull(result);
             return (checksum, (T)result);
+        }
+
+        // Note on Checksum itself as it depends on SequenceReader, which is provided by nerdbank.streams on
+        // netstandard2.0 (which the Workspace layer does not depend on).
+        static async ValueTask<Checksum> ReadChecksumFromPipeReaderAsync(PipeReader pipeReader, CancellationToken cancellationToken)
+        {
+            var readChecksumResult = await pipeReader.ReadAtLeastAsync(Checksum.HashSize, cancellationToken).ConfigureAwait(false);
+
+            var checksum = ReadChecksum(readChecksumResult);
+            pipeReader.AdvanceTo(readChecksumResult.Buffer.GetPosition(Checksum.HashSize));
+            return checksum;
+
+            static Checksum ReadChecksum(ReadResult readResult)
+            {
+                var sequenceReader = new SequenceReader<byte>(readResult.Buffer);
+                Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
+                Contract.ThrowIfFalse(sequenceReader.TryCopyTo(checksumBytes));
+                return Checksum.From(checksumBytes);
+            }
         }
     }
 }
