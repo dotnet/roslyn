@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 using ChecksumChannel = Channel<(Checksum checksum, object asset)>;
 using ChecksumChannelReader = ChannelReader<(Checksum checksum, object asset)>;
 using ChecksumChannelWriter = ChannelWriter<(Checksum checksum, object asset)>;
+using static SerializableBytes;
 
 /// <summary>
 /// Contains the utilities for writing assets from the host to a pipe-writer and for reading those assets on the
@@ -69,7 +70,7 @@ internal readonly struct RemoteHostAssetWriter(
     /// </summary>
     public const byte MessageSentinelByte = 0b10010000;
 
-    private static readonly ObjectPool<SerializableBytes.ReadWriteStream> s_streamPool = new(SerializableBytes.CreateWritableStream);
+    private static readonly ObjectPool<ReadWriteStream> s_streamPool = new(CreateWritableStream);
 
     private static readonly UnboundedChannelOptions s_channelOptions = new()
     {
@@ -182,7 +183,7 @@ internal readonly struct RemoteHostAssetWriter(
     }
 
     private async ValueTask WriteSingleAssetToPipeAsync(
-        SerializableBytes.ReadWriteStream tempStream, ObjectWriter objectWriter, Checksum checksum, object asset, CancellationToken cancellationToken)
+        ReadWriteStream tempStream, ObjectWriter objectWriter, Checksum checksum, object asset, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(asset);
 
@@ -214,7 +215,7 @@ internal readonly struct RemoteHostAssetWriter(
     }
 
     private void WriteAssetToTempStream(
-        SerializableBytes.ReadWriteStream tempStream, ObjectWriter objectWriter, Checksum checksum, object asset, CancellationToken cancellationToken)
+        ReadWriteStream tempStream, ObjectWriter objectWriter, Checksum checksum, object asset, CancellationToken cancellationToken)
     {
         // Reset the temp stream to the beginning and clear it out. Don't truncate the stream as we're going to be
         // writing to it multiple times.  This will allow us to reuse the internal chunks of the buffer, without
@@ -244,7 +245,7 @@ internal readonly struct RemoteHostAssetWriter(
         _pipeWriter.Advance(1);
     }
 
-    private void WriteTempStreamLengthToPipeWriter(SerializableBytes.ReadWriteStream tempStream)
+    private void WriteTempStreamLengthToPipeWriter(ReadWriteStream tempStream)
     {
         var length = tempStream.Length;
         Contract.ThrowIfTrue(length > int.MaxValue);
