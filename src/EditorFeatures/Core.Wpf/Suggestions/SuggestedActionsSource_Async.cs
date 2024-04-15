@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ImmutableArray<ISuggestedActionSetCollector> collectors,
                 CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+               this. AssertIsForeground();
 
                 // We should only be called with the orderings we exported in order from highest pri to lowest pri.
                 Contract.ThrowIfFalse(Orderings.SequenceEqual(collectors.SelectAsArray(c => c.Priority)));
