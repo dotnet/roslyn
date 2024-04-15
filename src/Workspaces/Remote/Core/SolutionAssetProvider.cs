@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
-        private readonly SolutionServices _services = services;
+        private readonly SolutionAssetStorage _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+        private readonly ISerializerService _serializer = services.GetRequiredService<ISerializerService>();
 
         public ValueTask WriteAssetsAsync(
             PipeWriter pipeWriter,
@@ -47,7 +48,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 Exception? exception = null;
                 try
                 {
-                    await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, assetPath, checksums, cancellationToken).ConfigureAwait(false);
+                    var scope = _assetStorage.GetScope(solutionChecksum);
+                    await RemoteHostAssetSerialization.WriteDataAsync(
+                        pipeWriter, assetPath, checksums, scope, _serializer, cancellationToken).ConfigureAwait(false); ;
                 }
                 catch (Exception ex) when ((exception = ex) == null)
                 {
@@ -58,22 +61,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }
-        }
-
-        private ValueTask WriteAssetsWorkerAsync(
-            PipeWriter pipeWriter,
-            Checksum solutionChecksum,
-            AssetPath assetPath,
-            ReadOnlyMemory<Checksum> checksums,
-            CancellationToken cancellationToken)
-        {
-            var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            var scope = assetStorage.GetScope(solutionChecksum);
-
-            var serializer = _services.GetRequiredService<ISerializerService>();
-
-            return RemoteHostAssetSerialization.WriteDataAsync(
-                pipeWriter, assetPath, checksums, scope, serializer, cancellationToken);
         }
     }
 }
