@@ -112,17 +112,7 @@ class Test
             var source = """
                 using System;
                 using System.Collections.Generic;
-                using System.Threading;
                 using System.Threading.Tasks;
-
-                try
-                {
-                    await new C().ProcessValueAsync();
-                }
-                catch (SynchronizationLockException e)
-                {
-                    Console.WriteLine(e.Message);
-                }
 
                 public class C
                 {
@@ -154,20 +144,20 @@ class Test
                 }
                 """ + AsyncStreamsTypes;
 
-            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe.WithWarningLevel(8));
+            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll.WithWarningLevel(8));
             CompileAndVerify(comp).VerifyDiagnostics();
 
             var expectedDiagnostics = new[]
             {
-                // (33,17): warning CS9230: 'yield return' should not be used in the body of a lock statement
+                // (23,17): warning CS9230: 'yield return' should not be used in the body of a lock statement
                 //                 yield return i;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(33, 17)
+                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(23, 17)
             };
 
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe.WithWarningLevel(9));
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll.WithWarningLevel(9));
             CompileAndVerify(comp).VerifyDiagnostics(expectedDiagnostics);
 
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(comp).VerifyDiagnostics(expectedDiagnostics);
         }
 
