@@ -59,7 +59,7 @@ internal readonly struct RemoteHostAssetWriter(
     /// </summary>
     public const byte MessageSentinelByte = 0b10010000;
 
-    private static readonly ObjectPool<ReadWriteStream> s_streamPool = new(CreateWritableStream);
+    private static readonly ObjectPool<ReadWriteStream> s_streamPool = new(() => new());
 
     private static readonly UnboundedChannelOptions s_channelOptions = new()
     {

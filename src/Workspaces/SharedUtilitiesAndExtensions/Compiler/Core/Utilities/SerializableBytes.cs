@@ -90,7 +90,7 @@ internal static class SerializableBytes
     }
 
     internal static ReadWriteStream CreateWritableStream()
-        => new ReadWriteStream();
+        => new();
 
     public abstract class PooledStream : Stream
     {
