@@ -274,7 +274,7 @@ internal static class RemoteHostAssetSerialization
     }
 
     public static ValueTask ReadDataAsync<T, TArg>(
-        PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+        PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializer, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
         // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
         // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
@@ -283,10 +283,10 @@ internal static class RemoteHostAssetSerialization
         // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
         // same thread where SuppressFlow was originally run.
         using var _ = FlowControlHelper.TrySuppressFlow();
-        return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, callback, arg, cancellationToken);
+        return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializer, callback, arg, cancellationToken);
 
         static async ValueTask ReadDataSuppressedFlowAsync(
-            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializer, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
         {
             using var pipeReaderStream = pipeReader.AsStream(leaveOpen: true);
 
@@ -300,30 +300,43 @@ internal static class RemoteHostAssetSerialization
             var responseSolutionChecksum = await ReadChecksumFromPipeReaderAsync(pipeReader, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
 
+            // Now actually read all the messages we expect to get.
             for (int i = 0, n = objectCount; i < n; i++)
-            {
-                // For each message, read the sentinel byte and the length of the data chunk we'll be reading.
-                const int HeaderSize = sizeof(byte) + sizeof(int);
-                var lengthReadResult = await pipeReader.ReadAtLeastAsync(HeaderSize, cancellationToken).ConfigureAwait(false);
-                var (sentinelByte, length) = ReadSentinelAndLength(lengthReadResult);
+                await ReadSingleMessageAsync(pipeReader, reader, serializer, callback, arg, cancellationToken).ConfigureAwait(false);
+        }
 
-                // Check that the sentinel is correct, and move the pipe reader forward to the end of the header.
-                Contract.ThrowIfTrue(sentinelByte != MessageSentinelByte);
-                pipeReader.AdvanceTo(lengthReadResult.Buffer.GetPosition(HeaderSize));
+        static async ValueTask ReadSingleMessageAsync(
+            PipeReader pipeReader, ObjectReader reader, ISerializerService serializer, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
+        {
+            // For each message, read the sentinel byte and the length of the data chunk we'll be reading.
+            var length = await CheckSentinelByteAndReadLengthAsync(pipeReader, cancellationToken).ConfigureAwait(false);
 
-                // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as
-                // we'll need to consume, all further reading (for this single item) can handle synchronously
-                // without worrying about this blocking the reading thread on cross-process pipe io.
-                var fillReadResult = await pipeReader.ReadAtLeastAsync(length, cancellationToken).ConfigureAwait(false);
+            // Now buffer in the rest of the data we need to read.  Because we're reading as much data in as
+            // we'll need to consume, all further reading (for this single item) can handle synchronously
+            // without worrying about this blocking the reading thread on cross-process pipe io.
+            var fillReadResult = await pipeReader.ReadAtLeastAsync(length, cancellationToken).ConfigureAwait(false);
 
-                // Note: we have let the pipe reader know that we're done with 'read at least' call, but that we
-                // haven't consumed anything from it yet.  Otherwise it will throw that another read can't start
-                // from within ObjectReader.GetReader below.
-                pipeReader.AdvanceTo(fillReadResult.Buffer.Start);
+            // Note: we have let the pipe reader know that we're done with 'read at least' call, but that we
+            // haven't consumed anything from it yet.  Otherwise it will throw that another read can't start
+            // from within ObjectReader.GetReader below.
+            pipeReader.AdvanceTo(fillReadResult.Buffer.Start);
 
-                var (checksum, asset) = ReadSingleAssetFromObjectReader(reader, serializerService, cancellationToken);
-                callback(checksum, asset, arg);
-            }
+            var (checksum, asset) = ReadSingleAssetFromObjectReader(reader, serializer, cancellationToken);
+            callback(checksum, asset, arg);
+        }
+
+        static async ValueTask<int> CheckSentinelByteAndReadLengthAsync(PipeReader pipeReader, CancellationToken cancellationToken)
+        {
+            const int HeaderSize = sizeof(byte) + sizeof(int);
+
+            var lengthReadResult = await pipeReader.ReadAtLeastAsync(HeaderSize, cancellationToken).ConfigureAwait(false);
+            var (sentinelByte, length) = ReadSentinelAndLength(lengthReadResult);
+
+            // Check that the sentinel is correct, and move the pipe reader forward to the end of the header.
+            Contract.ThrowIfTrue(sentinelByte != MessageSentinelByte);
+            pipeReader.AdvanceTo(lengthReadResult.Buffer.GetPosition(HeaderSize));
+
+            return length;
         }
 
         static (byte, int) ReadSentinelAndLength(ReadResult readResult)
@@ -335,7 +348,7 @@ internal static class RemoteHostAssetSerialization
         }
 
         static (Checksum checksum, T asset) ReadSingleAssetFromObjectReader(
-            ObjectReader reader, ISerializerService serializerService, CancellationToken cancellationToken)
+            ObjectReader reader, ISerializerService serializer, CancellationToken cancellationToken)
         {
             // Let the object reader do it's own individual object checking.
             reader.CheckValidationBytes();
@@ -345,7 +358,7 @@ internal static class RemoteHostAssetSerialization
             var checksum = Checksum.ReadFrom(reader);
             var kind = (WellKnownSynchronizationKind)reader.ReadByte();
 
-            var result = serializerService.Deserialize(kind, reader, cancellationToken);
+            var result = serializer.Deserialize(kind, reader, cancellationToken);
             Contract.ThrowIfNull(result);
             return (checksum, (T)result);
         }
