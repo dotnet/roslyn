@@ -67,8 +67,8 @@ internal readonly struct RemoteHostAssetWriter(
         // channel to operate in a more efficient manner knowing it won't have to synchronize data for multiple readers.
         SingleReader = true,
 
-        // Currently we only have a single writer writing to the channel when we call FindAllAssetsAsync. However, we
-        // could change this in the future to allow the search to happen in parallel.
+        // Currently we only have a single writer writing to the channel when we call _scope.FindAssetsAsync. However,
+        // we could change this in the future to allow the search to happen in parallel.
         SingleWriter = true,
     };
 
