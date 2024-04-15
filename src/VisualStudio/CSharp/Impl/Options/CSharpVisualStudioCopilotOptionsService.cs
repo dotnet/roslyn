@@ -61,8 +61,8 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpVisualStudioCopilotOptionsService(
-            IVsService<SVsSettingsPersistenceManager, ISettingsManager> settingsManagerService,
-            IThreadingContext threadingContext)
+        IVsService<SVsSettingsPersistenceManager, ISettingsManager> settingsManagerService,
+        IThreadingContext threadingContext)
     {
         _settingsManagerTask = settingsManagerService.GetValueAsync(threadingContext.DisposalToken);
     }
