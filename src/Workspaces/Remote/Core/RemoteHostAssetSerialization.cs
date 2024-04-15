@@ -159,9 +159,6 @@ internal static class RemoteHostAssetSerialization
         {
             await Task.Yield();
 
-            // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
-            var foundChecksumCount = 0;
-
             // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
             // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a
             // single object writer across all assets means we get the benefit of string deduplication across all assets
@@ -174,6 +171,9 @@ internal static class RemoteHostAssetSerialization
             // breaks have occurred.
             WriteSolutionChecksum(pipeWriter, scope.SolutionChecksum);
             await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+            // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
+            var foundChecksumCount = 0;
 
             while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
