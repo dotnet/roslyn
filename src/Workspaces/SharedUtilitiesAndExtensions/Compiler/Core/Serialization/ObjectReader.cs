@@ -83,37 +83,39 @@ internal sealed partial class ObjectReader : IDisposable
         return new ObjectReader(stream, leaveOpen);
     }
 
-    /// <summary>
-    /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-    /// Unlike <see cref="TryGetReader(Stream, bool)"/>, it requires the version
-    /// of the data in the stream to exactly match the current format version.
-    /// Should only be used to read data written by the same version of Roslyn.
+    /// <summary> 
+    /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>. Unlike <see
+    /// cref="TryGetReader(Stream, bool)"/>, it requires the version of the data in the stream to
+    /// exactly match the current format version. Should only be used to read data written by the same version of
+    /// Roslyn.
     /// </summary>
     public static ObjectReader GetReader(Stream stream, bool leaveOpen)
+        => GetReader(stream, leaveOpen, checkValidationBytes: true);
+
+    /// <summary> 
+    /// <inheritdoc cref="GetReader(Stream, bool)"/>
+    /// <param name="checkValidationBytes">Whether or not the validation bytes (see <see
+    /// cref="ObjectWriter.WriteValidationBytes"/> should be checked immediately at the stream's current
+    /// position.</param>
+    /// </summary>
+    public static ObjectReader GetReader(Stream stream, bool leaveOpen, bool checkValidationBytes)
     {
-        var b = stream.ReadByte();
-        if (b == -1)
-        {
-            throw new EndOfStreamException();
-        }
+        var reader = new ObjectReader(stream, leaveOpen);
+        if (checkValidationBytes)
+            reader.CheckValidationBytes();
 
+        return reader;
+    }
+
+    public void CheckValidationBytes()
+    {
+        var b = this.ReadByte();
         if (b != VersionByte1)
-        {
             throw ExceptionUtilities.UnexpectedValue(b);
-        }
 
-        b = stream.ReadByte();
-        if (b == -1)
-        {
-            throw new EndOfStreamException();
-        }
-
+        b = this.ReadByte();
         if (b != VersionByte2)
-        {
             throw ExceptionUtilities.UnexpectedValue(b);
-        }
-
-        return new ObjectReader(stream, leaveOpen);
     }
 
     public void Dispose()
