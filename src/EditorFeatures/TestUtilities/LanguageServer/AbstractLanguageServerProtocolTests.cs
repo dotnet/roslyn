@@ -715,6 +715,14 @@ namespace Roslyn.Test.Utilities
 
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
 
+            public async Task AssertServerShuttingDownAsync()
+            {
+                var queueAccessor = GetQueueAccessor()!.Value;
+                await queueAccessor.WaitForProcessingToStopAsync().ConfigureAwait(false);
+                Assert.True(GetServerAccessor().HasShutdownStarted());
+                Assert.True(queueAccessor.IsComplete());
+            }
+
             internal async Task WaitForDiagnosticsAsync()
             {
                 var listenerProvider = TestWorkspace.GetService<IAsynchronousOperationListenerProvider>();
