@@ -55,7 +55,7 @@ using ChecksumChannelWriter = ChannelWriter<(Checksum checksum, object asset)>;
 /// Following this is the kind of the asset.  This kind is used by the reading code to know which
 /// asset-deserialization routine to invoke. Finally, the asset data itself is written out.
 /// </summary>
-internal static class RemoteHostAssetSerialization
+internal readonly struct RemoteHostAssetWriter : IDisposable
 {
     /// <summary>
     /// A sentinel byte we place between messages.  Ensures we can detect when something has gone wrong as soon as
@@ -77,13 +77,39 @@ internal static class RemoteHostAssetSerialization
         SingleWriter = true,
     };
 
-    public static async ValueTask WriteDataAsync(
-        PipeWriter pipeWriter,
-        SolutionAssetStorage.Scope scope,
-        AssetPath assetPath,
-        ReadOnlyMemory<Checksum> checksums,
-        ISerializerService serializer,
-        CancellationToken cancellationToken)
+    private readonly PipeWriter _pipeWriter;
+    private readonly SolutionAssetStorage.Scope _scope;
+    private readonly AssetPath _assetPath;
+    private readonly ReadOnlyMemory<Checksum> _checksums;
+    private readonly ISerializerService _serializer;
+
+    private readonly PooledObject<SerializableBytes.ReadWriteStream> _pooledStream;
+    private readonly SerializableBytes.ReadWriteStream TempStream => _pooledStream.Object;
+    private readonly ObjectWriter _writer;
+
+    public RemoteHostAssetWriter(PipeWriter pipeWriter, SolutionAssetStorage.Scope scope, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService serializer)
+    {
+        _pipeWriter = pipeWriter;
+        _scope = scope;
+        _assetPath = assetPath;
+        _checksums = checksums;
+        _serializer = serializer;
+
+        // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
+        // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a
+        // single object writer across all assets means we get the benefit of string deduplication across all assets
+        // we write out.
+        _pooledStream = s_streamPool.GetPooledObject();
+        _writer = new ObjectWriter(_pooledStream.Object, leaveOpen: true, writeValidationBytes: false);
+    }
+
+    public void Dispose()
+    {
+        _writer.Dispose();
+        _pooledStream.Dispose();
+    }
+
+    public async ValueTask WriteDataAsync(CancellationToken cancellationToken)
     {
         // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
         // find items, add them to the channel synchronously, and immediately continue searching for more items.
@@ -102,104 +128,79 @@ internal static class RemoteHostAssetSerialization
 #endif
 
         // Spin up a task to go search for all the requested checksums, adding results to the channel.
-        var findAssetsTask = FindAssetsFromScopeAndWriteToChannelAsync(
-            assetPath, scope, checksums, channel.Writer, cancellationToken);
+        var findAssetsTask = FindAssetsFromScopeAndWriteToChannelAsync(channel.Writer, cancellationToken);
 
         // Spin up a task to read from the channel and write out the assets to the pipe-writer.
-        var writeAssetsTask = ReadAssetsFromChannelAndWriteToPipeAsync(
-            pipeWriter, scope, checksums, serializer, channel.Reader, cancellationToken);
+        var writeAssetsTask = ReadAssetsFromChannelAndWriteToPipeAsync(channel.Reader, cancellationToken);
 
         // Wait for both the searching and writing tasks to finish.
         await Task.WhenAll(findAssetsTask, writeAssetsTask).ConfigureAwait(false);
+    }
 
-        return;
-
-        static async Task FindAssetsFromScopeAndWriteToChannelAsync(
-            AssetPath assetPath,
-            SolutionAssetStorage.Scope scope,
-            ReadOnlyMemory<Checksum> checksums,
-            ChecksumChannelWriter channelWriter,
-            CancellationToken cancellationToken)
-        {
-            Exception? exception = null;
-            try
-            {
-                await Task.Yield();
-
-                await scope.FindAssetsAsync(
-                    assetPath,
-                    checksums,
-                    // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
-                    // channel is only ever completed by us (after FindAssetsAsync completed) or if cancellation
-                    // happens.  In that latter case, it's ok for writing to the channel to do nothing as we no longer
-                    // need to write out those assets to the pipe.
-                    static (checksum, asset, channelWriter) => channelWriter.TryWrite((checksum, asset)),
-                    channelWriter,
-                    cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-                // writing task knows it's done.
-                channelWriter.TryComplete(exception);
-            }
-        }
-
-        static async Task ReadAssetsFromChannelAndWriteToPipeAsync(
-            PipeWriter pipeWriter,
-            SolutionAssetStorage.Scope scope,
-            ReadOnlyMemory<Checksum> checksums,
-            ISerializerService serializer,
-            ChecksumChannelReader channelReader,
-            CancellationToken cancellationToken)
+    private async Task FindAssetsFromScopeAndWriteToChannelAsync(
+        ChecksumChannelWriter channelWriter, CancellationToken cancellationToken)
+    {
+        Exception? exception = null;
+        try
         {
             await Task.Yield();
 
-            // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
-            // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a
-            // single object writer across all assets means we get the benefit of string deduplication across all assets
-            // we write out.
-            using var pooledStream = s_streamPool.GetPooledObject();
-            using var writer = new ObjectWriter(pooledStream.Object, leaveOpen: true, writeValidationBytes: false);
-
-            // This information is not actually needed on the receiving end.  However, we still send it so that the
-            // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
-            // breaks have occurred.
-            scope.SolutionChecksum.WriteTo(pipeWriter);
-            await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-            // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
-            var foundChecksumCount = 0;
-
-            while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                while (channelReader.TryRead(out var item))
-                {
-                    await WriteSingleAssetToPipeAsync(
-                        pipeWriter, pooledStream.Object, writer, item.checksum, item.asset, scope, serializer, cancellationToken).ConfigureAwait(false);
-                    foundChecksumCount++;
-                }
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // If we weren't canceled, we better have found and written out all the expected assets.
-            Contract.ThrowIfTrue(foundChecksumCount != checksums.Length);
+            await _scope.FindAssetsAsync(
+                _assetPath,
+                _checksums,
+                // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
+                // channel is only ever completed by us (after FindAssetsAsync completed) or if cancellation
+                // happens.  In that latter case, it's ok for writing to the channel to do nothing as we no longer
+                // need to write out those assets to the pipe.
+                static (checksum, asset, channelWriter) => channelWriter.TryWrite((checksum, asset)),
+                channelWriter,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when ((exception = ex) == null)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+        finally
+        {
+            // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
+            // writing task knows it's done.
+            channelWriter.TryComplete(exception);
         }
     }
 
-    private static async ValueTask WriteSingleAssetToPipeAsync(
-        PipeWriter pipeWriter,
-        SerializableBytes.ReadWriteStream tempStream,
-        ObjectWriter writer,
+    private async Task ReadAssetsFromChannelAndWriteToPipeAsync(
+        ChecksumChannelReader channelReader, CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+
+        // This information is not actually needed on the receiving end.  However, we still send it so that the
+        // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
+        // breaks have occurred.
+        _scope.SolutionChecksum.WriteTo(_pipeWriter);
+        await _pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+        // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
+        var foundChecksumCount = 0;
+
+        while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            while (channelReader.TryRead(out var item))
+            {
+                await WriteSingleAssetToPipeAsync(
+                    item.checksum, item.asset, cancellationToken).ConfigureAwait(false);
+                foundChecksumCount++;
+            }
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // If we weren't canceled, we better have found and written out all the expected assets.
+        Contract.ThrowIfTrue(foundChecksumCount != _checksums.Length);
+    }
+
+    private async ValueTask WriteSingleAssetToPipeAsync(
         Checksum checksum,
         object asset,
-        SolutionAssetStorage.Scope scope,
-        ISerializerService serializer,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(asset);
@@ -211,66 +212,65 @@ internal static class RemoteHostAssetSerialization
         // Write the asset to a temporary buffer so we can calculate its length.  Note: as this is an in-memory
         // temporary buffer, we don't have to worry about synchronous writes on it blocking on the pipe-writer.
         // Instead, we'll handle the pipe-writing ourselves afterwards in a completely async fashion.
-        WriteAssetToTempStream();
+        WriteAssetToTempStream(checksum, asset, cancellationToken);
 
         // Write the length of the asset to the pipe writer so the reader knows how much data to read.
         WriteTempStreamLengthToPipeWriter();
 
         // Ensure we flush out the length so the reading side can immediately read the header to determine how much
         // data to it will need to prebuffer.
-        await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await _pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
         // Now, asynchronously copy the temp buffer over to the writer stream.
-        tempStream.Position = 0;
-        await tempStream.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
+        this.TempStream.Position = 0;
+        await this.TempStream.CopyToAsync(_pipeWriter, cancellationToken).ConfigureAwait(false);
 
         // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the pipe
         // for the reader on the other side to read.  This allows the item-writing to remain entirely synchronous
         // without any blocking on async flushing, while also ensuring that we're not buffering the entire stream of
         // data into the pipe before it gets sent to the other side.
-        await pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await _pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+    }
 
-        return;
+    private void WriteAssetToTempStream(
+        Checksum checksum, object asset, CancellationToken cancellationToken)
+    {
+        // Reset the temp stream to the beginning and clear it out. Don't truncate the stream as we're going to be
+        // writing to it multiple times.  This will allow us to reuse the internal chunks of the buffer, without
+        // having to reallocate them over and over again. Note: this stream internally keeps a list of byte[]s that
+        // it writes to.  Each byte[] is less than the LOH size, so there's no concern about LOH fragmentation here.
+        this.TempStream.Position = 0;
+        this.TempStream.SetLength(0, truncate: false);
 
-        void WriteAssetToTempStream()
-        {
-            // Reset the temp stream to the beginning and clear it out. Don't truncate the stream as we're going to be
-            // writing to it multiple times.  This will allow us to reuse the internal chunks of the buffer, without
-            // having to reallocate them over and over again. Note: this stream internally keeps a list of byte[]s that
-            // it writes to.  Each byte[] is less than the LOH size, so there's no concern about LOH fragmentation here.
-            tempStream.Position = 0;
-            tempStream.SetLength(0, truncate: false);
+        // Write out the object writer validation bytes.  This will help us detect issues when reading if we've
+        // screwed something up.
+        _writer.WriteValidationBytes();
 
-            // Write out the object writer validation bytes.  This will help us detect issues when reading if we've
-            // screwed something up.
-            writer.WriteValidationBytes();
+        // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
+        checksum.WriteTo(_writer);
 
-            // Write the checksum for the asset we're writing out, so the other side knows what asset this is.
-            checksum.WriteTo(writer);
+        // Write out the kind so the receiving end knows how to deserialize this asset.
+        _writer.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
 
-            // Write out the kind so the receiving end knows how to deserialize this asset.
-            writer.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
+        // Now serialize out the asset itself.
+        _serializer.Serialize(asset, _writer, _scope.ReplicationContext, cancellationToken);
+    }
 
-            // Now serialize out the asset itself.
-            serializer.Serialize(asset, writer, scope.ReplicationContext, cancellationToken);
-        }
+    private void WriteSentinelByteToPipeWriter()
+    {
+        var span = _pipeWriter.GetSpan(1);
+        span[0] = MessageSentinelByte;
+        _pipeWriter.Advance(1);
+    }
 
-        void WriteSentinelByteToPipeWriter()
-        {
-            var span = pipeWriter.GetSpan(1);
-            span[0] = MessageSentinelByte;
-            pipeWriter.Advance(1);
-        }
+    private void WriteTempStreamLengthToPipeWriter()
+    {
+        var length = this.TempStream.Length;
+        Contract.ThrowIfTrue(length > int.MaxValue);
 
-        void WriteTempStreamLengthToPipeWriter()
-        {
-            var length = tempStream.Length;
-            Contract.ThrowIfTrue(length > int.MaxValue);
-
-            var span = pipeWriter.GetSpan(sizeof(int));
-            BinaryPrimitives.WriteInt32LittleEndian(span, (int)length);
-            pipeWriter.Advance(sizeof(int));
-        }
+        var span = _pipeWriter.GetSpan(sizeof(int));
+        BinaryPrimitives.WriteInt32LittleEndian(span, (int)length);
+        _pipeWriter.Advance(sizeof(int));
     }
 
     public static ValueTask ReadDataAsync<T, TArg>(
