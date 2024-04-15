@@ -7872,6 +7872,37 @@ public struct Vec4
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Nested()
+        {
+            var source = """
+                class C
+                {
+                    S M()
+                    {
+                        S s;
+                        s = default(S) + 100 + 200;
+                        return s;
+                    }
+                }
+
+                ref struct S
+                {
+                    public static S operator+(S y, in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'S.operator +(S, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "default(S) + 100").WithArguments("S.operator +(S, in int)", "x").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.operator +(S, in int)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "default(S) + 100 + 200").WithArguments("S.operator +(S, in int)", "y").WithLocation(6, 13),
+                // (6,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 26));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedBinaryOperator_RefStruct_Scoped_Left()
         {
             var source = """
