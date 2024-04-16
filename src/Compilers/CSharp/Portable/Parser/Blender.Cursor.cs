@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// <summary>
             /// Returns the cursor of the next non-empty (or EOF) sibling in our parent if we find it, or `default` if we don't.
             /// </summary>
-            public Cursor TryFindNextNonEmptyOrEOFSibling()
+            public Cursor TryFindNextNonZeroWidthOrIsEndOfFileSibling()
             {
                 if (this.CurrentNodeOrToken.Parent != null)
                 {
