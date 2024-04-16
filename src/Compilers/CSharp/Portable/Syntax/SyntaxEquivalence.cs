@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool AreEquivalentRecursive(GreenNode? before, GreenNode? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
+            // Use an explicit stack so we can walk down deep trees without blowing the real stack.
             var stack = ArrayBuilder<(GreenNode? before, GreenNode? after)>.GetInstance();
             stack.Push((before, after));
 
