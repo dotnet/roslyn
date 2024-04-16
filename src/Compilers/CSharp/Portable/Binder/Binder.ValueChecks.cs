@@ -1453,9 +1453,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
-            }
 
-            return true;
+                return true;
+            }
         }
 
         private bool CheckIsValidReceiverForVariable(SyntaxNode node, BoundExpression receiver, BindValueKind kind, BindingDiagnosticBag diagnostics)
