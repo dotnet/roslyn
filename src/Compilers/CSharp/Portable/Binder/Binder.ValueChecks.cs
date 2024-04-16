@@ -4055,6 +4055,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BinaryOperator:
                     var binary = (BoundBinaryOperator)expr;
 
+#if DEBUG
+                    // Nested binary operators on the left-hand side are not visited by BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator.
+                    if (binary.Left is BoundBinaryOperator)
+                    {
+                        _visited.Add(binary.Left);
+                    }
+#endif
+
                     if (binary.Method is { } binaryMethod)
                     {
                         return GetInvocationEscapeScope(
@@ -4733,6 +4741,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return true;
                     }
+
+#if DEBUG
+                    // Nested binary operators on the left-hand side are not visited by BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator.
+                    if (binary.Left is BoundBinaryOperator)
+                    {
+                        _visited.Add(binary.Left);
+                    }
+#endif
 
                     if (binary.Method is { } binaryMethod)
                     {
