@@ -66,7 +66,7 @@ internal static partial class INamespaceSymbolExtensions
             cancellationToken.ThrowIfCancellationRequested();
             if (current is INamespaceSymbol childNamespace)
             {
-                stack.AddRange(childNamespace.GetMembers().AsEnumerable());
+                stack.AddRange(childNamespace.GetMembers());
                 yield return childNamespace;
             }
             else
