@@ -7,6 +7,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -684,7 +685,14 @@ Block[B7] - Exit
     Predecessors: [B5] [B6]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var info = model.GetTypeInfo(expr);
+            Assert.Equal("System.Int32*", info.Type.ToTestDisplayString());
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
