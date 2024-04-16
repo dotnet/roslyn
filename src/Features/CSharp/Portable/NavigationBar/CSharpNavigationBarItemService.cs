@@ -124,7 +124,7 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
         using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetTypesInFile_CSharp, cancellationToken))
         {
             var types = new HashSet<INamedTypeSymbol>();
-            var nodesToVisit = new Stack<SyntaxNode>();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToVisit);
 
             nodesToVisit.Push(semanticModel.SyntaxTree.GetRoot(cancellationToken));
 
