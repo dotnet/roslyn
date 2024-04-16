@@ -17446,5 +17446,190 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(13, 19)
                 );
         }
+
+        [Fact]
+        public void InlineArrayElement()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+ref struct S1<T>
+    where T : allows ref struct
+{
+    T _f;
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+ref struct S2
+{
+    S _f;
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
+                // (12,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     S _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7)
+                );
+        }
+
+        [Fact]
+        public void AsyncParameter()
+        {
+            var src = @"
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously.
+
+public class Helper
+{
+    static async void Test1<T>(T x)
+        where T : allows ref struct
+    {
+    }
+
+    static async void Test2(S y)
+    {
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (6,34): error CS4012: Parameters or locals of type 'T' cannot be declared in async methods or async lambda expressions.
+                //     static async void Test1<T>(T x)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "x").WithArguments("T").WithLocation(6, 34),
+                // (11,31): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or async lambda expressions.
+                //     static async void Test2(S y)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "y").WithArguments("S").WithLocation(11, 31)
+                );
+        }
+
+        [Fact]
+        public void MissingScopedInOverride_01()
+        {
+            var src = @"
+abstract class Base
+{
+    protected abstract T Test1<T>(scoped T x)
+        where T : allows ref struct;
+
+    protected abstract S Test2(scoped S y);
+}
+
+abstract class Derived1 : Base
+{
+    protected abstract override T Test1<T>(T x);
+
+    protected abstract override S Test2(S y);
+}
+
+abstract class Derived2 : Base
+{
+    protected abstract override T Test1<T>(scoped T x);
+
+    protected abstract override S Test2(scoped S y);
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (12,35): error CS8987: The 'scoped' modifier of parameter 'x' doesn't match overridden or implemented member.
+                //     protected abstract override T Test1<T>(T x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("x").WithLocation(12, 35),
+                // (14,35): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     protected abstract override S Test2(S y);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("y").WithLocation(14, 35)
+                );
+        }
+
+        [Fact]
+        public void MissingScopedInOverride_02()
+        {
+            var src = @"
+abstract class Base
+{
+    protected abstract void Test1<T>(scoped T x, out T z)
+        where T : allows ref struct;
+
+    protected abstract void Test2(scoped S y, out S z);
+}
+
+abstract class Derived1 : Base
+{
+    protected abstract override void Test1<T>(T x, out T z);
+
+    protected abstract override void Test2(S y, out S z);
+}
+
+abstract class Derived2 : Base
+{
+    protected abstract override void Test1<T>(scoped T x, out T z);
+
+    protected abstract override void Test2(scoped S y, out S z);
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (12,38): error CS8987: The 'scoped' modifier of parameter 'x' doesn't match overridden or implemented member.
+                //     protected abstract override void Test1<T>(T x, out T z);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("x").WithLocation(12, 38),
+                // (14,38): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     protected abstract override void Test2(S y, out S z);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("y").WithLocation(14, 38)
+                );
+        }
+
+        [Fact(Skip = "'byreflike' in IL is not supported yet")] // PROTOTYPE(RefStructInterfaces): Enable once we get support for 'byreflike' in IL.
+        public void RefFieldTypeAllowsRefLike()
+        {
+            // ref struct R2<T> where T : allows ref struct
+            // {
+            //     public ref T F;
+            // }
+            var sourceA =
+@"
+.class public sealed R2`1<byreflike T> extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public !T& F
+}
+";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void F<T >(ref T r1) where T : allows ref struct
+    {
+        var r2 = new R2();
+        r2.F = ref r1;
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS0570: 'R2.F' is not supported by the language
+                //         r2.F = ref r1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2.F").WithLocation(6, 12)
+                );
+        }
     }
 }

@@ -529,10 +529,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike(this TypeSymbol type)
         {
-            return type.IsErrorType() || type.IsRefLikeTypeOrAllowByRefLike();
+            return type.IsErrorType() || type.IsRefLikeTypeOrAllowsByRefLike();
         }
 
-        internal static bool IsRefLikeTypeOrAllowByRefLike(this TypeSymbol type)
+        internal static bool IsRefLikeTypeOrAllowsByRefLike(this TypeSymbol type)
         {
             return type is { IsRefLikeType: true } or TypeParameterSymbol { AllowByRefLike: true };
         }
@@ -1391,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
             }
 
-            return ignoreSpanLikeTypes ? false : type.IsRefLikeTypeOrAllowByRefLike();
+            return ignoreSpanLikeTypes ? false : type.IsRefLikeTypeOrAllowsByRefLike();
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)

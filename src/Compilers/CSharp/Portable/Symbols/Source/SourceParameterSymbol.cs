@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return ScopedKind.ScopedRef;
                 }
-                else if (HasParamsModifier && Type.IsRefLikeTypeOrAllowByRefLike())
+                else if (HasParamsModifier && Type.IsRefLikeTypeOrAllowsByRefLike())
                 {
                     return ScopedKind.ScopedValue;
                 }

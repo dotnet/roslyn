@@ -934,7 +934,7 @@ hasRelatedInterfaces:
                 return false;
             }
 
-            if (typeArgument.Type.IsRefLikeTypeOrAllowByRefLike())
+            if (typeArgument.Type.IsRefLikeTypeOrAllowsByRefLike())
             {
                 if (typeParameter.AllowByRefLike)
                 {
