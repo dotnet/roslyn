@@ -127,9 +127,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 throw new NotImplementedException($"We implement {nameof(GetSuggestedActionCategoriesAsync)}. This should not be called.");
             }
 
-            private void OnTextViewClosed(object sender, EventArgs e)
-                => Dispose();
-
             private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
             {
                 _threadingContext.ThrowIfNotOnUIThread();
@@ -151,6 +148,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return translatedSpan.Span.ToTextSpan();
             }
+
+            private void OnTextViewClosed(object sender, EventArgs e)
+                => Dispose();
 
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
