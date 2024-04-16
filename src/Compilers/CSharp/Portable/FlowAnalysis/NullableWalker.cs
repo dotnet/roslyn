@@ -5895,6 +5895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (resultType is null)
             {
+                Debug.Assert(!wasTargetTyped);
                 if (!wasTargetTyped)
                 {
                     // This can happen when we're inferring the return type of a lambda or visiting a node without diagnostics like
