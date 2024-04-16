@@ -1278,7 +1278,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike:
                 case ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterInMember:
                 case ErrorCode.ERR_AnonDelegateCantUseStructPrimaryConstructorParameterCaptured:
-                case ErrorCode.ERR_IllegalInnerUnsafe:
                 case ErrorCode.ERR_BadYieldInCatch:
                 case ErrorCode.ERR_BadDelegateLeave:
                 case ErrorCode.WRN_IllegalPragma:
@@ -2433,6 +2432,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ParamsCollectionMissingConstructor:
                 case ErrorCode.ERR_NoModifiersOnUsing:
                 case ErrorCode.WRN_BadYieldInLock:
+                case ErrorCode.ERR_BadYieldInUnsafe:
+                case ErrorCode.ERR_AddressOfInIterator:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

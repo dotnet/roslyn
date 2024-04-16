@@ -32,6 +32,11 @@
         <target state="translated">“{0}”: 抽象事件不可使用事件访问器语法</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AddressOfInIterator">
+        <source>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</source>
+        <target state="new">The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
         <source>'&amp;' on method groups cannot be used in expression trees</source>
         <target state="translated">不可在表达式树中使用方法组上的 "&amp;"</target>
@@ -300,6 +305,11 @@
       <trans-unit id="ERR_BadUsingStaticType">
         <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
         <target state="translated">“{0}”类型对于 "using static" 无效。只能使用类、结构、接口、枚举、委托或命名空间。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadYieldInUnsafe">
+        <source>Cannot use 'yield return' in an 'unsafe' block</source>
+        <target state="new">Cannot use 'yield return' in an 'unsafe' block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -9159,11 +9169,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
         <target state="translated">不能在匿名方法、lambda 表达式、查询表达式或本地函数中使用 ref、out 或 in 参数“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IllegalInnerUnsafe">
-        <source>Unsafe code may not appear in iterators</source>
-        <target state="translated">迭代器中不能出现不安全的代码</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInCatch">
