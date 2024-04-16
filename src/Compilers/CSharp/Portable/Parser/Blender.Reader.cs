@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private static Cursor MoveToNextSibling(Cursor cursor)
             {
+                // Iteratively walk over the tree so that we don't stack overflow trying to recurse into anything.
                 while (cursor.CurrentNodeOrToken.UnderlyingNode != null)
                 {
                     var nextSibling = cursor.TryFindNextNonZeroWidthOrIsEndOfFileSibling();
