@@ -49,9 +49,9 @@ internal static class ISyntaxFactsExtensions
     private static bool IsOnSingleLine(
         ISyntaxFacts syntaxFacts, Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)> stack)
     {
-        while (stack.Count > 0)
+        while (stack.TryPop(out var tuple))
         {
-            var (currentNodeOrToken, currentLeading, currentTrailing) = stack.Pop();
+            var (currentNodeOrToken, currentLeading, currentTrailing) = tuple;
             if (currentNodeOrToken.IsToken)
             {
                 // If this token isn't on a single line, then the original node definitely
