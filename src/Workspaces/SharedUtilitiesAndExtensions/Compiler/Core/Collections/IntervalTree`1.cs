@@ -321,7 +321,7 @@ internal partial class IntervalTree<T> : IEnumerable<T>
             yield break;
         }
 
-        var candidates = new Stack<(Node? node, bool firstTime)>();
+        using var _ = ArrayBuilder<(Node? node, bool firstTime)>.GetInstance(out var candidates);
         candidates.Push((root, firstTime: true));
         while (candidates.TryPop(out var tuple))
         {
