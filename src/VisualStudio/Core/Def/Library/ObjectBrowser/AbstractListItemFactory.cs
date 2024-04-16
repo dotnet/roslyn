@@ -405,13 +405,11 @@ internal abstract class AbstractListItemFactory
     {
         Debug.Assert(assemblySymbol != null);
 
-        var stack = new Stack<INamespaceSymbol>();
+        using var _ = ArrayBuilder<INamespaceSymbol>.GetInstance(out var stack);
         stack.Push(assemblySymbol.GlobalNamespace);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var namespaceSymbol))
         {
-            var namespaceSymbol = stack.Pop();
-
             // Only add non-global namespaces that contain accessible type symbols.
             if (!namespaceSymbol.IsGlobalNamespace &&
                 ContainsAccessibleTypeMember(namespaceSymbol, assemblySymbol))
@@ -668,16 +666,14 @@ internal abstract class AbstractListItemFactory
     {
         var typeMembers = GetAccessibleTypeMembers(namespaceSymbol, compilation.Assembly);
         var builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>(typeMembers.Length);
-        var stack = new Stack<INamedTypeSymbol>();
+        using var _ = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var stack);
 
         foreach (var typeMember in typeMembers)
         {
             stack.Push(typeMember);
 
-            while (stack.Count > 0)
+            while (stack.TryPop(out var typeSymbol))
             {
-                var typeSymbol = stack.Pop();
-
                 builder.Add(typeSymbol);
 
                 foreach (var nestedTypeMember in GetAccessibleTypeMembers(typeSymbol, compilation.Assembly))
@@ -751,12 +747,11 @@ internal abstract class AbstractListItemFactory
         Debug.Assert(assemblySymbol != null);
         Debug.Assert(compilation != null);
 
-        var stack = new Stack<INamespaceSymbol>();
+        using var _ = ArrayBuilder<INamespaceSymbol>.GetInstance(out var stack);
         stack.Push(assemblySymbol.GlobalNamespace);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var namespaceSymbol))
         {
-            var namespaceSymbol = stack.Pop();
             var typeListItems = GetTypeListItems(namespaceSymbol, compilation, projectId, searchString, fullyQualified: true);
 
             foreach (var typeListItem in typeListItems)
@@ -784,12 +779,11 @@ internal abstract class AbstractListItemFactory
         Debug.Assert(assemblySymbol != null);
         Debug.Assert(compilation != null);
 
-        var namespaceStack = new Stack<INamespaceSymbol>();
+        using var _ = ArrayBuilder<INamespaceSymbol>.GetInstance(out var namespaceStack);
         namespaceStack.Push(assemblySymbol.GlobalNamespace);
 
-        while (namespaceStack.Count > 0)
+        while (namespaceStack.TryPop(out var namespaceSymbol))
         {
-            var namespaceSymbol = namespaceStack.Pop();
             var types = GetAccessibleTypes(namespaceSymbol, compilation);
 
             foreach (var type in types)
