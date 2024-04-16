@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(
+                ReferenceCountedDisposable<State> state,
                 TextDocument document,
                 TextSpan? selection,
                 CodeActionOptionsProvider fallbackOptions,
@@ -200,10 +201,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // Ensure we yield the thread that called into us, allowing it to continue onwards.
                 await Task.Yield().ConfigureAwait(false);
-
-                using var state = _state.TryAddReference();
-                if (state is null)
-                    return null;
 
                 if (!selection.HasValue)
                 {
@@ -296,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // If we have a selection, kick off the work to get refactorings concurrently with the above work to get errors.
                 var refactoringTask = selection != null
-                    ? TryGetRefactoringSuggestedActionCategoryAsync(document, selection, fallbackOptions, linkedToken)
+                    ? TryGetRefactoringSuggestedActionCategoryAsync(state, document, selection, fallbackOptions, linkedToken)
                     : SpecializedTasks.Null<string>();
 
                 // If we happen to get the result of the error task before the refactoring task,
