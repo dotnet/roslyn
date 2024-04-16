@@ -7454,11 +7454,16 @@ partial struct CustomHandler
             verify: Verification.Fails,
             expectedOutput: "1");
         verifier.VerifyDiagnostics();
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void Interceptors.M1(this ref S s)", method.ToTestDisplayString());
     }
 
     [Theory]
     [CombinatorialData]
-    public void PointerAccess_02([CombinatorialValues("p->M();", "(*p).M();")] string invocation, [CombinatorialValues("", "ref")] string refKind)
+    public void PointerAccess_02([CombinatorialValues("p->M();", "(*p).M();")] string invocation, [CombinatorialValues("", "ref ")] string refKind)
     {
         // Original method is an extension
         var source = CSharpTestSource.Parse($$"""
@@ -7474,7 +7479,7 @@ partial struct CustomHandler
 
             static class Ext
             {
-                public static void M(this {{refKind}} S s) => throw null!;
+                public static void M(this {{refKind}}S s) => throw null!;
             }
             """, "Program.cs", RegularWithInterceptors);
 
@@ -7492,7 +7497,7 @@ partial struct CustomHandler
             static class Interceptors
             {
                 {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
-                public static void M1(this {{refKind}} S s) => Console.Write(1);
+                public static void M1(this {{refKind}}S s) => Console.Write(1);
             }
             """, "Interceptors.cs", RegularWithInterceptors);
 
@@ -7502,5 +7507,10 @@ partial struct CustomHandler
             verify: Verification.Fails,
             expectedOutput: "1");
         verifier.VerifyDiagnostics();
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal($"void Interceptors.M1(this {refKind}S s)", method.ToTestDisplayString());
     }
 }
