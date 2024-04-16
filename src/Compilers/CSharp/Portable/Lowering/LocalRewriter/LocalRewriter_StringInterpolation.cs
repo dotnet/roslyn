@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// local temp.
         /// </summary>
         /// <remarks>Caller is responsible for freeing the ArrayBuilder</remarks>
-        private InterpolationHandlerResult RewriteToInterpolatedStringHandlerPattern(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax)
+        private InterpolationHandlerResult RewriteToInterpolatedStringHandlerPattern(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, int increasedLiteralLength = 0, int filledHolesCount = 0)
         {
             Debug.Assert(parts.All(static p => p is BoundCall or BoundDynamicInvocation));
             var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, syntax);
@@ -83,6 +83,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool appendShouldProceed);
             var construction = (BoundObjectCreationExpression)data.Construction;
+            if ((increasedLiteralLength, filledHolesCount) != (0, 0))
+            {
+                // Adjusts the arguments of the construction (length of literal parts, number of holes),
+                // and swaps the constructor expression for a new one with the adjusted arguments.
+                var argumentBuilder = ArrayBuilder<BoundExpression>.GetInstance(construction.Arguments.Length);
+                Debug.Assert(construction.Arguments is [{ ConstantValueOpt.IsIntegral: true }, { ConstantValueOpt.IsIntegral: true }, ..]);
+                argumentBuilder.Add(
+                    increasedLiteralLength != 0
+                        ? _factory.Literal(construction.Arguments[0].ConstantValueOpt!.Int32Value + increasedLiteralLength)
+                        : construction.Arguments[0]
+                );
+                Debug.Assert(construction.Arguments[1].ConstantValueOpt!.Int32Value >= filledHolesCount);
+                argumentBuilder.Add(
+                    filledHolesCount != 0
+                        ? _factory.Literal(construction.Arguments[1].ConstantValueOpt!.Int32Value - filledHolesCount)
+                        : construction.Arguments[1]
+                );
+                argumentBuilder.AddRange(construction.Arguments[2..]);
+                construction = _factory.New(construction.Constructor, argumentBuilder.ToImmutableAndFree());
+            }
 
             BoundLocal? appendShouldProceedLocal = null;
             if (data.HasTrailingHandlerValidityParameter)
@@ -435,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression LowerPartsToString(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, TypeSymbol type, bool canHideOptimization = false)
         {
-            var optimizedParts = canHideOptimization ? OptimizeAppendFormattedCalls(parts) : parts;
+            var (optimizedParts, increasedLiteralLength, filledHolesCount) = canHideOptimization ? OptimizeAppendFormattedCalls(parts) : (parts, 0, 0);
             if (canHideOptimization && TryConvertPartsFromHandlerToConcat(optimizedParts) is { } partsForConcat)
             {
                 var (concatResult, requiresVisitAndConversion) = LowerPartsToConcatString(partsForConcat, type);
@@ -448,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             // Optimize calls if possible.
             // If we can lower to the builder pattern, do so.
-            InterpolationHandlerResult result = RewriteToInterpolatedStringHandlerPattern(data, optimizedParts, syntax);
+            InterpolationHandlerResult result = RewriteToInterpolatedStringHandlerPattern(data, optimizedParts, syntax, increasedLiteralLength, filledHolesCount);
 
             // resultTemp = builderTemp.ToStringAndClear();
             var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: syntax);
@@ -508,12 +528,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return builder.ToImmutableAndFree();
         }
-        private ImmutableArray<BoundExpression> OptimizeAppendFormattedCalls(ImmutableArray<BoundExpression> parts)
+        private (ImmutableArray<BoundExpression> Calls, int IncreasedLiteralLength, int FilledHolesCount) OptimizeAppendFormattedCalls(ImmutableArray<BoundExpression> parts)
         {
             var result = ArrayBuilder<BoundExpression>.GetInstance();
             var currentStringConst = PooledStringBuilder.GetInstance();
             (BoundCall? AppendLiteralCall, BoundLiteral? StringLiteral) reusable = default;
             BoundExpression? lastAppendReceiver = null;
+            int filledHolesCount = 0;
+            int increasedLiteralLength = 0;
 
             BoundExpression createAppendLiteralCallFromBoundLiteral(BoundLiteral literal, BoundExpression receiver) =>
                 _factory.InstanceCall(receiver, BoundInterpolatedString.AppendLiteralMethod, literal);
@@ -574,11 +596,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if (literal.ConstantValueOpt.StringValue is { Length: var length and not 0 } value)
                                     {
                                         currentStringConst.Builder.Append(value);
+                                        increasedLiteralLength += length;
                                     }
                                 }
                                 else
+                                {
                                     currentStringConst.Builder.Append(literal.ConstantValueOpt.CharValue);
+                                    increasedLiteralLength++;
+                                }
                                 lastAppendReceiver = call.ReceiverOpt;
+                                filledHolesCount++;
                             }
                             else
                             {
@@ -622,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             mergeReusableIntoResult();
-            return result.ToImmutableAndFree();
+            return (result.ToImmutableAndFree(), increasedLiteralLength, filledHolesCount);
         }
 
         private readonly struct InterpolationHandlerResult
