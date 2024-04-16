@@ -128,12 +128,11 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
 
             nodesToVisit.Push(semanticModel.SyntaxTree.GetRoot(cancellationToken));
 
-            while (!nodesToVisit.IsEmpty())
+            while (nodesToVisit.TryPop(out var node))
             {
                 if (cancellationToken.IsCancellationRequested)
                     return [];
 
-                var node = nodesToVisit.Pop();
                 var type = GetType(semanticModel, node, cancellationToken);
 
                 if (type != null)
