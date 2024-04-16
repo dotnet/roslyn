@@ -269,7 +269,7 @@ internal static class FaultReporter
             // ignore failures
         }
 
-        return SpecializedCollections.EmptyList<string>();
+        return [];
     }
 
     private static IList<string> CollectServiceHubLogFilePaths()
@@ -291,7 +291,7 @@ internal static class FaultReporter
             // ignore failures
         }
 
-        return SpecializedCollections.EmptyList<string>();
+        return [];
     }
 
     private static List<string> CollectFilePaths(string logDirectoryPath, string logFileExtension, Func<string, bool> shouldExcludeLogFile)

@@ -39,7 +39,7 @@ internal static class RemoteUtilities
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>

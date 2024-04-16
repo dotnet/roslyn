@@ -217,7 +217,7 @@ internal abstract partial class AbstractSeparatedSyntaxListWrapper<TListSyntax, 
             if (last.IsNode)
                 result.Add(Edit.DeleteBetween(last, _listSyntax.GetLastToken()));
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         #endregion
@@ -342,7 +342,7 @@ internal abstract partial class AbstractSeparatedSyntaxListWrapper<TListSyntax, 
                 result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         #endregion
@@ -445,7 +445,7 @@ internal abstract partial class AbstractSeparatedSyntaxListWrapper<TListSyntax, 
                 result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         #endregion

@@ -12,6 +12,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToTuple), Shared]
 internal class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider
     : AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider<
@@ -29,23 +32,23 @@ internal class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider
         => anonymousType.Initializers.Count;
 
     protected override TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
-        => SyntaxFactory.TupleExpression(
-                SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonCreation.OpenBraceToken),
+        => TupleExpression(
+                OpenParenToken.WithTriviaFrom(anonCreation.OpenBraceToken),
                 ConvertInitializers(anonCreation.Initializers),
-                SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(anonCreation.CloseBraceToken))
+                CloseParenToken.WithTriviaFrom(anonCreation.CloseBraceToken))
                         .WithPrependedLeadingTrivia(anonCreation.GetLeadingTrivia());
 
     private static SeparatedSyntaxList<ArgumentSyntax> ConvertInitializers(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
-        => SyntaxFactory.SeparatedList(initializers.Select(ConvertInitializer), initializers.GetSeparators());
+        => SeparatedList(initializers.Select(ConvertInitializer), initializers.GetSeparators());
 
     private static ArgumentSyntax ConvertInitializer(AnonymousObjectMemberDeclaratorSyntax declarator)
-        => SyntaxFactory.Argument(ConvertName(declarator.NameEquals), default, declarator.Expression)
+        => Argument(ConvertName(declarator.NameEquals), default, declarator.Expression)
                         .WithTriviaFrom(declarator);
 
     private static NameColonSyntax? ConvertName(NameEqualsSyntax? nameEquals)
         => nameEquals == null
             ? null
-            : SyntaxFactory.NameColon(
+            : NameColon(
                 nameEquals.Name,
-                SyntaxFactory.Token(SyntaxKind.ColonToken).WithTriviaFrom(nameEquals.EqualsToken));
+                ColonToken.WithTriviaFrom(nameEquals.EqualsToken));
 }

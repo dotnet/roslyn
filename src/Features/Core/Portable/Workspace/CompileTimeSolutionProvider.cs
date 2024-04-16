@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             compileTimeFilePathsByProject.FreeValues();
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 }

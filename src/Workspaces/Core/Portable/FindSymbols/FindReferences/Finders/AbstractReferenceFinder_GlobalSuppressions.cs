@@ -90,7 +90,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             }
         }
 
-        return locations.ToImmutable();
+        return locations.ToImmutableAndClear();
 
         // Local functions
         static bool IsCandidate(

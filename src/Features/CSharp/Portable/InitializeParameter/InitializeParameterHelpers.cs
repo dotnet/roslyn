@@ -12,13 +12,14 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
+
+using static CSharpSyntaxTokens;
 
 internal static class InitializeParameterHelpers
 {
@@ -64,7 +65,7 @@ internal static class InitializeParameterHelpers
 
         if (IsExpressionBody(body))
         {
-            var semicolonToken = TryGetSemicolonToken(functionDeclaration) ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+            var semicolonToken = TryGetSemicolonToken(functionDeclaration) ?? SemicolonToken;
 
             if (!TryConvertExpressionBodyToStatement(body, semicolonToken, !returnsVoid, out var convertedStatement))
             {
@@ -168,7 +169,7 @@ internal static class InitializeParameterHelpers
                 .WithSemicolonToken(default)
                 .AddAccessorListAccessors(SyntaxFactory
                     .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
+                    .WithSemicolonToken(SemicolonToken))
                 .WithTrailingTrivia(propertyDeclaration.SemicolonToken.TrailingTrivia)
                 .WithAdditionalAnnotations(Formatter.Annotation);
             return result;
@@ -189,7 +190,7 @@ internal static class InitializeParameterHelpers
         var result = accessorDeclaration
             .WithExpressionBody(null)
             .WithBody(null)
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            .WithSemicolonToken(SemicolonToken);
 
         return result.WithTrailingTrivia(accessorDeclaration.Body?.GetTrailingTrivia() ?? accessorDeclaration.SemicolonToken.TrailingTrivia);
     }

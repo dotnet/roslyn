@@ -7,7 +7,7 @@
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.9.80-preview</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>17.10.72-preview</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
@@ -22,6 +22,7 @@
     <xunitVersion>2.4.1</xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
     <MicrosoftVisualStudioExtensibilityVersion>17.10.22-preview-1</MicrosoftVisualStudioExtensibilityVersion>
+    <MicrosoftVisualStudioCoreVersion>17.10.72-preview</MicrosoftVisualStudioCoreVersion>
   </PropertyGroup>
 
   <!--
@@ -74,7 +75,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.LiveShare.WebEditors" Version="3.0.8" />
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.8.35898-preview.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.10.961-preview.2" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
@@ -91,22 +92,22 @@
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.4.22" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.10.8-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.10.8-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="17.10.13-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.10.13-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.10.234-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.10.157-preview.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="17.10.13-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="17.10.13-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.10.13-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioCoreVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioCoreVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.10.11-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.3-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.234-preview.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.9.102" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.10.13-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.10.13-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.10.13-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="17.10.13-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.11.3" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioCoreVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioCoreVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioCoreVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioCoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.10.12-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.12-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.56" />

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 document, range, list, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
                 priorityProvider, blockForData, addOperationScope, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
-            return list.ToImmutable();
+            return list.ToImmutableAndClear();
         }
 
         /// <summary>

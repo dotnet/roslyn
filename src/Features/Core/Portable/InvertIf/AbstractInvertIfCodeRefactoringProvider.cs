@@ -419,7 +419,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                 innerStatement = (TStatementSyntax)node;
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private SyntaxNode GetRootWithInvertIfStatement(
@@ -524,8 +524,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                         text,
                         ifNode: ifNode,
                         condition: negatedExpression,
-                        trueStatement: AsEmbeddedStatement(
-                            SpecializedCollections.SingletonEnumerable(newIfBody), original: ifBody));
+                        trueStatement: AsEmbeddedStatement([newIfBody], original: ifBody));
 
                     var statementsBeforeIf = statements.Take(index);
 
@@ -551,8 +550,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                         text,
                         ifNode: ifNode,
                         condition: negatedExpression,
-                        trueStatement: AsEmbeddedStatement(
-                            SpecializedCollections.SingletonEnumerable(newIfBody), ifBody));
+                        trueStatement: AsEmbeddedStatement([newIfBody], ifBody));
 
                     var statementsBeforeIf = statements.Take(index);
 

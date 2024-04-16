@@ -6874,6 +6874,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionExpressionEscape" xml:space="preserve">
     <value>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</value>
   </data>
+  <data name="INF_TooManyBoundLambdas" xml:space="preserve">
+    <value>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
+  </data>
+  <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
+    <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>
@@ -7904,5 +7910,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NoModifiersOnUsing" xml:space="preserve">
     <value>Modifiers cannot be placed on using declarations</value>
+  </data>
+  <data name="ERR_CannotDynamicInvokeOnExpression" xml:space="preserve">
+    <value>Cannot perform a dynamic invocation on an expression with type '{0}'.</value>
+  </data>
+  <data name="ERR_InterceptsLocationDataInvalidFormat" xml:space="preserve">
+    <value>The data argument to InterceptsLocationAttribute is not in the correct format.</value>
+  </data>
+  <data name="ERR_InterceptsLocationUnsupportedVersion" xml:space="preserve">
+    <value>Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</value>
+  </data>
+  <data name="ERR_InterceptsLocationDuplicateFile" xml:space="preserve">
+    <value>Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</value>
+  </data>
+  <data name="ERR_InterceptsLocationFileNotFound" xml:space="preserve">
+    <value>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</value>
+  </data>
+  <data name="ERR_InterceptsLocationDataInvalidPosition" xml:space="preserve">
+    <value>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</value>
   </data>
 </root>

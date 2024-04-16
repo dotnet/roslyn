@@ -72,7 +72,7 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
@@ -133,7 +133,7 @@ internal abstract partial class AbstractInheritanceMarginService
         using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var result);
 
         if (includeGlobalImports && !remapped)
-            result.AddRange(await GetGlobalImportsItemsAsync(document, spanToSearch, frozenPartialSemantics: frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
+            result.AddRange(await GetGlobalImportsItemsAsync(document, spanToSearch, frozenPartialSemantics, cancellationToken).ConfigureAwait(false));
 
         if (!symbolAndLineNumbers.IsEmpty)
         {
@@ -141,11 +141,11 @@ internal abstract partial class AbstractInheritanceMarginService
                 remappedProject,
                 document: remapped ? null : document,
                 symbolAndLineNumbers,
-                frozenPartialSemantics: frozenPartialSemantics,
+                frozenPartialSemantics,
                 cancellationToken).ConfigureAwait(false));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsAsync(
@@ -269,7 +269,7 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return items.ToImmutable();
+        return items.ToImmutableAndClear();
     }
 
     private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
@@ -756,6 +756,6 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

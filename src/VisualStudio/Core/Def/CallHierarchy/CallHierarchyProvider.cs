@@ -144,7 +144,7 @@ internal partial class CallHierarchyProvider
 
         if (symbol.Kind == SymbolKind.Field)
         {
-            return SpecializedCollections.SingletonEnumerable(new FieldReferenceFinder(symbol, project.Id, AsyncListener, this));
+            return [new FieldReferenceFinder(symbol, project.Id, AsyncListener, this)];
         }
 
         return null;

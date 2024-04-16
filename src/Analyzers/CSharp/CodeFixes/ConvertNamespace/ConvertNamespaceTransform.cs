@@ -18,6 +18,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal static class ConvertNamespaceTransform
 {
     public static Task<Document> ConvertAsync(Document document, BaseNamespaceDeclarationSyntax baseNamespace, CSharpSyntaxFormattingOptions options, CancellationToken cancellationToken)
@@ -271,7 +274,7 @@ internal static class ConvertNamespaceTransform
         if (triviaBeforeSplit.Length > 0)
         {
             if (needsAdditionalLineEnding)
-                triviaBeforeSplit = triviaBeforeSplit.Append(SyntaxFactory.EndOfLine(lineEnding));
+                triviaBeforeSplit = triviaBeforeSplit.Append(EndOfLine(lineEnding));
 
             converted = converted.WithCloseBraceToken(converted.CloseBraceToken.WithPrependedLeadingTrivia(triviaBeforeSplit));
         }
@@ -320,7 +323,7 @@ internal static class ConvertNamespaceTransform
     private static FileScopedNamespaceDeclarationSyntax ConvertNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
     {
         // If the open-brace token has any special trivia, then move them to after the semicolon.
-        var semiColon = SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+        var semiColon = SemicolonToken
             .WithoutTrivia()
             .WithTrailingTrivia(namespaceDeclaration.Name.GetTrailingTrivia())
             .WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
@@ -329,7 +332,7 @@ internal static class ConvertNamespaceTransform
             semiColon = semiColon.WithAppendedTrailingTrivia(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
 
         // Move trivia after the original name token to now be after the new semicolon token.
-        var fileScopedNamespace = SyntaxFactory.FileScopedNamespaceDeclaration(
+        var fileScopedNamespace = FileScopedNamespaceDeclaration(
             namespaceDeclaration.AttributeLists,
             namespaceDeclaration.Modifiers,
             namespaceDeclaration.NamespaceKeyword,
@@ -379,16 +382,16 @@ internal static class ConvertNamespaceTransform
     private static NamespaceDeclarationSyntax ConvertFileScopedNamespace(ParsedDocument document, FileScopedNamespaceDeclarationSyntax fileScopedNamespace, string lineEnding, NewLinePlacement newLinePlacement)
     {
         var nameSyntax = fileScopedNamespace.Name.WithAppendedTrailingTrivia(fileScopedNamespace.SemicolonToken.LeadingTrivia)
-            .WithAppendedTrailingTrivia(newLinePlacement.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes) ? SyntaxFactory.EndOfLine(lineEnding) : SyntaxFactory.Space);
-        var openBraceToken = SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithoutLeadingTrivia().WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia);
+            .WithAppendedTrailingTrivia(newLinePlacement.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes) ? EndOfLine(lineEnding) : Space);
+        var openBraceToken = OpenBraceToken.WithoutLeadingTrivia().WithTrailingTrivia(fileScopedNamespace.SemicolonToken.TrailingTrivia);
 
         if (openBraceToken.TrailingTrivia is not [.., SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
         {
-            openBraceToken = openBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.EndOfLine(lineEnding));
+            openBraceToken = openBraceToken.WithAppendedTrailingTrivia(EndOfLine(lineEnding));
         }
 
         FileScopedNamespaceDeclarationSyntax adjustedFileScopedNamespace;
-        var closeBraceToken = SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithoutLeadingTrivia().WithoutTrailingTrivia();
+        var closeBraceToken = CloseBraceToken.WithoutLeadingTrivia().WithoutTrailingTrivia();
 
         // Normally the block scoped namespace will have a newline after the closing brace. The only exception to
         // this occurs when there are no tokens after the closing brace and the document with a file scoped
@@ -397,7 +400,7 @@ internal static class ConvertNamespaceTransform
         if (!fileScopedNamespace.GetLastToken().GetNextTokenOrEndOfFile().IsKind(SyntaxKind.EndOfFileToken)
             || document.Text.Lines.GetLinePosition(document.Text.Length).Character == 0)
         {
-            closeBraceToken = closeBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.EndOfLine(lineEnding));
+            closeBraceToken = closeBraceToken.WithAppendedTrailingTrivia(EndOfLine(lineEnding));
             adjustedFileScopedNamespace = fileScopedNamespace;
         }
         else
@@ -405,7 +408,7 @@ internal static class ConvertNamespaceTransform
             // Make sure the body of the file scoped namespace ends with a trailing new line (so the closing brace
             // of the converted block-body namespace appears on its own line), but don't add a new line after the
             // closing brace.
-            adjustedFileScopedNamespace = fileScopedNamespace.WithAppendedTrailingTrivia(SyntaxFactory.EndOfLine(lineEnding));
+            adjustedFileScopedNamespace = fileScopedNamespace.WithAppendedTrailingTrivia(EndOfLine(lineEnding));
         }
 
         // If the file scoped namespace is indented, also indent the newly added braces to match
@@ -413,12 +416,12 @@ internal static class ConvertNamespaceTransform
         if (outerIndentation.Length > 0)
         {
             if (newLinePlacement.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes))
-                openBraceToken = openBraceToken.WithLeadingTrivia(openBraceToken.LeadingTrivia.Add(SyntaxFactory.Whitespace(outerIndentation)));
+                openBraceToken = openBraceToken.WithLeadingTrivia(openBraceToken.LeadingTrivia.Add(Whitespace(outerIndentation)));
 
-            closeBraceToken = closeBraceToken.WithLeadingTrivia(closeBraceToken.LeadingTrivia.Add(SyntaxFactory.Whitespace(outerIndentation)));
+            closeBraceToken = closeBraceToken.WithLeadingTrivia(closeBraceToken.LeadingTrivia.Add(Whitespace(outerIndentation)));
         }
 
-        var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(
+        var namespaceDeclaration = NamespaceDeclaration(
             adjustedFileScopedNamespace.AttributeLists,
             adjustedFileScopedNamespace.Modifiers,
             adjustedFileScopedNamespace.NamespaceKeyword,

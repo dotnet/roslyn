@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,6 +33,12 @@ internal readonly record struct StateChange(
 /// </summary>
 internal sealed partial class SolutionState
 {
+    /// <summary>
+    /// Note: this insensitive comparer is busted on many systems.  But we do things this way for compat with the logic
+    /// we've had on windows since forever.
+    /// </summary>
+    public static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
+
     // the version of the workspace this solution is from
     public int WorkspaceVersion { get; }
     public string? WorkspaceKind { get; }
@@ -46,7 +53,7 @@ internal sealed partial class SolutionState
     // holds on data calculated based on the AnalyzerReferences list
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
-    private ImmutableDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = ImmutableDictionary<string, ImmutableArray<DocumentId>>.Empty;
+    private ImmutableDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = ImmutableDictionary<string, ImmutableArray<DocumentId>>.Empty.WithComparers(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,
@@ -288,99 +295,127 @@ internal sealed partial class SolutionState
         return result;
     }
 
-    private SolutionState AddProject(ProjectState projectState)
+    /// <summary>
+    /// Create a new solution instance that includes projects with the specified project information.
+    /// </summary>
+    public SolutionState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
     {
-        var projectId = projectState.Id;
+        Contract.ThrowIfTrue(projectInfos.HasDuplicates(static p => p.Id), "Duplicate ProjectId provided");
 
-        // changed project list so, increment version.
-        var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
+        if (projectInfos.Count == 0)
+            return this;
 
-        var newProjectIds = ProjectIds.ToImmutableArray().Add(projectId);
-        var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
+        using var _ = ArrayBuilder<ProjectState>.GetInstance(projectInfos.Count, out var projectStates);
+        foreach (var projectInfo in projectInfos)
+            projectStates.Add(CreateProjectState(projectInfo));
 
-        var newDependencyGraph = _dependencyGraph
-            .WithAdditionalProject(projectId)
-            .WithAdditionalProjectReferences(projectId, projectState.ProjectReferences);
+        return AddProjects(projectStates);
 
-        // It's possible that another project already in newStateMap has a reference to this project that we're adding, since we allow
-        // dangling references like that. If so, we'll need to link those in too.
-        foreach (var newState in newStateMap)
+        ProjectState CreateProjectState(ProjectInfo projectInfo)
         {
-            foreach (var projectReference in newState.Value.ProjectReferences)
-            {
-                if (projectReference.ProjectId == projectId)
-                {
-                    newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(
-                        newState.Key,
-                        SpecializedCollections.SingletonReadOnlyList(projectReference));
+            if (projectInfo == null)
+                throw new ArgumentNullException(nameof(projectInfo));
 
-                    break;
+            var projectId = projectInfo.Id;
+
+            var language = projectInfo.Language;
+            if (language == null)
+                throw new ArgumentNullException(nameof(language));
+
+            var displayName = projectInfo.Name;
+            if (displayName == null)
+                throw new ArgumentNullException(nameof(displayName));
+
+            CheckNotContainsProject(projectId);
+
+            var languageServices = Services.GetLanguageServices(language);
+            if (languageServices == null)
+                throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
+
+            var newProject = new ProjectState(languageServices, projectInfo);
+            return newProject;
+        }
+
+        SolutionState AddProjects(ArrayBuilder<ProjectState> projectStates)
+        {
+            // changed project list so, increment version.
+            var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
+
+            using var _1 = ArrayBuilder<ProjectId>.GetInstance(ProjectIds.Count + projectStates.Count, out var newProjectIdsBuilder);
+            using var _2 = PooledHashSet<ProjectId>.GetInstance(out var addedProjectIds);
+            var newStateMapBuilder = _projectIdToProjectStateMap.ToBuilder();
+
+            newProjectIdsBuilder.AddRange(ProjectIds);
+
+            foreach (var projectState in projectStates)
+            {
+                addedProjectIds.Add(projectState.Id);
+                newProjectIdsBuilder.Add(projectState.Id);
+                newStateMapBuilder.Add(projectState.Id, projectState);
+            }
+
+            var newProjectIds = newProjectIdsBuilder.ToBoxedImmutableArray();
+            var newStateMap = newStateMapBuilder.ToImmutable();
+
+            // TODO: it would be nice to update these graphs without so much forking.
+            var newDependencyGraph = _dependencyGraph;
+            foreach (var projectState in projectStates)
+            {
+                var projectId = projectState.Id;
+                newDependencyGraph = newDependencyGraph
+                    .WithAdditionalProject(projectId)
+                    .WithAdditionalProjectReferences(projectId, projectState.ProjectReferences);
+            }
+
+            // It's possible that another project already in newStateMap has a reference to this project that we're adding,
+            // since we allow dangling references like that. If so, we'll need to link those in too.
+            foreach (var (projectId, newState) in newStateMap)
+            {
+                foreach (var projectReference in newState.ProjectReferences)
+                {
+                    if (addedProjectIds.Contains(projectReference.ProjectId))
+                        newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(projectId, [projectReference]);
                 }
             }
-        }
 
-        return Branch(
-            solutionAttributes: newSolutionAttributes,
-            projectIds: newProjectIds,
-            idToProjectStateMap: newStateMap,
-            dependencyGraph: newDependencyGraph);
+            return Branch(
+                solutionAttributes: newSolutionAttributes,
+                projectIds: newProjectIds,
+                idToProjectStateMap: newStateMap,
+                dependencyGraph: newDependencyGraph);
+        }
     }
 
     /// <summary>
-    /// Create a new solution instance that includes a project with the specified project information.
+    /// Create a new solution instance without the projects specified.
     /// </summary>
-    public SolutionState AddProject(ProjectInfo projectInfo)
+    public SolutionState RemoveProjects(ArrayBuilder<ProjectId> projectIds)
     {
-        if (projectInfo == null)
-        {
-            throw new ArgumentNullException(nameof(projectInfo));
-        }
+        Contract.ThrowIfTrue(projectIds.HasDuplicates(), "Duplicate ProjectId provided");
 
-        var projectId = projectInfo.Id;
+        if (projectIds.Count == 0)
+            return this;
 
-        var language = projectInfo.Language;
-        if (language == null)
-        {
-            throw new ArgumentNullException(nameof(language));
-        }
-
-        var displayName = projectInfo.Name;
-        if (displayName == null)
-        {
-            throw new ArgumentNullException(nameof(displayName));
-        }
-
-        CheckNotContainsProject(projectId);
-
-        var languageServices = Services.GetLanguageServices(language);
-        if (languageServices == null)
-        {
-            throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
-        }
-
-        var newProject = new ProjectState(languageServices, projectInfo);
-
-        return this.AddProject(newProject);
-    }
-
-    /// <summary>
-    /// Create a new solution instance without the project specified.
-    /// </summary>
-    public SolutionState RemoveProject(ProjectId projectId)
-    {
-        if (projectId == null)
-        {
-            throw new ArgumentNullException(nameof(projectId));
-        }
-
-        CheckContainsProject(projectId);
+        foreach (var projectId in projectIds)
+            CheckContainsProject(projectId);
 
         // changed project list so, increment version.
         var newSolutionAttributes = _solutionAttributes.With(version: this.Version.GetNewerVersion());
 
-        var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
-        var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
-        var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsSet);
+        projectIdsSet.AddRange(projectIds);
+
+        var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
+
+        var newStateMapBuilder = _projectIdToProjectStateMap.ToBuilder();
+        foreach (var projectId in projectIds)
+            newStateMapBuilder.Remove(projectId);
+        var newStateMap = newStateMapBuilder.ToImmutable();
+
+        // Note: it would be nice to not cause N forks of the dependency graph here.
+        var newDependencyGraph = _dependencyGraph;
+        foreach (var projectId in projectIds)
+            newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
 
         return this.Branch(
             solutionAttributes: newSolutionAttributes,
@@ -1138,7 +1173,7 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId> projectIds,
         ImmutableDictionary<ProjectId, ProjectState> projectStates)
     {
-        var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
+        var map = projectStates.Values.Select(state => KeyValuePairUtil.Create(
                 state.Id,
                 state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();

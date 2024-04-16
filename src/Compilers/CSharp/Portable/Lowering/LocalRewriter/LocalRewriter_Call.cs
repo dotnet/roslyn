@@ -141,15 +141,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod,
             Syntax.SimpleNameSyntax? nameSyntax)
         {
-            var interceptableLocation = nameSyntax?.Location;
-            if (this._compilation.TryGetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
+            if (this._compilation.TryGetInterceptor(nameSyntax) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
             }
 
             Debug.Assert(nameSyntax != null);
-            Debug.Assert(interceptableLocation != null);
             Debug.Assert(interceptor.IsDefinition);
             Debug.Assert(!interceptor.ContainingType.IsGenericType);
 
@@ -410,11 +408,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Instrumenter.InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt);
                 }
 
-                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
+                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, temps.ToImmutableAndFree());
 
                 if (Instrument)
                 {
                     rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
+                }
+
+                if (node.Type.IsDynamic() && !method.ReturnType.IsDynamic())
+                {
+                    Debug.Assert(node.Type.IsDynamic());
+                    Debug.Assert(!method.ReturnsByRef);
+                    Debug.Assert(rewrittenCall.Type is not null);
+                    Debug.Assert(!rewrittenCall.Type.IsDynamic());
+                    Debug.Assert(!rewrittenCall.Type.IsVoidType());
+                    rewrittenCall = _factory.Convert(node.Type, rewrittenCall);
                 }
 
                 return rewrittenCall;
@@ -429,7 +437,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<RefKind> argumentRefKinds,
             LookupResultKind resultKind,
-            TypeSymbol type,
             ImmutableArray<LocalSymbol> temps)
         {
             BoundExpression rewrittenBoundCall;
@@ -454,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultKind,
                     rewrittenArguments[0],
                     rewrittenArguments[1],
-                    type);
+                    method.ReturnType);
             }
             else if (node == null)
             {
@@ -472,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: resultKind,
-                    type: type);
+                    type: method.ReturnType);
             }
             else
             {
@@ -489,8 +496,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     node.ResultKind,
-                    node.Type);
+                    method.ReturnType);
             }
+
+            Debug.Assert(rewrittenBoundCall.Type is not null);
 
             if (!temps.IsDefaultOrEmpty)
             {
@@ -499,13 +508,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     locals: temps,
                     sideEffects: ImmutableArray<BoundExpression>.Empty,
                     value: rewrittenBoundCall,
-                    type: type);
+                    type: rewrittenBoundCall.Type);
             }
 
             return rewrittenBoundCall;
         }
 
-        private BoundExpression MakeCall(SyntaxNode syntax, BoundExpression? rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments, TypeSymbol type)
+        private BoundExpression MakeCall(SyntaxNode syntax, BoundExpression? rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments)
         {
             return MakeCall(
                 node: null,
@@ -515,7 +524,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenArguments: rewrittenArguments,
                 argumentRefKinds: default(ImmutableArray<RefKind>),
                 resultKind: LookupResultKind.Viable,
-                type: type,
                 temps: default);
         }
 
