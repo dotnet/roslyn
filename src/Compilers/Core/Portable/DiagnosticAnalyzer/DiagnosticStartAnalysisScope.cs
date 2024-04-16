@@ -843,6 +843,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             get { return _additionalFileActions; }
         }
 
+        internal readonly ImmutableArray<SemanticModelStartAnalyzerAction> SemanticModelStartActions
+        {
+            get { return _semanticModelStartActions; }
+        }
+
+        internal readonly ImmutableArray<SemanticModelAnalyzerAction> SemanticModelEndActions
+        {
+            get { return _semanticModelEndActions; }
+        }
+
         internal readonly ImmutableArray<SemanticModelAnalyzerAction> SemanticModelActions
         {
             get { return _semanticModelActions; }
