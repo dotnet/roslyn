@@ -57,16 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             public static Cursor MoveToNextSibling(Cursor cursor)
             {
-                var currentCursor = cursor;
-                while (currentCursor.CurrentNodeOrToken.UnderlyingNode != null)
+                while (cursor.CurrentNodeOrToken.UnderlyingNode != null)
                 {
-                    var nextSibling = moveToNextSiblingWorker(currentCursor);
+                    var nextSibling = moveToNextSiblingWorker(cursor);
 
                     // If we got a valid sibling, return it.
                     if (nextSibling.CurrentNodeOrToken.UnderlyingNode != null)
                         return nextSibling;
 
-                    currentCursor = currentCursor.MoveToParent();
+                    cursor = cursor.MoveToParent();
                 }
 
                 // Couldn't find anything, bail out.
