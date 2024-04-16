@@ -570,14 +570,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 
     /// <summary>
-    /// Context for a compilation unit start action.
-    /// A compilation unit start action can use a <see cref="CompilationUnitStartAnalysisContext"/> to register actions to be executed at any of:
+    /// Context for a compilation unit start action. A compilation unit start action can use a <see
+    /// cref="CompilationUnitStartAnalysisContext"/> to register actions to be executed at any of:
     /// <list type="bullet">
     /// <item>
-    /// <description>start of semantic analysis of a method body or an expression appearing outside a method body,</description>
+    /// <description>start of semantic analysis of a method body or an expression appearing outside a method
+    /// body,</description>
     /// </item>
     /// <item>
-    /// <description>completion of semantic analysis of a method body or an expression appearing outside a method body, or</description>
+    /// <description>completion of semantic analysis of a method body or an expression appearing outside a method body,
+    /// or</description>
     /// </item>
     /// <item>
     /// <description>completion of semantic analysis of a syntax node.</description>
