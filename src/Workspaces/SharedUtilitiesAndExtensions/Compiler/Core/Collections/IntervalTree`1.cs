@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
@@ -164,14 +165,13 @@ internal partial class IntervalTree<T> : IEnumerable<T>
             return 0;
         }
 
-        var candidates = s_stackPool.Allocate();
+        using var pooledObject = s_stackPool.GetPooledObject();
+        var candidates = pooledObject.Object;
 
         var matches = FillWithIntervalsThatMatch(
             start, length, testInterval,
             ref builder, in introspector,
             stopAfterFirst, candidates);
-
-        s_stackPool.ClearAndFree(candidates);
 
         return matches;
     }
@@ -188,9 +188,8 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
         candidates.Push((root, firstTime: true));
 
-        while (candidates.Count > 0)
+        while (candidates.TryPop(out var currentTuple))
         {
-            var currentTuple = candidates.Pop();
             var currentNode = currentTuple.node;
             RoslynDebug.Assert(currentNode != null);
 
@@ -324,9 +323,9 @@ internal partial class IntervalTree<T> : IEnumerable<T>
 
         var candidates = new Stack<(Node? node, bool firstTime)>();
         candidates.Push((root, firstTime: true));
-        while (candidates.Count != 0)
+        while (candidates.TryPop(out var tuple))
         {
-            var (currentNode, firstTime) = candidates.Pop();
+            var (currentNode, firstTime) = tuple;
             if (currentNode != null)
             {
                 if (firstTime)
