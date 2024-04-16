@@ -85,14 +85,6 @@ internal sealed class EditSession
     /// </summary>
     internal readonly bool InBreakState;
 
-    /// <summary>
-    /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports
-    /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze
-    /// the documents to clean up the diagnostics.
-    /// </summary>
-    private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = [];
-    private readonly object _documentsWithReportedDiagnosticsGuard = new();
-
     internal EditSession(
         DebuggingSession debuggingSession,
         ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions,
@@ -556,22 +548,6 @@ internal sealed class EditSession
 
         var analyses = await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
         return (analyses, documentDiagnostics.ToImmutable());
-    }
-
-    internal ImmutableArray<DocumentId> GetDocumentsWithReportedDiagnostics()
-    {
-        lock (_documentsWithReportedDiagnosticsGuard)
-        {
-            return ImmutableArray.CreateRange(_documentsWithReportedDiagnostics);
-        }
-    }
-
-    internal void TrackDocumentWithReportedDiagnostics(DocumentId documentId)
-    {
-        lock (_documentsWithReportedDiagnosticsGuard)
-        {
-            _documentsWithReportedDiagnostics.Add(documentId);
-        }
     }
 
     private static ProjectAnalysisSummary GetProjectAnalysisSummary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)

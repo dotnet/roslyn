@@ -21,5 +21,10 @@ namespace Roslyn.LanguageServer.Protocol
         /// Task list diagnostic kind.
         /// </summary>
         public static readonly VSInternalDiagnosticKind Task = new("task");
+
+        /// <summary>
+        /// Edit and Continue diagnostic kind.
+        /// </summary>
+        public static readonly VSInternalDiagnosticKind EditAndContiue = new("enc");
     }
 }
