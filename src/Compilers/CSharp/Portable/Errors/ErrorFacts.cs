@@ -626,6 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                 case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
                 case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
+                case ErrorCode.ERR_RefLocalAcrossAwait:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -1537,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_NonTaskMainCantBeAsync:
                 case ErrorCode.ERR_CantConvAsyncAnonFuncReturns:
                 case ErrorCode.ERR_BadAwaiterPattern:
-                case ErrorCode.ERR_BadSpecialByRefLocal:
+                case ErrorCode.ERR_BadSpecialByRefParameter:
                 case ErrorCode.WRN_UnobservedAwaitableExpression:
                 case ErrorCode.ERR_SynchronizedAsyncMethod:
                 case ErrorCode.ERR_BadAsyncReturnExpression:
@@ -1780,8 +1781,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion:
                 case ErrorCode.ERR_ByReferenceVariableMustBeInitialized:
                 case ErrorCode.ERR_AnonDelegateCantUseLocal:
-                case ErrorCode.ERR_BadIteratorLocalType:
-                case ErrorCode.ERR_BadAsyncLocalType:
                 case ErrorCode.ERR_PredefinedValueTupleTypeNotFound:
                 case ErrorCode.ERR_SemiOrLBraceOrArrowExpected:
                 case ErrorCode.ERR_NewWithTupleTypeSyntax:
@@ -2333,7 +2332,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget:
                 case ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation:
                 case ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion:
-                case ErrorCode.ERR_BadSpecialByRefUsing:
                 case ErrorCode.ERR_InvalidPrimaryConstructorParameterReference:
                 case ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
@@ -2422,7 +2420,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionExpressionMissingConstructor:
                 case ErrorCode.ERR_CollectionExpressionMissingAdd:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.ERR_BadSpecialByRefLock:
                 case ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections:
                 case ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
