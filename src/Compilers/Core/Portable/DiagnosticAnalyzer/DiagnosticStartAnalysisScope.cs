@@ -719,18 +719,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilationStartActions = ImmutableArray<CompilationStartAnalyzerAction>.Empty;
             _compilationEndActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
             _compilationActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
+
             _syntaxTreeActions = ImmutableArray<SyntaxTreeAnalyzerAction>.Empty;
             _additionalFileActions = ImmutableArray<AdditionalFileAnalyzerAction>.Empty;
+
+            _semanticModelStartActions = ImmutableArray<SemanticModelStartAnalyzerAction>.Empty;
+            _semanticModelEndActions = ImmutableArray<SemanticModelAnalyzerAction>.Empty;
             _semanticModelActions = ImmutableArray<SemanticModelAnalyzerAction>.Empty;
-            _symbolActions = ImmutableArray<SymbolAnalyzerAction>.Empty;
+
             _symbolStartActions = ImmutableArray<SymbolStartAnalyzerAction>.Empty;
             _symbolEndActions = ImmutableArray<SymbolEndAnalyzerAction>.Empty;
+            _symbolActions = ImmutableArray<SymbolAnalyzerAction>.Empty;
+
             _codeBlockStartActions = ImmutableArray<AnalyzerAction>.Empty;
             _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
             _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
+
             _operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
             _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
             _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+
             _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
             _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
             _concurrent = concurrent;
@@ -783,20 +791,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly int CompilationStartActionsCount { get { return _compilationStartActions.Length; } }
         public readonly int CompilationEndActionsCount { get { return _compilationEndActions.Length; } }
         public readonly int CompilationActionsCount { get { return _compilationActions.Length; } }
+
+        public readonly int SemanticModelStartActionsCount { get { return _semanticModelStartActions.Length; } }
+        public readonly int SemanticModelEndActionsCount { get { return _semanticModelEndActions.Length; } }
+        public readonly int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
+
         public readonly int SyntaxTreeActionsCount { get { return _syntaxTreeActions.Length; } }
         public readonly int AdditionalFileActionsCount { get { return _additionalFileActions.Length; } }
-        public readonly int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
-        public readonly int SymbolActionsCount { get { return _symbolActions.Length; } }
+
         public readonly int SymbolStartActionsCount { get { return _symbolStartActions.Length; } }
         public readonly int SymbolEndActionsCount { get { return _symbolEndActions.Length; } }
+        public readonly int SymbolActionsCount { get { return _symbolActions.Length; } }
+
         public readonly int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
         public readonly int OperationActionsCount { get { return _operationActions.Length; } }
+
         public readonly int OperationBlockStartActionsCount { get { return _operationBlockStartActions.Length; } }
         public readonly int OperationBlockEndActionsCount { get { return _operationBlockEndActions.Length; } }
         public readonly int OperationBlockActionsCount { get { return _operationBlockActions.Length; } }
+
         public readonly int CodeBlockStartActionsCount { get { return _codeBlockStartActions.Length; } }
         public readonly int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
         public readonly int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }
+
         public readonly bool Concurrent => _concurrent;
         public bool IsEmpty { readonly get; private set; }
         public readonly bool IsDefault => _compilationStartActions.IsDefault;
@@ -934,6 +951,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void AddSemanticModelStartAction(SemanticModelStartAnalyzerAction action)
         {
             _semanticModelStartActions = _semanticModelStartActions.Add(action);
+            IsEmpty = false;
+        }
+
+        internal void AddSemanticModelEndAction(SemanticModelAnalyzerAction action)
+        {
+            _semanticModelEndActions = _semanticModelEndActions.Add(action);
             IsEmpty = false;
         }
 
