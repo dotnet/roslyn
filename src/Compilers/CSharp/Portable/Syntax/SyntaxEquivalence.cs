@@ -107,10 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             try
             {
-                while (stack.Count > 0)
+                while (stack.TryPop(out var current))
                 {
-                    (before, after) = stack.Pop();
-                    if (!areEquivalentSingleLevel())
+                    if (!areEquivalentSingleLevel(current.before, current.after))
                         return false;
                 }
 
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 stack.Free();
             }
 
-            bool areEquivalentSingleLevel()
+            bool areEquivalentSingleLevel(GreenNode? before, GreenNode? after)
             {
                 if (before == after)
                 {
