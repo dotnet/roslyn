@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 /// <summary>
-/// Base class for services that need to live in Razor cannot but be exported using <see cref="ExportCohostStatelessLspServiceAttribute"/>
+/// Base class for services that need to live in Razor but cannot be exported using <see cref="ExportCohostStatelessLspServiceAttribute"/>
 /// since those services must implement <see cref="ILspService"/> but the Razor code doesn't have IVT to it.
 /// </summary>
 internal abstract class AbstractRazorLspService : ILspService
