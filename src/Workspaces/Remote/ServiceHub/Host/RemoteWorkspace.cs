@@ -206,24 +206,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static async Task<bool> IsIncrementalUpdateAsync(
-            AssetProvider assetProvider,
-            Checksum solutionChecksum,
-            Solution currentSolution,
-            CancellationToken cancellationToken)
-        {
-            var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                    AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
-            var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
-
-            var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
-                AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
-
-            // if either solution id or file path changed, then we consider it as new solution
-            return currentSolution.Id == newSolutionInfo.Id && currentSolution.FilePath == newSolutionInfo.FilePath;
-        }
-
         private async Task<Solution> GetOrCreateSolutionToUpdateAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
@@ -231,12 +213,26 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // See if we can just incrementally update the current solution.
             var currentSolution = this.CurrentSolution;
-            if (await IsIncrementalUpdateAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false))
+            if (await IsIncrementalUpdateAsync().ConfigureAwait(false))
                 return currentSolution;
 
             // If not, have to create a new, fresh, solution instance to update.
             var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
             return CreateSolutionFromInfo(solutionInfo);
+
+            async Task<bool> IsIncrementalUpdateAsync()
+            {
+                var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
+                        AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                    AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+
+                var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
+                    AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+
+                // if either solution id or file path changed, then we consider it as new solution
+                return currentSolution.Id == newSolutionInfo.Id && currentSolution.FilePath == newSolutionInfo.FilePath;
+            }
         }
 
         /// <summary>
