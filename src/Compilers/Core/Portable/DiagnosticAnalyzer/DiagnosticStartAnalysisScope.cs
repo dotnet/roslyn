@@ -53,6 +53,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterAdditionalFileAction(_analyzer, action);
         }
 
+        public override void RegisterSemanticModelStartAction(Action<SemanticModelStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterSemanticModelStartAction(_analyzer, action);
+        }
+
         public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
@@ -159,6 +165,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterAdditionalFileAction(_analyzer, action);
+        }
+
+        public override void RegisterSemanticModelStartAction(Action<SemanticModelStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterSemanticModelStartAction(_analyzer, action);
         }
 
         public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
@@ -518,6 +530,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationEndAction(analyzerAction);
         }
 
+        public void RegisterSemanticModelStartAction(DiagnosticAnalyzer analyzer, Action<SemanticModelStartAnalysisContext> action)
+        {
+            SemanticModelStartAnalyzerAction analyzerAction = new SemanticModelStartAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddSemanticModelStartAction(analyzerAction);
+        }
+
         public void RegisterSemanticModelAction(DiagnosticAnalyzer analyzer, Action<SemanticModelAnalysisContext> action)
         {
             SemanticModelAnalyzerAction analyzerAction = new SemanticModelAnalyzerAction(action, analyzer);
@@ -672,18 +690,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions;
         private ImmutableArray<CompilationAnalyzerAction> _compilationEndActions;
         private ImmutableArray<CompilationAnalyzerAction> _compilationActions;
+
         private ImmutableArray<SyntaxTreeAnalyzerAction> _syntaxTreeActions;
         private ImmutableArray<AdditionalFileAnalyzerAction> _additionalFileActions;
+
+        private ImmutableArray<SemanticModelStartAnalyzerAction> _semanticModelStartActions;
+        private ImmutableArray<SemanticModelAnalyzerAction> _semanticModelEndActions;
         private ImmutableArray<SemanticModelAnalyzerAction> _semanticModelActions;
-        private ImmutableArray<SymbolAnalyzerAction> _symbolActions;
+
         private ImmutableArray<SymbolStartAnalyzerAction> _symbolStartActions;
         private ImmutableArray<SymbolEndAnalyzerAction> _symbolEndActions;
+        private ImmutableArray<SymbolAnalyzerAction> _symbolActions;
+
         private ImmutableArray<AnalyzerAction> _codeBlockStartActions;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions;
+
         private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActions;
         private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions;
         private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions;
+
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions;
         private ImmutableArray<OperationAnalyzerAction> _operationActions;
         private bool _concurrent;
@@ -902,6 +928,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void AddAdditionalFileAction(AdditionalFileAnalyzerAction action)
         {
             _additionalFileActions = _additionalFileActions.Add(action);
+            IsEmpty = false;
+        }
+
+        internal void AddSemanticModelStartAction(SemanticModelStartAnalyzerAction action)
+        {
+            _semanticModelStartActions = _semanticModelStartActions.Add(action);
             IsEmpty = false;
         }
 
