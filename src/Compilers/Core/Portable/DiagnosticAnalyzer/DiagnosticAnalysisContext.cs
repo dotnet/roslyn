@@ -60,6 +60,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterCompilationAction(Action<CompilationAnalysisContext> action);
 
         /// <summary>
+        /// Register an action to be executed at semantic model start. A semantic model start action can register other
+        /// actions and/or collect state information to be used in diagnostic analysis, but cannot itself report any
+        /// <see cref="Diagnostic"/>s.
+        /// </summary>
+        /// <param name="action">Action to be executed at semantic model start.</param>
+        public virtual void RegisterSemanticModelStartAction(Action<SemanticModelStartAnalysisContext> action)
+            => throw new NotImplementedException();
+
+        /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a document,
         /// which will operate on the <see cref="SemanticModel"/> of the document. A semantic model action
         /// reports <see cref="Diagnostic"/>s about the model.
@@ -353,6 +362,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at compilation end.</param>
         public abstract void RegisterCompilationEndAction(Action<CompilationAnalysisContext> action);
+
+        /// <inheritdoc cref="AnalysisContext.RegisterSemanticModelStartAction"/>
+        public virtual void RegisterSemanticModelStartAction(Action<SemanticModelStartAnalysisContext> action)
+            => new NotImplementedException();
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a document,
@@ -672,6 +685,83 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return valueProvider.TryGetValue(key, out value);
         }
+    }
+
+    /// <summary>
+    /// Context for a semantic model start action. A semantic model start action can use a <see
+    /// cref="SemanticModelStartAnalysisContext"/> to register actions to be executed at any of:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>semantic model end,</description>
+    /// </item>
+    /// <item>
+    /// <description>start of semantic analysis of a method body or an expression appearing outside a method
+    /// body,</description>
+    /// </item>
+    /// <item>
+    /// <description>completion of semantic analysis of a method body or an expression appearing outside a method body,
+    /// or</description>
+    /// </item>
+    /// <item>
+    /// <description>completion of semantic analysis of a syntax node.</description>
+    /// </item>
+    /// </list>
+    /// </summary>
+    public abstract class SemanticModelStartAnalysisContext
+    {
+        /// <inheritdoc cref="SemanticModelAnalysisContext.SemanticModel"/>
+        public SemanticModel SemanticModel { get; }
+        /// <inheritdoc cref="SemanticModelAnalysisContext.Options"/>
+        public AnalyzerOptions Options { get; }
+        /// <inheritdoc cref="SemanticModelAnalysisContext.CancellationToken"/>
+        public CancellationToken CancellationToken { get; }
+
+        private protected SemanticModelStartAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+        {
+            this.SemanticModel = semanticModel;
+            this.Options = options;
+            this.CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Register an action to be executed at semantic model end. A semantic model end action reports <see
+        /// cref="Diagnostic"/>s about the <see cref="SemanticModel"/>.
+        /// </summary>
+        /// <param name="action">Action to be executed at semantic model end.</param>
+        public abstract void RegisterSemanticModelEndAction(Action<SemanticModelAnalysisContext> action);
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterSemanticModelAction"/>
+        public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterCodeBlockStartAction"/>
+        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterCodeBlockAction"/>
+        public abstract void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action);
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterOperationBlockStartAction"/>
+        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterOperationBlockAction"/>
+        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterSyntaxNodeAction{TLanguageKindEnum}(Action{SyntaxNodeAnalysisContext}, TLanguageKindEnum[])"/>
+        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
+        {
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
+        }
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterSyntaxNodeAction{TLanguageKindEnum}(Action{SyntaxNodeAnalysisContext}, ImmutableArray{TLanguageKindEnum})"/>
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterOperationAction(Action{OperationAnalysisContext}, OperationKind[])"/>
+        public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        {
+            this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
+        }
+
+        /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterOperationAction(Action{OperationAnalysisContext}, ImmutableArray{OperationKind})"/>
+        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
     }
 
     /// <summary>
