@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
@@ -53,10 +54,9 @@ internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeSty
         var stack = new Stack<SyntaxNode>();
         stack.Push(root);
 
-        while (stack.Count != 0)
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
 
             foreach (var child in current.ChildNodesAndTokens())
             {
