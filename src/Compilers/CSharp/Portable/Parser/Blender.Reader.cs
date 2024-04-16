@@ -215,6 +215,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
+            private static Cursor MoveToNextSibling(Cursor cursor)
+            {
+                while (cursor.CurrentNodeOrToken.UnderlyingNode != null)
+                {
+                    var nextSibling = cursor.TryFindNextNonEmptyOrEOFSibling(cursor);
+
+                    // If we got a valid sibling, return it.
+                    if (nextSibling.CurrentNodeOrToken.UnderlyingNode != null)
+                        return nextSibling;
+
+                    cursor = cursor.MoveToParent();
+                }
+
+                // Couldn't find anything, bail out.
+                return default;
+            }
+
             private bool CanReuse(SyntaxNodeOrToken nodeOrToken)
             {
                 // Zero width nodes and tokens always indicate that the parser had to do

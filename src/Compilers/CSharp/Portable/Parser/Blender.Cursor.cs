@@ -55,47 +55,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return token.Kind() == SyntaxKind.EndOfFileToken || token.FullWidth != 0;
             }
 
-            public static Cursor MoveToNextSibling(Cursor cursor)
+            /// <summary>
+            /// Returns the cursor of the next non-empty (or EOF) sibling in our parent if we find it, or `default` if we don't.
+            /// </summary>
+            public Cursor TryFindNextNonEmptyOrEOFSibling()
             {
-                while (cursor.CurrentNodeOrToken.UnderlyingNode != null)
+                if (this.CurrentNodeOrToken.Parent != null)
                 {
-                    var nextSibling = tryFindSiblingAtSameLevel(cursor);
-
-                    // If we got a valid sibling, return it.
-                    if (nextSibling.CurrentNodeOrToken.UnderlyingNode != null)
-                        return nextSibling;
-
-                    cursor = cursor.MoveToParent();
-                }
-
-                // Couldn't find anything, bail out.
-                return default;
-
-                // Returns the cursor of the next non-empty (or EOF) sibling in our parent if we find it, or `default` if we don't.
-                static Cursor tryFindSiblingAtSameLevel(Cursor cursor)
-                {
-                    if (cursor.CurrentNodeOrToken.Parent != null)
+                    // First, look to the nodes to the right of this one in our parent's child list
+                    // to get the next sibling.
+                    var siblings = this.CurrentNodeOrToken.Parent.ChildNodesAndTokens();
+                    for (int i = _indexInParent + 1, n = siblings.Count; i < n; i++)
                     {
-                        // First, look to the nodes to the right of this one in our parent's child list
-                        // to get the next sibling.
-                        var siblings = cursor.CurrentNodeOrToken.Parent.ChildNodesAndTokens();
-                        for (int i = cursor._indexInParent + 1, n = siblings.Count; i < n; i++)
+                        var sibling = siblings[i];
+                        if (IsNonZeroWidthOrIsEndOfFile(sibling))
                         {
-                            var sibling = siblings[i];
-                            if (IsNonZeroWidthOrIsEndOfFile(sibling))
-                                return new Cursor(sibling, i);
+                            return new Cursor(sibling, i);
                         }
-
-                        // We're at the end of this sibling chain.  Have our caller walk up to the parent and see who is
-                        // the next sibling of that.
                     }
 
-                    // Don't have a parent, bail out.  This will cause our caller itself to bail out.
-                    return default(Cursor);
+                    // We're at the end of this sibling chain.  Have our caller walk up to the parent and see who is
+                    // the next sibling of that.
                 }
+
+                // Don't have a parent, bail out.  This will cause our caller itself to bail when it tries to determine
+                // our parent.
+                return default(Cursor);
             }
 
-            private Cursor MoveToParent()
+            public Cursor MoveToParent()
             {
                 var parent = this.CurrentNodeOrToken.Parent;
                 var index = IndexOfNodeInParent(parent);
