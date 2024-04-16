@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (cursor.CurrentNodeOrToken.Parent != null)
                     {
-                        // First, look to the nodes to the right of this one in our parent's child list to get the next sibling.
+                        // First, look to the nodes to the right of this one in our parent's child list
+                        // to get the next sibling.
                         var siblings = cursor.CurrentNodeOrToken.Parent.ChildNodesAndTokens();
                         for (int i = cursor._indexInParent + 1, n = siblings.Count; i < n; i++)
                         {
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     // Don't have a parent, bail out.  This will cause our caller itself to bail out.
-                    return default;
+                    return default(Cursor);
                 }
             }
 
