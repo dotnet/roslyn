@@ -146,68 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 throw new NotImplementedException($"We implement {nameof(GetSuggestedActionCategoriesAsync)}. This should not be called.");
             }
 
-            private async Task<TextSpan?> GetSpanAsync(ReferenceCountedDisposable<State> state, SnapshotSpan range, CancellationToken cancellationToken)
-            {
-                // First, ensure that the snapshot we're being asked about is for an actual
-                // roslyn document.  This can fail, for example, in projection scenarios where
-                // we are called with a range snapshot that refers to the projection buffer
-                // and not the actual roslyn code that is being projected into it.
-                var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
-                if (document == null)
-                {
-                    return null;
-                }
-
-                // Also make sure the range is from the same buffer that this source was created for
-                Contract.ThrowIfFalse(
-                    range.Snapshot.TextBuffer.Equals(state.Target.SubjectBuffer),
-                    $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
-
-                // Next, before we do any async work, acquire the user's selection, directly grabbing
-                // it from the UI thread if that's what we're on. That way we don't have any reentrancy
-                // blocking concerns if VS wants to block on this call (for example, if the user
-                // explicitly invokes the 'show smart tag' command).
-                //
-                // This work must happen on the UI thread as it needs to access the _textView's mutable
-                // state.
-                //
-                // Note: we may be called in one of two VS scenarios:
-                //      1) User has moved caret to a new line.  In this case VS will call into us in the
-                //         bg to see if we have any suggested actions for this line.  In order to figure
-                //         this out, we need to see what selection the user has (for refactorings), which
-                //         necessitates going back to the fg.
-                //
-                //      2) User moves to a line and immediately hits ctrl-dot.  In this case, on the UI
-                //         thread VS will kick us off and then immediately block to get the results so
-                //         that they can expand the light-bulb.  In this case we cannot do BG work first,
-                //         then call back into the UI thread to try to get the user selection.  This will
-                //         deadlock as the UI thread is blocked on us.
-                //
-                // There are two solution to '2'.  Either introduce reentrancy (which we really don't
-                // like to do), or just ensure that we acquire and get the users selection up front.
-                // This means that when we're called from the UI thread, we never try to go back to the
-                // UI thread.
-                TextSpan? selection = null;
-                if (_threadingContext.JoinableTaskContext.IsOnMainThread)
-                {
-                    selection = TryGetCodeRefactoringSelection(state, range);
-                }
-                else
-                {
-                    await _threadingContext.InvokeBelowInputPriorityAsync(() =>
-                    {
-                        // Make sure we were not disposed between kicking off this work and getting to this point.
-                        using var state = _state.TryAddReference();
-                        if (state is null)
-                            return;
-
-                        selection = TryGetCodeRefactoringSelection(state, range);
-                    }, cancellationToken).ConfigureAwait(false);
-                }
-
-                return selection;
-            }
-
             private static async Task<string?> GetFixLevelAsync(
                 ReferenceCountedDisposable<State> state,
                 TextDocument document,
@@ -215,6 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
+                // Ensure we yield the thread that called into us, allowing it to continue onwards.
+                await Task.Yield().ConfigureAwait(false);
                 var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
 
                 foreach (var order in Orderings)
@@ -258,6 +198,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
+                // Ensure we yield the thread that called into us, allowing it to continue onwards.
+                await Task.Yield().ConfigureAwait(false);
+
                 using var state = _state.TryAddReference();
                 if (state is null)
                     return null;
@@ -318,6 +261,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (state is null)
                     return null;
 
+                // Make sure the range is from the same buffer that this source was created for.
+                Contract.ThrowIfFalse(
+                    range.Snapshot.TextBuffer.Equals(state.Target.SubjectBuffer),
+                    $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
+
                 var workspace = state.Target.Workspace;
                 if (workspace == null)
                     return null;
@@ -338,16 +286,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 var linkedToken = linkedTokenSource.Token;
 
-                var errorTask = Task.Run(() => GetFixLevelAsync(state, document, range, fallbackOptions, linkedToken), linkedToken);
+                // Kick off the work to get errors.
+                var errorTask = GetFixLevelAsync(state, document, range, fallbackOptions, linkedToken);
 
-                var selection = await GetSpanAsync(state, range, linkedToken).ConfigureAwait(false);
+                // Make a quick jump back to the UI thread to get the user's selection, then go back to the thread pool..
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                var selection = TryGetCodeRefactoringSelection(state, range);
+                await Task.Yield().ConfigureAwait(false);
 
-                var refactoringTask = SpecializedTasks.Null<string>();
-                if (selection != null)
-                {
-                    refactoringTask = Task.Run(
-                        () => TryGetRefactoringSuggestedActionCategoryAsync(document, selection, fallbackOptions, linkedToken), linkedToken);
-                }
+                // If we have a selection, kick off the work to get refactorings concurrently with the above work to get errors.
+                var refactoringTask = selection != null
+                    ? TryGetRefactoringSuggestedActionCategoryAsync(document, selection, fallbackOptions, linkedToken)
+                    : SpecializedTasks.Null<string>();
 
                 // If we happen to get the result of the error task before the refactoring task,
                 // and that result is non-null, we can just cancel the refactoring task.
