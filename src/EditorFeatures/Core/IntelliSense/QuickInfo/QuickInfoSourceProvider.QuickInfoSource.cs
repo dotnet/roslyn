@@ -26,6 +26,8 @@ using Roslyn.Utilities;
 
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 
@@ -38,15 +40,18 @@ internal partial class QuickInfoSourceProvider
         IAsynchronousOperationListener asyncListener,
         Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
         EditorOptionsService editorOptionsService,
-        IInlineRenameService inlineRenameService) : IAsyncQuickInfoSource
+        IInlineRenameService inlineRenameService,
+        IViewElementFactoryService viewElementFactoryService) : IAsyncQuickInfoSource
     {
         private readonly ITextBuffer _subjectBuffer = subjectBuffer;
+        private readonly ITextView _textView;
         private readonly IThreadingContext _threadingContext = threadingContext;
         private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener = asyncListener;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
         private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
         private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
+        private readonly IViewElementFactoryService _viewElementFactoryService = viewElementFactoryService;
 
         public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
         {

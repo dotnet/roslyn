@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
@@ -30,7 +31,8 @@ internal partial class QuickInfoSourceProvider(
     IAsynchronousOperationListenerProvider listenerProvider,
     Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
     EditorOptionsService editorOptionsService,
-    IInlineRenameService inlineRenameService) : IAsyncQuickInfoSourceProvider
+    IInlineRenameService inlineRenameService,
+    IViewElementFactoryService viewElementFactoryService) : IAsyncQuickInfoSourceProvider
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
@@ -38,6 +40,7 @@ internal partial class QuickInfoSourceProvider(
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
     private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
+    private readonly IViewElementFactoryService _viewElementFactoryService = viewElementFactoryService;
 
     public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
     {
@@ -45,6 +48,6 @@ internal partial class QuickInfoSourceProvider(
             return null;
 
         return new QuickInfoSource(
-            textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _editorOptionsService, _inlineRenameService);
+            textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _editorOptionsService, _inlineRenameService, _viewElementFactoryService);
     }
 }
