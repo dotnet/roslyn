@@ -913,9 +913,8 @@ internal static partial class SyntaxNodeExtensions
                 if (directive != null)
                     condDirectivesBuilder.Add(directive);
 
-                while (ifStack.Count > 0)
+                while (ifStack.TryPop(out var poppedDirective))
                 {
-                    var poppedDirective = ifStack.Pop();
                     condDirectivesBuilder.Add(poppedDirective);
                     if (poppedDirective.RawKind == syntaxKinds.IfDirectiveTrivia)
                         break;
