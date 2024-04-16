@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 while (cursor.CurrentNodeOrToken.UnderlyingNode != null)
                 {
-                    var nextSibling = moveToNextSiblingWorker(cursor);
+                    var nextSibling = tryFindSiblingAtSameLevel(cursor);
 
                     // If we got a valid sibling, return it.
                     if (nextSibling.CurrentNodeOrToken.UnderlyingNode != null)
@@ -71,9 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Couldn't find anything, bail out.
                 return default;
 
-                // Returns default if we should walk to the parent to try to find the next sibling.
-                // Returns the cursor of the next sibling if we find it.
-                static Cursor moveToNextSiblingWorker(Cursor cursor)
+                // Returns the cursor of the next non-empty (or EOF) sibling in our parent if we find it, or `default` if we don't.
+                static Cursor tryFindSiblingAtSameLevel(Cursor cursor)
                 {
                     if (cursor.CurrentNodeOrToken.Parent != null)
                     {
