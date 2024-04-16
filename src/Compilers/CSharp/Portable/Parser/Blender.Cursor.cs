@@ -55,28 +55,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return token.Kind() == SyntaxKind.EndOfFileToken || token.FullWidth != 0;
             }
 
-            public Cursor MoveToNextSibling()
+            public static Cursor MoveToNextSibling(Cursor cursor)
             {
-                if (this.CurrentNodeOrToken.Parent != null)
+                var currentCursor = cursor;
+                while (currentCursor.CurrentNodeOrToken.UnderlyingNode != null)
                 {
-                    // First, look to the nodes to the right of this one in our parent's child list
-                    // to get the next sibling.
-                    var siblings = this.CurrentNodeOrToken.Parent.ChildNodesAndTokens();
-                    for (int i = _indexInParent + 1, n = siblings.Count; i < n; i++)
-                    {
-                        var sibling = siblings[i];
-                        if (IsNonZeroWidthOrIsEndOfFile(sibling))
-                        {
-                            return new Cursor(sibling, i);
-                        }
-                    }
+                    var nextSibling = moveToNextSiblingWorker(currentCursor);
 
-                    // We're at the end of this sibling chain.  Walk up to the parent and see who is
-                    // the next sibling of that.
-                    return MoveToParent().MoveToNextSibling();
+                    // If we got a valid sibling, return it.
+                    if (nextSibling.CurrentNodeOrToken.UnderlyingNode != null)
+                        return nextSibling;
+
+                    currentCursor = currentCursor.MoveToParent();
                 }
 
-                return default(Cursor);
+                // Couldn't find anything, bail out.
+                return default;
+
+                // Returns default if we should walk to the parent to try to find the next sibling.
+                // Returns the cursor of the next sibling if we find it.
+                static Cursor moveToNextSiblingWorker(Cursor cursor)
+                {
+                    if (cursor.CurrentNodeOrToken.Parent != null)
+                    {
+                        // First, look to the nodes to the right of this one in our parent's child list to get the next sibling.
+                        var siblings = cursor.CurrentNodeOrToken.Parent.ChildNodesAndTokens();
+                        for (int i = cursor._indexInParent + 1, n = siblings.Count; i < n; i++)
+                        {
+                            var sibling = siblings[i];
+                            if (IsNonZeroWidthOrIsEndOfFile(sibling))
+                                return new Cursor(sibling, i);
+                        }
+
+                        // We're at the end of this sibling chain.  Have our caller walk up to the parent and see who is
+                        // the next sibling of that.
+                    }
+
+                    // Don't have a parent, bail out.  This will cause our caller itself to bail out.
+                    return default;
+                }
             }
 
             private Cursor MoveToParent()
