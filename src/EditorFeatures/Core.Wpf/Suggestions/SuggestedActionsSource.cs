@@ -24,260 +24,261 @@ using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using IUIThreadOperationContext = Microsoft.VisualStudio.Utilities.IUIThreadOperationContext;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
-
-internal partial class SuggestedActionsSourceProvider
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    private sealed partial class SuggestedActionsSource : ISuggestedActionsSource3
+    internal partial class SuggestedActionsSourceProvider
     {
-        private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
-
-        private readonly ReferenceCountedDisposable<State> _state;
-        private readonly IAsynchronousOperationListener _listener;
-
-        public event EventHandler<EventArgs>? SuggestedActionsChanged { add { } remove { } }
-
-        private readonly IThreadingContext _threadingContext;
-        public readonly IGlobalOptionService GlobalOptions;
-
-        public SuggestedActionsSource(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            SuggestedActionsSourceProvider owner,
-            ITextView textView,
-            ITextBuffer textBuffer,
-            ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
-            IAsynchronousOperationListener listener)
+        private sealed partial class SuggestedActionsSource : ISuggestedActionsSource3
         {
-            _threadingContext = threadingContext;
-            GlobalOptions = globalOptions;
+            private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
-            _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
-            _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
+            private readonly ReferenceCountedDisposable<State> _state;
+            private readonly IAsynchronousOperationListener _listener;
 
-            _state.Target.TextView.Closed += OnTextViewClosed;
-            _listener = listener;
-        }
+            public event EventHandler<EventArgs>? SuggestedActionsChanged { add { } remove { } }
 
-        public void Dispose()
-            => _state.Dispose();
+            private readonly IThreadingContext _threadingContext;
+            public readonly IGlobalOptionService GlobalOptions;
 
-        public bool TryGetTelemetryId(out Guid telemetryId)
-        {
-            telemetryId = default;
-
-            using var state = _state.TryAddReference();
-            if (state is null)
+            public SuggestedActionsSource(
+                IThreadingContext threadingContext,
+                IGlobalOptionService globalOptions,
+                SuggestedActionsSourceProvider owner,
+                ITextView textView,
+                ITextBuffer textBuffer,
+                ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
+                IAsynchronousOperationListener listener)
             {
-                return false;
+                _threadingContext = threadingContext;
+                GlobalOptions = globalOptions;
+
+                _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
+                _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
+
+                _state.Target.TextView.Closed += OnTextViewClosed;
+                _listener = listener;
             }
 
-            var workspace = state.Target.Workspace;
-            if (workspace == null)
+            public void Dispose()
+                => _state.Dispose();
+
+            public bool TryGetTelemetryId(out Guid telemetryId)
             {
-                return false;
-            }
+                telemetryId = default;
 
-            var documentId = workspace.GetDocumentIdInCurrentContext(state.Target.SubjectBuffer.AsTextContainer());
-            if (documentId == null)
-            {
-                return false;
-            }
-
-            var project = workspace.CurrentSolution.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                return false;
-            }
-
-            switch (project.Language)
-            {
-                case LanguageNames.CSharp:
-                    telemetryId = s_CSharpSourceGuid;
-                    return true;
-                case LanguageNames.VisualBasic:
-                    telemetryId = s_visualBasicSourceGuid;
-                    return true;
-                case "Xaml":
-                    telemetryId = s_xamlSourceGuid;
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
-            ISuggestedActionCategorySet requestedActionCategories,
-            SnapshotSpan range,
-            CancellationToken cancellationToken)
-            => null;
-
-        public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
-            ISuggestedActionCategorySet requestedActionCategories,
-            SnapshotSpan range,
-            IUIThreadOperationContext operationContext)
-            => null;
-
-        public Task<bool> HasSuggestedActionsAsync(
-            ISuggestedActionCategorySet requestedActionCategories,
-            SnapshotSpan range,
-            CancellationToken cancellationToken)
-        {
-            // We implement GetSuggestedActionCategoriesAsync so this should not be called
-            throw new NotImplementedException($"We implement {nameof(GetSuggestedActionCategoriesAsync)}. This should not be called.");
-        }
-
-        private void OnTextViewClosed(object sender, EventArgs e)
-            => Dispose();
-
-        private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            var selectedSpans = state.Target.TextView.Selection.SelectedSpans
-                .SelectMany(ss => state.Target.TextView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, state.Target.SubjectBuffer))
-                .Where(ss => !state.Target.TextView.IsReadOnlyOnSurfaceBuffer(ss))
-                .ToList();
-
-            // We only support refactorings when there is a single selection in the document.
-            if (selectedSpans.Count != 1)
-                return null;
-
-            var translatedSpan = selectedSpans[0].TranslateTo(range.Snapshot, SpanTrackingMode.EdgeInclusive);
-
-            // We only support refactorings when selected span intersects with the span that the light bulb is asking for.
-            if (!translatedSpan.IntersectsWith(range))
-                return null;
-
-            return translatedSpan.Span.ToTextSpan();
-        }
-
-        public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
-        {
-            using var state = _state.TryAddReference();
-            if (state is null)
-                return null;
-
-            // Make sure the range is from the same buffer that this source was created for.
-            Contract.ThrowIfFalse(
-                range.Snapshot.TextBuffer.Equals(state.Target.SubjectBuffer),
-                $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
-
-            var workspace = state.Target.Workspace;
-            if (workspace == null)
-                return null;
-
-            // never show light bulb if solution is not fully loaded yet
-            if (!await workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
-                return null;
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var asyncToken = state.Target.Owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
-            var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
-            if (document == null)
-                return null;
-
-            var fallbackOptions = GlobalOptions.GetCodeActionOptionsProvider();
-
-            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            // Assign over cancellation token so no one accidentally uses the wrong token.
-            cancellationToken = linkedTokenSource.Token;
-
-            // Kick off the work to get errors.
-            var errorTask = GetFixLevelAsync();
-
-            // Make a quick jump back to the UI thread to get the user's selection, then go back to the thread pool..
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
-            var selection = TryGetCodeRefactoringSelection(state, range);
-            await Task.Yield().ConfigureAwait(false);
-
-            // If we have a selection, kick off the work to get refactorings concurrently with the above work to get errors.
-            var refactoringTask = selection != null
-                ? TryGetRefactoringSuggestedActionCategoryAsync(selection)
-                : SpecializedTasks.Null<string>();
-
-            // If we happen to get the result of the error task before the refactoring task,
-            // and that result is non-null, we can just cancel the refactoring task.
-            var result = await errorTask.ConfigureAwait(false) ?? await refactoringTask.ConfigureAwait(false);
-            linkedTokenSource.Cancel();
-
-            return result == null
-                ? null
-                : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
-
-            async Task<string?> GetFixLevelAsync()
-            {
-                // Ensure we yield the thread that called into us, allowing it to continue onwards.
-                await Task.Yield().ConfigureAwait(false);
-                var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
-
-                foreach (var order in Orderings)
+                using var state = _state.TryAddReference();
+                if (state is null)
                 {
-                    var priority = TryGetPriority(order);
-                    Contract.ThrowIfNull(priority);
-                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
-
-                    var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
-                    if (result != null)
-                        return result;
+                    return false;
                 }
 
-                return null;
+                var workspace = state.Target.Workspace;
+                if (workspace == null)
+                {
+                    return false;
+                }
+
+                var documentId = workspace.GetDocumentIdInCurrentContext(state.Target.SubjectBuffer.AsTextContainer());
+                if (documentId == null)
+                {
+                    return false;
+                }
+
+                var project = workspace.CurrentSolution.GetProject(documentId.ProjectId);
+                if (project == null)
+                {
+                    return false;
+                }
+
+                switch (project.Language)
+                {
+                    case LanguageNames.CSharp:
+                        telemetryId = s_CSharpSourceGuid;
+                        return true;
+                    case LanguageNames.VisualBasic:
+                        telemetryId = s_visualBasicSourceGuid;
+                        return true;
+                    case "Xaml":
+                        telemetryId = s_xamlSourceGuid;
+                        return true;
+                    default:
+                        return false;
+                }
             }
 
-            async Task<string?> GetFixCategoryAsync(ICodeActionRequestPriorityProvider priorityProvider)
+            public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                CancellationToken cancellationToken)
+                => null;
+
+            public IEnumerable<SuggestedActionSet>? GetSuggestedActions(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                IUIThreadOperationContext operationContext)
+                => null;
+
+            public Task<bool> HasSuggestedActionsAsync(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                CancellationToken cancellationToken)
             {
-                if (state.Target.Owner._codeFixService != null &&
-                    state.Target.SubjectBuffer.SupportsCodeFixes())
+                // We implement GetSuggestedActionCategoriesAsync so this should not be called
+                throw new NotImplementedException($"We implement {nameof(GetSuggestedActionCategoriesAsync)}. This should not be called.");
+            }
+
+            private void OnTextViewClosed(object sender, EventArgs e)
+                => Dispose();
+
+            private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+
+                var selectedSpans = state.Target.TextView.Selection.SelectedSpans
+                    .SelectMany(ss => state.Target.TextView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, state.Target.SubjectBuffer))
+                    .Where(ss => !state.Target.TextView.IsReadOnlyOnSurfaceBuffer(ss))
+                    .ToList();
+
+                // We only support refactorings when there is a single selection in the document.
+                if (selectedSpans.Count != 1)
+                    return null;
+
+                var translatedSpan = selectedSpans[0].TranslateTo(range.Snapshot, SpanTrackingMode.EdgeInclusive);
+
+                // We only support refactorings when selected span intersects with the span that the light bulb is asking for.
+                if (!translatedSpan.IntersectsWith(range))
+                    return null;
+
+                return translatedSpan.Span.ToTextSpan();
+            }
+
+            public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+            {
+                using var state = _state.TryAddReference();
+                if (state is null)
+                    return null;
+
+                // Make sure the range is from the same buffer that this source was created for.
+                Contract.ThrowIfFalse(
+                    range.Snapshot.TextBuffer.Equals(state.Target.SubjectBuffer),
+                    $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
+
+                var workspace = state.Target.Workspace;
+                if (workspace == null)
+                    return null;
+
+                // never show light bulb if solution is not fully loaded yet
+                if (!await workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                    return null;
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using var asyncToken = state.Target.Owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
+                var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
+                if (document == null)
+                    return null;
+
+                var fallbackOptions = GlobalOptions.GetCodeActionOptionsProvider();
+
+                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                // Assign over cancellation token so no one accidentally uses the wrong token.
+                cancellationToken = linkedTokenSource.Token;
+
+                // Kick off the work to get errors.
+                var errorTask = GetFixLevelAsync();
+
+                // Make a quick jump back to the UI thread to get the user's selection, then go back to the thread pool..
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
+                var selection = TryGetCodeRefactoringSelection(state, range);
+                await Task.Yield().ConfigureAwait(false);
+
+                // If we have a selection, kick off the work to get refactorings concurrently with the above work to get errors.
+                var refactoringTask = selection != null
+                    ? TryGetRefactoringSuggestedActionCategoryAsync(selection)
+                    : SpecializedTasks.Null<string>();
+
+                // If we happen to get the result of the error task before the refactoring task,
+                // and that result is non-null, we can just cancel the refactoring task.
+                var result = await errorTask.ConfigureAwait(false) ?? await refactoringTask.ConfigureAwait(false);
+                linkedTokenSource.Cancel();
+
+                return result == null
+                    ? null
+                    : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
+
+                async Task<string?> GetFixLevelAsync()
                 {
-                    var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                        document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    // Ensure we yield the thread that called into us, allowing it to continue onwards.
+                    await Task.Yield().ConfigureAwait(false);
+                    var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
 
-                    if (result.HasFix)
+                    foreach (var order in Orderings)
                     {
-                        Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                        return result.CodeFixCollection.FirstDiagnostic.Severity switch
-                        {
+                        var priority = TryGetPriority(order);
+                        Contract.ThrowIfNull(priority);
+                        var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
 
-                            DiagnosticSeverity.Hidden or DiagnosticSeverity.Info or DiagnosticSeverity.Warning => PredefinedSuggestedActionCategoryNames.CodeFix,
-                            DiagnosticSeverity.Error => PredefinedSuggestedActionCategoryNames.ErrorFix,
-                            _ => throw ExceptionUtilities.Unreachable(),
-                        };
+                        var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
+                        if (result != null)
+                            return result;
                     }
 
-                    if (!result.UpToDate)
-                        return null;
-                }
-
-                return null;
-            }
-
-            async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(TextSpan? selection)
-            {
-                // Ensure we yield the thread that called into us, allowing it to continue onwards.
-                await Task.Yield().ConfigureAwait(false);
-
-                if (!selection.HasValue)
-                {
-                    // this is here to fail test and see why it is failed.
-                    Trace.WriteLine("given range is not current");
                     return null;
                 }
 
-                if (GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
-                    state.Target.Owner._codeRefactoringService != null &&
-                    state.Target.SubjectBuffer.SupportsRefactorings())
+                async Task<string?> GetFixCategoryAsync(ICodeActionRequestPriorityProvider priorityProvider)
                 {
-                    if (await state.Target.Owner._codeRefactoringService.HasRefactoringsAsync(
-                            document, selection.Value, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                    if (state.Target.Owner._codeFixService != null &&
+                        state.Target.SubjectBuffer.SupportsCodeFixes())
                     {
-                        return PredefinedSuggestedActionCategoryNames.Refactoring;
+                        var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
+                            document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasFix)
+                        {
+                            Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
+                            return result.CodeFixCollection.FirstDiagnostic.Severity switch
+                            {
+
+                                DiagnosticSeverity.Hidden or DiagnosticSeverity.Info or DiagnosticSeverity.Warning => PredefinedSuggestedActionCategoryNames.CodeFix,
+                                DiagnosticSeverity.Error => PredefinedSuggestedActionCategoryNames.ErrorFix,
+                                _ => throw ExceptionUtilities.Unreachable(),
+                            };
+                        }
+
+                        if (!result.UpToDate)
+                            return null;
                     }
+
+                    return null;
                 }
 
-                return null;
+                async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(TextSpan? selection)
+                {
+                    // Ensure we yield the thread that called into us, allowing it to continue onwards.
+                    await Task.Yield().ConfigureAwait(false);
+
+                    if (!selection.HasValue)
+                    {
+                        // this is here to fail test and see why it is failed.
+                        Trace.WriteLine("given range is not current");
+                        return null;
+                    }
+
+                    if (GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                        state.Target.Owner._codeRefactoringService != null &&
+                        state.Target.SubjectBuffer.SupportsRefactorings())
+                    {
+                        if (await state.Target.Owner._codeRefactoringService.HasRefactoringsAsync(
+                                document, selection.Value, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                        {
+                            return PredefinedSuggestedActionCategoryNames.Refactoring;
+                        }
+                    }
+
+                    return null;
+                }
             }
         }
     }
