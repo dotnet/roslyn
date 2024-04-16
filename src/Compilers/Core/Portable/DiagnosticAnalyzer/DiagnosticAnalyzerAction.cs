@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Action<CompilationUnitStartAnalysisContext> Action { get; } = action;
     }
 
+    internal sealed class CompilationUnitAnalyzerAction(Action<CompilationUnitAnalysisContext> action, DiagnosticAnalyzer analyzer) : AnalyzerAction(analyzer)
+    {
+        public Action<CompilationUnitAnalysisContext> Action { get; } = action;
+    }
+
     internal sealed class OperationBlockStartAnalyzerAction : AnalyzerAction
     {
         public Action<OperationBlockStartAnalysisContext> Action { get; }

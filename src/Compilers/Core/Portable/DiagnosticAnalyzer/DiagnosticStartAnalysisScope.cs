@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterCompilationStartAction(_analyzer, action);
         }
 
-        public override void RegisterCompilationUnitStartAction(Action<CompilationUnitStartAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            _scope.RegisterCompilationUnitStartAction(_analyzer, action);
-        }
-
         public override void RegisterCompilationAction(Action<CompilationAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
@@ -75,6 +69,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterSymbolStartAction(_analyzer, action, symbolKind);
+        }
+
+        public override void RegisterCompilationUnitStartAction(Action<CompilationUnitStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterCompilationUnitStartAction(_analyzer, action);
         }
 
         public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action)
@@ -399,12 +399,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationStartAction(analyzerAction);
         }
 
-        public void RegisterCompilationUnitStartAction(DiagnosticAnalyzer analyzer, Action<CompilationUnitStartAnalysisContext> action)
-        {
-            var analyzerAction = new CompilationUnitStartAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationUnitStartAction(analyzerAction);
-        }
-
         public void EnableConcurrentExecution(DiagnosticAnalyzer analyzer)
         {
             _concurrentAnalyzers = _concurrentAnalyzers.Add(analyzer);
@@ -616,16 +610,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolStartAction(analyzerAction);
         }
 
-        public void RegisterCompilationUnitStartAction(DiagnosticAnalyzer analyzer, Action<CompilationUnitStartAnalysisContext> action)
-        {
-            var analyzerAction = new CompilationUnitStartAnalyzerAction(action, analyzer);
-            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationUnitStartAction(analyzerAction);
-        }
-
         public void RegisterSymbolEndAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action)
         {
             var analyzerAction = new SymbolEndAnalyzerAction(action, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSymbolEndAction(analyzerAction);
+        }
+
+        public void RegisterCompilationUnitStartAction(DiagnosticAnalyzer analyzer, Action<CompilationUnitStartAnalysisContext> action)
+        {
+            var analyzerAction = new CompilationUnitStartAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddCompilationUnitStartAction(analyzerAction);
         }
 
         public void RegisterCodeBlockStartAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
@@ -701,8 +695,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<SemanticModelAnalyzerAction> _semanticModelActions;
         private ImmutableArray<SymbolAnalyzerAction> _symbolActions;
         private ImmutableArray<SymbolStartAnalyzerAction> _symbolStartActions;
-        private ImmutableArray<CompilationUnitStartAnalyzerAction> _compilationUnitStartActions;
         private ImmutableArray<SymbolEndAnalyzerAction> _symbolEndActions;
+        private ImmutableArray<CompilationUnitStartAnalyzerAction> _compilationUnitStartActions;
+        private ImmutableArray<CompilationUnitAnalyzerAction> _compilationUnitEndActions;
         private ImmutableArray<AnalyzerAction> _codeBlockStartActions;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions;
