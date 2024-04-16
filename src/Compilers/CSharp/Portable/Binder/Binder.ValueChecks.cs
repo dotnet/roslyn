@@ -1408,6 +1408,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (since we don't know which is being used).
                     return false;
                 }
+
+                if (RequiresVariableReceiver(receiver, eventSymbol) && !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
+                {
+                    return false;
+                }
+
+                return true;
             }
             else
             {
@@ -1446,12 +1453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
-
-            }
-
-            if (RequiresVariableReceiver(receiver, eventSymbol) && !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
-            {
-                return false;
             }
 
             return true;
