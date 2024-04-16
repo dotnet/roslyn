@@ -1872,7 +1872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsBadLocalOrParameterCapture(Symbol symbol, TypeSymbol type, RefKind refKind)
         {
-            if (refKind != RefKind.None || type.IsRestrictedType())
+            if (refKind != RefKind.None || type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
             {
                 var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
@@ -2056,7 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool capture = (this.ContainingMember() is MethodSymbol containingMethod && (object)primaryCtor != containingMethod);
 
                                 if (capture &&
-                                    (parameter.RefKind != RefKind.None || parameter.Type.IsRestrictedType()) &&
+                                    (parameter.RefKind != RefKind.None || parameter.Type.IsRestrictedType()) && // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                                     !IsInsideNameof)
                                 {
                                     if (parameter.RefKind != RefKind.None)
@@ -3126,7 +3126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
-                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrRefLikeType())
+                if (localSymbol.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike())
                 {
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                 }
@@ -3187,7 +3187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(errorCode is ErrorCode.ERR_BadSpecialByRefLocal or ErrorCode.ERR_BadSpecialByRefUsing or ErrorCode.ERR_BadSpecialByRefLock);
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
-                && type.IsRestrictedType())
+                && type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
             {
                 if (errorCode == ErrorCode.ERR_BadSpecialByRefLock)
                 {
@@ -4025,7 +4025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bestType = CreateErrorType();
             }
 
-            if (bestType.IsRestrictedType())
+            if (bestType.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Test this for 'allows ref struct' type parameters? 
             {
                 // CS0611: Array elements cannot be of type '{0}'
                 Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
@@ -7503,7 +7503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < typeArgumentsWithAnnotations.Length; ++i)
                 {
                     var typeArgument = typeArgumentsWithAnnotations[i];
-                    if (typeArgument.Type.IsPointerOrFunctionPointer() || typeArgument.Type.IsRestrictedType())
+                    if (typeArgument.Type.IsPointerOrFunctionPointer() || typeArgument.Type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing? 
                     {
                         // "The type '{0}' may not be used as a type argument"
                         Error(diagnostics, ErrorCode.ERR_BadTypeArgument, typeArgumentsSyntax[i], typeArgument.Type);
@@ -10858,6 +10858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - access cannot have unconstrained generic type
             // - access cannot be a pointer
             // - access cannot be a restricted type
+            // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
             if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerOrFunctionPointer() || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.

@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Pointer types and very special types are not convertible to object.
 
-            return !type.IsPointerOrFunctionPointer() && !type.IsRestrictedType() && !type.IsVoidType();
+            return !type.IsPointerOrFunctionPointer() && !type.IsRestrictedType() && !type.IsVoidType(); // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
         }
 
         private BoundExpression BindDynamicBinaryOperator(
@@ -3513,7 +3513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // * If either type is a restricted type, the type check isn't supported because
                     //   a restricted type cannot be boxed or unboxed into.
-                    if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
+                    if (targetType.IsRestrictedType() || operandType.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                     {
                         return ConstantValue.Bad;
                     }

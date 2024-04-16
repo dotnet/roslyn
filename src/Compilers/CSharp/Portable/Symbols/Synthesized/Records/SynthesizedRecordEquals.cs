@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "other", Locations)));
+                                                                    ordinal: 0, RefKind.None, "other", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 1;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.GetFirstLocationOrNone(), parameterType);
                             foundBadField = true;
                         }
-                        else if (parameterType.IsRestrictedType())
+                        else if (parameterType.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                         {
                             // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
                             foundBadField = true;

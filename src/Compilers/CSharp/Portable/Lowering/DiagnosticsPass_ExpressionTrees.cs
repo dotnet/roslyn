@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !(node is BoundConversion) &&
                 node is BoundExpression expr &&
                 expr.Type is TypeSymbol type &&
-                type.IsRestrictedType())
+                type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
             {
                 Error(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, node, type.Name);
             }
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, location);
                     }
-                    if (p.TypeWithAnnotations.IsRestrictedType())
+                    if (p.TypeWithAnnotations.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                     {
                         _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.GetFirstLocation(), p.Type.Name);
                     }

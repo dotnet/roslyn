@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                     }
 
-                    if (type.IsRestrictedType() == true)
+                    if (type.IsRestrictedType() == true) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                     {
                         _diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
                     }

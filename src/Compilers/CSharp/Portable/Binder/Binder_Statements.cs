@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax);
 
-            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike())
             {
                 localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }

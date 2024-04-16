@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return hasDefaultScope(useUpdatedEscapeRules, field) &&
                     field.Type is { } type &&
                     !type.IsPointerOrFunctionPointer() &&
-                    !type.IsRestrictedType() &&
+                    !type.IsRestrictedType() && // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
                     (!field.IsParams || field.Type.IsSZArray()); // [params T collection] is not recognized as a valid params parameter definition
             }
 

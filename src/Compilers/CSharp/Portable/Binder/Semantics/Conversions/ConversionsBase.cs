@@ -3280,7 +3280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // There are a couple of exceptions. The very special types ArgIterator, ArgumentHandle and 
             // TypedReference are not boxable: 
 
-            if (source.IsRestrictedType())
+            if (source.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
             {
                 return false;
             }
@@ -3753,7 +3753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Ref-like types cannot be boxed or unboxed
-            if (destination.IsRestrictedType())
+            if (destination.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
             {
                 return false;
             }

@@ -16822,7 +16822,814 @@ public class Helper
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("T", "U").WithLocation(12, 16)
                 );
         }
+
+        [Fact]
+        public void CallObjectMember()
+        {
+            var src = @"
+public class Helper
+{
+    static string Test1<T>(T x)
+        where T : allows ref struct
+    {
+        return x.ToString();
     }
 
-    // PROTOTYPE(RefStructInterfaces): New T() - System.Security.VerificationException : Method System.Activator.CreateInstance: type argument 'S' violates the constraint of type parameter 'T'.
+    static string Test2(S y)
+    {
+        return y.ToString();
+    }
+}
+
+ref struct S
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0029: Cannot implicitly convert type 'T' to 'object'
+                //         return x.ToString();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "object").WithLocation(7, 16),
+                // (12,16): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //         return y.ToString();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("S", "System.ValueType").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void AnonymousTypeMember_01()
+        {
+            var src = @"
+public class Helper
+{
+    static void Test<T>(T x)
+        where T : allows ref struct
+    {
+        var y = new { x };
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,23): error CS0828: Cannot assign 'T' to anonymous type property
+                //         var y = new { x };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "x").WithArguments("T").WithLocation(7, 23)
+                );
+        }
+
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(RefStructInterfaces): Follow up on used assemblies validation failure. Could be an artifact of https://github.com/dotnet/roslyn/issues/72945.
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72945")]
+        public void AnonymousTypeMember_02()
+        {
+            var src = @"
+public class Helper
+{
+    static void Test1<T>(MyEnumerable<T> outer, MyEnumerable<T> inner1, MyEnumerable<T> inner2)
+        where T : I1, allows ref struct
+    {
+#line 100
+        var q = from x in outer join y in inner1 on x.P equals y.P
+                                join z in inner2 on y.P equals z.P
+                                select 1;
+    }
+
+    static void Test2(MyEnumerable<S1> outer, MyEnumerable<S1> inner1, MyEnumerable<S1> inner2)
+    {
+#line 200
+        var q = from x in outer join y in inner1 on x.P equals y.P
+                                join z in inner2 on y.P equals z.P
+                                select 1;
+    }
+}
+
+class MyEnumerable<T>
+    where T : allows ref struct
+{
+    public MyEnumerable<TResult> Join<TInner, TKey,TResult> (MyEnumerable<TInner> inner, MyFunc<T,TKey> outerKeySelector, MyFunc<TInner,TKey> innerKeySelector, MyFunc<T,TInner,TResult> resultSelector)
+        where TInner : allows ref struct
+        where TKey : allows ref struct
+        where TResult : allows ref struct
+        => throw null;
+
+    public MyEnumerable<TResult> Select<TResult> (MyFunc<T,TResult> selector)
+        where TResult : allows ref struct
+        => throw null;
+}
+
+delegate TResult MyFunc<in T,out TResult>(T arg)
+    where T : allows ref struct
+    where TResult : allows ref struct;
+delegate TResult MyFunc<in T1,in T2,out TResult>(T1 arg1, T2 arg2)
+    where T1 : allows ref struct
+    where T2 : allows ref struct
+    where TResult : allows ref struct;
+
+interface I1
+{
+    int P {get;}
+}
+
+ref struct S1
+{
+    public int P {get;set;}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // Errors are expected for both queries, but it is a pre-existing condition - https://github.com/dotnet/roslyn/issues/72945    
+                );
+        }
+
+        [Fact]
+        public void Makeref()
+        {
+            var src = @"
+public class Helper
+{
+    static void Test1<T>(T x)
+        where T : allows ref struct
+    {
+        System.TypedReference tr = __makeref(x);
+    }
+
+    static void Test2(S y)
+    {
+        System.TypedReference tr = __makeref(y);
+    }
+}
+
+ref struct S
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,36): error CS1601: Cannot make reference to variable of type 'T'
+                //         System.TypedReference tr = __makeref(x);
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(x)").WithArguments("T").WithLocation(7, 36),
+                // (12,36): error CS1601: Cannot make reference to variable of type 'S'
+                //         System.TypedReference tr = __makeref(y);
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(y)").WithArguments("S").WithLocation(12, 36)
+                );
+        }
+
+        [Fact]
+        public void ScopedTypeParameter_01()
+        {
+            var src = @"
+public class Helper
+{
+    static void Test1<T>(scoped T x)
+        where T : allows ref struct
+    {
+    }
+
+    static void Test2(scoped S y)
+    {
+    }
+
+    static void Test3<T>(scoped T z)
+    {
+    }
+
+    static void Test4<T>()
+    {
+        var d = void (scoped T u) => {};   
+        d(default);
+    }
+}
+
+ref struct S
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (13,26): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void Test3<T>(scoped T z)
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T z").WithLocation(13, 26),
+                // (19,23): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         var d = void (scoped T u) => {};   
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T u").WithLocation(19, 23)
+                );
+
+            var src2 = @"
+public class Helper
+{
+    public static void Test1<T>(scoped T x)
+        where T : allows ref struct
+    {
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(
+                comp2, symbolValidator: validate, sourceSymbolValidator: validate,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                var p = m.GlobalNamespace.GetMember<MethodSymbol>("Helper.Test1").Parameters[0];
+                AssertEx.Equal("scoped T x", p.ToTestDisplayString());
+                Assert.Equal(ScopedKind.ScopedValue, p.EffectiveScope);
+            }
+        }
+
+        [Fact]
+        public void ScopedTypeParameter_02()
+        {
+            var src = @"
+#pragma warning disable CS0219 // The variable 'x' is assigned but its value is never used
+
+public class Helper
+{
+    static void Test1<T>()
+        where T : allows ref struct
+    {
+        scoped T x = default;
+    }
+
+    static void Test2()
+    {
+        scoped S y = default;
+    }
+
+    static void Test3<T>()
+    {
+        scoped T z = default;
+    }
+}
+
+ref struct S
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (19,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         scoped T z = default;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "T").WithLocation(19, 16)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            AssertEx.Equal("x = default", declarator.ToString());
+            var local = model.GetDeclaredSymbol(declarator).GetSymbol<LocalSymbol>();
+            AssertEx.Equal("T x", local.ToTestDisplayString());
+            Assert.Equal(ScopedKind.ScopedValue, local.Scope);
+        }
+
+        [Fact]
+        public void LiftedUnaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+struct S1<T>
+    where T : struct, allows ref struct
+{
+    public static T operator+(S1<T> s1) => throw null;
+
+    static void Test()
+    {
+        S1<T>? s1 = default;
+        var s2 = +s1;
+    }
+}
+";
+
+            var comp = CreateCompilation(code, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS0023: Operator '+' cannot be applied to operand of type 'S1<T>?'
+                //         var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1<T>?").WithLocation(10, 18)
+                );
+        }
+
+        [Fact]
+        public void RefField()
+        {
+            var src = @"
+#pragma warning disable CS0169 // The field is never used
+
+ref struct S1
+{
+}
+
+ref struct S2<T>
+    where T : allows ref struct
+{
+    ref S1 a;
+    ref T b;
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (11,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref S1 a;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref S1").WithLocation(11, 5),
+                // (12,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref T b;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref T").WithLocation(12, 5)
+                );
+        }
+
+        [Fact]
+        public void UnscopedRef_01()
+        {
+            var sourceA =
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+
+public class Helper
+{
+    static void Test1<T>([UnscopedRef] params T x)
+        where T : IEnumerable<int>, IAdd, new(), allows ref struct
+    {
+    }
+
+    static void Test2([UnscopedRef] params S y)
+    {
+    }
+
+    static void Test3<T>([UnscopedRef] params T z)
+        where T : IEnumerable<int>, IAdd, new()
+    {
+    }
+}
+
+interface IAdd
+{
+    void Add(int x);
+}
+
+ref struct S : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+    public void Add(int x){}
+}
+";
+            var comp = CreateCompilation(sourceA, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (16,27): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     static void Test3<T>([UnscopedRef] params T z)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(16, 27)
+                );
+
+            var src2 = @"
+using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+
+public class Helper
+{
+    public static void Test1<T>([UnscopedRef] params T x)
+        where T : IEnumerable<int>, IAdd, new(), allows ref struct
+    {
+    }
+}
+
+public interface IAdd
+{
+    void Add(int x);
+}
+";
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(
+                comp2, symbolValidator: validate, sourceSymbolValidator: validate,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                var p = m.GlobalNamespace.GetMember<MethodSymbol>("Helper.Test1").Parameters[0];
+                AssertEx.Equal("params T x", p.ToTestDisplayString());
+                Assert.Equal(ScopedKind.None, p.EffectiveScope);
+            }
+        }
+
+        [Fact]
+        public void UnscopedRef_02()
+        {
+            var sourceA =
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+
+public class Helper
+{
+    static void Test1<T>([UnscopedRef] params scoped T x)
+        where T : IEnumerable<int>, IAdd, new(), allows ref struct
+    {
+    }
+
+    static void Test2([UnscopedRef] params scoped S y)
+    {
+    }
+}
+
+interface IAdd
+{
+    void Add(int x);
+}
+
+ref struct S : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+    public void Add(int x){}
+}
+";
+            var comp = CreateCompilation(sourceA, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     static void Test1<T>([UnscopedRef] params scoped T x)
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(7, 27),
+                // (12,24): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     static void Test2([UnscopedRef] params scoped S y)
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(12, 24)
+                );
+        }
+
+        [Fact]
+        public void ScopedByDefault_01()
+        {
+            var src =
+@"
+using System.Collections.Generic;
+
+class Helper
+{
+    public static void Test1<T>(params T x)
+        where T : IEnumerable<int>, IAdd, new(), allows ref struct
+    {
+    }
+
+    public static void Test2(params S y)
+    {
+    }
+
+    public static void Test3<T>(params T z)
+        where T : IEnumerable<int>, IAdd, new()
+    {
+    }
+}
+
+interface IAdd
+{
+    void Add(int x);
+}
+
+ref struct S : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+    public void Add(int x){}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(
+                comp, symbolValidator: validate, sourceSymbolValidator: validate,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol m)
+            {
+                var p = m.GlobalNamespace.GetMember<MethodSymbol>("Helper.Test1").Parameters[0];
+                AssertEx.Equal("params scoped T x", p.ToTestDisplayString()); // PROTOTYPE(RefStructInterfaces): Adjust symbol display to drop "scoped" once we have a necessary public API to check for 'AllowsRefLike'
+                Assert.Equal(ScopedKind.ScopedValue, p.EffectiveScope);
+
+                p = m.GlobalNamespace.GetMember<MethodSymbol>("Helper.Test2").Parameters[0];
+                AssertEx.Equal("params S y", p.ToTestDisplayString());
+                Assert.Equal(ScopedKind.ScopedValue, p.EffectiveScope);
+
+                p = m.GlobalNamespace.GetMember<MethodSymbol>("Helper.Test3").Parameters[0];
+                AssertEx.Equal("params T z", p.ToTestDisplayString());
+                Assert.Equal(ScopedKind.None, p.EffectiveScope);
+            }
+        }
+
+        [Fact]
+        public void SystemActivatorCreateInstance()
+        {
+            var sourceA =
+@"
+public class Helper
+{
+    static void Test1<T>()
+        where T : new(), allows ref struct
+    {
+        _ = System.Activator.CreateInstance<T>();
+    }
+
+    static void Test2()
+    {
+        _ = System.Activator.CreateInstance<S>();
+    }
+}
+
+ref struct S
+{
+}
+";
+            var comp = CreateCompilation(sourceA, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): 'System.Activator.CreateInstance<T>' will be changed to include 'allows ref struct' constraint,
+            //                                 see https://github.com/dotnet/runtime/issues/65112.
+            //                                 We rely on this API for 'new T()' when there is a 'new()' constraint. It feels like we need to add 
+            //                                 an explicit constraint check for the API before we use it, none is done at the moment.
+            //                                 Need to add tests for 'new T()' and cover both scenarios (the 'allows ref struct' constraint is present and absent).
+            comp.VerifyDiagnostics(
+                // (7,30): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
+                //         _ = System.Activator.CreateInstance<T>();
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "CreateInstance<T>").WithArguments("System.Activator.CreateInstance<T>()", "T", "T").WithLocation(7, 30),
+                // (12,30): error CS9504: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
+                //         _ = System.Activator.CreateInstance<S>();
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "CreateInstance<S>").WithArguments("System.Activator.CreateInstance<T>()", "T", "S").WithLocation(12, 30)
+                );
+        }
+
+        [Fact]
+        public void Field()
+        {
+            var src = @"
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
+
+class C<T>
+    where T : allows ref struct
+{
+    public T P1;
+    public S P2;
+}
+
+ref struct S1<T>
+    where T : allows ref struct
+{
+    public static T P3;
+    public static S P4;
+}
+
+ref struct S2<T>
+    where T : allows ref struct
+{
+    public T P5;
+    public S P6;
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS8345: Field or auto-implemented property cannot be of type 'T' unless it is an instance member of a ref struct.
+                //     public T P1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T").WithArguments("T").WithLocation(7, 12),
+                // (8,12): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     public S P2;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(8, 12),
+                // (14,19): error CS8345: Field or auto-implemented property cannot be of type 'T' unless it is an instance member of a ref struct.
+                //     public static T P3;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T").WithArguments("T").WithLocation(14, 19),
+                // (15,19): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     public static S P4;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(15, 19)
+                );
+        }
+
+        [Fact]
+        public void AutoProperty()
+        {
+            var src = @"
+class C<T>
+    where T : allows ref struct
+{
+    public T P1 {get; set;}
+    public S P2 {get; set;}
+}
+
+ref struct S1<T>
+    where T : allows ref struct
+{
+    public static T P3 {get; set;}
+    public static S P4 {get; set;}
+}
+
+ref struct S2<T>
+    where T : allows ref struct
+{
+    public T P5 {get; set;}
+    public S P6 {get; set;}
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (5,12): error CS8345: Field or auto-implemented property cannot be of type 'T' unless it is an instance member of a ref struct.
+                //     public T P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T").WithArguments("T").WithLocation(5, 12),
+                // (6,12): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     public S P2 {get; set;}
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(6, 12),
+                // (12,19): error CS8345: Field or auto-implemented property cannot be of type 'T' unless it is an instance member of a ref struct.
+                //     public static T P3 {get; set;}
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T").WithArguments("T").WithLocation(12, 19),
+                // (13,19): error CS8345: Field or auto-implemented property cannot be of type 'S' unless it is an instance member of a ref struct.
+                //     public static S P4 {get; set;}
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(13, 19)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayElement()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(10)]
+ref struct S1<T>
+    where T : allows ref struct
+{
+    T _f;
+}
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+ref struct S2
+{
+    S _f;
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
+                // (12,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     S _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7)
+                );
+        }
+
+        [Fact]
+        public void AsyncParameter()
+        {
+            var src = @"
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously.
+
+public class Helper
+{
+    static async void Test1<T>(T x)
+        where T : allows ref struct
+    {
+    }
+
+    static async void Test2(S y)
+    {
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (6,34): error CS4012: Parameters or locals of type 'T' cannot be declared in async methods or async lambda expressions.
+                //     static async void Test1<T>(T x)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "x").WithArguments("T").WithLocation(6, 34),
+                // (11,31): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or async lambda expressions.
+                //     static async void Test2(S y)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "y").WithArguments("S").WithLocation(11, 31)
+                );
+        }
+
+        [Fact]
+        public void MissingScopedInOverride_01()
+        {
+            var src = @"
+abstract class Base
+{
+    protected abstract T Test1<T>(scoped T x)
+        where T : allows ref struct;
+
+    protected abstract S Test2(scoped S y);
+}
+
+abstract class Derived1 : Base
+{
+    protected abstract override T Test1<T>(T x);
+
+    protected abstract override S Test2(S y);
+}
+
+abstract class Derived2 : Base
+{
+    protected abstract override T Test1<T>(scoped T x);
+
+    protected abstract override S Test2(scoped S y);
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (12,35): error CS8987: The 'scoped' modifier of parameter 'x' doesn't match overridden or implemented member.
+                //     protected abstract override T Test1<T>(T x);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("x").WithLocation(12, 35),
+                // (14,35): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     protected abstract override S Test2(S y);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("y").WithLocation(14, 35)
+                );
+        }
+
+        [Fact]
+        public void MissingScopedInOverride_02()
+        {
+            var src = @"
+abstract class Base
+{
+    protected abstract void Test1<T>(scoped T x, out T z)
+        where T : allows ref struct;
+
+    protected abstract void Test2(scoped S y, out S z);
+}
+
+abstract class Derived1 : Base
+{
+    protected abstract override void Test1<T>(T x, out T z);
+
+    protected abstract override void Test2(S y, out S z);
+}
+
+abstract class Derived2 : Base
+{
+    protected abstract override void Test1<T>(scoped T x, out T z);
+
+    protected abstract override void Test2(scoped S y, out S z);
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (12,38): error CS8987: The 'scoped' modifier of parameter 'x' doesn't match overridden or implemented member.
+                //     protected abstract override void Test1<T>(T x, out T z);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test1").WithArguments("x").WithLocation(12, 38),
+                // (14,38): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
+                //     protected abstract override void Test2(S y, out S z);
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("y").WithLocation(14, 38)
+                );
+        }
+
+        [Fact(Skip = "'byreflike' in IL is not supported yet")] // PROTOTYPE(RefStructInterfaces): Enable once we get support for 'byreflike' in IL.
+        public void RefFieldTypeAllowsRefLike()
+        {
+            // ref struct R2<T> where T : allows ref struct
+            // {
+            //     public ref T F;
+            // }
+            var sourceA =
+@"
+.class public sealed R2`1<byreflike T> extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public !T& F
+}
+";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void F<T >(ref T r1) where T : allows ref struct
+    {
+        var r2 = new R2();
+        r2.F = ref r1;
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS0570: 'R2.F' is not supported by the language
+                //         r2.F = ref r1;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2.F").WithLocation(6, 12)
+                );
+        }
+    }
 }
