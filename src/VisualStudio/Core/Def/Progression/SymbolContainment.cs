@@ -52,7 +52,7 @@ internal static class SymbolContainment
             }
         }
 
-        return symbols.ToImmutable();
+        return symbols.ToImmutableAndClear();
     }
 
     private static bool IsTopLevelSymbol(ISymbol symbol)

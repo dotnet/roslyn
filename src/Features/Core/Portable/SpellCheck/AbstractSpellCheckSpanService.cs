@@ -37,7 +37,7 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
             var worker = new Worker(this, syntaxFacts, classifier, virtualCharService, spans);
             worker.Recurse(root, cancellationToken);
 
-            return spans.ToImmutable();
+            return spans.ToImmutableAndClear();
         }
     }
 

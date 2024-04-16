@@ -123,7 +123,7 @@ internal sealed partial class SymbolicRenameLocations
         foreach (var overloadedSymbol in RenameUtilities.GetOverloadedSymbols(symbol))
             overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, cancellationToken).ConfigureAwait(false));
 
-        return overloadsResult.ToImmutable();
+        return overloadsResult.ToImmutableAndClear();
     }
 
     private static async Task<SearchResult> AddLocationsReferenceSymbolsAsync(

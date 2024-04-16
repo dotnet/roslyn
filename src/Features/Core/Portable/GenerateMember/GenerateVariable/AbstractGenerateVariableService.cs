@@ -87,7 +87,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                     isInlinable: true)];
             }
 
-            return actions.ToImmutable();
+            return actions.ToImmutableAndClear();
         }
     }
 

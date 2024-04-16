@@ -67,6 +67,6 @@ internal class CSharpDocumentHighlightsService(
             }
         }
 
-        return results.ToImmutable();
+        return results.ToImmutableAndClear();
     }
 }

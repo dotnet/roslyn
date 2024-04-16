@@ -419,7 +419,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                 innerStatement = (TStatementSyntax)node;
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private SyntaxNode GetRootWithInvertIfStatement(

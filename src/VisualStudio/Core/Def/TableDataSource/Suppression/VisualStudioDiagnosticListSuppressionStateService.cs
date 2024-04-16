@@ -326,7 +326,7 @@ internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudio
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static async Task<ImmutableDictionary<string, Document>> GetFilePathToDocumentMapAsync(Project project, CancellationToken cancellationToken)

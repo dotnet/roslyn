@@ -10,12 +10,11 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CodeGenerationHelpers;
+using static CSharpCodeGenerationHelpers;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
@@ -117,7 +116,7 @@ internal static class ConstructorGenerator
 
     private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (constructor.IsStatic)
         {
@@ -125,14 +124,12 @@ internal static class ConstructorGenerator
         }
         else
         {
-            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, info, Accessibility.Private);
+            AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, info, Accessibility.Private);
         }
 
         if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))
-        {
             tokens.Add(UnsafeKeyword);
-        }
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return [.. tokens];
     }
 }

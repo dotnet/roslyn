@@ -175,7 +175,7 @@ internal sealed class FindReferenceCache
                 index = nextIndex;
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 
@@ -206,6 +206,6 @@ internal sealed class FindReferenceCache
             }
         }
 
-        return initializers.ToImmutable();
+        return initializers.ToImmutableAndClear();
     }
 }

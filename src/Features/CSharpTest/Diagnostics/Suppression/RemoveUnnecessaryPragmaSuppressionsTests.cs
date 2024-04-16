@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
                             }
                         }
 
-                        return builder.ToImmutable();
+                        return builder.ToImmutableAndClear();
                     }
                 }
             }
