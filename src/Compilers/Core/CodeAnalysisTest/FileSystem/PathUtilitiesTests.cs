@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -289,6 +290,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCDE", @"C:\ABCD"));
 
             Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\B\C", @"C:\A\B\C\D"));
+        }
+
+        [Fact]
+        public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity()
+        {
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"c:\ABCD\EFGH", @"C:\ABCDH", StringComparison.OrdinalIgnoreCase));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\abcd\EFGH", @"C:\ABCDH", StringComparison.OrdinalIgnoreCase));
+
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"c:\ABCD\EFGH", @"C:\ABCDH", StringComparison.Ordinal));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\abcd\EFGH", @"C:\ABCDH", StringComparison.Ordinal));
         }
 
         [Fact]

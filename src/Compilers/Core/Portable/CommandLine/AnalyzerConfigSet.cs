@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var config = _analyzerConfigs[analyzerConfigIndex];
 
-                if (isNormalizedPathInDirectory(normalizedPath, config.NormalizedDirectory))
+                if (PathUtilities.IsSameDirectoryOrChildOf(normalizedPath, config.NormalizedDirectory, StringComparison.Ordinal))
                 {
                     // If this config is a root config, then clear earlier options since they don't apply
                     // to this source file.
@@ -324,26 +324,6 @@ namespace Microsoft.CodeAnalysis
             {
                 sectionKey.Clear();
                 pool.Free(sectionKey);
-            }
-
-            static bool isNormalizedPathInDirectory(string path, string directory)
-            {
-                if (path.StartsWith(directory, StringComparison.Ordinal))
-                {
-                    if (directory[^1] == '/')
-                    {
-                        // directory had trailing '/', prefix comparison is good enough
-                        return true;
-                    }
-
-                    if (path.Length > directory.Length && path[directory.Length] == '/')
-                    {
-                        // directory didn't have trailing '/', but still would have matched if it had
-                        return true;
-                    }
-                }
-
-                return false;
             }
         }
 
