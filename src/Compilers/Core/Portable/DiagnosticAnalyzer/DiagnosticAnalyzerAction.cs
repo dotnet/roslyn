@@ -68,6 +68,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 
+    internal sealed class CompilationUnitStartAnalyzerAction(Action<CompilationUnitStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
+        : AnalyzerAction(analyzer)
+    {
+        public Action<CompilationUnitStartAnalysisContext> Action { get; } = action;
+    }
+
     internal sealed class OperationBlockStartAnalyzerAction : AnalyzerAction
     {
         public Action<OperationBlockStartAnalysisContext> Action { get; }
@@ -112,12 +118,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Action = action;
         }
-    }
-
-    internal sealed class CompilationUnitStartAnalyzerAction(Action<CompilationUnitStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : AnalyzerAction(analyzer)
-    {
-        public Action<CompilationUnitStartAnalysisContext> Action { get; } = action;
     }
 
     internal sealed class CompilationAnalyzerAction : AnalyzerAction
