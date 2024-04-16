@@ -259,8 +259,7 @@ internal partial class SuggestedActionsSourceProvider
             }
         }
 
-        private TextSpan? TryGetCodeRefactoringSelection(
-            ReferenceCountedDisposable<State> state, SnapshotSpan range)
+        private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
