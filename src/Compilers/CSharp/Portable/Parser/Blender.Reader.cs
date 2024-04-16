@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Now, skip past it.
                 _changeDelta += node.FullWidth;
                 _oldDirectives = node.ApplyDirectives(_oldDirectives);
-                _oldTreeCursor = MoveToNextSibling(_oldTreeCursor);
+                _oldTreeCursor = Cursor.MoveToNextSibling(_oldTreeCursor);
 
                 // If our cursor is now after any changes, then just skip past them while upping
                 // the changeDelta length.  This will let us know that we need to read tokens
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // We can reuse this node or token.  Move us forward in the new text, and move to the
                 // next sibling.
                 _newPosition += currentNodeOrToken.FullWidth;
-                _oldTreeCursor = MoveToNextSibling(_oldTreeCursor);
+                _oldTreeCursor = Cursor.MoveToNextSibling(_oldTreeCursor);
 
                 _newDirectives = currentNodeOrToken.ApplyDirectives(_newDirectives);
                 _oldDirectives = currentNodeOrToken.ApplyDirectives(_oldDirectives);
@@ -213,26 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     node: (CSharp.CSharpSyntaxNode)currentNodeOrToken.AsNode(),
                     token: (InternalSyntax.SyntaxToken)currentNodeOrToken.AsToken().Node);
                 return true;
-            }
-
-            private static Cursor MoveToNextSibling(Cursor cursor)
-            {
-                // Iteratively walk over the tree so that we don't stack overflow trying to recurse into anything.
-                while (cursor.CurrentNodeOrToken.UnderlyingNode != null)
-                {
-                    var nextSibling = cursor.TryFindNextNonZeroWidthOrIsEndOfFileSibling();
-
-                    // If we got a valid sibling, return it.
-                    if (nextSibling.CurrentNodeOrToken.UnderlyingNode != null)
-                        return nextSibling;
-
-                    // We're at the end of this sibling chain.  Walk up to the parent and see who is
-                    // the next sibling of that.
-                    cursor = cursor.MoveToParent();
-                }
-
-                // Couldn't find anything, bail out.
-                return default;
             }
 
             private bool CanReuse(SyntaxNodeOrToken nodeOrToken)

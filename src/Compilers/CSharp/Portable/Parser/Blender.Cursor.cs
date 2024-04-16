@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             /// Returns the cursor of our next non-empty (or EOF) sibling in our parent if one exists, or `default` if
             /// if doesn't.
             /// </summary>
-            public Cursor TryFindNextNonZeroWidthOrIsEndOfFileSibling()
+            private Cursor TryFindNextNonZeroWidthOrIsEndOfFileSibling()
             {
                 if (this.CurrentNodeOrToken.Parent != null)
                 {
@@ -79,11 +79,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return default(Cursor);
             }
 
-            public Cursor MoveToParent()
+            private Cursor MoveToParent()
             {
                 var parent = this.CurrentNodeOrToken.Parent;
                 var index = IndexOfNodeInParent(parent);
                 return new Cursor(parent, index);
+            }
+
+            public static Cursor MoveToNextSibling(Cursor cursor)
+            {
+                // Iteratively walk over the tree so that we don't stack overflow trying to recurse into anything.
+                while (cursor.CurrentNodeOrToken.UnderlyingNode != null)
+                {
+                    var nextSibling = cursor.TryFindNextNonZeroWidthOrIsEndOfFileSibling();
+
+                    // If we got a valid sibling, return it.
+                    if (nextSibling.CurrentNodeOrToken.UnderlyingNode != null)
+                        return nextSibling;
+
+                    // We're at the end of this sibling chain.  Walk up to the parent and see who is
+                    // the next sibling of that.
+                    cursor = cursor.MoveToParent();
+                }
+
+                // Couldn't find anything, bail out.
+                return default;
             }
 
             private static int IndexOfNodeInParent(SyntaxNode node)
