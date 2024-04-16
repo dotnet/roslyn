@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -154,6 +153,11 @@ internal static partial class CSharpCodeStyleOptions
         CodeStyleOptionGroups.Modifier,
         "csharp_prefer_static_local_function",
         CSharpIdeCodeStyleOptions.Default.PreferStaticLocalFunction);
+
+    public static readonly Option2<CodeStyleOption2<bool>> PreferStaticAnonymousFunction = CreateOption(
+        CodeStyleOptionGroups.Modifier,
+        "csharp_prefer_static_anonymous_function",
+        CSharpIdeCodeStyleOptions.Default.PreferStaticAnonymousFunction);
 
     public static readonly Option2<CodeStyleOption2<bool>> PreferReadOnlyStruct = CreateOption(
         CodeStyleOptionGroups.Modifier,
