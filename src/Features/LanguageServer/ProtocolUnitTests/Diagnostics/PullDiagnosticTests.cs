@@ -1265,7 +1265,11 @@ class A {
 
         var workspaceResults2 = await RunGetWorkspacePullDiagnosticsAsync(
             testLspServer, useVSDiagnostics: true, previousResults: workspaceResults1.SelectAsArray(r => (r.ResultId, r.TextDocument)), includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
-        Assert.Empty(workspaceResults2);
+        AssertEx.Equal(
+        [
+            "file:///C:/test2.cs -> []",
+            "file:///C:/Test.csproj -> []",
+        ], workspaceResults2.Select(Inspect));
 
         // deactivate EnC session:
 
