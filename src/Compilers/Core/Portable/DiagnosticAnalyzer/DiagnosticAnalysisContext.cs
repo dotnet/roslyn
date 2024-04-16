@@ -586,35 +586,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public abstract class CompilationUnitStartAnalysisContext
     {
-        private readonly Compilation _compilation;
-        private readonly AnalyzerOptions _options;
-        private readonly CancellationToken _cancellationToken;
-        private readonly SyntaxTree _compilationUnit;
+        /// <inheritdoc cref="CompilationAnalysisContext.Compilation"/>
+        public Compilation Compilation { get; }
+
+        /// <inheritdoc cref="CompilationAnalysisContext.Options"/>
+        public AnalyzerOptions Options { get; }
+
+        /// <inheritdoc cref="CompilationAnalysisContext.CancellationToken"/>
+        public CancellationToken CancellationToken { get; }
 
         /// <summary>
-        /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
+        /// <see cref="CodeAnalysis.SyntaxTree"/> that is the subject of the analysis.
         /// </summary>
-        public Compilation Compilation { get { return _compilation; } }
+        public SyntaxTree CompilationUnit { get; }
 
-        /// <summary>
-        /// Options specified for the analysis.
-        /// </summary>
-        public AnalyzerOptions Options { get { return _options; } }
-
-        /// <summary>
-        /// Token to check for requested cancellation of the analysis.
-        /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
-
-        public SyntaxTree CompilationUnit => _compilationUnit;
-
-        protected CompilationUnitStartAnalysisContext(Compilation compilation, AnalyzerOptions options, SyntaxTree compilationUnit, CancellationToken cancellationToken)
+        private protected CompilationUnitStartAnalysisContext(Compilation compilation, AnalyzerOptions options, SyntaxTree compilationUnit, CancellationToken cancellationToken)
         {
-            _compilation = compilation;
-            _options = options;
-            _compilationUnit = compilationUnit;
-            _cancellationToken = cancellationToken;
+            this.Compilation = compilation;
+            this.Options = options;
+            this.CompilationUnit = compilationUnit;
+            this.CancellationToken = cancellationToken;
         }
+
+        /// <summary>
+        /// Register an action to be executed at the end of compilation unit analysis. A compilation unit end action
+        /// reports <see cref="Diagnostic"/>s about the compilation unit.
+        /// </summary>
+        /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
+        public abstract void RegisterCompilationUnitEndAction(Action<CompilationUnitAnalysisContext> action);
 
         /// <inheritdoc cref="CompilationStartAnalysisContext.RegisterCodeBlockStartAction"/>
         public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
@@ -1213,6 +1212,56 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds);
+    }
+
+    /// <summary>
+    /// Context for a  or compilation unit end action. A compilation unit end action can use a <see
+    /// cref="CompilationUnitAnalysisContext"/> to report <see cref="Diagnostic"/>s about a <see
+    /// cref="CodeAnalysis.Compilation"/>.
+    /// </summary>
+    public readonly struct CompilationUnitAnalysisContext
+    {
+        private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, CancellationToken, bool> _isSupportedDiagnostic;
+
+        /// <inheritdoc cref="CompilationUnitStartAnalysisContext.Compilation"/>
+        public Compilation Compilation { get; }
+
+        /// <inheritdoc cref="CompilationUnitStartAnalysisContext.CompilationUnit"/>
+        public SyntaxTree CompilationUnit { get; }
+
+        /// <inheritdoc cref="CompilationUnitStartAnalysisContext.Options"/>
+        public AnalyzerOptions Options { get; }
+
+        /// <inheritdoc cref="CompilationUnitStartAnalysisContext.CancellationToken"/>
+        public CancellationToken CancellationToken { get; }
+
+        internal CompilationUnitAnalysisContext(
+            Compilation compilation,
+            SyntaxTree compilationUnit,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
+            CancellationToken cancellationToken)
+        {
+            this.Compilation = compilation;
+            this.CompilationUnit = compilationUnit;
+            this.Options = options;
+            _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
+            this.CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Report a <see cref="Diagnostic"/> about a <see cref="CodeAnalysis.Compilation"/>.
+        /// </summary>
+        /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, this.Compilation, _isSupportedDiagnostic, this.CancellationToken);
+            lock (_reportDiagnostic)
+                _reportDiagnostic(diagnostic);
+        }
     }
 
     /// <summary>

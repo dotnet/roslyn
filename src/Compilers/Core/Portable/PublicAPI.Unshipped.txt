@@ -1,14 +1,21 @@
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterCodeBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext>! action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>!>! action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterCompilationUnitEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CompilationUnitAnalysisContext>! action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext>! action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext>! action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext!>! action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext>! action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationUnitAnalysisContext
+Microsoft.CodeAnalysis.Diagnostics.CompilationUnitAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.CompilationUnitAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
+Microsoft.CodeAnalysis.Diagnostics.CompilationUnitAnalysisContext.CompilationUnit.get -> Microsoft.CodeAnalysis.SyntaxTree!
+Microsoft.CodeAnalysis.Diagnostics.CompilationUnitAnalysisContext.CompilationUnitAnalysisContext() -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationUnitAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
+Microsoft.CodeAnalysis.Diagnostics.CompilationUnitAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
 Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.CompilationUnit.get -> Microsoft.CodeAnalysis.SyntaxTree!
-Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.CompilationUnitStartAnalysisContext(Microsoft.CodeAnalysis.Compilation! compilation, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions! options, Microsoft.CodeAnalysis.SyntaxTree! compilationUnit, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
 Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext>! action, params Microsoft.CodeAnalysis.OperationKind[]! operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationUnitStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext>! action, params TLanguageKindEnum[]! syntaxKinds) -> void
