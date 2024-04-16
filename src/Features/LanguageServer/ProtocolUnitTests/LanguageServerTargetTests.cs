@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             AssertServerAlive(server);
 
             await server.ShutdownTestServerAsync();
-            await AssertServerQueueClosed(server).ConfigureAwait(false);
+            await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
             Assert.False(server.GetServerAccessor().GetServerRpc().IsDisposed);
             await server.ExitTestServerAsync();
         }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
             await server.ShutdownTestServerAsync();
             await server.ExitTestServerAsync();
-            await AssertServerQueueClosed(server).ConfigureAwait(false);
+            await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
             Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             AssertServerAlive(server);
 
             server.GetServerAccessor().GetServerRpc().Dispose();
-            await AssertServerQueueClosed(server).ConfigureAwait(false);
+            await server.AssertServerShuttingDownAsync().ConfigureAwait(false);
             Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
 
@@ -141,14 +141,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         {
             Assert.False(server.GetServerAccessor().HasShutdownStarted());
             Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
-        }
-
-        private static async Task AssertServerQueueClosed(TestLspServer server)
-        {
-            var queueAccessor = server.GetQueueAccessor()!.Value;
-            await queueAccessor.WaitForProcessingToStopAsync().ConfigureAwait(false);
-            Assert.True(server.GetServerAccessor().HasShutdownStarted());
-            Assert.True(queueAccessor.IsComplete());
         }
 
         [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]
