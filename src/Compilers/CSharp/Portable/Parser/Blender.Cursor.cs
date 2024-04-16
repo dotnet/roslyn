@@ -74,13 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return new Cursor(sibling, i);
                         }
                     }
-
-                    // We're at the end of this sibling chain.  Have our caller walk up to the parent and see who is
-                    // the next sibling of that.
                 }
 
-                // Don't have a parent, bail out.  This will cause our caller itself to bail when it tries to determine
-                // our parent.
                 return default(Cursor);
             }
 

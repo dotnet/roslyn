@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (nextSibling.CurrentNodeOrToken.UnderlyingNode != null)
                         return nextSibling;
 
+                    // We're at the end of this sibling chain.  Walk up to the parent and see who is the next sibling of that.
                     cursor = cursor.MoveToParent();
                 }
 
