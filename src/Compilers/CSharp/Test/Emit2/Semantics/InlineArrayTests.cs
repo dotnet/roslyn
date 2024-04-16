@@ -22592,7 +22592,7 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UserDefinedIndexer_Warning_17()
+        public void UserDefinedIndexer_Warning_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.InlineArray(4)]
