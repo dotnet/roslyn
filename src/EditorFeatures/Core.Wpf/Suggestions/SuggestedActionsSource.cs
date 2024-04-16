@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var errorTask = GetFixLevelAsync(state, document, range, fallbackOptions, linkedToken);
 
                 // Make a quick jump back to the UI thread to get the user's selection, then go back to the thread pool..
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
                 var selection = TryGetCodeRefactoringSelection(state, range);
                 await Task.Yield().ConfigureAwait(false);
 
