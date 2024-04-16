@@ -782,10 +782,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
         public readonly int SymbolActionsCount { get { return _symbolActions.Length; } }
         public readonly int SymbolStartActionsCount { get { return _symbolStartActions.Length; } }
-        public readonly int CompilationUnitStartActionsCount => _compilationUnitStartActions.Length;
         public readonly int SymbolEndActionsCount { get { return _symbolEndActions.Length; } }
         public readonly int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
         public readonly int OperationActionsCount { get { return _operationActions.Length; } }
+        public readonly int CompilationUnitStartActionsCount => _compilationUnitStartActions.Length;
+        public readonly int CompilationUnitEndActionsCount => _compilationUnitEndActions.Length;
         public readonly int OperationBlockStartActionsCount { get { return _operationBlockStartActions.Length; } }
         public readonly int OperationBlockEndActionsCount { get { return _operationBlockEndActions.Length; } }
         public readonly int OperationBlockActionsCount { get { return _operationBlockActions.Length; } }
