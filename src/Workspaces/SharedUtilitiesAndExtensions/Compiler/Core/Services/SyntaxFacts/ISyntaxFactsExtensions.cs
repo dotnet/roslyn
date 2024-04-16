@@ -36,12 +36,11 @@ internal static class ISyntaxFactsExtensions
         // and all the trivia on each token.  If full-span is false we'll examine all tokens
         // but we'll ignore the leading trivia on the very first trivia and the trailing trivia
         // on the very last token.
-        var stack = s_stackPool.Allocate();
+        using var pooledObject = s_stackPool.GetPooledObject();
+        var stack = pooledObject.Object;
         stack.Push((node, leading: fullSpan, trailing: fullSpan));
 
         var result = IsOnSingleLine(syntaxFacts, stack);
-
-        s_stackPool.ClearAndFree(stack);
 
         return result;
     }
