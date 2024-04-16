@@ -218,4 +218,5 @@ namespace Microsoft.CodeAnalysis.Host
 
         private static string GetRelativeDocumentPath(string projectDirectory, string designTimeDocumentFilePath)
             => PathUtilities.GetRelativePath(projectDirectory, designTimeDocumentFilePath)[..^".g.cs".Length];
+    }
 }
