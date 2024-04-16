@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.UseInterpolatedString;
 
-internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer<TLanguageKindEnum>
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    where TLanguageKindEnum : struct
 {
     protected AbstractUseInterpolatedStringDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseInterpolatedStringDiagnosticId,
@@ -21,7 +25,10 @@ internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer : Abstra
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
+    protected abstract ImmutableArray<TLanguageKindEnum> GetSyntaxKinds();
+
     protected override void InitializeWorker(AnalysisContext context)
-    {
-    }
+        => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKinds());
+
+    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context) => throw new NotImplementedException();
 }
