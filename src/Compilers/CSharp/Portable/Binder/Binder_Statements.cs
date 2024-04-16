@@ -268,6 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
+            // NOTE: Error conditions should be checked above this point; only warning conditions below.
+            else if (this.Flags.Includes(BinderFlags.InLockBody))
+            {
+                Error(diagnostics, ErrorCode.WRN_BadYieldInLock, node.YieldKeyword);
+            }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldReturnStatement(node, argument);

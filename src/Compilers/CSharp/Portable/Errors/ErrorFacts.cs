@@ -207,6 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_BadYieldInLock:
+                    // Warning level 9 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 9 (C# 13) and that can be reported for pre-existing code.
+                    return 9;
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
@@ -2431,6 +2435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
                 case ErrorCode.ERR_ParamsCollectionMissingConstructor:
                 case ErrorCode.ERR_NoModifiersOnUsing:
+                case ErrorCode.WRN_BadYieldInLock:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -2304,6 +2304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        WRN_BadYieldInLock = 9230,
+
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
     }
