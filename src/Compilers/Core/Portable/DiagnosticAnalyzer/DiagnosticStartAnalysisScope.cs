@@ -1064,6 +1064,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._compilationActions = _compilationActions.AddRange(otherActions._compilationActions);
             actions._syntaxTreeActions = _syntaxTreeActions.AddRange(otherActions._syntaxTreeActions);
             actions._additionalFileActions = _additionalFileActions.AddRange(otherActions._additionalFileActions);
+            actions._semanticModelStartActions = _semanticModelStartActions.AddRange(otherActions._semanticModelStartActions);
+            actions._semanticModelEndActions = _semanticModelEndActions.AddRange(otherActions._semanticModelEndActions);
             actions._semanticModelActions = _semanticModelActions.AddRange(otherActions._semanticModelActions);
             actions._symbolActions = _symbolActions.AddRange(otherActions._symbolActions);
             actions._symbolStartActions = appendSymbolStartAndSymbolEndActions ? _symbolStartActions.AddRange(otherActions._symbolStartActions) : _symbolStartActions;
