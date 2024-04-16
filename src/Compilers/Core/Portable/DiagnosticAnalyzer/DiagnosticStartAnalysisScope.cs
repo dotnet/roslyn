@@ -837,13 +837,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             get { return _symbolStartActions; }
         }
 
-        internal readonly ImmutableArray<CompilationUnitStartAnalyzerAction> CompilationUnitStartActions
-            => _compilationUnitStartActions;
-
         internal readonly ImmutableArray<SymbolEndAnalyzerAction> SymbolEndActions
         {
             get { return _symbolEndActions; }
         }
+
+        internal readonly ImmutableArray<CompilationUnitStartAnalyzerAction> CompilationUnitStartActions
+            => _compilationUnitStartActions;
+
+        internal readonly ImmutableArray<CompilationUnitAnalyzerAction> CompilationUnitEndActions
+            => _compilationUnitEndActions;
 
         internal readonly ImmutableArray<CodeBlockAnalyzerAction> CodeBlockEndActions
         {
