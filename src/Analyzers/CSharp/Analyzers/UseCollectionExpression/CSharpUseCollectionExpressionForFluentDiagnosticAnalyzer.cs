@@ -179,10 +179,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         var copiedData = false;
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
 
             // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
             // left hand side of the expression.  In the inner expressions we can have things like `.Concat/.Append`
