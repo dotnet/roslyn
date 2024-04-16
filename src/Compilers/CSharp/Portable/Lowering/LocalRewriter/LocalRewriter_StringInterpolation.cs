@@ -241,6 +241,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case { IsString: true, StringValue: var str }:
                                 stringBuilder.Append(escapeInterpolatedStringLiteral(str ?? ""));
                                 continue;
+
+                            case { IsNull: true }:
+                                // null literal for string? type
+                                continue;
                         }
                     }
                     // this is one of the expression holes
@@ -559,20 +563,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundInterpolatedString.AppendFormattedMethod:
                         {
                             // never be BoundLiteral (can be BoundLocal), so see ConstantValueOpt instead
-                            if (call.Arguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } } literal])
+                            if (call.Arguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } or { IsNull: true } } literal])
                             {
                                 if (reusable.StringLiteral is not null)
                                 {
                                     mergeReusableIntoBuilder();
                                 }
-                                if (literal.ConstantValueOpt.IsString)
-                                    currentStringConst.Builder.Append(literal.ConstantValueOpt.StringValue ?? "");
+                                if (literal.ConstantValueOpt is { IsString: true } or { IsNull: true })
+                                {
+                                    if (literal.ConstantValueOpt.StringValue is { Length: var length and not 0 } value)
+                                    {
+                                        currentStringConst.Builder.Append(value);
+                                    }
+                                }
                                 else
                                     currentStringConst.Builder.Append(literal.ConstantValueOpt.CharValue);
                                 lastAppendReceiver = call.ReceiverOpt;
                             }
                             else
                             {
+                                // Calls that cannot be merged
                                 mergeReusableIntoResult(call);
                                 result.Add(part);
                             }
