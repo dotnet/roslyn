@@ -2096,6 +2096,67 @@ public ref struct S
         }
 
         [Fact]
+        public void TestWithPattern_RefStructCurrent()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async Task Main()
+                    {
+                        await foreach (var s in new C())
+                        {
+                            Console.Write($"{s.ToString()} ");
+                        }
+                        Console.Write("Done");
+                    }
+                    public Enumerator GetAsyncEnumerator() => new Enumerator();
+                    public sealed class Enumerator : IAsyncDisposable
+                    {
+                        int i = 0;
+                        public S Current => new S(i);
+                        public async Task<bool> MoveNextAsync()
+                        {
+                            i++;
+                            return await Task.FromResult(i < 3);
+                        }
+                        public async ValueTask DisposeAsync()
+                        {
+                            await Task.Yield();
+                        }
+                    }
+                }
+                public ref struct S
+                {
+                    int i;
+                    public S(int i)
+                    {
+                        this.i = i;
+                    }
+                    public override string ToString() => i.ToString();
+                }
+                """ + s_IAsyncEnumerable;
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 24)
+            };
+
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+
+            var expectedOutput = "1 2 Done";
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestWithPattern_RefReturningCurrent()
         {
             string source = @"
