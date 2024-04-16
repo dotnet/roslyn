@@ -130,6 +130,28 @@ internal partial class SuggestedActionsSourceProvider
         private void OnTextViewClosed(object sender, EventArgs e)
             => Dispose();
 
+        private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            var selectedSpans = state.Target.TextView.Selection.SelectedSpans
+                .SelectMany(ss => state.Target.TextView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, state.Target.SubjectBuffer))
+                .Where(ss => !state.Target.TextView.IsReadOnlyOnSurfaceBuffer(ss))
+                .ToList();
+
+            // We only support refactorings when there is a single selection in the document.
+            if (selectedSpans.Count != 1)
+                return null;
+
+            var translatedSpan = selectedSpans[0].TranslateTo(range.Snapshot, SpanTrackingMode.EdgeInclusive);
+
+            // We only support refactorings when selected span intersects with the span that the light bulb is asking for.
+            if (!translatedSpan.IntersectsWith(range))
+                return null;
+
+            return translatedSpan.Span.ToTextSpan();
+        }
+
         public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
         {
             using var state = _state.TryAddReference();
@@ -257,28 +279,6 @@ internal partial class SuggestedActionsSourceProvider
 
                 return null;
             }
-        }
-
-        private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            var selectedSpans = state.Target.TextView.Selection.SelectedSpans
-                .SelectMany(ss => state.Target.TextView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, state.Target.SubjectBuffer))
-                .Where(ss => !state.Target.TextView.IsReadOnlyOnSurfaceBuffer(ss))
-                .ToList();
-
-            // We only support refactorings when there is a single selection in the document.
-            if (selectedSpans.Count != 1)
-                return null;
-
-            var translatedSpan = selectedSpans[0].TranslateTo(range.Snapshot, SpanTrackingMode.EdgeInclusive);
-
-            // We only support refactorings when selected span intersects with the span that the light bulb is asking for.
-            if (!translatedSpan.IntersectsWith(range))
-                return null;
-
-            return translatedSpan.Span.ToTextSpan();
         }
     }
 }
