@@ -13,14 +13,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -33,6 +30,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
 public class SolutionServiceTests
 {
+    private static TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
+        FeaturesTestCompositions.Features.AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService));
+
     private static RemoteWorkspace CreateRemoteWorkspace()
         => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
@@ -846,6 +846,104 @@ public class SolutionServiceTests
         var solution = workspace.CurrentSolution;
 
         var project1 = solution.Projects.Single();
+
+        // This reference a project that doesn't exist.
+        // Ensure that it's still fine to get the checksum for this project we have.
+        project1 = project1.AddProjectReference(new ProjectReference(ProjectId.CreateNewId()));
+
+        solution = project1.Solution;
+
+        var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+        var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task TestNoActiveDocumentSemanticModelNotCached()
+    {
+        var code = @"class Test { void Method() { } }";
+
+        using var workspace = TestWorkspace.CreateCSharp(code);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single();
+        var document1 = project1.Documents.Single();
+
+        // Without anything holding onto the semantic model, it should get releases.
+        var objectReference = new ObjectReference<SemanticModel>(await document1.GetSemanticModelAsync());
+
+        objectReference.AssertReleased();
+    }
+
+    [Fact]
+    public async Task TestActiveDocumentSemanticModelCached()
+    {
+        var code = @"class Test { void Method() { } }";
+
+        using var workspace = TestWorkspace.CreateCSharp(code, compilationOptions: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single();
+        var document1 = project1.Documents.Single();
+
+        // Without anything holding onto the semantic model, it should get releases.
+        var objectReference = new ObjectReference<SemanticModel>(await document1.GetSemanticModelAsync());
+
+        objectReference.AssertHeld();
+    }
+
+    [Fact]
+    public async Task TestOnlyActiveDocumentSemanticModelCached()
+    {
+        using var workspace = TestWorkspace.Create("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+                        class Program1
+                        {
+                        }
+                    </Document>
+                    <Document FilePath="File2.cs">
+                        class Program2
+                        {
+                        }
+                    </Document>
+            </Workspace>
+            """, compilationOptions: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single();
+        var document1 = project1.Documents.First();
+        var document2 = project1.Documents.Last();
+
+        // Only the semantic model for the active document should be cached.
+        var objectReference1 = new ObjectReference<SemanticModel>(await document1.GetSemanticModelAsync());
+        var objectReference2 = new ObjectReference<SemanticModel>(await document2.GetSemanticModelAsync());
+
+        objectReference1.AssertHeld();
+        objectReference1.AssertRelease();
+    }
+
+    [Fact]
+    public async Task TestActiveDocumentSemanticModelCached2()
+    {
+        var code = @"class Test { void Method() { } }";
+
+        using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single();
+        var document1 = project1.Documents.Single();
+
+        var objectReference = new ObjectReference<SemanticModel>(await document1.GetSemanticModelAsync());
 
         // This reference a project that doesn't exist.
         // Ensure that it's still fine to get the checksum for this project we have.
