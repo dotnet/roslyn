@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
 
-internal sealed class WatchHotReloadService(HostWorkspaceServices services, Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider)
+internal sealed class WatchHotReloadService(SolutionServices services, Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider)
 {
     private sealed class DebuggerService(Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider) : IManagedHotReloadService
     {
@@ -54,7 +54,7 @@ internal sealed class WatchHotReloadService(HostWorkspaceServices services, Func
     private DebuggingSessionId _sessionId;
 
     public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        : this(services, () => ValueTaskFactory.FromResult(capabilities))
+        : this(services.SolutionServices, () => ValueTaskFactory.FromResult(capabilities))
     {
     }
 
