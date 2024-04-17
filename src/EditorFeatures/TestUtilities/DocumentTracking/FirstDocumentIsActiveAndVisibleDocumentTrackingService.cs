@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
+namespace Microsoft.CodeAnalysis.Editor.Test;
 
 internal sealed class FirstDocumentIsActiveAndVisibleDocumentTrackingService : IDocumentTrackingService
 {

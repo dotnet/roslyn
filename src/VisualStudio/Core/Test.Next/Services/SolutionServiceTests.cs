@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -31,8 +32,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
 public class SolutionServiceTests
 {
+    private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
     private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
-        FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
+        s_composition.AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
 
     private static RemoteWorkspace CreateRemoteWorkspace()
         => new(FeaturesTestCompositions.RemoteHost.GetHostServices());
@@ -1020,6 +1022,82 @@ public class SolutionServiceTests
         // The remote semantic model will be held as it refers to the active document.
         var objectReference2 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document1.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
         objectReference2.AssertHeld();
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ValidateUpdaterInformsRemoteWorkspaceOfActiveDocument_EvenAcrossActiveDocumentChanges(bool updatePrimaryBranch)
+    {
+        using var workspace = TestWorkspace.Create("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+                        class Program1
+                        {
+                        }
+                    </Document>
+                    <Document FilePath="File2.cs">
+                        class Program2
+                        {
+                        }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, composition: s_composition.AddParts(typeof(TestDocumentTrackingService)));
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single();
+        var document1 = project1.Documents.First();
+        var document2 = project1.Documents.Last();
+
+        // By creating a checksum updater, we should notify the remote workspace of the active document. Have it
+        // initially be set to the first document.
+        var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
+        documentTrackingService.SetActiveDocument(document1.Id);
+
+        // Locally the semantic model for the first document will be held, but the second will not.
+        var objectReference1_step1 = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
+        var objectReference2_step1 = ObjectReference.CreateFromFactory(() => document2.GetSemanticModelAsync().GetAwaiter().GetResult());
+        objectReference1_step1.AssertHeld();
+        objectReference2_step1.AssertReleased();
+
+        var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+
+        var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+        var syncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch, CancellationToken.None);
+
+        var waiter = listenerProvider.GetWaiter(FeatureAttribute.SolutionChecksumUpdater);
+        await waiter.ExpeditedWaitAsync();
+
+        // The remote semantic model should match the local behavior once it has been notified that the first document is active.
+        var oopDocumentReference1_step1 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document1.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
+        var oopDocumentReference2_step1 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document2.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
+        oopDocumentReference1_step1.AssertHeld();
+        oopDocumentReference2_step1.AssertReleased();
+
+        // Now, change the active document to the second document.
+        documentTrackingService.SetActiveDocument(document2.Id);
+
+        // And get the semantic models again.  The second document should now be held, and the first released.
+        var objectReference1_step2 = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
+        var objectReference2_step2 = ObjectReference.CreateFromFactory(() => document2.GetSemanticModelAsync().GetAwaiter().GetResult());
+
+        // The second document should be held.
+        objectReference2_step2.AssertHeld();
+
+        // Ensure that the active doc change is sync'ed to oop.
+        await waiter.ExpeditedWaitAsync();
+
+        // And get the semantic models again on the oop side.  The second document should now be held, and the first released.
+        var oopDocumentReference1_step2 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document1.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
+        var oopDocumentReference2_step2 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document2.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
+
+        // The second document on oop should now be held.
+        oopDocumentReference2_step2.AssertHeld();
     }
 
     private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)

@@ -17,6 +17,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
