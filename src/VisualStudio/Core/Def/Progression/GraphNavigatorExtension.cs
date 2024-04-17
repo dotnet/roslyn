@@ -9,34 +9,26 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
-using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.GoToDefinition;
-using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-internal sealed class GraphNavigatorExtension : ForegroundThreadAffinitizedObject, IGraphNavigateToItem
+internal sealed class GraphNavigatorExtension(
+    IThreadingContext threadingContext,
+    Workspace workspace,
+    Lazy<IStreamingFindUsagesPresenter> streamingPresenter) : IGraphNavigateToItem
 {
-    private readonly Workspace _workspace;
-    private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
-
-    public GraphNavigatorExtension(
-        IThreadingContext threadingContext,
-        Workspace workspace,
-        Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
-        : base(threadingContext)
-    {
-        _workspace = workspace;
-        _streamingPresenter = streamingPresenter;
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly Workspace _workspace = workspace;
+    private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
 
     public void NavigateTo(GraphObject graphObject)
     {
@@ -68,7 +60,7 @@ internal sealed class GraphNavigatorExtension : ForegroundThreadAffinitizedObjec
                 if (document == null)
                     return;
 
-                this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                _threadingContext.JoinableTaskFactory.Run(() =>
                     NavigateToAsync(sourceLocation, symbolId, project, document, CancellationToken.None));
             }
         }
@@ -82,7 +74,7 @@ internal sealed class GraphNavigatorExtension : ForegroundThreadAffinitizedObjec
         {
             var symbol = symbolId.Value.Resolve(await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false), cancellationToken: cancellationToken).Symbol;
             await GoToDefinitionHelpers.TryNavigateToLocationAsync(
-                symbol, project.Solution, this.ThreadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+                symbol, project.Solution, _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
             return;
         }
 
@@ -99,7 +91,7 @@ internal sealed class GraphNavigatorExtension : ForegroundThreadAffinitizedObjec
 
                 // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                 await navigationService.TryNavigateToLineAndOffsetAsync(
-                    this.ThreadingContext,
+                    _threadingContext,
                     editorWorkspace,
                     document.Id,
                     sourceLocation.StartPosition.Line,

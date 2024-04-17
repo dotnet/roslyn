@@ -29,18 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null) : AbstractEditAndContinueAnalyzer(testFaultInjector)
 {
     [ExportLanguageServiceFactory(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
-    internal sealed class Factory : ILanguageServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class Factory() : ILanguageServiceFactory
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public Factory()
-        {
-        }
-
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
-        }
+            => new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
     }
 
     #region Syntax Analysis

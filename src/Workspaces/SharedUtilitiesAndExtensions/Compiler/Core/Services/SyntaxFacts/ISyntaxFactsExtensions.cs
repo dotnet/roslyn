@@ -36,12 +36,11 @@ internal static class ISyntaxFactsExtensions
         // and all the trivia on each token.  If full-span is false we'll examine all tokens
         // but we'll ignore the leading trivia on the very first trivia and the trailing trivia
         // on the very last token.
-        var stack = s_stackPool.Allocate();
+        using var pooledObject = s_stackPool.GetPooledObject();
+        var stack = pooledObject.Object;
         stack.Push((node, leading: fullSpan, trailing: fullSpan));
 
         var result = IsOnSingleLine(syntaxFacts, stack);
-
-        s_stackPool.ClearAndFree(stack);
 
         return result;
     }
@@ -49,9 +48,9 @@ internal static class ISyntaxFactsExtensions
     private static bool IsOnSingleLine(
         ISyntaxFacts syntaxFacts, Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)> stack)
     {
-        while (stack.Count > 0)
+        while (stack.TryPop(out var tuple))
         {
-            var (currentNodeOrToken, currentLeading, currentTrailing) = stack.Pop();
+            var (currentNodeOrToken, currentLeading, currentTrailing) = tuple;
             if (currentNodeOrToken.IsToken)
             {
                 // If this token isn't on a single line, then the original node definitely

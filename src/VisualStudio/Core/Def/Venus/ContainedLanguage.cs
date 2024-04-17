@@ -126,7 +126,6 @@ internal partial class ContainedLanguage
         }
 
         ContainedDocument = new ContainedDocument(
-            ComponentModel.GetService<IThreadingContext>(),
             documentId,
             subjectBuffer: SubjectBuffer,
             dataBuffer: DataBuffer,

@@ -24,13 +24,13 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
         => Assert.True(expected.ToHashSet().SetEquals(results));
 
     private Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace)
-        => CreateTestLspServerAsync(markup, mutatingLspWorkspace, extraExportedTypes: [typeof(TestWorkspaceNavigateToSearchHostService)]);
+        => CreateTestLspServerAsync(markup, mutatingLspWorkspace, composition: Composition.AddParts(typeof(TestWorkspaceNavigateToSearchHostService)));
 
     private Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace)
-        => CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, extraExportedTypes: [typeof(TestWorkspaceNavigateToSearchHostService)]);
+        => CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, composition: Composition.AddParts(typeof(TestWorkspaceNavigateToSearchHostService)));
 
     private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, bool mutatingLspWorkspace)
-        => CreateTestLspServerAsync(markups, mutatingLspWorkspace, extraExportedTypes: [typeof(TestWorkspaceNavigateToSearchHostService)]);
+        => CreateTestLspServerAsync(markups, mutatingLspWorkspace, composition: Composition.AddParts(typeof(TestWorkspaceNavigateToSearchHostService)));
 
     [Theory, CombinatorialData]
     public async Task TestGetWorkspaceSymbolsAsync_Class(bool mutatingLspWorkspace)

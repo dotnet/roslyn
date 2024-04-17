@@ -236,9 +236,8 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
             builder.Push(action);
-            while (builder.Count > 0)
+            while (builder.TryPop(out var currentAction))
             {
-                var currentAction = builder.Pop();
                 if (currentAction is { EquivalenceKey: var equivalenceKey }
                     && codeActionEquivalenceKey == equivalenceKey)
                 {
