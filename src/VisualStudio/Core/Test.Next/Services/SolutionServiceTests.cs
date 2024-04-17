@@ -30,8 +30,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
 public class SolutionServiceTests
 {
-    private static TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
-        FeaturesTestCompositions.Features.AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService));
+    private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
+        FeaturesTestCompositions.Features.AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
 
     private static RemoteWorkspace CreateRemoteWorkspace()
         => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
@@ -859,7 +859,7 @@ public class SolutionServiceTests
     }
 
     [Fact]
-    public async Task TestNoActiveDocumentSemanticModelNotCached()
+    public void TestNoActiveDocumentSemanticModelNotCached()
     {
         var code = @"class Test { void Method() { } }";
 
@@ -872,13 +872,13 @@ public class SolutionServiceTests
         var document1 = project1.Documents.Single();
 
         // Without anything holding onto the semantic model, it should get releases.
-        var objectReference = new ObjectReference<SemanticModel>(await document1.GetSemanticModelAsync());
+        var objectReference = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
 
         objectReference.AssertReleased();
     }
 
     [Fact]
-    public async Task TestActiveDocumentSemanticModelCached()
+    public void TestActiveDocumentSemanticModelCached()
     {
         var code = @"class Test { void Method() { } }";
 
@@ -890,14 +890,14 @@ public class SolutionServiceTests
         var project1 = solution.Projects.Single();
         var document1 = project1.Documents.Single();
 
-        // Without anything holding onto the semantic model, it should get releases.
-        var objectReference = new ObjectReference<SemanticModel>(await document1.GetSemanticModelAsync());
+        // Since this is the active document, we should hold onto it.
+        var objectReference = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
 
         objectReference.AssertHeld();
     }
 
     [Fact]
-    public async Task TestOnlyActiveDocumentSemanticModelCached()
+    public void TestOnlyActiveDocumentSemanticModelCached()
     {
         using var workspace = TestWorkspace.Create("""
             <Workspace>
@@ -924,8 +924,8 @@ public class SolutionServiceTests
         var document2 = project1.Documents.Last();
 
         // Only the semantic model for the active document should be cached.
-        var objectReference1 = new ObjectReference<SemanticModel>(await document1.GetSemanticModelAsync());
-        var objectReference2 = new ObjectReference<SemanticModel>(await document2.GetSemanticModelAsync());
+        var objectReference1 = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
+        var objectReference2 = ObjectReference.CreateFromFactory(() => document2.GetSemanticModelAsync().GetAwaiter().GetResult());
 
         objectReference1.AssertHeld();
         objectReference2.AssertReleased();
