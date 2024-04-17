@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultDocumentTrackingService() : IDocumentTrackingService
 {
-    public bool SupportsDocumentTracking => false;
-
     public event EventHandler<DocumentId?> ActiveDocumentChanged { add { } remove { } }
 
     public ImmutableArray<DocumentId> GetVisibleDocuments()
