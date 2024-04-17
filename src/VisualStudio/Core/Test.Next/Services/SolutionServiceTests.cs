@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -31,7 +32,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 public class SolutionServiceTests
 {
     private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
-        FeaturesTestCompositions.Features.AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
+        FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
 
     private static RemoteWorkspace CreateRemoteWorkspace()
         => new(FeaturesTestCompositions.RemoteHost.GetHostServices());
@@ -956,6 +957,69 @@ public class SolutionServiceTests
         // The remote semantic model will not be held as it doesn't know what the active document is yet.
         var objectReference2 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document1.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
         objectReference2.AssertReleased();
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestRemoteWorkspaceCachesPropertyIfActiveDocumentIsSynced(bool updatePrimaryBranch)
+    {
+        var code = @"class Test { void Method() { } }";
+
+        using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single();
+        var document1 = project1.Documents.Single();
+
+        // Locally the semantic model will be held
+        var objectReference1 = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
+        objectReference1.AssertHeld();
+
+        var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+        var remoteDocumentTrackingService = (RemoteDocumentTrackingService)remoteWorkspace.Services.GetRequiredService<IDocumentTrackingService>();
+        remoteDocumentTrackingService.SetActiveDocument(document1.Id);
+
+        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+        var syncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch, CancellationToken.None);
+
+        // The remote semantic model will be held as it refers to the active document.
+        var objectReference2 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document1.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
+        objectReference2.AssertHeld();
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ValidateUpdaterInformsRemoteWorkspaceOfActiveDocument(bool updatePrimaryBranch)
+    {
+        var code = @"class Test { void Method() { } }";
+
+        using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single();
+        var document1 = project1.Documents.Single();
+
+        // Locally the semantic model will be held
+        var objectReference1 = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
+        objectReference1.AssertHeld();
+
+        // By creating a checksum updater, we should notify the remote workspace of the active document.
+        var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+
+        var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+
+        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+        var syncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch, CancellationToken.None);
+
+        var waiter = listenerProvider.GetWaiter(FeatureAttribute.SolutionChecksumUpdater);
+        await waiter.ExpeditedWaitAsync();
+
+        // The remote semantic model will be held as it refers to the active document.
+        var objectReference2 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document1.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
+        objectReference2.AssertHeld();
     }
 
     private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
