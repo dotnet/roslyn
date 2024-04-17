@@ -9,15 +9,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
@@ -29,6 +33,9 @@ internal static class IntellisenseQuickInfoBuilder
     private static async Task<ContainerElement> BuildInteractiveContentAsync(
         CodeAnalysisQuickInfoItem quickInfoItem,
         IntellisenseQuickInfoBuilderContext? context,
+        int? position,
+        IViewElementFactoryService? viewElementFactoryService,
+        ITextView? textView,
         CancellationToken cancellationToken)
     {
         // Build the first line of QuickInfo item, the images and the Description section should be on the first line with Wrapped style
@@ -135,9 +142,44 @@ internal static class IntellisenseQuickInfoBuilder
             }
         }
 
+        if (context is not null)
+            await TryAddOnTheFlyDocsAsync(context.Document, viewElementFactoryService, textView, position, elements, cancellationToken).ConfigureAwait(false);
+
         return new ContainerElement(
                             ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
                             elements);
+    }
+
+    /// <summary>
+    /// test
+    /// </summary>
+    /// <param name="document">x</param>
+    /// <param name="viewElementFactoryService"></param>
+    /// <param name="textView"></param>
+    /// <param name="position"></param>
+    /// <param name="elements"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>stugg</returns>
+    private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, IViewElementFactoryService? viewElementFactoryService, ITextView? textView, int? position, List<object> elements, CancellationToken cancellationToken)
+    {
+        if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+        {
+            return false;
+        }
+
+        if (textView is null)
+        {
+            return false;
+        }
+
+        if (viewElementFactoryService is null)
+        {
+            return false;
+        }
+
+        elements.Add(new OnTheFlyDocsElement());
+        return true;
     }
 
     internal static async Task<IntellisenseQuickInfoItem> BuildItemAsync(
@@ -150,11 +192,13 @@ internal static class IntellisenseQuickInfoBuilder
         IUIThreadOperationExecutor operationExecutor,
         IAsynchronousOperationListener asyncListener,
         Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+        int? position,
+        IViewElementFactoryService? viewElementFactoryService,
+        ITextView? textView,
         CancellationToken cancellationToken)
     {
         var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, lineFormattingOptions, threadingContext, operationExecutor, asyncListener, streamingPresenter);
-        var content = await BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
-
+        var content = await BuildInteractiveContentAsync(quickInfoItem, context, position, viewElementFactoryService, textView, cancellationToken).ConfigureAwait(false);
         return new IntellisenseQuickInfoItem(trackingSpan, content);
     }
 
@@ -169,6 +213,6 @@ internal static class IntellisenseQuickInfoBuilder
         IntellisenseQuickInfoBuilderContext? context,
         CancellationToken cancellationToken)
     {
-        return BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken);
+        return BuildInteractiveContentAsync(quickInfoItem, context, null, null, null, cancellationToken);
     }
 }

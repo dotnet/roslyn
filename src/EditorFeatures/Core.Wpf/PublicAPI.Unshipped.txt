@@ -1,1 +1,4 @@
-
+Microsoft.CodeAnalysis.Editor.QuickInfo.State
+Microsoft.CodeAnalysis.Editor.QuickInfo.State.Finished = 2 -> Microsoft.CodeAnalysis.Editor.QuickInfo.State
+Microsoft.CodeAnalysis.Editor.QuickInfo.State.Loading = 1 -> Microsoft.CodeAnalysis.Editor.QuickInfo.State
+Microsoft.CodeAnalysis.Editor.QuickInfo.State.OnDemandLink = 0 -> Microsoft.CodeAnalysis.Editor.QuickInfo.State

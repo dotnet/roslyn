@@ -11,11 +11,13 @@ using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
@@ -48,6 +50,7 @@ internal partial class QuickInfoSourceProvider(
             return null;
 
         return new QuickInfoSource(
-            textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _editorOptionsService, _inlineRenameService, _viewElementFactoryService);
+            textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _editorOptionsService,
+            _inlineRenameService, _viewElementFactoryService);
     }
 }

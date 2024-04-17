@@ -28,6 +28,7 @@ using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.Q
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 
@@ -44,7 +45,6 @@ internal partial class QuickInfoSourceProvider
         IViewElementFactoryService viewElementFactoryService) : IAsyncQuickInfoSource
     {
         private readonly ITextBuffer _subjectBuffer = subjectBuffer;
-        private readonly ITextView _textView;
         private readonly IThreadingContext _threadingContext = threadingContext;
         private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener = asyncListener;
@@ -92,7 +92,8 @@ internal partial class QuickInfoSourceProvider
                         return await IntellisenseQuickInfoBuilder.BuildItemAsync(
                             trackingSpan, item, document, classificationOptions, lineFormattingOptions,
                             _threadingContext, _operationExecutor,
-                            _asyncListener, _streamingPresenter, cancellationToken).ConfigureAwait(false);
+                            _asyncListener, _streamingPresenter, triggerPoint.Value, _viewElementFactoryService, session.TextView,
+                            cancellationToken).ConfigureAwait(false);
                     }
 
                     return null;

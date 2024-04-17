@@ -15,11 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
     /// </summary>
     internal class OnTheFlyDocsViewStateVisibilityConverter : IValueConverter
     {
-        /// <inheritdoc/>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
                 => value is State state && parameter is State targetState && state == targetState ? Visibility.Visible : Visibility.Collapsed;
 
-        /// <inheritdoc/>
         public object ConvertBack(object value, System.Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }

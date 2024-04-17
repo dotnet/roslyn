@@ -6,8 +6,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.CodeAnalysis.Editor.QuickInfo"
              DataContext="{Binding RelativeSource={RelativeSource Self}}"
-             AutomationProperties.Name="{x:Static local:EditorFeaturesResources.On_the_fly_documentation}">
-    <!--<UserControl.Resources>
+             AutomationProperties.Name="{Binding OnTheFlyDocumentation}">
+    <UserControl.Resources>
         <local:OnTheFlyDocsViewStateVisibilityConverter x:Key="VisibilityConverter"></local:OnTheFlyDocsViewStateVisibilityConverter>
     </UserControl.Resources>
 
@@ -15,18 +15,18 @@
         <ContentControl
             Visibility="{Binding Path=CurrentState,
                          Converter={StaticResource VisibilityConverter},
-                         ConverterParameter={x:Static local:OnTheFlyDocsView+State.OnDemandLink}}"
+                         ConverterParameter={x:Static local:State.OnDemandLink}}"
             Content="{Binding Path=OnDemandLinkContent}" />
         <ContentControl
             Visibility="{Binding Path=CurrentState,
                          Converter={StaticResource VisibilityConverter},
-                         ConverterParameter={x:Static local:OnTheFlyDocsView+State.Loading}}"
+                         ConverterParameter={x:Static local:State.Loading}}"
             Content="{Binding Path=LoadingContent}" />
         <ContentControl
             Visibility="{Binding Path=CurrentState,
                          Converter={StaticResource VisibilityConverter},
-                         ConverterParameter={x:Static local:OnTheFlyDocsView+State.Finished}}"
+                         ConverterParameter={x:Static local:State.Finished}}"
             Content="{Binding Path=ResultsContent}" />
 
-    </Grid>-->
+    </Grid>
 </UserControl>
