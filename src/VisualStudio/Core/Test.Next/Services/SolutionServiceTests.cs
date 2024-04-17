@@ -882,7 +882,7 @@ public class SolutionServiceTests
     {
         var code = @"class Test { void Method() { } }";
 
-        using var workspace = TestWorkspace.CreateCSharp(code, compilationOptions: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
         using var remoteWorkspace = CreateRemoteWorkspace();
 
         var solution = workspace.CurrentSolution;
@@ -913,7 +913,7 @@ public class SolutionServiceTests
                         }
                     </Document>
             </Workspace>
-            """, compilationOptions: s_compositionWithFirstDocumentIsActiveAndVisible);
+            """, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
         using var remoteWorkspace = CreateRemoteWorkspace();
 
         var solution = workspace.CurrentSolution;
@@ -927,7 +927,7 @@ public class SolutionServiceTests
         var objectReference2 = new ObjectReference<SemanticModel>(await document2.GetSemanticModelAsync());
 
         objectReference1.AssertHeld();
-        objectReference1.AssertRelease();
+        objectReference1.AssertReleased();
     }
 
     [Fact]
