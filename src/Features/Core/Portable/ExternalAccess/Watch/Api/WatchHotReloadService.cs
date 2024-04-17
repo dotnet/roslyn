@@ -13,9 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
 
-internal sealed class WatchHotReloadService(HostWorkspaceServices services, Func<ImmutableArray<string>> capabilitiesProvider)
+internal sealed class WatchHotReloadService(HostWorkspaceServices services, Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider)
 {
-    private sealed class DebuggerService(Func<ImmutableArray<string>> capabilitiesProvider) : IManagedHotReloadService
+    private sealed class DebuggerService(Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider) : IManagedHotReloadService
     {
         public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
@@ -24,7 +24,7 @@ internal sealed class WatchHotReloadService(HostWorkspaceServices services, Func
             => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(capabilitiesProvider());
+            => capabilitiesProvider();
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
             => ValueTaskFactory.CompletedTask;
@@ -54,7 +54,7 @@ internal sealed class WatchHotReloadService(HostWorkspaceServices services, Func
     private DebuggingSessionId _sessionId;
 
     public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        : this(services, () => capabilities)
+        : this(services, () => ValueTaskFactory.FromResult(capabilities))
     {
     }
 
