@@ -17,7 +17,6 @@ internal sealed class DefaultDocumentTrackingService() : IDocumentTrackingServic
     public bool SupportsDocumentTracking => false;
 
     public event EventHandler<DocumentId?> ActiveDocumentChanged { add { } remove { } }
-    public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
     public ImmutableArray<DocumentId> GetVisibleDocuments()
         => [];
