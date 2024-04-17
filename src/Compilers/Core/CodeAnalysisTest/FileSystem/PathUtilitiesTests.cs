@@ -295,11 +295,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [Fact]
         public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity()
         {
-            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"c:\ABCD\EFGH", @"C:\ABCD", StringComparison.OrdinalIgnoreCase));
-            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\abcd\EFGH", @"C:\ABCD", StringComparison.OrdinalIgnoreCase));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\a\B\C", @"C:\A\B", StringComparison.OrdinalIgnoreCase));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\b\C", @"C:\A\B", StringComparison.OrdinalIgnoreCase));
 
-            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"c:\ABCD\EFGH", @"C:\ABCD", StringComparison.Ordinal));
-            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\abcd\EFGH", @"C:\ABCD", StringComparison.Ordinal));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\a\B\C", @"C:\A\B", StringComparison.Ordinal));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\b\C", @"C:\A\B", StringComparison.Ordinal));
         }
 
         [Fact]
