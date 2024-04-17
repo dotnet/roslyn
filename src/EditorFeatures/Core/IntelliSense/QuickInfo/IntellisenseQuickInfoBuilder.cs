@@ -143,7 +143,7 @@ internal static class IntellisenseQuickInfoBuilder
         }
 
         if (context is not null)
-            await TryAddOnTheFlyDocsAsync(context.Document, viewElementFactoryService, textView, position, elements, cancellationToken).ConfigureAwait(false);
+            await TryAddOnTheFlyDocsAsync(context.Document, viewElementFactoryService, textView, position, elements, descSection.Text, cancellationToken).ConfigureAwait(false);
 
         return new ContainerElement(
                             ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
@@ -160,7 +160,7 @@ internal static class IntellisenseQuickInfoBuilder
     /// <param name="elements"></param>
     /// <param name="cancellationToken"></param>
     /// <returns>stugg</returns>
-    private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, IViewElementFactoryService? viewElementFactoryService, ITextView? textView, int? position, List<object> elements, CancellationToken cancellationToken)
+    private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, IViewElementFactoryService? viewElementFactoryService, ITextView? textView, int? position, List<object> elements, string descriptionText, CancellationToken cancellationToken)
     {
         if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
                 await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
@@ -178,7 +178,12 @@ internal static class IntellisenseQuickInfoBuilder
             return false;
         }
 
-        elements.Add(new OnTheFlyDocsElement());
+        if (!position.HasValue)
+        {
+            return false;
+        }
+
+        elements.Add(new OnTheFlyDocsElement(document, position.Value, descriptionText, cancellationToken));
         return true;
     }
 

@@ -947,4 +947,7 @@ Do you want to proceed?</value>
   <data name="On_the_fly_documentation" xml:space="preserve">
     <value>On-the-fly documentation</value>
   </data>
+  <data name="An_error_occurred_while_generating_documentation_for_this_code" xml:space="preserve">
+    <value>An error occurred while generating documentation for this code.</value>
+  </data>
 </root>

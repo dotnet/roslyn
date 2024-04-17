@@ -6,15 +6,19 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -44,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-        public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService)
+        public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, Document document, int position, string descriptionText, CancellationToken cancellationToken)
         {
             _textView = textView;
             _viewElementFactoryService = viewElementFactoryService;
@@ -101,13 +105,36 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                         new ClassifiedTextElement(new ClassifiedTextRun(
                             ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.AI_generated_content_may_be_inaccurate)),
                     }));
-            this.ResultsRequested += (_, _) => PopulateAIDocumentationElementsAsync();
+            this.ResultsRequested += (_, _) => PopulateAIDocumentationElements(document, position, descriptionText, cancellationToken);
             InitializeComponent();
         }
 
-        private async void PopulateAIDocumentationElementsAsync()
+        private async void PopulateAIDocumentationElements(Document document, int position, string descriptionText, CancellationToken cancellationToken)
         {
-            
+            var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
+            var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+            var (symbol, _, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+            var symbolText = symbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntaxAsync(cancellationToken).Result.ToString();
+            if (symbol is null || symbolText is null)
+            {
+                SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
+                CurrentState = State.Finished;
+                return;
+            }
+
+            var response = await copilotService.GetOnTheFlyDocsAsync(descriptionText, symbolText, cancellationToken).ConfigureAwait(false);
+
+            if (response is null || response.Length == 0)
+            {
+                SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
+                CurrentState = State.Finished;
+            }
+            else
+            {
+                SetResultText(response);
+                CurrentState = State.Finished;
+            }
         }
 
         /// <summary>

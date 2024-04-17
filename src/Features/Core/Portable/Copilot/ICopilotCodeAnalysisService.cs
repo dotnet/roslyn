@@ -59,4 +59,6 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// which might be used to provide additional context to Copilot for the refinement session.
     /// </summary>
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
+
+    Task<string> GetOnTheFlyDocsAsync(string descriptionText, string symbolText, CancellationToken cancellationToken);
 }

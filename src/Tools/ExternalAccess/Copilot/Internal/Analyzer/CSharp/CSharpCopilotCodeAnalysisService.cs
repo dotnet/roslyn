@@ -57,6 +57,9 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
     protected override Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
         => _lazyExternalCopilotService.Value.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
 
+    protected override Task<string> GetOnTheFlyDocsCoreAsync(string descriptionText, string symbolText, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetOnTheFlyDocsAsync(descriptionText, symbolText, cancellationToken);
+
     protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(
         Document document, IReadOnlyList<Diagnostic> diagnostics, TextSpan span, CancellationToken cancellationToken)
     {

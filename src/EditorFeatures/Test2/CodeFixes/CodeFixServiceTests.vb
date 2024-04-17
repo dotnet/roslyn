@@ -351,6 +351,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Public Function StartRefinementSessionAsync(oldDocument As Document, newDocument As Document, primaryDiagnostic As Diagnostic, cancellationToken As CancellationToken) As Task Implements ICopilotCodeAnalysisService.StartRefinementSessionAsync
                 Return Task.CompletedTask
             End Function
+
+            Public Function GetOnTheFlyDocsAsync(descriptionText As String, symbolText As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
+                Return Task.FromResult(descriptionText)
+            End Function
         End Class
     End Class
 End Namespace

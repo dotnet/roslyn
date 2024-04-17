@@ -6,11 +6,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.IntelliSense.QuickInfo
 {
     internal class OnTheFlyDocsElement
     {
+        internal Document Document { get; }
+        internal int Position { get; }
+        internal string DescriptionText { get; }
+        internal CancellationToken CancellationToken { get; }
+
+        public OnTheFlyDocsElement(Document document, int position, string descriptionText, CancellationToken cancellationToken)
+        {
+            Document = document;
+            Position = position;
+            DescriptionText = descriptionText;
+            CancellationToken = cancellationToken;
+        }
     }
 }

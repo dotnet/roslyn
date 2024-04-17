@@ -32,14 +32,18 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             _factoryService = factoryService;
         }
 
-        public TView CreateViewElement<TView>(ITextView textView, object model) where TView : class
+        public TView? CreateViewElement<TView>(ITextView textView, object model) where TView : class
         {
             if (typeof(TView) != typeof(UIElement))
             {
                 throw new InvalidOperationException("TView must be UIElement");
             }
+            if (model is not OnTheFlyDocsElement onTheFlyDocsElement)
+            {
+                throw new InvalidOperationException("TView must be ");
+            }
 
-            return new OnTheFlyDocsView(textView, _factoryService) as TView;
+            return new OnTheFlyDocsView(textView, _factoryService, onTheFlyDocsElement.Document, onTheFlyDocsElement.Position, onTheFlyDocsElement.DescriptionText, onTheFlyDocsElement.CancellationToken) as TView;
         }
     }
 }
