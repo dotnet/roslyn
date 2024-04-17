@@ -439,6 +439,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_compilation.Assembly.RuntimeSupportsInlineArrayTypes);
 
             int arrayLength = elements.Length;
+            if (arrayLength == 1
+                && _factory.WellKnownMember(asReadOnlySpan
+                    ? WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
+                    : WellKnownMember.System_Span_T__ctor_ref_T, isOptional: true) is MethodSymbol spanRefConstructor)
+            {
+                // Special case: no need to create an InlineArray1 type. Just use a temp of the element type.
+                var spanType = _factory
+                    .WellKnownType(asReadOnlySpan ? WellKnownType.System_ReadOnlySpan_T : WellKnownType.System_Span_T)
+                    .Construct([elementType]);
+                var constructor = spanRefConstructor.AsMember(spanType);
+                var element = VisitExpression((BoundExpression)elements[0]);
+                var temp = _factory.StoreToTemp(element, out var assignment);
+                locals.Add(temp.LocalSymbol);
+                var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKind.In : RefKind.Ref]);
+                return _factory.Sequence([assignment], call);
+            }
+
             var inlineArrayType = _factory.ModuleBuilderOpt.EnsureInlineArrayTypeExists(syntax, _factory, arrayLength, _diagnostics.DiagnosticBag).Construct(ImmutableArray.Create(elementType));
             Debug.Assert(inlineArrayType.HasInlineArrayAttribute(out int inlineArrayLength) && inlineArrayLength == arrayLength);
 
