@@ -445,6 +445,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var pair in bindings)
                 {
+                    // The particular max value is arbitrary, but large enough so diagnostics should
+                    // only be reported for lambda expressions used as arguments to method calls
+                    // where the product of the number of applicable overloads for that method call
+                    // and for overloads for any containing lambda expressions is large.
                     const int maxLambdaBinding = 100;
                     int count = pair.Value;
                     if (count > maxLambdaBinding)
