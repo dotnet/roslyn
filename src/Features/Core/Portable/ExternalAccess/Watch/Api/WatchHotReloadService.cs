@@ -85,7 +85,7 @@ internal sealed class WatchHotReloadService(HostWorkspaceServices services, Func
         var sessionId = _sessionId;
         Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-        _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: null, out _);
+        _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: null);
     }
 
     /// <summary>
