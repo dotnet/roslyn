@@ -10,15 +10,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.Test;
 
 [ExportWorkspaceService(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-internal sealed class TestDocumentTrackingService : IDocumentTrackingService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class TestDocumentTrackingService() : IDocumentTrackingService
 {
     private DocumentId? _activeDocumentId;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public TestDocumentTrackingService()
-    {
-    }
 
     public event EventHandler<DocumentId?>? ActiveDocumentChanged;
 
