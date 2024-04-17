@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Copilot;
@@ -100,8 +101,13 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                         new ClassifiedTextElement(new ClassifiedTextRun(
                             ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.AI_generated_content_may_be_inaccurate)),
                     }));
-
+            this.ResultsRequested += (_, _) => PopulateAIDocumentationElementsAsync();
             InitializeComponent();
+        }
+
+        private async void PopulateAIDocumentationElementsAsync()
+        {
+            
         }
 
         /// <summary>

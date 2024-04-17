@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         public TView CreateViewElement<TView>(ITextView textView, object model) where TView : class
         {
-            if (typeof(TView) != typeof(OnTheFlyDocsView))
+            if (typeof(TView) != typeof(UIElement))
             {
-                throw new InvalidOperationException("TView must be OnTheFlyDocsView");
+                throw new InvalidOperationException("TView must be UIElement");
             }
 
             return new OnTheFlyDocsView(textView, _factoryService) as TView;
