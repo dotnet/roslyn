@@ -17452,7 +17452,7 @@ ref struct S
         }
 
         [Fact]
-        public void InlineArrayElement()
+        public void InlineArrayElement_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.InlineArray(10)]
@@ -17471,6 +17471,13 @@ ref struct S2
 ref struct S
 {
 }
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct S2<T2>
+    where T2 : allows ref struct
+{
+    T2 _f;
+}
 ";
 
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -17480,8 +17487,106 @@ ref struct S
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
                 // (12,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     S _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7)
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7),
+                // (23,5): error CS8345: Field or auto-implemented property cannot be of type 'T2' unless it is an instance member of a ref struct.
+                //     T2 _f;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T2").WithArguments("T2").WithLocation(23, 5),
+
+                // PROTOTYPE(RefStructInterfaces): The warning below is somewhat misleading. 'S2' can be used as a type argument (it is not a ref struct) and 'T2' is a type argument. 
+                //                                 However, given the error above, this is probably not worth fixing. There is no way to declare a legal non-ref struct with a field
+                //                                 of type 'T2'.
+
+                // (23,8): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T2 _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(23, 8)
                 );
+        }
+
+        [Fact]
+        public void InlineArrayElement_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+ref struct S1<T>
+    where T : allows ref struct
+{
+    T _f;
+}
+
+class C
+{
+    static void Main()
+    {
+        var x = new S1<int>();
+        x[0] = 123;
+    }
+}
+
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
+                // (14,9): error CS9504: The type 'S1<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TFrom' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
+                //         x[0] = 123;
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TFrom", "S1<int>").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayElement_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+ref struct S1<T>
+    where T : allows ref struct
+{
+    T _f;
+}
+
+class C
+{
+    static void Main()
+    {
+        var x = new S1<int>();
+        x[0] = 123;
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class Unsafe
+    {
+        public static ref TTo As<TFrom, TTo>(ref TFrom input) where TFrom : allows ref struct => throw null;
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7)
+                );
+
+            // PROTOTYPE(RefStructInterfaces): Here, however, we managed to successfully compile an invalid program. 
+            //                                 We should either stop relying on constraints of Unsafe.As as a way to
+            //                                 detect ref struct based inline arrays, or should propagate 'allows ref struct' to 
+            //                                 the helper methods that we generate in '<PrivateImplementationDetails>', which
+            //                                 could be tricky because they often call other generic APIs that might disagree
+            //                                 in the 'allows ref struct' constraint with Unsafe.As. 
+
+            // Message:
+            //           System.Security.VerificationException : Method<PrivateImplementationDetails>.InlineArrayFirstElementRef: type argument 'S1`1[System.Int32]' violates the constraint of type parameter 'TBuffer'.
+            //   
+            // Stack Trace: 
+            //   C.Main()
+            //   RuntimeMethodHandle.InvokeMethod(Object target, Void * *arguments, Signature sig, Boolean isConstructor)
+            //   MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+            //
+            //CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "nothing");
         }
 
         [Fact]
