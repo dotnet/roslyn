@@ -12012,6 +12012,7 @@ public delegate void TestDel();
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodToDelegate, Line = 11, Column = 38 } });
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72431")]
         [Fact]
         public void CS0762ERR_PartialMethodToDelegate_02()
         {
@@ -12034,6 +12035,7 @@ public delegate void TestDel();
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2<int>").WithArguments("Program.M2<int>()").WithLocation(6, 12));
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72431")]
         [Fact]
         public void CS0762ERR_PartialMethodToDelegate_03()
         {
