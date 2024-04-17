@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class Workspace
+internal partial class Solution
 {
     /// <summary>
     /// Strongly held reference to the semantic model for the active document.  By strongly holding onto it, we ensure
@@ -23,10 +23,16 @@ internal partial class Workspace
     /// locked either as we would only have contention right when switching to a new active document, and we would still
     /// latch onto the new document very quickly.
     /// </summary>
+    /// <remarks>
+    /// It is fine for these fields to never be read.  The purpose is simply to keep a strong reference around so that
+    /// they will not be GC'ed as long as the active document stays the same.
+    /// </remarks>
+#pragma warning disable IDE0052 // Remove unread private members
     private SemanticModel? _activeDocumentSemanticModel;
 
     /// <inheritdoc cref="_activeDocumentSemanticModel"/>
     private SemanticModel? _activeDocumentNullableDisabledSemanticModel;
+#pragma warning restore IDE0052 // Remove unread private members
 
     internal void OnSemanticModelObtained(DocumentId documentId, SemanticModel semanticModel)
     {

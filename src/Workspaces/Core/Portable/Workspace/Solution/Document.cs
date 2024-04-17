@@ -330,7 +330,7 @@ public class Document : TextDocument
             return null;
 
         var semanticModel = await GetSemanticModelWorkerAsync().ConfigureAwait(false);
-        this.Project.Solution.Workspace.OnSemanticModelObtained(this.Id, semanticModel);
+        this.Project.Solution.OnSemanticModelObtained(this.Id, semanticModel);
         return semanticModel;
 
         async Task<SemanticModel> GetSemanticModelWorkerAsync()
