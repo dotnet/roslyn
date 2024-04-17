@@ -912,6 +912,7 @@ public class SolutionServiceTests
                         {
                         }
                     </Document>
+                </Project>
             </Workspace>
             """, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
         using var remoteWorkspace = CreateRemoteWorkspace();
@@ -927,7 +928,7 @@ public class SolutionServiceTests
         var objectReference2 = new ObjectReference<SemanticModel>(await document2.GetSemanticModelAsync());
 
         objectReference1.AssertHeld();
-        objectReference1.AssertReleased();
+        objectReference2.AssertReleased();
     }
 
     [Fact]
