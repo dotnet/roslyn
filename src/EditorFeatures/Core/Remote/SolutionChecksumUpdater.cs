@@ -28,6 +28,8 @@ internal sealed class SolutionChecksumUpdater
     /// </summary>
     private readonly IGlobalOperationNotificationService? _globalOperationService;
 
+    private readonly IDocumentTrackingService _documentTrackingService;
+
     /// <summary>
     /// Queue to push out text changes in a batched fashion when we hear about them.  Because these should be short
     /// operations (only syncing text changes) we don't cancel this when we enter the paused state.  We simply don't
@@ -39,6 +41,11 @@ internal sealed class SolutionChecksumUpdater
     /// Queue for kicking off the work to synchronize the primary workspace's solution.
     /// </summary>
     private readonly AsyncBatchingWorkQueue _synchronizeWorkspaceQueue;
+
+    /// <summary>
+    /// Queue for kicking off the work to synchronize the active document to the remote process.
+    /// </summary>
+    private readonly AsyncBatchingWorkQueue _synchronizeActiveDocumentQueue;
 
     private readonly object _gate = new();
     private bool _isPaused;
@@ -53,6 +60,7 @@ internal sealed class SolutionChecksumUpdater
         _globalOperationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
         _workspace = workspace;
+        _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
         _textChangeQueue = new AsyncBatchingWorkQueue<(Document? oldDocument, Document? newDocument)>(
             DelayTimeSpan.NearImmediate,
@@ -66,8 +74,16 @@ internal sealed class SolutionChecksumUpdater
             listener,
             shutdownToken);
 
+        _synchronizeActiveDocumentQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.NearImmediate,
+            SynchronizeActiveDocumentAsync,
+            listener,
+            shutdownToken);
+
         // start listening workspace change event
         _workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+        _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
         if (_globalOperationService != null)
         {
@@ -83,6 +99,9 @@ internal sealed class SolutionChecksumUpdater
     {
         // Try to stop any work that is in progress.
         PauseWork();
+
+        var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
+        trackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
         _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
@@ -106,6 +125,7 @@ internal sealed class SolutionChecksumUpdater
         lock (_gate)
         {
             _synchronizeWorkspaceQueue.CancelExistingWork();
+            _synchronizeActiveDocumentQueue.CancelExistingWork();
             _isPaused = true;
         }
     }
@@ -115,6 +135,7 @@ internal sealed class SolutionChecksumUpdater
         lock (_gate)
         {
             _isPaused = false;
+            _synchronizeActiveDocumentQueue.AddWork();
             _synchronizeWorkspaceQueue.AddWork();
         }
     }
@@ -137,6 +158,9 @@ internal sealed class SolutionChecksumUpdater
         _synchronizeWorkspaceQueue.AddWork();
     }
 
+    private void OnActiveDocumentChanged(object? sender, DocumentId? e)
+        => _synchronizeActiveDocumentQueue.AddWork();
+
     private async ValueTask SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
     {
         var solution = _workspace.CurrentSolution;
@@ -151,6 +175,20 @@ internal sealed class SolutionChecksumUpdater
                 (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    private async ValueTask SynchronizeActiveDocumentAsync(CancellationToken cancellationToken)
+    {
+        var activeDocument = _documentTrackingService.TryGetActiveDocument();
+
+        var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+            return;
+
+        var solution = _workspace.CurrentSolution;
+        await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+            (service, cancellationToken) => service.SynchronizeActiveDocumentAsync(activeDocument),
+            cancellationToken).ConfigureAwait(false);
     }
 
     private async ValueTask SynchronizeTextChangesAsync(
