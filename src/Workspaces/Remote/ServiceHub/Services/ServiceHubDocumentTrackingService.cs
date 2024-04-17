@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -16,25 +14,19 @@ namespace Microsoft.CodeAnalysis.Remote;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RemoteDocumentTrackingService() : IDocumentTrackingService
 {
-    public bool SupportsDocumentTracking => true;
+    private DocumentId? _activeDocument;
 
-    public event EventHandler<DocumentId?> ActiveDocumentChanged { add { } remove { } }
+    public event EventHandler<DocumentId?>? ActiveDocumentChanged;
 
     public ImmutableArray<DocumentId> GetVisibleDocuments()
         => [];
 
     public DocumentId? TryGetActiveDocument()
-    {
-        Fail("Code should not be attempting to obtain active document from a stateless remote invocation.");
-        return null;
-    }
+        => _activeDocument;
 
-    private static void Fail(string message)
+    internal void SetActiveDocument(DocumentId? documentId)
     {
-        // assert in debug builds to hopefully catch problems in CI
-        Debug.Fail(message);
-
-        // record NFW to see who violates contract.
-        FatalError.ReportAndCatch(new InvalidOperationException(message));
+        _activeDocument = documentId;
+        ActiveDocumentChanged?.Invoke(this, documentId);
     }
 }
