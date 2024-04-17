@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal sealed class AnonymousTypeParameterSymbol : TypeParameterSymbol
         {
-            private readonly Symbol _container;
+            private readonly AnonymousTypeOrDelegateTemplateSymbol _container;
             private readonly int _ordinal;
             private readonly string _name;
 
-            public AnonymousTypeParameterSymbol(Symbol container, int ordinal, string name)
+            public AnonymousTypeParameterSymbol(AnonymousTypeOrDelegateTemplateSymbol container, int ordinal, string name)
             {
                 Debug.Assert((object)container != null);
                 Debug.Assert(!string.IsNullOrEmpty(name));
@@ -93,7 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool AllowByRefLike
             {
-                get { return false; }
+                get
+                {
+                    return _container.IsDelegateType() && _container.Manager.Compilation.SourceAssembly.RuntimeSupportsByRefLikeGenerics;
+                }
             }
 
             public override bool IsValueTypeFromConstraintTypes

@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike(this TypeSymbol type)
+        internal static bool IsErrorTypeOrIsRefLikeTypeOrAllowsByRefLike(this TypeSymbol type)
         {
             return type.IsErrorType() || type.IsRefLikeTypeOrAllowsByRefLike();
         }
