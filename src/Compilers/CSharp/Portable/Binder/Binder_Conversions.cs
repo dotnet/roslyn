@@ -2788,7 +2788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var sourceMethod = selectedMethod as SourceOrdinaryMethodSymbol;
+            var sourceMethod = selectedMethod.OriginalDefinition as SourceOrdinaryMethodSymbol;
             if (sourceMethod is object && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
