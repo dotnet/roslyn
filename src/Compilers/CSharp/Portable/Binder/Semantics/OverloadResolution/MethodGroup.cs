@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in members)
             {
                 this.Methods.Add((MethodSymbol)member);
-                Debug.Assert(((MethodSymbol)member).IsExtensionMethod == isExtensionMethodGroup);
+                Debug.Assert(((MethodSymbol)member).IsExtensionMethod == isExtensionMethodGroup
+                    || (member.ContainingType.IsExtension && !isExtensionMethodGroup));
             }
 
             if (!typeArguments.IsDefault)

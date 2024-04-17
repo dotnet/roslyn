@@ -562,6 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool CheckValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+            // PROTOTYPE(instance) need to handle a BoundThis receiver for an extension type with a struct underlying type
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
 
             if (expr.HasAnyErrors)
@@ -1408,7 +1409,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                Debug.Assert(!RequiresVariableReceiver(receiver, eventSymbol));
+                if (RequiresVariableReceiver(receiver, eventSymbol) && !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
+                {
+                    return false;
+                }
+
                 return true;
             }
             else
@@ -1471,11 +1476,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: The spec fails to impose the restriction that the event receiver must be classified
         /// as a variable (unlike for properties - 7.17.1).  This seems like a bug, but we have
         /// production code that won't build with the restriction in place (see DevDiv #15674).
+        /// We don't need to keep that bug for events on extensions.
         /// </remarks>
         private static bool RequiresVariableReceiver(BoundExpression receiver, Symbol symbol)
         {
             return symbol.RequiresInstanceReceiver()
-                && symbol.Kind != SymbolKind.Event
+                && (symbol.Kind != SymbolKind.Event || symbol.ContainingType.IsExtension)
                 && receiver?.Type?.IsValueType == true;
         }
 
