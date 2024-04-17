@@ -30,17 +30,30 @@ public partial class Solution
     internal void OnSemanticModelObtained(DocumentId documentId, SemanticModel semanticModel)
     {
         var service = this.Services.GetRequiredService<IDocumentTrackingService>();
-        var activeDocumentId = service.TryGetActiveDocument();
-        if (activeDocumentId != documentId)
-            return;
 
-        // Ok.  We just obtained the semantic model for the active document.  Make a strong reference to it so that
-        // other features that wake up for this active document are sure to be able to reuse the same one.
-#pragma warning disable RSEXPERIMENTAL001 // sym-shipped usage of experimental API
-        if (semanticModel.NullableAnalysisIsDisabled)
-            _activeDocumentNullableDisabledSemanticModel = semanticModel;
+        var activeDocumentId = service.TryGetActiveDocument();
+        if (activeDocumentId is null)
+        {
+            // no active document?  then clear out any caches we have.
+            _activeDocumentSemanticModel = null;
+            _activeDocumentNullableDisabledSemanticModel = null;
+        }
+        else if (activeDocumentId != documentId)
+        {
+            // We have an active document, but we just obtained the semantic model for some other doc.  Nothing to do
+            // here, we don't want to cache this.
+            return;
+        }
         else
-            _activeDocumentSemanticModel = semanticModel;
+        {
+            // Ok.  We just obtained the semantic model for the active document.  Make a strong reference to it so that
+            // other features that wake up for this active document are sure to be able to reuse the same one.
+#pragma warning disable RSEXPERIMENTAL001 // sym-shipped usage of experimental API
+            if (semanticModel.NullableAnalysisIsDisabled)
+                _activeDocumentNullableDisabledSemanticModel = semanticModel;
+            else
+                _activeDocumentSemanticModel = semanticModel;
 #pragma warning restore RSEXPERIMENTAL001
+        }
     }
 }
