@@ -34,7 +34,7 @@ public class SolutionServiceTests
         FeaturesTestCompositions.Features.AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
 
     private static RemoteWorkspace CreateRemoteWorkspace()
-        => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
+        => new(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
     [Fact]
     public async Task TestCreation()
@@ -932,7 +932,7 @@ public class SolutionServiceTests
     }
 
     [Fact]
-    public async Task TestActiveDocumentSemanticModelCached2()
+    public async Task TestRemoteWorkspaceCachesNothingIfActiveDocumentNotSynced()
     {
         var code = @"class Test { void Method() { } }";
 
@@ -944,17 +944,18 @@ public class SolutionServiceTests
         var project1 = solution.Projects.Single();
         var document1 = project1.Documents.Single();
 
-        var objectReference = new ObjectReference<SemanticModel>(await document1.GetSemanticModelAsync());
-
-        // This reference a project that doesn't exist.
-        // Ensure that it's still fine to get the checksum for this project we have.
-        project1 = project1.AddProjectReference(new ProjectReference(ProjectId.CreateNewId()));
-
-        solution = project1.Solution;
+        // Locally the semantic model will be held
+        var objectReference1 = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
+        objectReference1.AssertHeld();
 
         var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
-        var project1Checksum = await solution.CompilationState.GetChecksumAsync(project1.Id, CancellationToken.None);
+        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+        var syncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, CancellationToken.None);
+
+        // The remote semantic model will not be held as it doesn't know what the active document is yet.
+        var objectReference2 = ObjectReference.CreateFromFactory(() => syncedSolution.GetRequiredDocument(document1.Id).GetSemanticModelAsync().GetAwaiter().GetResult());
+        objectReference2.AssertReleased();
     }
 
     private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
