@@ -31,7 +31,7 @@ internal abstract class AbstractObsoleteSymbolService(int? dimKeywordKind) : IOb
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         // Avoid taking a builder from the pool in the common case where there are no references to obsolete symbols
@@ -39,8 +39,6 @@ internal abstract class AbstractObsoleteSymbolService(int? dimKeywordKind) : IOb
         ArrayBuilder<TextSpan>? result = null;
         try
         {
-            var semanticModel = compilation.GetSemanticModel(root.SyntaxTree);
-
             foreach (var span in textSpans)
             {
                 Recurse(span, semanticModel);
@@ -68,11 +66,8 @@ internal abstract class AbstractObsoleteSymbolService(int? dimKeywordKind) : IOb
             stack.Add(root.FindNode(span));
 
             // Use a stack so we don't blow out the stack with recursion.
-            while (stack.Count > 0)
+            while (stack.TryPop(out var current))
             {
-                var current = stack.Last();
-                stack.RemoveLast();
-
                 if (current.Span.IntersectsWith(span))
                 {
                     var tokenFromNode = ProcessNode(semanticModel, current);
