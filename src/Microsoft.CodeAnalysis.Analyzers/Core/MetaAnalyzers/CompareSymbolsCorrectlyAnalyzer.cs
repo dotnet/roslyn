@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -26,7 +27,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
         private const string s_symbolEqualsName = nameof(ISymbol.Equals);
         private const string s_HashCodeCombineName = "Combine";
+
         public const string SymbolEqualityComparerName = "Microsoft.CodeAnalysis.SymbolEqualityComparer";
+        public const string RulePropertyName = "Rule";
 
         public static readonly DiagnosticDescriptor EqualityRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
-            context.ReportDiagnostic(binary.Syntax.GetLocation().CreateDiagnostic(EqualityRule));
+            context.ReportDiagnostic(binary.Syntax.GetLocation().CreateDiagnostic(EqualityRule, MakeProperties(nameof(EqualityRule))));
         }
 
         private static void HandleInvocationOperation(
@@ -163,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     // without the correct arguments
                     if (IsSymbolType(invocationOperation.Instance, symbolType))
                     {
-                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(GetHashCodeRule));
+                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(GetHashCodeRule, MakeProperties(nameof(GetHashCode))));
                     }
 
                     break;
@@ -174,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         var parameters = invocationOperation.Arguments;
                         if (parameters.All(p => IsSymbolType(p.Value, symbolType)))
                         {
-                            context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(EqualityRule));
+                            context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(EqualityRule, MakeProperties(nameof(EqualityRule))));
                         }
                     }
 
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         systemHashCodeType.Equals(method.ContainingType, SymbolEqualityComparer.Default) &&
                         invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolType)))
                     {
-                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(GetHashCodeRule));
+                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(GetHashCodeRule, MakeProperties(nameof(GetHashCodeRule))));
                     }
 
                     break;
@@ -199,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         IsBehavingOnSymbolType(method, symbolType) &&
                         !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, iEqualityComparer)))
                     {
-                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
+                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule, MakeProperties(nameof(CollectionRule))));
                     }
 
                     break;
@@ -249,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 IsSymbolType(createdType.TypeArguments[0], symbolType) &&
                 !objectCreation.Arguments.Any(arg => IsSymbolType(arg.Value, iEqualityComparerType)))
             {
-                context.ReportDiagnostic(objectCreation.CreateDiagnostic(CollectionRule));
+                context.ReportDiagnostic(objectCreation.CreateDiagnostic(CollectionRule, MakeProperties(nameof(CollectionRule))));
             }
         }
 
@@ -353,6 +356,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 methodTypeSymbols.Add(typeSymbol);
             }
         }
+
+        private static ImmutableDictionary<string, string?> MakeProperties(string rule)
+            => ImmutableDictionary.CreateRange([new KeyValuePair<string, string?>(RulePropertyName, rule)]);
 
         public static bool UseSymbolEqualityComparer(Compilation compilation)
             => compilation.GetOrCreateTypeByMetadataName(SymbolEqualityComparerName) is object;

@@ -32,23 +32,27 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (diagnostic.Descriptor == CompareSymbolsCorrectlyAnalyzer.EqualityRule)
+                if (diagnostic.Properties.TryGetValue(CompareSymbolsCorrectlyAnalyzer.RulePropertyName, out var rule))
                 {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                            CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
-                            cancellationToken => ConvertToEqualsAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                            equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
-                        diagnostic);
-                }
-                else if (diagnostic.Descriptor == CompareSymbolsCorrectlyAnalyzer.CollectionRule)
-                {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                            CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
-                            cancellationToken => CallOverloadWithEqualityComparerAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                            equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
-                        diagnostic);
+                    switch (rule)
+                    {
+                        case nameof(CompareSymbolsCorrectlyAnalyzer.EqualityRule):
+                            context.RegisterCodeFix(
+                                CodeAction.Create(
+                                    CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
+                                    cancellationToken => ConvertToEqualsAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
+                                    equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
+                                diagnostic);
+                            break;
+                        case nameof(CompareSymbolsCorrectlyAnalyzer.CollectionRule):
+                            context.RegisterCodeFix(
+                                CodeAction.Create(
+                                    CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
+                                    cancellationToken => CallOverloadWithEqualityComparerAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
+                                    equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
+                                diagnostic);
+                            break;
+                    }
                 }
             }
 
