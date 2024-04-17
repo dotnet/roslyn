@@ -27,18 +27,13 @@ internal abstract partial class AbstractSnippetFunction : IVsExpansionFunction
         _threadingContext = threadingContext;
     }
 
-    protected bool TryGetDocument([NotNullWhen(true)] out Document? document)
-    {
-        document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()?.WithFrozenPartialSemantics(CancellationToken.None);
-        return document != null;
-    }
+    protected Document? GetDocument(CancellationToken cancellationToken)
+        => _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()?.WithFrozenPartialSemantics(cancellationToken);
 
     private int GetDefaultValue(CancellationToken cancellationToken, out string value, out int hasDefaultValue)
     {
-        var (ExitCode, Value, HasDefaultValue) = _threadingContext.JoinableTaskFactory.Run(() => GetDefaultValueAsync(cancellationToken));
-        value = Value;
-        hasDefaultValue = HasDefaultValue;
-        return ExitCode;
+        (var exitCode, value, hasDefaultValue) = _threadingContext.JoinableTaskFactory.Run(() => GetDefaultValueAsync(cancellationToken));
+        return exitCode;
     }
 
     protected virtual Task<(int ExitCode, string Value, int HasDefaultValue)> GetDefaultValueAsync(CancellationToken cancellationToken)
@@ -48,10 +43,8 @@ internal abstract partial class AbstractSnippetFunction : IVsExpansionFunction
 
     private int GetCurrentValue(CancellationToken cancellationToken, out string value, out int hasCurrentValue)
     {
-        var (ExitCode, Value, HasCurrentValue) = _threadingContext.JoinableTaskFactory.Run(() => GetCurrentValueAsync(cancellationToken));
-        value = Value;
-        hasCurrentValue = HasCurrentValue;
-        return ExitCode;
+        (var exitCode, value, hasCurrentValue) = _threadingContext.JoinableTaskFactory.Run(() => GetCurrentValueAsync(cancellationToken));
+        return exitCode;
     }
 
     protected virtual Task<(int ExitCode, string Value, int HasCurrentValue)> GetCurrentValueAsync(CancellationToken cancellationToken)
