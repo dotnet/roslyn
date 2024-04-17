@@ -100,8 +100,7 @@ internal sealed class SolutionChecksumUpdater
         // Try to stop any work that is in progress.
         PauseWork();
 
-        var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
-        trackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
+        _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
         _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
