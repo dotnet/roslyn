@@ -115,7 +115,7 @@ internal sealed class SerializableSourceText
         if (state.TextAndVersionSource.TextLoader is SerializableSourceTextLoader serializableLoader)
         {
             // If we're already pointing at a serializable loader, we can just use that directly.
-            return new(serializableLoader.Text);
+            return new(serializableLoader.SerializableSourceText);
         }
         else if (state.Storage is TemporaryTextStorage storage)
         {
@@ -213,23 +213,23 @@ internal sealed class SerializableSourceText
     /// </summary>
     private sealed class SerializableSourceTextLoader : TextLoader
     {
-        public readonly SerializableSourceText Text;
+        public readonly SerializableSourceText SerializableSourceText;
         private readonly AsyncLazy<TextAndVersion> _lazyTextAndVersion;
 
         public SerializableSourceTextLoader(
-            SerializableSourceText text,
+            SerializableSourceText serializableSourceText,
             string? filePath)
         {
-            Text = text;
+            SerializableSourceText = serializableSourceText;
             var version = VersionStamp.Create();
 
             this.FilePath = filePath;
             _lazyTextAndVersion = AsyncLazy.Create(
                 async static (tuple, cancellationToken) =>
-                    TextAndVersion.Create(await tuple.text.GetTextAsync(cancellationToken).ConfigureAwait(false), tuple.version, tuple.filePath),
+                    TextAndVersion.Create(await tuple.serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false), tuple.version, tuple.filePath),
                 static (tuple, cancellationToken) =>
-                    TextAndVersion.Create(tuple.text.GetText(cancellationToken), tuple.version, tuple.filePath),
-                (text, version, filePath));
+                    TextAndVersion.Create(tuple.serializableSourceText.GetText(cancellationToken), tuple.version, tuple.filePath),
+                (serializableSourceText, version, filePath));
         }
 
         internal override string? FilePath { get; }
