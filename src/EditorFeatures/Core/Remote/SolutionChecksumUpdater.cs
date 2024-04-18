@@ -82,7 +82,6 @@ internal sealed class SolutionChecksumUpdater
 
         // start listening workspace change event
         _workspace.WorkspaceChanged += OnWorkspaceChanged;
-
         _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
         if (_globalOperationService != null)
@@ -101,7 +100,6 @@ internal sealed class SolutionChecksumUpdater
         PauseWork();
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
-
         _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
         if (_globalOperationService != null)
