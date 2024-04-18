@@ -116,18 +116,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Flags]
-        public enum Options : byte
+        public enum Options : short
         {
             None = 0,
-            IsMethodGroupConversion = 0b_00000001,
-            AllowRefOmittedArguments = 0b_00000010,
-            InferWithDynamic = 0b_00000100,
-            IgnoreNormalFormIfHasValidParamsParameter = 0b_00001000,
-            IsFunctionPointerResolution = 0b_00010000,
-            IsExtensionMethodResolution = 0b_00100000,
-            DynamicResolution = 0b_01000000,
-            DynamicConvertsToAnything = 0b_10000000,
-            InferringUniqueMethodGroupSignature = 0b_10000000,
+            IsMethodGroupConversion = 1 << 0,
+            AllowRefOmittedArguments = 1 << 1,
+            InferWithDynamic = 1 << 2,
+            IgnoreNormalFormIfHasValidParamsParameter = 1 << 3,
+            IsFunctionPointerResolution = 1 << 4,
+            IsExtensionMethodResolution = 1 << 5,
+            DynamicResolution = 1 << 6,
+            DynamicConvertsToAnything = 1 << 7,
+            InferringUniqueMethodGroupSignature = 1 << 8,
         }
 
         // Perform overload resolution on the given method group, with the given arguments and
