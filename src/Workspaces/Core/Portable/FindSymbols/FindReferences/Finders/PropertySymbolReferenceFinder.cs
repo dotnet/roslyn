@@ -91,30 +91,28 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
         }
     }
 
-    protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
         IPropertySymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
 
-        var forEachDocuments = IsForEachProperty(symbol)
-            ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-            : [];
+        if (IsForEachProperty(symbol))
+            await FindDocumentsWithForEachStatementsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        var elementAccessDocument = symbol.IsIndexer
-            ? await FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(project, documents, cancellationToken).ConfigureAwait(false)
-            : [];
+        if (symbol.IsIndexer)
+            await FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        var indexerMemberCrefDocument = symbol.IsIndexer
-            ? await FindDocumentWithIndexerMemberCrefAsync(project, documents, cancellationToken).ConfigureAwait(false)
-            : [];
+        if (symbol.IsIndexer)
+            await FindDocumentWithIndexerMemberCrefAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
-        return ordinaryDocuments.Concat(forEachDocuments, elementAccessDocument, indexerMemberCrefDocument, documentsWithGlobalAttributes);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     private static bool IsForEachProperty(IPropertySymbol symbol)
@@ -155,18 +153,18 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
         return nameReferences.Concat(forEachReferences, indexerReferences, suppressionReferences);
     }
 
-    private static Task<ImmutableArray<Document>> FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(
-        Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
+    private static Task FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync<TData>(
+        Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
-            project, documents, static index => index.ContainsExplicitOrImplicitElementAccessExpression, cancellationToken);
+            project, documents, static index => index.ContainsExplicitOrImplicitElementAccessExpression, processResult, processResultData, cancellationToken);
     }
 
-    private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
-        Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
+    private static Task FindDocumentWithIndexerMemberCrefAsync<TData>(
+        Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
-            project, documents, static index => index.ContainsIndexerMemberCref, cancellationToken);
+            project, documents, static index => index.ContainsIndexerMemberCref, processResult, processResultData, cancellationToken);
     }
 
     private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
