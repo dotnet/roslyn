@@ -10,26 +10,23 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo;
+namespace Microsoft.CodeAnalysis.Editor.Test;
 
-internal sealed class FirstDocIsActiveAndVisibleDocumentTrackingService : IDocumentTrackingService
+internal sealed class FirstDocumentIsActiveAndVisibleDocumentTrackingService : IDocumentTrackingService
 {
     private readonly Workspace _workspace;
 
     [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-    private FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
+    private FirstDocumentIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
         => _workspace = workspace;
 
-    public bool SupportsDocumentTracking => true;
-
     public event EventHandler<DocumentId?> ActiveDocumentChanged { add { } remove { } }
-    public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
     public DocumentId TryGetActiveDocument()
         => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
 
     public ImmutableArray<DocumentId> GetVisibleDocuments()
-        => ImmutableArray.Create(_workspace.CurrentSolution.Projects.First().DocumentIds.First());
+        => [TryGetActiveDocument()];
 
     [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     public class Factory : IWorkspaceServiceFactory
@@ -42,6 +39,6 @@ internal sealed class FirstDocIsActiveAndVisibleDocumentTrackingService : IDocum
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new FirstDocIsActiveAndVisibleDocumentTrackingService(workspaceServices.Workspace);
+            => new FirstDocumentIsActiveAndVisibleDocumentTrackingService(workspaceServices.Workspace);
     }
 }
