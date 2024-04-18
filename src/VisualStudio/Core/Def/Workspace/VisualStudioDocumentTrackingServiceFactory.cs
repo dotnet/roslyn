@@ -77,19 +77,6 @@ internal sealed class VisualStudioDocumentTrackingServiceFactory : IWorkspaceSer
         private void ActiveDocumentTracker_DocumentsChanged(object? sender, EventArgs e)
             => _activeDocumentChangedEventHandler?.Invoke(this, TryGetActiveDocument());
 
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged
-        {
-            add
-            {
-                _activeDocumentTracker.NonRoslynBufferTextChanged += value;
-            }
-
-            remove
-            {
-                _activeDocumentTracker.NonRoslynBufferTextChanged -= value;
-            }
-        }
-
         public DocumentId? TryGetActiveDocument()
             => _activeDocumentTracker.TryGetActiveDocument(_workspace);
 

@@ -240,7 +240,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             public bool SupportsDocumentTracking => true;
 
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
-            public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
             public DocumentId TryGetActiveDocument()
                 => null;

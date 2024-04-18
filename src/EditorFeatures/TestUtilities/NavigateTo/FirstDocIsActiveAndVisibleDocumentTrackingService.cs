@@ -23,7 +23,6 @@ internal sealed class FirstDocIsActiveAndVisibleDocumentTrackingService : IDocum
     public bool SupportsDocumentTracking => true;
 
     public event EventHandler<DocumentId?> ActiveDocumentChanged { add { } remove { } }
-    public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
     public DocumentId TryGetActiveDocument()
         => _workspace.CurrentSolution.Projects.First().DocumentIds.First();

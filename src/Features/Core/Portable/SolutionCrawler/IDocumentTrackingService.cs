@@ -24,9 +24,4 @@ internal interface IDocumentTrackingService : IWorkspaceService
     ImmutableArray<DocumentId> GetVisibleDocuments();
 
     event EventHandler<DocumentId?> ActiveDocumentChanged;
-
-    /// <summary>
-    /// Raised when a text buffer that's not part of a workspace is changed.
-    /// </summary>
-    event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 }

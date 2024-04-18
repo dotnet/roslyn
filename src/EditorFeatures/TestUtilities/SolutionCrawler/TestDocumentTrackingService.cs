@@ -24,12 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Test
 
         public event EventHandler<DocumentId?>? ActiveDocumentChanged;
 
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged
-        {
-            add { }
-            remove { }
-        }
-
         public void SetActiveDocument(DocumentId? newActiveDocumentId)
         {
             _activeDocumentId = newActiveDocumentId;
