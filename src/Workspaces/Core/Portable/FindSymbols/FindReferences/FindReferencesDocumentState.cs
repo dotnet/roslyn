@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// <summary>
 /// Ephemeral information that find-references needs for a particular document when searching for a <em>specific</em>
 /// symbol.  Importantly, it contains the global aliases to that symbol within the current project.
+/// </summary>
 internal sealed class FindReferencesDocumentState(
     FindReferenceCache cache,
     HashSet<string>? globalAliases)
