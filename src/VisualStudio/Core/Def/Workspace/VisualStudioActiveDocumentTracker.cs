@@ -13,9 +13,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
@@ -30,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
 {
     private readonly IThreadingContext _threadingContext;
+    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
     /// <summary>
     /// The list of tracked frames. This can only be written by the UI thread, although can be read (with care) from any thread.
@@ -45,9 +48,11 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioActiveDocumentTracker(
         IThreadingContext threadingContext,
-        [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
+        [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider,
+        IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
     {
         _threadingContext = threadingContext;
+        _editorAdaptersFactoryService = editorAdaptersFactoryService;
         _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
