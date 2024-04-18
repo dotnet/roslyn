@@ -10052,13 +10052,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node)
         {
-            var method = GetUniqueSignatureFromMethodGroup(node);
+            bool useParams = false;
+            var method = GetUniqueSignatureFromMethodGroup(node, ref useParams);
             if (method is null)
             {
                 return null;
             }
 
-            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method);
+            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method, hasParams: useParams);
         }
 
         /// <summary>
@@ -10066,7 +10067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// have the same signature, ignoring parameter names and custom modifiers. The particular
         /// method returned is not important since the caller is interested in the signature only.
         /// </summary>
-        private MethodSymbol? GetUniqueSignatureFromMethodGroup_CSharp10(BoundMethodGroup node)
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup_CSharp10(BoundMethodGroup node, ref bool useParams)
         {
             MethodSymbol? method = null;
             var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: node.Methods.Length);
@@ -10087,7 +10088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods.Add(m);
             }
 
-            if (!OverloadResolution.FilterMethodsForUniqueSignature(methods))
+            if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, ref useParams))
             {
                 methods.Free();
                 return null;
@@ -10119,7 +10120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     methodGroup.Free();
 
-                    if (!OverloadResolution.FilterMethodsForUniqueSignature(methods))
+                    if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, ref useParams))
                     {
                         methods.Free();
                         return null;
@@ -10174,11 +10175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// in the nearest scope, have the same signature ignoring parameter names and custom modifiers.
         /// The particular method returned is not important since the caller is interested in the signature only.
         /// </summary>
-        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node, ref bool useParams)
         {
             if (Compilation.LanguageVersion < LanguageVersionFacts.CSharpNext)
             {
-                return GetUniqueSignatureFromMethodGroup_CSharp10(node);
+                return GetUniqueSignatureFromMethodGroup_CSharp10(node, ref useParams);
             }
 
             MethodSymbol? foundMethod = null;
@@ -10218,7 +10219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methods.Add(substituted);
                 }
 
-                if (!OverloadResolution.FilterMethodsForUniqueSignature(methods))
+                if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, ref useParams))
                 {
                     methods.Free();
                     return null;
@@ -10274,7 +10275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         methods.Add(reduced);
                     }
 
-                    if (!OverloadResolution.FilterMethodsForUniqueSignature(methods))
+                    if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, ref useParams))
                     {
                         methods.Free();
                         methodGroup.Free();
@@ -10347,6 +10348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
             SyntaxNode syntax,
             MethodSymbol methodSymbol,
+            bool hasParams,
             ImmutableArray<ScopedKind>? parameterScopesOverride = null,
             ImmutableArray<bool>? parameterHasUnscopedRefAttributesOverride = null,
             RefKind? returnRefKindOverride = null,
@@ -10364,8 +10366,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
-
-            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol.GetLeastOverriddenMethod(ContainingType));
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);

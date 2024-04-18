@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using ILVerify;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -7125,13 +7126,20 @@ class Program
                     public abstract void M(int x = 42);
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (3,26): error CS0462: The inherited members 'Y<T>.M(T)' and 'Y<T>.M(int)' have the same signature in type 'Z', so they cannot be overridden
                 //     public override void M(int x = default) { }
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Y<T>.M(T)", "Y<T>.M(int)", "Z").WithLocation(3, 26),
                 // (8,26): warning CS1957: Member 'Z.M(int)' overrides 'Y<int>.M(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
                 //     public abstract void M(T x = default);
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Y<int>.M(int)", "Z.M(int)").WithLocation(8, 26));
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "M").WithArguments("Y<int>.M(int)", "Z.M(int)").WithLocation(8, 26)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -7160,7 +7168,12 @@ class Program
 
                 public delegate void D(long x = 5);
                 """;
-            CompileAndVerify(source, expectedOutput: "5").VerifyDiagnostics();
+
+            var expectedOutput = "5";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7188,7 +7201,12 @@ class Program
 
                 public delegate void D(long x = 5);
                 """;
-            CompileAndVerify(source, expectedOutput: "5").VerifyDiagnostics();
+
+            var expectedOutput = "5";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7216,7 +7234,12 @@ class Program
 
                 public delegate void D(long x = 5);
                 """;
-            CompileAndVerify(source, expectedOutput: "5").VerifyDiagnostics();
+
+            var expectedOutput = "5";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7279,10 +7302,15 @@ class Program
                     internal static new void F(int x = 2) => System.Console.WriteLine("B" + x);
                 }
                 """;
-            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 B3
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
             {
@@ -7315,10 +7343,15 @@ class Program
                     internal static new void F(int x = 2) => System.Console.WriteLine("B" + x);
                 }
                 """;
-            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 B3
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
             {
@@ -13368,10 +13401,16 @@ class Program
                     public abstract void M(int x = 42);
                 }
                 """;
-            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 System.Action`1[System.Int32]
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.Equal(42, cm.Parameters.Single().ExplicitDefaultValue);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
@@ -13403,10 +13442,16 @@ class Program
                     public abstract void M(int x);
                 }
                 """;
-            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: """
+
+            var expectedOutput = """
                 System.Action`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.Int32]
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.False(cm.Parameters.Single().HasExplicitDefaultValue);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
@@ -13430,10 +13475,15 @@ class Program
                 var lam2 = (params string[] ys) => { };
                 Report(lam2);
                 """;
-            CompileAndVerify(source, expectedOutput: $"""
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.String]
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -13455,12 +13505,16 @@ class Program
                     public abstract void M(params int[] xs);
                 }
                 """;
-            var verifier = CompileAndVerify(source,
-                symbolValidator: validateSymbols,
-                expectedOutput: """
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.Int32]
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
@@ -13518,12 +13572,15 @@ class Program
                 }
                 """;
             var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
-            verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
-                symbolValidator: validateSymbols,
-                expectedOutput: """
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.Int32]
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
@@ -13559,14 +13616,22 @@ class Program
                     public void M<T>(T[] xs) => System.Console.WriteLine("B");
                 }
                 """;
-            var verifier = CompileAndVerify(source,
-                symbolValidator: validateSymbols,
-                expectedOutput: """
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var m = new D().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D().M").WithLocation(4, 9));
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
                 <>f__AnonymousDelegate0`1[System.Int64]
                 B
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
@@ -13608,6 +13673,7 @@ class Program
                 }
                 """;
             var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1bRef = comp1b.EmitToImageReference();
 
             var source3 = """
                 var c = ((C<long>)new D()).M;
@@ -13617,14 +13683,21 @@ class Program
                 System.Console.WriteLine(d.GetType());
                 d(null);
                 """;
-            var verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
-                symbolValidator: validateSymbols,
-                expectedOutput: """
+
+            CreateCompilation(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var d = new D().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D().M").WithLocation(4, 9));
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
                 <>f__AnonymousDelegate0`1[System.Int64]
                 B
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1bRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
@@ -13660,14 +13733,18 @@ class Program
                     public void M(T2[] xs) => System.Console.WriteLine("B");
                 }
                 """;
-            var verifier = CompileAndVerify(source,
-                symbolValidator: validateSymbols,
-                expectedOutput: """
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
                 System.Action`1[System.Int64[]]
                 B
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
@@ -13709,6 +13786,7 @@ class Program
                 }
                 """;
             var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1bRef = comp1b.EmitToImageReference();
 
             var source3 = """
                 var c = ((C)new D<long>()).M<long>;
@@ -13718,14 +13796,17 @@ class Program
                 System.Console.WriteLine(d.GetType());
                 d(null);
                 """;
-            var verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
-                symbolValidator: validateSymbols,
-                expectedOutput: """
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int64]
                 A
                 System.Action`1[System.Int64[]]
                 B
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1bRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
@@ -13758,11 +13839,16 @@ class Program
                     public abstract void M(int[] xs);
                 }
                 """;
-            var verifier = CompileAndVerify(source,
-                expectedOutput: """
+
+            var expectedOutput = """
                 System.Action`1[System.Int32[]]
                 System.Action`1[System.Int32[]]
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.False(cm.Parameters.Single().IsParams);
             var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
@@ -13796,12 +13882,15 @@ class Program
                 var d = new D().M;
                 System.Console.WriteLine(d.GetType());
                 """;
-            var verifier = CompileAndVerify(source3, [comp2Ref, comp1aRef],
-                symbolValidator: validateSymbols,
-                expectedOutput: """
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.Int32]
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1aRef], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1aRef], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1aRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.True(cm.Parameters.Single().IsParams);
@@ -13821,11 +13910,16 @@ class Program
                 }
                 """;
             var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
-            verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()],
-                expectedOutput: """
+            var comp1bRef = comp1b.EmitToImageReference();
+
+            expectedOutput = """
                 System.Action`1[System.Int32[]]
                 System.Action`1[System.Int32[]]
-                """).VerifyDiagnostics();
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            verifier = CompileAndVerify(source3, [comp2Ref, comp1bRef], expectedOutput: expectedOutput).VerifyDiagnostics();
 
             cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
             Assert.False(cm.Parameters.Single().IsParams);

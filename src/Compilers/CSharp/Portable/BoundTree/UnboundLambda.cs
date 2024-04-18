@@ -763,6 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetMethodGroupOrLambdaDelegateType(
                 _unboundLambda.Syntax,
                 lambdaSymbol,
+                hasParams: OverloadResolution.IsValidParams(Binder, lambdaSymbol),
                 parameterScopesBuilder.ToImmutableAndFree(),
                 lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute),
                 returnRefKind,
