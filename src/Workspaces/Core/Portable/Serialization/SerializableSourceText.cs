@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -189,5 +187,36 @@ internal sealed class SerializableSourceText
                 SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken),
                 contentHash);
         }
+    }
+
+    public TextLoader ToTextLoader(string? filePath)
+        => new SerializableSourceTextLoader(this, filePath);
+
+    private sealed class SerializableSourceTextLoader : TextLoader
+    {
+        private readonly AsyncLazy<TextAndVersion> _lazyTextAndVersion;
+
+        public SerializableSourceTextLoader(
+            SerializableSourceText text,
+            string? filePath)
+        {
+            var version = VersionStamp.Create();
+
+            this.FilePath = filePath;
+            _lazyTextAndVersion = AsyncLazy.Create(
+                async static (tuple, cancellationToken) =>
+                    TextAndVersion.Create(await tuple.text.GetTextAsync(cancellationToken).ConfigureAwait(false), tuple.version, tuple.filePath),
+                static (tuple, cancellationToken) =>
+                    TextAndVersion.Create(tuple.text.GetText(cancellationToken), tuple.version, tuple.filePath),
+                (text, version, filePath));
+        }
+
+        internal override string? FilePath { get; }
+
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => _lazyTextAndVersion.GetValueAsync(cancellationToken);
+
+        internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
+            => _lazyTextAndVersion.GetValue(cancellationToken);
     }
 }
