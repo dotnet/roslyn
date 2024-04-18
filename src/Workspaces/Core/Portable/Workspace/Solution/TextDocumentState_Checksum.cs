@@ -38,7 +38,7 @@ internal partial class TextDocumentState
             {
                 var infoChecksum = this.Attributes.Checksum;
                 var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
-                var textChecksum = Checksum.Create(serializableText.ContentHash);
+                var textChecksum = serializableText.ContentChecksum;
 
                 return new DocumentStateChecksums(this.Id, infoChecksum, textChecksum);
             }
