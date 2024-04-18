@@ -258,6 +258,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? Visit(BoundNode? node)
         {
 #if DEBUG
+            VisitCore(node);
+#endif
+            return base.Visit(node);
+        }
+
+#if DEBUG
+        private void VisitCore(BoundNode? node)
+        {
             if (node is BoundValuePlaceholderBase placeholder)
             {
                 Debug.Assert(ContainsPlaceholderScope(placeholder));
@@ -267,14 +275,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_visited is { } && _visited.Count <= MaxTrackVisited)
                 {
                     bool added = _visited.Add(expr);
-                    Debug.Assert(added);
+                    Debug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
                 }
             }
-#endif
-            return base.Visit(node);
         }
 
-#if DEBUG
         private void AssertVisited(BoundExpression expr)
         {
             if (expr is BoundValuePlaceholderBase placeholder)
@@ -291,6 +296,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitFieldEqualsValue(BoundFieldEqualsValue node)
         {
             throw ExceptionUtilities.Unreachable();
+        }
+
+        // Unlike the base implementation, we want to visit all the nodes, not just the operands.
+        public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            if (node.Left.Kind != BoundKind.BinaryOperator)
+            {
+                return base.VisitBinaryOperator(node);
+            }
+
+            var binary = (BoundBinaryOperator)node.Left;
+
+            var operators = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+
+            operators.Push(binary);
+
+            BoundExpression current = binary.Left;
+
+            while (current.Kind == BoundKind.BinaryOperator)
+            {
+                binary = (BoundBinaryOperator)current;
+                operators.Push(binary);
+                current = binary.Left;
+            }
+
+            this.Visit(current);
+
+            while (operators.TryPop(out var op))
+            {
+                this.Visit(op.Right);
+#if DEBUG
+                this.VisitCore(op);
+#endif
+            }
+
+            this.Visit(node.Right);
+
+            operators.Free();
+            return null;
         }
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
