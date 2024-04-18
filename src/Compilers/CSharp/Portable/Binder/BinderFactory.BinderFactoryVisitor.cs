@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if ((object)propertySymbol != null)
                                     {
                                         accessor = (parent.Kind() == SyntaxKind.GetAccessorDeclaration) ? propertySymbol.GetMethod : propertySymbol.SetMethod;
+                                        Debug.Assert(accessor is not null || parent.HasErrors);
                                     }
                                     break;
                                 }
@@ -596,6 +597,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // not the implementation (method.Locations includes both parts). If the
                         // span is in fact in the implementation, return that method instead.
                         var implementation = ((MethodSymbol)sym).PartialImplementationPart;
+                        if ((object)implementation != null)
+                        {
+                            if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
+                            {
+                                result = implementation;
+                                return true;
+                            }
+                        }
+                    }
+                    else if (sym.Kind == SymbolKind.Property)
+                    {
+                        if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
+                        {
+                            return true;
+                        }
+
+                        // If this is a partial property, the property represents the defining part,
+                        // not the implementation (property.Locations includes both parts). If the
+                        // span is in fact in the implementation, return that property instead.
+                        var property = (SourcePropertySymbol)sym;
+                        var implementation = property.IsPartialDefinition ? property.OtherPartOfPartial : property;
                         if ((object)implementation != null)
                         {
                             if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))

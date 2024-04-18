@@ -2438,6 +2438,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptsLocationFileNotFound:
                 case ErrorCode.ERR_InterceptsLocationDataInvalidPosition:
                 case ErrorCode.INF_TooManyBoundLambdas:
+
+                case ErrorCode.ERR_PartialPropertyMissingImplementation:
+                case ErrorCode.ERR_PartialPropertyMissingDefinition:
+                case ErrorCode.ERR_PartialPropertyDuplicateDefinition:
+                case ErrorCode.ERR_PartialPropertyDuplicateImplementation:
+                case ErrorCode.ERR_PartialPropertyMissingAccessor:
+                case ErrorCode.ERR_PartialPropertyUnexpectedAccessor:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
+        private SourcePropertySymbol? _otherPartOfPartial;
+
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;
@@ -37,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAccessorDeclarations(
                 syntax,
                 diagnostics,
-                out bool isAutoProperty,
                 out bool hasAccessorList,
                 out bool accessorsHaveImplementation,
                 out bool isInitOnly,
@@ -57,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out _);
 
+            // PROTOTYPE(partial-properties): it's unclear if the subtle difference between former 'isAutoProperty' and '!accessorsHaveImplementation' matters
+            bool isAutoProperty = (modifiers & DeclarationModifiers.Partial) == 0 && !accessorsHaveImplementation;
             bool isExpressionBodied = !hasAccessorList && GetArrowExpression(syntax) != null;
 
             binder = binder.WithUnsafeRegionIfNecessary(modifiersTokenList);
@@ -76,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
+                accessorsHaveImplementation: accessorsHaveImplementation,
                 memberName,
                 location,
                 diagnostics);
@@ -93,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAutoProperty,
             bool isExpressionBodied,
             bool isInitOnly,
+            bool accessorsHaveImplementation,
             string memberName,
             Location location,
             BindingDiagnosticBag diagnostics)
@@ -109,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
+                accessorsHaveImplementation: accessorsHaveImplementation,
                 syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                 memberName,
                 syntax.AttributeLists,
@@ -163,7 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void GetAccessorDeclarations(
             CSharpSyntaxNode syntaxNode,
             BindingDiagnosticBag diagnostics,
-            out bool isAutoProperty,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
             out bool isInitOnly,
@@ -171,7 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out CSharpSyntaxNode? setSyntax)
         {
             var syntax = (BasePropertyDeclarationSyntax)syntaxNode;
-            isAutoProperty = true;
             hasAccessorList = syntax.AccessorList != null;
             getSyntax = null;
             setSyntax = null;
@@ -223,14 +227,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
-                        isAutoProperty = false;
                         accessorsHaveImplementation = true;
                     }
                 }
             }
             else
             {
-                isAutoProperty = false;
                 accessorsHaveImplementation = GetArrowExpression(syntax) is object;
             }
         }
@@ -284,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isExplicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Partial |
                                     DeclarationModifiers.Sealed |
                                     DeclarationModifiers.Abstract |
                                     DeclarationModifiers.Virtual |
@@ -552,9 +555,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(Location, useSiteInfo);
+
+            if (IsPartialDefinition && OtherPartOfPartial is { } implementation)
+            {
+                PartialPropertyChecks(implementation, diagnostics);
+            }
+        }
+
+        private void PartialPropertyChecks(SourcePropertySymbol implementation, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.IsPartialDefinition);
+            Debug.Assert((object)this != implementation);
+            Debug.Assert((object?)this.OtherPartOfPartial == implementation);
+
+            // PROTOTYPE(partial-properties): check and diagnose all disallowed differences between parts.
+            // PROTOTYPE(partial-properties): we should likely report a warning when only one of the parts has an explicit access modifier for consistency with methods.
+            if (DeclaredAccessibility != implementation.DeclaredAccessibility)
+            {
+                // PROTOTYPE(partial-properties): we should either generalize the existing diagnostic or introduce new set of diagnostics.
+                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.GetFirstLocation());
+            }
         }
 
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
+
+        internal bool IsPartial => (_modifiers & DeclarationModifiers.Partial) != 0;
+
+        internal SourcePropertySymbol? OtherPartOfPartial { get => _otherPartOfPartial; }
+
+        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !IsExtern;
+
+        internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || IsExtern);
+
+        internal static void InitializePartialPropertyParts(SourcePropertySymbol definition, SourcePropertySymbol implementation)
+        {
+            Debug.Assert(definition.IsPartialDefinition);
+            Debug.Assert(implementation.IsPartialImplementation);
+
+            Debug.Assert(definition._otherPartOfPartial is null || definition._otherPartOfPartial == implementation);
+            Debug.Assert(implementation._otherPartOfPartial is null || implementation._otherPartOfPartial == definition);
+
+            definition._otherPartOfPartial = implementation;
+            implementation._otherPartOfPartial = definition;
+        }
+
     }
 }

@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
+            else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied && !IsPartial)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -807,5 +807,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+#nullable enable
+        public sealed override MethodSymbol? PartialImplementationPart => _property is SourcePropertySymbol { IsPartialDefinition: true, OtherPartOfPartial: { } other }
+            ? (MethodKind == MethodKind.PropertyGet ? other.GetMethod : other.SetMethod)
+            : null;
+
+        public sealed override MethodSymbol? PartialDefinitionPart => _property is SourcePropertySymbol { IsPartialImplementation: true, OtherPartOfPartial: { } other }
+            ? (MethodKind == MethodKind.PropertyGet ? other.GetMethod : other.SetMethod)
+            : null;
+
+        internal bool IsPartialDefinition => _property is SourcePropertySymbol { IsPartialDefinition: true };
+        internal bool IsPartialImplementation => _property is SourcePropertySymbol { IsPartialImplementation: true };
     }
 }

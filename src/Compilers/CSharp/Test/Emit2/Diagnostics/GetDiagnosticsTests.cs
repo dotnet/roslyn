@@ -186,6 +186,8 @@ namespace N1
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
+        // PROTOTYPE(partial-properties): also test compilation events for complete and incomplete partial properties and their accessors
+
         [Fact, WorkItem(7477, "https://github.com/dotnet/roslyn/issues/7477")]
         public void TestCompilationEventsForPartialMethod()
         {

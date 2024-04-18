@@ -2310,6 +2310,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptsLocationDataInvalidPosition = 9235,
         INF_TooManyBoundLambdas = 9236,
 
+        // PROTOTYPE(partial-properties): pack
+        ERR_PartialPropertyMissingImplementation = 9300,
+        ERR_PartialPropertyMissingDefinition = 9301,
+        ERR_PartialPropertyDuplicateDefinition = 9302,
+        ERR_PartialPropertyDuplicateImplementation = 9303,
+        ERR_PartialPropertyMissingAccessor = 9304,
+        ERR_PartialPropertyUnexpectedAccessor = 9305,
+
         #endregion
 
         // Note: you will need to do the following after adding errors:

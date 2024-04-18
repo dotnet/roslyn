@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsAutoProperty = 1 << 1,
             IsExplicitInterfaceImplementation = 1 << 2,
             HasInitializer = 1 << 3,
+            AccessorsHaveImplementation = 1 << 4,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAutoProperty,
             bool isExpressionBodied,
             bool isInitOnly,
+            bool accessorsHaveImplementation,
             RefKind refKind,
             string memberName,
             SyntaxList<AttributeListSyntax> indexerNameAttributeLists,
@@ -89,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!isExpressionBodied || !isAutoProperty);
             Debug.Assert(!isExpressionBodied || !hasInitializer);
+            Debug.Assert(!isExpressionBodied || accessorsHaveImplementation); // PROTOTYPE(partial-properties): further adjust asserts?
             Debug.Assert((modifiers & DeclarationModifiers.Required) == 0 || this is SourcePropertySymbol);
 
             _syntaxRef = syntax.GetReference();
@@ -123,6 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isExpressionBodied)
             {
                 _propertyFlags |= Flags.IsExpressionBodied;
+            }
+
+            if (accessorsHaveImplementation)
+            {
+                _propertyFlags |= Flags.AccessorsHaveImplementation;
             }
 
             if (isIndexer)
@@ -479,11 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Static) != 0; }
         }
 
-        internal bool IsFixed
-        {
-            get { return false; }
-        }
-
         /// <remarks>
         /// Even though it is declared with an IndexerDeclarationSyntax, an explicit
         /// interface implementation is not an indexer because it will not cause the
@@ -620,6 +623,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected bool IsAutoProperty
             => (_propertyFlags & Flags.IsAutoProperty) != 0;
+
+        protected bool AccessorsHaveImplementation
+            => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
 
         /// <summary>
         /// Backing field for automatically implemented property, or

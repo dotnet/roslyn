@@ -10889,7 +10889,7 @@ M2");
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
-            Assert.True(m1.IsPartialMethod());
+            Assert.True(m1.IsPartialMember());
             Assert.Null(m1.PartialImplementationPart);
 
             var m2 = i1.GetMember<MethodSymbol>("M2");
@@ -10903,7 +10903,7 @@ M2");
             Assert.False(m2.IsAsync);
             Assert.False(m2.IsOverride);
             Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
-            Assert.True(m2.IsPartialMethod());
+            Assert.True(m2.IsPartialMember());
 
             Assert.Equal(2, m2.GetAttributes().Length);
             Assert.Equal("Test2(1)", m2.GetAttributes()[0].ToString());
@@ -10920,7 +10920,7 @@ M2");
             Assert.False(m2Impl.IsAsync);
             Assert.False(m2Impl.IsOverride);
             Assert.Equal(Accessibility.Private, m2Impl.DeclaredAccessibility);
-            Assert.True(m2Impl.IsPartialMethod());
+            Assert.True(m2Impl.IsPartialMember());
             Assert.Same(m2, m2Impl.PartialDefinitionPart);
 
             Assert.Equal(2, m2Impl.GetAttributes().Length);
@@ -10996,7 +10996,7 @@ M2",
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
-            Assert.True(m1.IsPartialMethod());
+            Assert.True(m1.IsPartialMember());
             Assert.Null(m1.PartialImplementationPart);
 
             var m2 = i1.GetMember<MethodSymbol>("M2");
@@ -11010,7 +11010,7 @@ M2",
             Assert.False(m2.IsAsync);
             Assert.False(m2.IsOverride);
             Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
-            Assert.True(m2.IsPartialMethod());
+            Assert.True(m2.IsPartialMember());
 
             Assert.Equal(2, m2.GetAttributes().Length);
             Assert.Equal("Test2(1)", m2.GetAttributes()[0].ToString());
@@ -11027,7 +11027,7 @@ M2",
             Assert.False(m2Impl.IsAsync);
             Assert.False(m2Impl.IsOverride);
             Assert.Equal(Accessibility.Private, m2Impl.DeclaredAccessibility);
-            Assert.True(m2Impl.IsPartialMethod());
+            Assert.True(m2Impl.IsPartialMember());
             Assert.Same(m2, m2Impl.PartialDefinitionPart);
 
             Assert.Equal(2, m2Impl.GetAttributes().Length);
