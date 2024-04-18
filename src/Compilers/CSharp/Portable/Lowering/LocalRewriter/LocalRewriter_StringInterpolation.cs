@@ -209,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsTreatedAsLiteralInStringConcatenation(BoundExpression expression)
         {
-            return expression.ConstantValueOpt is { IsString: true } or { IsChar: true };
+            return expression is { ConstantValueOpt: { IsString: true } or { IsChar: true } }
+                or { ConstantValueOpt.IsNull: true, Type.SpecialType: SpecialType.System_String };
         }
 
         private bool CanLowerToStringConcatenation(BoundInterpolatedString node)
@@ -262,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 stringBuilder.Append(escapeInterpolatedStringLiteral(str ?? ""));
                                 continue;
 
-                            case { IsNull: true }:
+                            case { IsNull: true } when fillin.Value.Type is { SpecialType: SpecialType.System_String }:
                                 // null literal for string? type
                                 continue;
                         }
@@ -587,7 +588,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundInterpolatedString.AppendFormattedMethod:
                         {
                             // never be BoundLiteral (can be BoundLocal), so see ConstantValueOpt instead
-                            if (call.Arguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } or { IsNull: true } } literal])
+                            if (
+                                call.Arguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } or { IsNull: true } } literal]
+                                && literal is not { ConstantValueOpt.IsNull: true } or { Type.SpecialType: SpecialType.System_String }
+                            )
                             {
                                 if (reusable.StringLiteral is not null)
                                 {

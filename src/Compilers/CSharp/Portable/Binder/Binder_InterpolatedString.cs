@@ -141,14 +141,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (!isResultConstant ||
                                     value.ConstantValueOpt == null ||
                                     !(interpolation is { FormatClause: null, AlignmentClause: null }) ||
-                                    !(value.ConstantValueOpt is { IsBad: false } and ({ IsString: true } or { IsChar: true })))
+                                    !(value is { ConstantValueOpt.IsBad: false }
+                                        and ({ ConstantValueOpt: { IsString: true } or { IsChar: true } }
+                                            or { ConstantValueOpt.IsNull: true, Type.SpecialType: SpecialType.System_String })
+                                    )
+                                )
                                 {
                                     isResultConstant = false;
                                     continue;
                                 }
-                                ConstantValue valueConstantValueOpt = value.ConstantValueOpt.IsChar
-                                    ? ConstantValue.Create(value.ConstantValueOpt.CharValue.ToString())
-                                    : value.ConstantValueOpt;
+                                ConstantValue valueConstantValueOpt = value.ConstantValueOpt.IsString
+                                    ? value.ConstantValueOpt
+                                    : ConstantValue.Create(
+                                        value.ConstantValueOpt.IsChar
+                                            ? value.ConstantValueOpt.CharValue.ToString()
+                                            : "" // null
+                                      );
                                 resultConstant = (resultConstant is null)
                                     ? valueConstantValueOpt
                                     : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, valueConstantValueOpt);
