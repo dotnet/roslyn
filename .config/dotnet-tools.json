@@ -3,13 +3,13 @@
   "isRoot": true,
   "tools": {
     "powershell": {
-      "version": "7.4.1",
+      "version": "7.4.2",
       "commands": [
         "pwsh"
       ]
     },
     "dotnet-coverage": {
-      "version": "17.10.4",
+      "version": "17.11.0",
       "commands": [
         "dotnet-coverage"
       ]
