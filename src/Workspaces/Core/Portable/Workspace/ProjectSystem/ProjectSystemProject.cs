@@ -191,7 +191,7 @@ internal sealed partial class ProjectSystemProject
         _filePath = filePath;
         _parseOptions = parseOptions;
 
-        var watchedDirectories = GetWatchDirectories(language, filePath);
+        var watchedDirectories = GetWatchedDirectories(language, filePath);
         _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
         _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
 
