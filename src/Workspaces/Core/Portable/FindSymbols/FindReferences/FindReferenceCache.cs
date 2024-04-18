@@ -17,19 +17,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
+/// <summary>
+/// Caches information find-references needs associated with each document.  Computed and cached so that multiple calls
+/// to find-references in a row can share the same data.
+/// </summary>
 internal sealed class FindReferenceCache
 {
-    private static readonly ConditionalWeakTable<SemanticModel, FindReferenceCache> s_cache = new();
+    private static readonly ConditionalWeakTable<Document, AsyncLazy<FindReferenceCache>> s_cache = new();
 
     public static async ValueTask<FindReferenceCache> GetCacheAsync(Document document, CancellationToken cancellationToken)
     {
-        // Find-Refs is not impacted by nullable types at all.  So get a nullable-disabled semantic model to avoid
-        // unnecessary costs while binding.
-        var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        return s_cache.GetValue(model, static model => new(model));
+        var lazy = s_cache.GetValue(document, static document => AsyncLazy.Create(ComputeCacheAsync, document));
+        return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+        static async Task<FindReferenceCache> ComputeCacheAsync(Document document, CancellationToken cancellationToken)
+        {
+            // Find-Refs is not impacted by nullable types at all.  So get a nullable-disabled semantic model to avoid
+            // unnecessary costs while binding.
+            var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return new(document, model, root);
+        }
     }
 
+    public readonly Document Document;
     public readonly SemanticModel SemanticModel;
+    public readonly SyntaxNode Root;
 
     private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = [];
     private readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> _identifierCache;
@@ -37,9 +50,11 @@ internal sealed class FindReferenceCache
     private ImmutableHashSet<string>? _aliasNameSet;
     private ImmutableArray<SyntaxToken> _constructorInitializerCache;
 
-    private FindReferenceCache(SemanticModel semanticModel)
+    private FindReferenceCache(Document document, SemanticModel semanticModel, SyntaxNode root)
     {
+        Document = document;
         SemanticModel = semanticModel;
+        Root = root;
         _identifierCache = new(comparer: semanticModel.Language switch
         {
             LanguageNames.VisualBasic => StringComparer.OrdinalIgnoreCase,

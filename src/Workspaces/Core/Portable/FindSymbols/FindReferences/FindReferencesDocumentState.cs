@@ -8,23 +8,24 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal class FindReferencesDocumentState(
-    Document document,
-    SyntaxNode root,
+/// <summary>
+/// Ephemeral information that find-references needs for a particular document when searching for a <em>specific</em>
+/// symbol.  Importantly, it contains the global aliases to that symbol within the current project.
+internal sealed class FindReferencesDocumentState(
     FindReferenceCache cache,
     HashSet<string>? globalAliases)
 {
     private static readonly HashSet<string> s_empty = [];
 
-    public readonly Document Document = document;
-    public readonly SyntaxNode Root = root;
     public readonly FindReferenceCache Cache = cache;
     public readonly HashSet<string> GlobalAliases = globalAliases ?? s_empty;
 
-    public readonly Solution Solution = document.Project.Solution;
-    public readonly ISyntaxFactsService SyntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-    public readonly ISemanticFactsService SemanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+    public Document Document => this.Cache.Document;
+    public SyntaxNode Root => this.Cache.Root;
+    public SemanticModel SemanticModel => this.Cache.SemanticModel;
+    public SyntaxTree SyntaxTree => this.SemanticModel.SyntaxTree;
 
-    public SemanticModel SemanticModel => Cache.SemanticModel;
-    public SyntaxTree SyntaxTree => SemanticModel.SyntaxTree;
+    public Solution Solution => this.Document.Project.Solution;
+    public ISyntaxFactsService SyntaxFacts => this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+    public ISemanticFactsService SemanticFacts => this.Document.GetRequiredLanguageService<ISemanticFactsService>();
 }
