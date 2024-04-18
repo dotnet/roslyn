@@ -467,13 +467,11 @@ unsafe class C
                         int x;
                         unsafe
                         {
-                            x = sizeof(S);
+                            x = sizeof(nint);
                         }
                         yield return x;
                     }
                 }
-                #pragma warning disable CS0169 // The field 'S.f' is never used
-                struct S { int f; }
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
@@ -481,10 +479,10 @@ unsafe class C
                 //         unsafe
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 9),
                 // (10,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             x = sizeof(S);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 17));
+                //             x = sizeof(nint);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 17));
 
-            var expectedOutput = "4";
+            var expectedOutput = IntPtr.Size.ToString();
             CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CompileAndVerify(code, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
@@ -657,14 +655,12 @@ unsafe class C
                         int x;
                         unsafe
                         {
-                            x = sizeof(S);
+                            x = sizeof(nint);
                         }
                         System.Console.Write("I" + x);
                         yield break;
                     }
                 }
-                #pragma warning disable CS0169 // The field 'S.f' is never used
-                struct S { int f; }
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
@@ -672,10 +668,10 @@ unsafe class C
                 //         unsafe
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 9),
                 // (10,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             x = sizeof(S);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 17));
+                //             x = sizeof(nint);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 17));
 
-            var expectedOutput = "I4";
+            var expectedOutput = "I" + IntPtr.Size;
             CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CompileAndVerify(code, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
@@ -1014,13 +1010,11 @@ unsafe class C
                 {
                     public unsafe System.Collections.Generic.IEnumerable<int> M()
                     {
-                        int x = sizeof(S);
+                        int x = sizeof(nint);
                         System.Console.Write("I" + x);
                         yield break;
                     }
                 }
-                #pragma warning disable CS0169 // The field 'S.f' is never used
-                struct S { int f; }
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
@@ -1028,10 +1022,10 @@ unsafe class C
                 //     public unsafe System.Collections.Generic.IEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 63),
                 // (7,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         int x = sizeof(S);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 17));
+                //         int x = sizeof(nint);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 17));
 
-            var expectedOutput = "I4";
+            var expectedOutput = "I" + IntPtr.Size;
             CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CompileAndVerify(code, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
@@ -1044,13 +1038,11 @@ unsafe class C
                 {
                     public unsafe System.Collections.Generic.IEnumerable<int> M()
                     {
-                        int x = sizeof(S);
+                        int x = sizeof(nint);
                         System.Console.Write("I" + x);
                         yield return x;
                     }
                 }
-                #pragma warning disable CS0169 // The field 'S.f' is never used
-                struct S { int f; }
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
@@ -1058,8 +1050,8 @@ unsafe class C
                 //     public unsafe System.Collections.Generic.IEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 63),
                 // (5,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         int x = sizeof(S);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 17));
+                //         int x = sizeof(nint);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 17));
 
             var expectedDiagnostics = new[]
             {
