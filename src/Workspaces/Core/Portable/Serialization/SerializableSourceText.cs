@@ -14,6 +14,10 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
 
+#if DEBUG
+using System.Linq;
+#endif
+
 namespace Microsoft.CodeAnalysis.Serialization;
 
 #pragma warning disable CA1416 // Validate platform compatibility
