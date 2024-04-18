@@ -7,10 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -83,11 +80,6 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
     /// May be raised on any thread.
     /// </summary>
     public event EventHandler? DocumentsChanged;
-
-    /// <summary>
-    /// Raised when a non-Roslyn text buffer is edited, which can be used to back off of expensive background processing. May be raised on any thread.
-    /// </summary>
-    public event EventHandler<EventArgs>? NonRoslynBufferTextChanged;
 
     /// <summary>
     /// Returns the <see cref="DocumentId"/> of the active document in a given <see cref="Workspace"/>.
@@ -237,9 +229,6 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
             TryInitializeTextBuffer();
         }
 
-        private void NonRoslynTextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-            => _documentTracker.NonRoslynBufferTextChanged?.Invoke(_documentTracker, EventArgs.Empty);
-
         /// <summary>
         /// Returns the current DocumentId for this window frame. Care must be made with this value, since "current" could change asynchronously as the document
         /// could be unregistered from a workspace.
@@ -312,17 +301,10 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
                 }
             }
 
-            if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)))
+            if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)) &&
+                docData is IVsTextBuffer bufferAdapter)
             {
-                if (docData is IVsTextBuffer bufferAdapter)
-                {
-                    TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
-
-                    if (TextBuffer != null && !TextBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
-                    {
-                        TextBuffer.Changed += NonRoslynTextBuffer_Changed;
-                    }
-                }
+                TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
             }
 
             return;
@@ -332,11 +314,6 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
         {
             _documentTracker._threadingContext.ThrowIfNotOnUIThread();
             _documentTracker.RemoveFrame(this);
-
-            if (TextBuffer != null)
-            {
-                TextBuffer.Changed -= NonRoslynTextBuffer_Changed;
-            }
 
             if (_frameEventsCookie != VSConstants.VSCOOKIE_NIL)
             {

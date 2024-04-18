@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -17,17 +19,13 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// out-of-process workspace. We do this to limit the amount of time required to synchronize a solution over after
 /// an edit once a feature is asking for a snapshot.
 /// </summary>
-internal sealed class RemoteAssetSynchronizationService : BrokeredServiceBase, IRemoteAssetSynchronizationService
+internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(in arguments), IRemoteAssetSynchronizationService
 {
     internal sealed class Factory : FactoryBase<IRemoteAssetSynchronizationService>
     {
         protected override IRemoteAssetSynchronizationService CreateService(in ServiceConstructionArguments arguments)
             => new RemoteAssetSynchronizationService(in arguments);
-    }
-
-    public RemoteAssetSynchronizationService(in ServiceConstructionArguments arguments)
-        : base(in arguments)
-    {
     }
 
     public ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -43,7 +41,14 @@ internal sealed class RemoteAssetSynchronizationService : BrokeredServiceBase, I
         }, cancellationToken);
     }
 
-    public ValueTask SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
+    public ValueTask SynchronizeActiveDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken)
+    {
+        var documentTrackingService = GetWorkspace().Services.GetRequiredService<IDocumentTrackingService>() as RemoteDocumentTrackingService;
+        documentTrackingService?.SetActiveDocument(documentId);
+        return ValueTaskFactory.CompletedTask;
+    }
+
+    public ValueTask SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
     {
         return RunServiceAsync(async cancellationToken =>
         {
