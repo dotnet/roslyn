@@ -47,7 +47,7 @@ From [§12.5.1](https://github.com/dotnet/csharpstandard/blob/draft-v8/standard/
 
 Roslyn instead implements a preference for methods over non-method symbols:
 
-```
+```csharp
 var x = I.M; // binds to I1.M (method)
 x();
 
@@ -59,7 +59,7 @@ interface I3 { static int M = 0;   }
 interface I : I1, I2, I3 { }
 ```
 
-```
+```csharp
 I i = null;
 var x = i.M; // binds to I1.M (method)
 x();
