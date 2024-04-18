@@ -1287,7 +1287,35 @@ class C
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2018744")]
-        public void TestDeeplyNested()
+        public void TestDeeplyNested1()
+        {
+            var expr = string.Join(" + ", Enumerable.Range(0, 10000).Select(_ => "a"));
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree($$""""
+                class C
+                {
+                    void M(int a, int b, int c)
+                    {
+                        var v = {{expr}} + b;
+                    }
+                }
+                """");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree($$""""
+                class C
+                {
+                    void M(int a, int b, int c)
+                    {
+                        var v = {{expr}} + c;
+                    }
+                }
+                """");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2018744")]
+        public void TestDeeplyNested2()
         {
             var expr = string.Join(" + ", Enumerable.Range(0, 10000).Select(_ => "a"));
 
