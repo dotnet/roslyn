@@ -192,6 +192,15 @@ internal sealed class SerializableSourceText
     public TextLoader ToTextLoader(string? filePath)
         => new SerializableSourceTextLoader(this, filePath);
 
+    /// <summary>
+    /// A <see cref="TextLoader"/> that wraps a <see cref="SerializableSourceText"/> and provides access to the text in
+    /// a deferred fashion.  In practice, during a host and OOP sync, while all the documents will be 'serialized' over
+    /// to OOP, the actual contents of the documents will only need to be loaded depending on which files are open, and
+    /// thus what compilations and trees are needed.  As such, we want to be able to lazily defer actually getting the
+    /// contents of the text until it's actually needed.  This loader allows us to do that, allowing the OOP side to
+    /// simply point to the segments in the memory-mapped-file the host has dumped its text into, and only actually
+    /// realizing the real text values when they're needed.
+    /// </summary>
     private sealed class SerializableSourceTextLoader : TextLoader
     {
         private readonly AsyncLazy<TextAndVersion> _lazyTextAndVersion;
