@@ -24,10 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class CSharpDocumentHighlightsService(
-    [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services) : AbstractDocumentHighlightsService(LanguageNames.CSharp,
-          CSharpEmbeddedLanguagesProvider.Info,
-          CSharpSyntaxKinds.Instance,
-          services)
+    [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services)
+    : AbstractDocumentHighlightsService(
+        LanguageNames.CSharp,
+        CSharpEmbeddedLanguagesProvider.Info,
+        CSharpSyntaxKinds.Instance,
+        services)
 {
     protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
         Document document, ISymbol symbol, CancellationToken cancellationToken)
