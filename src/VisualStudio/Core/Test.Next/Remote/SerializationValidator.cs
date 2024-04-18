@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await VerifyAssetSerializationAsync<SerializableSourceText>(
                 textChecksum, WellKnownSynchronizationKind.SerializableSourceText,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
+                (v, k, s) => new SolutionAsset(v.ContentChecksum, v));
         }
 
         internal async Task<T> VerifyAssetSerializationAsync<T>(
