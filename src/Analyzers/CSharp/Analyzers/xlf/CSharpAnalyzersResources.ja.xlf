@@ -12,6 +12,11 @@
         <target state="translated">'{0}' ステートメントに波かっこを追加します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="new">Anonymous function can be made static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
         <target state="translated">矢印式句トークンの後に空白行は許可されていません</target>
@@ -92,6 +97,11 @@
         <target state="translated">ラムダ式を削除できます</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="new">Make anonymous function static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_member_readonly">
         <source>Make member 'readonly'</source>
         <target state="translated">メンバーを 'readonly' にする</target>
@@ -170,11 +180,6 @@
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
         <target state="translated">冗長な null 許容ディレクティブを削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">抑制演算子の削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
@@ -457,8 +462,8 @@
         <target state="translated">'new' 式を簡素化できます</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">'typeof' を 'nameof' に変換できます</target>
         <note />
       </trans-unit>

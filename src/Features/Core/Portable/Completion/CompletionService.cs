@@ -218,8 +218,9 @@ public abstract partial class CompletionService : ILanguageService
         (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
         var description = await extensionManager.PerformFunctionAsync(
             provider,
-            () => provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken),
-            defaultValue: null).ConfigureAwait(false);
+            cancellationToken => provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken),
+            defaultValue: null,
+            cancellationToken).ConfigureAwait(false);
         GC.KeepAlive(semanticModel);
         return description;
     }
@@ -249,8 +250,9 @@ public abstract partial class CompletionService : ILanguageService
 
             var change = await extensionManager.PerformFunctionAsync(
                 provider,
-                () => provider.GetChangeAsync(document, item, commitCharacter, cancellationToken),
-                defaultValue: null!).ConfigureAwait(false);
+                cancellationToken => provider.GetChangeAsync(document, item, commitCharacter, cancellationToken),
+                defaultValue: null!,
+                cancellationToken).ConfigureAwait(false);
             if (change == null)
                 return CompletionChange.Create(new TextChange(new TextSpan(), ""));
 

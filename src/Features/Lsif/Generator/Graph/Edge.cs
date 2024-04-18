@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         [JsonProperty("inVs", NullValueHandling = NullValueHandling.Ignore)]
         public Id<Vertex>[]? InVertices { get; }
 
-        public IEnumerable<Id<Vertex>> GetInVerticies() => InVertices ?? SpecializedCollections.SingletonEnumerable(InVertex!.Value);
+        public IEnumerable<Id<Vertex>> GetInVerticies() => InVertices ?? [InVertex!.Value];
 
         public Edge(string label, Id<Vertex> outVertex, Id<Vertex> inVertex, IdFactory idFactory)
             : base(type: "edge", label: label, idFactory)

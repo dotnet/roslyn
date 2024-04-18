@@ -113,6 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             temps.Free();
             stores.Free();
+
+            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, node.Left, result, used);
+
+            Debug.Assert(used || node.Left is not (BoundIndexerAccess { Indexer.RefKind: RefKind.None } or BoundPropertyAccess { PropertySymbol.RefKind: RefKind.None }) || result.Type?.IsVoidType() == true);
             return result;
 
             BoundExpression rewriteAssignment(BoundExpression leftRead)
@@ -153,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RemovePlaceholderReplacement(node.FinalPlaceholder);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
+                Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, isCompoundAssignment: true);
             }
         }
 
@@ -832,6 +837,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !ConstantValueIsTrivial(type);
             }
 
+            // Note, we can get here with a node that hasn't been lowered yet.
+            // For example, from TransformCompoundAssignmentFieldOrEventAccessReceiver.
+
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
@@ -845,8 +853,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !ConstantValueIsTrivial(type);
 
                 case BoundKind.Parameter:
-                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
-                    return localsMayBeAssignedOrCaptured || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
+                    return localsMayBeAssignedOrCaptured ||
+                           ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None ||
+                           IsCapturedPrimaryConstructorParameter(expression); // captured primary constructor parameters should be treated as a field
 
                 case BoundKind.Local:
                     return localsMayBeAssignedOrCaptured || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;

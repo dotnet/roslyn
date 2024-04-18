@@ -44,7 +44,7 @@ internal partial class SerializerService
 
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             switch (reference)
             {
@@ -143,7 +143,7 @@ internal partial class SerializerService
     {
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
             WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
@@ -472,13 +472,15 @@ internal partial class SerializerService
         }
         else
         {
-            var service2 = (ITemporaryStorageService2)_storageService;
+            var service2 = (TemporaryStorageService)_storageService;
 
             var name = reader.ReadRequiredString();
             var offset = reader.ReadInt64();
             var size = reader.ReadInt64();
 
+#pragma warning disable CA1416 // Validate platform compatibility
             var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
+#pragma warning restore CA1416 // Validate platform compatibility
             var length = size;
 
             return (storage, length);

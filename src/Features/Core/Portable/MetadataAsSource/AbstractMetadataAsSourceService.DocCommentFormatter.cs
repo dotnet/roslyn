@@ -140,7 +140,7 @@ internal partial class AbstractMetadataAsSourceService
             while (formattedCommentLinesBuilder is [.., { Length: 0 }])
                 formattedCommentLinesBuilder.RemoveAt(formattedCommentLinesBuilder.Count - 1);
 
-            return formattedCommentLinesBuilder.ToImmutable();
+            return formattedCommentLinesBuilder.ToImmutableAndClear();
         }
 
         private static void AddWrappedTextFromRawText(

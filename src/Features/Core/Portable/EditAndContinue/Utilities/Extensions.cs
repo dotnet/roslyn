@@ -35,45 +35,6 @@ internal static partial class Extensions
     public static SourceSpan ToSourceSpan(this LinePositionSpan span)
         => new(span.Start.Line, span.Start.Character, span.End.Line, span.End.Character);
 
-    public static ActiveStatement GetStatement(this ImmutableArray<ActiveStatement> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
-
-    public static ActiveStatementSpan GetStatement(this ImmutableArray<ActiveStatementSpan> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
-
-    public static UnmappedActiveStatement GetStatement(this ImmutableArray<UnmappedActiveStatement> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Statement.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
-
     /// <summary>
     /// True if the project supports Edit and Continue.
     /// Only depends on the language of the project and never changes.

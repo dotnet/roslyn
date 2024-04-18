@@ -3,16 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 internal static class ParameterGenerator
 {
@@ -23,7 +25,7 @@ internal static class ParameterGenerator
     {
         var parameters = GetParameters(parameterDefinitions, isExplicit, info);
 
-        return SyntaxFactory.ParameterList([.. parameters]);
+        return ParameterList([.. parameters]);
     }
 
     public static BracketedParameterListSyntax GenerateBracketedParameterList(
@@ -35,7 +37,7 @@ internal static class ParameterGenerator
         // could never have a typeParameterMapping.
         var parameters = GetParameters(parameterDefinitions, isExplicit, info);
 
-        return SyntaxFactory.BracketedParameterList([.. parameters]);
+        return BracketedParameterList([.. parameters]);
     }
 
     internal static ImmutableArray<ParameterSyntax> GetParameters(
@@ -43,10 +45,10 @@ internal static class ParameterGenerator
         bool isExplicit,
         CSharpCodeGenerationContextInfo info)
     {
-        using var _ = ArrayBuilder<ParameterSyntax>.GetInstance(out var result);
         var seenOptional = false;
         var isFirstParam = true;
 
+        var result = new FixedSizeArrayBuilder<ParameterSyntax>(parameterDefinitions.Length);
         foreach (var p in parameterDefinitions)
         {
             var parameter = GetParameter(p, info, isExplicit, isFirstParam, seenOptional);
@@ -55,7 +57,7 @@ internal static class ParameterGenerator
             isFirstParam = false;
         }
 
-        return result.ToImmutable();
+        return result.MoveToImmutable();
     }
 
     internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CSharpCodeGenerationContextInfo info, bool isExplicit, bool isFirstParam, bool seenOptional)
@@ -64,7 +66,7 @@ internal static class ParameterGenerator
         if (reusableSyntax != null)
             return reusableSyntax;
 
-        return SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken())
+        return Parameter(parameter.Name.ToIdentifierToken())
             .WithAttributeLists(GenerateAttributes(parameter, isExplicit, info))
             .WithModifiers(GenerateModifiers(parameter, isFirstParam))
             .WithType(parameter.Type.GenerateTypeSyntax())
@@ -80,12 +82,12 @@ internal static class ParameterGenerator
             parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
             methodSymbol.IsExtensionMethod)
         {
-            list = list.Add(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+            list = list.Add(ThisKeyword);
         }
 
         if (parameter.IsParams)
         {
-            list = list.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+            list = list.Add(ParamsKeyword);
         }
 
         return list;
@@ -105,7 +107,7 @@ internal static class ParameterGenerator
                 if (defaultValue is DateTime)
                     return null;
 
-                return SyntaxFactory.EqualsValueClause(
+                return EqualsValueClause(
                     GenerateEqualsValueClauseWorker(generator, parameter, defaultValue));
             }
         }

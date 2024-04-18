@@ -33,6 +33,12 @@ internal readonly record struct StateChange(
 /// </summary>
 internal sealed partial class SolutionState
 {
+    /// <summary>
+    /// Note: this insensitive comparer is busted on many systems.  But we do things this way for compat with the logic
+    /// we've had on windows since forever.
+    /// </summary>
+    public static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
+
     // the version of the workspace this solution is from
     public int WorkspaceVersion { get; }
     public string? WorkspaceKind { get; }
@@ -42,11 +48,12 @@ internal sealed partial class SolutionState
 
     private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
     private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
-    private readonly FilePathToDocumentIdsMap _filePathToDocumentIdsMap;
     private readonly ProjectDependencyGraph _dependencyGraph;
 
     // holds on data calculated based on the AnalyzerReferences list
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
+
+    private ImmutableDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = ImmutableDictionary<string, ImmutableArray<DocumentId>>.Empty.WithComparers(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,
@@ -57,7 +64,6 @@ internal sealed partial class SolutionState
         SolutionOptionSet options,
         IReadOnlyList<AnalyzerReference> analyzerReferences,
         ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
-        FilePathToDocumentIdsMap filePathToDocumentIdsMap,
         ProjectDependencyGraph dependencyGraph,
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
     {
@@ -69,7 +75,6 @@ internal sealed partial class SolutionState
         Options = options;
         AnalyzerReferences = analyzerReferences;
         _projectIdToProjectStateMap = idToProjectStateMap;
-        _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
         _dependencyGraph = dependencyGraph;
         _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
@@ -100,7 +105,6 @@ internal sealed partial class SolutionState
             options,
             analyzerReferences,
             idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
-            filePathToDocumentIdsMap: FilePathToDocumentIdsMap.Empty,
             dependencyGraph: ProjectDependencyGraph.Empty,
             lazyAnalyzers: null)
     {
@@ -152,7 +156,6 @@ internal sealed partial class SolutionState
         SolutionOptionSet? options = null,
         IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
         ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
-        FilePathToDocumentIdsMap? filePathToDocumentIdsMap = null,
         ProjectDependencyGraph? dependencyGraph = null)
     {
         solutionAttributes ??= _solutionAttributes;
@@ -160,7 +163,6 @@ internal sealed partial class SolutionState
         idToProjectStateMap ??= _projectIdToProjectStateMap;
         options ??= Options;
         analyzerReferences ??= AnalyzerReferences;
-        filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
         dependencyGraph ??= _dependencyGraph;
 
         var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
@@ -170,7 +172,6 @@ internal sealed partial class SolutionState
             options == Options &&
             analyzerReferencesEqual &&
             idToProjectStateMap == _projectIdToProjectStateMap &&
-            filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
             dependencyGraph == _dependencyGraph)
         {
             return this;
@@ -185,7 +186,6 @@ internal sealed partial class SolutionState
             options,
             analyzerReferences,
             idToProjectStateMap,
-            filePathToDocumentIdsMap.Value,
             dependencyGraph,
             analyzerReferencesEqual ? _lazyAnalyzers : null);
     }
@@ -218,12 +218,9 @@ internal sealed partial class SolutionState
             Options,
             AnalyzerReferences,
             _projectIdToProjectStateMap,
-            _filePathToDocumentIdsMap,
             _dependencyGraph,
             _lazyAnalyzers);
     }
-
-    public FilePathToDocumentIdsMap FilePathToDocumentIdsMap => _filePathToDocumentIdsMap;
 
     /// <summary>
     /// The version of the most recently modified project.
@@ -298,156 +295,133 @@ internal sealed partial class SolutionState
         return result;
     }
 
-    private SolutionState AddProject(ProjectState projectState)
+    /// <summary>
+    /// Create a new solution instance that includes projects with the specified project information.
+    /// </summary>
+    public SolutionState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
     {
-        var projectId = projectState.Id;
+        Contract.ThrowIfTrue(projectInfos.HasDuplicates(static p => p.Id), "Duplicate ProjectId provided");
 
-        // changed project list so, increment version.
-        var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
+        if (projectInfos.Count == 0)
+            return this;
 
-        var newProjectIds = ProjectIds.ToImmutableArray().Add(projectId);
-        var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
+        using var _ = ArrayBuilder<ProjectState>.GetInstance(projectInfos.Count, out var projectStates);
+        foreach (var projectInfo in projectInfos)
+            projectStates.Add(CreateProjectState(projectInfo));
 
-        var newDependencyGraph = _dependencyGraph
-            .WithAdditionalProject(projectId)
-            .WithAdditionalProjectReferences(projectId, projectState.ProjectReferences);
+        return AddProjects(projectStates);
 
-        // It's possible that another project already in newStateMap has a reference to this project that we're adding, since we allow
-        // dangling references like that. If so, we'll need to link those in too.
-        foreach (var newState in newStateMap)
+        ProjectState CreateProjectState(ProjectInfo projectInfo)
         {
-            foreach (var projectReference in newState.Value.ProjectReferences)
-            {
-                if (projectReference.ProjectId == projectId)
-                {
-                    newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(
-                        newState.Key,
-                        SpecializedCollections.SingletonReadOnlyList(projectReference));
+            if (projectInfo == null)
+                throw new ArgumentNullException(nameof(projectInfo));
 
-                    break;
+            var projectId = projectInfo.Id;
+
+            var language = projectInfo.Language;
+            if (language == null)
+                throw new ArgumentNullException(nameof(language));
+
+            var displayName = projectInfo.Name;
+            if (displayName == null)
+                throw new ArgumentNullException(nameof(displayName));
+
+            CheckNotContainsProject(projectId);
+
+            var languageServices = Services.GetLanguageServices(language);
+            if (languageServices == null)
+                throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
+
+            var newProject = new ProjectState(languageServices, projectInfo);
+            return newProject;
+        }
+
+        SolutionState AddProjects(ArrayBuilder<ProjectState> projectStates)
+        {
+            // changed project list so, increment version.
+            var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
+
+            using var _1 = ArrayBuilder<ProjectId>.GetInstance(ProjectIds.Count + projectStates.Count, out var newProjectIdsBuilder);
+            using var _2 = PooledHashSet<ProjectId>.GetInstance(out var addedProjectIds);
+            var newStateMapBuilder = _projectIdToProjectStateMap.ToBuilder();
+
+            newProjectIdsBuilder.AddRange(ProjectIds);
+
+            foreach (var projectState in projectStates)
+            {
+                addedProjectIds.Add(projectState.Id);
+                newProjectIdsBuilder.Add(projectState.Id);
+                newStateMapBuilder.Add(projectState.Id, projectState);
+            }
+
+            var newProjectIds = newProjectIdsBuilder.ToBoxedImmutableArray();
+            var newStateMap = newStateMapBuilder.ToImmutable();
+
+            // TODO: it would be nice to update these graphs without so much forking.
+            var newDependencyGraph = _dependencyGraph;
+            foreach (var projectState in projectStates)
+            {
+                var projectId = projectState.Id;
+                newDependencyGraph = newDependencyGraph
+                    .WithAdditionalProject(projectId)
+                    .WithAdditionalProjectReferences(projectId, projectState.ProjectReferences);
+            }
+
+            // It's possible that another project already in newStateMap has a reference to this project that we're adding,
+            // since we allow dangling references like that. If so, we'll need to link those in too.
+            foreach (var (projectId, newState) in newStateMap)
+            {
+                foreach (var projectReference in newState.ProjectReferences)
+                {
+                    if (addedProjectIds.Contains(projectReference.ProjectId))
+                        newDependencyGraph = newDependencyGraph.WithAdditionalProjectReferences(projectId, [projectReference]);
                 }
             }
+
+            return Branch(
+                solutionAttributes: newSolutionAttributes,
+                projectIds: newProjectIds,
+                idToProjectStateMap: newStateMap,
+                dependencyGraph: newDependencyGraph);
         }
-
-        var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithAddedDocuments(GetDocumentStates(newStateMap[projectId]));
-
-        return Branch(
-            solutionAttributes: newSolutionAttributes,
-            projectIds: newProjectIds,
-            idToProjectStateMap: newStateMap,
-            filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
-            dependencyGraph: newDependencyGraph);
     }
 
     /// <summary>
-    /// Create a new solution instance that includes a project with the specified project information.
+    /// Create a new solution instance without the projects specified.
     /// </summary>
-    public SolutionState AddProject(ProjectInfo projectInfo)
+    public SolutionState RemoveProjects(ArrayBuilder<ProjectId> projectIds)
     {
-        if (projectInfo == null)
-        {
-            throw new ArgumentNullException(nameof(projectInfo));
-        }
+        Contract.ThrowIfTrue(projectIds.HasDuplicates(), "Duplicate ProjectId provided");
 
-        var projectId = projectInfo.Id;
+        if (projectIds.Count == 0)
+            return this;
 
-        var language = projectInfo.Language;
-        if (language == null)
-        {
-            throw new ArgumentNullException(nameof(language));
-        }
-
-        var displayName = projectInfo.Name;
-        if (displayName == null)
-        {
-            throw new ArgumentNullException(nameof(displayName));
-        }
-
-        CheckNotContainsProject(projectId);
-
-        var languageServices = Services.GetLanguageServices(language);
-        if (languageServices == null)
-        {
-            throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
-        }
-
-        var newProject = new ProjectState(languageServices, projectInfo);
-
-        return this.AddProject(newProject);
-    }
-
-    private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
-        => projectState.DocumentStates.States.Values
-               .Concat<TextDocumentState>(projectState.AdditionalDocumentStates.States.Values)
-               .Concat(projectState.AnalyzerConfigDocumentStates.States.Values);
-
-    /// <summary>
-    /// Create a new solution instance without the project specified.
-    /// </summary>
-    public SolutionState RemoveProject(ProjectId projectId)
-    {
-        if (projectId == null)
-        {
-            throw new ArgumentNullException(nameof(projectId));
-        }
-
-        CheckContainsProject(projectId);
+        foreach (var projectId in projectIds)
+            CheckContainsProject(projectId);
 
         // changed project list so, increment version.
         var newSolutionAttributes = _solutionAttributes.With(version: this.Version.GetNewerVersion());
 
-        var newProjectIds = ProjectIds.ToImmutableArray().Remove(projectId);
-        var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
-        var newDependencyGraph = _dependencyGraph.WithProjectRemoved(projectId);
-        var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithRemovedDocuments(GetDocumentStates(_projectIdToProjectStateMap[projectId]));
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsSet);
+        projectIdsSet.AddRange(projectIds);
+
+        var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
+
+        var newStateMapBuilder = _projectIdToProjectStateMap.ToBuilder();
+        foreach (var projectId in projectIds)
+            newStateMapBuilder.Remove(projectId);
+        var newStateMap = newStateMapBuilder.ToImmutable();
+
+        // Note: it would be nice to not cause N forks of the dependency graph here.
+        var newDependencyGraph = _dependencyGraph;
+        foreach (var projectId in projectIds)
+            newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
 
         return this.Branch(
             solutionAttributes: newSolutionAttributes,
             projectIds: newProjectIds,
             idToProjectStateMap: newStateMap,
-            filePathToDocumentIdsMap: newFilePathToDocumentIdsMap,
             dependencyGraph: newDependencyGraph);
-    }
-
-    public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithAddedDocuments(IEnumerable<TextDocumentState> documentStates)
-    {
-        var builder = _filePathToDocumentIdsMap.ToBuilder();
-        AddDocumentFilePaths(documentStates, builder);
-        return builder.ToImmutable();
-    }
-
-    private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
-    {
-        foreach (var documentState in documentStates)
-            builder.Add(documentState.FilePath, documentState.Id);
-    }
-
-    public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
-    {
-        var builder = _filePathToDocumentIdsMap.ToBuilder();
-        RemoveDocumentFilePaths(documentStates, builder);
-        return builder.ToImmutable();
-    }
-
-    private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
-    {
-        foreach (var documentState in documentStates)
-            builder.Remove(documentState.FilePath, documentState.Id);
-    }
-
-    private FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
-    {
-        if (oldFilePath == newFilePath)
-        {
-            return _filePathToDocumentIdsMap;
-        }
-
-        var builder = _filePathToDocumentIdsMap.ToBuilder();
-
-        builder.Remove(oldFilePath, documentId);
-        builder.Add(newFilePath, documentId);
-
-        return builder.ToImmutable();
     }
 
     /// <summary>
@@ -1118,13 +1092,9 @@ internal sealed partial class SolutionState
         // This method shouldn't have been called if the document has not changed.
         Debug.Assert(oldProject != newProject);
 
-        var oldDocument = oldProject.DocumentStates.GetRequiredState(newDocument.Id);
-        var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithFilePath(newDocument.Id, oldDocument.FilePath, newDocument.FilePath);
-
         return ForkProject(
             oldProject,
-            newProject,
-            newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
+            newProject);
     }
 
     private StateChange UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
@@ -1158,8 +1128,7 @@ internal sealed partial class SolutionState
     public StateChange ForkProject(
         ProjectState oldProjectState,
         ProjectState newProjectState,
-        ProjectDependencyGraph? newDependencyGraph = null,
-        FilePathToDocumentIdsMap? newFilePathToDocumentIdsMap = null)
+        ProjectDependencyGraph? newDependencyGraph = null)
     {
         var projectId = newProjectState.Id;
 
@@ -1170,8 +1139,7 @@ internal sealed partial class SolutionState
 
         var newSolutionState = this.Branch(
             idToProjectStateMap: newStateMap,
-            dependencyGraph: newDependencyGraph,
-            filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
+            dependencyGraph: newDependencyGraph);
 
         return new(newSolutionState, oldProjectState, newProjectState);
     }
@@ -1185,38 +1153,19 @@ internal sealed partial class SolutionState
         if (string.IsNullOrEmpty(filePath))
             return [];
 
-        if (!_filePathToDocumentIdsMap.TryGetValue(filePath, out var documentIds))
-            return [];
+        return ImmutableInterlocked.GetOrAdd(
+            ref _lazyFilePathToRelatedDocumentIds,
+            filePath,
+            static (filePath, @this) => ComputeDocumentIdsWithFilePath(@this, filePath),
+            this);
 
-        // If this wasn't the result of a freeze, then we can return the document ids as is.  They should be accurate.
-        if (!_filePathToDocumentIdsMap.IsFrozen)
+        static ImmutableArray<DocumentId> ComputeDocumentIdsWithFilePath(SolutionState @this, string filePath)
         {
-            Debug.Assert(documentIds.All(ContainsAnyDocument));
-            return documentIds;
-        }
+            using var result = TemporaryArray<DocumentId>.Empty;
+            foreach (var (projectId, projectState) in @this.ProjectStates)
+                projectState.AddDocumentIdsWithFilePath(ref result.AsRef(), filePath);
 
-        // We were frozen.  So we may be seeing document ids that no longer exist within this snapshot.  If so,
-        // filter them out.
-        using var _ = ArrayBuilder<DocumentId>.GetInstance(documentIds.Length, out var result);
-
-        foreach (var documentId in documentIds)
-        {
-            if (ContainsAnyDocument(documentId))
-                result.Add(documentId);
-        }
-
-        result.RemoveDuplicates();
-        return result.ToImmutableAndClear();
-
-        bool ContainsAnyDocument(DocumentId documentId)
-        {
-            var project = this.GetProjectState(documentId.ProjectId);
-            if (project is null)
-                return false;
-
-            return project.DocumentStates.Contains(documentId)
-                || project.AdditionalDocumentStates.Contains(documentId)
-                || project.AnalyzerConfigDocumentStates.Contains(documentId);
+            return result.ToImmutableAndClear();
         }
     }
 
@@ -1224,7 +1173,7 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId> projectIds,
         ImmutableDictionary<ProjectId, ProjectState> projectStates)
     {
-        var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
+        var map = projectStates.Values.Select(state => KeyValuePairUtil.Create(
                 state.Id,
                 state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();
@@ -1267,6 +1216,59 @@ internal sealed partial class SolutionState
         }
 
         return Branch(analyzerReferences: analyzerReferences);
+    }
+
+    public DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
+    {
+        Contract.ThrowIfTrue(documentId.ProjectId == relatedProjectIdHint);
+
+        var projectState = this.GetProjectState(documentId.ProjectId);
+        if (projectState is null)
+            return null;
+
+        var documentState = projectState.DocumentStates.GetState(documentId);
+        if (documentState is null)
+            return null;
+
+        var filePath = documentState.FilePath;
+        if (string.IsNullOrEmpty(filePath))
+            return null;
+
+        // Do a quick check if the full info for that path has already been computed and cached.
+        var fileMap = _lazyFilePathToRelatedDocumentIds;
+        if (fileMap != null && fileMap.TryGetValue(filePath, out var relatedDocumentIds))
+        {
+            foreach (var relatedDocumentId in relatedDocumentIds)
+            {
+                if (relatedDocumentId != documentId)
+                    return relatedDocumentId;
+            }
+
+            return null;
+        }
+
+        var relatedProject = relatedProjectIdHint is null ? null : this.ProjectStates[relatedProjectIdHint];
+        Contract.ThrowIfTrue(relatedProject == projectState);
+        if (relatedProject != null)
+        {
+            var siblingDocumentId = relatedProject.GetFirstDocumentIdWithFilePath(filePath);
+            if (siblingDocumentId is not null)
+                return siblingDocumentId;
+        }
+
+        // Wasn't in cache, do the linear search.
+        foreach (var (_, siblingProjectState) in this.ProjectStates)
+        {
+            // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
+            if (siblingProjectState == projectState || siblingProjectState == relatedProject)
+                continue;
+
+            var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
+            if (siblingDocumentId is not null)
+                return siblingDocumentId;
+        }
+
+        return null;
     }
 
     public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)

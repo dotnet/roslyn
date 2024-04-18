@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
     public class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTests
     {
         private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = FeaturesTestCompositions.Features
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService))
-            .AddAssemblies(typeof(DiagnosticService).Assembly);
+            .AddAssemblies(typeof(DiagnosticAnalyzerService).Assembly);
 
         protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions)
             => TestWorkspace.CreateCSharp(definition, (CSharpParseOptions)parseOptions, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);

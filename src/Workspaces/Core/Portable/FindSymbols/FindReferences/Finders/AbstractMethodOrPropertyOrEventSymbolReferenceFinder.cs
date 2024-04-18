@@ -41,7 +41,7 @@ internal abstract class AbstractMethodOrPropertyOrEventSymbolReferenceFinder<TSy
             if (!semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
                 result.AddIfNotNull(property.GetMethod);
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
         else
         {

@@ -4158,5 +4158,33 @@ interface I : IEnumerable<int>
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             Assert.Equal("I", typeInfo.ConvertedType.ToDisplayString());
         }
+
+        [Fact]
+        public void DynamicInvocationOnRefStructs()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                dynamic d = null;
+                S s = new S() { d };
+
+                ref struct S : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add<T>(T t) => throw null;
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,15): error CS1922: Cannot initialize type 'S' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                // S s = new S() { d };
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ d }").WithArguments("S").WithLocation(5, 15),
+                // (7,16): error CS8343: 'S': ref structs cannot implement interfaces
+                // ref struct S : IEnumerable<int>
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<int>").WithArguments("S").WithLocation(7, 16)
+            );
+        }
     }
 }

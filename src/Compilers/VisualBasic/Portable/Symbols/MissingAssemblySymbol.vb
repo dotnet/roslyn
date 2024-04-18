@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of NamedTypeSymbol)()
         End Function
 
-        Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' called if it is know that this is the Cor Library (mscorlib).
         ''' </summary>
         ''' <param name="type"></param>
-        Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
 #If DEBUG Then
             For Each [module] In Me.Modules
                 Debug.Assert([module].GetReferencedAssemblies().Length = 0)
@@ -224,16 +224,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
 
             If _lazySpecialTypes Is Nothing Then
-                Interlocked.CompareExchange(_lazySpecialTypes, New NamedTypeSymbol(SpecialType.Count) {}, Nothing)
+                Interlocked.CompareExchange(_lazySpecialTypes, New NamedTypeSymbol(InternalSpecialType.NextAvailable - 1) {}, Nothing)
             End If
 
-            If _lazySpecialTypes(type) Is Nothing Then
+            If _lazySpecialTypes(CInt(type)) Is Nothing Then
                 Dim emittedFullName As MetadataTypeName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
                 Dim corType As NamedTypeSymbol = New MissingMetadataTypeSymbol.TopLevel(m_ModuleSymbol, emittedFullName, type)
-                Interlocked.CompareExchange(_lazySpecialTypes(type), corType, Nothing)
+                Interlocked.CompareExchange(_lazySpecialTypes(CInt(type)), corType, Nothing)
             End If
 
-            Return _lazySpecialTypes(type)
+            Return _lazySpecialTypes(CInt(type))
 
         End Function
     End Class

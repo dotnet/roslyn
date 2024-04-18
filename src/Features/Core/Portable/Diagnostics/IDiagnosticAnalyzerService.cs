@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,8 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-// TODO: Remove all optional parameters from IDiagnosticAnalyzerService
-// Tracked with https://github.com/dotnet/roslyn/issues/67434
 internal interface IDiagnosticAnalyzerService
 {
     public IGlobalOptionService GlobalOptions { get; }
@@ -25,10 +22,9 @@ internal interface IDiagnosticAnalyzerService
     DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
     /// <summary>
-    /// Re-analyze given projects and documents. If both <paramref name="projectIds"/> and <paramref name="documentIds"/> are null,
-    /// then re-analyzes the entire <see cref="Workspace.CurrentSolution"/> for the given <paramref name="workspace"/>.
+    /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.
     /// </summary>
-    void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority);
+    void RequestDiagnosticRefresh();
 
     /// <summary>
     /// Get diagnostics currently stored in the source. returned diagnostic might be out-of-date if solution has changed but analyzer hasn't run for the new solution.

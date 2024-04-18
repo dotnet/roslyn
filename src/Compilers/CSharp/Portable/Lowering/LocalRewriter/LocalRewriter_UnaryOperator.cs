@@ -438,7 +438,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamic);
             TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
-            Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2) ||
+                         ShouldConvertResultOfAssignmentToDynamic(node, node.Operand));
 
             LocalSymbol tempSymbol = _factory.SynthesizedLocal(operandType);
             tempSymbols.Add(tempSymbol);
@@ -452,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // prefix:  (X)(T.Increment((T)operand)))
             // postfix: (X)(T.Increment((T)temp)))
-            var newValue = MakeIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
+            var newValue = makeIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
 
             // there are two strategies for completing the rewrite.
             // The reason is that indirect assignments read the target of the assignment before evaluating 
@@ -472,122 +473,131 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In a case of the non-byref operand we use a single-sequence strategy as it results in shorter 
             // overall life time of temps and as such more appropriate. (problem of crossed reads does not affect that case)
             //
-            if (IsIndirectOrInstanceField(transformedLHS))
-            {
-                return RewriteWithRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, operandType, boundTemp, newValue);
-            }
-            else
-            {
-                return RewriteWithNotRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, operandType, boundTemp, newValue);
-            }
-        }
-
-        private static bool IsIndirectOrInstanceField(BoundExpression expression)
-        {
-            switch (expression.Kind)
-            {
-                case BoundKind.Local:
-                    return ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
-
-                case BoundKind.Parameter:
-                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
-                    return ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
-
-                case BoundKind.FieldAccess:
-                    return !((BoundFieldAccess)expression).FieldSymbol.IsStatic;
-            }
-
-            return false;
-        }
-
-        private BoundNode RewriteWithNotRefOperand(
-            bool isPrefix,
-            bool isChecked,
-            ArrayBuilder<LocalSymbol> tempSymbols,
-            ArrayBuilder<BoundExpression> tempInitializers,
-            SyntaxNode syntax,
-            BoundExpression transformedLHS,
-            TypeSymbol operandType,
-            BoundExpression boundTemp,
-            BoundExpression newValue)
-        {
-            // prefix:  temp = (X)(T.Increment((T)operand)));  operand = temp; 
-            // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
-            ImmutableArray<BoundExpression> assignments = ImmutableArray.Create<BoundExpression>(
-                MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), operandType, used: false, isChecked: isChecked, isCompoundAssignment: false),
-                MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, operandType, used: false, isChecked: isChecked, isCompoundAssignment: false));
-
-            // prefix:  Seq( operand initializers; temp = (T)(operand + 1); operand = temp;          result: temp)
-            // postfix: Seq( operand initializers; temp = operand;          operand = (T)(temp + 1); result: temp)
-            return new BoundSequence(
-                syntax: syntax,
-                locals: tempSymbols.ToImmutableAndFree(),
-                sideEffects: tempInitializers.ToImmutableAndFree().Concat(assignments),
-                value: boundTemp,
-                type: operandType);
-        }
-
-        private BoundNode RewriteWithRefOperand(
-            bool isPrefix,
-            bool isChecked,
-            ArrayBuilder<LocalSymbol> tempSymbols,
-            ArrayBuilder<BoundExpression> tempInitializers,
-            SyntaxNode syntax,
-            BoundExpression operand,
-            TypeSymbol operandType,
-            BoundExpression boundTemp,
-            BoundExpression newValue)
-        {
-            var tempValue = isPrefix ? newValue : MakeRValue(operand);
-            Debug.Assert(tempValue.Type is { });
-            var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, operandType, used: false, isChecked: isChecked, isCompoundAssignment: false);
-
-            var operandValue = isPrefix ? boundTemp : newValue;
-            var tempAssignedAndOperandValue = new BoundSequence(
-                    syntax,
-                    ImmutableArray<LocalSymbol>.Empty,
-                    ImmutableArray.Create<BoundExpression>(tempAssignment),
-                    operandValue,
-                    tempValue.Type);
-
-            // prefix:  operand = Seq{temp = (T)(operand + 1);  temp;}
-            // postfix: operand = Seq{temp = operand;        ;  (T)(temp + 1);}
-            BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, operandType, used: false, isChecked: isChecked, isCompoundAssignment: false);
-
-            // prefix:  Seq{operand initializers; operand = Seq{temp = (T)(operand + 1);  temp;}          result: temp}
-            // postfix: Seq{operand initializers; operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}
-            tempInitializers.Add(operandAssignment);
-            return new BoundSequence(
-                syntax: syntax,
-                locals: tempSymbols.ToImmutableAndFree(),
-                sideEffects: tempInitializers.ToImmutableAndFree(),
-                value: boundTemp,
-                type: operandType);
-        }
-
-        private BoundExpression MakeIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
-        {
-            if (node.OperatorKind.IsDynamic())
-            {
-                return _dynamicFactory.MakeDynamicUnaryOperator(node.OperatorKind, rewrittenValueToIncrement, node.Type).ToExpression();
-            }
-
             BoundExpression result;
-            if (node.OperatorKind.OperandTypes() == UnaryOperatorKind.UserDefined)
+
+            if (isIndirectOrInstanceField(transformedLHS))
             {
-                result = MakeUserDefinedIncrementOperator(node, rewrittenValueToIncrement);
+                result = rewriteWithRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
             }
             else
             {
-                result = MakeBuiltInIncrementOperator(node, rewrittenValueToIncrement);
+                result = rewriteWithNotRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
             }
 
-            // Generate the conversion back to the type of the original expression.
-
-            // (X)(short)((int)(short)x + 1)
-            result = ApplyConversionIfNotIdentity(node.ResultConversion, node.ResultPlaceholder, result);
+            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, node.Operand, result, used: true);
+            Debug.Assert(TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.AllIgnoreOptions));
 
             return result;
+
+            static bool isIndirectOrInstanceField(BoundExpression expression)
+            {
+                switch (expression.Kind)
+                {
+                    case BoundKind.Local:
+                        return ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
+
+                    case BoundKind.Parameter:
+                        Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
+                        return ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
+
+                    case BoundKind.FieldAccess:
+                        return !((BoundFieldAccess)expression).FieldSymbol.IsStatic;
+                }
+
+                return false;
+            }
+
+            BoundExpression rewriteWithNotRefOperand(
+                bool isPrefix,
+                bool isChecked,
+                ArrayBuilder<LocalSymbol> tempSymbols,
+                ArrayBuilder<BoundExpression> tempInitializers,
+                SyntaxNode syntax,
+                BoundExpression transformedLHS,
+                BoundExpression boundTemp,
+                BoundExpression newValue)
+            {
+                Debug.Assert(boundTemp.Type is not null);
+
+                // prefix:  temp = (X)(T.Increment((T)operand)));  operand = temp; 
+                // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
+                ImmutableArray<BoundExpression> assignments = ImmutableArray.Create<BoundExpression>(
+                    MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, isCompoundAssignment: false),
+                    MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, isCompoundAssignment: false));
+
+                // prefix:  Seq( operand initializers; temp = (T)(operand + 1); operand = temp;          result: temp)
+                // postfix: Seq( operand initializers; temp = operand;          operand = (T)(temp + 1); result: temp)
+                return new BoundSequence(
+                    syntax: syntax,
+                    locals: tempSymbols.ToImmutableAndFree(),
+                    sideEffects: tempInitializers.ToImmutableAndFree().Concat(assignments),
+                    value: boundTemp,
+                    type: boundTemp.Type);
+            }
+
+            BoundExpression rewriteWithRefOperand(
+                bool isPrefix,
+                bool isChecked,
+                ArrayBuilder<LocalSymbol> tempSymbols,
+                ArrayBuilder<BoundExpression> tempInitializers,
+                SyntaxNode syntax,
+                BoundExpression operand,
+                BoundExpression boundTemp,
+                BoundExpression newValue)
+            {
+                Debug.Assert(boundTemp.Type is not null);
+
+                var tempValue = isPrefix ? newValue : MakeRValue(operand);
+                Debug.Assert(tempValue.Type is { });
+                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, isCompoundAssignment: false);
+
+                var operandValue = isPrefix ? boundTemp : newValue;
+                var tempAssignedAndOperandValue = new BoundSequence(
+                        syntax,
+                        ImmutableArray<LocalSymbol>.Empty,
+                        ImmutableArray.Create<BoundExpression>(tempAssignment),
+                        operandValue,
+                        tempValue.Type);
+
+                // prefix:  operand = Seq{temp = (T)(operand + 1);  temp;}
+                // postfix: operand = Seq{temp = operand;        ;  (T)(temp + 1);}
+                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, isCompoundAssignment: false);
+
+                // prefix:  Seq{operand initializers; operand = Seq{temp = (T)(operand + 1);  temp;}          result: temp}
+                // postfix: Seq{operand initializers; operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}
+                tempInitializers.Add(operandAssignment);
+                return new BoundSequence(
+                    syntax: syntax,
+                    locals: tempSymbols.ToImmutableAndFree(),
+                    sideEffects: tempInitializers.ToImmutableAndFree(),
+                    value: boundTemp,
+                    type: boundTemp.Type);
+            }
+
+            BoundExpression makeIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
+            {
+                if (node.OperatorKind.IsDynamic())
+                {
+                    return _dynamicFactory.MakeDynamicUnaryOperator(node.OperatorKind, rewrittenValueToIncrement, node.Type).ToExpression();
+                }
+
+                BoundExpression result;
+                if (node.OperatorKind.OperandTypes() == UnaryOperatorKind.UserDefined)
+                {
+                    result = MakeUserDefinedIncrementOperator(node, rewrittenValueToIncrement);
+                }
+                else
+                {
+                    result = MakeBuiltInIncrementOperator(node, rewrittenValueToIncrement);
+                }
+
+                // Generate the conversion back to the type of the original expression.
+
+                // (X)(short)((int)(short)x + 1)
+                result = ApplyConversionIfNotIdentity(node.ResultConversion, node.ResultPlaceholder, result);
+
+                return result;
+            }
         }
 
         private BoundExpression ApplyConversionIfNotIdentity(BoundExpression? conversion, BoundValuePlaceholder? placeholder, BoundExpression replacement)

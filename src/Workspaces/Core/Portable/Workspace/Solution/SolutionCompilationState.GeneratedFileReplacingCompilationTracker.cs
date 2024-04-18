@@ -72,10 +72,12 @@ internal partial class SolutionCompilationState
             throw new NotImplementedException();
         }
 
-        public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
+        public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
         {
-            // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
-            return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(cancellationToken), _replacementDocumentStates);
+            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(create, forceRegeneration, cancellationToken);
+            return underlyingTracker == this.UnderlyingTracker
+                ? this
+                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
         public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
@@ -143,7 +145,7 @@ internal partial class SolutionCompilationState
         private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             => Checksum.Create(
                 await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
-                (await _replacementDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
+                (await _replacementDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
         public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
         {

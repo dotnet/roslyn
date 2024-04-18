@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
@@ -69,15 +70,16 @@ internal static class IExtensionManagerExtensions
     public static async Task<T> PerformFunctionAsync<T>(
         this IExtensionManager extensionManager,
         object extension,
-        Func<Task<T>?> function,
-        T defaultValue)
+        Func<CancellationToken, Task<T>?> function,
+        T defaultValue,
+        CancellationToken cancellationToken)
     {
         if (extensionManager.IsDisabled(extension))
             return defaultValue;
 
         try
         {
-            var task = function();
+            var task = function(cancellationToken);
             if (task != null)
                 return await task.ConfigureAwait(false);
         }

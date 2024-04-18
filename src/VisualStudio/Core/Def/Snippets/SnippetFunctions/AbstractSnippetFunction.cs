@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -28,9 +27,9 @@ internal abstract partial class AbstractSnippetFunction : IVsExpansionFunction
         _threadingContext = threadingContext;
     }
 
-    protected bool TryGetDocument(out Document document)
+    protected bool TryGetDocument([NotNullWhen(true)] out Document? document)
     {
-        document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()?.WithFrozenPartialSemantics(CancellationToken.None);
         return document != null;
     }
 

@@ -5,7 +5,9 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -29,6 +31,14 @@ internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Te
         // Also ensure we pass in "includeSuppressedDiagnostics = true" for unnecessary suppressions to be reported.
         var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
             Document, range: null, diagnosticKind: this.DiagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // Add cached Copilot diagnostics when computing analyzer semantic diagnostics.
+        // TODO: move to a separate diagnostic source. https://github.com/dotnet/roslyn/issues/72896
+        if (DiagnosticKind == DiagnosticKind.AnalyzerSemantic)
+        {
+            var copilotDiagnostics = await Document.GetCachedCopilotDiagnosticsAsync(span: null, cancellationToken).ConfigureAwait(false);
+            allSpanDiagnostics = allSpanDiagnostics.AddRange(copilotDiagnostics);
+        }
 
         // Drop the source suppressed diagnostics.
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1824321 tracks

@@ -70,7 +70,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         // use formatting that return text changes rather than tree rewrite which is more expensive
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-        var originalChanges = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), formattingOptions, rules, cancellationToken)
+        var originalChanges = formatter.GetFormattingResult(root, [adjustedSpan], formattingOptions, rules, cancellationToken)
             .GetTextChanges(cancellationToken);
 
         var originalSpan = RoslynTextSpan.FromBounds(start, end);

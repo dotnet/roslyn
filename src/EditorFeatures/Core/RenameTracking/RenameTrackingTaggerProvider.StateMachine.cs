@@ -240,11 +240,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                     // to trigger the diagnostic system to reanalyze, so we trigger it 
                     // manually.
 
-                    _diagnosticAnalyzerService?.Reanalyze(
-                        document.Project.Solution.Workspace,
-                        projectIds: null,
-                        documentIds: SpecializedCollections.SingletonEnumerable(document.Id),
-                        highPriority: true);
+                    _diagnosticAnalyzerService?.RequestDiagnosticRefresh();
                 }
 
                 // Disallow the existing TrackingSession from triggering IdentifierFound.

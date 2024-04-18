@@ -119,12 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Project oldProject,
             Document newDocument,
             ActiveStatementsMap activeStatementMap = null,
-            EditAndContinueCapabilities capabilities = EditAndContinueTestHelpers.Net5RuntimeCapabilities)
+            EditAndContinueCapabilities capabilities = EditAndContinueTestHelpers.Net5RuntimeCapabilities,
+            ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans = default)
         {
             var analyzer = new CSharpEditAndContinueAnalyzer();
             var baseActiveStatements = AsyncLazy.Create(activeStatementMap ?? ActiveStatementsMap.Empty);
             var lazyCapabilities = AsyncLazy.Create(capabilities);
-            return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, [], lazyCapabilities, CancellationToken.None);
+            return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, newActiveStatementSpans.NullToEmpty(), lazyCapabilities, CancellationToken.None);
         }
 
         #endregion
@@ -319,7 +320,7 @@ class C
                 {
                     KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                         new ActiveStatement(
-                            ordinal: 0,
+                            new ActiveStatementId(0),
                             ActiveStatementFlags.LeafFrame,
                             new SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                             instructionId: default)))

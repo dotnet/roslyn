@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class TransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
+        private static readonly string? s_tableType = typeof(TOutput).FullName;
+
         private readonly Func<TInput, CancellationToken, ImmutableArray<TOutput>> _func;
         private readonly IEqualityComparer<TOutput> _comparer;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
             if (sourceTable.IsCached && previousTable is not null)
             {
-                this.LogTables(_name, previousTable, previousTable, sourceTable);
+                this.LogTables(_name, s_tableType, previousTable, previousTable, sourceTable);
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
                     return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name, _comparer);
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis
             // Can't assert anything about the count of items.  _func may have produced a different amount of items if
             // it's not a 1:1 function.
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, previousTable, newTable, sourceTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
             return newTable;
         }
 

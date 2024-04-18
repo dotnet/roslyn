@@ -23,13 +23,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class InProcOrRemoteHostAnalyzerRunner
     {
+        private readonly bool _enabled;
         private readonly IAsynchronousOperationListener _asyncOperationListener;
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
         public InProcOrRemoteHostAnalyzerRunner(
+            bool enabled,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             IAsynchronousOperationListener? operationListener = null)
         {
+            _enabled = enabled;
             AnalyzerInfoCache = analyzerInfoCache;
             _asyncOperationListener = operationListener ?? AsynchronousOperationListenerProvider.NullListener;
         }
@@ -64,6 +67,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
         {
+            if (!_enabled)
+                return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+
             var result = await AnalyzeCoreAsync().ConfigureAwait(false);
             Debug.Assert(getTelemetryInfo || result.TelemetryInfo.IsEmpty);
             return result;
@@ -84,8 +90,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
+            if (!_enabled)
+                return [];
+
             var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
             var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (remoteHostClient != null)

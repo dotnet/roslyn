@@ -12696,6 +12696,179 @@ public static class Extension
                 """;
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72457")]
+        public async Task ConstrainedGenericExtensionMethods_01()
+        {
+            var markup = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                namespace Extensions;
+
+                public static class GenericExtensions
+                {
+                    public static string FirstOrDefaultOnHashSet<T>(this T s)
+                        where T : HashSet<string>
+                    {
+                        return s.FirstOrDefault();
+                    }
+                    public static string FirstOrDefaultOnList<T>(this T s)
+                        where T : List<string>
+                    {
+                        return s.FirstOrDefault();
+                    }
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        var list = new List<string>();
+                        list.$$
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "FirstOrDefaultOnList", displayTextSuffix: "<>");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefaultOnHashSet", displayTextSuffix: "<>");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72457")]
+        public async Task ConstrainedGenericExtensionMethods_02()
+        {
+            var markup = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                namespace Extensions;
+
+                public static class GenericExtensions
+                {
+                    public static string FirstOrDefaultOnHashSet<T>(this T s)
+                        where T : HashSet<string>
+                    {
+                        return s.FirstOrDefault();
+                    }
+                    public static string FirstOrDefaultOnList<T>(this T s)
+                        where T : List<string>
+                    {
+                        return s.FirstOrDefault();
+                    }
+
+                    public static bool HasFirstNonNullItemOnList<T>(this T s)
+                        where T : List<string>
+                    {
+                        return s.$$
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "FirstOrDefaultOnList", displayTextSuffix: "<>");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefaultOnHashSet", displayTextSuffix: "<>");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72457")]
+        public async Task ConstrainedGenericExtensionMethods_SelfGeneric01()
+        {
+            var markup = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                namespace Extensions;
+
+                public static class GenericExtensions
+                {
+                    public static T FirstOrDefaultOnHashSet<T>(this T s)
+                        where T : HashSet<T>
+                    {
+                        return s.FirstOrDefault();
+                    }
+                    public static T FirstOrDefaultOnList<T>(this T s)
+                        where T : List<T>
+                    {
+                        return s.FirstOrDefault();
+                    }
+                }
+
+                public class ListExtension<T> : List<ListExtension<T>>
+                    where T : List<T>
+                {
+                    public void Method()
+                    {
+                        this.$$
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "FirstOrDefaultOnList", displayTextSuffix: "<>");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefaultOnHashSet", displayTextSuffix: "<>");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72457")]
+        public async Task ConstrainedGenericExtensionMethods_SelfGeneric02()
+        {
+            var markup = """
+                using System.Collections.Generic;
+                using System.Linq;
+
+                namespace Extensions;
+
+                public static class GenericExtensions
+                {
+                    public static T FirstOrDefaultOnHashSet<T>(this T s)
+                        where T : HashSet<T>
+                    {
+                        return s.FirstOrDefault();
+                    }
+                    public static T FirstOrDefaultOnList<T>(this T s)
+                        where T : List<T>
+                    {
+                        return s.FirstOrDefault();
+                    }
+
+                    public static bool HasFirstNonNullItemOnList<T>(this T s)
+                        where T : List<T>
+                    {
+                        return s.$$
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "FirstOrDefaultOnList", displayTextSuffix: "<>");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefaultOnHashSet", displayTextSuffix: "<>");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72457")]
+        public async Task ConstrainedGenericExtensionMethods_SelfGeneric03()
+        {
+            var markup = """
+                namespace Extensions;
+
+                public interface IBinaryInteger<T>
+                {
+                    public static T AdditiveIdentity { get; }
+                }
+
+                public static class GenericExtensions
+                {
+                    public static T AtLeastAdditiveIdentity<T>(this T s)
+                        where T : IBinaryInteger<T>
+                    {
+                        return T.AdditiveIdentity > s ? s : T.AdditiveIdentity;
+                    }
+
+                    public static T Method<T>(this T s)
+                        where T : IBinaryInteger<T>
+                    {
+                        return s.$$
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "AtLeastAdditiveIdentity", displayTextSuffix: "<>");
+            await VerifyItemExistsAsync(markup, "Method", displayTextSuffix: "<>");
+        }
+
         #region Collection expressions
 
         [Fact]

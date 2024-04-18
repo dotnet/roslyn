@@ -433,11 +433,9 @@ public class Document : TextDocument
         {
             using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, this.Name, cancellationToken))
             {
+                // no changes
                 if (oldDocument == this)
-                {
-                    // no changes
-                    return SpecializedCollections.EmptyEnumerable<TextChange>();
-                }
+                    return [];
 
                 if (this.Id != oldDocument.Id)
                 {
@@ -448,9 +446,7 @@ public class Document : TextDocument
                 if (this.TryGetText(out var text) && oldDocument.TryGetText(out var oldText))
                 {
                     if (text == oldText)
-                    {
-                        return SpecializedCollections.EmptyEnumerable<TextChange>();
-                    }
+                        return [];
 
                     var container = text.Container;
                     if (container != null)

@@ -35,7 +35,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
 
     public AbstractDiagnosticsTaggerProvider(
         IThreadingContext threadingContext,
-        IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
@@ -54,7 +53,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         return;
 
         SingleDiagnosticKindPullTaggerProvider CreateDiagnosticsTaggerProvider(DiagnosticKind diagnosticKind)
-            => new(this, diagnosticKind, threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listener);
+            => new(this, diagnosticKind, threadingContext, analyzerService, globalOptions, visibilityTracker, listener);
     }
 
     // Functionality for subclasses to control how this diagnostic tagging operates.  All the individual
@@ -97,19 +96,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         }
 
         return genericTagger;
-    }
-
-    private static ITaggerEventSource CreateEventSourceWorker(ITextBuffer subjectBuffer, IDiagnosticService diagnosticService)
-    {
-        // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
-        // executed on content which was produced by a source generator but is not yet reflected in an open text
-        // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
-        // triggers a text changed event) to ensure diagnostics are positioned correctly.
-        return TaggerEventSources.Compose(
-            TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-            TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-            TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, diagnosticService),
-            TaggerEventSources.OnTextChanged(subjectBuffer));
     }
 
     protected ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)

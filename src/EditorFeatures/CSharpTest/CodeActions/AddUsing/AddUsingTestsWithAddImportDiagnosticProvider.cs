@@ -63,18 +63,11 @@ class C
         [Fact]
         public async Task TestOutsideOfMethodWithMalformedGenericParameters()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
-
 class Program
 {
-    Func<[|FlowControl|] x }",
-@"using System;
-using System.Reflection.Emit;
-
-class Program
-{
-    Func<FlowControl x }");
+    Func<[|FlowControl|] x }");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
@@ -146,15 +139,10 @@ class Class
 {
     List< }");
 
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
-    [|List<Y x;|] }",
-@"using System.Collections.Generic;
-
-class Class
-{
-    List<Y x; }");
+    [|List<Y x;|] }");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18621")]

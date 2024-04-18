@@ -181,12 +181,12 @@ internal partial class CSharpMethodExtractor(CSharpSelectionResult result, Extra
         {
             var originalMethodDefinition = methodDefinition;
             var newLine = Options.LineFormattingOptions.NewLine;
-            methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+            methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SyntaxFactory.EndOfLine(newLine));
 
             if (!originalMethodDefinition.FindTokenOnLeftOfPosition(originalMethodDefinition.SpanStart).TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
             {
                 // Add a second new line since there were no line endings in the original form
-                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SyntaxFactory.EndOfLine(newLine));
             }
 
             // Generating the new document and associated variables.

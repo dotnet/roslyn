@@ -102,7 +102,7 @@ internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuilt
                 Descriptor, isExpression.GetLocation(),
                 styleOption.Notification,
                 context.Options,
-                SpecializedCollections.EmptyCollection<Location>(),
+                additionalLocations: [],
                 ImmutableDictionary<string, string?>.Empty));
     }
 

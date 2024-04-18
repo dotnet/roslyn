@@ -100,7 +100,7 @@ internal sealed class WatchHotReloadService
 
         if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
         {
-            _encService.CommitSolutionUpdate(sessionId, out _);
+            _encService.CommitSolutionUpdate(sessionId);
         }
 
         var updates = results.ModuleUpdates.Updates.SelectAsArray(
@@ -114,7 +114,7 @@ internal sealed class WatchHotReloadService
     public void EndSession()
     {
         Contract.ThrowIfFalse(_sessionId != default, "Session has not started");
-        _encService.EndDebuggingSession(_sessionId, out _);
+        _encService.EndDebuggingSession(_sessionId);
     }
 
     internal TestAccessor GetTestAccessor()

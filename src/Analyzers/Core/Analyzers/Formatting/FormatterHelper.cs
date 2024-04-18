@@ -30,10 +30,10 @@ internal static class FormatterHelper
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>The formatted tree's root node.</returns>
     public static SyntaxNode Format(SyntaxNode node, ISyntaxFormatting syntaxFormattingService, SyntaxFormattingOptions options, CancellationToken cancellationToken)
-        => Format(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), syntaxFormattingService, options, rules: null, cancellationToken: cancellationToken);
+        => Format(node, [node.FullSpan], syntaxFormattingService, options, rules: null, cancellationToken: cancellationToken);
 
     public static SyntaxNode Format(SyntaxNode node, TextSpan spanToFormat, ISyntaxFormatting syntaxFormattingService, SyntaxFormattingOptions options, CancellationToken cancellationToken)
-        => Format(node, SpecializedCollections.SingletonEnumerable(spanToFormat), syntaxFormattingService, options, rules: null, cancellationToken: cancellationToken);
+        => Format(node, [spanToFormat], syntaxFormattingService, options, rules: null, cancellationToken: cancellationToken);
 
     /// <summary>
     /// Formats the whitespace of a syntax tree.
@@ -63,5 +63,5 @@ internal static class FormatterHelper
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>The changes necessary to format the tree.</returns>
     public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, ISyntaxFormatting syntaxFormattingService, SyntaxFormattingOptions options, CancellationToken cancellationToken)
-        => GetFormattedTextChanges(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), syntaxFormattingService, options, rules: null, cancellationToken: cancellationToken);
+        => GetFormattedTextChanges(node, [node.FullSpan], syntaxFormattingService, options, rules: null, cancellationToken: cancellationToken);
 }

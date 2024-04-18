@@ -109,7 +109,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
         try
         {
             Contract.ThrowIfNull(_debuggingSession);
-            encService.BreakStateOrCapabilitiesChanged(_debuggingSession.Value, inBreakState, out _);
+            encService.BreakStateOrCapabilitiesChanged(_debuggingSession.Value, inBreakState);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -143,7 +143,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
 
             _committedDesignTimeSolution = committedDesignTimeSolution;
 
-            encService.CommitSolutionUpdate(_debuggingSession.Value, out _);
+            encService.CommitSolutionUpdate(_debuggingSession.Value);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -186,7 +186,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
         {
             Contract.ThrowIfNull(_debuggingSession);
 
-            encService.EndDebuggingSession(_debuggingSession.Value, out _);
+            encService.EndDebuggingSession(_debuggingSession.Value);
 
             _debuggingSession = null;
             _committedDesignTimeSolution = null;

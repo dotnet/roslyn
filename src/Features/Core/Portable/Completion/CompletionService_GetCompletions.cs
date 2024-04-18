@@ -158,8 +158,9 @@ public abstract partial class CompletionService
                 {
                     var isSyntacticTrigger = await extensionManager.PerformFunctionAsync(
                         provider,
-                        () => provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken),
-                        defaultValue: false).ConfigureAwait(false);
+                        cancellationToken => provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken),
+                        defaultValue: false,
+                        cancellationToken).ConfigureAwait(false);
                     if (!isSyntacticTrigger)
                         additionalAugmentingProviders.Add(provider);
                 }

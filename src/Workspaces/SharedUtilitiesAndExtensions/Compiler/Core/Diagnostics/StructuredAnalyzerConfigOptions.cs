@@ -53,7 +53,7 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions,
         }
 
         public override IEnumerable<string> Keys
-            => SpecializedCollections.EmptyEnumerable<string>();
+            => [];
     }
 
     public static readonly StructuredAnalyzerConfigOptions Empty = new EmptyImplementation();

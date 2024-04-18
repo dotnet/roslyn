@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class InlineDiagnosticsTaggerProvider(
     IThreadingContext threadingContext,
-    IDiagnosticService diagnosticService,
     IDiagnosticAnalyzerService analyzerService,
     IGlobalOptionService globalOptions,
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
@@ -37,7 +36,6 @@ internal sealed class InlineDiagnosticsTaggerProvider(
     IClassificationTypeRegistryService classificationTypeRegistryService)
     : AbstractDiagnosticsTaggerProvider<InlineDiagnosticsTag>(
         threadingContext,
-        diagnosticService,
         analyzerService,
         globalOptions,
         visibilityTracker,

@@ -22,6 +22,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
 internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
@@ -182,7 +185,7 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
                 case SyntaxKind.SingleVariableDesignation:
                 case SyntaxKind.DiscardDesignation:
                     var typeName = type.GenerateTypeSyntax(allowVar: false);
-                    newDeclaration = SyntaxFactory.DeclarationExpression(typeName, designation);
+                    newDeclaration = DeclarationExpression(typeName, designation);
                     break;
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     newDeclaration = GenerateTupleDeclaration(type, (ParenthesizedVariableDesignationSyntax)designation);
@@ -195,15 +198,15 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
                 .WithLeadingTrivia(designation.GetAllPrecedingTriviaToPreviousToken())
                 .WithTrailingTrivia(designation.GetTrailingTrivia());
 
-            builder.Add(SyntaxFactory.Argument(newDeclaration));
+            builder.Add(Argument(newDeclaration));
         }
 
-        var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance(builder.Count - 1, SyntaxFactory.Token(leading: default, SyntaxKind.CommaToken, trailing: default));
+        var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance(builder.Count - 1, Token(leading: default, SyntaxKind.CommaToken, trailing: default));
 
-        return SyntaxFactory.TupleExpression(
-            SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
-            SyntaxFactory.SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
-            SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+        return TupleExpression(
+            OpenParenToken.WithTrailingTrivia(),
+            SeparatedList(builder, separatorBuilder),
+            CloseParenToken)
             .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
     }
 

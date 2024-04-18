@@ -81,8 +81,8 @@ internal static class IntellisenseQuickInfoBuilder
 
                     // Stack the first paragraph of the documentation comments with the last line of the description
                     // to avoid vertical padding between the two.
-                    var lastElement = elements[elements.Count - 1];
-                    elements[elements.Count - 1] = new ContainerElement(
+                    var lastElement = elements[^1];
+                    elements[^1] = new ContainerElement(
                         ContainerElementStyle.Stacked,
                         lastElement,
                         element);

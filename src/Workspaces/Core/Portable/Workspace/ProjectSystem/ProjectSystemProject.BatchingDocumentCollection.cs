@@ -425,7 +425,7 @@ internal sealed partial class ProjectSystemProject
                             solutionChanges.UpdateSolutionForDocumentAction(
                                 _documentTextLoaderChangedAction(solutionChanges.Solution, documentId, textLoader),
                                 _documentChangedWorkspaceKind,
-                                SpecializedCollections.SingletonEnumerable(documentId));
+                                [documentId]);
                         }
                     }
                 }).ConfigureAwait(false);

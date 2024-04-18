@@ -32,11 +32,6 @@
         <target state="translated">Dokončilo se (opětovné) načtení všech projektů v čase {0}</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">Připojený ladicí program</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">Ladí se testy…</target>
@@ -49,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Exception_thrown_0">
         <source>Exception thrown: {0}</source>
-        <target state="new">Exception thrown: {0}</target>
+        <target state="translated">Vyvolaná výjimka: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">
@@ -62,7 +57,7 @@
         <target state="translated">Neúspěšné:    {0}, Úspěšné:    {1}, Přeskočeno:    {2}, Celkem:    {3}, Doba trvání: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
         <target state="translated">Čtení souboru .runsettings na {0} se nezdařilo:{1}</target>
         <note />

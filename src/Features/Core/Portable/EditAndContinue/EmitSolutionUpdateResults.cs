@@ -90,7 +90,7 @@ internal readonly struct EmitSolutionUpdateResults
             diagnostics.AddRange(projectEmitDiagnostics);
         }
 
-        return diagnostics.ToImmutable();
+        return diagnostics.ToImmutableAndClear();
     }
 
     internal static async ValueTask<ImmutableArray<ManagedHotReloadDiagnostic>> GetHotReloadDiagnosticsAsync(
@@ -164,6 +164,6 @@ internal readonly struct EmitSolutionUpdateResults
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }
