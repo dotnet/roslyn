@@ -28,5 +28,5 @@ internal sealed class TestDocumentTrackingService() : IDocumentTrackingService
         => _activeDocumentId;
 
     public ImmutableArray<DocumentId> GetVisibleDocuments()
-        => _activeDocumentId != null ? ImmutableArray.Create(_activeDocumentId) : ImmutableArray<DocumentId>.Empty;
+        => _activeDocumentId != null ? [_activeDocumentId] : [];
 }
