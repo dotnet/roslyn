@@ -220,14 +220,20 @@ internal sealed class SerializableSourceText
     /// simply point to the segments in the memory-mapped-file the host has dumped its text into, and only actually
     /// realizing the real text values when they're needed.
     /// </summary>
-    private sealed class SerializableSourceTextLoader(
-        SerializableSourceText serializableSourceText,
-        string? filePath) : TextLoader
+    private sealed class SerializableSourceTextLoader : TextLoader
     {
-        public readonly SerializableSourceText SerializableSourceText = serializableSourceText;
+        public readonly SerializableSourceText SerializableSourceText;
         private readonly VersionStamp _version = VersionStamp.Create();
 
-        internal override string? FilePath { get; } = filePath;
+        public SerializableSourceTextLoader(
+            SerializableSourceText serializableSourceText,
+            string? filePath)
+        {
+            SerializableSourceText = serializableSourceText;
+            FilePath = filePath;
+        }
+
+        internal override string? FilePath { get; }
 
         /// <summary>
         /// Documents should always hold onto instances of this text loader strongly.  In other words, they should load
