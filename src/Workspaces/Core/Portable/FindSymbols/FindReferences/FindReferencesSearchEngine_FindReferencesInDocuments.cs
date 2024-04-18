@@ -87,21 +87,19 @@ internal partial class FindReferencesSearchEngine
             // appropriate finders checking this document for hits.  We're likely going to need to perform syntax
             // and semantics checks in this file.  So just grab those once here and hold onto them for the lifetime
             // of this call.
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var cache = FindReferenceCache.GetCache(model);
+            var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
             foreach (var symbol in symbols)
             {
-                var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
-                var state = new FindReferencesDocumentState(document, model, root, cache, globalAliases);
+                var globalAliases = TryGet(symbolToGlobalAliases, symbol);
+                var state = new FindReferencesDocumentState(cache, globalAliases);
 
-                await PerformSearchInDocumentWorkerAsync(symbol, document, state).ConfigureAwait(false);
+                await PerformSearchInDocumentWorkerAsync(symbol, state).ConfigureAwait(false);
             }
         }
 
         async ValueTask PerformSearchInDocumentWorkerAsync(
-            ISymbol symbol, Document document, FindReferencesDocumentState state)
+            ISymbol symbol, FindReferencesDocumentState state)
         {
             // Always perform a normal search, looking for direct references to exactly that symbol.
             foreach (var finder in _finders)

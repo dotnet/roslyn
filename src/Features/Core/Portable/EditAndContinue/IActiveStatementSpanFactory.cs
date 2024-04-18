@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal interface IActiveStatementSpanProvider
+internal interface IActiveStatementSpanFactory
 {
     /// <summary>
     /// Returns base mapped active statement spans contained in each specified document projected to a given solution snapshot

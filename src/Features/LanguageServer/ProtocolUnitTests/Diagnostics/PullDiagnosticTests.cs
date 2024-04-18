@@ -5,9 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -1185,6 +1188,123 @@ class A {
 
             Assert.Empty(results[1].Diagnostics);
         }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task EditAndContinue_NoActiveSession(bool mutatingLspWorkspace)
+    {
+        var markup1 = "class C {}";
+
+        var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics: false);
+
+        await using var testLspServer = await CreateTestLspServerAsync([markup1], LanguageNames.CSharp, mutatingLspWorkspace, options);
+
+        var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: false, includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task EditAndContinue(bool mutatingLspWorkspace)
+    {
+        var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics: true);
+        var composition = Composition
+            .AddExcludedPartTypes(typeof(EditAndContinueService))
+            .AddParts(typeof(MockEditAndContinueService));
+
+        await using var testLspServer = await CreateTestLspServerAsync(["class C;", "class D;"], LanguageNames.CSharp, mutatingLspWorkspace, options, composition);
+
+        var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
+        var encService = (MockEditAndContinueService)testLspServer.TestWorkspace.GetService<IEditAndContinueService>();
+        var diagnosticsRefresher = testLspServer.TestWorkspace.GetService<IDiagnosticsRefresher>();
+
+        var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
+        var openDocument = project.Documents.First();
+        var closedDocument = project.Documents.Skip(1).First();
+
+        await OpenDocumentAsync(testLspServer, openDocument);
+
+        var projectDiagnostic = CreateDiagnostic("ENC_PROJECT", project: project);
+        var openDocumentDiagnostic1 = CreateDiagnostic("ENC_OPEN_DOC1", openDocument);
+        var openDocumentDiagnostic2 = await CreateDiagnostic("ENC_OPEN_DOC2", openDocument).ToDiagnosticAsync(project, CancellationToken.None);
+        var closedDocumentDiagnostic = CreateDiagnostic("ENC_CLOSED_DOC", closedDocument);
+
+        encSessionState.IsSessionActive = true;
+        encSessionState.ApplyChangesDiagnostics = [projectDiagnostic, openDocumentDiagnostic1, closedDocumentDiagnostic];
+        encService.GetDocumentDiagnosticsImpl = (_, _) => [openDocumentDiagnostic2];
+
+        var documentResults1 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, openDocument.GetURI(), useVSDiagnostics: true, category: PullDiagnosticCategories.EditAndContinue);
+
+        // both diagnostics located in the open document are reported:
+        AssertEx.Equal(
+        [
+            "file:///C:/test1.cs -> [ENC_OPEN_DOC1,ENC_OPEN_DOC2]",
+        ], documentResults1.Select(Inspect));
+
+        var workspaceResults1 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
+
+        AssertEx.Equal(
+        [
+            "file:///C:/test2.cs -> [ENC_CLOSED_DOC]",
+            "file:///C:/Test.csproj -> [ENC_PROJECT]",
+        ], workspaceResults1.Select(Inspect));
+
+        // clear workspace diagnostics:
+
+        encSessionState.ApplyChangesDiagnostics = [];
+        diagnosticsRefresher.RequestWorkspaceRefresh();
+
+        var documentResults2 = await RunGetDocumentPullDiagnosticsAsync(
+            testLspServer, openDocument.GetURI(), previousResultId: documentResults1.Single().ResultId, useVSDiagnostics: true, category: PullDiagnosticCategories.EditAndContinue);
+
+        AssertEx.Equal(
+        [
+           "file:///C:/test1.cs -> [ENC_OPEN_DOC2]",
+        ], documentResults2.Select(Inspect));
+
+        var workspaceResults2 = await RunGetWorkspacePullDiagnosticsAsync(
+            testLspServer, useVSDiagnostics: true, previousResults: workspaceResults1.SelectAsArray(r => (r.ResultId, r.TextDocument)), includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
+        AssertEx.Equal(
+        [
+            "file:///C:/test2.cs -> []",
+            "file:///C:/Test.csproj -> []",
+        ], workspaceResults2.Select(Inspect));
+
+        // deactivate EnC session:
+
+        encSessionState.IsSessionActive = false;
+        diagnosticsRefresher.RequestWorkspaceRefresh();
+
+        var documentResults3 = await RunGetDocumentPullDiagnosticsAsync(
+            testLspServer, openDocument.GetURI(), previousResultId: documentResults2.Single().ResultId, useVSDiagnostics: true, category: PullDiagnosticCategories.EditAndContinue);
+        AssertEx.Equal(
+        [
+           "file:///C:/test1.cs -> []",
+        ], documentResults3.Select(Inspect));
+
+        var workspaceResults3 = await RunGetWorkspacePullDiagnosticsAsync(
+            testLspServer, useVSDiagnostics: true, previousResults: workspaceResults2.SelectAsArray(r => (r.ResultId, r.TextDocument)), includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
+        AssertEx.Equal([], workspaceResults3.Select(Inspect));
+
+        static DiagnosticData CreateDiagnostic(string id, Document? document = null, Project? project = null)
+            => new(
+                id,
+                category: "EditAndContinue",
+                message: "test message",
+                severity: DiagnosticSeverity.Error,
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                projectId: project?.Id,
+                customTags: [],
+                properties: ImmutableDictionary<string, string?>.Empty,
+                location: new DiagnosticDataLocation(new FileLinePositionSpan("file", span: default), document?.Id),
+                additionalLocations: [],
+                language: (project ?? document!.Project).Language);
+
+        static string Inspect(TestDiagnosticResult result)
+            => $"{result.TextDocument.Uri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
     }
 
     [Theory, CombinatorialData]
