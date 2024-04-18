@@ -262,7 +262,6 @@ internal partial class FindReferencesSearchEngine
             // the symbol being searched for).  As such, we're almost certainly going to have to do semantic checks
             // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
             // just grab those once here and hold onto them for the lifetime of this call.
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
             foreach (var symbol in symbols)
