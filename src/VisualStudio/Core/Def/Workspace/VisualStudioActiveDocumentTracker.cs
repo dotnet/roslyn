@@ -296,6 +296,12 @@ internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
                 }
             }
 
+            if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)) &&
+                docData is IVsTextBuffer bufferAdapter)
+            {
+                TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
+            }
+
             return;
         }
 
