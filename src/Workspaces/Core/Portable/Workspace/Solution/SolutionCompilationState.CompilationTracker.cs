@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// This is just the same as <see cref="Contract.ThrowIfFalse(bool, string, int)"/> but throws a custom exception type to make this easier to find in telemetry since the exception type
+            /// This is just the same as <see cref="Contract.ThrowIfFalse(bool, string, int, string)"/> but throws a custom exception type to make this easier to find in telemetry since the exception type
             /// is easily seen in telemetry.
             /// </summary>
             private static void ThrowExceptionIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string message)
