@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using IUIThreadOperationContext = Microsoft.VisualStudio.Utilities.IUIThreadOperationContext;
 
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
                 var selection = TryGetCodeRefactoringSelection(state, range);
-                await Task.Yield().ConfigureAwait(false);
+                await TaskScheduler.Default;
 
                 // If we have a selection, kick off the work to get refactorings concurrently with the above work to get errors.
                 var refactoringTask = selection != null
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 async Task<string?> GetFixLevelAsync()
                 {
                     // Ensure we yield the thread that called into us, allowing it to continue onwards.
-                    await Task.Yield().ConfigureAwait(false);
+                    await TaskScheduler.Default;
                     var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
 
                     foreach (var order in Orderings)
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(TextSpan? selection)
                 {
                     // Ensure we yield the thread that called into us, allowing it to continue onwards.
-                    await Task.Yield().ConfigureAwait(false);
+                    await TaskScheduler.Default;
 
                     if (!selection.HasValue)
                     {
