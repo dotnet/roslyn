@@ -21,10 +21,15 @@ internal sealed class FindReferenceCache
 {
     private static readonly ConditionalWeakTable<SemanticModel, FindReferenceCache> s_cache = new();
 
-    public static FindReferenceCache GetCache(SemanticModel model)
-        => s_cache.GetValue(model, static model => new(model));
+    public static async ValueTask<FindReferenceCache> GetCacheAsync(Document document, CancellationToken cancellationToken)
+    {
+        // Find-Refs is not impacted by nullable types at all.  So get a nullable-disabled semantic model to avoid
+        // unnecessary costs while binding.
+        var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        return s_cache.GetValue(model, static model => new(model));
+    }
 
-    private readonly SemanticModel _semanticModel;
+    public readonly SemanticModel SemanticModel;
 
     private readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> _symbolInfoCache = [];
     private readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> _identifierCache;
@@ -34,7 +39,7 @@ internal sealed class FindReferenceCache
 
     private FindReferenceCache(SemanticModel semanticModel)
     {
-        _semanticModel = semanticModel;
+        SemanticModel = semanticModel;
         _identifierCache = new(comparer: semanticModel.Language switch
         {
             LanguageNames.VisualBasic => StringComparer.OrdinalIgnoreCase,
@@ -44,21 +49,19 @@ internal sealed class FindReferenceCache
     }
 
     public SymbolInfo GetSymbolInfo(SyntaxNode node, CancellationToken cancellationToken)
-    {
-        return _symbolInfoCache.GetOrAdd(node, static (n, arg) => arg._semanticModel.GetSymbolInfo(n, arg.cancellationToken), (_semanticModel, cancellationToken));
-    }
+        => _symbolInfoCache.GetOrAdd(node, static (n, arg) => arg.SemanticModel.GetSymbolInfo(n, arg.cancellationToken), (SemanticModel, cancellationToken));
 
     public IAliasSymbol? GetAliasInfo(
         ISemanticFactsService semanticFacts, SyntaxToken token, CancellationToken cancellationToken)
     {
         if (_aliasNameSet == null)
         {
-            var set = semanticFacts.GetAliasNameSet(_semanticModel, cancellationToken);
+            var set = semanticFacts.GetAliasNameSet(SemanticModel, cancellationToken);
             Interlocked.CompareExchange(ref _aliasNameSet, set, null);
         }
 
         if (_aliasNameSet.Contains(token.ValueText))
-            return _semanticModel.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
+            return SemanticModel.GetAliasInfo(token.GetRequiredParent(), cancellationToken);
 
         return null;
     }
@@ -95,7 +98,7 @@ internal sealed class FindReferenceCache
             FindReferenceCache cache, Document document, string identifier, SyntaxTreeIndex info, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var root = await cache._semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await cache.SemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             // If the identifier was escaped in the file then we'll have to do a more involved search that actually
             // walks the root and checks all identifier tokens.
