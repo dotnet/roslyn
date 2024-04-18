@@ -38040,9 +38040,14 @@ partial class Program
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            var nodes = tree.GetRoot().DescendantNodes();
+            var expr = nodes.OfType<IdentifierNameSyntax>().Last();
             Assert.Equal("y", expr.ToString());
             _ = model.GetSymbolInfo(expr);
+
+            var conditional = nodes.OfType<ConditionalExpressionSyntax>().Single();
+            var info = model.GetTypeInfo(conditional);
+            Assert.Equal("MyCollection<System.Object>", info.Type.ToTestDisplayString());
         }
 
         [Fact]
