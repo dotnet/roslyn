@@ -4558,9 +4558,7 @@ class Program
 
             CompileAndVerify(
                 comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
-                            : Verification.Skipped,
+                verify: Verification.Skipped,
                 expectedOutput: ExpectedOutput(@"
 int
 int")).VerifyDiagnostics();
@@ -4598,9 +4596,7 @@ class C3 : C2 {}
 
             CompileAndVerify(
                 comp,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ?
-                            Verification.FailsILVerify with { ILVerifyMessage = "[InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }" }
-                            : Verification.Skipped,
+                verify: Verification.Skipped,
                 expectedOutput: ExpectedOutput(@"
 C2
 C2")).VerifyDiagnostics();
