@@ -39,6 +39,8 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int RegionDirectiveTrivia => (int)SyntaxKind.RegionDirectiveTrivia;
     public int EndRegionDirectiveTrivia => (int)SyntaxKind.EndRegionDirectiveTrivia;
     public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
+    public int DefineDirectiveTrivia => (int)SyntaxKind.DefineDirectiveTrivia;
+    public int? UndefDirectiveTrivia => (int)SyntaxKind.UndefDirectiveTrivia;
 
     public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
     public int? CloseBracketToken => (int)SyntaxKind.CloseBracketToken;

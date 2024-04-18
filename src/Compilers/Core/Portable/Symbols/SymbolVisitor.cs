@@ -109,5 +109,10 @@ namespace Microsoft.CodeAnalysis
         {
             DefaultVisit(symbol);
         }
+
+        internal virtual void VisitPreprocessing(IPreprocessingSymbol symbol)
+        {
+            DefaultVisit(symbol);
+        }
     }
 }

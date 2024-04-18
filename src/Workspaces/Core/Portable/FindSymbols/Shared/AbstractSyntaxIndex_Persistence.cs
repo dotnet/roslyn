@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal partial class AbstractSyntaxIndex<TIndex>
 {
     private static readonly string s_persistenceName = typeof(TIndex).Name;
-    private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("39");
+    private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("40");
 
     /// <summary>
     /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
