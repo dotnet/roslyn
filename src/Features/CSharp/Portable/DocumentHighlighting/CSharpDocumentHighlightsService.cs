@@ -56,7 +56,9 @@ internal class CSharpDocumentHighlightsService(
 
                 if (type.IsVar)
                 {
-                    semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    // Document highlights are not impacted by nullable analysis.  Get a semantic model with nullability
+                    // disabled to lower the amount of work we need to do here.
+                    semanticModel ??= await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                     var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
                     boundSymbol = boundSymbol?.OriginalDefinition;
