@@ -528,6 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return builder.ToImmutableAndFree();
         }
+
         private (ImmutableArray<BoundExpression> Calls, int IncreasedLiteralLength, int FilledHolesCount) OptimizeAppendFormattedCalls(ImmutableArray<BoundExpression> parts)
         {
             var result = ArrayBuilder<BoundExpression>.GetInstance();
@@ -565,6 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(call?.ReceiverOpt is not null || lastAppendReceiver is not null);
                             result.Add(createAppendLiteralCallFromString(currentStringConst.ToStringAndFree(), call?.ReceiverOpt ?? lastAppendReceiver!));
+                            currentStringConst = PooledStringBuilder.GetInstance();
                         }
                         return;
                 }
@@ -649,6 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             mergeReusableIntoResult();
+            currentStringConst.Free();
             return (result.ToImmutableAndFree(), increasedLiteralLength, filledHolesCount);
         }
 
