@@ -268,8 +268,8 @@ internal partial class FindReferencesSearchEngine
             foreach (var symbol in symbols)
             {
                 var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                var state = new FindReferencesDocumentState(
-                    document, root, cache, globalAliases);
+                var state = new FindReferencesDocumentState(cache, globalAliases);
+
                 await ProcessDocumentAsync(symbol, state).ConfigureAwait(false);
             }
         }
@@ -279,8 +279,7 @@ internal partial class FindReferencesSearchEngine
         }
 
         async Task ProcessDocumentAsync(
-            ISymbol symbol,
-            FindReferencesDocumentState state)
+            ISymbol symbol, FindReferencesDocumentState state)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
