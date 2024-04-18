@@ -64,6 +64,12 @@ internal class VSTypeScriptInProcLanguageClient(
             DiagnosticKinds =
             [
                 new(PullDiagnosticCategories.Task),
+                new(PullDiagnosticCategories.EditAndContinue),
+                new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
+                new(PullDiagnosticCategories.DocumentCompilerSyntax),
+                new(PullDiagnosticCategories.DocumentCompilerSemantic),
+                new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
+                new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
             ]
         };
 
