@@ -126,9 +126,8 @@ internal sealed class FindReferenceCache
             var stack = obj.Object;
             stack.Push(root);
 
-            while (stack.Count > 0)
+            while (stack.TryPop(out var current))
             {
-                var current = stack.Pop();
                 if (current.IsNode)
                 {
                     foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
@@ -175,7 +174,7 @@ internal sealed class FindReferenceCache
                 index = nextIndex;
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 
@@ -206,6 +205,6 @@ internal sealed class FindReferenceCache
             }
         }
 
-        return initializers.ToImmutable();
+        return initializers.ToImmutableAndClear();
     }
 }

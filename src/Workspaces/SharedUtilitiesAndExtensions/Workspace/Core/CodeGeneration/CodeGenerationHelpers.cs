@@ -30,10 +30,7 @@ internal static class CodeGenerationHelpers
             return null;
         }
 
-        var exceptionCreationExpression = factory.ObjectCreationExpression(
-            exceptionType,
-            SpecializedCollections.EmptyList<SyntaxNode>());
-
+        var exceptionCreationExpression = factory.ObjectCreationExpression(exceptionType, arguments: []);
         return factory.ThrowStatement(exceptionCreationExpression);
     }
 

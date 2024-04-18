@@ -282,7 +282,7 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
             return [];
         }
 
-        return SpecializedCollections.SingletonEnumerable(TypingFormattingRule.Instance);
+        return [TypingFormattingRule.Instance];
     }
 
     private static bool IsEndToken(SyntaxToken endToken)
@@ -331,7 +331,7 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
         var rules = new List<AbstractFormattingRule>() { new PasteFormattingRule() };
         rules.AddRange(service.GetDefaultFormattingRules());
 
-        var result = service.GetFormattingResult(document.Root, SpecializedCollections.SingletonEnumerable(formattingSpan), options, rules, cancellationToken);
+        var result = service.GetFormattingResult(document.Root, [formattingSpan], options, rules, cancellationToken);
         return result.GetTextChanges(cancellationToken).ToImmutableArray();
     }
 

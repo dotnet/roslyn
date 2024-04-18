@@ -52,9 +52,7 @@ internal partial class ContainedLanguage : IVsContainedCode
         var snapshot = this.SubjectBuffer.CurrentSnapshot;
         var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-        {
-            return SpecializedCollections.EmptyList<TextSpanAndCookie>();
-        }
+            return [];
 
         return document.GetVisibleCodeBlocks(cancellationToken)
             .Select(tuple => new TextSpanAndCookie

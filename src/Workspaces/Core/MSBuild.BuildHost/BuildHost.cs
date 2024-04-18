@@ -164,7 +164,7 @@ internal sealed class BuildHost
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>

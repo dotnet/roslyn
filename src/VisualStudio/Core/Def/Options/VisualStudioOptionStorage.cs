@@ -4,17 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -171,6 +164,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_prefer_simple_default_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimpleDefaultExpression")},
         {"csharp_prefer_simple_using_statement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimpleUsingStatement")},
         {"csharp_prefer_static_local_function", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferStaticLocalFunction")},
+        {"csharp_prefer_static_anonymous_function", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferStaticAnonymousFunction")},
         {"csharp_preferred_modifier_order", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferredModifierOrder")},
         {"csharp_preserve_single_line_blocks", new RoamingProfileStorage("TextEditor.CSharp.Specific.WrappingPreserveSingleLine")},
         {"csharp_preserve_single_line_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.WrappingKeepStatementsOnSingleLine")},

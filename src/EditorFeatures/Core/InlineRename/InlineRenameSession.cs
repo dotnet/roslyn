@@ -247,7 +247,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
 
         this.UndoManager.CreateInitialState(this.ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
-        _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans(SpecializedCollections.SingletonEnumerable(startingSpan.ToTextSpan()));
+        _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans([startingSpan.ToTextSpan()]);
 
         UpdateReferenceLocationsTask();
 
@@ -632,7 +632,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 outcome,
                 conflictResolutionFinishedComputing,
                 previewChanges,
-                SpecializedCollections.EmptyList<InlineRenameReplacementKind>()));
+                replacementKinds: []));
         }
     }
 

@@ -145,7 +145,7 @@ internal partial class SolutionCompilationState
         private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             => Checksum.Create(
                 await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
-                (await _replacementDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
+                (await _replacementDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
         public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
         {

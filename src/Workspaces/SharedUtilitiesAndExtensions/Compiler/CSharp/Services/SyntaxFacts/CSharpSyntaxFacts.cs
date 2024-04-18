@@ -794,9 +794,8 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
             }
         }
 
-        while (!names.IsEmpty())
+        while (names.TryPop(out var name))
         {
-            var name = names.Pop();
             if (name != null)
             {
                 builder.Append(name);

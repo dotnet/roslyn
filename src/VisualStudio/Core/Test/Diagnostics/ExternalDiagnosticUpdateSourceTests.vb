@@ -102,8 +102,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Await waiter.ExpeditedWaitAsync()
 
                     Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
-                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.DocumentIds.First()))
-                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.Id))
+                    Assert.Empty(Await buildOnlyDiagnosticService.GetBuildOnlyDiagnosticsAsync(project.DocumentIds.First(), CancellationToken.None))
 
                     Dim diagnostics = source.GetBuildErrors()
                     Assert.Equal(2, diagnostics.Length)

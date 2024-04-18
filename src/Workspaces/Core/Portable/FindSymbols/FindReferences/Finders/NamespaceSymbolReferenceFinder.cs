@@ -48,7 +48,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
         var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
         result.AddRange(documentsWithGlobalAttributes);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
@@ -89,7 +89,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
                 symbol, state, cancellationToken).ConfigureAwait(false));
         }
 
-        return initialReferences.ToImmutable();
+        return initialReferences.ToImmutableAndClear();
     }
 
     /// <summary>

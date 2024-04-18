@@ -72,7 +72,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         result.AddRange(await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
             project, documents, cancellationToken).ConfigureAwait(false));
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -134,7 +134,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
             namedType, state, cancellationToken).ConfigureAwait(false));
 
-        return initialReferences.ToImmutable();
+        return initialReferences.ToImmutableAndClear();
     }
 
     internal static async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync(

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,9 +33,6 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     // This cache is used to avoid duplicate analysis calls by storing the computed diagnostics for each document and prompt title.
     private readonly ConditionalWeakTable<Document, ConcurrentDictionary<string, (ImmutableArray<Diagnostic> Diagnostics, bool IsCompleteResult)>> _diagnosticsCache = new();
 
-    public abstract Task<bool> IsRefineOptionEnabledAsync();
-    public abstract Task<bool> IsCodeAnalysisOptionEnabledAsync();
-
     protected abstract Task<bool> IsAvailableCoreAsync(CancellationToken cancellationToken);
     protected abstract Task<ImmutableArray<string>> GetAvailablePromptTitlesCoreAsync(Document document, CancellationToken cancellationToken);
     protected abstract Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken);
@@ -48,7 +44,10 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
 
     public async Task<ImmutableArray<string>> GetAvailablePromptTitlesAsync(Document document, CancellationToken cancellationToken)
     {
-        if (!await IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service)
+            return [];
+
+        if (!await service.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
             return [];
 
         return await GetAvailablePromptTitlesCoreAsync(document, cancellationToken).ConfigureAwait(false);
@@ -56,7 +55,10 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
 
     private async Task<bool> ShouldSkipAnalysisAsync(Document document, CancellationToken cancellationToken)
     {
-        if (!await IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service)
+            return true;
+
+        if (!await service.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
             return true;
 
         if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
@@ -161,7 +163,10 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
 
     public async Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
     {
-        if (await IsRefineOptionEnabledAsync().ConfigureAwait(false))
+        if (oldDocument.GetLanguageService<ICopilotOptionsService>() is not { } service)
+            return;
+
+        if (await service.IsRefineOptionEnabledAsync().ConfigureAwait(false))
             await StartRefinementSessionCoreAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, globalOptions, cancellationToken).ConfigureAwait(false);
 
             var services = document.Project.Solution.Services;
-            var textChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, rules: null, cancellationToken);
+            var textChanges = Formatter.GetFormattedTextChanges(root, [formattingSpan], services, formattingOptions, rules: null, cancellationToken);
 
             var edits = new ArrayBuilder<LSP.TextEdit>();
             edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));

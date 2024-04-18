@@ -41,9 +41,7 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
 
         if (spans == null)
         {
-            spansToFormat = node.FullSpan.IsEmpty
-                ? SpecializedCollections.EmptyReadOnlyList<TextSpan>()
-                : SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
+            spansToFormat = node.FullSpan.IsEmpty ? [] : [node.FullSpan];
         }
         else
         {
@@ -52,7 +50,7 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
 
         if (spansToFormat.Count == 0)
         {
-            return CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>());
+            return CreateAggregatedFormattingResult(node, results: []);
         }
 
         rules ??= GetDefaultFormattingRules();
@@ -72,7 +70,7 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
         // quick simple case check
         if (results == null)
         {
-            return CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>());
+            return CreateAggregatedFormattingResult(node, results: []);
         }
 
         if (results.Count == 1)

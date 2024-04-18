@@ -424,7 +424,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static TSymbol? GetSymbolInCurrentCompilation<TSymbol>(Compilation compilation, TSymbol originalDefinition, CancellationToken cancellationToken)

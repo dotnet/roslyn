@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return [];
 
                     // we do have diagnostics
-                    return SpecializedCollections.SingletonEnumerable(documentId.ProjectId);
+                    return [documentId.ProjectId];
                 }
 
                 return new HashSet<ProjectId>(

@@ -265,8 +265,7 @@ internal partial class NamedParameterCompletionProvider : LSPCompletionProvider,
             }
             else if (expressionType.IsDelegateType())
             {
-                var delegateType = expressionType;
-                return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod!.Parameters);
+                return [expressionType.DelegateInvokeMethod!.Parameters];
             }
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -89,6 +90,35 @@ internal static class PooledBuilderExtensions
         finally
         {
             builders.Free();
+        }
+    }
+
+    public static bool HasDuplicates<T>(this ArrayBuilder<T> builder)
+        => builder.HasDuplicates(static x => x);
+
+    public static bool HasDuplicates<T, U>(this ArrayBuilder<T> builder, Func<T, U> selector)
+    {
+        switch (builder.Count)
+        {
+            case 0:
+            case 1:
+                return false;
+
+            case 2:
+                return EqualityComparer<U>.Default.Equals(selector(builder[0]), selector(builder[1]));
+
+            default:
+                {
+                    using var _ = PooledHashSet<U>.GetInstance(out var set);
+
+                    foreach (var element in builder)
+                    {
+                        if (!set.Add(selector(element)))
+                            return true;
+                    }
+
+                    return false;
+                }
         }
     }
 }

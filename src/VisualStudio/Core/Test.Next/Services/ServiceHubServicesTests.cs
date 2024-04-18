@@ -366,7 +366,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             using var _ = ArrayBuilder<ImmutableArray<T>>.GetInstance(out var result);
             DoPermute(0, values.Length - 1);
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
 
             void DoPermute(int start, int end)
             {

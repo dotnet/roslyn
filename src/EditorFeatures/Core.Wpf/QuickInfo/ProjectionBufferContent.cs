@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
     /// used to create a projection buffer out that will then be displayed in the quick info
     /// window.
     /// </summary>
-    internal class ProjectionBufferContent : ForegroundThreadAffinitizedObject
+    internal sealed class ProjectionBufferContent
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ImmutableArray<SnapshotSpan> _spans;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly EditorOptionsService _editorOptionsService;
@@ -39,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             ITextEditorFactoryService textEditorFactoryService,
             IContentType contentType = null,
             ITextViewRoleSet roleSet = null)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _spans = spans;
             _projectionBufferFactoryService = projectionBufferFactoryService;
             _editorOptionsService = editorOptionsService;
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
         private ViewHostingControl Create()
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             return new ViewHostingControl(CreateView, CreateBuffer);
         }
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         {
             var view = _textEditorFactoryService.CreateTextView(buffer, _roleSet);
 
-            view.SizeToFit(ThreadingContext);
+            view.SizeToFit(_threadingContext);
             view.Background = Brushes.Transparent;
 
             // Zoom out a bit to shrink the text.

@@ -284,7 +284,7 @@ public abstract class CodeAction
         var changedSolution = await GetChangedSolutionAsync(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
         return changedSolution == null
             ? []
-            : SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changedSolution));
+            : [new ApplyChangesOperation(changedSolution)];
     }
 
 #pragma warning disable RS0030 // Do not use banned APIs

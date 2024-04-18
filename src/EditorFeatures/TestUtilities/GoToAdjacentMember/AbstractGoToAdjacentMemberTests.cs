@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
         {
             var kinds = sourceCodeKind != null
                 ? SpecializedCollections.SingletonEnumerable(sourceCodeKind.Value)
-                : new[] { SourceCodeKind.Regular, SourceCodeKind.Script };
+                : [SourceCodeKind.Regular, SourceCodeKind.Script];
 
             foreach (var kind in kinds)
             {

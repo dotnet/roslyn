@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -15,6 +14,13 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// </summary>
 internal interface IAssetSource
 {
-    ValueTask<ImmutableArray<object>> GetAssetsAsync(
-        Checksum solutionChecksum, AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+    /// <param name="callback">Will be called back once per checksum in <paramref name="checksums"/> in the exact order of that array.</param>
+    ValueTask GetAssetsAsync<T, TArg>(
+        Checksum solutionChecksum,
+        AssetPath assetPath,
+        ReadOnlyMemory<Checksum> checksums,
+        ISerializerService serializerService,
+        Action<Checksum, T, TArg> callback,
+        TArg arg,
+        CancellationToken cancellationToken);
 }

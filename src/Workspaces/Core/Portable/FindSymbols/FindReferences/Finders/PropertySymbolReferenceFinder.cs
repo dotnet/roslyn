@@ -211,7 +211,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
                     candidateReason)));
         }
 
-        return locations.ToImmutable();
+        return locations.ToImmutableAndClear();
     }
 
     private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(

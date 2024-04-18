@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -19,11 +18,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView;
 
-internal abstract class AbstractSyncClassViewCommandHandler : ForegroundThreadAffinitizedObject,
-    ICommandHandler<SyncClassViewCommandArgs>
+internal abstract class AbstractSyncClassViewCommandHandler : ICommandHandler<SyncClassViewCommandArgs>
 {
     private const string ClassView = "Class View";
-
+    private readonly IThreadingContext _threadingContext;
     private readonly IServiceProvider _serviceProvider;
 
     public string DisplayName => ServicesVSResources.Sync_Class_View;
@@ -31,16 +29,15 @@ internal abstract class AbstractSyncClassViewCommandHandler : ForegroundThreadAf
     protected AbstractSyncClassViewCommandHandler(
         IThreadingContext threadingContext,
         SVsServiceProvider serviceProvider)
-        : base(threadingContext)
     {
         Contract.ThrowIfNull(serviceProvider);
-
+        _threadingContext = threadingContext;
         _serviceProvider = serviceProvider;
     }
 
     public bool ExecuteCommand(SyncClassViewCommandArgs args, CommandExecutionContext context)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
         if (caretPosition < 0)
