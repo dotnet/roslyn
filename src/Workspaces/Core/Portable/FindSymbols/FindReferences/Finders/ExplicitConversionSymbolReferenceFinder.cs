@@ -47,12 +47,12 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         var underlyingNamedType = GetUnderlyingNamedType(symbol.ReturnType);
         Contract.ThrowIfNull(underlyingNamedType);
 
-        using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+        using var _ = PooledHashSet<Document>.GetInstance(out var result);
         await FindDocumentsAsync(project, documents, static (doc, result) => result.Add(doc), result, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
         await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), static (doc, result) => result.Add(doc), result, cancellationToken).ConfigureAwait(false);
 
         // Ignore any documents that don't also have an explicit cast in them.
-        foreach (var document in result.Distinct())
+        foreach (var document in result)
         {
             var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (index.ContainsConversion)
