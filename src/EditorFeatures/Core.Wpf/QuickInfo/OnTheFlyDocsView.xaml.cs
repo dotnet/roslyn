@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -125,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
             var response = await copilotService.GetOnTheFlyDocsAsync(descriptionText, symbolText, cancellationToken).ConfigureAwait(false);
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             if (response is null || response.Length == 0)
             {
                 SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
