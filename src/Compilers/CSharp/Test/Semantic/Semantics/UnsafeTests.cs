@@ -455,6 +455,75 @@ unsafe class C
         }
 
         [Fact]
+        public void Iterator_UnsafeBlock_Field_01()
+        {
+            var code = """
+                class Program
+                {
+                    static int _f;
+                    static System.Collections.Generic.IEnumerable<int> F()
+                    {
+                        unsafe
+                        {
+                            fixed (int* p = &_f) { }
+                        }
+                        yield break;
+                    }
+                }
+                """;
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Iterator_UnsafeBlock_Field_02()
+        {
+            var code = """
+                #pragma warning disable CS0649 // field is never assigned to
+                unsafe class Program
+                {
+                    static int* _p;
+                    static System.Collections.Generic.IEnumerable<int> F()
+                    {
+                        unsafe
+                        {
+                            int* p = _p;
+                            p = &p[1];
+                        }
+                        yield break;
+                    }
+                }
+                """;
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Iterator_UnsafeBlock_Field_03()
+        {
+            var code = """
+                struct S
+                {
+                    public int F;
+                }
+                class Program
+                {
+                    static System.Collections.Generic.IEnumerable<int> F()
+                    {
+                        unsafe
+                        {
+                            S s = default;
+                            int* p = &s.F;
+                        }
+                        yield break;
+                    }
+                }
+                """;
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (12,23): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                //             int* p = &s.F;
+                Diagnostic(ErrorCode.ERR_AddressOfInIterator, "s.F").WithLocation(12, 23));
+        }
+
+        [Fact]
         public void Iterator_UnsafeBlock_02()
         {
             var code = """
@@ -1062,6 +1131,62 @@ unsafe class C
 
             CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Iterator_LocalFunction_01()
+        {
+            var code = """
+                class Program
+                {
+                    static System.Collections.Generic.IEnumerable<int> F()
+                    {
+                        unsafe
+                        {
+                            static void G(int x)
+                            {
+                                int* p = &x;
+                            }
+                            G(0);
+                        }
+                        yield break;
+                    }
+                }
+                """;
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Iterator_LocalFunction_02()
+        {
+            var code = """
+                class Program
+                {
+                    static void F()
+                    {
+                        unsafe
+                        {
+                            static System.Collections.Generic.IEnumerable<int> G(int x)
+                            {
+                                unsafe
+                                {
+                                    int* p = &x;
+                                }
+                                yield return sizeof(nint);
+                                yield break;
+                            }
+                            G(0);
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (11,31): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                //                     int* p = &x;
+                Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(11, 31),
+                // (13,30): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //                 yield return sizeof(nint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(13, 30));
         }
 
         [Fact]
