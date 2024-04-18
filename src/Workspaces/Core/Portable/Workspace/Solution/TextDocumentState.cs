@@ -60,9 +60,7 @@ internal partial class TextDocumentState
                info.DocumentServiceProvider,
                info.Attributes,
                textAndVersionSource: info.TextLoader != null
-                ? info.TextLoader.AlwaysHoldStrongly
-                    ? CreateStrongText(info.TextLoader)
-                    : CreateRecoverableText(info.TextLoader, solutionServices)
+                ? CreateTextFromLoader(info.TextLoader, PreservationMode.PreserveValue, solutionServices)
                 : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
                loadTextOptions)
     {
@@ -76,9 +74,6 @@ internal partial class TextDocumentState
     private static ITextAndVersionSource CreateStrongText(TextAndVersion text)
         => new ConstantTextAndVersionSource(text);
 
-    private static ITextAndVersionSource CreateStrongText(TextLoader loader)
-        => new LoadableTextAndVersionSource(loader, cacheResult: true);
-
     private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, SolutionServices services)
     {
         var service = services.GetRequiredService<IWorkspaceConfigurationService>();
@@ -87,16 +82,6 @@ internal partial class TextDocumentState
         return options.DisableRecoverableText
             ? CreateStrongText(text)
             : new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
-    }
-
-    private static ITextAndVersionSource CreateRecoverableText(TextLoader loader, SolutionServices services)
-    {
-        var service = services.GetRequiredService<IWorkspaceConfigurationService>();
-        var options = service.Options;
-
-        return options.DisableRecoverableText
-            ? CreateStrongText(loader)
-            : new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), services);
     }
 
     public ITemporaryTextStorageInternal? Storage
@@ -180,11 +165,19 @@ internal partial class TextDocumentState
     public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
     {
         // don't blow up on non-text documents.
-        var newTextSource = mode == PreservationMode.PreserveIdentity
-            ? CreateStrongText(loader)
-            : CreateRecoverableText(loader, solutionServices);
+        var newTextSource = CreateTextFromLoader(loader, mode, this.solutionServices);
 
         return UpdateText(newTextSource, mode, incremental: false);
+    }
+
+    private static ITextAndVersionSource CreateTextFromLoader(TextLoader loader, PreservationMode mode, SolutionServices solutionServices)
+    {
+        var service = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
+        var options = service.Options;
+
+        return mode == PreservationMode.PreserveIdentity || loader.AlwaysHoldStrongly || options.DisableRecoverableText
+            ? new LoadableTextAndVersionSource(loader, cacheResult: true)
+            : new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), solutionServices);
     }
 
     protected virtual TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
