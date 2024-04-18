@@ -243,6 +243,15 @@ internal sealed class SerializableSourceText
 
         internal override string? FilePath { get; }
 
+        /// <summary>
+        /// Documents should always hold onto instances of this text loader strongly.  In other words, they should load
+        /// from this, and then dump the contents into a RecoverableText object that then dumps the contents to a memory
+        /// mapped file within this process.  Doing that is pointless as the contents of this text are already in a
+        /// memory mapped file on the host side.
+        /// </summary>
+        internal override bool AlwaysHoldStrongly
+            => true;
+
         public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             => _lazyTextAndVersion.GetValueAsync(cancellationToken);
 

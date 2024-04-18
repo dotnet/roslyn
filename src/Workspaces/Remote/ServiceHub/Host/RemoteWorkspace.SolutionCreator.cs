@@ -618,7 +618,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
                         assetPath: document.Id, newDocumentChecksums.textChecksum, cancellationToken).ConfigureAwait(false);
                     var loader = serializableSourceText.ToTextLoader(document.FilePath);
-                    var mode = PreservationMode.PreserveValue;
+
+                    // We strongly want to use identity-preservation with these loaders.  By doing that we'll always use
+                    // this loader as the 'truth' of how to get teh source-text for a particular document.  When the
+                    // text is first needed it will be pulled from the memory mapped files on the host side.  Then, if
+                    // that text is ever dropped, we'll still be pointing at this same loader.  That will ensure that we
+                    // still read the data from the host side, without doing something silly (like dumping it to our own
+                    // memory mapped data on the OOP side).
+                    var mode = PreservationMode.PreserveIdentity;
 
                     document = document.Kind switch
                     {

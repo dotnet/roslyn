@@ -60,7 +60,9 @@ internal partial class TextDocumentState
                info.DocumentServiceProvider,
                info.Attributes,
                textAndVersionSource: info.TextLoader != null
-                ? CreateRecoverableText(info.TextLoader, solutionServices)
+                ? info.TextLoader.AlwaysHoldStrongly
+                    ? CreateStrongText(info.TextLoader)
+                    : CreateRecoverableText(info.TextLoader, solutionServices)
                 : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
                loadTextOptions)
     {
