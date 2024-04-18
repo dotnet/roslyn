@@ -5,26 +5,30 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Roslyn.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
-
-internal sealed class HotReloadDiagnosticSource(Project project, IDiagnosticsRefresher diagnosticsRefresher) : IDiagnosticSource
+namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
 {
-    Task<ImmutableArray<DiagnosticData>> IDiagnosticSource.GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+    internal class HotReloadDiagnosticSource(TextDocument document, ImmutableArray<Diagnostic> errors) : IDiagnosticSource
     {
-        throw new NotImplementedException();
-    }
+        Task<ImmutableArray<DiagnosticData>> IDiagnosticSource.GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+        {
+            var result = errors.Select(e => DiagnosticData.Create(e, document)).ToImmutableArray();
+            return Task.FromResult(result);
+        }
 
-    TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => null;
-    ProjectOrDocumentId IDiagnosticSource.GetId() => new(project.Id);
-    Project IDiagnosticSource.GetProject() => project;
-    bool IDiagnosticSource.IsLiveSource() => true;
-    string IDiagnosticSource.ToDisplayString() => project.Name;
+        TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => new() { Uri = document.GetURI() };
+        ProjectOrDocumentId IDiagnosticSource.GetId() => new(document.Id);
+        Project IDiagnosticSource.GetProject() => document.Project;
+        bool IDiagnosticSource.IsLiveSource() => true;
+        string IDiagnosticSource.ToDisplayString() => $"{this.GetType().Name}: {document.FilePath ?? document.Name} in {document.Project.Name}";
+    }
 }

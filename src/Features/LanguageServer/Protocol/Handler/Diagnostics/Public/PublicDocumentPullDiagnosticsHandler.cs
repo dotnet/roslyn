@@ -23,7 +23,6 @@ using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, Re
 [Method(Methods.TextDocumentDiagnosticName)]
 internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
 {
-    private readonly string _nonLocalDiagnosticsSourceRegistrationId;
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
     private readonly IDiagnosticSourceManager _diagnosticSourceManager;
 
@@ -35,7 +34,6 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
         IGlobalOptionService globalOptions)
         : base(analyzerService, diagnosticsRefresher, globalOptions)
     {
-        _nonLocalDiagnosticsSourceRegistrationId = Guid.NewGuid().ToString();
         _diagnosticSourceManager = diagnosticSourceManager;
         _clientLanguageServerManager = clientLanguageServerManager;
     }
