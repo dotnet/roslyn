@@ -18647,6 +18647,134 @@ class C
         }
 
         [Theory]
+        [InlineData(@"$""{obj}{obj}{StrNull}{CChar}{""""}{obj}""", "o|o|c|o")]
+        [InlineData(@"$""{obj}{obj}{""""}{CChar}{StrNull}{obj}""", "o|o|c|o")]
+        [InlineData(@"$""{obj}{obj}{null}{CChar}{(string?)default}{obj}""", "o|o|c|o")]
+        [InlineData(@"$""{obj}{""""}{obj}{CChar}{obj}""", "o|o|c|o")]
+        [InlineData(@"$""{obj}{Emp}{obj}{CChar}{obj}{CStr}""", "o|o|c|o|s")]
+        [InlineData(@"$""{CChar}{CStr}{StrNull}{CStr}{obj}{obj}{CChar}{CChar}{obj}""", "css|o|o|cc|o")]
+        public void MixStringCharConstantsToHandler_01(string expression, string output)
+        {
+            var code = """
+                #pragma warning disable CS0219
+                const char CChar = 'c';
+                const string CStr = "s";
+                const string? StrNull = null;
+                const string Emp = "";
+                object obj = "o";
+                #pragma warning enable CS0219
+                System.Console.Write(
+                """ + expression + ");";
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp, expectedOutput: string.Concat(output.Split('|').Select(s => s switch
+            {
+                "o" => "value:o",
+                _ => s,
+            } + Environment.NewLine)));
+            verifier.VerifyIL("<top-level-statements-entry-point>", getIl());
+
+            string getIl() => output switch
+            {
+                "o|o|c|o" => """
+ {
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (object V_0, //obj
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldc.i4.3
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.0
+  IL_001a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldstr      "c"
+  IL_0026:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldloc.0
+  IL_002e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_003a:  call       "void System.Console.Write(string)"
+  IL_003f:  ret
+}
+""",
+                "o|o|c|o|s" => """
+    {
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (object V_0, //obj
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.2
+  IL_0009:  ldc.i4.3
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.0
+  IL_001a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldstr      "c"
+  IL_0026:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldloc.0
+  IL_002e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  ldstr      "s"
+  IL_003a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_003f:  ldloca.s   V_1
+  IL_0041:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_0046:  call       "void System.Console.Write(string)"
+  IL_004b:  ret
+}
+""",
+                "css|o|o|cc|o" => """
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (object V_0, //obj
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.5
+  IL_0009:  ldc.i4.3
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldstr      "css"
+  IL_0016:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  ldloc.0
+  IL_001e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldloc.0
+  IL_0026:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldstr      "cc"
+  IL_0032:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  ldloc.0
+  IL_003a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_003f:  ldloca.s   V_1
+  IL_0041:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_0046:  call       "void System.Console.Write(string)"
+  IL_004b:  ret
+}
+""",
+                _ => "",
+            };
+        }
+        [Theory]
         [InlineData(@"$""{ConstChar}l{ConstString}l{varString}""")]
         public void MixStringCharConstantsToConcat(string expression)
         {
@@ -18683,7 +18811,10 @@ System.Console.WriteLine(" + expression + @");";
         [InlineData(@"$""{ConstChar}""", "c")]
         [InlineData(@"$""{ConstChar}{ConstChar}""", "cc")]
         [InlineData(@"$""{ConstString}{ConstString}""", "ss")]
-        public void MixStringCharConstantsToLiteral(string expression, string output)
+        [InlineData(@"$""{null}""", "")]
+        [InlineData(@"$""{null}{null}""", "")]
+        [InlineData(@"$""n{null}u{null}{default(string?)}{'l'}{""l ""}{null}{'v'}{null}{""alue""}""", "null value")]
+        public void MixStringCharNullConstantsToLiteral(string expression, string output)
         {
             var code = @"
 const char ConstChar = 'c';
@@ -18707,6 +18838,7 @@ System.Console.Write(" + expression + @");";
         [Theory]
         [InlineData(@"$""{'c'}""", "c")]
         [InlineData(@"$""{$""{'c'}h""}ar""", "char")]
+        [InlineData(@"$""{'c'}h{'a'}r{'a'}{'c'}t{'e'}"" + $""{'r'}{'s'}""", "characters")]
         public void CharConstantToConstString(string expression, string output)
         {
             var code = @"
