@@ -292,14 +292,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\B\C", @"C:\A\B\C\D"));
         }
 
-        [Fact]
-        public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity_Windows()
         {
             Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\a\B\C", @"C:\A\B", StringComparison.OrdinalIgnoreCase));
             Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\b\C", @"C:\A\B", StringComparison.OrdinalIgnoreCase));
 
             Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\a\B\C", @"C:\A\B", StringComparison.Ordinal));
             Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\b\C", @"C:\A\B", StringComparison.Ordinal));
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public void IsSameDirectoryOrChildOfSpecifyingCaseSensitivity_Unix()
+        {
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"/a/B/C", @"/A/B", StringComparison.OrdinalIgnoreCase));
+            Assert.True(PathUtilities.IsSameDirectoryOrChildOf(@"/A/b/C", @"/A/B", StringComparison.OrdinalIgnoreCase));
+
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"/a/B/C", @"/A/B", StringComparison.Ordinal));
+            Assert.False(PathUtilities.IsSameDirectoryOrChildOf(@"/A/b/C", @"/A/B", StringComparison.Ordinal));
         }
 
         [Fact]
