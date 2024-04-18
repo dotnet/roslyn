@@ -817,50 +817,6 @@ unsafe class C
                 }
                 """;
 
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 9),
-                // (8,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 13),
-                // (8,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 22),
-                // (9,14): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 14),
-                // (9,19): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 19),
-                // (12,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(12, 9),
-                // (14,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(14, 13),
-                // (14,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(14, 22),
-                // (15,14): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(15, 14),
-                // (15,19): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(15, 19),
-                // (18,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 9),
-                // (20,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(20, 13),
-                // (20,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(20, 22),
-                // (21,18): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             if (*p == 3) yield break;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(21, 18));
-
             var expectedDiagnostics = new[]
             {
                 // (8,23): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
@@ -971,59 +927,6 @@ unsafe class C
                 }
                 """ + AsyncStreamsTypes;
 
-            CreateCompilationWithTasksExtensions(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (9,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 9),
-                // (11,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 13),
-                // (11,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 22),
-                // (11,23): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(11, 23),
-                // (12,14): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(12, 14),
-                // (12,19): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(12, 19),
-                // (16,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(16, 9),
-                // (18,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 13),
-                // (18,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 22),
-                // (18,23): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(18, 23),
-                // (19,14): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(19, 14),
-                // (19,19): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(19, 19),
-                // (22,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(22, 9),
-                // (24,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(24, 13),
-                // (24,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(24, 22),
-                // (24,23): warning CS9123: The '&' operator should not be used on parameters or local variables in async methods.
-                //             int *p = &x;
-                Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(24, 23),
-                // (25,18): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             if (*p == 3) yield break;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(25, 18));
-
             var expectedOutput = "110";
             var expectedDiagnostics = new[]
             {
@@ -1089,23 +992,6 @@ unsafe class C
                     }
                 }
                 """;
-
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (5,63): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public unsafe System.Collections.Generic.IEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 63),
-                // (8,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 9),
-                // (8,18): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 18),
-                // (9,10): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 10),
-                // (9,15): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 15));
 
             var expectedDiagnostics = new[]
             {
