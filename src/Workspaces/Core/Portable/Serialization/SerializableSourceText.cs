@@ -112,12 +112,22 @@ internal sealed class SerializableSourceText
     public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(
         TextDocumentState state, CancellationToken cancellationToken)
     {
-        if (state.Storage is TemporaryTextStorage storage)
+        if (state.TextAndVersionSource.TextLoader is SerializableSourceTextLoader serializableLoader)
         {
-            return new ValueTask<SerializableSourceText>(new SerializableSourceText(storage, storage.ContentHash));
+            // If we're already pointing at a serializable loader, we can just use that directly.
+            return new(serializableLoader.Text);
+        }
+        else if (state.Storage is TemporaryTextStorage storage)
+        {
+            // Otherwise, if we're pointing at a memory mapped storage location, we can create the source text that directly wraps that.
+            return new(new SerializableSourceText(storage, storage.ContentHash));
         }
         else
         {
+            // Otherwise, the state object has reified the text into some other form, and dumped any original
+            // information on how it got it.  In that case, we create a new text instance to represent the serializable
+            // source text out of.
+
             return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
                 static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
                 static (text, _) => new SerializableSourceText(text, text.GetContentHash()),
@@ -203,12 +213,14 @@ internal sealed class SerializableSourceText
     /// </summary>
     private sealed class SerializableSourceTextLoader : TextLoader
     {
+        public readonly SerializableSourceText Text;
         private readonly AsyncLazy<TextAndVersion> _lazyTextAndVersion;
 
         public SerializableSourceTextLoader(
             SerializableSourceText text,
             string? filePath)
         {
+            Text = text;
             var version = VersionStamp.Create();
 
             this.FilePath = filePath;
