@@ -618,13 +618,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
                         assetPath: document.Id, newDocumentChecksums.textChecksum, cancellationToken).ConfigureAwait(false);
                     var loader = serializableSourceText.ToTextLoader(document.FilePath);
-
-                    // The mode here doesn't actually matter. The text loaded created by ToTextLoader will already tell
-                    // the solution to use it as the source of truth for the document and to not then dump the contents
-                    // of it to a memory-mapped-file within this process (no point when it's already that way in the
-                    // shared memory-mapped-file we are pointing to in the host process).  But 'PreserveIdentity'
-                    // matches that as well so we use that mode here for clarity.
-                    var mode = PreservationMode.PreserveIdentity;
+                    var mode = PreservationMode.PreserveValue;
 
                     document = document.Kind switch
                     {
