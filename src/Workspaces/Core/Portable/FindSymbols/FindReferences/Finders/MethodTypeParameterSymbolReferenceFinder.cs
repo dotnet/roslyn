@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -36,11 +37,13 @@ internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypePar
         return new([]);
     }
 
-    protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
         ITypeParameterSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -55,7 +58,7 @@ internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypePar
         // Also, we only look for files that have the name of the owning type.  This helps filter
         // down the set considerably.
         Contract.ThrowIfNull(symbol.DeclaringMethod);
-        return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name,
+        return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name,
             GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
             symbol.DeclaringMethod.ContainingType.Name);
     }
