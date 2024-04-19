@@ -619,12 +619,11 @@ namespace Microsoft.CodeAnalysis.Remote
                         assetPath: document.Id, newDocumentChecksums.textChecksum, cancellationToken).ConfigureAwait(false);
                     var loader = serializableSourceText.ToTextLoader(document.FilePath);
 
-                    // We strongly want to use identity-preservation with these loaders.  By doing that we'll always use
-                    // this loader as the 'truth' of how to get teh source-text for a particular document.  When the
-                    // text is first needed it will be pulled from the memory mapped files on the host side.  Then, if
-                    // that text is ever dropped, we'll still be pointing at this same loader.  That will ensure that we
-                    // still read the data from the host side, without doing something silly (like dumping it to our own
-                    // memory mapped data on the OOP side).
+                    // The mode here doesn't actually matter. The text loaded created by ToTextLoader will already tell
+                    // the solution to use it as the source of truth for the document and to not then dump the contents
+                    // of it to a memory-mapped-file within this process (no point when it's already that way in the
+                    // shared memory-mapped-file we are pointing to in the host process).  But 'PreserveIdentity'
+                    // matches that as well so we use that mode here for clarity.
                     var mode = PreservationMode.PreserveIdentity;
 
                     document = document.Kind switch
