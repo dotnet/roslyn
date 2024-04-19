@@ -23,8 +23,6 @@ internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
 
-    private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
-
     public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
@@ -440,13 +438,16 @@ internal partial class SerializerService
         Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
 
         var array = reader.ReadByteArray();
+
+        // Pin the array so that the module metadata can treat it as a segment of unmanaged memory.
         var pinnedObject = new PinnedObject(array);
 
-        var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
-
-        // make sure we keep storageStream alive while Metadata is alive
-        // we use conditional weak table since we can't control metadata liftetime
-        s_lifetimeMap.Add(metadata, pinnedObject);
+        // The pinned object will be kept alive as long as the metadata is alive due to us passing in
+        // pinnedObject.Dispose as the onDispose callback.  So we do not have to worry about the GC preemptively
+        // cleaning things up while the metadata is alive.  Nor do we have to worry about the pinned object being
+        // leaked, locking the bytes in place.
+        var metadata = ModuleMetadata.CreateFromMetadata(
+            pinnedObject.GetPointer(), array.Length, pinnedObject.Dispose);
 
         return metadata;
     }
@@ -487,17 +488,15 @@ internal partial class SerializerService
         }
     }
 
-    private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
+    private static ModuleMetadata GetMetadata(Stream stream, long length)
     {
         if (stream is UnmanagedMemoryStream unmanagedStream)
         {
             // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
             unsafe
             {
-                metadata = ModuleMetadata.CreateFromMetadata(
+                return ModuleMetadata.CreateFromMetadata(
                     (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-                lifeTimeObject = null;
-                return;
             }
         }
 
@@ -515,8 +514,7 @@ internal partial class SerializerService
             pinnedObject = new PinnedObject(array);
         }
 
-        metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), (int)length);
-        lifeTimeObject = pinnedObject;
+        return ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), (int)length, pinnedObject.Dispose);
     }
 
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
