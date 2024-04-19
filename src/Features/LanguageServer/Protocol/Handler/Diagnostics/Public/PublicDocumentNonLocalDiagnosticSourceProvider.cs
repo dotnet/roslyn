@@ -10,25 +10,34 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
 [ExportDiagnosticSourceProvider, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class PublicDocumentDiagnosticSourceProvider(
+internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
+    [Import] IGlobalOptionService globalOptions,
     [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
-    : AbstractDocumentDiagnosticSourceProvider(All)
+    : AbstractDocumentDiagnosticSourceProvider(NonLocal)
 {
-    public const string All = "All_B69807DB-28FB-4846-884A-1152E54C8B62";
+    public const string NonLocal = "NonLocal_B69807DB-28FB-4846-884A-1152E54C8B62";
 
     public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        var textDocument = AbstractDocumentDiagnosticSourceProvider.GetOpenDocument(context);
+        var textDocument = GetOpenDocument(context);
         if (textDocument is null)
             return new([]);
 
-        var source = new DocumentDiagnosticSource(diagnosticAnalyzerService, DiagnosticKind.All /* IS THIS RIGHT ???*/, textDocument);
-        return new([source]);
+        // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
+        if (globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) != BackgroundAnalysisScope.FullSolution)
+            return new([]);
+
+        return new([new NonLocalDocumentDiagnosticSource(textDocument, diagnosticAnalyzerService, ShouldIncludeAnalyzer)]);
+
+        // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
+        bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();
     }
 }

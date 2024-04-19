@@ -11,12 +11,15 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
+// FIGURE OUT WHAT IT IS SUPPOSED TO DO
+/*
 [ExportDiagnosticSourceProvider, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class PublicWorkspaceDiagnosticSourceProvider(
     [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService,
     [Import] IGlobalOptionService globalOptions)
-    : AbstractWorkspaceDiagnosticSourceProvider(diagnosticAnalyzerService, globalOptions, [""])
+    : AbstractWorkspaceDiagnosticSourceProvider("")
 {
 }
+*/

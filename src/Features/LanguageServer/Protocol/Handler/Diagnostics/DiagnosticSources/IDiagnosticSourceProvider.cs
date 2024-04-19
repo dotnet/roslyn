@@ -19,16 +19,15 @@ internal interface IDiagnosticSourceProvider
     bool IsDocument { get; }
 
     /// <summary>
-    /// Source names that this provider can provide.
+    /// Provider's name. Each should have a unique name within <see cref="IsDocument"/> scope.
     /// </summary>
-    ImmutableArray<string> SourceNames { get; }
+    string Name { get; }
 
     /// <summary>
-    /// Creates the diagnostic sources for the given <paramref name="sourceName"/>.
+    /// Creates the diagnostic sources.
     /// </summary>
     /// <param name="context">The context.</param>
-    /// <param name="sourceName">Source name.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, string sourceName, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
 }
 

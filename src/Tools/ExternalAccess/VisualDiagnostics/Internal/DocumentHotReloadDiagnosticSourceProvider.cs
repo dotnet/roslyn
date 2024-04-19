@@ -24,14 +24,12 @@ internal class DocumentHotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMan
 {
     bool IDiagnosticSourceProvider.IsDocument => true;
 
-    ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, string sourceName, CancellationToken cancellationToken)
+    ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         if (context.GetTrackedDocument<TextDocument>() is { } textDocument)
         {
             if (hotReloadErrorService.Errors.FirstOrDefault(e => e.DocumentId == textDocument.Id) is { } documentErrors)
-            {
                 return new([new HotReloadDiagnosticSource(textDocument, documentErrors.Errors)]);
-            }
         }
 
         return new([]);

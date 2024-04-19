@@ -93,10 +93,10 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(DocumentDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
     {
-        var sourceName = diagnosticParams.Identifier == DocumentNonLocalDiagnosticIdentifier.ToString()
-            ? PublicDocumentDiagnosticSourceProvider.NonLocalSource
-            : string.Empty;
-        return _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, sourceName, true, cancellationToken);
+        if (diagnosticParams.Identifier is string sourceName)
+            return _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, sourceName, true, cancellationToken);
+
+        return new([]);
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)

@@ -13,12 +13,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 
 internal class AbstractHotReloadDiagnosticSourceProvider : IDiagnosticSourceProvider
 {
-    internal const string SourceName = "HotReloadDiagnostic";
-    internal static readonly ImmutableArray<string> SourceNames = [SourceName];
+    string IDiagnosticSourceProvider.Name => "HotReloadDiagnostic";
 
-    ImmutableArray<string> IDiagnosticSourceProvider.SourceNames => SourceNames;
     bool IDiagnosticSourceProvider.IsDocument => throw new NotImplementedException();
-    ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, string sourceName, CancellationToken cancellationToken)
+    ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
 }

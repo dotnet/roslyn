@@ -7,28 +7,26 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 [ExportDiagnosticSourceProvider, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class PublicDocumentDiagnosticSourceProvider(
-    [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
-    : AbstractDocumentDiagnosticSourceProvider(All)
+internal sealed class WorkspaceEditAndContinueDiagnosticSourceProvider() : AbstractWorkspaceDiagnosticSourceProvider(PullDiagnosticCategories.EditAndContinue)
 {
-    public const string All = "All_B69807DB-28FB-4846-884A-1152E54C8B62";
-
     public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        var textDocument = AbstractDocumentDiagnosticSourceProvider.GetOpenDocument(context);
-        if (textDocument is null)
-            return new([]);
+        if (!ShouldIgnoreContext(context))
+        {
+            Contract.ThrowIfNull(context.Solution);
+            return EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution!, document => context.IsTracking(document.GetURI()), cancellationToken);
+        }
 
-        var source = new DocumentDiagnosticSource(diagnosticAnalyzerService, DiagnosticKind.All /* IS THIS RIGHT ???*/, textDocument);
-        return new([source]);
+        return new([]);
     }
 }
