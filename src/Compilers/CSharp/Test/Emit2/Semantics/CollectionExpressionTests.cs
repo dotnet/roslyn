@@ -20620,6 +20620,204 @@ partial class Program
             );
         }
 
+        [Fact]
+        public void RefStruct_EnsureCopyingSemanticsWhenReadOnlySpanParameterOfCollectionBuilderIsNotScoped()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(SpanWrap), "Create")]
+                ref struct SpanWrap<T>
+                {
+                    private readonly ReadOnlySpan<T> _ros;
+
+                    public int Length => _ros.Length;
+                    public T this[int index] => _ros[index];
+
+                    public Enumerator GetEnumerator() => default;
+
+                    public SpanWrap(ReadOnlySpan<T> ros)
+                    {
+                        _ros = ros;
+                    }
+
+                    public ref struct Enumerator
+                    {
+                        public bool MoveNext() => default;
+                        public T Current => default;
+                    }
+                }
+
+                static class SpanWrap
+                {
+                    public static SpanWrap<T> Create<T>(ReadOnlySpan<T> values) => new SpanWrap<T>(values);
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] arr = { 1, 2, 3 };
+                        ReadOnlySpan<int> span = arr;
+                        SpanWrap<int> spanWrap = [.. span];
+
+                        arr[1] = 4;
+
+                        span.Report();
+                        ReportSpanWrap(spanWrap);
+                    }
+
+                    static void ReportSpanWrap(SpanWrap<int> spanWrap)
+                    {
+                        Console.Write('[');
+
+                        for (int i = 0; i < spanWrap.Length - 1; i++)
+                        {
+                            Console.Write(spanWrap[i] + ", ");
+                        }
+
+                        Console.Write(spanWrap[^1]);
+                        Console.Write(']');
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensionsWithSpan],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 4, 3], [1, 2, 3]"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       59 (0x3b)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0, //span
+                                SpanWrap<int> V_1) //spanWrap
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_0011:  dup
+                  IL_0012:  call       "System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])"
+                  IL_0017:  stloc.0
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
+                  IL_001f:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                  IL_0024:  call       "SpanWrap<int> SpanWrap.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_0029:  stloc.1
+                  IL_002a:  ldc.i4.1
+                  IL_002b:  ldc.i4.4
+                  IL_002c:  stelem.i4
+                  IL_002d:  ldloca.s   V_0
+                  IL_002f:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                  IL_0034:  ldloc.1
+                  IL_0035:  call       "void Program.ReportSpanWrap(SpanWrap<int>)"
+                  IL_003a:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void RefStruct_CanSkipCopyingReadOnlySpanWhenCollectionBuilderParameterIsScoped()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(ArrayWrap), "Create")]
+                ref struct ArrayWrap<T>
+                {
+                    private readonly T[] _arr;
+
+                    public int Length => _arr.Length;
+                    public T this[int index] => _arr[index];
+
+                    public Enumerator GetEnumerator() => default;
+
+                    public ArrayWrap(T[] arr)
+                    {
+                        _arr = arr;
+                    }
+
+                    public ref struct Enumerator
+                    {
+                        public bool MoveNext() => default;
+                        public T Current => default;
+                    }
+                }
+
+                static class ArrayWrap
+                {
+                    public static ArrayWrap<T> Create<T>(scoped ReadOnlySpan<T> values) => new ArrayWrap<T>(values.ToArray());
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] arr = { 1, 2, 3 };
+                        ReadOnlySpan<int> span = arr;
+                        ArrayWrap<int> arrWrap = [.. span];
+
+                        arr[1] = 4;
+
+                        span.Report();
+                        ReportArrayWrap(arrWrap);
+                    }
+
+                    static void ReportArrayWrap(ArrayWrap<int> arrWrap)
+                    {
+                        Console.Write('[');
+
+                        for (int i = 0; i < arrWrap.Length - 1; i++)
+                        {
+                            Console.Write(arrWrap[i] + ", ");
+                        }
+
+                        Console.Write(arrWrap[^1]);
+                        Console.Write(']');
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensionsWithSpan],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 4, 3], [1, 2, 3]"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       48 (0x30)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0, //span
+                                ArrayWrap<int> V_1) //arrWrap
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_0011:  dup
+                  IL_0012:  call       "System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])"
+                  IL_0017:  stloc.0
+                  IL_0018:  ldloc.0
+                  IL_0019:  call       "ArrayWrap<int> ArrayWrap.Create<int>(scoped System.ReadOnlySpan<int>)"
+                  IL_001e:  stloc.1
+                  IL_001f:  ldc.i4.1
+                  IL_0020:  ldc.i4.4
+                  IL_0021:  stelem.i4
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                  IL_0029:  ldloc.1
+                  IL_002a:  call       "void Program.ReportArrayWrap(ArrayWrap<int>)"
+                  IL_002f:  ret
+                }
+                """);
+        }
+
         [CombinatorialData]
         [Theory]
         public void RefSafety_Return_01([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)
