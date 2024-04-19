@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -175,14 +173,22 @@ internal partial class TextDocumentState
         var service = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
         var options = service.Options;
 
-        // See if the client, the loader itself, or the options want us to hold onto this loader strongly.  If so, we
-        // wrap it directly in a LoadableTextAndVersionSource that will keep it alive, deferring to it to get the final
-        // source text.  If none of the above hold, we'll create a RecoverableTextAndVersion.  This will use the loaded
-        // the first time to get the text contents, but will then dump those contents to a memory-mapped-file afterwards
-        // so that it can be kept out of main memory, while still allowing us to preserve snapshot semantics.
-        return mode == PreservationMode.PreserveIdentity || loader.AlwaysHoldStrongly || options.DisableRecoverableText
-            ? new LoadableTextAndVersionSource(loader, cacheResult: true)
-            : new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), solutionServices);
+        // If the caller is explicitly stating that identity must be preserved, then we created a source that will load
+        // from the loader the first time, but then cache that result so that hte same result is *always* returned.
+        if (mode == PreservationMode.PreserveIdentity || options.DisableRecoverableText)
+            return new LoadableTextAndVersionSource(loader, cacheResult: true);
+
+        // If the loader asks us to always hold onto it strongly, then we do not want to create a recoverable text
+        // source here.  Instead, we'll go back to the loader each time to get the text.  This is useful for when the
+        // loader knows it can always reconstitute the snapshot exactly as it was before.  For example, if the loader
+        // points at the contents of a memory mapped file in another process.
+        if (loader.AlwaysHoldStrongly)
+            return new LoadableTextAndVersionSource(loader, cacheResult: false);
+
+        // Otherwise, we just want to hold onto this loader by value.  So we create a loader that will load the
+        // contents, but not hold onto them strongly, and we wrap it in a recoverable-text that will then take those
+        // contents and dump it into a memory-mapped-file in this process so that snapshot semantics can be preserved.
+        return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), solutionServices);
     }
 
     protected virtual TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
