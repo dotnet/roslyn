@@ -46,12 +46,6 @@ internal sealed class SerializableSourceText
     private readonly SourceText? _text;
 
     /// <summary>
-    /// The hash that would be produced by calling <inheritdoc cref="SourceText.GetContentHash"/> on <see
-    /// cref="_text"/>.  Can be passed in when already known to avoid unnecessary computation costs.
-    /// </summary>
-    private readonly ImmutableArray<byte> _contentHash;
-
-    /// <summary>
     /// Weak reference to a SourceText computed from <see cref="_storage"/>.  Useful so that if multiple requests
     /// come in for the source text, the same one can be returned as long as something is holding it alive.
     /// </summary>
@@ -60,7 +54,7 @@ internal sealed class SerializableSourceText
     /// <summary>
     /// Checksum of the contents (see <see cref="SourceText.GetContentHash"/>) of the text.
     /// </summary>
-    public Checksum ContentChecksum => Checksum.Create(_contentHash);
+    public readonly Checksum ContentChecksum;
 
     public SerializableSourceText(TemporaryTextStorage storage, ImmutableArray<byte> contentHash)
         : this(storage, text: null, contentHash)
@@ -78,7 +72,7 @@ internal sealed class SerializableSourceText
 
         _storage = storage;
         _text = text;
-        _contentHash = contentHash;
+        ContentChecksum = Checksum.Create(contentHash);
 
 #if DEBUG
         var computedContentHash = TryGetText()?.GetContentHash() ?? _storage!.ContentHash;
