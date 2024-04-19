@@ -18,7 +18,6 @@ internal static class SerializationExtensions
             SolutionCompilationStateChecksums => WellKnownSynchronizationKind.SolutionCompilationState,
             SolutionStateChecksums => WellKnownSynchronizationKind.SolutionState,
             ProjectStateChecksums => WellKnownSynchronizationKind.ProjectState,
-            ChecksumCollection => WellKnownSynchronizationKind.ChecksumCollection,
             SolutionInfo.SolutionAttributes => WellKnownSynchronizationKind.SolutionAttributes,
             ProjectInfo.ProjectAttributes => WellKnownSynchronizationKind.ProjectAttributes,
             DocumentInfo.DocumentAttributes => WellKnownSynchronizationKind.DocumentAttributes,

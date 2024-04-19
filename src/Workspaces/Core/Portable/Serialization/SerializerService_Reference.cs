@@ -44,7 +44,7 @@ internal partial class SerializerService
 
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             switch (reference)
             {
@@ -143,7 +143,7 @@ internal partial class SerializerService
     {
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
             WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);

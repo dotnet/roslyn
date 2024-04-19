@@ -157,10 +157,6 @@ internal partial class SerializerService : ISerializerService
                     ((ProjectStateChecksums)value).Serialize(writer);
                     return;
 
-                case WellKnownSynchronizationKind.ChecksumCollection:
-                    ((ChecksumCollection)value).WriteTo(writer);
-                    return;
-
                 case WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap:
                     ((SourceGeneratorExecutionVersionMap)value).WriteTo(writer);
                     return;
@@ -184,7 +180,6 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.SolutionCompilationState => SolutionCompilationStateChecksums.Deserialize(reader),
                 WellKnownSynchronizationKind.SolutionState => SolutionStateChecksums.Deserialize(reader),
                 WellKnownSynchronizationKind.ProjectState => ProjectStateChecksums.Deserialize(reader),
-                WellKnownSynchronizationKind.ChecksumCollection => ChecksumCollection.ReadFrom(reader),
                 WellKnownSynchronizationKind.SolutionAttributes => SolutionInfo.SolutionAttributes.ReadFrom(reader),
                 WellKnownSynchronizationKind.ProjectAttributes => ProjectInfo.ProjectAttributes.ReadFrom(reader),
                 WellKnownSynchronizationKind.DocumentAttributes => DocumentInfo.DocumentAttributes.ReadFrom(reader),

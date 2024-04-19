@@ -78,6 +78,7 @@ internal class AlwaysActivateInProcLanguageClient(
                 // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
                 // the task list would not be visible.
                 new(PullDiagnosticCategories.Task),
+                new(PullDiagnosticCategories.EditAndContinue),
                 // Dedicated request for workspace-diagnostics only.  We will only respond to these if FSA is on.
                 new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
                 // Fine-grained diagnostics requests.  Importantly, this separates out syntactic vs semantic

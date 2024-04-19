@@ -191,12 +191,12 @@ internal static partial class DependentProjectsFinder
         // and 2, even though 2 doesn't have a direct reference to 1. Hence we need to take
         // our current set of projects and find the transitive closure over backwards
         // submission previous references.
-        var projectIdsToProcess = new Stack<ProjectId>(dependentProjects.Select(dp => dp.project.Id));
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var projectIdsToProcess);
+        foreach (var dependentProject in dependentProjects.Select(dp => dp.project.Id))
+            projectIdsToProcess.Push(dependentProject);
 
-        while (projectIdsToProcess.Count > 0)
+        while (projectIdsToProcess.TryPop(out var toProcess))
         {
-            var toProcess = projectIdsToProcess.Pop();
-
             if (projectIdsToReferencingSubmissionIds.TryGetValue(toProcess, out var submissionIds))
             {
                 foreach (var pId in submissionIds)

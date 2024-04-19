@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression;
 
@@ -272,38 +273,32 @@ internal abstract partial class AbstractChainedExpressionWrapper<
         if (node is null)
             return;
 
-        var stack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
+        using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+        var stack = pooledStack.Object;
         stack.Push(node);
-        try
+
+        while (stack.TryPop(out var nodeOrToken))
         {
-            while (stack.Count > 0)
+            if (nodeOrToken.IsToken)
             {
-                var nodeOrToken = stack.Pop();
-                if (nodeOrToken.IsToken)
-                {
-                    // tokens can't be decomposed.  just add to the result list.
-                    pieces.Add(nodeOrToken.AsToken());
-                    continue;
-                }
-
-                var currentNode = nodeOrToken.AsNode()!;
-                if (!IsDecomposableChainPart(currentNode))
-                {
-                    // We've hit some node that can't be decomposed further (like an argument list, or name node).
-                    // Just add directly to the pieces list.
-                    pieces.Add(currentNode);
-                    continue;
-                }
-
-                // Hit something that can be decomposed.  Push it onto the stack in reverse so that we continue to
-                // traverse the node from right to left as we pop things off the end of the stack.
-                foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
-                    stack.Push(child);
+                // tokens can't be decomposed.  just add to the result list.
+                pieces.Add(nodeOrToken.AsToken());
+                continue;
             }
-        }
-        finally
-        {
-            SharedPools.Default<Stack<SyntaxNodeOrToken>>().Free(stack);
+
+            var currentNode = nodeOrToken.AsNode()!;
+            if (!IsDecomposableChainPart(currentNode))
+            {
+                // We've hit some node that can't be decomposed further (like an argument list, or name node).
+                // Just add directly to the pieces list.
+                pieces.Add(currentNode);
+                continue;
+            }
+
+            // Hit something that can be decomposed.  Push it onto the stack in reverse so that we continue to
+            // traverse the node from right to left as we pop things off the end of the stack.
+            foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
+                stack.Push(child);
         }
     }
 }

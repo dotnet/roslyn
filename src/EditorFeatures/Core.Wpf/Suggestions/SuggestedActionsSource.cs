@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private sealed partial class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
+        private sealed partial class SuggestedActionsSource : ISuggestedActionsSource3
         {
             private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public event EventHandler<EventArgs>? SuggestedActionsChanged { add { } remove { } }
 
+            private readonly IThreadingContext _threadingContext;
             public readonly IGlobalOptionService GlobalOptions;
 
             public SuggestedActionsSource(
@@ -47,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ITextBuffer textBuffer,
                 ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
                 IAsynchronousOperationListener listener)
-                : base(threadingContext)
             {
+                _threadingContext = threadingContext;
                 GlobalOptions = globalOptions;
 
                 _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
@@ -187,13 +188,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // This means that when we're called from the UI thread, we never try to go back to the
                 // UI thread.
                 TextSpan? selection = null;
-                if (IsForeground())
+                if (_threadingContext.JoinableTaskContext.IsOnMainThread)
                 {
                     selection = TryGetCodeRefactoringSelection(state, range);
                 }
                 else
                 {
-                    await InvokeBelowInputPriorityAsync(() =>
+                    await _threadingContext.InvokeBelowInputPriorityAsync(() =>
                     {
                         // Make sure we were not disposed between kicking off this work and getting to this point.
                         using var state = _state.TryAddReference();
@@ -284,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
             {
-                this.AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 var selectedSpans = state.Target.TextView.Selection.SelectedSpans
                     .SelectMany(ss => state.Target.TextView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, state.Target.SubjectBuffer))

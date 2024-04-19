@@ -183,33 +183,31 @@ internal sealed class DebuggingSession : IDisposable
         return pendingUpdate;
     }
 
-    private void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+    private void EndEditSession()
     {
-        documentsToReanalyze = EditSession.GetDocumentsWithReportedDiagnostics();
-
         var editSessionTelemetryData = EditSession.Telemetry.GetDataAndClear();
         _telemetry.LogEditSession(editSessionTelemetryData);
     }
 
-    public void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze, out DebuggingSessionTelemetry.Data telemetryData)
+    public void EndSession(out DebuggingSessionTelemetry.Data telemetryData)
     {
         ThrowIfDisposed();
 
-        EndEditSession(out documentsToReanalyze);
+        EndEditSession();
         telemetryData = _telemetry.GetDataAndClear();
         _reportTelemetry(telemetryData);
 
         Dispose();
     }
 
-    public void BreakStateOrCapabilitiesChanged(bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
-        => RestartEditSession(nonRemappableRegions: null, inBreakState, out documentsToReanalyze);
+    public void BreakStateOrCapabilitiesChanged(bool? inBreakState)
+        => RestartEditSession(nonRemappableRegions: null, inBreakState);
 
-    internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+    internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool? inBreakState)
     {
         ThrowIfDisposed();
 
-        EndEditSession(out documentsToReanalyze);
+        EndEditSession();
 
         EditSession = new EditSession(
             this,
@@ -502,9 +500,6 @@ internal sealed class DebuggingSession : IDisposable
 
             EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, project.State.Attributes.TelemetryId);
 
-            // track the document, so that we can refresh or clean diagnostics at the end of edit session:
-            EditSession.TrackDocumentWithReportedDiagnostics(document.Id);
-
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
         }
@@ -548,7 +543,7 @@ internal sealed class DebuggingSession : IDisposable
         };
     }
 
-    public void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze)
+    public void CommitSolutionUpdate()
     {
         ThrowIfDisposed();
 
@@ -583,7 +578,7 @@ internal sealed class DebuggingSession : IDisposable
         _editSessionTelemetry.LogCommitted();
 
         // Restart edit session with no active statements (switching to run mode).
-        RestartEditSession(newNonRemappableRegions, inBreakState: false, out documentsToReanalyze);
+        RestartEditSession(newNonRemappableRegions, inBreakState: false);
     }
 
     public void DiscardSolutionUpdate()

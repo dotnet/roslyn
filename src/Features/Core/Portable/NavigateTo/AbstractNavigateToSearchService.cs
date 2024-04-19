@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 
 internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavigateToSearchService
 {
-    public IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
+    public static readonly IImmutableSet<string> AllKinds = [
         NavigateToItemKind.Class,
         NavigateToItemKind.Constant,
         NavigateToItemKind.Delegate,
@@ -27,7 +27,9 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         NavigateToItemKind.Method,
         NavigateToItemKind.Module,
         NavigateToItemKind.Property,
-        NavigateToItemKind.Structure);
+        NavigateToItemKind.Structure];
+
+    public IImmutableSet<string> KindsProvided { get; } = AllKinds;
 
     public bool CanFilter => true;
 

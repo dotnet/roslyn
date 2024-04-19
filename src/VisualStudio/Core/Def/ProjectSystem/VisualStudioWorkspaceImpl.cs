@@ -16,6 +16,7 @@ using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -75,11 +76,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// </summary>
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
-    /// <summary>
-    /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
-    /// </summary>
-    private readonly ForegroundThreadAffinitizedObject _foregroundObject;
-
     private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
     private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
 
@@ -121,8 +117,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
         _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
 
-        _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
-
         _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
         _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
 
@@ -150,7 +144,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     {
         // TODO: further understand if this needs the foreground thread for any reason. UIContexts are safe to read from the UI thread;
         // it's not clear to me why this is being asserted.
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
         {
@@ -317,7 +311,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         Microsoft.CodeAnalysis.Solution newSolution,
         IProgress<CodeAnalysisProgress> progressTracker)
     {
-        if (!_foregroundObject.IsForeground())
+        if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
             throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
         }
@@ -369,7 +363,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal bool IsCPSProject(ProjectId projectId)
     {
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (this.TryGetHierarchy(projectId, out var hierarchy))
         {
@@ -1085,7 +1079,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (!_foregroundObject.IsForeground())
+        if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
             throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
         }
@@ -1349,7 +1343,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal override void SetDocumentContext(DocumentId documentId)
     {
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         // Note: this method does not actually call into any workspace code here to change the workspace's context. The assumption is updating the running document table or
         // IVsHierarchies will raise the appropriate events which we are subscribed to.
@@ -1473,7 +1467,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
     {
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
             !TryGetHierarchy(referencedProject, out var referencedHierarchy))

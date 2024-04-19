@@ -46,18 +46,14 @@ internal partial class FindReferencesSearchEngine
         public override async Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)
         {
             // Start searching using the existing set of symbols found at the start (or anything found below that).
-            var workQueue = new Stack<ISymbol>();
-            workQueue.Push(initialSymbols);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var workQueue);
+            workQueue.AddRange(initialSymbols);
 
             var projects = ImmutableHashSet.Create(project);
 
-            while (workQueue.Count > 0)
-            {
-                var current = workQueue.Pop();
-
-                // Keep adding symbols downwards in this project as long as we keep finding new symbols.
+            // Keep adding symbols downwards in this project as long as we keep finding new symbols.
+            while (workQueue.TryPop(out var current))
                 await AddDownSymbolsAsync(this.Engine, current, initialSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
-            }
         }
     }
 }
