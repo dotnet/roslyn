@@ -48,8 +48,8 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         Contract.ThrowIfNull(underlyingNamedType);
 
         using var _ = PooledHashSet<Document>.GetInstance(out var result);
-        await FindDocumentsAsync(project, documents, static (doc, result) => result.Add(doc), result, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
-        await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), static (doc, result) => result.Add(doc), result, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsAsync(project, documents, StandardHashSetAddCallback, result, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), StandardHashSetAddCallback, result, cancellationToken).ConfigureAwait(false);
 
         // Ignore any documents that don't also have an explicit cast in them.
         foreach (var document in result)

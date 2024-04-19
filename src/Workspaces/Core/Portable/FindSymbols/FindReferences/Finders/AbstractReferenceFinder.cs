@@ -24,6 +24,9 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public const string ContainingTypeInfoPropertyName = "ContainingTypeInfo";
     public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
+    protected static readonly Action<Document, HashSet<Document>> StandardHashSetAddCallback =
+        static (doc, set) => set.Add(doc);
+
     public abstract Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
         ISymbol symbol, Project project, CancellationToken cancellationToken);
 
