@@ -33,13 +33,15 @@ public abstract class TextLoader
 
     /// <summary>
     /// <see langword="true"/> if the document that holds onto this loader should do so with a strong reference, versus
-    /// a reference that will take the contents of this loader and store them in a recoverable form.  This should be
-    /// used when the underlying data is already stored in a recoverable form somewhere else and it would be wasteful to
-    /// store another copy.  For example, a document that is backed by memory-mapped contents in another process does not
-    /// need to dump it's content to another memory-mapped file in the process it lives in.  It can always recover the 
-    /// text from the original process.
+    /// a reference that will take the contents of this loader and store them in a recoverable form (e.g. a memory
+    /// mapped file within the <em>same</em> process).  This should be used when the underlying data is already stored
+    /// in a recoverable form somewhere else and it would be wasteful to store another copy.  For example, a document
+    /// that is backed by memory-mapped contents in <em>another</em> process does not need to dump it's content to
+    /// another memory-mapped file in the process it lives in.  It can always recover the text from the original
+    /// process.
     /// </summary>
-    internal virtual bool AlwaysHoldStrongly => false;
+    internal virtual bool AlwaysHoldStrongly
+        => false;
 
     /// <summary>
     /// True if <see cref="LoadTextAndVersionAsync(LoadTextOptions, CancellationToken)"/> reloads <see cref="SourceText"/> from its original binary representation (e.g. file on disk).
