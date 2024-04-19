@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Instrumenter.InterceptCallAndAdjustArguments(ref addMethod, ref rewrittenReceiver, ref rewrittenArguments, ref argumentRefKindsOpt);
             }
 
-            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.ResultKind, temps.ToImmutableAndFree());
+            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
         }
 
         private BoundExpression VisitObjectInitializerMember(BoundObjectInitializerMember node, ref BoundExpression rewrittenReceiver, ArrayBuilder<BoundExpression> sideEffects, ref ArrayBuilder<LocalSymbol>? temps)
@@ -363,8 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Rewrite simple assignment to field/property.
                                 var rewrittenRight = VisitExpression(right);
-                                Debug.Assert(assignment.Type.IsDynamic() || TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false));
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, assignment.Type, used: false));
                                 return;
                             }
                         }
@@ -435,8 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Rewrite simple assignment to field/property.
                             var rewrittenRight = VisitExpression(right);
-                            Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                             return;
                         }
 
@@ -468,8 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Rewrite as simple assignment.
                             var rewrittenRight = VisitExpression(right);
-                            Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                             return;
                         }
 
@@ -502,8 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!isRhsNestedInitializer)
                     {
                         var rewrittenRight = VisitExpression(right);
-                        Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false));
+                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, assignment.Type, used: false));
                         return;
                     }
 
@@ -688,7 +684,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft.Expanded,
                             rewrittenLeft.ArgsToParamsOpt,
                             rewrittenLeft.DefaultArguments,
-                            originalIndexerAccessOrObjectInitializerMember: rewrittenLeft,
+                            type: propertySymbol.Type,
+                            oldNodeOpt: null,
                             isLeftOfAssignment: !isRhsNestedInitializer);
                     }
                     else

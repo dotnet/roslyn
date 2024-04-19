@@ -3192,7 +3192,7 @@ class C
             TestOperatorKinds(code);
         }
 
-        private static void TestBoundTree(string source, System.Func<IEnumerable<KeyValuePair<TreeDumperNode, TreeDumperNode>>, IEnumerable<string>> query)
+        private void TestBoundTree(string source, System.Func<IEnumerable<KeyValuePair<TreeDumperNode, TreeDumperNode>>, IEnumerable<string>> query)
         {
             // The mechanism of this test is: we build the bound tree for the code passed in and then extract
             // from it the nodes that describe the operators. We then compare the description of
@@ -3217,7 +3217,7 @@ class C
             AssertEx.Equal(expected, results);
         }
 
-        internal static void TestOperatorKinds(string source)
+        private void TestOperatorKinds(string source)
         {
             // The mechanism of this test is: we build the bound tree for the code passed in and then extract
             // from it the nodes that describe the operators. We then compare the description of
@@ -3231,7 +3231,7 @@ class C
                 select node.Value.ToString());
         }
 
-        internal static void TestCompoundAssignment(string source)
+        private void TestCompoundAssignment(string source)
         {
             TestBoundTree(source, edges =>
                 from edge in edges
@@ -3260,7 +3260,7 @@ class C
                                                })));
         }
 
-        internal static void TestTypes(string source)
+        private void TestTypes(string source)
         {
             TestBoundTree(source, edges =>
                 from edge in edges
@@ -3289,7 +3289,7 @@ class C
             return s + ">";
         }
 
-        internal static void TestDynamicMemberAccessCore(string source)
+        private void TestDynamicMemberAccessCore(string source)
         {
             TestBoundTree(source, edges =>
                 from edge in edges

@@ -410,21 +410,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Instrumenter.InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt);
                 }
 
-                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, temps.ToImmutableAndFree());
+                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
                 if (Instrument)
                 {
                     rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
-                }
-
-                if (node.Type.IsDynamic() && !method.ReturnType.IsDynamic())
-                {
-                    Debug.Assert(node.Type.IsDynamic());
-                    Debug.Assert(!method.ReturnsByRef);
-                    Debug.Assert(rewrittenCall.Type is not null);
-                    Debug.Assert(!rewrittenCall.Type.IsDynamic());
-                    Debug.Assert(!rewrittenCall.Type.IsVoidType());
-                    rewrittenCall = _factory.Convert(node.Type, rewrittenCall);
                 }
 
                 return rewrittenCall;
@@ -439,6 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<RefKind> argumentRefKinds,
             LookupResultKind resultKind,
+            TypeSymbol type,
             ImmutableArray<LocalSymbol> temps)
         {
             BoundExpression rewrittenBoundCall;
@@ -463,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultKind,
                     rewrittenArguments[0],
                     rewrittenArguments[1],
-                    method.ReturnType);
+                    type);
             }
             else if (node == null)
             {
@@ -481,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: resultKind,
-                    type: method.ReturnType);
+                    type: type);
             }
             else
             {
@@ -498,10 +489,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     node.ResultKind,
-                    method.ReturnType);
+                    node.Type);
             }
-
-            Debug.Assert(rewrittenBoundCall.Type is not null);
 
             if (!temps.IsDefaultOrEmpty)
             {
@@ -510,13 +499,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     locals: temps,
                     sideEffects: ImmutableArray<BoundExpression>.Empty,
                     value: rewrittenBoundCall,
-                    type: rewrittenBoundCall.Type);
+                    type: type);
             }
 
             return rewrittenBoundCall;
         }
 
-        private BoundExpression MakeCall(SyntaxNode syntax, BoundExpression? rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments)
+        private BoundExpression MakeCall(SyntaxNode syntax, BoundExpression? rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments, TypeSymbol type)
         {
             return MakeCall(
                 node: null,
@@ -526,6 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenArguments: rewrittenArguments,
                 argumentRefKinds: default(ImmutableArray<RefKind>),
                 resultKind: LookupResultKind.Viable,
+                type: type,
                 temps: default);
         }
 
