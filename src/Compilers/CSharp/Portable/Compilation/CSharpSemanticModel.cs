@@ -1415,9 +1415,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             NamespaceOrTypeSymbol container = null,
             string name = null,
-            bool includeReducedExtensionMethods = false) // PROTOTYPE(static) can we rename this public parameter?
+            bool includeReducedExtensionMethods = false)
         {
-            var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMethodsAndMembers : LookupOptions.Default;
+            var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMembers : LookupOptions.Default;
             return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
         }
 
@@ -1486,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol container = null,
             string name = null)
         {
-            return LookupSymbolsInternal(position, container, name, LookupOptions.MustNotBeInstance, useBaseReferenceAccessibility: false);
+            return LookupSymbolsInternal(position, container, name, LookupOptions.MustNotBeInstance | LookupOptions.IncludeExtensionMembers, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1512,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol container = null,
             string name = null)
         {
-            return LookupSymbolsInternal(position, container, name, LookupOptions.NamespacesOrTypesOnly, useBaseReferenceAccessibility: false);
+            return LookupSymbolsInternal(position, container, name, LookupOptions.NamespacesOrTypesOnly | LookupOptions.IncludeExtensionMembers, useBaseReferenceAccessibility: false);
         }
 
         /// <summary>
@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)container == null || container.Kind == SymbolKind.Namespace)
             {
-                options &= ~LookupOptions.IncludeExtensionMethodsAndMembers;
+                options &= ~LookupOptions.IncludeExtensionMembers;
             }
 
             var binder = GetEnclosingBinder(position);
@@ -1653,56 +1653,64 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             info.Free();
 
-            if ((options & LookupOptions.IncludeExtensionMethodsAndMembers) != 0)
+            if ((options & LookupOptions.IncludeExtensionMembers) != 0)
             {
-                Debug.Assert((options & LookupOptions.MustBeInstance) == 0);
-
-                var lookupResult = LookupResult.GetInstance();
-                options |= LookupOptions.AllMethodsOnArityZero | LookupOptions.AllNamedTypesOnArityZero;
-
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
-                foreach (var scope in new ExtensionScopes(binder))
+                if ((options & LookupOptions.MustNotBeInstance) != 0 ||
+                    (options & LookupOptions.NamespacesOrTypesOnly) != 0)
                 {
+                    var extensionsInfo = LookupSymbolsInfo.GetInstance();
+                    extensionsInfo.FilterName = name;
+
                     // PROTOTYPE(static) confirm that we want to exclude type parameters from extension member resolution or leave a comment
                     if (container is TypeSymbol typeSymbol && !typeSymbol.IsTypeParameter())
                     {
+                        binder.AddImplicitExtensionMemberLookupSymbolsInfoForType(info, type: typeSymbol, options, binder);
+
                         // When looking up members of an extension type, we don't need to find its members as part of
                         // an extension member lookup since we'll already have found them as part of member lookup on the extension type.
                         TypeSymbol skipType = typeSymbol.IsExtension ? typeSymbol.OriginalDefinition : null;
 
-                        // We use a Lookup API (which uses a CheckViability check) instead of an AddLookup API (which uses a CanAddLookupSymbolInfo check),
-                        // but that is fine since we filter symbols that cannot be referenced by name below anyways.
-                        scope.Binder.LookupImplicitExtensionMembersInSingleBinder(
-                            lookupResult, typeSymbol, name, arity: 0,
-                            basesBeingResolved: null, options, originalBinder: binder, ref discardedUseSiteInfo, skipType);
-                    }
-
-                    binder.LookupExtensionMethodsInSingleBinder(scope, lookupResult, name, arity: 0, options, ref discardedUseSiteInfo);
-                }
-
-                if (lookupResult.IsMultiViable)
-                {
-                    TypeSymbol containingType = (TypeSymbol)container;
-                    foreach (Symbol member in lookupResult.Symbols)
-                    {
-                        if (member is MethodSymbol { IsExtensionMethod: true } extensionMethod)
+                        if (name == null)
                         {
-                            var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
-                            if (reduced is not null)
+                            // If they didn't provide a name, then look up all names and associated arities 
+                            // and find all the corresponding symbols.
+                            foreach (string foundName in info.Names)
                             {
-                                results.Add(reduced.GetPublicSymbol());
+                                AppendExtensionSymbolsWithName(results, foundName, binder, container: typeSymbol, skipType, options, info);
                             }
                         }
                         else
                         {
-                            Debug.Assert(member.ContainingType.IsExtension);
-                            results.Add(member.GetPublicSymbol());
+                            // They provided a name.  Find all the arities for that name, and then look all of those up.
+                            AppendExtensionSymbolsWithName(results, name, binder, container: typeSymbol, skipType, options, info);
                         }
                     }
-                }
 
-                lookupResult.Free();
+                    extensionsInfo.Free();
+                }
+                else
+                {
+                    // PROTOTYPE(instance) we should lookup extension members here too
+                    options |= LookupOptions.AllMethodsOnArityZero;
+                    var lookupResult = LookupResult.GetInstance();
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    binder.LookupExtensionMethods(lookupResult, name, 0, options, ref discardedUseSiteInfo);
+
+                    if (lookupResult.IsMultiViable)
+                    {
+                        TypeSymbol containingType = (TypeSymbol)container;
+                        foreach (MethodSymbol extensionMethod in lookupResult.Symbols)
+                        {
+                            var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
+                            if ((object)reduced != null)
+                            {
+                                results.Add(reduced.GetPublicSymbol());
+                            }
+                        }
+                    }
+
+                    lookupResult.Free();
+                }
             }
 
             if (name == null)
@@ -1744,6 +1752,94 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        private void AppendExtensionSymbolsWithName(ArrayBuilder<ISymbol> results, string name, Binder binder, TypeSymbol container, TypeSymbol? skipType, LookupOptions options, LookupSymbolsInfo info)
+        {
+            Debug.Assert(skipType is null || (skipType.IsExtension && skipType.IsDefinition));
+
+            LookupSymbolsInfo.IArityEnumerable? arities;
+            Symbol? uniqueSymbol;
+
+            if (info.TryGetAritiesAndUniqueSymbol(name, out arities, out uniqueSymbol))
+            {
+                if (uniqueSymbol is not null)
+                {
+                    // This name mapped to something unique.  We don't need to proceed
+                    // with a costly lookup.  Just add it straight to the results.
+                    addSymbolUnlessSkipped(results, uniqueSymbol, skipType);
+                }
+                else
+                {
+                    if (arities is null)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    // The name maps to multiple symbols. Actually do a real lookup so 
+                    // that we will properly figure out hiding and whatnot.
+                    foreach (var arity in arities)
+                    {
+                        appendExtensionSymbolsWithNameAndArity(results, name, arity, binder, container, skipType, options, this.Root);
+                    }
+                }
+            }
+
+            return;
+
+            static void appendExtensionSymbolsWithNameAndArity(ArrayBuilder<ISymbol> results, string name, int arity, Binder binder, TypeSymbol container, TypeSymbol? skipType, LookupOptions options, CSharpSyntaxNode root)
+            {
+                Debug.Assert(results != null);
+
+                // Don't need to de-dup since AllMethodsOnArityZero and AllNamedTypesOnArityZero can't be set at this point.
+                Debug.Assert((options & LookupOptions.AllMethodsOnArityZero) == 0);
+                Debug.Assert((options & LookupOptions.AllNamedTypesOnArityZero) == 0);
+
+                var lookupResult = LookupResult.GetInstance();
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                binder.LookupMembersInExtensions(lookupResult, name, arity, basesBeingResolved: null, ref discardedUseSiteInfo, options, container);
+
+                if (lookupResult.IsMultiViable)
+                {
+                    if (lookupResult.Symbols.Any(t => t.Kind == SymbolKind.NamedType || t.Kind == SymbolKind.Namespace || t.Kind == SymbolKind.ErrorType))
+                    {
+                        // binder.ResultSymbol is defined only for type/namespace lookups
+                        bool wasError;
+                        Symbol singleSymbol = binder.ResultSymbol(lookupResult, name, arity, root, BindingDiagnosticBag.Discarded, true, out wasError, container, options);
+
+                        if (!wasError)
+                        {
+                            addSymbolUnlessSkipped(results, singleSymbol, skipType);
+                        }
+                        else
+                        {
+                            foreach (var symbol in lookupResult.Symbols)
+                            {
+                                addSymbolUnlessSkipped(results, symbol, skipType);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var symbol in lookupResult.Symbols)
+                        {
+                            addSymbolUnlessSkipped(results, symbol, skipType);
+                        }
+                    }
+                }
+
+                lookupResult.Free();
+            }
+
+            static void addSymbolUnlessSkipped(ArrayBuilder<ISymbol> results, Symbol singleSymbol, TypeSymbol? skipType)
+            {
+                if (!singleSymbol.ContainingType.OriginalDefinition.Equals(skipType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    results.Add(singleSymbol.GetPublicSymbol());
+                }
+            }
+        }
+#nullable disable
+
         private void AppendSymbolsWithNameAndArity(
             ArrayBuilder<ISymbol> results,
             string name,
@@ -1766,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name,
                 arity,
                 basesBeingResolved: null,
-                options: options & ~LookupOptions.IncludeExtensionMethodsAndMembers,
+                options: options & ~LookupOptions.IncludeExtensionMembers,
                 diagnose: false,
                 useSiteInfo: ref discardedUseSiteInfo);
 

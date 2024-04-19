@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Include extension methods and extension type members.
         /// </summary>
-        IncludeExtensionMethodsAndMembers = 1 << 10,
+        IncludeExtensionMembers = 1 << 10, // PROTOTYPE(instance) confirm we want to use a single flag for both extension methods and extension type members
 
         /// <summary>
         /// Consider only attribute types.

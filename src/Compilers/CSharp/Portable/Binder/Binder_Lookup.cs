@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            foreach (var scope in new ExtensionScopes(this))
+            {
+                this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteInfo);
+            }
+        }
+
         /// <summary>
         /// Look for any symbols in scope with the given name and arity.
         /// </summary>
@@ -175,11 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // we use `skipType` to skip collecting the extension member lookup results from an extension type that we already
         // collected members from (via direct member lookup).
         internal void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, TypeSymbol type,
-            string? name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
-            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, TypeSymbol? skipType = null)
+            string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
+            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(skipType is null || (skipType.IsDefinition && skipType.IsExtension));
             Debug.Assert(!type.IsTypeParameter());
+            Debug.Assert(name is not null);
 
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
@@ -188,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = extendedType;
             }
 
-            getCompatibleExtensions(this, type, compatibleExtensions, originalBinder, basesBeingResolved, skipType);
+            GetCompatibleExtensions(this, type, compatibleExtensions, originalBinder, basesBeingResolved);
 
             // Sort extensions from more specific to less specific
             var tempUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
@@ -215,29 +223,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatibleExtensions.Free();
             return;
 
-            static void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
-                Binder originalBinder, ConsList<TypeSymbol>? basesBeingResolved, TypeSymbol? skipType)
+            bool isMoreSpecificExtension(NamedTypeSymbol extension, NamedTypeSymbol other)
             {
-                var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                binder.GetImplicitExtensionTypes(extensions, originalBinder);
-
-                foreach (var extension in extensions)
+                if (extension.ExtendedTypeNoUseSiteDiagnostics is not { } extendedType
+                    || other.ExtendedTypeNoUseSiteDiagnostics is not { } otherExtendedType)
                 {
-                    if (ReferenceEquals(extension, skipType))
-                    {
-                        continue;
-                    }
-
-                    if (basesBeingResolved?.Contains(extension) == true)
-                    {
-                        continue;
-                    }
-
-                    addSubstitutedIfCompatible(extension, type, compatibleExtensions);
+                    // We wouldn't have gathered these members if we didn't have an extended type for them.
+                    throw ExceptionUtilities.Unreachable();
                 }
 
-                extensions.Free();
+                if (extendedType.Equals(otherExtendedType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return false;
+                }
+
+                // PROTOTYPE(static) revise if we allow extension lookup on type parameters
+                Debug.Assert(!extendedType.IsTypeParameter());
+                Debug.Assert(!otherExtendedType.IsTypeParameter());
+                return DerivesOrImplements(baseTypeOrImplementedInterface: otherExtendedType, derivedType: extendedType, null, this.Compilation, ref tempUseSiteInfo);
             }
+        }
+
+        private static void GetCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
+            Binder originalBinder, ConsList<TypeSymbol>? basesBeingResolved)
+        {
+            var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            binder.GetImplicitExtensionTypes(extensions, originalBinder);
+
+            foreach (var extension in extensions)
+            {
+                if (basesBeingResolved?.Contains(extension) == true)
+                {
+                    continue;
+                }
+
+                addSubstitutedIfCompatible(extension, type, compatibleExtensions);
+            }
+
+            extensions.Free();
+            return;
 
             static void addSubstitutedIfCompatible(NamedTypeSymbol extension, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions)
             {
@@ -269,26 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         compatibleExtensions.Add(substitutedExtension);
                     }
                 }
-            }
-
-            bool isMoreSpecificExtension(NamedTypeSymbol extension, NamedTypeSymbol other)
-            {
-                if (extension.ExtendedTypeNoUseSiteDiagnostics is not { } extendedType
-                    || other.ExtendedTypeNoUseSiteDiagnostics is not { } otherExtendedType)
-                {
-                    // We wouldn't have gathered these members if we didn't have an extended type for them.
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                if (extendedType.Equals(otherExtendedType, TypeCompareKind.AllIgnoreOptions))
-                {
-                    return false;
-                }
-
-                // PROTOTYPE(static) revise if we allow extension lookup on type parameters
-                Debug.Assert(!extendedType.IsTypeParameter());
-                Debug.Assert(!otherExtendedType.IsTypeParameter());
-                return DerivesOrImplements(baseTypeOrImplementedInterface: otherExtendedType, derivedType: extendedType, null, this.Compilation, ref tempUseSiteInfo);
             }
         }
 #nullable disable
@@ -359,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.IsMultiViable && !type.IsTypeParameter())
             {
                 var extensionResult = LookupResult.GetInstance();
-                lookupMembersInExtensions(extensionResult, name, arity, basesBeingResolved, ref useSiteInfo, options, type);
+                LookupMembersInExtensions(extensionResult, name, arity, basesBeingResolved, ref useSiteInfo, options, type);
                 if (extensionResult.IsMultiViable)
                 {
                     result.SetFrom(extensionResult);
@@ -368,25 +372,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return;
+        }
 
-            void lookupMembersInExtensions(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved,
-                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, LookupOptions options, TypeSymbol type)
+        internal void LookupMembersInExtensions(LookupResult result, string name, int arity, ConsList<TypeSymbol>? basesBeingResolved,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, LookupOptions options, TypeSymbol type)
+        {
+            Debug.Assert(!type.IsTypeParameter());
+            Debug.Assert(name is not null);
+
+            foreach (ExtensionScope scope in new ExtensionScopes(this))
             {
-                Debug.Assert(!type.IsTypeParameter());
-
-                foreach (ExtensionScope scope in new ExtensionScopes(this))
+                if (!result.IsClear)
                 {
-                    if (!result.IsClear)
-                    {
-                        result.Clear();
-                    }
-
-                    scope.Binder.LookupImplicitExtensionMembersInSingleBinder(result, type, name, arity,
-                        basesBeingResolved, options, originalBinder: this, ref useSiteInfo);
-
-                    if (result.IsMultiViable)
-                        break;
+                    result.Clear();
                 }
+
+                scope.Binder.LookupImplicitExtensionMembersInSingleBinder(result, type, name, arity,
+                    basesBeingResolved, options, originalBinder: this, ref useSiteInfo);
+
+                if (result.IsMultiViable)
+                    break;
             }
         }
 #nullable disable
@@ -1874,6 +1879,9 @@ symIsHidden:;
             Debug.Assert(symbol.Kind != SymbolKind.Alias, "It is the caller's responsibility to unwrap aliased symbols.");
             Debug.Assert(aliasSymbol == null || aliasSymbol.GetAliasTarget(basesBeingResolved: null) == symbol);
             Debug.Assert(options.AreValid());
+            Debug.Assert((options & LookupOptions.AllMethodsOnArityZero) == 0);
+            Debug.Assert((options & LookupOptions.AllNamedTypesOnArityZero) == 0);
+
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             var name = aliasSymbol != null ? aliasSymbol.Name : symbol.Name;
@@ -2365,6 +2373,30 @@ symIsHidden:;
                 // accessThroughType matches LookupMembersInTypeParameter.
                 AddMemberLookupSymbolsInfoWithoutInheritance(result, baseInterface, options, originalBinder, accessThroughType: type);
             }
+        }
+
+        internal void AddImplicitExtensionMemberLookupSymbolsInfoForType(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder)
+        {
+            var accessThroughType = type;
+            if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+            {
+                type = extendedType;
+            }
+
+            var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            foreach (var scope in new ExtensionScopes(this))
+            {
+                GetCompatibleExtensions(scope.Binder, type, compatibleExtensions, originalBinder, basesBeingResolved: null);
+
+                foreach (NamedTypeSymbol extension in compatibleExtensions)
+                {
+                    AddMemberLookupSymbolsInfoWithoutInheritance(result, extension, options, scope.Binder, accessThroughType: accessThroughType);
+                }
+
+                compatibleExtensions.Clear();
+            }
+
+            compatibleExtensions.Free();
         }
     }
 }
