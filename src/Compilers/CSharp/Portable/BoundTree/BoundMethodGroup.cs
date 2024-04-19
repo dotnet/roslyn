@@ -12,15 +12,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundMethodGroup(
             SyntaxNode syntax,
+            SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
             BoundExpression receiverOpt,
             string name,
             ImmutableArray<MethodSymbol> methods,
             LookupResult lookupResult,
             BoundMethodGroupFlags flags,
-            Binder binder,
-            bool hasErrors = false)
-            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, functionType: GetFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
+            Binder binder, bool hasErrors = false)
+            : this(syntax, typeArgumentsSyntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault,
+                  lookupResult.Error, flags, functionType: GetFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
         {
             FunctionType?.SetExpression(this);
         }
@@ -53,9 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-        public SeparatedSyntaxList<TypeSyntax> TypeArgumentsSyntax
-            => NameSyntax is GenericNameSyntax genericName ? genericName.TypeArgumentList.Arguments : default;
 
         public BoundExpression? InstanceOpt
         {

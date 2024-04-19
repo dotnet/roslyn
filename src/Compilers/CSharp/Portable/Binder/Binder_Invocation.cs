@@ -424,6 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // the base constructor is called. We need to handle this as a type qualified static method call.
                                 // Also applicable to things like field initializers, which run before the ctor initializer.
                                 expression = methodGroup.Update(
+                                    methodGroup.TypeArgumentsSyntax,
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,
                                     methodGroup.Methods,
@@ -449,6 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression finalReceiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
 
                             expression = methodGroup.Update(
+                                    methodGroup.TypeArgumentsSyntax,
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,
                                     methodGroup.Methods,

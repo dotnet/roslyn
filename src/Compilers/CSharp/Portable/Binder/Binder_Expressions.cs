@@ -5044,8 +5044,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!conv.Exists)
                     {
                         var boundMethodGroup = new BoundMethodGroup(
-                            argument.Syntax, default, WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
+                            argument.Syntax, typeArgumentsSyntax: default, typeArgumentsOpt: default,
+                            WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
                             sourceDelegate.DelegateInvokeMethod, null, BoundMethodGroupFlags.None, functionType: null, argument, LookupResultKind.Viable);
+
                         if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
                         {
                             // If we could not produce a more specialized diagnostic, we report
@@ -7631,6 +7633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundMethodGroup = new BoundMethodGroup(
                 node,
+                typeArgumentsSyntax,
                 typeArgumentsWithAnnotations,
                 boundLeft,
                 rightName,
@@ -7788,7 +7791,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we've reported other errors.
                 return new BoundMethodGroup(
                     node,
-                    default(ImmutableArray<TypeWithAnnotations>),
+                    typeArgumentsSyntax: default,
+                    typeArgumentsOpt: default,
                     nameString,
                     methods,
                     methods.Length == 1 ? methods[0] : null,
@@ -10058,7 +10062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Arguments.Add(lengthArgumentPlaceholder);
 
                 var boundMethodGroup = new BoundMethodGroup(
-                    syntax, typeArgumentsOpt: default, method.Name, ImmutableArray.Create(method),
+                    syntax, typeArgumentsSyntax: default, typeArgumentsOpt: default, method.Name, ImmutableArray.Create(method),
                     method, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable)
                 { WasCompilerGenerated = true };
 

@@ -2247,6 +2247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, useType: conversion.Method?.RequiresInstanceReceiver == false && !conversion.IsExtensionMethod, diagnostics);
             return group.Update(
+                group.TypeArgumentsSyntax,
                 group.TypeArgumentsOpt,
                 group.Name,
                 group.Methods,
