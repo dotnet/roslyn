@@ -53,5 +53,5 @@ internal sealed class TemporaryStorageHandle(IDisposable underlyingData, Tempora
 [DataContract]
 internal sealed record TemporaryStorageIdentifier(
     [property: DataMember(Order = 0)] string Name,
-    [property: DataMember(Order = 1)] int Offset,
-    [property: DataMember(Order = 2)] int Length);
+    [property: DataMember(Order = 1)] long Offset,
+    [property: DataMember(Order = 2)] long Size);

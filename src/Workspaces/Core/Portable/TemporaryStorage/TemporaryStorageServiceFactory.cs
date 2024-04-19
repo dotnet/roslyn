@@ -101,14 +101,19 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
         => new(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
 
-    ITemporaryStreamStorageInternal ITemporaryStorageServiceInternal.CreateTemporaryStreamStorage()
-        => CreateTemporaryStreamStorage();
+    public TemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
+    {
+        var storage = new TemporaryStreamStorage(this);
+        storage.WriteStream(stream, cancellationToken);
+        var identifier = new TemporaryStorageIdentifier(storage.Name, storage.Offset, storage.Size);
+        return new(storage, identifier);
+    }
 
-    internal TemporaryStreamStorage CreateTemporaryStreamStorage()
-        => new(this);
-
-    public TemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size)
-        => new(this, storageName, offset, size);
+    public Stream ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken)
+    {
+        var storage = new TemporaryStreamStorage(this, storageIdentifier.Name, storageIdentifier.Offset, storageIdentifier.Size);
+        return storage.ReadStream(cancellationToken);
+    }
 
     /// <summary>
     /// Allocate shared storage of a specified size.
@@ -310,7 +315,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         }
     }
 
-    internal sealed class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
+    internal sealed class TemporaryStreamStorage
     {
         private readonly TemporaryStorageService _service;
         private MemoryMappedInfo? _memoryMappedInfo;
@@ -324,9 +329,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
         }
 
-        // TODO: clean up https://github.com/dotnet/roslyn/issues/43037
-        // Offset, Size is only used when Name is not null.
-        public string? Name => _memoryMappedInfo?.Name;
+        public string Name => _memoryMappedInfo!.Name;
         public long Offset => _memoryMappedInfo!.Offset;
         public long Size => _memoryMappedInfo!.Size;
 
@@ -338,9 +341,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             _memoryMappedInfo?.Dispose();
             _memoryMappedInfo = null;
         }
-
-        Stream ITemporaryStreamStorageInternal.ReadStream(CancellationToken cancellationToken)
-            => ReadStream(cancellationToken);
 
         public UnmanagedMemoryStream ReadStream(CancellationToken cancellationToken)
         {
