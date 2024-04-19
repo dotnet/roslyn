@@ -251,7 +251,7 @@ internal partial class SolutionCompilationState
                         logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
 
                         stream.Position = 0;
-                        var metadata = AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
+                        var metadata = AssemblyMetadata.CreateFromStream(stream, leaveOpen: true);
                         return metadata;
                     }
 
