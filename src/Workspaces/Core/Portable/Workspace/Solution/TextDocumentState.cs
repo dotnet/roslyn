@@ -175,6 +175,11 @@ internal partial class TextDocumentState
         var service = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
         var options = service.Options;
 
+        // See if the client, the loader itself, or the options want us to hold onto this loader strongly.  If so, we
+        // wrap it directly in a LoadableTextAndVersionSource that will keep it alive, deferring to it to get the final
+        // source text.  If none of the above hold, we'll create a RecoverableTextAndVersion.  This will use the loaded
+        // the first time to get the text contents, but will then dump those contents to a memory-mapped-file afterwards
+        // so that it can be kept out of main memory, while still allowing us to preserve snapshot semantics.
         return mode == PreservationMode.PreserveIdentity || loader.AlwaysHoldStrongly || options.DisableRecoverableText
             ? new LoadableTextAndVersionSource(loader, cacheResult: true)
             : new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), solutionServices);
