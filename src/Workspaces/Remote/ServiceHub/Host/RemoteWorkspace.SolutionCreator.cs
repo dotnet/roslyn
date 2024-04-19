@@ -614,14 +614,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed text
                 if (oldDocumentChecksums.textChecksum != newDocumentChecksums.textChecksum)
                 {
-                    var sourceText = await _assetProvider.GetAssetAsync<SourceText>(
+                    var text = await _assetProvider.GetAssetAsync<SourceText>(
                         assetPath: document.Id, newDocumentChecksums.textChecksum, cancellationToken).ConfigureAwait(false);
+                    var mode = PreservationMode.PreserveValue;
 
                     document = document.Kind switch
                     {
-                        TextDocumentKind.Document => document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id)!,
-                        TextDocumentKind.AnalyzerConfigDocument => document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id)!,
-                        TextDocumentKind.AdditionalDocument => document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id)!,
+                        TextDocumentKind.Document => document.Project.Solution.WithDocumentText(document.Id, text, mode).GetRequiredDocument(document.Id),
+                        TextDocumentKind.AnalyzerConfigDocument => document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, text, mode).GetRequiredAnalyzerConfigDocument(document.Id),
+                        TextDocumentKind.AdditionalDocument => document.Project.Solution.WithAdditionalDocumentText(document.Id, text, mode).GetRequiredAdditionalDocument(document.Id),
                         _ => throw ExceptionUtilities.UnexpectedValue(document.Kind),
                     };
                 }

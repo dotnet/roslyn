@@ -27,10 +27,10 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader) : ITextAnd
         private TextAndVersion? _instance;
 
         private Task<TextAndVersion> LoadAsync(CancellationToken cancellationToken)
-            => Source.Loader.LoadTextAsync(Options, cancellationToken);
+            => Source.TextLoader.LoadTextAsync(Options, cancellationToken);
 
         private TextAndVersion LoadSynchronously(CancellationToken cancellationToken)
-            => Source.Loader.LoadTextSynchronously(Options, cancellationToken);
+            => Source.TextLoader.LoadTextSynchronously(Options, cancellationToken);
 
         public bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
         {
@@ -80,12 +80,12 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader) : ITextAnd
         }
     }
 
-    public readonly TextLoader Loader = loader;
+    public TextLoader TextLoader { get; } = loader;
 
     private LazyValueWithOptions? _lazyValue;
 
     public bool CanReloadText
-        => Loader.CanReloadText;
+        => TextLoader.CanReloadText;
 
     private LazyValueWithOptions GetLazyValue(LoadTextOptions options)
     {
