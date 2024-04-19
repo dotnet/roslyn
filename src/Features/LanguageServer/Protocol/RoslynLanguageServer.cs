@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
             var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
-            return provider.CreateRequestExecutionQueue(this, _logger, HandlerProvider);
+            return provider.CreateRequestExecutionQueue(this, Logger, HandlerProvider);
         }
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             if (parameters == null)
             {
-                _logger.LogInformation("No request parameters given, using default language handler");
+                Logger.LogInformation("No request parameters given, using default language handler");
                 return LanguageServerConstants.DefaultLanguageName;
             }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var uri = uriToken.ToObject<Uri>(_jsonSerializer);
                 Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
                 var language = lspWorkspaceManager.GetLanguageForUri(uri);
-                _logger.LogInformation($"Using {language} from request text document");
+                Logger.LogInformation($"Using {language} from request text document");
                 return language;
             }
 
@@ -154,12 +154,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var data = dataToken.ToObject<DocumentResolveData>(_jsonSerializer);
                 Contract.ThrowIfNull(data, "Failed to document resolve data object");
                 var language = lspWorkspaceManager.GetLanguageForUri(data.TextDocument.Uri);
-                _logger.LogInformation($"Using {language} from data text document");
+                Logger.LogInformation($"Using {language} from data text document");
                 return language;
             }
 
             // This request is not for a textDocument and is not a resolve request.
-            _logger.LogInformation("Request did not contain a textDocument, using default language handler");
+            Logger.LogInformation("Request did not contain a textDocument, using default language handler");
             return LanguageServerConstants.DefaultLanguageName;
 
             static bool ShouldUseDefaultLanguage(string methodName)

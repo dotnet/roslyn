@@ -14,11 +14,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// An attribute which identifies the method which an <see cref="IMethodHandler"/> implements.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = false)]
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public class LanguageServerEndpointAttribute : Attribute
-#else
 internal class LanguageServerEndpointAttribute : Attribute
-#endif
 {
     /// <summary>
     /// Contains the method that this <see cref="IMethodHandler"/> implements.

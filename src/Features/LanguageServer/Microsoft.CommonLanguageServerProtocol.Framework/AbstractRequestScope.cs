@@ -8,12 +8,7 @@
 using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
-
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public abstract class AbstractRequestScope(string name) : IDisposable
-#else
 internal abstract class AbstractRequestScope(string name) : IDisposable
-#endif
 {
     public string Name { get; } = name;
 

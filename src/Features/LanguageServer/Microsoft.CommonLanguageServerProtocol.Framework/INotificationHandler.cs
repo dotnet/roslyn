@@ -14,11 +14,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// An interface for handlers of methods which do not return a response and receive no parameters.
 /// </summary>
 /// <typeparam name="TRequestContext">The type of the RequestContext to be used by this handler.</typeparam>
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public interface INotificationHandler<TRequestContext> : IMethodHandler
-#else
 internal interface INotificationHandler<TRequestContext> : IMethodHandler
-#endif
 {
     Task HandleNotificationAsync(TRequestContext requestContext, CancellationToken cancellationToken);
 }
@@ -28,11 +24,7 @@ internal interface INotificationHandler<TRequestContext> : IMethodHandler
 /// </summary>
 /// <typeparam name="TRequest">The type of the Request parameter to be received.</typeparam>
 /// <typeparam name="TRequestContext">The type of the RequestContext to be used by this handler.</typeparam>
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public interface INotificationHandler<TRequest, TRequestContext> : IMethodHandler
-#else
 internal interface INotificationHandler<TRequest, TRequestContext> : IMethodHandler
-#endif
 {
     Task HandleNotificationAsync(TRequest request, TRequestContext requestContext, CancellationToken cancellationToken);
 }
