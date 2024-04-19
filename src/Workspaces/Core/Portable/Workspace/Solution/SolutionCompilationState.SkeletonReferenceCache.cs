@@ -218,11 +218,9 @@ internal partial class SolutionCompilationState
         private static SkeletonReferenceSet? CreateSkeletonSet(
             SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
-            var storage = TryCreateMetadataStorage(services, compilation, cancellationToken);
-            if (storage == null)
+            var metadata = TryCreateAssemblyMetadata(services, compilation, cancellationToken);
+            if (metadata == null)
                 return null;
-
-            var metadata = AssemblyMetadata.CreateFromStream(storage.ReadStream(cancellationToken), leaveOpen: false);
 
             // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
             // the stream as well.
@@ -232,7 +230,7 @@ internal partial class SolutionCompilationState
                 new DeferredDocumentationProvider(compilation));
         }
 
-        private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
+        private static AssemblyMetadata? TryCreateAssemblyMetadata(SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -252,13 +250,9 @@ internal partial class SolutionCompilationState
                     {
                         logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
 
-                        var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
-                        var storage = temporaryStorageService.CreateTemporaryStreamStorage();
-
                         stream.Position = 0;
-                        storage.WriteStream(stream, cancellationToken);
-
-                        return storage;
+                        var metadata = AssemblyMetadata.CreateFromStream(stream, leaveOpen: false);
+                        return metadata;
                     }
 
                     if (logger != null)
