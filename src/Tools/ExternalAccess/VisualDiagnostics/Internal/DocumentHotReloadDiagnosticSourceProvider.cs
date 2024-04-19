@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 [ExportDiagnosticSourceProvider, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class DocumentHotReloadDiagnosticSourceProvider(IHotReloadDiagnosticManager hotReloadErrorService)
+internal class DocumentHotReloadDiagnosticSourceProvider(IHotReloadDiagnosticManager hotReloadDiagnosticManager)
     : AbstractHotReloadDiagnosticSourceProvider
     , IDiagnosticSourceProvider
 {
@@ -28,8 +29,13 @@ internal class DocumentHotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMan
     {
         if (context.GetTrackedDocument<TextDocument>() is { } textDocument)
         {
-            if (hotReloadErrorService.Errors.FirstOrDefault(e => e.DocumentId == textDocument.Id) is { } documentErrors)
-                return new([new HotReloadDiagnosticSource(textDocument, documentErrors.Errors)]);
+            List<IDiagnosticSource> sources = new();
+            foreach (var hotReloadSource in hotReloadDiagnosticManager.Sources)
+            {
+                sources.Add(new HotReloadDiagnosticSource(textDocument, hotReloadSource));
+            }
+
+            return new(sources.ToImmutableArray());
         }
 
         return new([]);

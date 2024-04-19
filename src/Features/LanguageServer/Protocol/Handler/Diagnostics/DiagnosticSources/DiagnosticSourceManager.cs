@@ -14,16 +14,18 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSource
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [Export(typeof(DiagnosticSourceManager)), Shared]
+    [Export(typeof(IDiagnosticSourceManager)), Shared]
     internal class DiagnosticSourceManager : IDiagnosticSourceManager
     {
         private readonly Lazy<ImmutableDictionary<string, IDiagnosticSourceProvider>> _documentProviders;
         private readonly Lazy<ImmutableDictionary<string, IDiagnosticSourceProvider>> _workspaceProviders;
+        private readonly Lazy<IEnumerable<IDiagnosticSourceProvider>> sourceProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DiagnosticSourceManager([ImportMany] Lazy<IEnumerable<IDiagnosticSourceProvider>> sourceProviders)
+        public DiagnosticSourceManager(/*[ImportMany] Lazy<IEnumerable<IDiagnosticSourceProvider>> sourceProviders*/)
         {
+            sourceProviders = new(() => new List<IDiagnosticSourceProvider>());
             _documentProviders = new(() => sourceProviders.Value
                     .Where(p => p.IsDocument)
                     .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp));

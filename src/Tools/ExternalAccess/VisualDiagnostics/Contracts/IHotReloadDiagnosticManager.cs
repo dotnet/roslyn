@@ -9,20 +9,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
     internal interface IHotReloadDiagnosticManager
     {
         /// <summary>
-        /// Hot reload errors.
+        /// Hot reload diagnostics for all sources.
         /// </summary>
-        ImmutableArray<HotReloadDocumentDiagnostics> Errors { get; }
+        ImmutableArray<IHotReloadDiagnosticSource> Sources { get; }
 
         /// <summary>
-        /// Update the diagnostics for the given group name.
+        /// Registers source of hot reload diagnostics.
         /// </summary>
-        /// <param name="errors">The diagnostics.</param>
-        /// <param name="groupName">The group name.</param>
-        void UpdateErrors(ImmutableArray<HotReloadDocumentDiagnostics> errors, string groupName);
+        void Register(IHotReloadDiagnosticSource source);
 
         /// <summary>
-        /// Clears all errors.
+        /// Unregisters source of hot reload diagnostics.
         /// </summary>
-        void Clear();
+        void Unregister(IHotReloadDiagnosticSource source);
+
+        /// <summary>
+        /// Requests refresh of hot reload diagnostics.
+        /// </summary>
+        void Refresh();
     }
 }

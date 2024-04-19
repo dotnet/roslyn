@@ -24,24 +24,27 @@ internal class WorkspaceHotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
     : AbstractHotReloadDiagnosticSourceProvider
     , IDiagnosticSourceProvider
 {
-    ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         if (context.Solution is not Solution solution)
         {
-            return new([]);
+            return [];
         }
 
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var builder);
-        foreach (var documentErrors in hotReloadErrorService.Errors)
+        foreach (var hotReloadSource in hotReloadErrorService.Sources)
         {
-            TextDocument? document = solution.GetAdditionalDocument(documentErrors.DocumentId) ?? solution.GetDocument(documentErrors.DocumentId);
-            if (document != null && !context.IsTracking(document.GetURI()))
+            var docIds = await hotReloadSource.GetDocumentIdsAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var docId in docIds)
             {
-                builder.Add(new HotReloadDiagnosticSource(document, documentErrors.Errors));
+                if (solution.GetDocument(docId) is { } document && !context.IsTracking(document.GetURI()))
+                {
+                    builder.Add(new HotReloadDiagnosticSource(document, hotReloadSource));
+                }
             }
         }
 
         var result = builder.ToImmutableAndClear();
-        return new(result);
+        return result;
     }
 }
