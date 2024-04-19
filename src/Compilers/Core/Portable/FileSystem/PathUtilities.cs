@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -779,6 +780,42 @@ namespace Roslyn.Utilities
         /// </remarks>
         public static string NormalizeWithForwardSlash(string p)
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
+
+        /// <summary>
+        /// Replaces all sequences of '\' or '/' with a single '/' but preserves UNC prefix '//'.
+        /// </summary>
+        public static string CollapseWithForwardSlash(string p)
+        {
+            var sb = new StringBuilder(p.Length);
+
+            int start = 0;
+            if (p.Length > 1 && IsAnyDirectorySeparator(p[0]) && IsAnyDirectorySeparator(p[1]))
+            {
+                // Preserve UNC paths.
+                sb.Append("//");
+                start = 2;
+            }
+
+            bool wasDirectorySeparator = false;
+            for (int i = start; i < p.Length; i++)
+            {
+                if (IsAnyDirectorySeparator(p[i]))
+                {
+                    if (!wasDirectorySeparator)
+                    {
+                        sb.Append('/');
+                    }
+                    wasDirectorySeparator = true;
+                }
+                else
+                {
+                    sb.Append(p[i]);
+                    wasDirectorySeparator = false;
+                }
+            }
+
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Takes an absolute path and attempts to expand any '..' or '.' into their equivalent representation.

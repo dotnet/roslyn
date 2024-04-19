@@ -420,5 +420,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             var result = PathUtilities.GetRelativePath(@"/A/B/", @"/A/B");
             Assert.Equal(expected, result);
         }
+
+        [Theory]
+        [InlineData(@"//a/b/c", @"//a/b/c")]
+        [InlineData(@"/a\b/c/", @"/a/b/c/")]
+        [InlineData(@"\a\b/c/", @"/a/b/c/")]
+        [InlineData(@"C:\\a", @"C:/a")]
+        [InlineData(@"C:\a\b\c\", @"C:/a/b/c/")]
+        [InlineData(@"/\a", @"//a")]
+        public void CollapseWithForwardSlash(string input, string output)
+        {
+            AssertEx.Equal(output, PathUtilities.CollapseWithForwardSlash(input));
+        }
     }
 }
