@@ -20919,6 +20919,105 @@ partial class Program
         }
 
         [Fact]
+        public void Span_SingleElement_TempReuse()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main() => M(1);
+
+                    static void M(int x)
+                    {
+                        {
+                            Span<int> y = [x];
+                            Console.Write(y[0]);
+                        }
+                        {
+                            Span<int> y = [x];
+                            Console.Write(y[0]);
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("11"));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       49 (0x31)
+                  .maxstack  2
+                  .locals init (int V_0,
+                                int V_1,
+                                System.Span<int> V_2, //y
+                                System.Span<int> V_3) //y
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0009:  stloc.2
+                  IL_000a:  ldloca.s   V_2
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0012:  ldind.i4
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldarg.0
+                  IL_0019:  stloc.1
+                  IL_001a:  ldloca.s   V_1
+                  IL_001c:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0021:  stloc.3
+                  IL_0022:  ldloca.s   V_3
+                  IL_0024:  ldc.i4.0
+                  IL_0025:  call       "ref int System.Span<int>.this[int].get"
+                  IL_002a:  ldind.i4
+                  IL_002b:  call       "void System.Console.Write(int)"
+                  IL_0030:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("11"));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       63 (0x3f)
+                  .maxstack  5
+                  .locals init (System.Span<int> V_0, //y
+                                System.Span<int> V_1) //y
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.1
+                  IL_0003:  newarr     "int"
+                  IL_0008:  dup
+                  IL_0009:  ldc.i4.0
+                  IL_000a:  ldarg.0
+                  IL_000b:  stelem.i4
+                  IL_000c:  call       "System.Span<int>..ctor(int[])"
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0019:  ldind.i4
+                  IL_001a:  call       "void System.Console.Write(int)"
+                  IL_001f:  ldloca.s   V_1
+                  IL_0021:  ldc.i4.1
+                  IL_0022:  newarr     "int"
+                  IL_0027:  dup
+                  IL_0028:  ldc.i4.0
+                  IL_0029:  ldarg.0
+                  IL_002a:  stelem.i4
+                  IL_002b:  call       "System.Span<int>..ctor(int[])"
+                  IL_0030:  ldloca.s   V_1
+                  IL_0032:  ldc.i4.0
+                  IL_0033:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0038:  ldind.i4
+                  IL_0039:  call       "void System.Console.Write(int)"
+                  IL_003e:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void ReadOnlySpan_SingleElement()
         {
             var source = """
