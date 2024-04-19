@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
@@ -113,7 +114,7 @@ internal partial class BloomFilter
     /// 
     /// Murmur hash is public domain.  Actual code is included below as reference.
     /// </summary>
-    private int ComputeHash(string key, int seed)
+    private static int ComputeHash(string key, int seed, bool isCaseSensitive)
     {
         unchecked
         {
@@ -127,8 +128,8 @@ internal partial class BloomFilter
             var index = 0;
             while (numberOfCharsLeft >= 2)
             {
-                var c1 = GetCharacter(key, index);
-                var c2 = GetCharacter(key, index + 1);
+                var c1 = GetCharacter(key, index, isCaseSensitive);
+                var c2 = GetCharacter(key, index + 1, isCaseSensitive);
 
                 h = CombineTwoCharacters(h, c1, c2);
 
@@ -140,7 +141,7 @@ internal partial class BloomFilter
             // odd length.
             if (numberOfCharsLeft == 1)
             {
-                var c = GetCharacter(key, index);
+                var c = GetCharacter(key, index, isCaseSensitive);
                 h = CombineLastCharacter(h, c);
             }
 
@@ -225,10 +226,10 @@ internal partial class BloomFilter
         }
     }
 
-    private char GetCharacter(string key, int index)
+    private static char GetCharacter(string key, int index, bool isCaseSensitive)
     {
         var c = key[index];
-        return _isCaseSensitive ? c : char.ToLowerInvariant(c);
+        return isCaseSensitive ? c : char.ToLowerInvariant(c);
     }
 
     private static char GetCharacter(long key, int index)
@@ -325,7 +326,7 @@ internal partial class BloomFilter
 
     private int GetBitArrayIndex(string value, int i)
     {
-        var hash = ComputeHash(value, i);
+        var hash = ComputeHash(value, i, _isCaseSensitive);
         hash %= _bitArray.Length;
         return Math.Abs(hash);
     }
@@ -347,9 +348,11 @@ internal partial class BloomFilter
 
     public bool ProbablyContains(string value)
     {
+        var hashes = BloomFilterHash.GetOrCreateHashArray(value, this);
+
         for (var i = 0; i < _hashFunctionCount; i++)
         {
-            if (!_bitArray[GetBitArrayIndex(value, i)])
+            if (!_bitArray[hashes[i]])
             {
                 return false;
             }
@@ -394,5 +397,74 @@ internal partial class BloomFilter
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Provides mechanism to efficiently obtain bloom filter hash for a value. Backed by a single element cache.
+    /// </summary>
+    internal class BloomFilterHash
+    {
+        private static BloomFilterHash? s_cachedHash;
+
+        private readonly string _value;
+        private readonly bool _isCaseSensitive;
+        private readonly ImmutableArray<int> _hashes;
+
+        private BloomFilterHash(string value, BloomFilter filter)
+        {
+            _value = value;
+            _isCaseSensitive = filter._isCaseSensitive;
+
+            var hashBuilder = new FixedSizeArrayBuilder<int>(filter._hashFunctionCount);
+
+            for (var i = 0; i < filter._hashFunctionCount; i++)
+                hashBuilder.Add(filter.GetBitArrayIndex(value, i));
+
+            _hashes = hashBuilder.MoveToImmutable();
+        }
+
+        /// <summary>
+        /// Although calculating this hash isn't terribly expensive, it does involve multiple
+        /// (usually around 13) hashings of the string (the actual count is <see cref="BloomFilter._hashFunctionCount"/>).
+        /// The typical usage pattern of bloom filters is that some operation (eg: find references)
+        /// requires asking a multitude of bloom filters whether a particular value is likely contained.
+        /// The vast majority of those bloom filters will end up hashing that string to the same values, so
+        /// we put those values into a simple cache and see if it can be used before calculating.
+        /// Local testing has put the hit rate of this at around 99%.
+        /// </summary>
+        public static ImmutableArray<int> GetOrCreateHashArray(string value, BloomFilter filter)
+        {
+            var cachedHash = s_cachedHash;
+
+            if (cachedHash == null
+                || cachedHash._isCaseSensitive != filter._isCaseSensitive
+                || cachedHash._hashes.Length < filter._hashFunctionCount
+                || cachedHash._value != value)
+            {
+                cachedHash = new BloomFilterHash(value, filter);
+                s_cachedHash = cachedHash;
+            }
+
+            return cachedHash._hashes;
+        }
+
+        // Used only by tests
+        internal static bool TryGetCachedEntry(out bool isCaseSensitive, out string value)
+        {
+            var cachedHash = s_cachedHash;
+
+            if (cachedHash == null)
+            {
+                isCaseSensitive = false;
+                value = string.Empty;
+
+                return false;
+            }
+
+            isCaseSensitive = cachedHash._isCaseSensitive;
+            value = cachedHash._value;
+
+            return true;
+        }
     }
 }

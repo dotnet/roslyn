@@ -107,6 +107,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         [Fact]
+        public void TestCacheWhenEmpty()
+        {
+            _ = new BloomFilter(falsePositiveProbability: 0.0001, isCaseSensitive: false, []);
+
+            Assert.False(BloomFilter.BloomFilterHash.TryGetCachedEntry(out _, out _));
+        }
+
+        [Fact]
+        public void TestCacheAfterCalls()
+        {
+            var filter1 = new BloomFilter(falsePositiveProbability: 0.0001, isCaseSensitive: false, []);
+            var filter2 = new BloomFilter(falsePositiveProbability: 0.0001, isCaseSensitive: true, []);
+
+            _ = filter1.ProbablyContains("test1");
+            Assert.True(BloomFilter.BloomFilterHash.TryGetCachedEntry(out var isCaseSensitive, out var value));
+            Assert.True(!isCaseSensitive);
+            Assert.Equal("test1", value);
+
+            _ = filter2.ProbablyContains("test2");
+            Assert.True(BloomFilter.BloomFilterHash.TryGetCachedEntry(out isCaseSensitive, out value));
+            Assert.True(isCaseSensitive);
+            Assert.Equal("test2", value);
+        }
+
+        [Fact]
         public void TestSerialization()
         {
             var stream = new MemoryStream();
