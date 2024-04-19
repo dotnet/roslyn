@@ -202,24 +202,18 @@ internal sealed partial class ProjectSystemProject
                 return [];
             }
 
-            if (language == LanguageNames.CSharp)
+            var rootPath = Path.GetDirectoryName(filePath);
+            if (rootPath is null)
             {
-                var rootPath = Path.GetDirectoryName(filePath)!;
-                return new WatchedDirectory[] 
-                {
-                    new(rootPath, ".cs"), 
-                    new(rootPath, ".razor"),
-                    new(rootPath, ".cshtml")
-                };
+                return [];
             }
 
-            if (language == LanguageNames.VisualBasic)
+            return language switch
             {
-                var rootPath = Path.GetDirectoryName(filePath)!;
-                return [new WatchedDirectory(rootPath, ".vb")];
-            }
-
-            return [];
+                LanguageNames.VisualBasic => [new(rootPath, ".vb")],
+                LanguageNames.CSharp => [new(rootPath, ".cs"), new(rootPath, ".razor"), new(rootPath, ".cshtml")]
+                _ => []
+            };
         }
     }
 
