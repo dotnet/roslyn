@@ -8188,14 +8188,16 @@ static class Program
                 ("ReadOnlySpan<int>", "ReadOnlySpan<int>") =>
                     """
                     {
-                      // Code size       10 (0xa)
-                      .maxstack  1
+                      // Code size       22 (0x16)
+                      .maxstack  2
                       .locals init (System.ReadOnlySpan<int> V_0) //y
-                      IL_0000:  ldarg.0
-                      IL_0001:  stloc.0
-                      IL_0002:  ldloca.s   V_0
-                      IL_0004:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
-                      IL_0009:  ret
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  ldarga.s   V_0
+                      IL_0004:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
+                      IL_0009:  call       "System.ReadOnlySpan<int>..ctor(int[])"
+                      IL_000e:  ldloca.s   V_0
+                      IL_0010:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                      IL_0015:  ret
                     }
                     """,
                 _ => null
@@ -23956,6 +23958,36 @@ partial class Program
                   IL_0037:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void ReadOnlySpan_EnsureCopyingSemantics()
+        {
+            string source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] arr = { 1, 2, 3 };
+                        ReadOnlySpan<int> span1 = arr;
+                        ReadOnlySpan<int> span2 = [.. span1];
+
+                        arr[1] = 4;
+
+                        span1.Report();
+                        span2.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensionsWithSpan],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 4, 3], [1, 2, 3], "));
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
