@@ -56,8 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         // If the collection type is ImmutableArray<T>, then construction is optimized to use
                         // ImmutableCollectionsMarshal.AsImmutableArray.
+                        // The only exception is when collection expression is just `[.. readOnlySpan]` of the same element type, in such cases
+                        // it is more efficient to emit a direct call of `ImmutableArray.Create`
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType) &&
-                            _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray)
+                            _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray &&
+                            !(node is { Elements: [BoundCollectionExpressionSpreadElement { Expression.Type: NamedTypeSymbol { TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var spreadElementType] } spreadType }] } &&
+                              spreadType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T) &&
+                              spreadElementType.Equals(arrayElementType, TypeCompareKind.CLRSignatureCompareOptions)))
                         {
                             return VisitImmutableArrayCollectionExpression(node, arrayElementType, asImmutableArray);
                         }
@@ -177,14 +182,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.Default(collectionType);
                 }
 
-                if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan &&
-                    ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
+                if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan)
                 {
-                    // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
-                    Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
-                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
-                    return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
+                    // If collection expression os of form `[.. anotherReadOnlySpan]`
+                    // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
+                    // we can directly return `anotherReadOnlySpan` since we know that ReadOnlySpan is an immutable type
+                    if (node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: { } spreadType } spreadExpression }] } &&
+                        spreadType.Equals(collectionType, TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        return spreadExpression;
+                    }
+
+                    if (ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
+                    {
+                        // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
+                        Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
+                        var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
+                        var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
+                        return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
+                    }
                 }
 
                 if (ShouldUseInlineArray(node, _compilation) &&
