@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.Span:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                         Debug.Assert(elementType is { });
-                        return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType), canReuseSpan: false);
+                        return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         // If the collection type is ImmutableArray<T>, then construction is optimized to use
                         // ImmutableCollectionsMarshal.AsImmutableArray.
@@ -149,13 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 CollectionExpressionTypeKind.Array,
                 ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType),
-                elementType,
-                canReuseSpan: false);
+                elementType);
             // ImmutableCollectionsMarshal.AsImmutableArray(arrayCreation)
             return _factory.StaticCall(asImmutableArray.Construct(ImmutableArray.Create(elementType)), ImmutableArray.Create(arrayCreation));
         }
 
-        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol collectionType, TypeWithAnnotations elementType, bool canReuseSpan)
+        private BoundExpression VisitArrayOrSpanCollectionExpression(BoundCollectionExpression node, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol collectionType, TypeWithAnnotations elementType)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(_additionalLocals is { });
@@ -183,26 +182,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.Default(collectionType);
                 }
 
-                if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan)
+                if (collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan &&
+                    ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
                 {
-                    // If collection expression is of form `[.. anotherReadOnlySpan]`
-                    // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
-                    // we can directly return `anotherReadOnlySpan` since we know that ReadOnlySpan is an immutable type.
-                    if (canReuseSpan &&
-                        node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: { } spreadType } spreadExpression }] } &&
-                        spreadType.Equals(collectionType, TypeCompareKind.CLRSignatureCompareOptions))
-                    {
-                        return spreadExpression;
-                    }
-
-                    if (ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type))
-                    {
-                        // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
-                        Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
-                        var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                        var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
-                        return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
-                    }
+                    // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
+                    Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
+                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
+                    return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
                 }
 
                 if (ShouldUseInlineArray(node, _compilation) &&
@@ -394,7 +381,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
             var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-            BoundExpression span = VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType, canReuseSpan: true);
+            BoundExpression span;
+
+            // If collection expression is of form `[.. anotherReadOnlySpan]`
+            // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
+            // we can directly use `anotherReadOnlySpan` as collection builder argument
+            // since we know that ReadOnlySpan is an immutable type.
+            if (node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol { TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var spreadElementType] } spreadType } spreadExpression }] } &&
+                spreadType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T) &&
+                spreadElementType.Equals(elementType, TypeCompareKind.CLRSignatureCompareOptions))
+            {
+                span = spreadExpression;
+            }
+            else
+            {
+                span = VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
+            }
 
             var invocation = new BoundCall(
                 node.Syntax,
