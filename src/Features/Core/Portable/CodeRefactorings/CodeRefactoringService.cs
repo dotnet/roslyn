@@ -34,7 +34,7 @@ internal sealed class CodeRefactoringService(
                 ImmutableDictionary.CreateRange(
                     DistributeLanguages(providers)
                         .GroupBy(lz => lz.Metadata.Language)
-                        .Select(grp => new KeyValuePair<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>(
+                        .Select(grp => KeyValuePairUtil.Create(
                             grp.Key,
                             new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
     private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));

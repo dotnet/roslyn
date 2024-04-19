@@ -11,11 +11,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CodeGenerationHelpers;
+using static CSharpCodeGenerationHelpers;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
@@ -121,9 +121,9 @@ internal static class FieldGenerator
 
     private static SyntaxTokenList GenerateModifiers(IFieldSymbol field, CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
-        CSharpCodeGenerationHelpers.AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
+        AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
         if (field.IsConst)
         {
             tokens.Add(ConstKeyword);
@@ -131,26 +131,18 @@ internal static class FieldGenerator
         else
         {
             if (field.IsStatic)
-            {
                 tokens.Add(StaticKeyword);
-            }
 
             if (field.IsReadOnly)
-            {
                 tokens.Add(ReadOnlyKeyword);
-            }
 
             if (field.IsRequired)
-            {
                 tokens.Add(RequiredKeyword);
-            }
         }
 
         if (CodeGenerationFieldInfo.GetIsUnsafe(field))
-        {
             tokens.Add(UnsafeKeyword);
-        }
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return [.. tokens];
     }
 }

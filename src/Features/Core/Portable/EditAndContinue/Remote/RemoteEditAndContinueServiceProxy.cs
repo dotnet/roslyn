@@ -193,7 +193,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
 
         var project = document.Project;
 
-        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
+        var result = new FixedSizeArrayBuilder<Diagnostic>(diagnosticData.Value.Length);
         foreach (var data in diagnosticData.Value)
         {
             Debug.Assert(data.DataLocation != null);
@@ -215,7 +215,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
             result.Add(diagnostic);
         }
 
-        return result.ToImmutable();
+        return result.MoveToImmutable();
     }
 
     private static Diagnostic RemapLocation(Document designTimeDocument, DiagnosticData data)

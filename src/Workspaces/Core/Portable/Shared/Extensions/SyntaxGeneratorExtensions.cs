@@ -117,7 +117,7 @@ internal static partial class SyntaxGeneratorExtensions
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
@@ -147,7 +147,7 @@ internal static partial class SyntaxGeneratorExtensions
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static bool TryGetValue(IDictionary<string, string>? dictionary, string key, [NotNullWhen(true)] out string? value)

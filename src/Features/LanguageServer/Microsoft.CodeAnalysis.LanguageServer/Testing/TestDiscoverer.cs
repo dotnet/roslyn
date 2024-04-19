@@ -105,6 +105,6 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         }
 
         _logger.LogDebug($"Filtered {discoveredTests.Length} to {matchedTests.Count} tests");
-        return matchedTests.ToImmutable();
+        return matchedTests.ToImmutableAndClear();
     }
 }

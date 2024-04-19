@@ -669,7 +669,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public bool CanShowManagePackagesDialog()

@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static ImmutableArray<SerializableSymbolAndProjectId> Convert(ImmutableArray<ISymbol> items, Solution solution, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<SerializableSymbolAndProjectId>.GetInstance(out var result);
+            var result = new FixedSizeArrayBuilder<SerializableSymbolAndProjectId>(items.Length);
 
             foreach (var item in items)
                 result.Add(SerializableSymbolAndProjectId.Dehydrate(solution, item, cancellationToken));
 
-            return result.ToImmutable();
+            return result.MoveToImmutable();
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(

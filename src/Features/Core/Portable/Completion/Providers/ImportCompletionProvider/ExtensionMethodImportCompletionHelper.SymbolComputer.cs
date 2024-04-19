@@ -298,7 +298,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         private ImmutableArray<IMethodSymbol> GetExtensionMethodsForSymbolsFromSameCompilation(
@@ -342,7 +342,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         private MultiDictionary<ITypeSymbol, IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(

@@ -553,7 +553,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)

@@ -108,7 +108,7 @@ internal partial class CSharpMethodExtractor
             if (map.Count > 0)
                 result.AddRange(GetMergedDeclarationStatements(map));
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private void AppendDeclarationStatementToMap(

@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
                 }
             }
 
-            return arrayBuilder.ToImmutable();
+            return arrayBuilder.ToImmutableAndClear();
         }
     }
 }

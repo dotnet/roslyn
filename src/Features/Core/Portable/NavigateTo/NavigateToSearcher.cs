@@ -339,7 +339,7 @@ internal sealed class NavigateToSearcher
         }
 
         result.RemoveDuplicates();
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task ProcessOrderedProjectsAsync(

@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var key = split[0];
                 var value = split.Length == 2 ? split[1] : "true";
 
-                return new KeyValuePair<string, string>(key, value);
+                return KeyValuePairUtil.Create(key, value);
             });
 
             return parseOptions.WithFeatures(features);

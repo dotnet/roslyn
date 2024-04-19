@@ -119,10 +119,8 @@ internal static class OperatorGenerator
         tokens.Add(StaticKeyword);
 
         if (method.IsAbstract)
-        {
             tokens.Add(AbstractKeyword);
-        }
 
-        return tokens.ToImmutableAndClear().ToSyntaxTokenList();
+        return [.. tokens.ToImmutableAndClear()];
     }
 }

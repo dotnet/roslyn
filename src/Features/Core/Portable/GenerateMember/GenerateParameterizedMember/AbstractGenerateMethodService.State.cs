@@ -242,7 +242,7 @@ internal partial class AbstractGenerateMethodService<TService, TSimpleNameSyntax
             }
 
             NameGenerator.EnsureUniquenessInPlace(names, isFixed);
-            return names.ToImmutable();
+            return names.ToImmutableAndClear();
         }
 
         private static IMethodSymbol CreateMethodSymbolWithReturnType(

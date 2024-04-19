@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 foreach (var checksum in checksums)
                 {
-                    items.Add(new KeyValuePair<Checksum, object>(checksum, await assetService.GetAssetAsync<object>(
+                    items.Add(KeyValuePairUtil.Create(checksum, await assetService.GetAssetAsync<object>(
                         AssetPath.FullLookupForTesting, checksum, CancellationToken.None).ConfigureAwait(false)));
                 }
 
