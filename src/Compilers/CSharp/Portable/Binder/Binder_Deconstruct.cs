@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (declTypeWithAnnotations.HasType &&
-                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike())
+                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorTypeOrIsRefLikeTypeOrAllowsByRefLike())
                     {
                         diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                     }

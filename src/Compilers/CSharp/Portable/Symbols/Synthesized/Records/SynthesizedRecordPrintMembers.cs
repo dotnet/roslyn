@@ -213,8 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString),
                                 F.Call(value, F.SpecialMethod(SpecialMember.System_Object__ToString)))));
                     }
-                    else
+                    else if (!value.Type.IsRestrictedType())
                     {
+                        // Otherwise, an error has been reported elsewhere (SourceMemberFieldSymbol.TypeChecks)
                         block.Add(F.ExpressionStatement(
                             F.Call(receiver: builder,
                                 F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),

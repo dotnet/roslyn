@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SynthesizedReadOnlyListTypeParameterSymbol(SynthesizedReadOnlyListTypeSymbol containingType)
         {
+            Debug.Assert(containingType.IsClassType());
             _containingType = containingType;
         }
 
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool HasValueTypeConstraint => false;
 
-        public override bool AllowByRefLike => false; // PROTOTYPE(RefStructInterfaces): That should probably match constraints on implemented interface(s).
+        public override bool AllowByRefLike => false; // The list is a class type and cannot store ref structs as elements.
 
         public override bool IsValueTypeFromConstraintTypes => false;
 

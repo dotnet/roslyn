@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
 
-                            if (localSymbol.Scope == ScopedKind.ScopedValue && !type.Type.IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike())
+                            if (localSymbol.Scope == ScopedKind.ScopedValue && !type.Type.IsErrorTypeOrIsRefLikeTypeOrAllowsByRefLike())
                             {
                                 diagnosticsOpt.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
                                                    (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef() : typeOrDesignationSyntax).Location);

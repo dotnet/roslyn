@@ -17251,6 +17251,8 @@ ref struct S : IEnumerable<int>
                 //     static void Test2([UnscopedRef] params scoped S y)
                 Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(12, 24)
                 );
+
+            // PROTOTYPE(RefStructInterfaces): Consider testing similar scenario without params
         }
 
         [Fact]
@@ -17398,6 +17400,8 @@ ref struct S
                 //     public static S P4;
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(15, 19)
                 );
+
+            // PROTOTYPE(RefStructInterfaces): Consider testing capturing primary constructor parameter of type allows ref struct.
         }
 
         [Fact]
@@ -17448,7 +17452,7 @@ ref struct S
         }
 
         [Fact]
-        public void InlineArrayElement()
+        public void InlineArrayElement_01()
         {
             var src = @"
 [System.Runtime.CompilerServices.InlineArray(10)]
@@ -17467,6 +17471,13 @@ ref struct S2
 ref struct S
 {
 }
+
+[System.Runtime.CompilerServices.InlineArray(10)]
+struct S2<T2>
+    where T2 : allows ref struct
+{
+    T2 _f;
+}
 ";
 
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -17476,8 +17487,106 @@ ref struct S
                 Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
                 // (12,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     S _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7)
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7),
+                // (23,5): error CS8345: Field or auto-implemented property cannot be of type 'T2' unless it is an instance member of a ref struct.
+                //     T2 _f;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T2").WithArguments("T2").WithLocation(23, 5),
+
+                // PROTOTYPE(RefStructInterfaces): The warning below is somewhat misleading. 'S2' can be used as a type argument (it is not a ref struct) and 'T2' is a type argument. 
+                //                                 However, given the error above, this is probably not worth fixing. There is no way to declare a legal non-ref struct with a field
+                //                                 of type 'T2'.
+
+                // (23,8): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T2 _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(23, 8)
                 );
+        }
+
+        [Fact]
+        public void InlineArrayElement_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+ref struct S1<T>
+    where T : allows ref struct
+{
+    T _f;
+}
+
+class C
+{
+    static void Main()
+    {
+        var x = new S1<int>();
+        x[0] = 123;
+    }
+}
+
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
+                // (14,9): error CS9504: The type 'S1<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TFrom' in the generic type or method 'Unsafe.As<TFrom, TTo>(ref TFrom)'
+                //         x[0] = 123;
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "x[0]").WithArguments("System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref TFrom)", "TFrom", "S1<int>").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayElement_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.InlineArray(2)]
+ref struct S1<T>
+    where T : allows ref struct
+{
+    T _f;
+}
+
+class C
+{
+    static void Main()
+    {
+        var x = new S1<int>();
+        x[0] = 123;
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class Unsafe
+    {
+        public static ref TTo As<TFrom, TTo>(ref TFrom input) where TFrom : allows ref struct => throw null;
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7)
+                );
+
+            // PROTOTYPE(RefStructInterfaces): Here, however, we managed to successfully compile an invalid program. 
+            //                                 We should either stop relying on constraints of Unsafe.As as a way to
+            //                                 detect ref struct based inline arrays, or should propagate 'allows ref struct' to 
+            //                                 the helper methods that we generate in '<PrivateImplementationDetails>', which
+            //                                 could be tricky because they often call other generic APIs that might disagree
+            //                                 in the 'allows ref struct' constraint with Unsafe.As. 
+
+            // Message:
+            //           System.Security.VerificationException : Method<PrivateImplementationDetails>.InlineArrayFirstElementRef: type argument 'S1`1[System.Int32]' violates the constraint of type parameter 'TBuffer'.
+            //   
+            // Stack Trace: 
+            //   C.Main()
+            //   RuntimeMethodHandle.InvokeMethod(Object target, Void * *arguments, Signature sig, Boolean isConstructor)
+            //   MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+            //
+            //CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "nothing");
         }
 
         [Fact]
@@ -17554,6 +17663,8 @@ ref struct S
                 //     protected abstract override S Test2(S y);
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("y").WithLocation(14, 35)
                 );
+
+            // PROTOTYPE(RefStructInterfaces): Consider testing similar scenario with implicitly scoped parameter
         }
 
         [Fact]
@@ -17596,6 +17707,8 @@ ref struct S
                 //     protected abstract override void Test2(S y, out S z);
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "Test2").WithArguments("y").WithLocation(14, 38)
                 );
+
+            // PROTOTYPE(RefStructInterfaces): Consider testing ERR_ScopedMismatchInParameterOfPartial and ERR_ScopedMismatchInParameterOfTarget.
         }
 
         [Fact(Skip = "'byreflike' in IL is not supported yet")] // PROTOTYPE(RefStructInterfaces): Enable once we get support for 'byreflike' in IL.
@@ -17630,6 +17743,421 @@ ref struct S
                 //         r2.F = ref r1;
                 Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2.F").WithLocation(6, 12)
                 );
+        }
+
+        [Fact]
+        public void RestrictedTypesInRecords()
+        {
+            var src = @"
+record C<T>(
+    T P1
+    ) where T : allows ref struct;
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS8345: Field or auto-implemented property cannot be of type 'T' unless it is an instance member of a ref struct.
+                //     T P1
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T").WithArguments("T").WithLocation(3, 5)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AnonymousDelegateType_01_ActionDisallowsRefStruct(bool s2IsRefStruct)
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+    }
+    
+    static void Test1<T>(T x) where T : allows ref struct
+    {
+        var d = Helper<T>.Test1;
+        System.Console.Write(d.GetType());
+        System.Console.Write("" "");
+        d(x, new S2());
+    }
+}
+
+class Helper<T> where T : allows ref struct
+{
+    public static void Test1(T x, S2 y)
+    {
+        System.Console.Write(""Test1"");
+        System.Console.Write("" "");
+        System.Console.Write(typeof(T));
+    }
+}
+
+ref struct S1 {}
+
+" + (s2IsRefStruct ? "ref " : "") + @"struct S2 {}
+
+namespace System
+{
+    public delegate void Action<T1, T2>(T1 x, T2 y);
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"<>A`2[S1,S2] Test1 S1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                symbolValidator: (m) =>
+                {
+                    foreach (var tp in m.ContainingAssembly.GetTypeByMetadataName("<>A`2").TypeParameters)
+                    {
+                        Assert.True(tp.AllowByRefLike);
+                    }
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AnonymousDelegateType_02_FuncDisallowsRefStruct(bool s2IsRefStruct)
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+    }
+    
+    static void Test1<T>(T x) where T : allows ref struct
+    {
+        var d = Helper<T>.Test1;
+        System.Console.Write(d.GetType());
+        System.Console.Write("" "");
+        d(x);
+    }
+}
+
+class Helper<T> where T : allows ref struct
+{
+    public static S2 Test1(T x)
+    {
+        System.Console.Write(""Test1"");
+        System.Console.Write("" "");
+        System.Console.Write(typeof(T));
+        return default;
+    }
+}
+
+ref struct S1 {}
+
+" + (s2IsRefStruct ? "ref " : "") + @"struct S2 {}
+
+namespace System
+{
+    public delegate T2 Func<T1, T2>(T1 x);
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"<>F`2[S1,S2] Test1 S1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr && !s2IsRefStruct ? Verification.Passes : Verification.Skipped,
+                symbolValidator: (m) =>
+                {
+                    foreach (var tp in m.ContainingAssembly.GetTypeByMetadataName("<>F`2").TypeParameters)
+                    {
+                        Assert.True(tp.AllowByRefLike);
+                    }
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AnonymousDelegateType_03_ActionAllowsRefStruct(bool s2IsRefStruct)
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+    }
+    
+    static void Test1<T>(T x) where T : allows ref struct
+    {
+        var d = Helper<T>.Test1;
+        System.Console.Write(d.GetType());
+        System.Console.Write("" "");
+        d(x, new S2());
+    }
+}
+
+class Helper<T> where T : allows ref struct
+{
+    public static void Test1(T x, S2 y)
+    {
+        System.Console.Write(""Test1"");
+        System.Console.Write("" "");
+        System.Console.Write(typeof(T));
+    }
+}
+
+ref struct S1 {}
+
+" + (s2IsRefStruct ? "ref " : "") + @"struct S2 {}
+
+namespace System
+{
+    public delegate void Action<T1, T2>(T1 x, T2 y) where T1 : allows ref struct where T2 : allows ref struct;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"System.Action`2[S1,S2] Test1 S1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AnonymousDelegateType_04_FuncAllowsRefStruct(bool s2IsRefStruct)
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+    }
+    
+    static void Test1<T>(T x) where T : allows ref struct
+    {
+        var d = Helper<T>.Test1;
+        System.Console.Write(d.GetType());
+        System.Console.Write("" "");
+        d(x);
+    }
+}
+
+class Helper<T> where T : allows ref struct
+{
+    public static S2 Test1(T x)
+    {
+        System.Console.Write(""Test1"");
+        System.Console.Write("" "");
+        System.Console.Write(typeof(T));
+        return default;
+    }
+}
+
+ref struct S1 {}
+
+" + (s2IsRefStruct ? "ref " : "") + @"struct S2 {}
+
+namespace System
+{
+    public delegate T2 Func<T1, T2>(T1 x) where T1 : allows ref struct where T2 : allows ref struct;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"System.Func`2[S1,S2] Test1 S1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr && !s2IsRefStruct ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AnonymousDelegateType_05_PartiallyGenericAnonymousDelegate()
+        {
+            var src = @"
+unsafe class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+    }
+    
+    static void Test1<T>(T x) where T : allows ref struct
+    {
+        var d = Helper<T>.Test1;
+        System.Console.Write(d.GetType());
+        System.Console.Write("" "");
+        d(x, null);
+    }
+}
+
+unsafe class Helper<T> where T : allows ref struct
+{
+    public static void Test1(T x, void* y)
+    {
+        System.Console.Write(""Test1"");
+        System.Console.Write("" "");
+        System.Console.Write(typeof(T));
+    }
+}
+
+ref struct S1 {}
+
+namespace System
+{
+    public delegate void Action<T1, T2>(T1 x, T2 y) where T1 : allows ref struct where T2 : allows ref struct;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"<>f__AnonymousDelegate0`1[S1] Test1 S1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                symbolValidator: (m) =>
+                {
+                    foreach (var tp in m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0`1").TypeParameters)
+                    {
+                        Assert.True(tp.AllowByRefLike);
+                    }
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AnonymousDelegateType_06_PartiallyGenericAnonymousDelegate_CannotAllowRefStruct()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+    }
+    
+    static void Test1<T>(T x)
+    {
+        var d = Helper<T>.Test1;
+        System.Console.Write(d.GetType());
+        System.Console.Write("" "");
+        d(x, new S2());
+    }
+}
+
+class Helper<T>
+{
+    public static void Test1(T x, S2 y)
+    {
+        System.Console.Write(""Test1"");
+        System.Console.Write("" "");
+        System.Console.Write(typeof(T));
+    }
+}
+
+struct S1 {}
+
+ref struct S2 {}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"<>f__AnonymousDelegate0`1[S1] Test1 S1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                symbolValidator: (m) =>
+                {
+                    foreach (var tp in m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0`1").TypeParameters)
+                    {
+                        Assert.False(tp.AllowByRefLike);
+                    }
+                }
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AnonymousDelegateType_07_ActionDisallowsRefStruct_CannotAllowRefStruct()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+    }
+    
+    static void Test1(S1 x)
+    {
+        var d = Helper.Test1;
+        System.Console.Write(d.GetType());
+        System.Console.Write("" "");
+        d(x, new S2());
+    }
+}
+
+class Helper
+{
+    public static void Test1(S1 x, S2 y)
+    {
+        System.Console.Write(""Test1"");
+    }
+}
+
+ref struct S1 {}
+
+ref struct S2 {}
+
+namespace System
+{
+    public delegate void Action<T1, T2>(T1 x, T2 y);
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"<>f__AnonymousDelegate0 Test1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped
+                ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AnonymousDelegateType_08_FuncDisallowsRefStruct_CannotAllowRefStruct()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+    }
+    
+    static void Test1(S1 x)
+    {
+        var d = Helper.Test1;
+        System.Console.Write(d.GetType());
+        System.Console.Write("" "");
+        d(x);
+    }
+}
+
+class Helper
+{
+    public static S2 Test1(S1 x)
+    {
+        System.Console.Write(""Test1"");
+        return default;
+    }
+}
+
+ref struct S1 {}
+
+ref struct S2 {}
+
+namespace System
+{
+    public delegate T2 Func<T1, T2>(T1 x);
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"<>f__AnonymousDelegate0 Test1" : null,
+                verify: Verification.Skipped
+                ).VerifyDiagnostics();
         }
     }
 }

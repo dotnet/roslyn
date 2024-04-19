@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     validateParamsType(diagnostics);
                 }
 
-                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorTypeOrIsRefLikeTypeOrAllowByRefLike())
+                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorTypeOrIsRefLikeTypeOrAllowsByRefLike())
                 {
                     Debug.Assert(ParameterSyntax is not null);
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, ParameterSyntax);
