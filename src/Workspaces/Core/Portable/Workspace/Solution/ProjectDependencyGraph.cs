@@ -219,7 +219,7 @@ public partial class ProjectDependencyGraph
         }
 
         return reverseReferencesMap
-            .Select(kvp => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(kvp.Key, kvp.Value.ToImmutableHashSet()))
+            .Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableHashSet()))
             .ToImmutableDictionary();
     }
 

@@ -239,7 +239,7 @@ internal abstract partial class AbstractNavigateToSearchService
         }
 
         result.RemoveDuplicates();
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)

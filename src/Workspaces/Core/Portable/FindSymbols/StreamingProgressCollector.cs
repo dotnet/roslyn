@@ -40,11 +40,11 @@ internal class StreamingProgressCollector(
     {
         lock (_gate)
         {
-            using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
+            var result = new FixedSizeArrayBuilder<ReferencedSymbol>(_symbolToLocations.Count);
             foreach (var (symbol, locations) in _symbolToLocations)
                 result.Add(new ReferencedSymbol(symbol, locations.ToImmutableArray()));
 
-            return result.ToImmutable();
+            return result.MoveToImmutable();
         }
     }
 

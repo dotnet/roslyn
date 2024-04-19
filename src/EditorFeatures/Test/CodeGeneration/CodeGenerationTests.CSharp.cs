@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -24,6 +22,8 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    using static CSharpSyntaxTokens;
+
     [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public partial class CodeGenerationTests
     {
@@ -1322,7 +1322,7 @@ delegate int D();";
 
 class C { }
 class D { }";
-                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), SyntaxFactory.Token(SyntaxKind.AssemblyKeyword));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), AssemblyKeyword);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1331,7 +1331,7 @@ class D { }";
                 var input = "[|class C { } class D {} |]";
                 var expected = "";
                 await Assert.ThrowsAsync<AggregateException>(async () =>
-                    await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), SyntaxFactory.Token(SyntaxKind.RefKeyword)));
+                    await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), RefKeyword));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1402,7 +1402,7 @@ class C { }";
     // Comment 2
 }";
                 var eol = SyntaxFactory.EndOfLine(@"");
-                var newModifiers = new[] { SyntaxFactory.Token(SyntaxKind.InternalKeyword).WithLeadingTrivia(eol) }.Concat(
+                var newModifiers = new[] { InternalKeyword.WithLeadingTrivia(eol) }.Concat(
                     CreateModifierTokens(new Editing.DeclarationModifiers(isSealed: true, isPartial: true), LanguageNames.CSharp));
 
                 await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(input, expected, modifiers: newModifiers);

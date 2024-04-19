@@ -126,7 +126,7 @@ internal static partial class ITypeSymbolExtensions
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, SolutionServices services)

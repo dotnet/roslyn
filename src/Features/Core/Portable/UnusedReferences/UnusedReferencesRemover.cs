@@ -121,7 +121,7 @@ internal static class UnusedReferencesRemover
             unusedReferencesBuilder.AddRange(unusedReferences);
         }
 
-        return unusedReferencesBuilder.ToImmutable();
+        return unusedReferencesBuilder.ToImmutableAndClear();
     }
 
     private static ImmutableArray<ReferenceInfo> RemoveDirectlyUsedReferences(
@@ -177,7 +177,7 @@ internal static class UnusedReferencesRemover
             RemoveAllCompilationAssemblies(reference, usedAssemblyFilePaths);
         }
 
-        return unusedReferencesBuilder.ToImmutable();
+        return unusedReferencesBuilder.ToImmutableAndClear();
     }
 
     private static ImmutableArray<ReferenceInfo> RemoveTransitivelyUsedReferences(
@@ -219,7 +219,7 @@ internal static class UnusedReferencesRemover
             RemoveAllCompilationAssemblies(reference, usedAssemblyFilePaths);
         }
 
-        return unusedReferencesBuilder.ToImmutable();
+        return unusedReferencesBuilder.ToImmutableAndClear();
     }
 
     internal static bool HasAnyCompilationAssembly(ReferenceInfo reference)

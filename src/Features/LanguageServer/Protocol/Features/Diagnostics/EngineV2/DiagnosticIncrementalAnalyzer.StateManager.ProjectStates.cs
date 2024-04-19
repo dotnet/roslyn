@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndClear();
             }
         }
     }

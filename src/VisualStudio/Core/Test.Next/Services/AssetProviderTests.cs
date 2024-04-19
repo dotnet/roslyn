@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -56,8 +57,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var stored = await provider.GetAssetAsync<object>(AssetPath.FullLookupForTesting, checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
-            var stored2 = await provider.GetAssetsAsync<object>(AssetPath.FullLookupForTesting, new HashSet<Checksum> { checksum }, CancellationToken.None);
-            Assert.Equal(1, stored2.Length);
+            var stored2 = new List<(Checksum, object)>();
+            await provider.GetAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum> { checksum }, (checksum, asset, _) => stored2.Add((checksum, asset)), default, CancellationToken.None);
+            Assert.Equal(1, stored2.Count);
 
             Assert.Equal(checksum, stored2[0].Item1);
             Assert.Equal(data, stored2[0].Item2);
@@ -83,7 +85,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeAssetsAsync(AssetPath.FullLookupForTesting, new HashSet<Checksum>(map.Keys), results: null, CancellationToken.None);
+            await service.GetAssetsAsync<object>(AssetPath.FullLookupForTesting, new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
             foreach (var kv in map)
             {
@@ -136,7 +138,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeProjectAssetsAsync(await project.State.GetStateChecksumsAsync(CancellationToken.None), CancellationToken.None);
+
+            using var _ = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectChecksums);
+            allProjectChecksums.Add(await project.State.GetStateChecksumsAsync(CancellationToken.None));
+
+            await service.SynchronizeProjectAssetsAsync(allProjectChecksums, CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }

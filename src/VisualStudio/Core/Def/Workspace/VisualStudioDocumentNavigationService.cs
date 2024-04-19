@@ -41,7 +41,7 @@ internal sealed class VisualStudioDocumentNavigationService(
     IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
     // lazy to avoid circularities
     Lazy<SourceGeneratedFileManager> sourceGeneratedFileManager)
-    : ForegroundThreadAffinitizedObject(threadingContext), IDocumentNavigationService
+    : IDocumentNavigationService
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;

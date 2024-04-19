@@ -455,8 +455,8 @@ class Class
                         new CodeChangeProviderMetadata("SuppressionProvider", languages: [LanguageNames.CSharp]));
                     var fixService = new CodeFixService(
                         diagnosticService,
-                        SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),
-                        SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
+                        loggers: [],
+                        fixers: [],
                         [suppressionProviderFactory]);
                     var document = GetDocumentAndSelectSpan(workspace, out var span);
                     var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None);

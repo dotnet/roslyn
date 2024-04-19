@@ -74,11 +74,11 @@ internal abstract class BlockStructureServiceWithProviders : BlockStructureServi
 
     private static BlockStructure CreateBlockStructure(in BlockStructureContext context)
     {
-        using var _ = ArrayBuilder<BlockSpan>.GetInstance(context.Spans.Count, out var updatedSpans);
+        var updatedSpans = new FixedSizeArrayBuilder<BlockSpan>(context.Spans.Count);
         foreach (var span in context.Spans)
             updatedSpans.Add(UpdateBlockSpan(span, context.Options));
 
-        return new BlockStructure(updatedSpans.ToImmutableAndClear());
+        return new BlockStructure(updatedSpans.MoveToImmutable());
     }
 
     private static BlockSpan UpdateBlockSpan(BlockSpan blockSpan, in BlockStructureOptions options)

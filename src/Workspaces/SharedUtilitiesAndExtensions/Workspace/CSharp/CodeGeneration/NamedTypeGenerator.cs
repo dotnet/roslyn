@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 using static CodeGenerationHelpers;
 using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class NamedTypeGenerator
@@ -126,11 +127,11 @@ internal static class NamedTypeGenerator
 
         // If there are no members, just make a simple record with no body
         if (members.Length == 0)
-            return recordDeclaration.WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            return recordDeclaration.WithSemicolonToken(SemicolonToken);
 
         // Otherwise, give the record a body and add the members to it.
-        recordDeclaration = recordDeclaration.WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken))
-                                             .WithCloseBraceToken(Token(SyntaxKind.CloseBraceToken))
+        recordDeclaration = recordDeclaration.WithOpenBraceToken(OpenBraceToken)
+                                             .WithCloseBraceToken(CloseBraceToken)
                                              .WithSemicolonToken(default);
         return service.AddMembers(recordDeclaration, members, info, cancellationToken);
     }
@@ -199,9 +200,9 @@ internal static class NamedTypeGenerator
             var classOrStructKeyword = Token(isRecordClass ? default : SyntaxKind.StructKeyword);
 
             typeDeclaration = RecordDeclaration(kind: declarationKind, attributeLists: default, modifiers: default,
-                Token(SyntaxKind.RecordKeyword), classOrStructKeyword, namedType.Name.ToIdentifierToken(),
+                RecordKeyword, classOrStructKeyword, namedType.Name.ToIdentifierToken(),
                 typeParameterList: null, parameterList: null, baseList: null, constraintClauses: default, openBraceToken: default, members: default, closeBraceToken: default,
-                Token(SyntaxKind.SemicolonToken));
+                SemicolonToken);
         }
         else
         {
@@ -267,51 +268,43 @@ internal static class NamedTypeGenerator
         CodeGenerationDestination destination,
         CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (!namedType.IsFileLocal)
         {
             var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
                 ? Accessibility.Internal
                 : Accessibility.Private;
-            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+            AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
         }
         else
         {
-            tokens.Add(Token(SyntaxKind.FileKeyword));
+            tokens.Add(FileKeyword);
         }
 
         if (namedType.IsStatic)
         {
-            tokens.Add(Token(SyntaxKind.StaticKeyword));
+            tokens.Add(StaticKeyword);
         }
         else
         {
             if (namedType.TypeKind == TypeKind.Class)
             {
                 if (namedType.IsAbstract)
-                {
-                    tokens.Add(Token(SyntaxKind.AbstractKeyword));
-                }
+                    tokens.Add(AbstractKeyword);
 
                 if (namedType.IsSealed)
-                {
-                    tokens.Add(Token(SyntaxKind.SealedKeyword));
-                }
+                    tokens.Add(SealedKeyword);
             }
         }
 
         if (namedType.IsReadOnly)
-        {
-            tokens.Add(Token(SyntaxKind.ReadOnlyKeyword));
-        }
+            tokens.Add(ReadOnlyKeyword);
 
         if (namedType.IsRefLikeType)
-        {
-            tokens.Add(Token(SyntaxKind.RefKeyword));
-        }
+            tokens.Add(RefKeyword);
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return [.. tokens];
     }
 
     private static TypeParameterListSyntax? GenerateTypeParameterList(

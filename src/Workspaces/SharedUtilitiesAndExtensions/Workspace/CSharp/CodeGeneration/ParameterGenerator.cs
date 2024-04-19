@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class ParameterGenerator
@@ -44,10 +45,10 @@ internal static class ParameterGenerator
         bool isExplicit,
         CSharpCodeGenerationContextInfo info)
     {
-        using var _ = ArrayBuilder<ParameterSyntax>.GetInstance(out var result);
         var seenOptional = false;
         var isFirstParam = true;
 
+        var result = new FixedSizeArrayBuilder<ParameterSyntax>(parameterDefinitions.Length);
         foreach (var p in parameterDefinitions)
         {
             var parameter = GetParameter(p, info, isExplicit, isFirstParam, seenOptional);
@@ -56,7 +57,7 @@ internal static class ParameterGenerator
             isFirstParam = false;
         }
 
-        return result.ToImmutable();
+        return result.MoveToImmutable();
     }
 
     internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CSharpCodeGenerationContextInfo info, bool isExplicit, bool isFirstParam, bool seenOptional)
@@ -81,12 +82,12 @@ internal static class ParameterGenerator
             parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
             methodSymbol.IsExtensionMethod)
         {
-            list = list.Add(Token(SyntaxKind.ThisKeyword));
+            list = list.Add(ThisKeyword);
         }
 
         if (parameter.IsParams)
         {
-            list = list.Add(Token(SyntaxKind.ParamsKeyword));
+            list = list.Add(ParamsKeyword);
         }
 
         return list;

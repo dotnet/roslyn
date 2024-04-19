@@ -533,35 +533,27 @@ internal sealed partial class ProjectSystemProject
                     solutionChanges,
                     documentFileNamesAdded,
                     documentsToOpen,
-                    (s, documents) => s.AddDocuments(documents),
+                    static (s, documents) => s.AddDocuments(documents),
                     WorkspaceChangeKind.DocumentAdded,
-                    (s, ids) => s.RemoveDocuments(ids),
+                    static (s, ids) => s.RemoveDocuments(ids),
                     WorkspaceChangeKind.DocumentRemoved);
 
                 _additionalFiles.UpdateSolutionForBatch(
                     solutionChanges,
                     documentFileNamesAdded,
                     additionalDocumentsToOpen,
-                    (s, documents) =>
-                    {
-                        foreach (var document in documents)
-                        {
-                            s = s.AddAdditionalDocument(document);
-                        }
-
-                        return s;
-                    },
+                    static (s, documents) => s.AddAdditionalDocuments(documents),
                     WorkspaceChangeKind.AdditionalDocumentAdded,
-                    (s, ids) => s.RemoveAdditionalDocuments(ids),
+                    static (s, ids) => s.RemoveAdditionalDocuments(ids),
                     WorkspaceChangeKind.AdditionalDocumentRemoved);
 
                 _analyzerConfigFiles.UpdateSolutionForBatch(
                     solutionChanges,
                     documentFileNamesAdded,
                     analyzerConfigDocumentsToOpen,
-                    (s, documents) => s.AddAnalyzerConfigDocuments(documents),
+                    static (s, documents) => s.AddAnalyzerConfigDocuments(documents),
                     WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
-                    (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
+                    static (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
                     WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
                 // Metadata reference removing. Do this before adding in case this removes a project reference that

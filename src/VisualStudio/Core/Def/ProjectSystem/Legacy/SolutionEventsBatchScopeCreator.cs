@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -23,28 +24,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 /// </summary> 
 /// <remarks>All members of this class are affinitized to the UI thread.</remarks>
 [Export(typeof(SolutionEventsBatchScopeCreator))]
-internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffinitizedObject
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SolutionEventsBatchScopeCreator(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
 {
     private readonly List<(ProjectSystemProject project, IVsHierarchy hierarchy, ProjectSystemProject.BatchScope batchScope)> _fullSolutionLoadScopes = new List<(ProjectSystemProject, IVsHierarchy, ProjectSystemProject.BatchScope)>();
 
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+
     private uint? _runningDocumentTableEventsCookie;
-
-    private readonly IServiceProvider _serviceProvider;
-
     private bool _isSubscribedToSolutionEvents = false;
     private bool _solutionLoaded = false;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SolutionEventsBatchScopeCreator(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-        : base(threadingContext, assertIsForeground: false)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
     public void StartTrackingProject(ProjectSystemProject project, IVsHierarchy hierarchy)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         EnsureSubscribedToSolutionEvents();
 
@@ -58,7 +53,7 @@ internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffiniti
 
     public void StopTrackingProject(ProjectSystemProject project)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         foreach (var scope in _fullSolutionLoadScopes)
         {
@@ -75,7 +70,7 @@ internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffiniti
 
     private void StopTrackingAllProjects()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         foreach (var (_, _, batchScope) in _fullSolutionLoadScopes)
         {
@@ -89,7 +84,7 @@ internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffiniti
 
     private void StopTrackingAllProjectsMatchingHierarchy(IVsHierarchy hierarchy)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
         {
@@ -108,7 +103,7 @@ internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffiniti
 
     private void EnsureSubscribedToSolutionEvents()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (_isSubscribedToSolutionEvents)
         {
@@ -139,7 +134,7 @@ internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffiniti
 
     private void EnsureSubscribedToRunningDocumentTableEvents()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (_runningDocumentTableEventsCookie.HasValue)
         {
@@ -156,7 +151,7 @@ internal sealed class SolutionEventsBatchScopeCreator : ForegroundThreadAffiniti
 
     private void EnsureUnsubscribedFromRunningDocumentTableEventsIfNoLongerNeeded()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (!_runningDocumentTableEventsCookie.HasValue)
         {

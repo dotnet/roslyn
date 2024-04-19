@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var config = _analyzerConfigs[analyzerConfigIndex];
 
-                if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
+                if (PathUtilities.IsSameDirectoryOrChildOf(normalizedPath, config.NormalizedDirectory, StringComparison.Ordinal))
                 {
                     // If this config is a root config, then clear earlier options since they don't apply
                     // to this source file.

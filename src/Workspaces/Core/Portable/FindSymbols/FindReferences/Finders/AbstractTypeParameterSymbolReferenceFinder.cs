@@ -59,7 +59,7 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
                     result.Add(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken));
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 }

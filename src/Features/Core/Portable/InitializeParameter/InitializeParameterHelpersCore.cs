@@ -31,7 +31,7 @@ internal static class InitializeParameterHelpersCore
                 siblings.Add((method.Parameters[i], before: false));
         }
 
-        return siblings.ToImmutable();
+        return siblings.ToImmutableAndClear();
     }
 
     public static bool IsParameterReference(IOperation? operation, IParameterSymbol parameter)

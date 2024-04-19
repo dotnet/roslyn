@@ -78,10 +78,9 @@ internal sealed partial class RenameTrackingTaggerProvider(
                 if (textBuffer == null)
                 {
                     var ex = new InvalidOperationException(string.Format(
-                        "document with name {0} is open but textBuffer is null. Textcontainer is of type {1}. SourceText is: {2}",
+                        "document with name {0} is open but textBuffer is null. Textcontainer is of type {1}.",
                         document.Name,
-                        text.Container.GetType().FullName,
-                        text.ToString()));
+                        text.Container.GetType().FullName));
                     FatalError.ReportAndCatch(ex);
                     return false;
                 }

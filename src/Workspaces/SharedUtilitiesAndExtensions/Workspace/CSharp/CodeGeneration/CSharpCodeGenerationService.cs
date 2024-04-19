@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService<CSharpCodeGenerationContextInfo>
@@ -614,7 +615,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
     {
         if (anonymousFunctionSyntax.ExpressionBody is ExpressionSyntax expressionBody)
         {
-            var semicolonToken = Token(SyntaxKind.SemicolonToken);
+            var semicolonToken = SemicolonToken;
             if (expressionBody.TryConvertToStatement(semicolonToken, createReturnStatementForExpression: false, out var statement))
             {
                 var block = Block(statement);
@@ -728,14 +729,12 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
 
     public override TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, IEnumerable<SyntaxToken> newModifiers, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
-        SyntaxTokenList computeNewModifiersList(SyntaxTokenList modifiersList) => newModifiers.ToSyntaxTokenList();
-        return UpdateDeclarationModifiers(declaration, computeNewModifiersList);
+        return UpdateDeclarationModifiers(declaration, _ => [.. newModifiers]);
     }
 
     public override TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccessibility, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
-        SyntaxTokenList computeNewModifiersList(SyntaxTokenList modifiersList) => UpdateDeclarationAccessibility(modifiersList, newAccessibility, info);
-        return UpdateDeclarationModifiers(declaration, computeNewModifiersList);
+        return UpdateDeclarationModifiers(declaration, modifiersList => UpdateDeclarationAccessibility(modifiersList, newAccessibility, info));
     }
 
     private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CSharpCodeGenerationContextInfo info)
