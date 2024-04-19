@@ -35,7 +35,7 @@ internal static partial class DependentProjectsFinder
     {
         // namespaces are visible in all projects.
         if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
-            return projects.ToImmutableArray();
+            return [.. projects];
 
         var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
         return dependentProjects.WhereAsArray(projects.Contains);
@@ -84,7 +84,7 @@ internal static partial class DependentProjectsFinder
             result.AddRange(filteredProjects.Select(p => p.project));
         }
 
-        return result.ToImmutableArray();
+        return [.. result];
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ internal static partial class DependentProjectsFinder
         // further submissions can bind to them.
         await AddSubmissionDependentProjectsAsync(solution, symbolOrigination.sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
 
-        return dependentProjects.ToImmutableArray();
+        return [.. dependentProjects];
     }
 
     private static async Task AddSubmissionDependentProjectsAsync(

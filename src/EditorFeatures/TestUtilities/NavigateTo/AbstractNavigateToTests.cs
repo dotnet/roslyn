@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected static void VerifyNavigateToResultItems(
             List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
-            expecteditems = expecteditems.OrderBy(i => i.Name).ToList();
+            expecteditems = [.. expecteditems.OrderBy(i => i.Name)];
             items = items.OrderBy(i => i.Name).ToList();
 
             Assert.Equal(expecteditems.Count(), items.Count());
