@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -59,15 +60,20 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
         return result.ToImmutableAndClear();
     }
 
-    protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected override Task DetermineDocumentsToSearchAsync<TData>(
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult(project.Documents.ToImmutableArray());
+        foreach (var document in project.Documents)
+            processResult(document, processResultData);
+
+        return Task.CompletedTask;
     }
 
     protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

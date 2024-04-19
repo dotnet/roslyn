@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,26 +24,29 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
     protected sealed override bool CanFind(TSymbol symbol)
         => true;
 
-    protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
         TSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         var location = symbol.Locations.FirstOrDefault();
         if (location == null || !location.IsInSource)
-            return SpecializedTasks.EmptyImmutableArray<Document>();
+            return Task.CompletedTask;
 
         var document = project.GetDocument(location.SourceTree);
         if (document == null)
-            return SpecializedTasks.EmptyImmutableArray<Document>();
+            return Task.CompletedTask;
 
         if (documents != null && !documents.Contains(document))
-            return SpecializedTasks.EmptyImmutableArray<Document>();
+            return Task.CompletedTask;
 
-        return Task.FromResult(ImmutableArray.Create(document));
+        processResult(document, processResultData);
+        return Task.CompletedTask;
     }
 
     protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

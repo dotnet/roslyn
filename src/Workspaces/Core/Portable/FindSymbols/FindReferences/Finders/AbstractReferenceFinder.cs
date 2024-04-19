@@ -24,14 +24,17 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public const string ContainingTypeInfoPropertyName = "ContainingTypeInfo";
     public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
+    protected static readonly Action<Document, HashSet<Document>> StandardHashSetAddCallback =
+        static (doc, set) => set.Add(doc);
+
     public abstract Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
         ISymbol symbol, Project project, CancellationToken cancellationToken);
 
     public abstract ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    public abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-        ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+    public abstract Task DetermineDocumentsToSearchAsync<TData>(
+        ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
     public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
         ISymbol symbol, FindReferencesDocumentState state, FindReferencesSearchOptions options, CancellationToken cancellationToken);
@@ -81,11 +84,13 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         return name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out result);
     }
 
-    protected static async Task<ImmutableArray<Document>> FindDocumentsAsync<T>(
+    protected static async Task FindDocumentsAsync<T, TData>(
         Project project,
         IImmutableSet<Document>? scope,
         Func<Document, T, CancellationToken, ValueTask<bool>> predicateAsync,
         T value,
+        Action<Document, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         // special case for highlight references
@@ -93,31 +98,30 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         {
             var document = scope.First();
             if (document.Project == project)
-                return [.. scope];
+                processResult(document, processResultData);
 
-            return [];
+            return;
         }
 
-        using var _ = ArrayBuilder<Document>.GetInstance(out var documents);
         foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
         {
             if (scope != null && !scope.Contains(document))
                 continue;
 
             if (await predicateAsync(document, value, cancellationToken).ConfigureAwait(false))
-                documents.Add(document);
+                processResult(document, processResultData);
         }
-
-        return documents.ToImmutableAndClear();
     }
 
     /// <summary>
     /// Finds all the documents in the provided project that contain the requested string
     /// values
     /// </summary>
-    protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
+    protected static Task FindDocumentsAsync<TData>(
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken,
         params string[] values)
     {
@@ -130,30 +134,32 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             }
 
             return true;
-        }, values, cancellationToken);
+        }, values, processResult, processResultData, cancellationToken);
     }
 
     /// <summary>
     /// Finds all the documents in the provided project that contain a global attribute in them.
     /// </summary>
-    protected static Task<ImmutableArray<Document>> FindDocumentsWithGlobalSuppressMessageAttributeAsync(
-        Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
+    protected static Task FindDocumentsWithGlobalSuppressMessageAttributeAsync<TData>(
+        Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
-            project, documents, static index => index.ContainsGlobalSuppressMessageAttribute, cancellationToken);
+            project, documents, static index => index.ContainsGlobalSuppressMessageAttribute, processResult, processResultData, cancellationToken);
     }
 
-    protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
+    protected static Task FindDocumentsAsync<TData>(
         Project project,
         IImmutableSet<Document>? documents,
         PredefinedType predefinedType,
+        Action<Document, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         if (predefinedType == PredefinedType.None)
-            return SpecializedTasks.EmptyImmutableArray<Document>();
+            return Task.CompletedTask;
 
         return FindDocumentsWithPredicateAsync(
-            project, documents, static (index, predefinedType) => index.ContainsPredefinedType(predefinedType), predefinedType, cancellationToken);
+            project, documents, static (index, predefinedType) => index.ContainsPredefinedType(predefinedType), predefinedType, processResult, processResultData, cancellationToken);
     }
 
     protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
@@ -327,35 +333,41 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         return allAliasReferences.ToImmutableAndClear();
     }
 
-    protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync<T>(
+    protected static Task FindDocumentsWithPredicateAsync<T, TData>(
         Project project,
         IImmutableSet<Document>? documents,
         Func<SyntaxTreeIndex, T, bool> predicate,
         T value,
+        Action<Document, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         return FindDocumentsAsync(project, documents, static async (d, t, c) =>
         {
             var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
             return t.predicate(info, t.value);
-        }, (predicate, value), cancellationToken);
+        }, (predicate, value), processResult, processResultData, cancellationToken);
     }
 
-    protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(
+    protected static Task FindDocumentsWithPredicateAsync<TData>(
         Project project,
         IImmutableSet<Document>? documents,
         Func<SyntaxTreeIndex, bool> predicate,
+        Action<Document, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
             project, documents,
             static (info, predicate) => predicate(info),
             predicate,
+            processResult,
+            processResultData,
             cancellationToken);
     }
 
-    protected static Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
-        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsForEachStatement, cancellationToken);
+    protected static Task FindDocumentsWithForEachStatementsAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsForEachStatement, processResult, processResultData, cancellationToken);
 
     /// <summary>
     /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
@@ -824,8 +836,9 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
 {
     protected abstract bool CanFind(TSymbol symbol);
 
-    protected abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected abstract Task DetermineDocumentsToSearchAsync<TData>(
         TSymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
     protected abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
@@ -845,13 +858,15 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
             : SpecializedTasks.EmptyImmutableArray<string>();
     }
 
-    public sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    public sealed override Task DetermineDocumentsToSearchAsync<TData>(
         ISymbol symbol, HashSet<string>? globalAliases, Project project,
-        IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        IImmutableSet<Document>? documents, Action<Document, TData> processResult,
+        TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
-        return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-            ? DetermineDocumentsToSearchAsync(typedSymbol, globalAliases, project, documents, options, cancellationToken)
-            : SpecializedTasks.EmptyImmutableArray<Document>();
+        if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
+            return DetermineDocumentsToSearchAsync(typedSymbol, globalAliases, project, documents, processResult, processResultData, options, cancellationToken);
+
+        return Task.CompletedTask;
     }
 
     public sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

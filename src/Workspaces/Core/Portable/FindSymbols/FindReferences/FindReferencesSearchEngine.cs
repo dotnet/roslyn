@@ -190,6 +190,9 @@ internal partial class FindReferencesSearchEngine
         using var _2 = PooledDictionary<Document, MetadataUnifyingSymbolHashSet>.GetInstance(out var documentToSymbols);
         try
         {
+            // scratch hashset to place results in. Populated/inspected/cleared in inner loop.
+            using var _3 = PooledHashSet<Document>.GetInstance(out var foundDocuments);
+
             await AddGlobalAliasesAsync(project, allSymbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
 
             foreach (var symbol in allSymbols)
@@ -198,18 +201,23 @@ internal partial class FindReferencesSearchEngine
 
                 foreach (var finder in _finders)
                 {
-                    var documents = await finder.DetermineDocumentsToSearchAsync(
-                        symbol, globalAliases, project, _documents, _options, cancellationToken).ConfigureAwait(false);
+                    await finder.DetermineDocumentsToSearchAsync(
+                        symbol, globalAliases, project, _documents,
+                        static (doc, documents) => documents.Add(doc),
+                        foundDocuments,
+                        _options, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var document in documents)
+                    foreach (var document in foundDocuments)
                     {
                         var docSymbols = GetSymbolSet(documentToSymbols, document);
                         docSymbols.Add(symbol);
                     }
+
+                    foundDocuments.Clear();
                 }
             }
 
-            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            using var _4 = ArrayBuilder<Task>.GetInstance(out var tasks);
             foreach (var (document, docSymbols) in documentToSymbols)
             {
                 tasks.Add(CreateWorkAsync(() => ProcessDocumentAsync(
