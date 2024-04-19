@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             return builder.ToString();
         }
 
-        private static void Test(bool isCaseSensitive)
+        [Theory, CombinatorialData]
+        public void Test(bool isCaseSensitive)
         {
             var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
             var strings = new HashSet<string>(GenerateStrings(2000).Skip(500).Take(1000), comparer);
@@ -78,14 +79,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Assert.True(falsePositivePercentage < (d * 1.5), string.Format("falsePositivePercentage={0}, d={1}", falsePositivePercentage, d));
             }
         }
-
-        [Fact]
-        public void Test1()
-            => Test(isCaseSensitive: true);
-
-        [Fact]
-        public void TestInsensitive()
-            => Test(isCaseSensitive: false);
 
         [Fact]
         public void TestEmpty()
@@ -202,6 +195,78 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
                 var falsePositivePercentage = incorrectCount / (correctCount + incorrectCount);
                 Assert.True(falsePositivePercentage < (d * 1.5), string.Format("falsePositivePercentage={0}, d={1}", falsePositivePercentage, d));
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void TestCacheCorrectness(bool isCaseSensitive)
+        {
+            var allStringsToTest = GenerateStrings(100_000);
+
+            var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+            var strings1 = new HashSet<string>(GenerateStrings(1_000), comparer);
+            var strings2 = new HashSet<string>(GenerateStrings(1_000).Where((s, i) => i % 1 == 0), comparer);
+            var strings3 = new HashSet<string>(GenerateStrings(1_000).Where((s, i) => i % 1 == 1), comparer);
+            var strings4 = new HashSet<string>(GenerateStrings(10_000), comparer);
+            var strings5 = new HashSet<string>(GenerateStrings(10_000).Where((s, i) => i % 1 == 0), comparer);
+            var strings6 = new HashSet<string>(GenerateStrings(10_000).Where((s, i) => i % 1 == 1), comparer);
+            var strings7 = new HashSet<string>(GenerateStrings(100_000), comparer);
+            var strings8 = new HashSet<string>(GenerateStrings(100_000).Where((s, i) => i % 1 == 0), comparer);
+            var strings9 = new HashSet<string>(GenerateStrings(100_000).Where((s, i) => i % 1 == 1), comparer);
+
+            // Try the patterns where we're searching smaller filters then larger ones.  Then the pattern of larger ones then smaller ones.
+            var allHashSetsForwards = new[] { strings1, strings2, strings3, strings4, strings5, strings6, strings7, strings8, strings9 };
+            var allHashSetsInReverse = new[] { strings9, strings8, strings7, strings6, strings5, strings4, strings3, strings2, strings1 };
+
+            foreach (var allHashSets in new[] { allHashSetsForwards, allHashSetsInReverse })
+            {
+                // Try several different probability levels to ensure we maintain the correct false positive rate. We
+                // must always preserve the true 0 negative rate.
+                for (var d = 0.1; d >= 0.0001; d /= 10)
+                {
+                    // Get a bloom filter for each set of strings.
+                    var allFilters = allHashSets.Select(s => new BloomFilter(d, isCaseSensitive, s)).ToArray();
+
+                    // The double array stores the correct/incorrect count per run.
+                    var allCounts = allHashSets.Select(_ => new double[2]).ToArray();
+
+                    // We want to take each string, and test it against each bloom filter.  This will ensure that the caches
+                    // we have when computing against one bloom filter don't infect the results of the other bloom filters.
+                    foreach (var test in allStringsToTest)
+                    {
+                        for (var i = 0; i < allHashSets.Length; i++)
+                        {
+                            var strings = allHashSets[i];
+                            var filter = allFilters[i];
+                            var counts = allCounts[i];
+                            var actualContains = strings.Contains(test);
+                            var filterContains = filter.ProbablyContains(test);
+
+                            // if the filter says no, then it can't be in the real set.
+                            if (!filterContains)
+                                Assert.False(actualContains);
+
+                            if (actualContains == filterContains)
+                            {
+                                counts[0]++;
+                            }
+                            else
+                            {
+                                counts[1]++;
+                            }
+                        }
+                    }
+
+                    // Now validate for this set of bloom filters, and this particular probability level, that all the
+                    // rates remain correct for each bloom filter.
+                    foreach (var counts in allCounts)
+                    {
+                        var correctCount = counts[0];
+                        var incorrectCount = counts[1];
+                        var falsePositivePercentage = incorrectCount / (correctCount + incorrectCount);
+                        Assert.True(falsePositivePercentage < (d * 1.5), string.Format("falsePositivePercentage={0}, d={1}", falsePositivePercentage, d));
+                    }
+                }
             }
         }
 
