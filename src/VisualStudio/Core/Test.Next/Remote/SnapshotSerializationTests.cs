@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var serializer = document.Project.Solution.Services.GetService<ISerializerService>();
 
             var text = await document.GetTextAsync().ConfigureAwait(false);
-            var source = serializer.CreateChecksum(new SerializableSourceText(text, text.GetContentHash()), CancellationToken.None);
+            var source = new SerializableSourceText(text, text.GetContentHash()).ContentChecksum;
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
             var analyzer = serializer.CreateChecksum(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing"), new MissingAnalyzerLoader()), CancellationToken.None);
 
@@ -693,7 +693,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
             var recovered = serializer.Deserialize(asset.Kind, reader, CancellationToken.None);
-            var assetFromStorage = new SolutionAsset(serializer.CreateChecksum(recovered, CancellationToken.None), recovered);
+            var checksum = recovered is SerializableSourceText text ? text.ContentChecksum : serializer.CreateChecksum(recovered, CancellationToken.None);
+
+            var assetFromStorage = new SolutionAsset(checksum, recovered);
 
             Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
             return assetFromStorage;

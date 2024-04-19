@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -22,33 +23,31 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
         return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, arity: 0, cancellationToken);
     }
 
-    protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
         INamespaceSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-
-        result.AddRange(!symbol.IsGlobalNamespace
-            ? await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false)
-            : await FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsGlobalKeyword, cancellationToken).ConfigureAwait(false));
+        if (!symbol.IsGlobalNamespace)
+            await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        else
+            await FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsGlobalKeyword, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (globalAliases != null)
         {
             foreach (var globalAlias in globalAliases)
             {
-                result.AddRange(await FindDocumentsAsync(
-                    project, documents, cancellationToken, globalAlias).ConfigureAwait(false));
+                await FindDocumentsAsync(
+                    project, documents, processResult, processResultData, cancellationToken, globalAlias).ConfigureAwait(false);
             }
         }
 
-        var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
-        result.AddRange(documentsWithGlobalAttributes);
-
-        return result.ToImmutableAndClear();
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
