@@ -451,7 +451,7 @@ internal partial class SerializerService
         return metadata;
     }
 
-    private (ITemporaryStreamStorageInternal storage, long length) GetTemporaryStorage(
+    private (TemporaryStorageHandle handle, long length) GetTemporaryStorage(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
