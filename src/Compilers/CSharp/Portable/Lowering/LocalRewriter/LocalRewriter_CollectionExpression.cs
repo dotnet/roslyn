@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .Construct([elementType]);
                 var constructor = spanRefConstructor.AsMember(spanType);
                 var element = VisitExpression((BoundExpression)elements[0]);
-                var temp = _factory.StoreToTemp(element, out var assignment);
+                var temp = _factory.StoreToTemp(element, out var assignment, isKnownToReferToTempIfReferenceType: true);
                 locals.Add(temp.LocalSymbol);
                 var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKind.In : RefKind.Ref]);
                 return _factory.Sequence([assignment], call);
