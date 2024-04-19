@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         public void TestCacheWhenEmpty()
         {
+            BloomFilter.BloomFilterHash.ResetCachedEntry();
+
             _ = new BloomFilter(falsePositiveProbability: 0.0001, isCaseSensitive: false, []);
 
             Assert.False(BloomFilter.BloomFilterHash.TryGetCachedEntry(out _, out _));

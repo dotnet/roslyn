@@ -342,6 +342,11 @@ internal partial class BloomFilter
 
     public bool ProbablyContains(string value)
     {
+        // Request an array of immutable hashes for this input. Note that it's possible
+        // that the returned array might return a cached entry calculated by a different
+        // bloom filter and thus might have more entries than we need, but it's ok as
+        // it's guaranteed that the first _hashFunctionCount of those values are the values
+        // we would have computed had we not used the cache.
         var hashes = BloomFilterHash.GetOrCreateHashArray(value, _isCaseSensitive, _hashFunctionCount);
 
         for (var i = 0; i < _hashFunctionCount; i++)
@@ -427,12 +432,19 @@ internal partial class BloomFilter
         /// The vast majority of those bloom filters will end up hashing that string to the same values, so
         /// we put those values into a simple cache and see if it can be used before calculating.
         /// Local testing has put the hit rate of this at around 99%.
+        ///
+        /// Note that it's possible for this method to return an array from the cache longer than hashFunctionCount,
+        /// but if so, it's guaranteed that the values returned in the first hashFunctionCount entries are
+        /// the same as if the cache hadn't been used.
         /// </summary>
         public static ImmutableArray<int> GetOrCreateHashArray(string value, bool isCaseSensitive, int hashFunctionCount)
         {
             var cachedHash = s_cachedHash;
 
-            // Not an equivalency check on the hashFunctionCount as a longer array is ok.
+            // Not an equivalency check on the hashFunctionCount as a longer array is ok. This is because the
+            // values in the array are determined by value and isCaseSensitive and hashFunctionCount is simply
+            // used to determine the length of the returned array. As long as the cached entry matches the value
+            // and isCaseSensitive and is at least as long as we need, then we can use it.
             if (cachedHash == null
                 || cachedHash._isCaseSensitive != isCaseSensitive
                 || cachedHash._hashes.Length < hashFunctionCount
@@ -462,6 +474,11 @@ internal partial class BloomFilter
             value = cachedHash._value;
 
             return true;
+        }
+
+        internal static void ResetCachedEntry()
+        {
+            s_cachedHash = null;
         }
     }
 }
