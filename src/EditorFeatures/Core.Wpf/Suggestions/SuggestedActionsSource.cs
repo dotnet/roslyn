@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 async Task<string?> GetFixLevelAsync()
                 {
                     // Ensure we yield the thread that called into us, allowing it to continue onwards.
-                    await TaskScheduler.Default;
+                    await TaskScheduler.Default.SwitchTo(alwaysYield: true);
                     var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
 
                     foreach (var order in Orderings)
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(TextSpan? selection)
                 {
                     // Ensure we yield the thread that called into us, allowing it to continue onwards.
-                    await TaskScheduler.Default;
+                    await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
                     if (!selection.HasValue)
                     {
