@@ -16719,6 +16719,108 @@ public class Helper
         }
 
         [Fact]
+        public void IllegalBoxing_04()
+        {
+            var src = @"
+ref struct S
+{
+}
+
+public class Helper
+{
+    static object Test1<T>(T x)
+        where T : struct, allows ref struct
+    {
+        return x;
+    }
+
+    static object Test2(S x)
+    {
+        return x;
+    }
+
+    static object Test3<T>(T x)
+        where T : struct, allows ref struct
+    {
+        return (object)x;
+    }
+
+    static object Test4(S x)
+    {
+        return (object)x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS0029: Cannot implicitly convert type 'T' to 'object'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "object").WithLocation(11, 16),
+                // (16,16): error CS0029: Cannot implicitly convert type 'S' to 'object'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("S", "object").WithLocation(16, 16),
+                // (22,16): error CS0030: Cannot convert type 'T' to 'object'
+                //         return (object)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)x").WithArguments("T", "object").WithLocation(22, 16),
+                // (27,16): error CS0030: Cannot convert type 'S' to 'object'
+                //         return (object)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)x").WithArguments("S", "object").WithLocation(27, 16)
+                );
+        }
+
+        [Fact]
+        public void IllegalBoxing_05()
+        {
+            var src = @"
+interface I1 {}
+
+ref struct S : I1
+{
+}
+
+public class Helper
+{
+    static I1 Test1<T>(T x)
+        where T : I1, allows ref struct
+    {
+        return x;
+    }
+
+    static I1 Test2(S x)
+    {
+        return x;
+    }
+
+    static I1 Test3<T>(T x)
+        where T : I1, allows ref struct
+    {
+        return (I1)x;
+    }
+
+    static I1 Test4(S x)
+    {
+        return (I1)x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS0029: Cannot implicitly convert type 'T' to 'I1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "I1").WithLocation(13, 16),
+                // (18,16): error CS0029: Cannot implicitly convert type 'S' to 'I1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("S", "I1").WithLocation(18, 16),
+                // (24,16): error CS0030: Cannot convert type 'T' to 'I1'
+                //         return (I1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(I1)x").WithArguments("T", "I1").WithLocation(24, 16),
+                // (29,16): error CS0030: Cannot convert type 'S' to 'I1'
+                //         return (I1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(I1)x").WithArguments("S", "I1").WithLocation(29, 16)
+                );
+        }
+
+        [Fact]
         public void Unboxing_01()
         {
             var src = @"
@@ -16805,21 +16907,142 @@ public class Helper
         where T : allows ref struct
         where U : T
     {
+#line 100
         return x;
     }
     static U Test2<T, U>(T x)
         where T : allows ref struct
         where U : T
     {
+#line 200
         return (U)x;
+        // Not a legal IL according to https://github.com/dotnet/runtime/blob/main/docs/design/features/byreflike-generics.md 
+        // IL_0000:  ldarg.0
+        // IL_0001:  box        ""T""
+        // IL_0006:  unbox.any  ""U""
+        // IL_000b:  ret
+    }
+
+    static U Test3<T, U>(T x)
+        where T : allows ref struct
+        where U : class, T
+    {
+#line 300
+        return x;
+    }
+    static U Test4<T, U>(T x)
+        where T : allows ref struct
+        where U : class, T
+    {
+#line 400
+        return (U)x;
+        // Not a legal IL according to https://github.com/dotnet/runtime/blob/main/docs/design/features/byreflike-generics.md 
+        // IL_0000:  ldarg.0
+        // IL_0001:  box        ""T""
+        // IL_0006:  unbox.any  ""U""
+        // IL_000b:  ret
+    }
+
+    static T Test5<T, U>(U y)
+        where T : allows ref struct
+        where U : T
+    {
+#line 500
+        return y;
+    }
+    static T Test6<T, U>(U y)
+        where T : allows ref struct
+        where U : T
+    {
+#line 600
+        return (T)y;
+        // Not a legal IL according to https://github.com/dotnet/runtime/blob/main/docs/design/features/byreflike-generics.md 
+        // IL_0000:  ldarg.0
+        // IL_0001:  box        ""U""
+        // IL_0006:  unbox.any  ""T""
+        // IL_000b:  ret
+    }
+
+    static T Test7<T, U>(U y)
+        where T : allows ref struct
+        where U : class, T
+    {
+#line 700
+        return y;
+    }
+    static T Test8<T, U>(U y)
+        where T : allows ref struct
+        where U : class, T
+    {
+#line 800
+        return (T)y;
+        // Not a legal IL according to https://github.com/dotnet/runtime/blob/main/docs/design/features/byreflike-generics.md 
+        // IL_0000:  ldarg.0
+        // IL_0001:  box        ""U""
+        // IL_0006:  unbox.any  ""T""
+        // IL_000b:  ret
     }
 }
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyDiagnostics(
-                // (12,16): error CS0266: Cannot implicitly convert type 'T' to 'U'. An explicit conversion exists (are you missing a cast?)
+                // (100,16): error CS0029: Cannot implicitly convert type 'T' to 'U'
                 //         return x;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("T", "U").WithLocation(12, 16)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "U").WithLocation(100, 16),
+                // (200,16): error CS0030: Cannot convert type 'T' to 'U'
+                //         return (U)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)x").WithArguments("T", "U").WithLocation(200, 16),
+                // (300,16): error CS0029: Cannot implicitly convert type 'T' to 'U'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "U").WithLocation(300, 16),
+                // (400,16): error CS0030: Cannot convert type 'T' to 'U'
+                //         return (U)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)x").WithArguments("T", "U").WithLocation(400, 16),
+                // (500,16): error CS0029: Cannot implicitly convert type 'U' to 'T'
+                //         return y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("U", "T").WithLocation(500, 16),
+                // (600,16): error CS0030: Cannot convert type 'U' to 'T'
+                //         return (T)y;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)y").WithArguments("U", "T").WithLocation(600, 16),
+                // (700,16): error CS0029: Cannot implicitly convert type 'U' to 'T'
+                //         return y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("U", "T").WithLocation(700, 16),
+                // (800,16): error CS0030: Cannot convert type 'U' to 'T'
+                //         return (T)y;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)y").WithArguments("U", "T").WithLocation(800, 16)
+                );
+        }
+
+        [Fact]
+        public void Unboxing_04()
+        {
+            var src = @"
+ref struct S
+{
+}
+
+public class Helper
+{
+    static T Test1<T>(object x)
+        where T : allows ref struct
+    {
+        return (T)x;
+    }
+
+    static S Test2(object x)
+    {
+        return (S)x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS0030: Cannot convert type 'object' to 'T'
+                //         return (T)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)x").WithArguments("object", "T").WithLocation(11, 16),
+                // (16,16): error CS0030: Cannot convert type 'object' to 'S'
+                //         return (S)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S)x").WithArguments("object", "S").WithLocation(16, 16)
                 );
         }
 
@@ -17454,7 +17677,7 @@ ref struct S
         [Fact]
         public void InlineArrayElement_01()
         {
-            var src = @"
+            var src1 = @"
 [System.Runtime.CompilerServices.InlineArray(10)]
 ref struct S1<T>
     where T : allows ref struct
@@ -17471,7 +17694,22 @@ ref struct S2
 ref struct S
 {
 }
+";
 
+            var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            CompileAndVerify(
+                comp1,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
+            VerifyDiagnostics(
+                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     T _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
+                // (12,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                //     S _f;
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7)
+                );
+
+            var src2 = @"
 [System.Runtime.CompilerServices.InlineArray(10)]
 struct S2<T2>
     where T2 : allows ref struct
@@ -17480,25 +17718,19 @@ struct S2<T2>
 }
 ";
 
-            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
-            comp.VerifyDiagnostics(
-                // (6,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     T _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 7),
-                // (12,7): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
-                //     S _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(12, 7),
-                // (23,5): error CS8345: Field or auto-implemented property cannot be of type 'T2' unless it is an instance member of a ref struct.
+            var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp2.VerifyDiagnostics(
+                // (6,5): error CS8345: Field or auto-implemented property cannot be of type 'T2' unless it is an instance member of a ref struct.
                 //     T2 _f;
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T2").WithArguments("T2").WithLocation(23, 5),
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "T2").WithArguments("T2").WithLocation(6, 5),
 
                 // PROTOTYPE(RefStructInterfaces): The warning below is somewhat misleading. 'S2' can be used as a type argument (it is not a ref struct) and 'T2' is a type argument. 
                 //                                 However, given the error above, this is probably not worth fixing. There is no way to declare a legal non-ref struct with a field
                 //                                 of type 'T2'.
 
-                // (23,8): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
+                // (6,8): warning CS9184: 'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.
                 //     T2 _f;
-                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(23, 8)
+                Diagnostic(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, "_f").WithLocation(6, 8)
                 );
         }
 
@@ -18158,6 +18390,400 @@ namespace System
                 comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"<>f__AnonymousDelegate0 Test1" : null,
                 verify: Verification.Skipped
                 ).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExpressionTree_01()
+        {
+            var src = @"
+public class Helper
+{
+    static void Test1<T>()
+        where T : allows ref struct
+    {
+        System.Linq.Expressions.Expression<D1<T>> e1 = (x) => System.Console.WriteLine();
+    }
+
+    static void Test2()
+    {
+        System.Linq.Expressions.Expression<D2> e2 = (y) => System.Console.WriteLine();
+    }
+
+    delegate void D1<T>(T x) where T : allows ref struct;
+    delegate void D2(S x);
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,57): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'T'.
+                //         System.Linq.Expressions.Expression<D1<T>> e1 = (x) => System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("T").WithLocation(7, 57),
+                // (12,54): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'S'.
+                //         System.Linq.Expressions.Expression<D2> e2 = (y) => System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "y").WithArguments("S").WithLocation(12, 54)
+                );
+        }
+
+        [Fact]
+        public void ExpressionTree_02()
+        {
+            var src = @"
+public class Helper1<T>
+    where T : allows ref struct
+{
+    static void Test1()
+    {
+        System.Linq.Expressions.Expression<System.Action> e1 = () => M1();
+    }
+
+    static T M1() => throw null;
+}
+
+public class Helper2
+{
+    static void Test2()
+    {
+        System.Linq.Expressions.Expression<System.Action> e2 = () => M2();
+    }
+
+    static S M2() => throw null;
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,70): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'T'.
+                //         System.Linq.Expressions.Expression<System.Action> e1 = () => M1();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "M1()").WithArguments("T").WithLocation(7, 70),
+                // (17,70): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'S'.
+                //         System.Linq.Expressions.Expression<System.Action> e2 = () => M2();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "M2()").WithArguments("S").WithLocation(17, 70)
+                );
+        }
+
+        [Fact]
+        public void InArrayType_01()
+        {
+            var src = @"
+public class Helper1<T>
+    where T : allows ref struct
+{
+    static T[] Test1()
+        => throw null;
+}
+
+public class Helper2
+{
+    static S[] Test2()
+        => throw null;
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0611: Array elements cannot be of type 'T'
+                //     static T[] Test1()
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "T").WithArguments("T").WithLocation(5, 12),
+                // (11,12): error CS0611: Array elements cannot be of type 'S'
+                //     static S[] Test2()
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(11, 12)
+                );
+        }
+
+        [Fact]
+        public void InArrayType_02()
+        {
+            var src = @"
+public class Helper1<T>
+    where T : allows ref struct
+{
+    static void Test1()
+    {
+        _ = new T[] {};
+    }
+}
+
+public class Helper2
+{
+    static void Test2()
+    {
+        _ = new S[] {};
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,17): error CS0611: Array elements cannot be of type 'T'
+                //         _ = new T[] {};
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "T").WithArguments("T").WithLocation(7, 17),
+                // (15,17): error CS0611: Array elements cannot be of type 'S'
+                //         _ = new S[] {};
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(15, 17)
+                );
+        }
+
+        [Fact]
+        public void InArrayType_03()
+        {
+            var src = @"
+public class Helper1<T>
+    where T : allows ref struct
+{
+    static void Test1(T x)
+    {
+        _ = new [] {x};
+    }
+}
+
+public class Helper2
+{
+    static void Test2(S y)
+    {
+        _ = new [] {y};
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0611: Array elements cannot be of type 'T'
+                //         _ = new [] {x};
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "new [] {x}").WithArguments("T").WithLocation(7, 13),
+                // (15,13): error CS0611: Array elements cannot be of type 'S'
+                //         _ = new [] {y};
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "new [] {y}").WithArguments("S").WithLocation(15, 13)
+                );
+        }
+
+        [Fact]
+        public void DelegateReceiver()
+        {
+            var src = @"
+class Helper1<T>
+    where T : I1, allows ref struct
+{
+    static System.Action Test1(T x)
+        => x.M;
+}
+
+class Helper2
+{
+    static System.Action Test2(S y)
+        => y.M;
+}
+
+ref struct S
+{
+    public void M(){}
+}
+
+interface I1
+{
+    void M();
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS0123: No overload for 'M' matches delegate 'Action'
+                //         => x.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(6, 14),
+                // (12,14): error CS0123: No overload for 'M' matches delegate 'Action'
+                //         => y.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(12, 14)
+                );
+        }
+
+        [Fact]
+        public void ConditionalAccess_01()
+        {
+            var src = @"
+class Helper1<T>
+    where T : struct, allows ref struct
+{
+    static void Test1(Helper1<T> h1)
+    {
+        var x = h1?.M1();
+    }
+
+    T M1() => default;
+}
+
+class Helper2
+{
+    static void Test2(Helper2 h2)
+    {
+        var x = h2?.M2();
+    }
+
+    S M2() => default;
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8978: 'T' cannot be made nullable.
+                //         var x = h1?.M1();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M1()").WithArguments("T").WithLocation(7, 20),
+                // (17,20): error CS8978: 'S' cannot be made nullable.
+                //         var x = h2?.M2();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M2()").WithArguments("S").WithLocation(17, 20)
+                );
+        }
+
+        [Fact]
+        public void ConditionalAccess_02()
+        {
+            var src = @"
+class Helper1<T>
+    where T : struct, allows ref struct
+{
+    public static void Test1(Helper1<T> h1)
+    {
+        h1?.M1();
+    }
+
+    T M1()
+    {
+        System.Console.Write(""M1"");
+        return default;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(null);
+        System.Console.Write(""_"");
+        Helper1<S>.Test1(new Helper1<S>());
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "_M1" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(Helper1<T>)",
+@"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000a
+  IL_0003:  ldarg.0
+  IL_0004:  call       ""T Helper1<T>.M1()""
+  IL_0009:  pop
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DynamicAccess_01()
+        {
+            var src = @"
+class Helper1<T>
+    where T : struct, allows ref struct
+{
+    static void Test1(dynamic h1)
+    {
+        h1.M1<T>();
+    }
+}
+
+class Helper2
+{
+    static void Test2(dynamic h2)
+    {
+        h2.M2<S>();
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS0306: The type 'T' may not be used as a type argument
+                //         h1.M1<T>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "T").WithArguments("T").WithLocation(7, 15),
+                // (15,15): error CS0306: The type 'S' may not be used as a type argument
+                //         h2.M2<S>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S").WithArguments("S").WithLocation(15, 15)
+                );
+        }
+
+        [Fact]
+        public void DynamicAccess_02()
+        {
+            var src = @"
+class Helper1<T>
+    where T : struct, allows ref struct
+{
+    static void Test1(dynamic h1, T x)
+    {
+        h1.M1(x);
+    }
+}
+
+class Helper2
+{
+    static void Test2(dynamic h2, S y)
+    {
+        h2.M2(y);
+    }
+}
+
+ref struct S
+{
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS1978: Cannot use an expression of type 'T' as an argument to a dynamically dispatched operation.
+                //         h1.M1(x);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "x").WithArguments("T").WithLocation(7, 15),
+                // (15,15): error CS1978: Cannot use an expression of type 'S' as an argument to a dynamically dispatched operation.
+                //         h2.M2(y);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "y").WithArguments("S").WithLocation(15, 15)
+                );
         }
     }
 }

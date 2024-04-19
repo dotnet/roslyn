@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return _container.IsDelegateType() && _container.Manager.Compilation.SourceAssembly.RuntimeSupportsByRefLikeGenerics;
+                    return _container.IsDelegateType() && ContainingAssembly.RuntimeSupportsByRefLikeGenerics;
                 }
             }
 
