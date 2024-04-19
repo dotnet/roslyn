@@ -56,8 +56,6 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
 
             using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, cancellationToken))
             {
-                var serializer = workspace.Services.GetRequiredService<ISerializerService>();
-
                 // Try to get the text associated with baseTextChecksum
                 var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
                 if (text == null)
@@ -72,9 +70,8 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
                 // the entire document.
                 var newText = text.WithChanges(textChanges);
                 var newSerializableText = new SerializableSourceText(newText, newText.GetContentHash());
-                var newChecksum = serializer.CreateChecksum(newSerializableText, cancellationToken);
 
-                WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newSerializableText);
+                WorkspaceManager.SolutionAssetCache.GetOrAdd(newSerializableText.ContentChecksum, newSerializableText);
             }
 
             return;
