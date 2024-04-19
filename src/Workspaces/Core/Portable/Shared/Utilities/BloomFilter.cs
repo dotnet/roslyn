@@ -347,8 +347,7 @@ internal partial class BloomFilter
         for (var i = 0; i < _hashFunctionCount; i++)
         {
             var hash = hashes[i];
-            var index = GetBitArrayIndexFromHash(hash);
-            if (!_bitArray[index])
+            if (!_bitArray[GetBitArrayIndexFromHash(hash)])
             {
                 return false;
             }
