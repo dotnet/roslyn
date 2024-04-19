@@ -31,10 +31,10 @@ internal interface ITemporaryStorageServiceInternal : IWorkspaceService
 /// the data to temporary storage and get a handle to it.  Use <see
 /// cref="ITemporaryStorageServiceInternal.ReadFromTemporaryStorageService"/> to read the data back in any process.
 /// </summary>
-internal sealed class TemporaryStorageHandle : IDisposable
+internal sealed class TemporaryStorageHandle(IDisposable underlyingData, TemporaryStorageIdentifier identifier) : IDisposable
 {
-    private IDisposable? _underlyingData;
-    private TemporaryStorageIdentifier? _identifier;
+    private IDisposable? _underlyingData = underlyingData;
+    private TemporaryStorageIdentifier? _identifier = identifier;
 
     public TemporaryStorageIdentifier Identifier =>  _identifier ?? throw new InvalidOperationException("Handle has already been disposed");
 

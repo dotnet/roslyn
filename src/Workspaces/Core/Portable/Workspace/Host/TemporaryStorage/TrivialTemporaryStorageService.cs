@@ -4,11 +4,12 @@
 
 using System;
 using System.IO;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -16,15 +17,33 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
 {
     public static readonly TrivialTemporaryStorageService Instance = new();
 
+    private static ConditionalWeakTable<TemporaryStorageIdentifier, StreamStorage> s_streamStorage = new();
+
     private TrivialTemporaryStorageService()
     {
     }
 
-    public ITemporaryStreamStorageInternal CreateTemporaryStreamStorage()
-        => new StreamStorage();
-
     public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
         => new TextStorage();
+
+    public TemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
+    {
+        var storage = new StreamStorage();
+        storage.WriteStream(stream, cancellationToken);
+        var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), 0, 0);
+        var handle = new TemporaryStorageHandle(storage, identifier);
+
+        return handle;
+    }
+
+    public Stream ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfFalse(
+            s_streamStorage.TryGetValue(storageIdentifier, out var streamStorage),
+            "StorageIdentifier was not created by this storage service!");
+
+        return streamStorage.ReadStream(cancellationToken);
+    }
 
     private sealed class StreamStorage : ITemporaryStreamStorageInternal
     {
@@ -45,30 +64,10 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
         }
 
-        public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ReadStream(cancellationToken));
-        }
-
         public void WriteStream(Stream stream, CancellationToken cancellationToken)
         {
             var newStream = new MemoryStream();
             stream.CopyTo(newStream);
-            var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
-            if (existingValue is not null)
-            {
-                throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
-        }
-
-        public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken)
-        {
-            var newStream = new MemoryStream();
-#if NETCOREAPP
-            await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
-# else
-            await stream.CopyToAsync(newStream).ConfigureAwait(false);
-#endif
             var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
             if (existingValue is not null)
             {
