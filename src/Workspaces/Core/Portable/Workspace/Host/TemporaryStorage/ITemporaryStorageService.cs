@@ -66,7 +66,7 @@ internal sealed class TemporaryStorageHandle(IDisposable underlyingData, Tempora
     private IDisposable? _underlyingData = underlyingData;
     private TemporaryStorageIdentifier? _identifier = identifier;
 
-    public TemporaryStorageIdentifier Identifier =>  _identifier ?? throw new InvalidOperationException("Handle has already been disposed");
+    public TemporaryStorageIdentifier Identifier => _identifier ?? throw new InvalidOperationException("Handle has already been disposed");
 
     public void Dispose()
     {
