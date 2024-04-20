@@ -2,36 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageServiceInternal), ServiceLayer.Test), Shared, PartNotDiscoverable]
-    internal sealed class TestTemporaryStorageServiceFactory : IWorkspaceServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestTemporaryStorageServiceFactory()
-        {
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => TrivialTemporaryStorageService.Instance;
-    }
+    using static SourceGeneratorTelemetryCollectorWorkspaceServiceTests;
 
     public class TestCompositionTests
     {
         [Fact]
         public void FactoryReuse()
         {
-            var composition1 = FeaturesTestCompositions.Features.AddParts(typeof(TestErrorReportingService), typeof(TestTemporaryStorageServiceFactory));
-            var composition2 = FeaturesTestCompositions.Features.AddParts(typeof(TestTemporaryStorageServiceFactory), typeof(TestErrorReportingService));
+            var composition1 = FeaturesTestCompositions.Features.AddParts(typeof(TestErrorReportingService), typeof(TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory));
+            var composition2 = FeaturesTestCompositions.Features.AddParts(typeof(TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory), typeof(TestErrorReportingService));
             Assert.Same(composition1.ExportProviderFactory, composition2.ExportProviderFactory);
         }
 
