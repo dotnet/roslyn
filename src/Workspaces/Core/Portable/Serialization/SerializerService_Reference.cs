@@ -422,7 +422,6 @@ internal partial class SerializerService
 
         var storageStream = storage.ReadStream(cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
-
         GetMetadata(storageStream, length, out var metadata, out var lifeTimeObject);
         // make sure we keep storageStream alive while Metadata is alive
         // we use conditional weak table since we can't control metadata liftetime
