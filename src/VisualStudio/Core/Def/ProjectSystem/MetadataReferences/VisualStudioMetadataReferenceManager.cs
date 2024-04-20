@@ -188,9 +188,12 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             FileKey moduleFileKey, out TemporaryStorageIdentifier storageIdentifier, out UnmanagedMemoryStream stream)
         {
             int size;
+
+            // Create a temp stream in memory to copy the metadata bytes into.
             using (var copyStream = SerializableBytes.CreateWritableStream())
             {
-                // open a file and let it go as soon as possible
+                // Open a file on disk, find the metadata section, copy those bytes into the temp stream, and release
+                // the file immediately after.
                 using (var fileStream = FileUtilities.OpenRead(moduleFileKey.FullPath))
                 {
                     var headers = new PEHeaders(fileStream);
@@ -208,13 +211,15 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                     StreamCopy(fileStream, copyStream, offset, size);
                 }
 
-                // copy over the data to temp storage and let pooled stream go
+                // Now, copy over the metadata bytes into a memory mapped file.  This will keep it fixed in a single
+                // location, so we can create a metadata value wrapping that.  This will also let us share the memory
+                // for that metadata value with our OOP process.
                 copyStream.Position = 0;
                 var handle = _temporaryStorageService.WriteToTemporaryStorage(copyStream, CancellationToken.None);
                 storageIdentifier = handle.Identifier;
             }
 
-            // get stream that owns the underlying unmanaged memory.
+            // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
             stream = _temporaryStorageService.ReadFromTemporaryStorageService(storageIdentifier, CancellationToken.None);
 
             // stream size must be same as what metadata reader said the size should be.
