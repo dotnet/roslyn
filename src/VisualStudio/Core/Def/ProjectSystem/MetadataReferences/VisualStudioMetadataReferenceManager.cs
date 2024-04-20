@@ -43,7 +43,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// the remote process, and it can map that same memory in directly, instead of needing the host to send the
     /// entire contents of the assembly over the channel to the OOP process.
     /// </summary>
-    private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_metadataToStorages = new();
+    private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageIdentifier>> s_metadataToStorageIdentifiers = new();
 
     private readonly MetadataCache _metadataCache = new();
     private readonly ImmutableArray<string> _runtimeDirectories;
@@ -86,12 +86,12 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
     }
 
-    public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
+    public IReadOnlyList<TemporaryStorageIdentifier>? GetStorageIdentifiers(string fullPath, DateTime snapshotTimestamp)
     {
         var key = new FileKey(fullPath, snapshotTimestamp);
         // check existing metadata
         if (_metadataCache.TryGetMetadata(key, out var source) &&
-            s_metadataToStorages.TryGetValue(source, out var storages))
+            s_metadataToStorageIdentifiers.TryGetValue(source, out var storages))
         {
             return storages;
         }
@@ -154,19 +154,18 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             else
             {
                 // use temporary storage
-                using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
+                using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storageIdentifiers);
                 var newMetadata = CreateAssemblyMetadata(key, key =>
                 {
                     // <exception cref="IOException"/>
                     // <exception cref="BadImageFormatException" />
-                    GetMetadataFromTemporaryStorage(key, out var storage, out var metadata);
-                    storages.Add(storage);
+                    GetMetadataFromTemporaryStorage(key, out var storageIdentifier, out var metadata);
+                    storageIdentifiers.Add(storageIdentifier);
                     return metadata;
                 });
 
-                var storagesArray = storages.ToImmutable();
 
-                s_metadataToStorages.Add(newMetadata, storagesArray);
+                s_metadataToStorageIdentifiers.Add(newMetadata, storageIdentifiers.ToImmutable());
 
                 return newMetadata;
             }
@@ -174,9 +173,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     }
 
     private void GetMetadataFromTemporaryStorage(
-        FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out ModuleMetadata metadata)
+        FileKey moduleFileKey, out TemporaryStorageIdentifier storageIdentifier, out ModuleMetadata metadata)
     {
-        GetStorageInfoFromTemporaryStorage(moduleFileKey, out storage, out var stream);
+        GetStorageInfoFromTemporaryStorage(moduleFileKey, out storageIdentifier, out var stream);
 
         unsafe
         {
@@ -187,7 +186,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         return;
 
         void GetStorageInfoFromTemporaryStorage(
-            FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
+            FileKey moduleFileKey, out TemporaryStorageIdentifier storageIdentifier, out UnmanagedMemoryStream stream)
         {
             int size;
             using (var copyStream = SerializableBytes.CreateWritableStream())
@@ -211,14 +210,13 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 }
 
                 // copy over the data to temp storage and let pooled stream go
-                storage = _temporaryStorageService.CreateTemporaryStreamStorage();
-
                 copyStream.Position = 0;
-                storage.WriteStream(copyStream, CancellationToken.None);
+                var handle = _temporaryStorageService.WriteToTemporaryStorage(copyStream, CancellationToken.None);
+                storageIdentifier = handle.Identifier;
             }
 
             // get stream that owns the underlying unmanaged memory.
-            stream = storage.ReadStream(CancellationToken.None);
+            stream = _temporaryStorageService.ReadFromTemporaryStorageService(storageIdentifier, CancellationToken.None);
 
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);

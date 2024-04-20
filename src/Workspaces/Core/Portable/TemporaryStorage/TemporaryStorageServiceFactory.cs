@@ -109,7 +109,10 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         return new(storage, identifier);
     }
 
-    public Stream ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken)
+    Stream ITemporaryStorageServiceInternal.ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken)
+        => ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
+
+    public UnmanagedMemoryStream ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken)
     {
         var storage = new TemporaryStreamStorage(this, storageIdentifier.Name, storageIdentifier.Offset, storageIdentifier.Size);
         return storage.ReadStream(cancellationToken);
@@ -315,7 +318,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         }
     }
 
-    internal sealed class TemporaryStreamStorage
+    internal sealed class TemporaryStreamStorage : IDisposable
     {
         private readonly TemporaryStorageService _service;
         private MemoryMappedInfo? _memoryMappedInfo;
