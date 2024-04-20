@@ -401,8 +401,8 @@ internal partial class SerializerService
         // Now read in the module data using that identifier.  This will either be reading from the host's memory if
         // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
         // sent us the full contents.
-        var storageStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
-        Contract.ThrowIfFalse(storageIdentifier.Size == storageStream.Length);
+        var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
+        Contract.ThrowIfFalse(storageIdentifier.Size == unmanagedStream.Length);
 
         // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
         // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
@@ -410,7 +410,7 @@ internal partial class SerializerService
         unsafe
         {
             var metadata = ModuleMetadata.CreateFromMetadata(
-                (IntPtr)storageStream.PositionPointer, (int)storageStream.Length, storageStream.Dispose);
+                (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
             return (metadata, storageIdentifier);
         }
     }
