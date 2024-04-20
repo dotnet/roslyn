@@ -375,7 +375,6 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
-
         return kind == SerializationKinds.Bits
             ? ReadModuleMetadataFromBits()
             : ReadModuleMetadataFromMemoryMappedFile();
