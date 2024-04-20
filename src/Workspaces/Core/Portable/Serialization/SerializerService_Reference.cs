@@ -345,7 +345,6 @@ internal partial class SerializerService
         {
             using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
             using var pooledStorageIdentifiers = Creator.CreateList<TemporaryStorageIdentifier>();
-
             var count = reader.ReadInt32();
             for (var i = 0; i < count; i++)
             {
