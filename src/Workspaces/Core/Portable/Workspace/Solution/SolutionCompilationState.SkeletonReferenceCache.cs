@@ -259,8 +259,9 @@ internal partial class SolutionCompilationState
 
                             // Now read the data back from the stream from the memory mapped file.  This will come back as an
                             // UnmanagedMemoryStream, which our assembly/metadata subsystem is optimized around. 
-                            return AssemblyMetadata.CreateFromStream(
+                            var result = AssemblyMetadata.CreateFromStream(
                                 temporaryStorageService.ReadFromTemporaryStorageService(handle.Identifier, cancellationToken), leaveOpen: false);
+                            GC.KeepAlive(handle);
                         }
 
                         if (logger != null)
