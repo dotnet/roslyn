@@ -362,11 +362,13 @@ internal partial class SerializerService
 
                 return (AssemblyMetadata.Create(pooledMetadata.Object), storageIdentifiers: []);
             }
-
-            Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+            else
+            {
+                Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 #pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-            return (ReadModuleMetadataFrom(reader, kind), storageIdentifiers: []);
+                return (ReadModuleMetadataFrom(reader, kind), storageIdentifiers: []);
 #pragma warning restore CA2016
+            }
         }
 
         if (metadataKind == MetadataImageKind.Assembly)
@@ -388,11 +390,13 @@ internal partial class SerializerService
 
             return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorageIdentifiers.Object.ToImmutableArrayOrEmpty());
         }
+        else
+        {
+            Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-        Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-
-        var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
-        return (moduleInfo.metadata, [moduleInfo.storageIdentifier]);
+            var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+            return (moduleInfo.metadata, [moduleInfo.storageIdentifier]);
+        }
     }
 
     private (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFrom(
