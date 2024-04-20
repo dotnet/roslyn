@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -90,18 +91,18 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
         => syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
            predefinedType == actualType;
 
-    protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        using var _1 = ArrayBuilder<FinderLocation>.GetInstance(out var result);
-
         // First just look for this normal constructor references using the name of it's containing type.
         var name = methodSymbol.ContainingType.Name;
         await AddReferencesInDocumentWorkerAsync(
-            methodSymbol, name, state, result, cancellationToken).ConfigureAwait(false);
+            methodSymbol, name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         // Next, look for constructor references through a global alias to our containing type.
         foreach (var globalAlias in state.GlobalAliases)
@@ -113,67 +114,72 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
                 continue;
 
             await AddReferencesInDocumentWorkerAsync(
-                methodSymbol, globalAlias, state, result, cancellationToken).ConfigureAwait(false);
+                methodSymbol, globalAlias, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
 
         // Nest, our containing type might itself have local aliases to it in this particular file.
         // If so, see what the local aliases are and then search for constructor references to that.
         using var _2 = ArrayBuilder<FinderLocation>.GetInstance(out var typeReferences);
         await NamedTypeSymbolReferenceFinder.AddReferencesToTypeOrGlobalAliasToItAsync(
-            methodSymbol.ContainingType, state, typeReferences, cancellationToken).ConfigureAwait(false);
+            methodSymbol.ContainingType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, typeReferences, cancellationToken).ConfigureAwait(false);
 
-        var aliasReferences = await FindLocalAliasReferencesAsync(
-            typeReferences, methodSymbol, state, cancellationToken).ConfigureAwait(false);
+        // REVIEW: This looks to go to quite a bit of work to populate aliasReferences, but never uses it?
+        using var _3 = ArrayBuilder<FinderLocation>.GetInstance(out var aliasReferences);
+        await FindLocalAliasReferencesAsync(
+            typeReferences, methodSymbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, aliasReferences, cancellationToken).ConfigureAwait(false);
 
         // Finally, look for constructor references to predefined types (like `new int()`),
         // implicit object references, and inside global suppression attributes.
-        result.AddRange(await FindPredefinedTypeReferencesAsync(
-            methodSymbol, state, cancellationToken).ConfigureAwait(false));
+        await FindPredefinedTypeReferencesAsync(
+            methodSymbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        result.AddRange(await FindReferencesInImplicitObjectCreationExpressionAsync(
-            methodSymbol, state, cancellationToken).ConfigureAwait(false));
+        await FindReferencesInImplicitObjectCreationExpressionAsync(
+            methodSymbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        result.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            methodSymbol, state, cancellationToken).ConfigureAwait(false));
-
-        return result.ToImmutableAndClear();
+        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+            methodSymbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
     /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
     /// </summary>
-    private static async Task AddReferencesInDocumentWorkerAsync(
+    private static async Task AddReferencesInDocumentWorkerAsync<TData>(
         IMethodSymbol symbol,
         string name,
         FindReferencesDocumentState state,
-        ArrayBuilder<FinderLocation> result,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
-        result.AddRange(await FindOrdinaryReferencesAsync(
-            symbol, name, state, cancellationToken).ConfigureAwait(false));
-        result.AddRange(await FindAttributeReferencesAsync(
-            symbol, name, state, cancellationToken).ConfigureAwait(false));
+        await FindOrdinaryReferencesAsync(
+            symbol, name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindAttributeReferencesAsync(
+            symbol, name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    private static ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
+    private static ValueTask FindOrdinaryReferencesAsync<TData>(
         IMethodSymbol symbol,
         string name,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         return FindReferencesInDocumentUsingIdentifierAsync(
-            symbol, name, state, cancellationToken);
+            symbol, name, state, processResult, processResultData, cancellationToken);
     }
 
-    private static ValueTask<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
+    private static ValueTask FindPredefinedTypeReferencesAsync<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
         if (predefinedType == PredefinedType.None)
-            return new([]);
+            return ValueTaskFactory.CompletedTask;
 
         var tokens = state.Root
             .DescendantTokens(descendIntoTrivia: true)
@@ -181,23 +187,27 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
                 static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
                 (state, predefinedType));
 
-        return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
+        return FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
-    private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
+    private static ValueTask FindAttributeReferencesAsync<TData>(
         IMethodSymbol symbol,
         string name,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var simpleName)
-            ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, state, cancellationToken)
-            : new([]);
+            ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, state, processResult, processResultData, cancellationToken)
+            : ValueTaskFactory.CompletedTask;
     }
 
-    private Task<ImmutableArray<FinderLocation>> FindReferencesInImplicitObjectCreationExpressionAsync(
+    private Task FindReferencesInImplicitObjectCreationExpressionAsync<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         // Only check `new (...)` calls that supply enough arguments to match all the required parameters for the constructor.
@@ -210,13 +220,13 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
             ? -1
             : symbol.Parameters.Length;
 
-        return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
+        return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
 
         static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
             => syntaxTreeInfo.ContainsImplicitObjectCreation;
 
         void CollectMatchingReferences(
-            SyntaxNode node, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> locations)
+            SyntaxNode node, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData)
         {
             var syntaxFacts = state.SyntaxFacts;
             if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
@@ -237,9 +247,10 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
                 var location = node.GetFirstToken().GetLocation();
                 var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);
 
-                locations.Add(new FinderLocation(node, new ReferenceLocation(
+                var result = new FinderLocation(node, new ReferenceLocation(
                     state.Document, alias: null, location, isImplicit: true, symbolUsageInfo,
-                    GetAdditionalFindUsagesProperties(node, state), CandidateReason.None)));
+                    GetAdditionalFindUsagesProperties(node, state), CandidateReason.None));
+                processResult(result, processResultData);
             }
         }
     }

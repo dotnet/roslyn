@@ -60,34 +60,34 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var references = await FindReferencesInDocumentUsingSymbolNameAsync(
-            symbol, state, cancellationToken).ConfigureAwait(false);
+        await FindReferencesInDocumentUsingSymbolNameAsync(
+            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (symbol.AssociatedSymbol is not IPropertySymbol property ||
             !options.AssociatePropertyReferencesWithSpecificAccessor)
         {
-            return references;
+            return;
         }
 
-        var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
+        await ReferenceFinders.Property.FindReferencesInDocumentAsync(
             property, state,
-            options with { AssociatePropertyReferencesWithSpecificAccessor = false },
-            cancellationToken).ConfigureAwait(false);
-
-        var accessorReferences = propertyReferences.WhereAsArray(
-            loc =>
+            static (loc, data) =>
             {
                 var accessors = GetReferencedAccessorSymbols(
-                    state, property, loc.Node, cancellationToken);
-                return accessors.Contains(symbol);
-            });
-
-        return references.Concat(accessorReferences);
+                    data.state, data.property, loc.Node, data.cancellationToken);
+                if (accessors.Contains(data.symbol))
+                    data.processResult(loc, data.processResultData);
+            },
+            (state, property, symbol, processResult, processResultData, cancellationToken),
+            options with { AssociatePropertyReferencesWithSpecificAccessor = false },
+            cancellationToken).ConfigureAwait(false);
     }
 }

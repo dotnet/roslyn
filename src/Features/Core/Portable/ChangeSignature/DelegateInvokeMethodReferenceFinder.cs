@@ -76,9 +76,11 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
         return Task.CompletedTask;
     }
 
-    protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -89,7 +91,15 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
         var root = state.Root;
         var nodes = root.DescendantNodes();
 
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedAnonymousFunctions);
+        var invocations = nodes.Where(syntaxFacts.IsInvocationExpression)
+            .Where(e => state.SemanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
+
+        foreach (var node in invocations)
+        {
+            var finderLocation = CreateFinderLocation(node, state, cancellationToken);
+            processResult(finderLocation, processResultData);
+        }
+
         foreach (var node in nodes)
         {
             if (!syntaxFacts.IsAnonymousFunctionExpression(node))
@@ -103,14 +113,17 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
             }
 
             if (convertedType == methodSymbol.ContainingType)
-                convertedAnonymousFunctions.Add(node);
+            {
+                var finderLocation = CreateFinderLocation(node, state, cancellationToken);
+                processResult(finderLocation, processResultData);
+            }
         }
 
-        var invocations = nodes.Where(syntaxFacts.IsInvocationExpression)
-            .Where(e => state.SemanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
+        return;
 
-        return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
-            node => new FinderLocation(
+        static FinderLocation CreateFinderLocation(SyntaxNode node, FindReferencesDocumentState state, CancellationToken cancellationToken)
+        {
+            return new FinderLocation(
                 node,
                 new ReferenceLocation(
                     state.Document,
@@ -119,6 +132,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
                     isImplicit: false,
                     GetSymbolUsageInfo(node, state, cancellationToken),
                     GetAdditionalFindUsagesProperties(node, state),
-                    CandidateReason.None)));
+                    CandidateReason.None));
+        }
     }
 }

@@ -48,12 +48,14 @@ internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbo
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
         IEventSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentUsingSymbolNameAsync(symbol, state, cancellationToken);
+        return FindReferencesInDocumentUsingSymbolNameAsync(symbol, state, processResult, processResultData, cancellationToken);
     }
 }

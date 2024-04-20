@@ -49,23 +49,24 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
         return Task.CompletedTask;
     }
 
-    protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
         TSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         var container = GetContainer(symbol);
         if (container != null)
-            return await FindReferencesInContainerAsync(symbol, container, state, cancellationToken).ConfigureAwait(false);
-
-        if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
+        {
+            await FindReferencesInContainerAsync(symbol, container, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        }
+        else if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
         {
             var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
-            return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
+            await FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
-
-        return [];
     }
 
     private static ISymbol? GetContainer(ISymbol symbol)
@@ -96,10 +97,12 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
         return null;
     }
 
-    private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
+    private ValueTask FindReferencesInContainerAsync<TData>(
         TSymbol symbol,
         ISymbol container,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         var service = state.Document.GetRequiredLanguageService<ISymbolDeclarationService>();
@@ -118,6 +121,6 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
             }
         }
 
-        return FindReferencesInTokensAsync(symbol, state, tokens.ToImmutable(), cancellationToken);
+        return FindReferencesInTokensAsync(symbol, state, tokens.ToImmutable(), processResult, processResultData, cancellationToken);
     }
 }

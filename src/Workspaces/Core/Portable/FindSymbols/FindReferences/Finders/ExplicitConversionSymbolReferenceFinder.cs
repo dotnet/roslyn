@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -48,8 +47,8 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         Contract.ThrowIfNull(underlyingNamedType);
 
         using var _ = PooledHashSet<Document>.GetInstance(out var result);
-        await FindDocumentsAsync(project, documents, StandardHashSetAddCallback, result, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
-        await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), StandardHashSetAddCallback, result, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsAsync(project, documents, StandardCallbacks<Document>.AddToHashSet, result, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), StandardCallbacks<Document>.AddToHashSet, result, cancellationToken).ConfigureAwait(false);
 
         // Ignore any documents that don't also have an explicit cast in them.
         foreach (var document in result)
@@ -60,9 +59,11 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         }
     }
 
-    protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -72,7 +73,7 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
                 static (token, state) => IsPotentialReference(state.SyntaxFacts, token),
                 state);
 
-        return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
+        return FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
     private static bool IsPotentialReference(
