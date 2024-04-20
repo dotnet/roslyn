@@ -374,38 +374,6 @@ internal partial class SerializerService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Get the storage identifier for the module metadata.
-        var (storageIdentifier, storageStream) = GetTemporaryStorageData(reader, kind, cancellationToken);
-
-        // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
-        // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
-        // the metadata.
-        unsafe
-        {
-            var metadata = ModuleMetadata.CreateFromMetadata(
-                (IntPtr)storageStream.PositionPointer, (int)storageStream.Length, storageStream.Dispose);
-            return (metadata, storageIdentifier);
-        }
-    }
-
-    private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
-    {
-        Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
-
-        var array = reader.ReadByteArray();
-
-        // Pin the array so that the module metadata can treat it as a segment of unmanaged memory.
-        var pinnedObject = new PinnedObject(array);
-
-        // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
-        // as the onDispose callback of the metadata.
-        return ModuleMetadata.CreateFromMetadata(
-            pinnedObject.GetPointer(), array.Length, pinnedObject.Dispose);
-    }
-
-    private (TemporaryStorageIdentifier identifier, UnmanagedMemoryStream storageStream) GetTemporaryStorageData(
-        ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
-    {
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
 
         long length;
@@ -435,7 +403,31 @@ internal partial class SerializerService
         // sent us the full contents.
         var storageStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
         Contract.ThrowIfFalse(storageIdentifier.Size == storageStream.Length);
-        return (storageIdentifier, storageStream);
+
+        // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+        // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+        // the metadata.
+        unsafe
+        {
+            var metadata = ModuleMetadata.CreateFromMetadata(
+                (IntPtr)storageStream.PositionPointer, (int)storageStream.Length, storageStream.Dispose);
+            return (metadata, storageIdentifier);
+        }
+    }
+
+    private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
+    {
+        Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
+
+        var array = reader.ReadByteArray();
+
+        // Pin the array so that the module metadata can treat it as a segment of unmanaged memory.
+        var pinnedObject = new PinnedObject(array);
+
+        // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
+        // as the onDispose callback of the metadata.
+        return ModuleMetadata.CreateFromMetadata(
+            pinnedObject.GetPointer(), array.Length, pinnedObject.Dispose);
     }
 
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
