@@ -62,17 +62,16 @@ internal partial class SerializerService
 
     public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
-        if (reference is PortableExecutableReference portable)
+        if (reference is PortableExecutableReference peReference)
         {
-            if (portable is ISupportTemporaryStorage supportTemporaryStorage)
+            if (peReference is ISupportTemporaryStorage { StorageIdentifiers: { Count: > 0 } storageIdentifiers } &&
+                TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
+                    peReference, storageIdentifiers, writer, cancellationToken))
             {
-                if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, cancellationToken))
-                {
-                    return;
-                }
+                return;
             }
 
-            WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
+            WritePortableExecutableReferenceTo(peReference, writer, cancellationToken);
             return;
         }
 
@@ -310,13 +309,14 @@ internal partial class SerializerService
     }
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-        ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
+        PortableExecutableReference reference,
+        IReadOnlyList<TemporaryStorageIdentifier> storageIdentifiers,
+        ObjectWriter writer,
+        CancellationToken cancellationToken)
     {
-        var storageIdentifiers = reference.GetStorageIdentifiers();
-        if (storageIdentifiers is null || storageIdentifiers.Count == 0)
-            return false;
+        Contract.ThrowIfTrue(storageIdentifiers.Count == 0);
 
-        WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
+        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
 
         writer.WriteInt32((int)MetadataImageKind.Assembly);
         writer.WriteInt32(storageIdentifiers.Count);
@@ -556,6 +556,8 @@ internal partial class SerializerService
         private readonly ImmutableArray<TemporaryStorageIdentifier> _storageIdentifiers;
         private readonly DocumentationProvider _provider;
 
+        public IReadOnlyList<TemporaryStorageIdentifier> StorageIdentifiers => _storageIdentifiers;
+
         public SerializedMetadataReference(
             MetadataReferenceProperties properties,
             string? fullPath,
@@ -582,8 +584,5 @@ internal partial class SerializerService
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
             => new SerializedMetadataReference(properties, FilePath, _metadata, _storageIdentifiers, _provider);
-
-        public IReadOnlyList<TemporaryStorageIdentifier>? GetStorageIdentifiers()
-            => _storageIdentifiers;
     }
 }
