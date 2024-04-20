@@ -357,28 +357,10 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             }
         }
 
-        public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
-        {
-            // See commentary in ReadTextAsync for why this is implemented this way.
-            return Task.Factory.StartNew<Stream>(() => ReadStream(cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
-        }
-
-        public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
-        {
-            // The Wait() here will not actually block, since with useAsync: false, the
-            // entire operation will already be done when WaitStreamMaybeAsync completes.
-            WriteStreamMaybeAsync(stream, useAsync: false, cancellationToken: cancellationToken).GetAwaiter().GetResult();
-        }
-
-        public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
-            => WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
-
-        private async Task WriteStreamMaybeAsync(Stream stream, bool useAsync, CancellationToken cancellationToken)
+        public void WriteStream(Stream stream, CancellationToken cancellationToken)
         {
             if (_memoryMappedInfo != null)
-            {
                 throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
 
             using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
             {
@@ -386,32 +368,15 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
                 _memoryMappedInfo = _service.CreateTemporaryStorage(size);
                 using var viewStream = _memoryMappedInfo.CreateWritableStream();
 
-                var buffer = SharedPools.ByteArray.Allocate();
-                try
+                using var pooledObject = SharedPools.ByteArray.GetPooledObject();
+                var buffer = pooledObject.Object;
+                while (true)
                 {
-                    while (true)
-                    {
-                        int count;
-                        if (useAsync)
-                        {
-                            count = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            count = stream.Read(buffer, 0, buffer.Length);
-                        }
+                    var count = stream.Read(buffer, 0, buffer.Length);
+                    if (count == 0)
+                        break;
 
-                        if (count == 0)
-                        {
-                            break;
-                        }
-
-                        viewStream.Write(buffer, 0, count);
-                    }
-                }
-                finally
-                {
-                    SharedPools.ByteArray.Free(buffer);
+                    viewStream.Write(buffer, 0, count);
                 }
             }
         }
