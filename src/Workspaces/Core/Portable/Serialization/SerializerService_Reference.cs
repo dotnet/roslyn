@@ -409,13 +409,10 @@ internal partial class SerializerService
             var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
             Contract.ThrowIfFalse(storageIdentifier.Size == unmanagedStream.Length);
 
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
-            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
-            // the metadata.
             unsafe
             {
                 var metadata = ModuleMetadata.CreateFromMetadata(
-                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
+                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length);
                 return (metadata, storageIdentifier);
             }
         }
