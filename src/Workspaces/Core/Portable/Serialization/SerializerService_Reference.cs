@@ -233,8 +233,7 @@ internal partial class SerializerService
 
         var filePath = reader.ReadString();
 
-        var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
-        if (tuple == null)
+        if (TryReadMetadataFrom(reader, kind, cancellationToken) is not (var metadata, var storageIdentifiers))
         {
             // TODO: deal with xml document provider properly
             //       should we shadow copy xml doc comment?
@@ -254,7 +253,7 @@ internal partial class SerializerService
             _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
 
         return new SerializedMetadataReference(
-            properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
+            properties, filePath, metadata, storageIdentifiers, documentProvider);
     }
 
     private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
@@ -361,12 +360,12 @@ internal partial class SerializerService
 #pragma warning restore CA2016 
                 }
 
-                return (AssemblyMetadata.Create(pooledMetadata.Object), storageIdentifiers: default);
+                return (AssemblyMetadata.Create(pooledMetadata.Object), storageIdentifiers: []);
             }
 
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 #pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-            return (ReadModuleMetadataFrom(reader, kind), storageIdentifiers: default);
+            return (ReadModuleMetadataFrom(reader, kind), storageIdentifiers: []);
 #pragma warning restore CA2016
         }
 
@@ -604,16 +603,20 @@ internal partial class SerializerService
     private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly Metadata _metadata;
-        private readonly ImmutableArray<ITemporaryStreamStorageInternal> _storagesOpt;
+        private readonly ImmutableArray<TemporaryStorageIdentifier> _storageIdentifiers;
         private readonly DocumentationProvider _provider;
 
         public SerializedMetadataReference(
-            MetadataReferenceProperties properties, string? fullPath,
-            Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storagesOpt, DocumentationProvider initialDocumentation)
+            MetadataReferenceProperties properties,
+            string? fullPath,
+            Metadata metadata,
+            ImmutableArray<TemporaryStorageIdentifier> storagesIdentifiers,
+            DocumentationProvider initialDocumentation)
             : base(properties, fullPath, initialDocumentation)
         {
+            Contract.ThrowIfTrue(storagesIdentifiers.IsDefault);
             _metadata = metadata;
-            _storagesOpt = storagesOpt;
+            _storageIdentifiers = storagesIdentifiers;
 
             _provider = initialDocumentation;
         }
@@ -628,9 +631,9 @@ internal partial class SerializerService
             => _metadata;
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
+            => new SerializedMetadataReference(properties, FilePath, _metadata, _storageIdentifiers, _provider);
 
-        public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
-            => _storagesOpt.IsDefault ? null : _storagesOpt;
+        public IReadOnlyList<TemporaryStorageIdentifier>? GetStorageIdentifiers()
+            => _storageIdentifiers;
     }
 }

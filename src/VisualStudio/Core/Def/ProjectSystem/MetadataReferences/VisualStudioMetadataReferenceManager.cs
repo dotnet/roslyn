@@ -154,7 +154,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             else
             {
                 // use temporary storage
-                using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storageIdentifiers);
+                using var _ = ArrayBuilder<TemporaryStorageIdentifier>.GetInstance(out var storageIdentifiers);
                 var newMetadata = CreateAssemblyMetadata(key, key =>
                 {
                     // <exception cref="IOException"/>
@@ -163,7 +163,6 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                     storageIdentifiers.Add(storageIdentifier);
                     return metadata;
                 });
-
 
                 s_metadataToStorageIdentifiers.Add(newMetadata, storageIdentifiers.ToImmutable());
 
