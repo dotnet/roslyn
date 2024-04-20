@@ -343,34 +343,6 @@ internal partial class SerializerService
         }
 
         var metadataKind = (MetadataImageKind)imageKind;
-        if (_storageService == null)
-        {
-            if (metadataKind == MetadataImageKind.Assembly)
-            {
-                using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-
-                var count = reader.ReadInt32();
-                for (var i = 0; i < count; i++)
-                {
-                    metadataKind = (MetadataImageKind)reader.ReadInt32();
-                    Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-
-#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                    pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
-#pragma warning restore CA2016 
-                }
-
-                return (AssemblyMetadata.Create(pooledMetadata.Object), storageIdentifiers: []);
-            }
-            else
-            {
-                Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                return (ReadModuleMetadataFrom(reader, kind), storageIdentifiers: []);
-#pragma warning restore CA2016
-            }
-        }
-
         if (metadataKind == MetadataImageKind.Assembly)
         {
             using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
