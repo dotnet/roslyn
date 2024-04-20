@@ -7,16 +7,17 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
 {
-    protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
         ITypeParameterSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -30,15 +31,19 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
 
         var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
 
-        var normalReferences = await FindReferencesInTokensAsync(
+        await FindReferencesInTokensAsync(
             symbol, state,
             tokens.WhereAsArray(static (token, state) => !IsObjectCreationToken(token, state), state),
+            processResult,
+            processResultData,
             cancellationToken).ConfigureAwait(false);
 
-        var objectCreationReferences = GetObjectCreationReferences(
-            tokens.WhereAsArray(static (token, state) => IsObjectCreationToken(token, state), state));
+        GetObjectCreationReferences(
+            tokens.WhereAsArray(static (token, state) => IsObjectCreationToken(token, state), state),
+            processResult,
+            processResultData);
 
-        return normalReferences.Concat(objectCreationReferences);
+        return;
 
         static bool IsObjectCreationToken(SyntaxToken token, FindReferencesDocumentState state)
         {
@@ -47,19 +52,18 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
                    syntaxFacts.IsObjectCreationExpression(token.Parent.Parent);
         }
 
-        ImmutableArray<FinderLocation> GetObjectCreationReferences(ImmutableArray<SyntaxToken> objectCreationTokens)
+        void GetObjectCreationReferences(
+            ImmutableArray<SyntaxToken> objectCreationTokens,
+            Action<FinderLocation, TData> processResult,
+            TData processResultData)
         {
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var result);
-
             foreach (var token in objectCreationTokens)
             {
                 Contract.ThrowIfNull(token.Parent?.Parent);
                 var typeInfo = state.SemanticModel.GetTypeInfo(token.Parent.Parent, cancellationToken);
                 if (symbol.Equals(typeInfo.Type, SymbolEqualityComparer.Default))
-                    result.Add(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken));
+                    processResult(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken), processResultData);
             }
-
-            return result.ToImmutableAndClear();
         }
     }
 }
