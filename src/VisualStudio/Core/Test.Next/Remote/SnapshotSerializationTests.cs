@@ -611,9 +611,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
+                using var context = new SolutionReplicationContext();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(serializableSourceText, objectWriter, CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -629,9 +631,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
+                using var context = new SolutionReplicationContext();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(serializableSourceText, objectWriter, CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -658,9 +662,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             void VerifyOptions(CompilationOptions originalOptions)
             {
                 using var stream = SerializableBytes.CreateWritableStream();
+                using var context = new SolutionReplicationContext();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
+                    serializer.Serialize(originalOptions, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -677,9 +683,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static SolutionAsset CloneAsset(ISerializerService serializer, SolutionAsset asset)
         {
             using var stream = SerializableBytes.CreateWritableStream();
+            using var context = new SolutionReplicationContext();
+
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                serializer.Serialize(asset.Value, writer, CancellationToken.None);
+                serializer.Serialize(asset.Value, writer, context, CancellationToken.None);
             }
 
             stream.Position = 0;

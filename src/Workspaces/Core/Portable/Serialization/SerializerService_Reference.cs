@@ -60,13 +60,13 @@ internal partial class SerializerService
         return Checksum.Create(stream);
     }
 
-    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
         {
             if (portable is ISupportTemporaryStorage supportTemporaryStorage)
             {
-                if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, cancellationToken))
+                if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
                 {
                     return;
                 }
@@ -311,7 +311,7 @@ internal partial class SerializerService
     }
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-        ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
+        ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
     {
         var storages = reference.GetStorages();
         if (storages == null)
@@ -328,6 +328,8 @@ internal partial class SerializerService
             {
                 return false;
             }
+
+            context.AddResource(storage);
 
             pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
         }

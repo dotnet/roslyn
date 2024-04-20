@@ -105,12 +105,16 @@ internal readonly partial record struct Checksum
                 writer.WriteByte(b);
         });
 
-    public static Checksum Create<T>(T value, ISerializerService serializer, CancellationToken cancellationToken)
-        => Create(
-            (value, serializer, cancellationToken),
+    public static Checksum Create<T>(T value, ISerializerService serializer)
+    {
+        using var context = new SolutionReplicationContext();
+
+        return Create(
+            (value, serializer, context),
             static (tuple, writer) =>
             {
-                var (value, serializer, cancellationToken) = tuple;
-                serializer.Serialize(value!, writer, cancellationToken);
+                var (value, serializer, context) = tuple;
+                serializer.Serialize(value!, writer, context, CancellationToken.None);
             });
+    }
 }
