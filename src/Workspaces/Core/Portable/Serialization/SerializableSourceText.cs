@@ -139,11 +139,13 @@ internal sealed class SerializableSourceText
         }
     }
 
-    public void Serialize(ObjectWriter writer, CancellationToken cancellationToken)
+    public void Serialize(ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (_storage is not null)
         {
+            context.AddResource(_storage);
+
             writer.WriteInt32((int)_storage.ChecksumAlgorithm);
             writer.WriteEncoding(_storage.Encoding);
             writer.WriteByteArray(ImmutableCollectionsMarshal.AsArray(_storage.ContentHash)!);

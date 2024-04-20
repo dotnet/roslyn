@@ -94,10 +94,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var data = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
             Contract.ThrowIfNull(data.Value);
 
+            using var context = new SolutionReplicationContext();
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                Serializer.Serialize(data.Value, writer, CancellationToken.None);
+                Serializer.Serialize(data.Value, writer, context, CancellationToken.None);
             }
 
             stream.Position = 0;

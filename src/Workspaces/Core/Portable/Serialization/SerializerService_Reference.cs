@@ -60,13 +60,13 @@ internal partial class SerializerService
         return Checksum.Create(stream);
     }
 
-    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
         {
             if (portable is ISupportTemporaryStorage { StorageHandles: { Count: > 0 } handles } &&
                 TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-                    portable, handles, writer, cancellationToken))
+                    portable, handles, writer, context, cancellationToken))
             {
                 return;
             }
@@ -312,6 +312,7 @@ internal partial class SerializerService
         PortableExecutableReference reference,
         IReadOnlyList<TemporaryStorageHandle> handles,
         ObjectWriter writer,
+        SolutionReplicationContext context,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(handles.Count == 0);
@@ -323,6 +324,7 @@ internal partial class SerializerService
 
         foreach (var handle in handles)
         {
+            context.AddResource(handle);
             writer.WriteInt32((int)MetadataImageKind.Module);
             handle.Identifier.WriteTo(writer);
         }
