@@ -17,7 +17,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
 {
     public static readonly TrivialTemporaryStorageService Instance = new();
 
-    private static ConditionalWeakTable<TemporaryStorageIdentifier, StreamStorage> s_streamStorage = new();
+    private static readonly ConditionalWeakTable<TemporaryStorageIdentifier, StreamStorage> s_streamStorage = new();
 
     private TrivialTemporaryStorageService()
     {
@@ -29,7 +29,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
     public TemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
         var storage = new StreamStorage();
-        storage.WriteStream(stream, cancellationToken);
+        storage.WriteStream(stream);
         var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), 0, 0);
         var handle = new TemporaryStorageHandle(storage, identifier);
 
@@ -42,10 +42,10 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             s_streamStorage.TryGetValue(storageIdentifier, out var streamStorage),
             "StorageIdentifier was not created by this storage service!");
 
-        return streamStorage.ReadStream(cancellationToken);
+        return streamStorage.ReadStream();
     }
 
-    private sealed class StreamStorage : ITemporaryStreamStorageInternal
+    private sealed class StreamStorage : IDisposable
     {
         private MemoryStream? _stream;
 
@@ -55,7 +55,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             _stream = null;
         }
 
-        public Stream ReadStream(CancellationToken cancellationToken)
+        public Stream ReadStream()
         {
             var stream = _stream ?? throw new InvalidOperationException();
 
@@ -64,7 +64,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
         }
 
-        public void WriteStream(Stream stream, CancellationToken cancellationToken)
+        public void WriteStream(Stream stream)
         {
             var newStream = new MemoryStream();
             stream.CopyTo(newStream);

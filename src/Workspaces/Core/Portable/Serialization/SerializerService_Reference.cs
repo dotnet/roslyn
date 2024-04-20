@@ -313,31 +313,16 @@ internal partial class SerializerService
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
         ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
-        var storages = reference.GetStorages();
-        if (storages == null)
-        {
+        var storageIdentifiers = reference.GetStorageIdentifiers();
+        if (storageIdentifiers == null)
             return false;
-        }
-
-        // Not clear if name should be allowed to be null here (https://github.com/dotnet/roslyn/issues/43037)
-        using var pooled = Creator.CreateList<(string? name, long offset, long size)>();
-
-        foreach (var storage in storages)
-        {
-            if (storage is not ITemporaryStorageWithName storage2)
-            {
-                return false;
-            }
-
-            pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
-        }
 
         WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
 
         writer.WriteInt32((int)MetadataImageKind.Assembly);
-        writer.WriteInt32(pooled.Object.Count);
+        writer.WriteInt32(storageIdentifiers.Count);
 
-        foreach (var (name, offset, size) in pooled.Object)
+        foreach (var (name, offset, size) in storageIdentifiers)
         {
             writer.WriteInt32((int)MetadataImageKind.Module);
             writer.WriteString(name);
