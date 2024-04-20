@@ -313,7 +313,7 @@ internal partial class SerializerService
         ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         var storageIdentifiers = reference.GetStorageIdentifiers();
-        if (storageIdentifiers == null)
+        if (storageIdentifiers is null || storageIdentifiers.Count == 0)
             return false;
 
         WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
