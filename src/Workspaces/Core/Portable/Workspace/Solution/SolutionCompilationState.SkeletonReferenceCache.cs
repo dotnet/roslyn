@@ -262,6 +262,7 @@ internal partial class SolutionCompilationState
                             var result = AssemblyMetadata.CreateFromStream(
                                 temporaryStorageService.ReadFromTemporaryStorageService(handle.Identifier, cancellationToken), leaveOpen: false);
                             GC.KeepAlive(handle);
+                            return result;
                         }
 
                         if (logger != null)
