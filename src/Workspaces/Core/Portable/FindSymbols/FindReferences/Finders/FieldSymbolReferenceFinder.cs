@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -26,17 +26,18 @@ internal sealed class FieldSymbolReferenceFinder : AbstractReferenceFinder<IFiel
             : new(ImmutableArray<ISymbol>.Empty);
     }
 
-    protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
         IFieldSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
-        var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
-        return documentsWithName.Concat(documentsWithGlobalAttributes);
+        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

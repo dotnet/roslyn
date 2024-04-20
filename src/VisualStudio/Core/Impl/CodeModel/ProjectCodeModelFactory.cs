@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 // Keep firing events for this doc, as long as we haven't exceeded the max amount
                 // of waiting time, and there's no user input that should take precedence.
-                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IThreadingContextExtensions.IsInputPending())
+                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
                 {
                     await this.Listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
                     stopwatch = SharedStopwatch.StartNew();
@@ -139,6 +139,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 var codeModel = fileCodeModelHandle.Object;
                 codeModel.FireEvents();
                 return;
+            }
+
+            // Returns true if any keyboard or mouse button input is pending on the message queue.
+            static bool IsInputPending()
+            {
+                // The code below invokes into user32.dll, which is not available in non-Windows.
+                if (PlatformInformation.IsUnix)
+                    return false;
+
+                // The return value of GetQueueStatus is HIWORD:LOWORD.
+                // A non-zero value in HIWORD indicates some input message in the queue.
+                var result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
+
+                const uint InputMask = NativeMethods.QS_INPUT | (NativeMethods.QS_INPUT << 16);
+                return (result & InputMask) != 0;
             }
         }
 

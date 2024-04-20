@@ -423,12 +423,7 @@ internal partial class SerializerService
         var storageStream = storage.ReadStream(cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
 
-        GetMetadata(storageStream, length, out var metadata, out var lifeTimeObject);
-
-        // make sure we keep storageStream alive while Metadata is alive
-        // we use conditional weak table since we can't control metadata liftetime
-        if (lifeTimeObject != null)
-            s_lifetimeMap.Add(metadata, lifeTimeObject);
+        var metadata = GetMetadata(storageStream, length);
 
         return (metadata, storage);
     }
@@ -442,14 +437,10 @@ internal partial class SerializerService
         // Pin the array so that the module metadata can treat it as a segment of unmanaged memory.
         var pinnedObject = new PinnedObject(array);
 
-        // The pinned object will be kept alive as long as the metadata is alive due to us passing in
-        // pinnedObject.Dispose as the onDispose callback.  So we do not have to worry about the GC preemptively
-        // cleaning things up while the metadata is alive.  Nor do we have to worry about the pinned object being
-        // leaked, locking the bytes in place.
-        var metadata = ModuleMetadata.CreateFromMetadata(
+        // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
+        // as the onDispose callback of the metadata.
+        return ModuleMetadata.CreateFromMetadata(
             pinnedObject.GetPointer(), array.Length, pinnedObject.Dispose);
-
-        return metadata;
     }
 
     private (TemporaryStorageHandle handle, long length) GetTemporaryStorage(
@@ -492,7 +483,9 @@ internal partial class SerializerService
     {
         if (stream is UnmanagedMemoryStream unmanagedStream)
         {
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+            // the metadata.
             unsafe
             {
                 return ModuleMetadata.CreateFromMetadata(
@@ -514,7 +507,10 @@ internal partial class SerializerService
             pinnedObject = new PinnedObject(array);
         }
 
-        return ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), (int)length, pinnedObject.Dispose);
+        // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
+        // as the onDispose callback of the metadata.
+        return ModuleMetadata.CreateFromMetadata(
+            pinnedObject.GetPointer(), (int)length, pinnedObject.Dispose);
     }
 
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
