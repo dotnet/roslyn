@@ -429,7 +429,6 @@ internal partial class SerializerService
         // we use conditional weak table since we can't control metadata liftetime
         if (lifeTimeObject != null)
             s_lifetimeMap.Add(metadata, lifeTimeObject);
-
         return (metadata, storage);
     }
 
