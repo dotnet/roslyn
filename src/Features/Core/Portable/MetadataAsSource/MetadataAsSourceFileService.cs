@@ -30,7 +30,7 @@ internal class MetadataAsSourceFileService([ImportMany] IEnumerable<Lazy<IMetada
     /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
     /// extracting it from a pdb).
     /// </summary>
-    private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers = ExtensionOrderer.Order(providers).ToImmutableArray();
+    private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers = [.. ExtensionOrderer.Order(providers)];
 
     /// <summary>
     /// Workspace created the first time we generate any metadata for any symbol.

@@ -433,7 +433,7 @@ internal sealed class DebuggingSession : IDisposable
 
         foreach (var item in items)
         {
-            builder.Add(item.Key, item.ToImmutableArray());
+            builder.Add(item.Key, [.. item]);
         }
 
         return builder.ToImmutable();
@@ -836,7 +836,7 @@ internal sealed class DebuggingSession : IDisposable
         {
             lock (_instance._modulesPreparedForUpdateGuard)
             {
-                return _instance._modulesPreparedForUpdate.ToImmutableHashSet();
+                return [.. _instance._modulesPreparedForUpdate];
             }
         }
 

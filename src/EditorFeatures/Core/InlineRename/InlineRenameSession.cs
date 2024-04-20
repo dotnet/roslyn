@@ -319,7 +319,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             // https://github.com/dotnet/roslyn/issues/40890
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-            RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
+            RaiseSessionSpansUpdated([.. inlineRenameLocations.Locations]);
 
             return inlineRenameLocations;
         });

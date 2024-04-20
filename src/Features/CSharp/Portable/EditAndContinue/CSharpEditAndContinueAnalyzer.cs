@@ -921,7 +921,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         RoslynDebug.Assert(oldTokens != null);
         RoslynDebug.Assert(newTokens != null);
 
-        return DeclareSameIdentifiers(oldTokens.ToArray(), newTokens.ToArray());
+        return DeclareSameIdentifiers([.. oldTokens], [.. newTokens]);
     }
 
     protected override bool AreEquivalentImpl(SyntaxToken oldToken, SyntaxToken newToken)
