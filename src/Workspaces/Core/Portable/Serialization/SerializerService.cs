@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Composition;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -16,6 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
+#if NETCOREAPP
+[SupportedOSPlatform("windows")]
+#endif
 internal partial class SerializerService : ISerializerService
 {
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
@@ -36,7 +40,7 @@ internal partial class SerializerService : ISerializerService
 
     private readonly SolutionServices _workspaceServices;
 
-    private readonly ITemporaryStorageServiceInternal _storageService;
+    private readonly TemporaryStorageService _storageService;
     private readonly ITextFactoryService _textService;
     private readonly IDocumentationProviderService? _documentationService;
     private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
@@ -48,7 +52,9 @@ internal partial class SerializerService : ISerializerService
     {
         _workspaceServices = workspaceServices;
 
-        _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
+        // Serialization is only involved when we have a remote process.  Which is only in VS.  So the type of the
+        // storage service here is well known.
+        _storageService = (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
         _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
         _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         _documentationService = workspaceServices.GetService<IDocumentationProviderService>();

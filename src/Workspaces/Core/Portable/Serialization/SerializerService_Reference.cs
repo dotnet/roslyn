@@ -409,9 +409,15 @@ internal partial class SerializerService
         var storageStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
 
-        var metadata = GetMetadata(storageStream, length);
-
-        return (metadata, storageIdentifier);
+        // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+        // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+        // the metadata.
+        unsafe
+        {
+            var metadata = ModuleMetadata.CreateFromMetadata(
+                (IntPtr)storageStream.PositionPointer, (int)storageStream.Length, storageStream.Dispose);
+            return (metadata, storageIdentifier);
+        }
     }
 
     private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
@@ -457,40 +463,6 @@ internal partial class SerializerService
             var size = reader.ReadInt64();
             return (new TemporaryStorageIdentifier(name, offset, size), size);
         }
-    }
-
-    private static ModuleMetadata GetMetadata(Stream stream, long length)
-    {
-        if (stream is UnmanagedMemoryStream unmanagedStream)
-        {
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
-            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
-            // the metadata.
-            unsafe
-            {
-                return ModuleMetadata.CreateFromMetadata(
-                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-            }
-        }
-
-        PinnedObject pinnedObject;
-        if (stream is MemoryStream memory &&
-            memory.TryGetBuffer(out var buffer) &&
-            buffer.Offset == 0)
-        {
-            pinnedObject = new PinnedObject(buffer.Array!);
-        }
-        else
-        {
-            var array = new byte[length];
-            stream.Read(array, 0, (int)length);
-            pinnedObject = new PinnedObject(array);
-        }
-
-        // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
-        // as the onDispose callback of the metadata.
-        return ModuleMetadata.CreateFromMetadata(
-            pinnedObject.GetPointer(), (int)length, pinnedObject.Dispose);
     }
 
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
