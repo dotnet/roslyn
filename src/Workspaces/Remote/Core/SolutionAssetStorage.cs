@@ -111,8 +111,6 @@ internal partial class SolutionAssetStorage
             // Last ref went away, update our maps while under the lock, then cleanup its context data outside of the lock.
             _checksumToScope.Remove(solutionChecksum);
         }
-
-        scope.ReplicationContext.Dispose();
     }
 
     internal TestAccessor GetTestAccessor()
