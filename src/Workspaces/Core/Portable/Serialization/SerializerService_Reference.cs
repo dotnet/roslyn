@@ -377,13 +377,7 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         // Get the storage identifier for the module metadata.
-        var (storageIdentifier, length) = GetTemporaryStorageIdentifier(reader, kind, cancellationToken);
-
-        // Now read in the module data using that identifier.  This will either be reading from the host's memory if
-        // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
-        // sent us the full contents.
-        var storageStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
-        Contract.ThrowIfFalse(length == storageStream.Length);
+        var (storageIdentifier, storageStream) = GetTemporaryStorageData(reader, kind, cancellationToken);
 
         // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
         // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
@@ -411,11 +405,13 @@ internal partial class SerializerService
             pinnedObject.GetPointer(), array.Length, pinnedObject.Dispose);
     }
 
-    private (TemporaryStorageIdentifier handle, long length) GetTemporaryStorageIdentifier(
+    private (TemporaryStorageIdentifier identifier, UnmanagedMemoryStream storageStream) GetTemporaryStorageData(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
 
+        long length;
+        TemporaryStorageIdentifier storageIdentifier;
         if (kind == SerializationKinds.Bits)
         {
             // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
@@ -423,12 +419,11 @@ internal partial class SerializerService
             using var stream = SerializableBytes.CreateWritableStream();
             CopyByteArrayToStream(reader, stream, cancellationToken);
 
-            var length = stream.Length;
+            length = stream.Length;
 
             stream.Position = 0;
             var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
-
-            return (storageHandle.Identifier, length);
+            storageIdentifier = storageHandle.Identifier;
         }
         else
         {
@@ -436,9 +431,16 @@ internal partial class SerializerService
             // will not be released by the host.
             var name = reader.ReadRequiredString();
             var offset = reader.ReadInt64();
-            var size = reader.ReadInt64();
-            return (new TemporaryStorageIdentifier(name, offset, size), size);
+            length = reader.ReadInt64();
+            storageIdentifier = new TemporaryStorageIdentifier(name, offset, length);
         }
+
+        // Now read in the module data using that identifier.  This will either be reading from the host's memory if
+        // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
+        // sent us the full contents.
+        var storageStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
+        Contract.ThrowIfFalse(length == storageStream.Length);
+        return (storageIdentifier, storageStream);
     }
 
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)

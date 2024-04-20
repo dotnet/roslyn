@@ -242,48 +242,53 @@ internal partial class SolutionCompilationState
 
                     using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                     {
-                        using var stream = SerializableBytes.CreateWritableStream();
-
-                        // First, emit the data to an in-memory stream.
-                        var emitResult = compilation.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
-
-                        if (emitResult.Success)
+                        TemporaryStorageHandle? handle = null;
+                        EmitResult emitResult;
+                        using (var stream = SerializableBytes.CreateWritableStream())
                         {
-                            logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                            // First, emit the data to an in-memory stream.
+                            emitResult = compilation.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
 
-                            // Then, dump that in-memory-stream to a memory-mapped file.  Doing this allows us to have the
-                            // assembly-metadata point directly to that pointer in memory, instead of it having to make its
-                            // own copy it needs to own the lifetime of.
-                            stream.Position = 0;
+                            if (emitResult.Success)
+                            {
+                                // Then, dump that in-memory-stream to a memory-mapped file.  Doing this allows us to have the
+                                // assembly-metadata point directly to that pointer in memory, instead of it having to make its
+                                // own copy it needs to own the lifetime of.
+                                stream.Position = 0;
+                                handle = temporaryStorageService.WriteToTemporaryStorage(stream, cancellationToken);
+                            }
+                        }
 
-                            var handle = temporaryStorageService.WriteToTemporaryStorage(stream, cancellationToken);
-
+                        if (handle != null)
+                        {
                             // Now read the data back from the stream from the memory mapped file.  This will come back as an
                             // UnmanagedMemoryStream, which our assembly/metadata subsystem is optimized around. 
                             return AssemblyMetadata.CreateFromStream(
                                 temporaryStorageService.ReadFromTemporaryStorageService(handle.Identifier, cancellationToken), leaveOpen: false);
                         }
-
-                        if (logger != null)
+                        else
                         {
-                            logger.Log($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
-
-                            foreach (var diagnostic in emitResult.Diagnostics)
+                            if (logger != null)
                             {
-                                logger.Log("  " + diagnostic.GetMessage());
+                                logger.Log($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+
+                                foreach (var diagnostic in emitResult.Diagnostics)
+                                {
+                                    logger.Log("  " + diagnostic.GetMessage());
+                                }
                             }
+
+                            // log emit failures so that we can improve most common cases
+                            Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
+                            {
+                                // log errors in the format of
+                                // CS0001:1;CS002:10;...
+                                var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
+                                m["Errors"] = string.Join(";", groups);
+                            }));
+
+                            return null;
                         }
-
-                        // log emit failures so that we can improve most common cases
-                        Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
-                        {
-                            // log errors in the format of
-                            // CS0001:1;CS002:10;...
-                            var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
-                            m["Errors"] = string.Join(";", groups);
-                        }));
-
-                        return null;
                     }
                 }
                 finally
