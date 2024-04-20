@@ -261,6 +261,8 @@ internal partial class SolutionCompilationState
 
                         if (handle != null)
                         {
+                            logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+
                             // Now read the data back from the stream from the memory mapped file.  This will come back as an
                             // UnmanagedMemoryStream, which our assembly/metadata subsystem is optimized around. 
                             return AssemblyMetadata.CreateFromStream(
