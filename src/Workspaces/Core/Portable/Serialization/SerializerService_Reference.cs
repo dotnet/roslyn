@@ -62,16 +62,16 @@ internal partial class SerializerService
 
     public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
-        if (reference is PortableExecutableReference peReference)
+        if (reference is PortableExecutableReference portable)
         {
-            if (peReference is ISupportTemporaryStorage { StorageIdentifiers: { Count: > 0 } storageIdentifiers } &&
+            if (portable is ISupportTemporaryStorage { StorageIdentifiers: { Count: > 0 } storageIdentifiers } &&
                 TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-                    peReference, storageIdentifiers, writer, cancellationToken))
+                    portable, storageIdentifiers, writer, cancellationToken))
             {
                 return;
             }
 
-            WritePortableExecutableReferenceTo(peReference, writer, cancellationToken);
+            WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
             return;
         }
 
