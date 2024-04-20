@@ -425,7 +425,6 @@ internal partial class SerializerService
     private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
     {
         Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
-
         var array = reader.ReadByteArray();
         var pinnedObject = new PinnedObject(array);
 
