@@ -434,7 +434,6 @@ internal partial class SerializerService
 
         var array = reader.ReadByteArray();
         var pinnedObject = new PinnedObject(array);
-
         // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
         // as the onDispose callback of the metadata.
         return ModuleMetadata.CreateFromMetadata(
