@@ -589,7 +589,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             oldBuffer.CurrentSnapshot,
             "...",
             description,
-            originalSpans.ToArray());
+            [.. originalSpans]);
 
         var changedBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
             _contentTypeRegistryService,
@@ -597,7 +597,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             newBuffer.CurrentSnapshot,
             "...",
             description,
-            changedSpans.ToArray());
+            [.. changedSpans]);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
         return await CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);

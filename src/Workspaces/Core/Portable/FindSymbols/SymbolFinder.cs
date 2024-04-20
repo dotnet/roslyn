@@ -308,6 +308,6 @@ public static partial class SymbolFinder
             }
         }
 
-        return linkedSymbols.ToImmutableArray();
+        return [.. linkedSymbols];
     }
 }

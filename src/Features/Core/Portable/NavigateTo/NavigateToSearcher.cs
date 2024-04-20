@@ -381,7 +381,7 @@ internal sealed class NavigateToSearcher
             var searchService = grouping.Key;
             await processProjectAsync(
                 searchService,
-                grouping.ToImmutableArray(),
+                [.. grouping],
                 (project, result) =>
                 {
                     // If we're seeing a dupe in another project, then filter it out here.  The results from
