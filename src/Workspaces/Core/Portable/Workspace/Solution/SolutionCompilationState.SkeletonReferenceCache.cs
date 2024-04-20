@@ -218,16 +218,9 @@ internal partial class SolutionCompilationState
         private static SkeletonReferenceSet? CreateSkeletonSet(
             SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
-            var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
-
-            var handle = TryCreateMetadataStorage();
-            if (handle == null)
+            var metadata = TryCreateMetadata();
+            if (metadata == null)
                 return null;
-
-            // Now read the data back from the stream from the memory mapped file.  This will come back as an
-            // UnmanagedMemoryStream, which our assembly/metadata subsystem is optimized around. 
-            var metadata = AssemblyMetadata.CreateFromStream(
-                temporaryStorageService.ReadFromTemporaryStorageService(handle.Identifier, cancellationToken), leaveOpen: false);
 
             // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
             // the stream as well.
@@ -236,7 +229,7 @@ internal partial class SolutionCompilationState
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
 
-            TemporaryStorageHandle? TryCreateMetadataStorage()
+            AssemblyMetadata? TryCreateMetadata()
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -261,9 +254,14 @@ internal partial class SolutionCompilationState
                             // assembly-metadata point directly to that pointer in memory, instead of it having to make its
                             // own copy it needs to own the lifetime of.
                             stream.Position = 0;
+
+                            var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
                             var handle = temporaryStorageService.WriteToTemporaryStorage(stream, cancellationToken);
 
-                            return handle;
+                            // Now read the data back from the stream from the memory mapped file.  This will come back as an
+                            // UnmanagedMemoryStream, which our assembly/metadata subsystem is optimized around. 
+                            return AssemblyMetadata.CreateFromStream(
+                                temporaryStorageService.ReadFromTemporaryStorageService(handle.Identifier, cancellationToken), leaveOpen: false);
                         }
 
                         if (logger != null)
