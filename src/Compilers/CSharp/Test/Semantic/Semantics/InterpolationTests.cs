@@ -18801,14 +18801,16 @@ System.Console.WriteLine(" + expression + @");";
         [InlineData(@"$""{ConstChar}""", "c")]
         [InlineData(@"$""{ConstChar}{ConstChar}""", "cc")]
         [InlineData(@"$""{ConstString}{ConstString}""", "ss")]
-        [InlineData(@"$""{null}""", "")]
-        [InlineData(@"$""{null}{null}""", "")]
-        [InlineData(@"$""n{null}u{null}{default(string?)}{'l'}{""l ""}{null}{'v'}{null}{""alue""}""", "null value")]
+        [InlineData(@"$""{(string?)null}""", "")]
+        [InlineData(@"$""{(string?)null}{NullString}""", "")]
+        [InlineData(@"$""n{NullString}u{NullString}{default(string?)}{'l'}{""l ""}{NullString}{'v'}{NullString}{""alue""}""", "null value")]
+        [InlineData(@"$""null{(string?)null}"" + $""{null}"" + $""{default}""", "null")]
         public void MixStringCharNullConstantsToLiteral(string expression, string output)
         {
             var code = @"
 const char ConstChar = 'c';
 const string ConstString = ""s"";
+const string? NullString = null;
 System.Console.Write(" + expression + @");";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
