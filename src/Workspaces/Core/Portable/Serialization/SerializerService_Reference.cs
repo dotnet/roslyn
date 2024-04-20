@@ -390,28 +390,44 @@ internal partial class SerializerService
             stream.Position = 0;
             var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
             storageIdentifier = storageHandle.Identifier;
+
+            // Now read in the module data using that identifier.  This will either be reading from the host's memory if
+            // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
+            // sent us the full contents.
+            var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
+            Contract.ThrowIfFalse(storageIdentifier.Size == unmanagedStream.Length);
+
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+            // the metadata.
+            unsafe
+            {
+                var metadata = ModuleMetadata.CreateFromMetadata(
+                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
+                return (metadata, storageIdentifier);
+            }
         }
         else
         {
             // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
             // will not be released by the host.
             storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
-        }
 
-        // Now read in the module data using that identifier.  This will either be reading from the host's memory if
-        // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
-        // sent us the full contents.
-        var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
-        Contract.ThrowIfFalse(storageIdentifier.Size == unmanagedStream.Length);
+            // Now read in the module data using that identifier.  This will either be reading from the host's memory if
+            // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
+            // sent us the full contents.
+            var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
+            Contract.ThrowIfFalse(storageIdentifier.Size == unmanagedStream.Length);
 
-        // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
-        // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
-        // the metadata.
-        unsafe
-        {
-            var metadata = ModuleMetadata.CreateFromMetadata(
-                (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-            return (metadata, storageIdentifier);
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+            // the metadata.
+            unsafe
+            {
+                var metadata = ModuleMetadata.CreateFromMetadata(
+                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
+                return (metadata, storageIdentifier);
+            }
         }
     }
 
