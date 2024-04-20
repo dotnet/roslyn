@@ -101,16 +101,21 @@ internal partial class FindReferencesSearchEngine
         async ValueTask PerformSearchInDocumentWorkerAsync(
             ISymbol symbol, FindReferencesDocumentState state)
         {
+            // Scratch buffer to place references for each finder. Cleared at the end of every loop iteration.
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
+
             // Always perform a normal search, looking for direct references to exactly that symbol.
             foreach (var finder in _finders)
             {
-                var references = await finder.FindReferencesInDocumentAsync(
-                    symbol, state, _options, cancellationToken).ConfigureAwait(false);
-                foreach (var (_, location) in references)
+                await finder.FindReferencesInDocumentAsync(
+                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken).ConfigureAwait(false);
+                foreach (var (_, location) in referencesForFinder)
                 {
                     var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
                     await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                 }
+
+                referencesForFinder.Clear();
             }
 
             // Now, for symbols that could involve inheritance, look for references to the same named entity, and

@@ -38,13 +38,15 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name);
     }
 
-    protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected override ValueTask FindReferencesInDocumentAsync<TData>(
         IParameterSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentUsingIdentifierAsync(symbol, symbol.Name, state, cancellationToken);
+        return FindReferencesInDocumentUsingIdentifierAsync(symbol, symbol.Name, state, processResult, processResultData, cancellationToken);
     }
 
     protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(

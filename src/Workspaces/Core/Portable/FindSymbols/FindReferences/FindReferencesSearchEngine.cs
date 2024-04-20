@@ -203,7 +203,7 @@ internal partial class FindReferencesSearchEngine
                 {
                     await finder.DetermineDocumentsToSearchAsync(
                         symbol, globalAliases, project, _documents,
-                        static (doc, documents) => documents.Add(doc),
+                        StandardCallbacks<Document>.AddToHashSet,
                         foundDocuments,
                         _options, cancellationToken).ConfigureAwait(false);
 
@@ -272,12 +272,15 @@ internal partial class FindReferencesSearchEngine
             // just grab those once here and hold onto them for the lifetime of this call.
             var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
+            // scratch array to place results in. Populated/inspected/cleared in inner loop.
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var foundReferenceLocations);
+
             foreach (var symbol in symbols)
             {
                 var globalAliases = TryGet(symbolToGlobalAliases, symbol);
                 var state = new FindReferencesDocumentState(cache, globalAliases);
 
-                await ProcessDocumentAsync(symbol, state).ConfigureAwait(false);
+                await ProcessDocumentAsync(symbol, state, foundReferenceLocations).ConfigureAwait(false);
             }
         }
         finally
@@ -286,7 +289,7 @@ internal partial class FindReferencesSearchEngine
         }
 
         async Task ProcessDocumentAsync(
-            ISymbol symbol, FindReferencesDocumentState state)
+            ISymbol symbol, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> foundReferenceLocations)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -297,10 +300,12 @@ internal partial class FindReferencesSearchEngine
                 var group = _symbolToGroup[symbol];
                 foreach (var finder in _finders)
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, state, _options, cancellationToken).ConfigureAwait(false);
-                    foreach (var (_, location) in references)
+                    await finder.FindReferencesInDocumentAsync(
+                        symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, foundReferenceLocations, _options, cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, location) in foundReferenceLocations)
                         await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+
+                    foundReferenceLocations.Clear();
                 }
             }
         }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -29,13 +30,15 @@ internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReference
         return Task.CompletedTask;
     }
 
-    protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // An explicit method can't be referenced anywhere.
-        return new([]);
+        return ValueTaskFactory.CompletedTask;
     }
 }
