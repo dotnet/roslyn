@@ -234,7 +234,6 @@ internal partial class SolutionCompilationState
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var logger = services.GetService<IWorkspaceTestLogger>();
-                var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
 
                 try
                 {
@@ -249,6 +248,8 @@ internal partial class SolutionCompilationState
                         if (emitResult.Success)
                         {
                             logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+
+                            var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
 
                             // Then, dump that in-memory-stream to a memory-mapped file.  Doing this allows us to have the
                             // assembly-metadata point directly to that pointer in memory, instead of it having to make its
