@@ -321,12 +321,10 @@ internal partial class SerializerService
         writer.WriteInt32((int)MetadataImageKind.Assembly);
         writer.WriteInt32(storageIdentifiers.Count);
 
-        foreach (var (name, offset, size) in storageIdentifiers)
+        foreach (var identifier in storageIdentifiers)
         {
             writer.WriteInt32((int)MetadataImageKind.Module);
-            writer.WriteString(name);
-            writer.WriteInt64(offset);
-            writer.WriteInt64(size);
+            identifier.WriteTo(writer);
         }
 
         return true;
@@ -429,17 +427,14 @@ internal partial class SerializerService
         {
             // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
             // will not be released by the host.
-            var name = reader.ReadRequiredString();
-            var offset = reader.ReadInt64();
-            length = reader.ReadInt64();
-            storageIdentifier = new TemporaryStorageIdentifier(name, offset, length);
+            storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
         }
 
         // Now read in the module data using that identifier.  This will either be reading from the host's memory if
         // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
         // sent us the full contents.
         var storageStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
-        Contract.ThrowIfFalse(length == storageStream.Length);
+        Contract.ThrowIfFalse(storageIdentifier.Size == storageStream.Length);
         return (storageIdentifier, storageStream);
     }
 

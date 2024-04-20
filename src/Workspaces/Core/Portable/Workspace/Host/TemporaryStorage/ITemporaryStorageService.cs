@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -84,4 +85,18 @@ internal sealed class TemporaryStorageHandle(IDisposable underlyingData, Tempora
 internal sealed record TemporaryStorageIdentifier(
     [property: DataMember(Order = 0)] string Name,
     [property: DataMember(Order = 1)] long Offset,
-    [property: DataMember(Order = 2)] long Size);
+    [property: DataMember(Order = 2)] long Size)
+{
+    public static TemporaryStorageIdentifier ReadFrom(ObjectReader reader)
+        => new(
+            reader.ReadRequiredString(),
+            reader.ReadInt64(),
+            reader.ReadInt64());
+
+    public void WriteTo(ObjectWriter writer)
+    {
+        writer.WriteString(Name);
+        writer.WriteInt64(Offset);
+        writer.WriteInt64(Size);
+    }
+}
