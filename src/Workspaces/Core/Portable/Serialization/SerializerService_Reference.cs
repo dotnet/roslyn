@@ -64,9 +64,9 @@ internal partial class SerializerService
     {
         if (reference is PortableExecutableReference portable)
         {
-            if (portable is ISupportTemporaryStorage { StorageIdentifiers: { Count: > 0 } storageIdentifiers } &&
+            if (portable is ISupportTemporaryStorage { StorageHandles: { Count: > 0 } handles } &&
                 TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-                    portable, storageIdentifiers, writer, cancellationToken))
+                    portable, handles, writer, cancellationToken))
             {
                 return;
             }
@@ -232,7 +232,7 @@ internal partial class SerializerService
 
         var filePath = reader.ReadString();
 
-        if (TryReadMetadataFrom(reader, kind, cancellationToken) is not (var metadata, var storageIdentifiers))
+        if (TryReadMetadataFrom(reader, kind, cancellationToken) is not (var metadata, var storageHandles))
         {
             // TODO: deal with xml document provider properly
             //       should we shadow copy xml doc comment?
@@ -252,7 +252,7 @@ internal partial class SerializerService
             _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
 
         return new SerializedMetadataReference(
-            properties, filePath, metadata, storageIdentifiers, documentProvider);
+            properties, filePath, metadata, storageHandles, documentProvider);
     }
 
     private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
@@ -310,27 +310,27 @@ internal partial class SerializerService
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
         PortableExecutableReference reference,
-        IReadOnlyList<TemporaryStorageIdentifier> storageIdentifiers,
+        IReadOnlyList<TemporaryStorageHandle> handles,
         ObjectWriter writer,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue(storageIdentifiers.Count == 0);
+        Contract.ThrowIfTrue(handles.Count == 0);
 
         WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
 
         writer.WriteInt32((int)MetadataImageKind.Assembly);
-        writer.WriteInt32(storageIdentifiers.Count);
+        writer.WriteInt32(handles.Count);
 
-        foreach (var identifier in storageIdentifiers)
+        foreach (var handle in handles)
         {
             writer.WriteInt32((int)MetadataImageKind.Module);
-            identifier.WriteTo(writer);
+            handle.Identifier.WriteTo(writer);
         }
 
         return true;
     }
 
-    private (Metadata metadata, ImmutableArray<TemporaryStorageIdentifier> storageIdentifiers)? TryReadMetadataFrom(
+    private (Metadata metadata, ImmutableArray<TemporaryStorageHandle> storageHandles)? TryReadMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         var imageKind = reader.ReadInt32();
@@ -344,7 +344,7 @@ internal partial class SerializerService
         if (metadataKind == MetadataImageKind.Assembly)
         {
             using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-            using var pooledStorageIdentifiers = Creator.CreateList<TemporaryStorageIdentifier>();
+            using var pooledHandles = Creator.CreateList<TemporaryStorageHandle>();
 
             var count = reader.ReadInt32();
             for (var i = 0; i < count; i++)
@@ -352,24 +352,24 @@ internal partial class SerializerService
                 metadataKind = (MetadataImageKind)reader.ReadInt32();
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                var (metadata, storageIdentifier) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+                var (metadata, storageHandle) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
 
                 pooledMetadata.Object.Add(metadata);
-                pooledStorageIdentifiers.Object.Add(storageIdentifier);
+                pooledHandles.Object.Add(storageHandle);
             }
 
-            return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorageIdentifiers.Object.ToImmutableArrayOrEmpty());
+            return (AssemblyMetadata.Create(pooledMetadata.Object), pooledHandles.Object.ToImmutableArrayOrEmpty());
         }
         else
         {
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
             var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
-            return (moduleInfo.metadata, [moduleInfo.storageIdentifier]);
+            return (moduleInfo.metadata, [moduleInfo.storageHandle]);
         }
     }
 
-    private (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFrom(
+    private (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) ReadModuleMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -379,15 +379,16 @@ internal partial class SerializerService
             ? ReadModuleMetadataFromBits()
             : ReadModuleMetadataFromMemoryMappedFile();
 
-        (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFromMemoryMappedFile()
+        (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) ReadModuleMetadataFromMemoryMappedFile()
         {
             // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
             // will not be released by the host.
             var storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
-            return ReadModuleMetadataFromStorage(storageIdentifier);
+            var storageHandle = _storageService.GetHandle(storageIdentifier);
+            return ReadModuleMetadataFromStorage(storageHandle);
         }
 
-        (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFromBits()
+        (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) ReadModuleMetadataFromBits()
         {
             // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
             // server side so that we can refer to this data uniformly.
@@ -398,25 +399,26 @@ internal partial class SerializerService
 
             stream.Position = 0;
             var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
-            var storageIdentifier = storageHandle.Identifier;
-
-            return ReadModuleMetadataFromStorage(storageIdentifier);
+            return ReadModuleMetadataFromStorage(storageHandle);
         }
 
-        (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFromStorage(
-            TemporaryStorageIdentifier storageIdentifier)
+        (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) ReadModuleMetadataFromStorage(
+            TemporaryStorageHandle storageHandle)
         {
             // Now read in the module data using that identifier.  This will either be reading from the host's memory if
             // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
             // sent us the full contents.
-            var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
-            Contract.ThrowIfFalse(storageIdentifier.Size == unmanagedStream.Length);
+            var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageHandle.Identifier, cancellationToken);
+            Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
 
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+            // the metadata.
             unsafe
             {
                 var metadata = ModuleMetadata.CreateFromMetadata(
-                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length);
-                return (metadata, storageIdentifier);
+                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
+                return (metadata, storageHandle);
             }
         }
     }
@@ -502,22 +504,22 @@ internal partial class SerializerService
     private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly Metadata _metadata;
-        private readonly ImmutableArray<TemporaryStorageIdentifier> _storageIdentifiers;
+        private readonly ImmutableArray<TemporaryStorageHandle> _storageHandles;
         private readonly DocumentationProvider _provider;
 
-        public IReadOnlyList<TemporaryStorageIdentifier> StorageIdentifiers => _storageIdentifiers;
+        public IReadOnlyList<TemporaryStorageHandle> StorageHandles => _storageHandles;
 
         public SerializedMetadataReference(
             MetadataReferenceProperties properties,
             string? fullPath,
             Metadata metadata,
-            ImmutableArray<TemporaryStorageIdentifier> storagesIdentifiers,
+            ImmutableArray<TemporaryStorageHandle> storageHandles,
             DocumentationProvider initialDocumentation)
             : base(properties, fullPath, initialDocumentation)
         {
-            Contract.ThrowIfTrue(storagesIdentifiers.IsDefault);
+            Contract.ThrowIfTrue(storageHandles.IsDefault);
             _metadata = metadata;
-            _storageIdentifiers = storagesIdentifiers;
+            _storageHandles = storageHandles;
 
             _provider = initialDocumentation;
         }
@@ -532,6 +534,6 @@ internal partial class SerializerService
             => _metadata;
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new SerializedMetadataReference(properties, FilePath, _metadata, _storageIdentifiers, _provider);
+            => new SerializedMetadataReference(properties, FilePath, _metadata, _storageHandles, _provider);
     }
 }

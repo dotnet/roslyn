@@ -118,6 +118,12 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         return storage.ReadStream(cancellationToken);
     }
 
+    internal TemporaryStorageHandle GetHandle(TemporaryStorageIdentifier storageIdentifier)
+    {
+        var storage = new TemporaryStreamStorage(this, storageIdentifier.Name, storageIdentifier.Offset, storageIdentifier.Size);
+        return new(storage, storageIdentifier);
+    }
+
     /// <summary>
     /// Allocate shared storage of a specified size.
     /// </summary>
