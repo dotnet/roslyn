@@ -459,35 +459,6 @@ internal partial class SerializerService
         }
     }
 
-    private sealed class PinnedObject : IDisposable
-    {
-        // shouldn't be read-only since GCHandle is a mutable struct
-        private GCHandle _gcHandle;
-
-        public PinnedObject(byte[] array)
-            => _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-
-        internal IntPtr GetPointer()
-            => _gcHandle.AddrOfPinnedObject();
-
-        private void OnDispose()
-        {
-            if (_gcHandle.IsAllocated)
-            {
-                _gcHandle.Free();
-            }
-        }
-
-        ~PinnedObject()
-            => OnDispose();
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            OnDispose();
-        }
-    }
-
     private sealed class MissingMetadataReference : PortableExecutableReference
     {
         private readonly DocumentationProvider _provider;
