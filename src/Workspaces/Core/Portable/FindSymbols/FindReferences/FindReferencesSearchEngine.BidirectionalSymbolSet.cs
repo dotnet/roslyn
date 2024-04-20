@@ -42,7 +42,7 @@ internal partial class FindReferencesSearchEngine
         }
 
         public override ImmutableArray<ISymbol> GetAllSymbols()
-            => _allSymbols.ToImmutableArray();
+            => [.. _allSymbols];
 
         public override async Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)
         {

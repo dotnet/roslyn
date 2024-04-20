@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 else
                 {
                     var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                    textChanges = newText.GetTextChanges(oldText).ToImmutableArray();
+                    textChanges = [.. newText.GetTextChanges(oldText)];
                 }
 
                 // Map all the text changes' spans for this document.

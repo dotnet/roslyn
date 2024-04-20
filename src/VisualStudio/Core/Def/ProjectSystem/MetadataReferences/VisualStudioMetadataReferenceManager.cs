@@ -214,7 +214,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 storage = _temporaryStorageService.CreateTemporaryStreamStorage();
 
                 copyStream.Position = 0;
-                storage.WriteStream(copyStream);
+                storage.WriteStream(copyStream, CancellationToken.None);
             }
 
             // get stream that owns the underlying unmanaged memory.

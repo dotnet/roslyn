@@ -1525,7 +1525,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             ],
             [
                 "cs additional file content"
-            ], solution.ProjectIds.ToArray());
+            ], [.. solution.ProjectIds]);
 
             solution = AddProject(solution, LanguageNames.CSharp,
             [

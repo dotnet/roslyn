@@ -44,7 +44,5 @@ internal interface ITemporaryTextStorageInternal : IDisposable
 internal interface ITemporaryStreamStorageInternal : IDisposable
 {
     Stream ReadStream(CancellationToken cancellationToken = default);
-    Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default);
     void WriteStream(Stream stream, CancellationToken cancellationToken = default);
-    Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default);
 }
