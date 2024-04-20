@@ -415,21 +415,6 @@ internal partial class SerializerService
         }
     }
 
-    private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
-    {
-        Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
-
-        var array = reader.ReadByteArray();
-
-        // Pin the array so that the module metadata can treat it as a segment of unmanaged memory.
-        var pinnedObject = new PinnedObject(array);
-
-        // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
-        // as the onDispose callback of the metadata.
-        return ModuleMetadata.CreateFromMetadata(
-            pinnedObject.GetPointer(), array.Length, pinnedObject.Dispose);
-    }
-
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
