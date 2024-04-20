@@ -4,9 +4,7 @@
 
 using System;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -53,50 +51,4 @@ internal interface ITemporaryStorageServiceInternal : IWorkspaceService
     Stream ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken);
 
     ITemporaryTextStorageInternal CreateTemporaryTextStorage();
-}
-
-/// <summary>
-/// Represents a handle to data stored to temporary storage (generally a memory mapped file).  As long as this handle is
-/// not disposed, the data should remain in storage and can be readable from any process using the information provided
-/// in <see cref="Identifier"/>.  Use <see cref="ITemporaryStorageServiceInternal.WriteToTemporaryStorage"/> to write
-/// the data to temporary storage and get a handle to it.  Use <see
-/// cref="ITemporaryStorageServiceInternal.ReadFromTemporaryStorageService"/> to read the data back in any process.
-/// </summary>
-internal sealed class TemporaryStorageHandle(IDisposable underlyingData, TemporaryStorageIdentifier identifier) : IDisposable
-{
-    private IDisposable? _underlyingData = underlyingData;
-    private TemporaryStorageIdentifier? _identifier = identifier;
-
-    public TemporaryStorageIdentifier Identifier => _identifier ?? throw new InvalidOperationException("Handle has already been disposed");
-
-    public void Dispose()
-    {
-        var data = Interlocked.Exchange(ref _underlyingData, null);
-        data?.Dispose();
-        _identifier = null;
-    }
-}
-
-/// <summary>
-/// Identifier for a stream of data placed in a segment of temporary storage (generally a memory mapped file). Can be
-/// used to identify that segment across processes, allowing for efficient sharing of data.
-/// </summary>
-[DataContract]
-internal sealed record TemporaryStorageIdentifier(
-    [property: DataMember(Order = 0)] string Name,
-    [property: DataMember(Order = 1)] long Offset,
-    [property: DataMember(Order = 2)] long Size)
-{
-    public static TemporaryStorageIdentifier ReadFrom(ObjectReader reader)
-        => new(
-            reader.ReadRequiredString(),
-            reader.ReadInt64(),
-            reader.ReadInt64());
-
-    public void WriteTo(ObjectWriter writer)
-    {
-        writer.WriteString(Name);
-        writer.WriteInt64(Offset);
-        writer.WriteInt64(Size);
-    }
 }
