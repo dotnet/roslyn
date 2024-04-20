@@ -420,7 +420,6 @@ internal partial class SerializerService
 
         var storageStream = storage.ReadStream(cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
-
         var metadata = GetMetadata(storageStream, length);
         return (metadata, storage);
     }
