@@ -317,7 +317,6 @@ internal partial class SerializerService
         Contract.ThrowIfTrue(storageIdentifiers.Count == 0);
 
         WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
-
         writer.WriteInt32((int)MetadataImageKind.Assembly);
         writer.WriteInt32(storageIdentifiers.Count);
 
