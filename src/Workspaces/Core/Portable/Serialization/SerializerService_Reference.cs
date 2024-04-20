@@ -419,7 +419,6 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         var (storage, length) = GetTemporaryStorage(reader, kind, cancellationToken);
-
         var storageStream = storage.ReadStream(cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
         var metadata = GetMetadata(storageStream, length);
