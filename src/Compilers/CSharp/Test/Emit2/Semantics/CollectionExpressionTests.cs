@@ -9286,6 +9286,7 @@ static class Program
         [Fact]
         public void SpreadElement_16()
         {
+            // spread operand element type differs from result collection element type
             string source = """
                 using System;
                 using System.Collections;
