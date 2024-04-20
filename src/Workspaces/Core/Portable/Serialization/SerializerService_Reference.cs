@@ -422,7 +422,6 @@ internal partial class SerializerService
         Contract.ThrowIfFalse(length == storageStream.Length);
 
         var metadata = GetMetadata(storageStream, length);
-
         return (metadata, storage);
     }
 
