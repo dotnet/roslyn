@@ -110,7 +110,7 @@ internal static class VisualStudioMetadataReference
         private string GetDebuggerDisplay()
             => "Metadata File: " + FilePath;
 
-        public IReadOnlyList<TemporaryStorageIdentifier> StorageIdentifiers
-            => _provider.GetStorageIdentifiers(this.FilePath, _timestamp.Value);
+        public IReadOnlyList<TemporaryStorageHandle> StorageHandles
+            => _provider.GetStorageHandles(this.FilePath, _timestamp.Value);
     }
 }
