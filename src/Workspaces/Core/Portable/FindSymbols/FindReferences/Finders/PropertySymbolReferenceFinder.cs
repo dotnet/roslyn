@@ -145,7 +145,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
                 if (useResult)
                     data.processResult(loc, data.processResultData);
             },
-            processResultData: (options, state, symbol, cancellationToken, self: this, processResult, processResultData),
+            processResultData: (self: this, symbol, state, processResult, processResultData, options, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         if (IsForEachProperty(symbol))

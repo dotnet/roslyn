@@ -272,7 +272,7 @@ internal partial class FindReferencesSearchEngine
             // just grab those once here and hold onto them for the lifetime of this call.
             var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
-            // scratch hashset to place results in. Populated/inspected/cleared in inner loop.
+            // scratch array to place results in. Populated/inspected/cleared in inner loop.
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var foundReferenceLocations);
 
             foreach (var symbol in symbols)
@@ -304,9 +304,9 @@ internal partial class FindReferencesSearchEngine
                         symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, foundReferenceLocations, _options, cancellationToken).ConfigureAwait(false);
                     foreach (var (_, location) in foundReferenceLocations)
                         await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
-                }
 
-                foundReferenceLocations.Clear();
+                    foundReferenceLocations.Clear();
+                }
             }
         }
     }

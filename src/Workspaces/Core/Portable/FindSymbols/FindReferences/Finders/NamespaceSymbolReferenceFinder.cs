@@ -83,7 +83,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
                     symbol, globalAlias, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken).ConfigureAwait(false);
             }
 
-            // call processResult on items in initialReferences
+            // The items in initialReferences need to be both reported and used later to calculate additional results.
             foreach (var location in initialReferences)
                 processResult(location, processResultData);
 

@@ -78,7 +78,8 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
         }
 
         await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-            property, state,
+            property,
+            state,
             static (loc, data) =>
             {
                 var accessors = GetReferencedAccessorSymbols(
@@ -86,7 +87,7 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
                 if (accessors.Contains(data.symbol))
                     data.processResult(loc, data.processResultData);
             },
-            (state, property, symbol, processResult, processResultData, cancellationToken),
+            (property, symbol, state, processResult, processResultData, cancellationToken),
             options with { AssociatePropertyReferencesWithSpecificAccessor = false },
             cancellationToken).ConfigureAwait(false);
     }

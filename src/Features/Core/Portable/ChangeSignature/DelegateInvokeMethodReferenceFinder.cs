@@ -95,10 +95,7 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
             .Where(e => state.SemanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
 
         foreach (var node in invocations)
-        {
-            var finderLocation = CreateFinderLocation(node, state, cancellationToken);
-            processResult(finderLocation, processResultData);
-        }
+            processResult(CreateFinderLocation(node, state, cancellationToken), processResultData);
 
         foreach (var node in nodes)
         {

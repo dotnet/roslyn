@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -116,17 +115,6 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
             await AddReferencesInDocumentWorkerAsync(
                 methodSymbol, globalAlias, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
-
-        // Nest, our containing type might itself have local aliases to it in this particular file.
-        // If so, see what the local aliases are and then search for constructor references to that.
-        using var _2 = ArrayBuilder<FinderLocation>.GetInstance(out var typeReferences);
-        await NamedTypeSymbolReferenceFinder.AddReferencesToTypeOrGlobalAliasToItAsync(
-            methodSymbol.ContainingType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, typeReferences, cancellationToken).ConfigureAwait(false);
-
-        // REVIEW: This looks to go to quite a bit of work to populate aliasReferences, but never uses it?
-        using var _3 = ArrayBuilder<FinderLocation>.GetInstance(out var aliasReferences);
-        await FindLocalAliasReferencesAsync(
-            typeReferences, methodSymbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, aliasReferences, cancellationToken).ConfigureAwait(false);
 
         // Finally, look for constructor references to predefined types (like `new int()`),
         // implicit object references, and inside global suppression attributes.
