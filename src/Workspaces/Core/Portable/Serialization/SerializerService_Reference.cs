@@ -376,43 +376,37 @@ internal partial class SerializerService
 
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
 
-        long length;
-        TemporaryStorageIdentifier storageIdentifier;
-        if (kind == SerializationKinds.Bits)
+        return kind == SerializationKinds.Bits
+            ? ReadModuleMetadataFromBits()
+            : ReadModuleMetadataFromMemoryMappedFile();
+
+        (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFromMemoryMappedFile()
+        {
+            // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
+            // will not be released by the host.
+            var storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
+            return ReadModuleMetadataFromStorage(storageIdentifier);
+        }
+
+        (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFromBits()
         {
             // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
             // server side so that we can refer to this data uniformly.
             using var stream = SerializableBytes.CreateWritableStream();
             CopyByteArrayToStream(reader, stream, cancellationToken);
 
-            length = stream.Length;
+            var length = stream.Length;
 
             stream.Position = 0;
             var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
-            storageIdentifier = storageHandle.Identifier;
+            var storageIdentifier = storageHandle.Identifier;
 
-            // Now read in the module data using that identifier.  This will either be reading from the host's memory if
-            // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
-            // sent us the full contents.
-            var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
-            Contract.ThrowIfFalse(storageIdentifier.Size == unmanagedStream.Length);
-
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
-            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
-            // the metadata.
-            unsafe
-            {
-                var metadata = ModuleMetadata.CreateFromMetadata(
-                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-                return (metadata, storageIdentifier);
-            }
+            return ReadModuleMetadataFromStorage(storageIdentifier);
         }
-        else
-        {
-            // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
-            // will not be released by the host.
-            storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
 
+        (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFromStorage(
+            TemporaryStorageIdentifier storageIdentifier)
+        {
             // Now read in the module data using that identifier.  This will either be reading from the host's memory if
             // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
             // sent us the full contents.
