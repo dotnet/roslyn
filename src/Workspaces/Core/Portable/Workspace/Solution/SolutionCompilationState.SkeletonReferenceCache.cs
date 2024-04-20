@@ -234,6 +234,7 @@ internal partial class SolutionCompilationState
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var logger = services.GetService<IWorkspaceTestLogger>();
+                var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
 
                 try
                 {
@@ -255,7 +256,6 @@ internal partial class SolutionCompilationState
                             // own copy it needs to own the lifetime of.
                             stream.Position = 0;
 
-                            var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
                             var handle = temporaryStorageService.WriteToTemporaryStorage(stream, cancellationToken);
 
                             // Now read the data back from the stream from the memory mapped file.  This will come back as an
