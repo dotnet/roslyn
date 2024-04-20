@@ -6,11 +6,8 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -26,10 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
         private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
-            => CreateWorkspace(
-            [
-                typeof(TestTemporaryStorageServiceFactory)
-            ]);
+            => CreateWorkspace();
 
         private static Solution AddSingleFileCSharpProject(Solution solution, string source)
         {
