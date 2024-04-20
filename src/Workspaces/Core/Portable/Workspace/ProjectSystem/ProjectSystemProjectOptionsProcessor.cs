@@ -250,18 +250,11 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // includes in the IDE so we can be watching for changes again.
             var commandLine = _commandLineStorageHandle == null
                 ? ImmutableArray<string>.Empty
-                : ReadLines(_temporaryStorageService, _commandLineStorageHandle.Identifier);
+                : EnumerateLines(_temporaryStorageService, _commandLineStorageHandle.Identifier).ToImmutableArray();
 
             DisposeOfRuleSetFile_NoLock();
             ReparseCommandLine_NoLock(commandLine);
             UpdateProjectOptions_NoLock();
-        }
-
-        static ImmutableArray<string> ReadLines(
-            ITemporaryStorageServiceInternal temporaryStorageService,
-            TemporaryStorageIdentifier storageIdentifier)
-        {
-            return EnumerateLines(temporaryStorageService, storageIdentifier).ToImmutableArray();
         }
 
         static IEnumerable<string> EnumerateLines(
