@@ -37,11 +37,11 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
     /// <summary>
-    /// Mapping from an <see cref="AssemblyMetadata"/> we created, to the memory mapped files (mmf) corresponding to
-    /// the assembly and all the modules within it.  This is kept around to make OOP syncing more efficient.
-    /// Specifically, since we know we read the assembly into an mmf, we can just send the mmf name/offset/length to
-    /// the remote process, and it can map that same memory in directly, instead of needing the host to send the
-    /// entire contents of the assembly over the channel to the OOP process.
+    /// Mapping from an <see cref="AssemblyMetadata"/> we created, to the identifiers identifying the memory mapped
+    /// files (mmf) corresponding to that assembly and all the modules within it.  This is kept around to make OOP
+    /// syncing more efficient. Specifically, since we know we dumped the assembly into an mmf, we can just send the mmf
+    /// name/offset/length to the remote process, and it can map that same memory in directly, instead of needing the
+    /// host to send the entire contents of the assembly over the channel to the OOP process.
     /// </summary>
     private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageIdentifier>> s_metadataToStorageIdentifiers = new();
 
