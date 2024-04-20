@@ -333,7 +333,7 @@ internal partial class SerializerService
         return true;
     }
 
-    private (Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storages)? TryReadMetadataFrom(
+    private (Metadata metadata, ImmutableArray<TemporaryStorageIdentifier> storageIdentifiers)? TryReadMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         var imageKind = reader.ReadInt32();
@@ -361,19 +361,19 @@ internal partial class SerializerService
 #pragma warning restore CA2016 
                 }
 
-                return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
+                return (AssemblyMetadata.Create(pooledMetadata.Object), storageIdentifiers: default);
             }
 
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 #pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-            return (ReadModuleMetadataFrom(reader, kind), storages: default);
+            return (ReadModuleMetadataFrom(reader, kind), storageIdentifiers: default);
 #pragma warning restore CA2016
         }
 
         if (metadataKind == MetadataImageKind.Assembly)
         {
             using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-            using var pooledStorage = Creator.CreateList<ITemporaryStreamStorageInternal>();
+            using var pooledStorageIdentifiers = Creator.CreateList<TemporaryStorageIdentifier>();
 
             var count = reader.ReadInt32();
             for (var i = 0; i < count; i++)
@@ -381,13 +381,13 @@ internal partial class SerializerService
                 metadataKind = (MetadataImageKind)reader.ReadInt32();
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+                var (metadata, storageIdentifier) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
 
                 pooledMetadata.Object.Add(metadata);
-                pooledStorage.Object.Add(storage);
+                pooledStorageIdentifiers.Object.Add(storageIdentifier);
             }
 
-            return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
+            return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorageIdentifiers.Object.ToImmutableArrayOrEmpty());
         }
 
         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
@@ -396,7 +396,7 @@ internal partial class SerializerService
         return (moduleInfo.metadata, ImmutableArray.Create(moduleInfo.storage));
     }
 
-    private (ModuleMetadata metadata, ITemporaryStreamStorageInternal storage) ReadModuleMetadataFrom(
+    private (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifeir) ReadModuleMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -426,39 +426,33 @@ internal partial class SerializerService
             pinnedObject.GetPointer(), array.Length, pinnedObject.Dispose);
     }
 
-    private (TemporaryStorageHandle handle, long length) GetTemporaryStorage(
+    private (TemporaryStorageIdentifier handle, long length) GetTemporaryStorageIdentifier(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
 
         if (kind == SerializationKinds.Bits)
         {
-            var storage = _storageService.CreateTemporaryStreamStorage();
+            // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
+            // server side so that we can refer to this data uniformly.
             using var stream = SerializableBytes.CreateWritableStream();
-
             CopyByteArrayToStream(reader, stream, cancellationToken);
 
             var length = stream.Length;
 
             stream.Position = 0;
-            storage.WriteStream(stream, cancellationToken);
+            var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
 
-            return (storage, length);
+            return (storageHandle.Identifier, length);
         }
         else
         {
-            var service2 = (TemporaryStorageService)_storageService;
-
+            // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
+            // will not be released by the host.
             var name = reader.ReadRequiredString();
             var offset = reader.ReadInt64();
             var size = reader.ReadInt64();
-
-#pragma warning disable CA1416 // Validate platform compatibility
-            var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
-#pragma warning restore CA1416 // Validate platform compatibility
-            var length = size;
-
-            return (storage, length);
+            return (new TemporaryStorageIdentifier(name, offset, size), size);
         }
     }
 
