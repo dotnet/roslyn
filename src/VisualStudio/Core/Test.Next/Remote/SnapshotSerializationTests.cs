@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             {
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(serializableSourceText, objectWriter,  CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
