@@ -215,30 +215,31 @@ internal sealed class SerializableSourceText
     private sealed class SerializableSourceTextLoader : TextLoader
     {
         public readonly SerializableSourceText SerializableSourceText;
-        private readonly AsyncLazy<TextAndVersion> _lazyTextAndVersion;
+        private readonly VersionStamp _version = VersionStamp.Create();
 
         public SerializableSourceTextLoader(
             SerializableSourceText serializableSourceText,
             string? filePath)
         {
             SerializableSourceText = serializableSourceText;
-            var version = VersionStamp.Create();
-
-            this.FilePath = filePath;
-            _lazyTextAndVersion = AsyncLazy.Create(
-                async static (tuple, cancellationToken) =>
-                    TextAndVersion.Create(await tuple.serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false), tuple.version, tuple.filePath),
-                static (tuple, cancellationToken) =>
-                    TextAndVersion.Create(tuple.serializableSourceText.GetText(cancellationToken), tuple.version, tuple.filePath),
-                (serializableSourceText, version, filePath));
+            FilePath = filePath;
         }
 
         internal override string? FilePath { get; }
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-            => _lazyTextAndVersion.GetValueAsync(cancellationToken);
+        /// <summary>
+        /// Documents should always hold onto instances of this text loader strongly.  In other words, they should load
+        /// from this, and then dump the contents into a RecoverableText object that then dumps the contents to a memory
+        /// mapped file within this process.  Doing that is pointless as the contents of this text are already in a
+        /// memory mapped file on the host side.
+        /// </summary>
+        internal override bool AlwaysHoldStrongly
+            => true;
+
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => TextAndVersion.Create(await this.SerializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false), _version);
 
         internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
-            => _lazyTextAndVersion.GetValue(cancellationToken);
+            => TextAndVersion.Create(this.SerializableSourceText.GetText(cancellationToken), _version);
     }
 }
