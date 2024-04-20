@@ -365,7 +365,6 @@ internal partial class SerializerService
         else
         {
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-
             var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
             return (moduleInfo.metadata, [moduleInfo.storageHandle]);
         }
