@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
         }
 
-        public override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             var wellKnownReferenceName = s_wellKnownReferenceNames.GetValueOrDefault(reference, null);
             if (wellKnownReferenceName is not null)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             else
             {
                 writer.WriteBoolean(false);
-                base.WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
+                base.WriteMetadataReferenceTo(reference, writer, cancellationToken);
             }
         }
 

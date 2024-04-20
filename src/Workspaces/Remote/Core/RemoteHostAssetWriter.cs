@@ -219,7 +219,7 @@ internal readonly struct RemoteHostAssetWriter(
         objectWriter.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
 
         // Now serialize out the asset itself.
-        _serializer.Serialize(asset, objectWriter, _scope.ReplicationContext, cancellationToken);
+        _serializer.Serialize(asset, objectWriter, cancellationToken);
     }
 
     private void WriteSentinelByteToPipeWriter()
