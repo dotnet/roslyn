@@ -431,7 +431,6 @@ internal partial class SerializerService
     private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
     {
         Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
-
         var array = reader.ReadByteArray();
         var pinnedObject = new PinnedObject(array);
         // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
