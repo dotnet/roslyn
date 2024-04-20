@@ -393,22 +393,26 @@ internal partial class SerializerService
         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
         var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
-        return (moduleInfo.metadata, ImmutableArray.Create(moduleInfo.storage));
+        return (moduleInfo.metadata, [moduleInfo.storageIdentifier]);
     }
 
-    private (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifeir) ReadModuleMetadataFrom(
+    private (ModuleMetadata metadata, TemporaryStorageIdentifier storageIdentifier) ReadModuleMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var (storage, length) = GetTemporaryStorage(reader, kind, cancellationToken);
+        // Get the storage identifier for the module metadata.
+        var (storageIdentifier, length) = GetTemporaryStorageIdentifier(reader, kind, cancellationToken);
 
-        var storageStream = storage.ReadStream(cancellationToken);
+        // Now read in the module data using that identifier.  This will either be reading from the host's memory if
+        // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
+        // sent us the full contents.
+        var storageStream = _storageService.ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
 
         var metadata = GetMetadata(storageStream, length);
 
-        return (metadata, storage);
+        return (metadata, storageIdentifier);
     }
 
     private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
