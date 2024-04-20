@@ -415,7 +415,6 @@ internal partial class SerializerService
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
         var (storage, length) = GetTemporaryStorage(reader, kind, cancellationToken);
         var storageStream = storage.ReadStream(cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
