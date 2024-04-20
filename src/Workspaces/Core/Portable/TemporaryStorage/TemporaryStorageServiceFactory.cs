@@ -29,22 +29,23 @@ namespace Microsoft.CodeAnalysis.Host;
 internal sealed partial class TemporaryStorageService : ITemporaryStorageServiceInternal
 {
     /// <summary>
-    /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other
-    /// storage units.
+    /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other storage
+    /// units.
     /// </summary>
     /// <remarks>
-    /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
-    /// something better.</para>
+    /// <para>The value of 256k reduced the number of files dumped to separate memory mapped files by 60% compared to
+    /// the next lower power-of-2 size for Roslyn.sln itself.</para>
     /// </remarks>
     /// <seealso cref="_weakFileReference"/>
-    private const long SingleFileThreshold = 128 * 1024;
+    private const long SingleFileThreshold = 256 * 1024;
 
     /// <summary>
     /// The size in bytes of a memory mapped file created to store multiple temporary objects.
     /// </summary>
     /// <remarks>
-    /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
-    /// something better.</para>
+    /// <para>This value (8mb) creates roughly 35 memory mapped files (around 300MB) to store the contents of all of
+    /// Roslyn.sln a snapshot. This keeps the data safe, so that we can drop it from memory when not needed, but
+    /// reconstitute the contents we originally had in the snapshot in case the original files change on disk.</para>
     /// </remarks>
     /// <seealso cref="_weakFileReference"/>
     private const long MultiFileBlockSize = SingleFileThreshold * 32;
@@ -65,33 +66,24 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     /// <summary>
     /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer
-    /// allocation until space is no longer available in it.
+    /// allocation until space is no longer available in it.  Access should be synchronized on <see cref="_gate"/>
     /// </summary>
-    /// <remarks>
-    /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
-    /// </remarks>
     private ReferenceCountedDisposable<MemoryMappedFile>.WeakReference _weakFileReference;
 
-    /// <summary>The name of the current memory mapped file for multiple storage units.</summary>
-    /// <remarks>
-    /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
-    /// </remarks>
+    /// <summary>The name of the current memory mapped file for multiple storage units. Access should be synchronized on
+    /// <see cref="_gate"/></summary>
     /// <seealso cref="_weakFileReference"/>
     private string? _name;
 
-    /// <summary>The total size of the current memory mapped file for multiple storage units.</summary>
-    /// <remarks>
-    /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
-    /// </remarks>
+    /// <summary>The total size of the current memory mapped file for multiple storage units. Access should be
+    /// synchronized on <see cref="_gate"/></summary>
     /// <seealso cref="_weakFileReference"/>
     private long _fileSize;
 
     /// <summary>
-    /// The offset into the current memory mapped file where the next storage unit can be held.
+    /// The offset into the current memory mapped file where the next storage unit can be held. Access should be
+    /// synchronized on <see cref="_gate"/>.
     /// </summary>
-    /// <remarks>
-    /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
-    /// </remarks>
     /// <seealso cref="_weakFileReference"/>
     private long _offset;
 
