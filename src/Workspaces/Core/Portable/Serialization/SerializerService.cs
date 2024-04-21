@@ -67,7 +67,6 @@ internal partial class SerializerService : ISerializerService
         using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, s_logKind, kind, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             if (value is IChecksummedObject checksummedObject)
             {
                 return checksummedObject.Checksum;
