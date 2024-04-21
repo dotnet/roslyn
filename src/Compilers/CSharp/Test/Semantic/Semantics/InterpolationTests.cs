@@ -18765,53 +18765,93 @@ class C
             };
         }
         [Theory]
-        [InlineData(@"$""{ConstChar}l{ConstString}l{varString}""")]
-        public void MixStringCharConstantsToConcat(string expression)
-        {
-            var code = @"
-const char ConstChar = 'c';
-const string ConstString = ""s"";
-string varString = ""s"";
-System.Console.WriteLine(" + expression + @");";
-
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
-
-            var verifier = CompileAndVerify(comp, expectedOutput: """
-                clsls
-                """);
-
-            verifier.VerifyIL("<top-level-statements-entry-point>", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (string V_0) //varString
-  IL_0000:  ldstr      ""s""
-  IL_0005:  stloc.0
-  IL_0006:  ldstr      ""clsl""
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""string string.Concat(string, string)""
-  IL_0011:  call       ""void System.Console.WriteLine(string)""
-  IL_0016:  ret
-}
-");
-        }
-
-        [Theory]
-        [InlineData(@"$""{ConstChar}l{ConstString}l{ConstString}""", "clsls")]
-        [InlineData(@"$""{ConstChar}""", "c")]
-        [InlineData(@"$""{ConstChar}{ConstChar}""", "cc")]
-        [InlineData(@"$""{ConstString}{ConstString}""", "ss")]
-        [InlineData(@"$""{(string?)null}""", "")]
-        [InlineData(@"$""{(string?)null}{NullString}""", "")]
-        [InlineData(@"$""n{NullString}u{NullString}{default(string?)}{'l'}{""l ""}{NullString}{'v'}{NullString}{""alue""}""", "null value")]
-        [InlineData(@"$""null{(string?)null}"" + $""{null}"" + $""{default}""", "null")]
-        public void MixStringCharNullConstantsToLiteral(string expression, string output)
+        [InlineData(@"$""{ConstChar}l{ConstString}l{varString}""", "clslv")]
+        [InlineData(@"$""{ConstChar}{varString}{null}{varString}{null}""", "cvv")]
+        [InlineData(@"$""{null}{varString}{null}{null}{varString}{null}{ConstChar}{ConstChar}{default}l{null}{varString}{default(string?)}""", "vvcclv")]
+        public void MixStringCharNullConstantsToConcat(string expression, string output)
         {
             var code = @"
 const char ConstChar = 'c';
 const string ConstString = ""s"";
 const string? NullString = null;
+string varString = ""v"";
 System.Console.Write(" + expression + @");";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp, expectedOutput: output);
+            verifier.VerifyIL("<top-level-statements-entry-point>", getIl());
+
+            string getIl() => output switch
+            {
+                "clslv" => """
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (string V_0) //varString
+  IL_0000:  ldstr      "v"
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      "clsl"
+  IL_000b:  ldloc.0
+  IL_000c:  call       "string string.Concat(string, string)"
+  IL_0011:  call       "void System.Console.Write(string)"
+  IL_0016:  ret
+}
+""",
+                "cvv" => """
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (string V_0) //varString
+  IL_0000:  ldstr      "v"
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      "c"
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  call       "string string.Concat(string, string, string)"
+  IL_0012:  call       "void System.Console.Write(string)"
+  IL_0017:  ret
+}
+""",
+                "vvcclv" => """
+{
+  // Code size       25 (0x19)
+  .maxstack  4
+  .locals init (string V_0) //varString
+  IL_0000:  ldstr      "v"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldstr      "ccl"
+  IL_000d:  ldloc.0
+  IL_000e:  call       "string string.Concat(string, string, string, string)"
+  IL_0013:  call       "void System.Console.Write(string)"
+  IL_0018:  ret
+}
+""",
+                _ => "",
+            };
+        }
+
+        [Theory]
+        [InlineData(@"$""{ConstChar}l{ConstString}l{ConstString}""", "clsls", true)]
+        [InlineData(@"$""{ConstChar}""", "c", true)]
+        [InlineData(@"$""{ConstChar}{ConstChar}""", "cc", true)]
+        [InlineData(@"$""{ConstString}{ConstString}""", "ss", true)]
+        [InlineData(@"$""{null}""", "", false)]
+        [InlineData(@"$""{NullString}""", "", true)]
+        [InlineData(@"$""{null}{NullString}""", "", false)]
+        [InlineData(@"$""n{NullString}u{NullString}{default(string)}{'l'}{""l ""}{NullString}{'v'}{NullString}{""alue""}""", "null value", true)]
+        [InlineData(@"$""null{(string?)null}"" + $""{null}"" + $""{default}""", "null", false)]
+        public void MixStringCharNullConstantsToLiteral(string expression, string output, bool isConst)
+        {
+            var code = @"
+#pragma warning disable CS0219
+const char ConstChar = 'c';
+const string ConstString = ""s"";
+const string NullString = null;
+#pragma warning restore CS0219
+" + (isConst ? "const " : "") + @"string expression = " + expression + @";
+System.Console.Write(expression);";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
 
