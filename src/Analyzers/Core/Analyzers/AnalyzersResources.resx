@@ -244,8 +244,8 @@
   <data name="Use_interpolated_string" xml:space="preserve">
     <value>Use interpolated string</value>
   </data>
-  <data name="Interpolated_string_should_be_used_for_performance" xml:space="preserve">
-    <value>Interpolated string should be used for performance</value>
+  <data name="String_can_be_converted_to_interpolated_string" xml:space="preserve">
+    <value>String can be converted to interpolated_string</value>
   </data>
   <data name="Use_coalesce_expression" xml:space="preserve">
     <value>Use coalesce expression</value>

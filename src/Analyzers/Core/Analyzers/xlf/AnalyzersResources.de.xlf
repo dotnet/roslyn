@@ -121,6 +121,11 @@
         <target state="translated">In bedingten Ausdruck konvertieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="String_can_be_converted_to_interpolated_string">
+        <source>String can be converted to interpolated_string</source>
+        <target state="new">String can be converted to interpolated_string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_string">
         <source>Use interpolated string</source>
         <target state="new">Use interpolated string</target>
@@ -149,11 +154,6 @@
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
         <target state="translated">Die Implementierung von "GetHashCode" kann vereinfacht werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interpolated_string_should_be_used_for_performance">
-        <source>Interpolated string should be used for performance</source>
-        <target state="new">Interpolated string should be used for performance</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">

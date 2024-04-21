@@ -28,7 +28,7 @@ internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer<TSyntaxK
                 EnforceOnBuildValues.UseInterpolatedString,
                 CodeStyleOptions2.PreferInterpolatedString,
                 new LocalizableResourceString(nameof(AnalyzersResources.Use_interpolated_string), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                new LocalizableResourceString(nameof(AnalyzersResources.Interpolated_string_should_be_used_for_performance), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                new LocalizableResourceString(nameof(AnalyzersResources.String_can_be_converted_to_interpolated_string), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     {
     }
 
