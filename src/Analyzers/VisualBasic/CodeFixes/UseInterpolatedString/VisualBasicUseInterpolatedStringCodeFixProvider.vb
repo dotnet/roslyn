@@ -25,15 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInterpolatedString
         Public Sub New()
         End Sub
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
-            ImmutableArray.Create(IDEDiagnosticIds.UseInterpolatedStringDiagnosticId)
-
-        Protected Overrides Function FixAllAsync(
-                document As Document,
-                diagnostics As ImmutableArray(Of Diagnostic),
-                editor As SyntaxEditor,
-                fallbackOptions As CodeActionOptionsProvider,
-                cancellationToken As CancellationToken) As Task
+        Protected Overrides Function FixOneAsync(
+            document As Document,
+            semanticModel As SemanticModel,
+            diagnostic As Diagnostic,
+            editor As SyntaxEditor,
+            cancellationToken As CancellationToken) As Task
             ' TODO: Implement
             Return Task.CompletedTask
         End Function

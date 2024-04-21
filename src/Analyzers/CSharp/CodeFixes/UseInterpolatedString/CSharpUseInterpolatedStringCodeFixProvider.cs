@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedString;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal partial class CSharpUseInterpolatedStringCodeFixProvider() : AbstractUseInterpolatedStringCodeFixProvider
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseInterpolatedStringDiagnosticId];
-
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task FixOneAsync(Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
