@@ -393,9 +393,8 @@ internal partial class SerializerService
             CopyByteArrayToStream(reader, stream, cancellationToken);
 
             var length = stream.Length;
-
-            stream.Position = 0;
             var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
+            Contract.ThrowIfTrue(length != storageHandle.Identifier.Size);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
 

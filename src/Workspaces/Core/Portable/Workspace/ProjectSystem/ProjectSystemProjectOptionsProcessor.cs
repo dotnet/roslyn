@@ -85,8 +85,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
                 writer.WriteLine(value);
 
             writer.Flush();
-            stream.Position = 0;
-
             _commandLineStorageHandle = _temporaryStorageService.WriteToTemporaryStorage(stream, CancellationToken.None);
         }
 
