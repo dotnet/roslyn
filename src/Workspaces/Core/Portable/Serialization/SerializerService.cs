@@ -51,6 +51,8 @@ internal partial class SerializerService : ISerializerService
     {
         _workspaceServices = workspaceServices;
 
+        // Serialization is only involved when we have a remote process.  Which is only in VS.  So the type of the
+        // storage service here is well known.
         _storageService = (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
         _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
         _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
