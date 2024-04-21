@@ -50,6 +50,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\CSharpMakeAnonymousFunctionStaticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticCodeFixHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\PassInCapturedVariablesAsArgumentsCodeFixProvider.cs" />

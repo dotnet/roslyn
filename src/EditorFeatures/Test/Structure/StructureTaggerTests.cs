@@ -339,7 +339,7 @@ End Module";
             var context = new TaggerContext<IContainerStructureTag>(document, view.TextSnapshot, frozenPartialSemantics: false);
             await provider.GetTestAccessor().ProduceTagsAsync(context);
 
-            return context.TagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();
+            return [.. context.TagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start)];
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 

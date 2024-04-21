@@ -38,26 +38,21 @@ internal readonly struct CompositeImage
 
 [ExportImageIdService(Name = Name)]
 [Order(Before = DefaultImageIdService.Name)]
-internal class VisualStudioImageIdService : ForegroundThreadAffinitizedObject, IImageIdService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioImageIdService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider) : IImageIdService
 {
     public const string Name = nameof(VisualStudioImageIdService);
 
-    private readonly IVsImageService2 _imageService;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IVsImageService2 _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
 
     // We have to keep the image handles around to keep the compound glyph alive.
     private readonly List<CompositeImage> _compositeImages = [];
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioImageIdService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
-        : base(threadingContext)
-    {
-        _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
-    }
-
     public bool TryGetImageId(ImmutableArray<string> tags, out ImageId imageId)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         imageId = GetImageId(tags);
         return imageId != default;
@@ -97,7 +92,7 @@ internal class VisualStudioImageIdService : ForegroundThreadAffinitizedObject, I
 
     private ImageId GetCompositedImageId(params ImageCompositionLayer[] layers)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         foreach (var compositeImage in _compositeImages)
         {

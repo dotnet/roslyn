@@ -268,14 +268,14 @@ internal static class NamedTypeGenerator
         CodeGenerationDestination destination,
         CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (!namedType.IsFileLocal)
         {
             var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
                 ? Accessibility.Internal
                 : Accessibility.Private;
-            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+            AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
         }
         else
         {
@@ -291,28 +291,20 @@ internal static class NamedTypeGenerator
             if (namedType.TypeKind == TypeKind.Class)
             {
                 if (namedType.IsAbstract)
-                {
                     tokens.Add(AbstractKeyword);
-                }
 
                 if (namedType.IsSealed)
-                {
                     tokens.Add(SealedKeyword);
-                }
             }
         }
 
         if (namedType.IsReadOnly)
-        {
             tokens.Add(ReadOnlyKeyword);
-        }
 
         if (namedType.IsRefLikeType)
-        {
             tokens.Add(RefKeyword);
-        }
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return [.. tokens];
     }
 
     private static TypeParameterListSyntax? GenerateTypeParameterList(

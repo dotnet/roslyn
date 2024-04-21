@@ -117,7 +117,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
 
         Recurse(compilationUnit.Members);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
 
         void Recurse(SyntaxList<MemberDeclarationSyntax> members)
         {

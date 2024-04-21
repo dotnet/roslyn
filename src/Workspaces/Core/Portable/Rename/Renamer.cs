@@ -119,7 +119,7 @@ public static partial class Renamer
         if (document.Services.GetService<ISpanMappingService>() != null)
         {
             // Don't advertise that we can file rename generated documents that map to a different file.
-            return new RenameDocumentActionSet([], document.Id, document.Name, document.Folders.ToImmutableArray(), options);
+            return new RenameDocumentActionSet([], document.Id, document.Name, [.. document.Folders], options);
         }
 
         using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
@@ -143,7 +143,7 @@ public static partial class Renamer
             actions.ToImmutable(),
             document.Id,
             newDocumentName,
-            newDocumentFolders.ToImmutableArray(),
+            [.. newDocumentFolders],
             options);
     }
 

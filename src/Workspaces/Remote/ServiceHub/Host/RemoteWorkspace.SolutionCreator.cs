@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         var newSolutionFrozenSourceGeneratedDocuments = newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value;
                         var count = newSolutionFrozenSourceGeneratedDocuments.Ids.Length;
 
-                        using var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
+                        var frozenDocuments = new FixedSizeArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>(count);
                         for (var i = 0; i < count; i++)
                         {
                             var frozenDocumentId = newSolutionFrozenSourceGeneratedDocuments.Ids[i];
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             frozenDocuments.Add((identity, generationDateTime, text));
                         }
 
-                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutableAndClear());
+                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.MoveToImmutable());
                     }
 
                     if (oldSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap !=
@@ -617,13 +617,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
                         assetPath: document.Id, newDocumentChecksums.textChecksum, cancellationToken).ConfigureAwait(false);
-                    var sourceText = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var loader = serializableSourceText.ToTextLoader(document.FilePath);
+                    var mode = PreservationMode.PreserveValue;
 
                     document = document.Kind switch
                     {
-                        TextDocumentKind.Document => document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id)!,
-                        TextDocumentKind.AnalyzerConfigDocument => document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id)!,
-                        TextDocumentKind.AdditionalDocument => document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id)!,
+                        TextDocumentKind.Document => document.Project.Solution.WithDocumentTextLoader(document.Id, loader, mode).GetRequiredDocument(document.Id),
+                        TextDocumentKind.AnalyzerConfigDocument => document.Project.Solution.WithAnalyzerConfigDocumentTextLoader(document.Id, loader, mode).GetRequiredAnalyzerConfigDocument(document.Id),
+                        TextDocumentKind.AdditionalDocument => document.Project.Solution.WithAdditionalDocumentTextLoader(document.Id, loader, mode).GetRequiredAdditionalDocument(document.Id),
                         _ => throw ExceptionUtilities.UnexpectedValue(document.Kind),
                     };
                 }

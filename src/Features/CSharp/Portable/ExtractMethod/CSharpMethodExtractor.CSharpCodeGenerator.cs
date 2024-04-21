@@ -408,7 +408,7 @@ internal partial class CSharpMethodExtractor
                 result.AddRange(expressionStatements);
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         /// <summary>

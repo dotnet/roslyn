@@ -927,7 +927,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                 }
             }
 
-            return conflicts.ToImmutable();
+            return conflicts.ToImmutableAndClear();
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,8 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-// TODO: Remove all optional parameters from IDiagnosticAnalyzerService
-// Tracked with https://github.com/dotnet/roslyn/issues/67434
 internal interface IDiagnosticAnalyzerService
 {
     public IGlobalOptionService GlobalOptions { get; }

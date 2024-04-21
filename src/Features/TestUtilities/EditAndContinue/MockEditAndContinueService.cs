@@ -7,48 +7,34 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal delegate void ActionOut<TArg1>(out TArg1 arg);
-    internal delegate void ActionOut<TArg1, TArg2>(TArg1 arg1, out TArg2 arg2);
-
     [Export(typeof(IEditAndContinueService)), Shared]
-    internal class MockEditAndContinueWorkspaceService : IEditAndContinueService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class MockEditAndContinueService() : IEditAndContinueService
     {
         public Func<Solution, ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>? GetBaseActiveStatementSpansImpl;
 
         public Func<TextDocument, ActiveStatementSpanProvider, ImmutableArray<ActiveStatementSpan>>? GetAdjustedActiveStatementSpansImpl;
         public Func<Solution, IManagedHotReloadService, IPdbMatchingSourceTextProvider, ImmutableArray<DocumentId>, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
 
-        public ActionOut<ImmutableArray<DocumentId>>? EndDebuggingSessionImpl;
+        public Action? EndDebuggingSessionImpl;
         public Func<Solution, ActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
         public Action<Document>? OnSourceFileUpdatedImpl;
-        public ActionOut<ImmutableArray<DocumentId>>? CommitSolutionUpdateImpl;
-        public ActionOut<bool?, ImmutableArray<DocumentId>>? BreakStateOrCapabilitiesChangedImpl;
+        public Action? CommitSolutionUpdateImpl;
+        public Action<bool?>? BreakStateOrCapabilitiesChangedImpl;
         public Action? DiscardSolutionUpdateImpl;
         public Func<Document, ActiveStatementSpanProvider, ImmutableArray<Diagnostic>>? GetDocumentDiagnosticsImpl;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MockEditAndContinueWorkspaceService()
-        {
-        }
+        public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState)
+            => BreakStateOrCapabilitiesChangedImpl?.Invoke(inBreakState);
 
-        public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
-        {
-            documentsToReanalyze = [];
-            BreakStateOrCapabilitiesChangedImpl?.Invoke(inBreakState, out documentsToReanalyze);
-        }
-
-        public void CommitSolutionUpdate(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
-        {
-            documentsToReanalyze = [];
-            CommitSolutionUpdateImpl?.Invoke(out documentsToReanalyze);
-        }
+        public void CommitSolutionUpdate(DebuggingSessionId sessionId)
+            => CommitSolutionUpdateImpl?.Invoke();
 
         public void DiscardSolutionUpdate(DebuggingSessionId sessionId)
             => DiscardSolutionUpdateImpl?.Invoke();
@@ -56,11 +42,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
             => new((EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider));
 
-        public void EndDebuggingSession(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
-        {
-            documentsToReanalyze = [];
-            EndDebuggingSessionImpl?.Invoke(out documentsToReanalyze);
-        }
+        public void EndDebuggingSession(DebuggingSessionId sessionId)
+            => EndDebuggingSessionImpl?.Invoke();
 
         public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
             => new((GetBaseActiveStatementSpansImpl ?? throw new NotImplementedException()).Invoke(solution, documentIds));

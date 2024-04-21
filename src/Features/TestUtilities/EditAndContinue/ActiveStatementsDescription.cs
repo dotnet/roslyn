@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var activeStatementMarkers = SourceMarkers.GetActiveSpans(markedSource).ToArray();
             var exceptionRegionMarkers = SourceMarkers.GetExceptionRegions(markedSource);
 
-            return activeStatementMarkers.Aggregate(
+            return [.. activeStatementMarkers.Aggregate(
                 new List<UnmappedActiveStatement>(),
                 (list, marker) =>
                 {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                     documentActiveStatements.Add(unmappedActiveStatement.Statement);
                     return SourceMarkers.SetListItem(list, ordinal, unmappedActiveStatement);
-                }).ToImmutableArray();
+                })];
         }
 
         internal static ImmutableArray<UnmappedActiveStatement> GetUnmappedActiveStatements(
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
 
             activeStatements.Sort((x, y) => x.Statement.Id.Ordinal.CompareTo(y.Statement.Id.Ordinal));
-            return activeStatements.ToImmutable();
+            return activeStatements.ToImmutableAndClear();
         }
 
         internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(

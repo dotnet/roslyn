@@ -64,7 +64,7 @@ internal class CSharpLineSeparatorService : ILineSeparatorService
             }
         }
 
-        return spans.ToImmutable();
+        return spans.ToImmutableAndClear();
     }
 
     /// <summary>Node types that are interesting for line separation.</summary>

@@ -192,7 +192,7 @@ internal static class EventGenerator
     private static SyntaxTokenList GenerateModifiers(
         IEventSymbol @event, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         // Only "static" allowed if we're an explicit impl.
         if (@event.ExplicitInterfaceImplementations.Any())
@@ -216,7 +216,7 @@ internal static class EventGenerator
             }
             else
             {
-                CSharpCodeGenerationHelpers.AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (@event.IsStatic)
                     tokens.Add(StaticKeyword);
@@ -240,6 +240,6 @@ internal static class EventGenerator
         if (CodeGenerationEventInfo.GetIsUnsafe(@event))
             tokens.Add(UnsafeKeyword);
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return [.. tokens];
     }
 }

@@ -31,7 +31,7 @@ internal partial class CSharpSimplificationService
         {
             var reduceNodeComputer = new NodesAndTokensToReduceComputer(isNodeOrTokenOutsideSimplifySpans);
             reduceNodeComputer.Visit(root);
-            return reduceNodeComputer._nodesAndTokensToReduce.ToImmutableArray();
+            return [.. reduceNodeComputer._nodesAndTokensToReduce];
         }
 
         private NodesAndTokensToReduceComputer(Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans)

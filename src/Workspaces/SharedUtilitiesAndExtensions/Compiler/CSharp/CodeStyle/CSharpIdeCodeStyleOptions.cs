@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -80,6 +79,7 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
     [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStruct { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStructMember { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> PreferStaticAnonymousFunction { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
 
     [DataMember] public CodeStyleOption2<bool> PreferPrimaryConstructors { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
@@ -121,6 +121,7 @@ internal sealed record class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IE
         PreferReadOnlyStruct = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, fallbackOptions.PreferReadOnlyStruct);
         PreferReadOnlyStructMember = options.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStructMember, fallbackOptions.PreferReadOnlyStructMember);
         PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction);
+        PreferStaticAnonymousFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, fallbackOptions.PreferStaticAnonymousFunction);
         PreferPrimaryConstructors = options.GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors, fallbackOptions.PreferPrimaryConstructors);
     }
 }

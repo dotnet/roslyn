@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -15,6 +13,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
+
+#if DEBUG
+using System.Linq;
+#endif
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
@@ -44,16 +46,15 @@ internal sealed class SerializableSourceText
     private readonly SourceText? _text;
 
     /// <summary>
-    /// The hash that would be produced by calling <inheritdoc cref="SourceText.GetContentHash"/> on <see
-    /// cref="_text"/>.  Can be passed in when already known to avoid unnecessary computation costs.
-    /// </summary>
-    public readonly ImmutableArray<byte> ContentHash;
-
-    /// <summary>
     /// Weak reference to a SourceText computed from <see cref="_storage"/>.  Useful so that if multiple requests
     /// come in for the source text, the same one can be returned as long as something is holding it alive.
     /// </summary>
     private readonly WeakReference<SourceText?> _computedText = new(target: null);
+
+    /// <summary>
+    /// Checksum of the contents (see <see cref="SourceText.GetContentHash"/>) of the text.
+    /// </summary>
+    public readonly Checksum ContentChecksum;
 
     public SerializableSourceText(TemporaryTextStorage storage, ImmutableArray<byte> contentHash)
         : this(storage, text: null, contentHash)
@@ -71,7 +72,7 @@ internal sealed class SerializableSourceText
 
         _storage = storage;
         _text = text;
-        ContentHash = contentHash;
+        ContentChecksum = Checksum.Create(contentHash);
 
 #if DEBUG
         var computedContentHash = TryGetText()?.GetContentHash() ?? _storage!.ContentHash;
@@ -114,12 +115,22 @@ internal sealed class SerializableSourceText
     public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(
         TextDocumentState state, CancellationToken cancellationToken)
     {
-        if (state.Storage is TemporaryTextStorage storage)
+        if (state.TextAndVersionSource.TextLoader is SerializableSourceTextLoader serializableLoader)
         {
-            return new ValueTask<SerializableSourceText>(new SerializableSourceText(storage, storage.ContentHash));
+            // If we're already pointing at a serializable loader, we can just use that directly.
+            return new(serializableLoader.SerializableSourceText);
+        }
+        else if (state.Storage is TemporaryTextStorage storage)
+        {
+            // Otherwise, if we're pointing at a memory mapped storage location, we can create the source text that directly wraps that.
+            return new(new SerializableSourceText(storage, storage.ContentHash));
         }
         else
         {
+            // Otherwise, the state object has reified the text into some other form, and dumped any original
+            // information on how it got it.  In that case, we create a new text instance to represent the serializable
+            // source text out of.
+
             return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
                 static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
                 static (text, _) => new SerializableSourceText(text, text.GetContentHash()),
@@ -128,13 +139,11 @@ internal sealed class SerializableSourceText
         }
     }
 
-    public void Serialize(ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    public void Serialize(ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (_storage is not null)
         {
-            context.AddResource(_storage);
-
             writer.WriteInt32((int)_storage.ChecksumAlgorithm);
             writer.WriteEncoding(_storage.Encoding);
             writer.WriteByteArray(ImmutableCollectionsMarshal.AsArray(_storage.ContentHash)!);
@@ -189,5 +198,48 @@ internal sealed class SerializableSourceText
                 SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken),
                 contentHash);
         }
+    }
+
+    public TextLoader ToTextLoader(string? filePath)
+        => new SerializableSourceTextLoader(this, filePath);
+
+    /// <summary>
+    /// A <see cref="TextLoader"/> that wraps a <see cref="SerializableSourceText"/> and provides access to the text in
+    /// a deferred fashion.  In practice, during a host and OOP sync, while all the documents will be 'serialized' over
+    /// to OOP, the actual contents of the documents will only need to be loaded depending on which files are open, and
+    /// thus what compilations and trees are needed.  As such, we want to be able to lazily defer actually getting the
+    /// contents of the text until it's actually needed.  This loader allows us to do that, allowing the OOP side to
+    /// simply point to the segments in the memory-mapped-file the host has dumped its text into, and only actually
+    /// realizing the real text values when they're needed.
+    /// </summary>
+    private sealed class SerializableSourceTextLoader : TextLoader
+    {
+        public readonly SerializableSourceText SerializableSourceText;
+        private readonly VersionStamp _version = VersionStamp.Create();
+
+        public SerializableSourceTextLoader(
+            SerializableSourceText serializableSourceText,
+            string? filePath)
+        {
+            SerializableSourceText = serializableSourceText;
+            FilePath = filePath;
+        }
+
+        internal override string? FilePath { get; }
+
+        /// <summary>
+        /// Documents should always hold onto instances of this text loader strongly.  In other words, they should load
+        /// from this, and then dump the contents into a RecoverableText object that then dumps the contents to a memory
+        /// mapped file within this process.  Doing that is pointless as the contents of this text are already in a
+        /// memory mapped file on the host side.
+        /// </summary>
+        internal override bool AlwaysHoldStrongly
+            => true;
+
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => TextAndVersion.Create(await this.SerializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false), _version);
+
+        internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
+            => TextAndVersion.Create(this.SerializableSourceText.GetText(cancellationToken), _version);
     }
 }

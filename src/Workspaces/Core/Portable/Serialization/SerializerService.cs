@@ -75,7 +75,7 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.ParseOptions:
                 case WellKnownSynchronizationKind.ProjectReference:
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    return Checksum.Create(value, this);
+                    return Checksum.Create(value, this, cancellationToken);
 
                 case WellKnownSynchronizationKind.MetadataReference:
                     return CreateChecksum((MetadataReference)value, cancellationToken);
@@ -84,7 +84,7 @@ internal partial class SerializerService : ISerializerService
                     return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).ContentHash);
+                    throw new InvalidOperationException("Clients can already get a checksum directly from a SerializableSourceText");
 
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -94,7 +94,7 @@ internal partial class SerializerService : ISerializerService
         }
     }
 
-    public void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    public void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken)
     {
         var kind = value.GetWellKnownSynchronizationKind();
 
@@ -134,7 +134,7 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    SerializeMetadataReference((MetadataReference)value, writer, context, cancellationToken);
+                    SerializeMetadataReference((MetadataReference)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
@@ -142,7 +142,7 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
+                    SerializeSourceText((SerializableSourceText)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.SolutionCompilationState:
@@ -155,10 +155,6 @@ internal partial class SerializerService : ISerializerService
 
                 case WellKnownSynchronizationKind.ProjectState:
                     ((ProjectStateChecksums)value).Serialize(writer);
-                    return;
-
-                case WellKnownSynchronizationKind.ChecksumCollection:
-                    ((ChecksumCollection)value).WriteTo(writer);
                     return;
 
                 case WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap:
@@ -184,7 +180,6 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.SolutionCompilationState => SolutionCompilationStateChecksums.Deserialize(reader),
                 WellKnownSynchronizationKind.SolutionState => SolutionStateChecksums.Deserialize(reader),
                 WellKnownSynchronizationKind.ProjectState => ProjectStateChecksums.Deserialize(reader),
-                WellKnownSynchronizationKind.ChecksumCollection => ChecksumCollection.ReadFrom(reader),
                 WellKnownSynchronizationKind.SolutionAttributes => SolutionInfo.SolutionAttributes.ReadFrom(reader),
                 WellKnownSynchronizationKind.ProjectAttributes => ProjectInfo.ProjectAttributes.ReadFrom(reader),
                 WellKnownSynchronizationKind.DocumentAttributes => DocumentInfo.DocumentAttributes.ReadFrom(reader),

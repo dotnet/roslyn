@@ -91,7 +91,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // sync
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText), cancellationToken),
+                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), cancellationToken),
                 CancellationToken.None);
 
             // apply change to solution
@@ -366,7 +366,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             using var _ = ArrayBuilder<ImmutableArray<T>>.GetInstance(out var result);
             DoPermute(0, values.Length - 1);
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
 
             void DoPermute(int start, int end)
             {
@@ -1525,7 +1525,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             ],
             [
                 "cs additional file content"
-            ], solution.ProjectIds.ToArray());
+            ], [.. solution.ProjectIds]);
 
             solution = AddProject(solution, LanguageNames.CSharp,
             [

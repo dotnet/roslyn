@@ -16,10 +16,8 @@ internal static class SyntaxNodeOrTokenExtensions
         var stack = pooledStack.Object;
         stack.Push(node);
 
-        while (!stack.IsEmpty())
+        while (stack.TryPop(out var current))
         {
-            var current = stack.Pop();
-
             yield return current;
 
             if (current.IsNode)

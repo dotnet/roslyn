@@ -3935,7 +3935,7 @@ public class C : A {
             var pid = ProjectId.CreateNewId();
 
             VersionStamp GetVersion() => solution.GetProject(pid).Version;
-            ImmutableArray<DocumentId> GetDocumentIds() => solution.GetProject(pid).DocumentIds.ToImmutableArray();
+            ImmutableArray<DocumentId> GetDocumentIds() => [.. solution.GetProject(pid).DocumentIds];
             ImmutableArray<SyntaxTree> GetSyntaxTrees()
             {
                 return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();

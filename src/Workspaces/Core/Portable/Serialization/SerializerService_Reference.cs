@@ -23,8 +23,6 @@ internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
 
-    private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
-
     public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
@@ -44,7 +42,7 @@ internal partial class SerializerService
 
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             switch (reference)
             {
@@ -62,13 +60,13 @@ internal partial class SerializerService
         return Checksum.Create(stream);
     }
 
-    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
         {
             if (portable is ISupportTemporaryStorage supportTemporaryStorage)
             {
-                if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
+                if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, cancellationToken))
                 {
                     return;
                 }
@@ -143,7 +141,7 @@ internal partial class SerializerService
     {
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
             WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
@@ -313,7 +311,7 @@ internal partial class SerializerService
     }
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-        ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         var storages = reference.GetStorages();
         if (storages == null)
@@ -330,8 +328,6 @@ internal partial class SerializerService
             {
                 return false;
             }
-
-            context.AddResource(storage);
 
             pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
         }
@@ -425,12 +421,7 @@ internal partial class SerializerService
         var storageStream = storage.ReadStream(cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
 
-        GetMetadata(storageStream, length, out var metadata, out var lifeTimeObject);
-
-        // make sure we keep storageStream alive while Metadata is alive
-        // we use conditional weak table since we can't control metadata liftetime
-        if (lifeTimeObject != null)
-            s_lifetimeMap.Add(metadata, lifeTimeObject);
+        var metadata = GetMetadata(storageStream, length);
 
         return (metadata, storage);
     }
@@ -442,13 +433,10 @@ internal partial class SerializerService
         var array = reader.ReadByteArray();
         var pinnedObject = new PinnedObject(array);
 
-        var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
-
-        // make sure we keep storageStream alive while Metadata is alive
-        // we use conditional weak table since we can't control metadata liftetime
-        s_lifetimeMap.Add(metadata, pinnedObject);
-
-        return metadata;
+        // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
+        // as the onDispose callback of the metadata.
+        return ModuleMetadata.CreateFromMetadata(
+            pinnedObject.GetPointer(), array.Length, pinnedObject.Dispose);
     }
 
     private (ITemporaryStreamStorageInternal storage, long length) GetTemporaryStorage(
@@ -487,17 +475,17 @@ internal partial class SerializerService
         }
     }
 
-    private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
+    private static ModuleMetadata GetMetadata(Stream stream, long length)
     {
         if (stream is UnmanagedMemoryStream unmanagedStream)
         {
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+            // the metadata.
             unsafe
             {
-                metadata = ModuleMetadata.CreateFromMetadata(
+                return ModuleMetadata.CreateFromMetadata(
                     (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-                lifeTimeObject = null;
-                return;
             }
         }
 
@@ -515,8 +503,10 @@ internal partial class SerializerService
             pinnedObject = new PinnedObject(array);
         }
 
-        metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), (int)length);
-        lifeTimeObject = pinnedObject;
+        // PinnedObject will be kept alive as long as the ModuleMetadata is alive due to passing its .Dispose method in
+        // as the onDispose callback of the metadata.
+        return ModuleMetadata.CreateFromMetadata(
+            pinnedObject.GetPointer(), (int)length, pinnedObject.Dispose);
     }
 
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)

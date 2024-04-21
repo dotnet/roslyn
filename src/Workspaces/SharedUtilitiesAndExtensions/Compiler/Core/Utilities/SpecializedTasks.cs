@@ -87,14 +87,13 @@ internal static class SpecializedTasks
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
     public static async ValueTask<ImmutableArray<TResult>> WhenAll<TResult>(this IReadOnlyCollection<Task<TResult>> tasks)
     {
-        using var _ = ArrayBuilder<TResult>.GetInstance(tasks.Count, out var result);
-
         // Explicit cast to IEnumerable<Task> so we call the overload that doesn't allocate an array as the result.
         await Task.WhenAll((IEnumerable<Task>)tasks).ConfigureAwait(false);
+        var result = new FixedSizeArrayBuilder<TResult>(tasks.Count);
         foreach (var task in tasks)
             result.Add(await task.ConfigureAwait(false));
 
-        return result.ToImmutableAndClear();
+        return result.MoveToImmutable();
     }
 
     /// <summary>

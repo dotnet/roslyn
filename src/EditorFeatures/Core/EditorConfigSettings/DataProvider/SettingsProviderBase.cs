@@ -88,7 +88,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
     {
         lock (s_gate)
         {
-            return _snapshot.ToImmutableArray();
+            return [.. _snapshot];
         }
     }
 

@@ -395,14 +395,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Round tripping the diagnostics should ensure they get correctly remapped.
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(diagnostics.Length, out var builder);
+            var builder = new FixedSizeArrayBuilder<DiagnosticData>(diagnostics.Length);
             foreach (var diagnosticData in diagnostics)
             {
                 var diagnostic = await diagnosticData.ToDiagnosticAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
                 builder.Add(DiagnosticData.Create(diagnostic, textDocument));
             }
 
-            return builder.ToImmutableAndClear();
+            return builder.MoveToImmutable();
         }
     }
 }

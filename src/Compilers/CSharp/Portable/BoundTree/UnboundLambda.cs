@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Interlocked.Increment(ref data.LambdaBindingCount);
             }
 
+            Binder.RecordLambdaBinding(UnboundLambda.Syntax);
             return BindLambdaBodyCore(lambdaSymbol, lambdaBodyBinder, diagnostics);
         }
 

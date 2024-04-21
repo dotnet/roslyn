@@ -153,19 +153,19 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 }
 
                 return await base.TryGetMergedFixAsync(
-                    newBatchOfFixes.ToImmutableArray(), fixAllState, progressTracker, cancellationToken).ConfigureAwait(false);
+                    [.. newBatchOfFixes], fixAllState, progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(attributeRemoveFixes.Length, out var builder);
+                var builder = new FixedSizeArrayBuilder<SyntaxNode>(attributeRemoveFixes.Length);
                 foreach (var attributeRemoveFix in attributeRemoveFixes)
                 {
                     var attributeToRemove = await attributeRemoveFix.GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
                     builder.Add(attributeToRemove);
                 }
 
-                return builder.ToImmutableAndClear();
+                return builder.MoveToImmutable();
             }
         }
     }
