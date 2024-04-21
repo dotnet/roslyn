@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 data.WriteByte((byte)(i % 2));
             }
 
-            data.Position = 0;
             var handle = service.WriteToTemporaryStorage(data, CancellationToken.None);
 
             using var result = service.ReadFromTemporaryStorageService(handle.Identifier, CancellationToken.None);
@@ -191,7 +190,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var storageHandles = new List<TemporaryStorageHandle>(fileCount);
                 for (var i = 0; i < fileCount; i++)
                 {
-                    data.Position = 0;
                     var handle = service.WriteToTemporaryStorage(data, CancellationToken.None);
                     storageHandles.Add(handle);
                 }
@@ -218,7 +216,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte((byte)(i % byte.MaxValue));
             }
 
-            expected.Position = 0;
             var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
 
             expected.Position = 0;
@@ -244,7 +241,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte((byte)(i % byte.MaxValue));
             }
 
-            expected.Position = 0;
             var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
 
             expected.Position = 0;
@@ -285,7 +281,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte(value);
             }
 
-            expected.Position = 0;
             var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
 
             expected.Position = 0;

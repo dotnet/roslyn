@@ -178,35 +178,20 @@ internal partial class TemporaryStorageService
             _memoryMappedFile.Dispose();
         }
 
-        private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream : UnmanagedMemoryStream
+        private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream(
+            ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor,
+            long length) : UnmanagedMemoryStream(
+                (byte*)accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + accessor.Target.PointerOffset,
+                length)
         {
-            private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
-            private byte* _start;
-
-            public MemoryMappedViewUnmanagedMemoryStream(ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
-                : base((byte*)accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + accessor.Target.PointerOffset, length)
-            {
-                _accessor = accessor;
-                _start = this.PositionPointer;
-            }
+            private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor = accessor;
 
             protected override void Dispose(bool disposing)
             {
                 base.Dispose(disposing);
-
                 if (disposing)
-                {
                     _accessor.Dispose();
-                }
-
-                _start = null;
             }
-
-            /// <summary>
-            /// Get underlying native memory directly.
-            /// </summary>
-            public IntPtr GetPointer()
-                => (IntPtr)_start;
         }
     }
 }
