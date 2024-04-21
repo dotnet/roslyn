@@ -64,7 +64,6 @@ internal partial class SerializerService : ISerializerService
     public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
     {
         var kind = value.GetWellKnownSynchronizationKind();
-
         using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, s_logKind, kind, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
