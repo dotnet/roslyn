@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -52,7 +51,7 @@ internal partial class SerializerService : ISerializerService
     {
         _workspaceServices = workspaceServices;
 
-        // Serialization is only involved when we have a remote process.  Which is only in VS.  So the type of the
+        // Serialization is only involved when we have a remote process.  Which is only in VS. So the type of the
         // storage service here is well known.
         _storageService = (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
         _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
