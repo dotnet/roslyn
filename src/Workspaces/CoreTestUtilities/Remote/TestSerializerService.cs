@@ -19,6 +19,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
+#pragma warning disable CA1416 // Validate platform compatibility
+
 namespace Microsoft.CodeAnalysis.UnitTests.Remote
 {
     internal sealed class TestSerializerService : SerializerService
