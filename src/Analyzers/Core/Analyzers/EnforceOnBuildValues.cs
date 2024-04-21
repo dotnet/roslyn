@@ -96,6 +96,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild UseCollectionExpressionForCreate = /*IDE0303*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseCollectionExpressionForBuilder = /*IDE0304*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseCollectionExpressionForFluent = /*IDE0305*/ EnforceOnBuild.Recommended;
+    public const EnforceOnBuild MakeAnonymousFunctionStatic = /*IDE0320*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseInterpolatedString = /*IDE0330*/ EnforceOnBuild.Recommended;
 
     /* EnforceOnBuild.WhenExplicitlyEnabled */

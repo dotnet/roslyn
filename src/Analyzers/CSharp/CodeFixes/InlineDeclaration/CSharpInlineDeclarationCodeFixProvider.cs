@@ -70,14 +70,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
         await editor.ApplyExpressionLevelSemanticEditsAsync(
             document,
             originalNodes,
-            t =>
-            {
-                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(capacity: 2, out var additionalNodesToTrack);
-                additionalNodesToTrack.Add(t.identifier);
-                additionalNodesToTrack.Add(t.declarator);
-
-                return (t.invocationOrCreation, additionalNodesToTrack.ToImmutable());
-            },
+            static t => (t.invocationOrCreation, ImmutableArray.Create<SyntaxNode>(t.identifier, t.declarator)),
             (_, _, _) => true,
             (semanticModel, currentRoot, t, currentNode)
                 => ReplaceIdentifierWithInlineDeclaration(

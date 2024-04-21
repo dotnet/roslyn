@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
@@ -32,8 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction3, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ISuggestedAction3, IEquatable<ISuggestedAction>
     {
+        protected readonly IThreadingContext ThreadingContext;
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
         protected readonly Workspace Workspace;
@@ -53,11 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBuffer,
             object provider,
             CodeAction codeAction)
-            : base(threadingContext)
         {
             Contract.ThrowIfNull(provider);
             Contract.ThrowIfNull(codeAction);
 
+            ThreadingContext = threadingContext;
             SourceProvider = sourceProvider;
             Workspace = workspace;
             OriginalSolution = originalSolution;
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             if (operations != null)
             {

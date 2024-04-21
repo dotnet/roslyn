@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 _editorOptions.CreateOptions(),
                 textBuffer.CurrentSnapshot,
                 separator: "",
-                exposedLineSpans: GetExposedLineSpans(textBuffer.CurrentSnapshot).ToArray());
+                exposedLineSpans: [.. GetExposedLineSpans(textBuffer.CurrentSnapshot)]);
 
             var textView = _textEditorFactoryService.CreateTextView(projection,
               _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 isChecked: !defaultAddForClarity));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(
-                languageOption, title, preferences.ToArray(),
+                languageOption, title, [.. preferences],
                 examples, this, optionStore, ServicesVSResources.Parentheses_preferences_colon,
                 codeStylePreferences));
         }

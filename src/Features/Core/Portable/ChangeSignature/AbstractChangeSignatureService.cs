@@ -737,16 +737,20 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
 
     protected ImmutableArray<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip) where T : SyntaxNode
     {
-        var separators = ImmutableArray.CreateBuilder<SyntaxToken>();
+        var count = arguments.SeparatorCount - numSeparatorsToSkip;
+        if (count < 0)
+            return [];
 
-        for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+        var separators = new FixedSizeArrayBuilder<SyntaxToken>(count);
+
+        for (var i = 0; i < count; i++)
         {
             separators.Add(i < arguments.SeparatorCount
                 ? arguments.GetSeparator(i)
                 : CommaTokenWithElasticSpace());
         }
 
-        return separators.ToImmutable();
+        return separators.MoveToImmutable();
     }
 
     protected virtual async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
@@ -1009,7 +1013,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             updatedLeadingTrivia.Add(newTrivia);
         }
 
-        var extraNodeList = ArrayBuilder<SyntaxNode>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var extraNodeList);
         while (index < permutedParamNodes.Length)
         {
             extraNodeList.Add(permutedParamNodes[index]);
@@ -1027,9 +1031,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             updatedLeadingTrivia.Add(newTrivia);
         }
 
-        extraNodeList.Free();
-
-        return updatedLeadingTrivia.ToImmutable();
+        return updatedLeadingTrivia.ToImmutableAndClear();
     }
 
     protected static bool IsParamsArrayExpandedHelper(ISymbol symbol, int argumentCount, bool lastArgumentIsNamed, SemanticModel semanticModel, SyntaxNode lastArgumentExpression, CancellationToken cancellationToken)

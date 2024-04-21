@@ -6,10 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -92,10 +89,10 @@ internal static class SerializableBytes
         }
     }
 
-    internal static PooledStream CreateWritableStream()
-        => new ReadWriteStream();
+    internal static ReadWriteStream CreateWritableStream()
+        => new();
 
-    public class PooledStream : Stream
+    public abstract class PooledStream : Stream
     {
         protected List<byte[]> chunks;
 
@@ -109,13 +106,7 @@ internal static class SerializableBytes
             this.chunks = chunks;
         }
 
-        public override long Length
-        {
-            get
-            {
-                return this.length;
-            }
-        }
+        public override long Length => this.length;
 
         public override bool CanRead => true;
 
@@ -130,10 +121,7 @@ internal static class SerializableBytes
 
         public override long Position
         {
-            get
-            {
-                return this.position;
-            }
+            get => this.position;
 
             set
             {
@@ -176,16 +164,9 @@ internal static class SerializableBytes
         public override int ReadByte()
         {
             if (position >= length)
-            {
                 return -1;
-            }
 
-            var currentIndex = CurrentChunkIndex;
-            var chunk = chunks[currentIndex];
-
-            var currentOffset = CurrentChunkOffset;
-            var result = chunk[currentOffset];
-
+            var result = chunks[CurrentChunkIndex][CurrentChunkOffset];
             this.position++;
             return result;
         }
@@ -295,7 +276,7 @@ internal static class SerializableBytes
     {
     }
 
-    private class ReadWriteStream : PooledStream
+    public sealed class ReadWriteStream : PooledStream
     {
         public ReadWriteStream()
             : base(length: 0, chunks: SharedPools.BigDefault<List<byte[]>>().AllocateAndClear())
@@ -337,13 +318,20 @@ internal static class SerializableBytes
         }
 
         public override void SetLength(long value)
+            => SetLength(value, truncate: true);
+
+        /// <summary>
+        /// Sets the length of this stream (see <see cref="SetLength(long)"/>.  If <paramref name="truncate"/> is <see
+        /// langword="false"/>, the internal buffers will be left as is, and the data in them will be left as garbage.
+        /// If it is <see langword="true"/> then any fully unused chunks will be discarded.  If there is a final chunk
+        /// the stream is partway through, the remainder of that chunk will be zeroed out.
+        /// </summary>
+        public void SetLength(long value, bool truncate)
         {
             EnsureCapacity(value);
 
-            if (value < length)
+            if (value < length && truncate)
             {
-                // truncate the stream
-
                 var chunkIndex = GetChunkIndex(value);
                 var chunkOffset = GetChunkOffset(value);
 
@@ -351,9 +339,7 @@ internal static class SerializableBytes
 
                 var trimIndex = chunkIndex + 1;
                 for (var i = trimIndex; i < chunks.Count; i++)
-                {
                     SharedPools.ByteArray.Free(chunks[i]);
-                }
 
                 chunks.RemoveRange(trimIndex, chunks.Count - trimIndex);
             }

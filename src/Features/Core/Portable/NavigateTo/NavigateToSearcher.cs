@@ -254,7 +254,7 @@ internal sealed class NavigateToSearcher
                 await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
 
             if (searchGeneratedDocuments)
-                await SearchGeneratedDocumentsAsync(seenItems, cancellationToken).ConfigureAwait(false);
+                await SearchGeneratedDocumentsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -339,7 +339,7 @@ internal sealed class NavigateToSearcher
         }
 
         result.RemoveDuplicates();
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task ProcessOrderedProjectsAsync(
@@ -381,7 +381,7 @@ internal sealed class NavigateToSearcher
             var searchService = grouping.Key;
             await processProjectAsync(
                 searchService,
-                grouping.ToImmutableArray(),
+                [.. grouping],
                 (project, result) =>
                 {
                     // If we're seeing a dupe in another project, then filter it out here.  The results from
@@ -450,9 +450,13 @@ internal sealed class NavigateToSearcher
     }
 
     private Task SearchGeneratedDocumentsAsync(
+        ImmutableArray<ImmutableArray<Project>> orderedProjects,
         HashSet<INavigateToSearchResult> seenItems,
         CancellationToken cancellationToken)
     {
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var allProjectIdSet);
+        allProjectIdSet.AddRange(orderedProjects.SelectMany(x => x).Select(p => p.Id));
+
         // Process all projects, serially, in topological order.  Generating source can be expensive.  It requires
         // creating and processing the entire compilation for a project, which itself may require dependent
         // compilations as references.  These dependents might also be skeleton references in the case of cross
@@ -464,16 +468,24 @@ internal sealed class NavigateToSearcher
         // the dependency tree, which then pulls on N other projects, forcing results for this single project to pay
         // that full price (that would be paid when we hit these through a normal topological walk).
         //
-        // Note the projects in each 'dependency set' are already sorted in topological order.  So they will process
-        // in the desired order if we process serially.
-        var allProjects = _solution
+        // Note: the projects in each 'dependency set' are already sorted in topological order.  So they will process in
+        // the desired order if we process serially.
+        //
+        // Note: we should only process the projects that are in the ordered-list of projects the searcher is searching
+        // as a whole.
+        var filteredProjects = _solution
             .GetProjectDependencyGraph()
             .GetDependencySets(cancellationToken)
-            .SelectAsArray(s => s.SelectAsArray(_solution.GetRequiredProject));
+            .SelectAsArray(projectIdSet =>
+                projectIdSet.Where(id => allProjectIdSet.Contains(id))
+                            .Select(id => _solution.GetRequiredProject(id))
+                            .ToImmutableArray());
+
+        Contract.ThrowIfFalse(orderedProjects.SelectMany(s => s).Count() == filteredProjects.SelectMany(s => s).Count());
 
         return ProcessOrderedProjectsAsync(
             parallel: false,
-            allProjects,
+            filteredProjects,
             seenItems,
             async (service, projects, onItemFound, onProjectCompleted) =>
             {

@@ -1173,12 +1173,12 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId> projectIds,
         ImmutableDictionary<ProjectId, ProjectState> projectStates)
     {
-        var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
+        var map = projectStates.Values.Select(state => KeyValuePairUtil.Create(
                 state.Id,
                 state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();
 
-        return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
+        return new ProjectDependencyGraph([.. projectIds], map);
     }
 
     public SolutionState WithOptions(SolutionOptionSet options)

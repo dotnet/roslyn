@@ -205,7 +205,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
             }
         }
 
-        return operators.ToImmutable();
+        return operators.ToImmutableAndClear();
     }
 
     private static SyntaxNode GenerateStatement(

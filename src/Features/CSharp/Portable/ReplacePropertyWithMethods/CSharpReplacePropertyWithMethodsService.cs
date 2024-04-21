@@ -16,8 +16,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -72,7 +72,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         string desiredSetMethodName,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
+        using var result = TemporaryArray<SyntaxNode>.Empty;
 
         if (propertyBackingField != null)
         {
@@ -100,7 +100,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
                 cancellationToken));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static SyntaxNode GetSetMethod(

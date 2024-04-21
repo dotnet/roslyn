@@ -175,7 +175,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                     }
                 }
 
-                return changedDocuments.ToImmutable();
+                return changedDocuments.ToImmutableAndClear();
             }, cancellationToken));
         }
 
@@ -188,7 +188,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         foreach (var task in tasks)
             result.AddRange(await task.ConfigureAwait(false));
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -236,9 +236,8 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
             builder.Push(action);
-            while (builder.Count > 0)
+            while (builder.TryPop(out var currentAction))
             {
-                var currentAction = builder.Pop();
                 if (currentAction is { EquivalenceKey: var equivalenceKey }
                     && codeActionEquivalenceKey == equivalenceKey)
                 {

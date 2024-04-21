@@ -68,7 +68,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             TestCreateTextInferredEncoding(
                 textFactoryService,
-                Encoding.UTF8.GetPreamble().Concat(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetBytes("Test")).ToArray(),
+                [
+                    .. Encoding.UTF8.GetPreamble(),
+                    .. new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetBytes("Test"),
+                ],
                 defaultEncoding: Encoding.GetEncoding(1254),
                 expectedEncoding: Encoding.UTF8);
         }

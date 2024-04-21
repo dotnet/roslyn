@@ -36,11 +36,7 @@ internal static class ImplementHelpers
 
         var parameters = GetNonCapturedPrimaryConstructorParameters(fields, properties);
 
-        using var _1 = ArrayBuilder<ISymbol>.GetInstance(fields.Length + properties.Length + parameters.Length, out var result);
-        result.AddRange(fields);
-        result.AddRange(properties);
-        result.AddRange(parameters);
-        return result.ToImmutableAndClear();
+        return [.. fields, .. properties, .. parameters];
 
         ImmutableArray<IParameterSymbol> GetNonCapturedPrimaryConstructorParameters(
             ImmutableArray<IFieldSymbol> fields,
@@ -62,7 +58,7 @@ internal static class ImplementHelpers
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         bool IsAssignedToFieldOrProperty(ImmutableArray<IFieldSymbol> fields, ImmutableArray<IPropertySymbol> properties, IParameterSymbol parameter)

@@ -385,7 +385,7 @@ internal static partial class Extensions
 
             using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
             await AnalyzeDocumentAsync(suppressionAnalyzer, document, documentAnalysisScope.Span, diagnosticsBuilder.Add).ConfigureAwait(false);
-            return diagnosticsBuilder.ToImmutable();
+            return diagnosticsBuilder.ToImmutableAndClear();
         }
         else
         {
@@ -404,7 +404,7 @@ internal static partial class Extensions
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
-                return bag.ToImmutableArray();
+                return [.. bag];
             }
             else
             {
@@ -419,7 +419,7 @@ internal static partial class Extensions
                     await AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, diagnosticsBuilder.Add).ConfigureAwait(false);
                 }
 
-                return diagnosticsBuilder.ToImmutable();
+                return diagnosticsBuilder.ToImmutableAndClear();
             }
         }
 

@@ -16,6 +16,12 @@ internal interface ITextAndVersionSource
     /// </summary>
     bool CanReloadText { get; }
 
+    /// <summary>
+    /// Retrieves the underlying <see cref="TextLoader"/> if that's what this <see cref="ITextAndVersionSource"/> was
+    /// created from and still has access to.
+    /// </summary>
+    TextLoader? TextLoader { get; }
+
     bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value);
     TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken);
     Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken);

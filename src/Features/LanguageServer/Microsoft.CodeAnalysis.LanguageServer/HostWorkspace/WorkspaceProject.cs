@@ -40,7 +40,7 @@ internal class WorkspaceProject : IWorkspaceProject
         await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var additionalFile in additionalFiles)
-            _project.AddAdditionalFile(additionalFile.FilePath, folders: additionalFile.FolderNames.ToImmutableArray());
+            _project.AddAdditionalFile(additionalFile.FilePath, folders: [.. additionalFile.FolderNames]);
     }
 
     public async Task AddAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken)
@@ -85,7 +85,7 @@ internal class WorkspaceProject : IWorkspaceProject
         await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var sourceFile in sourceFiles)
-            _project.AddSourceFile(sourceFile.FilePath, folders: sourceFile.FolderNames.ToImmutableArray());
+            _project.AddSourceFile(sourceFile.FilePath, folders: [.. sourceFile.FolderNames]);
     }
 
     public void Dispose()
@@ -190,7 +190,7 @@ internal class WorkspaceProject : IWorkspaceProject
         var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
         await using var _ = disposableBatchScope.ConfigureAwait(false);
 
-        _optionsProcessor.SetCommandLine(arguments.ToImmutableArray());
+        _optionsProcessor.SetCommandLine([.. arguments]);
     }
 
     public async Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken)

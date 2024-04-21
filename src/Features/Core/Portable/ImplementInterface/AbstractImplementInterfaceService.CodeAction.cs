@@ -262,7 +262,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 }
             }
 
-            return implementedMembers.ToImmutable();
+            return implementedMembers.ToImmutableAndClear();
         }
 
         private bool IsReservedName(string name)

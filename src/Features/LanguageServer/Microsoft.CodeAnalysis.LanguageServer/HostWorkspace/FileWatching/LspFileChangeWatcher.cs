@@ -42,7 +42,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
     public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
     {
-        return new FileChangeContext(watchedDirectories.ToImmutableArray(), this);
+        return new FileChangeContext([.. watchedDirectories], this);
     }
 
     private class FileChangeContext : IFileChangeContext

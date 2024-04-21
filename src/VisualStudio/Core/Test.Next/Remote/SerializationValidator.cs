@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             /// </summary>
             public readonly Checksum Checksum;
 
-            public ChecksumObjectCollection(SerializationValidator validator, ChecksumCollection collection)
+            public ChecksumObjectCollection(SerializationValidator validator, WellKnownSynchronizationKind kind, ChecksumCollection collection)
             {
                 Checksum = collection.Checksum;
-                Kind = collection.GetWellKnownSynchronizationKind();
+                Kind = kind;
 
                 // using .Result here since we don't want to convert all calls to this to async.
                 // and none of ChecksumWithChildren actually use async
@@ -94,11 +94,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var data = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
             Contract.ThrowIfNull(data.Value);
 
-            using var context = new SolutionReplicationContext();
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                Serializer.Serialize(data.Value, writer, context, CancellationToken.None);
+                Serializer.Serialize(data.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         public ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(ChecksumCollection collection)
-            => new(this, collection);
+            => new(this, WellKnownSynchronizationKind.ProjectState, collection);
 
         internal async Task VerifyAssetAsync(SolutionStateChecksums solutionObject)
         {
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await VerifyAssetSerializationAsync<SerializableSourceText>(
                 textChecksum, WellKnownSynchronizationKind.SerializableSourceText,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
+                (v, k, s) => new SolutionAsset(v.ContentChecksum, v));
         }
 
         internal async Task<T> VerifyAssetSerializationAsync<T>(
