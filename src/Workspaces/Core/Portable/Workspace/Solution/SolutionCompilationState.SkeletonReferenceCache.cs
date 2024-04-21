@@ -254,7 +254,6 @@ internal partial class SolutionCompilationState
                             // Then, dump that in-memory-stream to a memory-mapped file.  Doing this allows us to have the
                             // assembly-metadata point directly to that pointer in memory, instead of it having to make its
                             // own copy it needs to own the lifetime of.
-                            stream.Position = 0;
                             var handle = temporaryStorageService.WriteToTemporaryStorage(stream, cancellationToken);
 
                             // Now read the data back from the stream from the memory mapped file.  This will come back as an

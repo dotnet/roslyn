@@ -103,6 +103,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     public TemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
+        stream.Position = 0;
         var storage = new TemporaryStreamStorage(this);
         storage.WriteStream(stream, cancellationToken);
         var identifier = new TemporaryStorageIdentifier(storage.Name, storage.Offset, storage.Size);

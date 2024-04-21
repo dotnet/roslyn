@@ -23,7 +23,7 @@ internal interface ITemporaryStorageServiceInternal : IWorkspaceService
     /// <summary>
     /// Write the provided <paramref name="stream"/> to a new memory-mapped-file.  Returns a handle to the data that can
     /// be used to identify the data across processes allowing it to be read back in in any process.  Note: the data
-    /// will not longer be readonable if the returned <see cref="TemporaryStorageHandle"/> is disposed.
+    /// will not longer be readable if the returned <see cref="TemporaryStorageHandle"/> is disposed.
     /// </summary>
     /// <remarks>
     /// This type is used for two purposes.  
@@ -41,6 +41,9 @@ internal interface ITemporaryStorageServiceInternal : IWorkspaceService
     /// when we get the next large compiler command line.
     /// </item>
     /// </list>
+    /// Note: The stream provided mus support <see cref="Stream.Length"/>.  The stream will also be reset to <see
+    /// cref="Stream.Position"/> <code>0</code> within this method.  The caller does not need to reset the stream
+    /// itself.
     /// </remarks>
     TemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken);
 
