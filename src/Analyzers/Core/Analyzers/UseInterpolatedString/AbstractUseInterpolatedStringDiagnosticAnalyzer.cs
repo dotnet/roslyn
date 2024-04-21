@@ -2,18 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseInterpolatedString;
 
@@ -62,12 +53,14 @@ internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer<TSyntaxK
     private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
     {
         var stringLiteralExpression = (TStringLiteralExpressionSyntax)context.Node;
-        if (this.CanConvertToInterpolatedString(stringLiteralExpression))
+        var syntaxTree = context.Node.SyntaxTree;
+        var parseOptions = syntaxTree.Options;
+        if (this.CanConvertToInterpolatedString(stringLiteralExpression, parseOptions))
         {
             var diagnostic = Diagnostic.Create(CreateDescriptor(), stringLiteralExpression.GetLocation());
             context.ReportDiagnostic(diagnostic);
         }
     }
 
-    protected abstract bool CanConvertToInterpolatedString(TStringLiteralExpressionSyntax stringLiteralExpression);
+    protected abstract bool CanConvertToInterpolatedString(TStringLiteralExpressionSyntax stringLiteralExpression, ParseOptions parseOptions);
 }
