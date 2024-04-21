@@ -91,9 +91,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         var key = new FileKey(fullPath, snapshotTimestamp);
         // check existing metadata
         if (_metadataCache.TryGetMetadata(key, out var source) &&
-            s_metadataToStorageHandles.TryGetValue(source, out var handler))
+            s_metadataToStorageHandles.TryGetValue(source, out var handles))
         {
-            return handler;
+            return handles;
         }
 
         return null;
