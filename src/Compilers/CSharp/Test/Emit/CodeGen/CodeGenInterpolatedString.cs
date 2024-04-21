@@ -74,6 +74,8 @@ public class Test
         Console.WriteLine($""{constantabc}{constantchar}"");
         Console.WriteLine($""{constantabc}({constantchar})"");
         Console.WriteLine($""{constantchar}"");
+        Console.WriteLine($""{constantnull}"");
+        Console.WriteLine($""{constantnull}{constantabc}{default}{constantnull}{null}"");
     }
 }
 ";
@@ -86,12 +88,14 @@ abc
 abcd
 abc(d)
 d
+
+abc
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       91 (0x5b)
+  // Code size      111 (0x6f)
   .maxstack  1
   IL_0000:  ldstr      """"
   IL_0005:  call       ""void System.Console.WriteLine(string)""
@@ -111,7 +115,11 @@ d
   IL_004b:  call       ""void System.Console.WriteLine(string)""
   IL_0050:  ldstr      ""d""
   IL_0055:  call       ""void System.Console.WriteLine(string)""
-  IL_005a:  ret
+  IL_005a:  ldstr      ""abc(d)""
+  IL_005f:  call       ""void System.Console.WriteLine(string)""
+  IL_0064:  ldstr      ""d""
+  IL_0069:  call       ""void System.Console.WriteLine(string)""
+  IL_006e:  ret
 }
 ");
         }
@@ -167,6 +175,7 @@ public class Test
         string b = ""b"";
         const string c = ""c"";
         const char d = 'd';
+        const string n = null;
 
         Console.WriteLine($""a: {a}"");
         Console.WriteLine($""{a + b}"");
@@ -177,6 +186,7 @@ public class Test
         Console.WriteLine($""a: {$""{a}, b: {b}""}"");
         Console.WriteLine($""acd: {a}{c}{d}, b: {b}"");
         Console.WriteLine($""{{{'{'}{""{""}{a}{""}""}{'}'}}}"");
+        Console.WriteLine($""{a}{n}{b}{null}{a}{null}{c}"");
     }
 }
 ";
@@ -189,12 +199,13 @@ a: a
 a: a, b: b
 acd: acd, b: b
 {{{a}}}
+abac
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size      177 (0xb1)
+  // Code size      195 (0xc3)
   .maxstack  4
   .locals init (string V_0, //a
                 string V_1) //b
@@ -246,7 +257,13 @@ acd: acd, b: b
   IL_00a1:  ldstr      ""}}}""
   IL_00a6:  call       ""string string.Concat(string, string, string)""
   IL_00ab:  call       ""void System.Console.WriteLine(string)""
-  IL_00b0:  ret
+  IL_00b0:  ldloc.0
+  IL_00b1:  ldloc.1
+  IL_00b2:  ldloc.0
+  IL_00b3:  ldstr      ""c""
+  IL_00b8:  call       ""string string.Concat(string, string, string, string)""
+  IL_00bd:  call       ""void System.Console.WriteLine(string)""
+  IL_00c2:  ret
 }
 ");
         }
@@ -269,6 +286,7 @@ public class Test
         Console.WriteLine($""a: {a}"");
         Console.WriteLine($""a: {a}, b: {b}, c: {c}"");
         Console.WriteLine($""{{{'{'}{""{""}{a}{""}""}{'}'}}}"");
+        Console.WriteLine($""{null}{b}{a}{null}{a}{null}"");
     }
 }
 ";
@@ -276,12 +294,13 @@ public class Test
 a: a
 a: a, b: b, c: c
 {{{a}}}
+baa
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       71 (0x47)
+  // Code size       87 (0x57)
   .maxstack  2
   .locals init (object V_0) //a
   IL_0000:  ldstr      ""a""
@@ -302,7 +321,11 @@ a: a, b: b, c: c
   IL_003b:  ldloc.0
   IL_003c:  call       ""string string.Format(string, object)""
   IL_0041:  call       ""void System.Console.WriteLine(string)""
-  IL_0046:  ret
+  IL_0046:  ldstr      ""b{0}{0}""
+  IL_004b:  ldloc.0
+  IL_004c:  call       ""string string.Format(string, object)""
+  IL_0051:  call       ""void System.Console.WriteLine(string)""
+  IL_0056:  ret
 }
 ");
         }
