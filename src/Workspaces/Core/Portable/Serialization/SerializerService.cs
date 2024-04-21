@@ -83,7 +83,6 @@ internal partial class SerializerService : ISerializerService
                     return CreateChecksum((MetadataReference)value, cancellationToken);
                 case WellKnownSynchronizationKind.AnalyzerReference:
                     return CreateChecksum((AnalyzerReference)value, cancellationToken);
-
                 case WellKnownSynchronizationKind.SerializableSourceText:
                     throw new InvalidOperationException("Clients can already get a checksum directly from a SerializableSourceText");
 
