@@ -79,7 +79,6 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.ProjectReference:
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                     return Checksum.Create(value, this, cancellationToken);
-
                 case WellKnownSynchronizationKind.MetadataReference:
                     return CreateChecksum((MetadataReference)value, cancellationToken);
 
