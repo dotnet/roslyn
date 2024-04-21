@@ -10,8 +10,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.UseInterpolatedString;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,8 +22,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedString;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseInterpolatedStringDiagnosticAnalyzer() : AbstractUseInterpolatedStringDiagnosticAnalyzer<SyntaxKind>
+internal class CSharpUseInterpolatedStringDiagnosticAnalyzer() : AbstractUseInterpolatedStringDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, LiteralExpressionSyntax>
 {
-    protected override ImmutableArray<SyntaxKind> GetSyntaxKinds()
-        => throw new NotImplementedException();
+    protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
+
+    protected sealed override bool CanConvertToInterpolatedString(LiteralExpressionSyntax stringLiteralExpression)
+    {
+        throw new NotImplementedException();
+    }
 }
