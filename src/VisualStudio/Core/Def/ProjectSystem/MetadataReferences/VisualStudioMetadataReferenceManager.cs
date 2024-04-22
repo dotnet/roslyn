@@ -166,7 +166,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
         unsafe
         {
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly. Passing in stream.Dispose
+            // here will also ensure that as long as this metdata is alive, we'll keep the memory-mapped-file it points
+            // to alive.
             var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
             return (metadata, storageHandle);
         }
@@ -299,9 +301,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         FileKey fileKey,
         Func<FileKey, (ModuleMetadata moduleMetadata, TemporaryStorageHandle? storageHandle)> moduleMetadataFactory)
     {
-        using var _1 = ArrayBuilder<TemporaryStorageHandle>.GetInstance(out var storageHandles);
+        using var _1 = ArrayBuilder<TemporaryStorageHandle?>.GetInstance(out var storageHandles);
         var (manifestModule, storageHandle) = moduleMetadataFactory(fileKey);
-        storageHandles.AddIfNotNull(storageHandle);
+        storageHandles.Add(storageHandle);
 
         using var _2 = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
 
@@ -319,14 +321,20 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             var (metadata, metadataStorageHandle) = moduleMetadataFactory(moduleFileKey);
 
             moduleBuilder.Add(metadata);
-            storageHandles.AddIfNotNull(metadataStorageHandle);
+            storageHandles.Add(metadataStorageHandle);
         }
 
         if (moduleBuilder.Count == 0)
             moduleBuilder.Add(manifestModule);
 
         var result = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
-        s_metadataToStorageHandles.Add(result, storageHandles.ToImmutable());
+
+        // If we got any null handles, then we weren't able to map this whole assembly into memory mapped files. So we
+        // can't use those to transfer over the data efficiently to the OOP process.  In that case, we don't store the
+        // handles at all.
+        if (storageHandles.Count > 0 && storageHandles.All(h => h != null))
+            s_metadataToStorageHandles.Add(result, storageHandles.ToImmutable());
+
         return result;
     }
 }
