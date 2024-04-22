@@ -154,35 +154,22 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             else
             {
                 // use temporary storage
-                using var _ = ArrayBuilder<TemporaryStorageHandle>.GetInstance(out var storageHandles);
-                var newMetadata = CreateAssemblyMetadata(key, key =>
-                {
-                    // <exception cref="IOException"/>
-                    // <exception cref="BadImageFormatException" />
-                    GetMetadataFromTemporaryStorage(key, out var storageHandle, out var metadata);
-                    storageHandles.Add(storageHandle);
-                    return metadata;
-                });
-
-                s_metadataToStorageHandles.Add(newMetadata, storageHandles.ToImmutable());
-
-                return newMetadata;
+                return CreateAssemblyMetadata(key, GetMetadataFromTemporaryStorage);
             }
         }
     }
 
-    private void GetMetadataFromTemporaryStorage(
-        FileKey moduleFileKey, out TemporaryStorageHandle storageHandle, out ModuleMetadata metadata)
+    private (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) GetMetadataFromTemporaryStorage(
+        FileKey moduleFileKey)
     {
-        GetStorageInfoFromTemporaryStorage(moduleFileKey, out storageHandle, out var stream);
+        GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storageHandle, out var stream);
 
         unsafe
         {
             // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-            metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
+            var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
+            return (metadata, storageHandle);
         }
-
-        return;
 
         void GetStorageInfoFromTemporaryStorage(
             FileKey moduleFileKey, out TemporaryStorageHandle storageHandle, out UnmanagedMemoryStream stream)
@@ -246,24 +233,15 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <exception cref="BadImageFormatException" />
     private AssemblyMetadata CreateAssemblyMetadataFromMetadataImporter(FileKey fileKey)
     {
-        using var _ = ArrayBuilder<TemporaryStorageHandle>.GetInstance(out var storageHandles);
-        var newMetadata = CreateAssemblyMetadata(fileKey, fileKey =>
+        return CreateAssemblyMetadata(fileKey, fileKey =>
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(fileKey);
+            if (metadata != null)
+                return (metadata, storageHandle: null);
 
             // getting metadata didn't work out through importer. fallback to shadow copy one
-            if (metadata == null)
-            {
-                GetMetadataFromTemporaryStorage(fileKey, out var storageHandle, out metadata);
-                storageHandles.Add(storageHandle);
-            }
-
-            return metadata;
+            return GetMetadataFromTemporaryStorage(fileKey);
         });
-
-        s_metadataToStorageHandles.Add(newMetadata, storageHandles.ToImmutable());
-
-        return newMetadata;
 
         ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
         {
@@ -319,11 +297,13 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <exception cref="BadImageFormatException" />
     private static AssemblyMetadata CreateAssemblyMetadata(
         FileKey fileKey,
-        Func<FileKey, ModuleMetadata> moduleMetadataFactory)
+        Func<FileKey, (ModuleMetadata moduleMetadata, TemporaryStorageHandle? storageHandle)> moduleMetadataFactory)
     {
-        var manifestModule = moduleMetadataFactory(fileKey);
+        using var _1 = ArrayBuilder<TemporaryStorageHandle>.GetInstance(out var storageHandles);
+        var (manifestModule, storageHandle) = moduleMetadataFactory(fileKey);
+        storageHandles.AddIfNotNull(storageHandle);
 
-        using var _ = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
+        using var _2 = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
 
         string? assemblyDir = null;
         foreach (var moduleName in manifestModule.GetModuleNames())
@@ -336,14 +316,17 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
             // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
             var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
-            var metadata = moduleMetadataFactory(moduleFileKey);
+            var (metadata, metadataStorageHandle) = moduleMetadataFactory(moduleFileKey);
 
             moduleBuilder.Add(metadata);
+            storageHandles.AddIfNotNull(metadataStorageHandle);
         }
 
         if (moduleBuilder.Count == 0)
             moduleBuilder.Add(manifestModule);
 
-        return AssemblyMetadata.Create(moduleBuilder.ToImmutable());
+        var result = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
+        s_metadataToStorageHandles.Add(result, storageHandles.ToImmutable());
+        return result;
     }
 }
