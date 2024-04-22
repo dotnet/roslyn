@@ -17,13 +17,7 @@ namespace Microsoft.CodeAnalysis.Host;
 /// </summary>
 internal sealed class TemporaryStorageHandle(MemoryMappedFile? memoryMappedFile, TemporaryStorageIdentifier identifier)
 {
-#pragma warning disable IDE0052 // Remove unread private members
-    /// <summary>
-    /// This field is intentionally not read.  It exists just to root the memory mapped file and keep it alive as long
-    /// as this handle is alive.
-    /// </summary>
-    private readonly MemoryMappedFile? _memoryMappedFile = memoryMappedFile;
-#pragma warning restore IDE0052 // Remove unread private members
+    public readonly MemoryMappedFile? MemoryMappedFile = memoryMappedFile;
     private readonly TemporaryStorageIdentifier? _identifier = identifier;
 
     public TemporaryStorageIdentifier Identifier => _identifier ?? throw new InvalidOperationException("Handle has already been disposed");
