@@ -121,12 +121,9 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     /// <returns>A <see cref="MemoryMappedInfo"/> describing the allocated block.</returns>
     private MemoryMappedInfo CreateTemporaryStorage(long size)
     {
+        // Larger blocks are allocated separately
         if (size >= SingleFileThreshold)
-        {
-            // Larger blocks are allocated separately
-            var mapName = CreateUniqueName(size);
-            return new MemoryMappedInfo(mapName, offset: 0, size: size);
-        }
+            return MemoryMappedInfo.CreateNew(CreateUniqueName(size), size: size);
 
         lock (_gate)
         {
@@ -182,7 +179,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             _checksumAlgorithm = checksumAlgorithm;
             _encoding = encoding;
             _contentHash = contentHash;
-            _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
+            _memoryMappedInfo = MemoryMappedInfo.OpenExisting(storageName, offset, size);
         }
 
         // TODO: cleanup https://github.com/dotnet/roslyn/issues/43037
@@ -307,7 +304,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long offset, long size)
         {
             _service = service;
-            _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
+            _memoryMappedInfo = MemoryMappedInfo.OpenExisting(storageName, offset, size);
         }
 
         // TODO: clean up https://github.com/dotnet/roslyn/issues/43037

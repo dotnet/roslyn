@@ -29,7 +29,7 @@ internal partial class TemporaryStorageService
         /// <summary>
         /// The memory mapped file.
         /// </summary>
-        private readonly MemoryMappedFile _memoryMappedFile = memoryMappedFile;
+        public readonly MemoryMappedFile MemoryMappedFile = memoryMappedFile;
 
         /// <summary>
         /// A weak reference to a read-only view for the memory mapped file.
@@ -45,10 +45,11 @@ internal partial class TemporaryStorageService
         /// </remarks>
         private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakReadAccessor;
 
-        public MemoryMappedInfo(string name, long offset, long size)
-            : this(MemoryMappedFile.OpenExisting(name), name, offset, size)
-        {
-        }
+        public static MemoryMappedInfo OpenExisting(string name, long offset, long size)
+            => new(MemoryMappedFile.OpenExisting(name), name, offset, size);
+
+        public static MemoryMappedInfo CreateNew(string name, long size)
+            => new(MemoryMappedFile.CreateNew(name, size), name, offset: 0, size);
 
         /// <summary>
         /// The name of the memory mapped file.
@@ -80,7 +81,7 @@ internal partial class TemporaryStorageService
             if (streamAccessor == null)
             {
                 var rawAccessor = RunWithCompactingGCFallback(
-                    static info => info._memoryMappedFile.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read),
+                    static info => info.MemoryMappedFile.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read),
                     this);
                 streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
                 _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
@@ -97,7 +98,7 @@ internal partial class TemporaryStorageService
         public Stream CreateWritableStream()
         {
             return RunWithCompactingGCFallback(
-                static info => info._memoryMappedFile.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write),
+                static info => info.MemoryMappedFile.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write),
                 this);
         }
 
