@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
             var storage = service.CreateTemporaryTextStorage();
-
             // Nothing has been written yet
             Assert.Throws<InvalidOperationException>(() => storage.ReadText());
             Assert.Throws<AggregateException>(() => storage.ReadTextAsync().Result);
