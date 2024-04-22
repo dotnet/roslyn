@@ -209,18 +209,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         /// </summary>
         public ImmutableArray<byte> ContentHash => _contentHash;
 
-        public void Dispose()
-        {
-            // Destructors of SafeHandle and FileStream in MemoryMappedFile
-            // will eventually release resources if this Dispose is not called
-            // explicitly
-            _memoryMappedInfo?.Dispose();
-
-            _memoryMappedInfo = null;
-            _encoding = null;
-            _contentHash = default;
-        }
-
         public SourceText ReadText(CancellationToken cancellationToken)
         {
             if (_memoryMappedInfo == null)
