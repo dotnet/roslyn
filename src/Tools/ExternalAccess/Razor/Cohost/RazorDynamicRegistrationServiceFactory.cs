@@ -9,15 +9,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 [ExportCSharpVisualBasicLspServiceFactory(typeof(RazorDynamicRegistrationService), WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefault = true)] IRazorCohostDynamicRegistrationService? dynamicRegistrationService) : ILspServiceFactory
+internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefault = true)] Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
@@ -28,11 +30,11 @@ internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefaul
 
     private class RazorDynamicRegistrationService : ILspService, IOnInitialized
     {
-        private readonly IRazorCohostDynamicRegistrationService? _dynamicRegistrationService;
-        private readonly IClientLanguageServerManager _clientLanguageServerManager;
+        private readonly Lazy<IRazorCohostDynamicRegistrationService>? _dynamicRegistrationService;
+        private readonly IClientLanguageServerManager? _clientLanguageServerManager;
         private readonly JsonSerializerSettings _serializerSettings;
 
-        public RazorDynamicRegistrationService(IRazorCohostDynamicRegistrationService? dynamicRegistrationService, IClientLanguageServerManager clientLanguageServerManager)
+        public RazorDynamicRegistrationService(Lazy<IRazorCohostDynamicRegistrationService>? dynamicRegistrationService, IClientLanguageServerManager? clientLanguageServerManager)
         {
             _dynamicRegistrationService = dynamicRegistrationService;
             _clientLanguageServerManager = clientLanguageServerManager;
@@ -44,17 +46,29 @@ internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefaul
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
-            if (_dynamicRegistrationService is null)
+            if (_dynamicRegistrationService is null || _clientLanguageServerManager is null)
             {
                 return Task.CompletedTask;
             }
 
+            var uiContext = UIContext.FromUIContextGuid(Constants.RazorCohostingUIContext);
+            uiContext.WhenActivated(() =>
+            {
+                // Not using the cancellation token passed in, as the context could be activated well after LSP server initialization
+                InitializeRazor(clientCapabilities, context, CancellationToken.None);
+            });
+
+            return Task.CompletedTask;
+        }
+
+        private void InitializeRazor(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        {
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
             var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities, _serializerSettings);
-            var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(_clientLanguageServerManager);
+            var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(_clientLanguageServerManager!);
 
             var requestContext = new RazorCohostRequestContext(context);
-            return _dynamicRegistrationService.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken);
+            _dynamicRegistrationService!.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ReportNonFatalErrorAsync();
         }
     }
 }

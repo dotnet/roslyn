@@ -49,6 +49,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
   </ItemGroup>
 
   <ItemGroup>
