@@ -83,8 +83,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());
             Assert.Equal(text.Encoding, text2.Encoding);
-
-            temporaryStorage.Dispose();
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -145,10 +143,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 for (var j = 1; j < 5; j++)
                 {
-                    using var storage1 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1), CancellationToken.None);
-                    using var storage2 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i), CancellationToken.None);
-
-                    // let the finalizer run for this instance
+                    var storage1 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1), CancellationToken.None);
+                    var storage2 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i), CancellationToken.None);
                     var storage3 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1), CancellationToken.None);
 
                     await Task.Yield();
@@ -198,7 +194,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     using var s = service.ReadFromTemporaryStorageService(storageHandles[i].Identifier, CancellationToken.None);
                     Assert.Equal(1, s.ReadByte());
-                    storageHandles[i].Dispose();
                 }
             }
         }

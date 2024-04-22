@@ -32,8 +32,8 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
         var storage = new StreamStorage();
         storage.WriteStream(stream);
         var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), 0, 0);
-        var handle = new TemporaryStorageHandle(storage, identifier);
-
+        var handle = new TemporaryStorageHandle(memoryMappedFile: null, identifier);
+        s_streamStorage.Add(identifier, storage);
         return handle;
     }
 
@@ -46,15 +46,9 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
         return streamStorage.ReadStream();
     }
 
-    private sealed class StreamStorage : IDisposable
+    private sealed class StreamStorage
     {
         private MemoryStream? _stream;
-
-        public void Dispose()
-        {
-            _stream?.Dispose();
-            _stream = null;
-        }
 
         public Stream ReadStream()
         {
@@ -97,9 +91,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             // is appropriate for this trivial implementation.
             var existingValue = Interlocked.CompareExchange(ref _sourceText, text, null);
             if (existingValue is not null)
-            {
                 throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
         }
 
         public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)

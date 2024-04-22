@@ -16,12 +16,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static Workspace CreateWorkspace(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
 
-        public static Workspace CreateWorkspaceWithNormalText()
-            => CreateWorkspace();
-
-        public static Workspace CreateWorkspaceWithRecoverableText()
-            => CreateWorkspace();
-
         public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
             => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(testHost: testHost);
 
