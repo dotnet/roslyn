@@ -11,11 +11,8 @@ namespace Microsoft.CodeAnalysis.Host;
 /// Identifier for a stream of data placed in a segment of temporary storage (generally a memory mapped file). Can be
 /// used to identify that segment across processes, allowing for efficient sharing of data.
 /// </summary>
-[DataContract]
 internal sealed record TemporaryStorageIdentifier(
-    [property: DataMember(Order = 0)] string Name,
-    [property: DataMember(Order = 1)] long Offset,
-    [property: DataMember(Order = 2)] long Size)
+    string Name, long Offset, long Size)
 {
     public static TemporaryStorageIdentifier ReadFrom(ObjectReader reader)
         => new(
