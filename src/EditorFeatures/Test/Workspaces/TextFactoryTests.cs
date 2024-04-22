@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var text = SourceText.From("Hello, World!");
 
             // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
+            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
             await temporaryStorage.WriteTextAsync(text);
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
             // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
+            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
             await temporaryStorage.WriteTextAsync(text);
 
