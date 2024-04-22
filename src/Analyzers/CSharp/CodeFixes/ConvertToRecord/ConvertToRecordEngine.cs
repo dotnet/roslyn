@@ -20,6 +20,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal static class ConvertToRecordEngine
 {
     private const SyntaxRemoveOptions RemovalOptions =
@@ -124,8 +127,8 @@ internal static class ConvertToRecordEngine
                 // add an initializer that links the property to the primary constructor parameter
                 documentEditor.ReplaceNode(property, property
                     .WithInitializer(
-                        SyntaxFactory.EqualsValueClause(SyntaxFactory.IdentifierName(property.Identifier.WithoutTrivia())))
-                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                        EqualsValueClause(IdentifierName(property.Identifier.WithoutTrivia())))
+                    .WithSemicolonToken(SemicolonToken));
             }
             else
             {
@@ -186,9 +189,9 @@ internal static class ConvertToRecordEngine
 
                     var modifiedConstructor = constructor
                         .RemoveNodes(expressionStatementsToRemove, RemovalOptions)!
-                        .WithInitializer(SyntaxFactory.ConstructorInitializer(
+                        .WithInitializer(ConstructorInitializer(
                             SyntaxKind.ThisConstructorInitializer,
-                                SyntaxFactory.ArgumentList([.. expressions.Select(SyntaxFactory.Argument)])));
+                                ArgumentList([.. expressions.Select(Argument)])));
 
                     documentEditor.ReplaceNode(constructor, modifiedConstructor);
                 }
@@ -251,10 +254,10 @@ internal static class ConvertToRecordEngine
                 ? result.Symbol.Type.GenerateTypeSyntax()
                 : result.Declaration.Type;
             var identifier = result.IsInherited
-                ? SyntaxFactory.Identifier(result.Symbol.Name)
+                ? Identifier(result.Symbol.Name)
                 : result.Declaration.Identifier;
 
-            return SyntaxFactory.Parameter(
+            return Parameter(
                 GetModifiedAttributeListsForProperty(result),
                 modifiers: default,
                 type,
@@ -264,7 +267,7 @@ internal static class ConvertToRecordEngine
 
         // if we have a class, move trivia from class keyword to record keyword
         // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
-        var recordKeyword = SyntaxFactory.Token(SyntaxKind.RecordKeyword);
+        var recordKeyword = RecordKeyword;
         recordKeyword = type.TypeKind == TypeKind.Class
             ? recordKeyword.WithTriviaFrom(typeDeclaration.Keyword)
             : recordKeyword.WithLeadingTrivia(typeDeclaration.Keyword.LeadingTrivia);
@@ -312,11 +315,11 @@ internal static class ConvertToRecordEngine
                     var inheritedPositionalParams = PositionalParameterInfo
                         .GetInheritedPositionalParams(type, cancellationToken)
                         .SelectAsArray(prop =>
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(prop.Name)));
+                            Argument(IdentifierName(prop.Name)));
 
                     typeList = typeList.Replace(baseRecord,
-                        SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
-                            SyntaxFactory.ArgumentList([.. inheritedPositionalParams])
+                        PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
+                            ArgumentList([.. inheritedPositionalParams])
                             .WithTrailingTrivia(baseTrailingTrivia)));
                 }
 
@@ -389,16 +392,16 @@ internal static class ConvertToRecordEngine
             openBrace = default;
             closeBrace = default;
             semicolon = typeDeclaration.SemicolonToken == default
-                ? SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                ? SemicolonToken
                 : typeDeclaration.SemicolonToken;
         }
         else
         {
             openBrace = typeDeclaration.OpenBraceToken == default
-                ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
+                ? OpenBraceToken
                 : typeDeclaration.OpenBraceToken;
             closeBrace = typeDeclaration.CloseBraceToken == default
-                ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+                ? CloseBraceToken
                 : typeDeclaration.CloseBraceToken;
             semicolon = default;
 
@@ -409,7 +412,7 @@ internal static class ConvertToRecordEngine
                 typeDeclaration.Members[0], typeDeclaration.Members[0].GetNodeWithoutLeadingBlankLines());
         }
 
-        return SyntaxFactory.RecordDeclaration(
+        return RecordDeclaration(
             type.TypeKind == TypeKind.Class
                 ? SyntaxKind.RecordDeclaration
                 : SyntaxKind.RecordStructDeclaration,
@@ -418,11 +421,11 @@ internal static class ConvertToRecordEngine
             recordKeyword,
             type.TypeKind == TypeKind.Class
                 ? default
-                : typeDeclaration.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                : typeDeclaration.Keyword.WithTrailingTrivia(ElasticMarker),
             // remove trailing trivia from places where we would want to insert the parameter list before a line break
-            typeDeclaration.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-            typeDeclaration.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-            SyntaxFactory.ParameterList([.. propertiesToAddAsParams])
+            typeDeclaration.Identifier.WithTrailingTrivia(ElasticMarker),
+            typeDeclaration.TypeParameterList?.WithTrailingTrivia(ElasticMarker),
+            ParameterList([.. propertiesToAddAsParams])
                 .WithAppendedTrailingTrivia(constructorTrivia),
             baseList,
             typeDeclaration.ConstraintClauses,
@@ -457,7 +460,7 @@ internal static class ConvertToRecordEngine
             {
                 // convert attributes attached to the property with no target into "property :" targeted attributes
                 return attributeList
-                    .WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.PropertyKeyword)))
+                    .WithTarget(AttributeTargetSpecifier(PropertyKeyword))
                     .WithoutTrivia();
             }
             else
@@ -553,10 +556,10 @@ internal static class ConvertToRecordEngine
 
                     // replace: new C { Foo = 0; Bar = false; };
                     // with: new C(0, false);
-                    return SyntaxFactory.ObjectCreationExpression(
+                    return ObjectCreationExpression(
                         updatedObjectCreation.NewKeyword,
                         updatedObjectCreation.Type.WithoutTrailingTrivia(),
-                        SyntaxFactory.ArgumentList([.. updatedExpressions.Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia()))]),
+                        ArgumentList([.. updatedExpressions.Select(expression => Argument(expression.WithoutTrivia()))]),
                         newInitializer);
                 });
             }
@@ -645,28 +648,28 @@ internal static class ConvertToRecordEngine
                 propDoc.IsMultilineDocComment())
             {
                 // add /** and */
-                newClassDocComment = SyntaxFactory.DocumentationCommentTrivia(
+                newClassDocComment = DocumentationCommentTrivia(
                     SyntaxKind.MultiLineDocumentationCommentTrivia,
                     // Our parameter method gives a newline (without leading trivia) to start
                     // because we assume we're following some other comment, we replace that newline to add
                     // the start of comment leading trivia as well since we're not following another comment
                     [.. propertyParamComments.Skip(1)
-                        .Prepend(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)
-                            .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/**"))
+                        .Prepend(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)
+                            .WithLeadingTrivia(DocumentationCommentExterior("/**"))
                             .WithTrailingTrivia(exteriorTrivia)))
-                        .Append(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
-                        SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken)
-                            .WithTrailingTrivia(SyntaxFactory.DocumentationCommentExterior("*/"), SyntaxFactory.ElasticCarriageReturnLineFeed));
+                        .Append(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
+                        EndOfDocumentationCommentToken
+                            .WithTrailingTrivia(DocumentationCommentExterior("*/"), ElasticCarriageReturnLineFeed));
             }
             else
             {
                 // add extra line at end to end doc comment
                 // also skip first newline and replace with non-newline
-                newClassDocComment = SyntaxFactory.DocumentationCommentTrivia(
+                newClassDocComment = DocumentationCommentTrivia(
                     SyntaxKind.MultiLineDocumentationCommentTrivia,
                     [.. propertyParamComments.Skip(1)
-                        .Prepend(SyntaxFactory.XmlText(SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))])
-                    .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                        .Prepend(XmlText(XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))])
+                    .WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
             }
         }
 
@@ -677,14 +680,14 @@ internal static class ConvertToRecordEngine
             return [.. classTrivia
                 .Where(trivia => !trivia.IsDocComment())
                 .Concat(propertyNonDocComments)
-                .Append(SyntaxFactory.Trivia(newClassDocComment))
+                .Append(Trivia(newClassDocComment))
                 .Select(trivia => trivia.AsElastic())];
         }
         else
         {
             // there were comments after doc comment
             return [.. classTrivia
-                .Replace(classDocComment.Value, SyntaxFactory.Trivia(newClassDocComment))
+                .Replace(classDocComment.Value, Trivia(newClassDocComment))
                 .Concat(propertyNonDocComments)
                 .Select(trivia => trivia.AsElastic())];
         }
@@ -756,15 +759,15 @@ internal static class ConvertToRecordEngine
             // add an extra line and space with the exterior trivia, so that our params start on the next line and each
             // param goes on a new line with the continuation trivia
             // when adding a new line, the continue flag adds a single line documentation trivia, but we don't necessarily want that
-            yield return SyntaxFactory.XmlText(
-                SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false),
-                SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia));
+            yield return XmlText(
+                XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false),
+                XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia));
 
             if (result.IsInherited)
             {
                 // generate a param comment with an inherited doc
-                yield return SyntaxFactory.XmlParamElement(result.Symbol.Name, SyntaxFactory.XmlEmptyElement(
-                        SyntaxFactory.XmlName(DocumentationCommentXmlNames.InheritdocElementName)));
+                yield return XmlParamElement(result.Symbol.Name, XmlEmptyElement(
+                        XmlName(DocumentationCommentXmlNames.InheritdocElementName)));
             }
             else
             {
@@ -820,7 +823,7 @@ internal static class ConvertToRecordEngine
                     }
                 }
 
-                yield return SyntaxFactory.XmlParamElement(result.Declaration.Identifier.ValueText, paramContent.AsArray());
+                yield return XmlParamElement(result.Declaration.Identifier.ValueText, paramContent.AsArray());
             }
         }
     }

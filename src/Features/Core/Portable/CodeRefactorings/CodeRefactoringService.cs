@@ -34,7 +34,7 @@ internal sealed class CodeRefactoringService(
                 ImmutableDictionary.CreateRange(
                     DistributeLanguages(providers)
                         .GroupBy(lz => lz.Metadata.Language)
-                        .Select(grp => new KeyValuePair<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>(
+                        .Select(grp => KeyValuePairUtil.Create(
                             grp.Key,
                             new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
     private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
@@ -171,7 +171,7 @@ internal sealed class CodeRefactoringService(
     {
         return extensionManager.PerformFunctionAsync(
             provider,
-            async () =>
+            async cancellationToken =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
@@ -205,14 +205,14 @@ internal sealed class CodeRefactoringService(
                 var fixAllProviderInfo = extensionManager.PerformFunction(
                     provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
                 return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
-            }, defaultValue: null);
+            }, defaultValue: null, cancellationToken);
     }
 
     private class ProjectCodeRefactoringProvider
         : AbstractProjectExtensionProvider<ProjectCodeRefactoringProvider, CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
     {
         protected override ImmutableArray<string> GetLanguages(ExportCodeRefactoringProviderAttribute exportAttribute)
-            => exportAttribute.Languages.ToImmutableArray();
+            => [.. exportAttribute.Languages];
 
         protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeRefactoringProvider> extensions)
         {

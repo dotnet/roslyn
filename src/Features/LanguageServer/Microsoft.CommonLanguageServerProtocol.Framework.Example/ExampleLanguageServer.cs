@@ -5,16 +5,17 @@
 using System;
 using Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContext>
+internal class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContext>
 {
     private readonly Action<IServiceCollection>? _addExtraHandlers;
 
-    public ExampleLanguageServer(JsonRpc jsonRpc, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, logger)
+    public ExampleLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, jsonSerializer, logger)
     {
         _addExtraHandlers = addExtraHandlers;
         // This spins up the queue and ensure the LSP is ready to start receiving requests
@@ -26,7 +27,7 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
         var serviceCollection = new ServiceCollection();
 
         var _ = AddHandlers(serviceCollection)
-            .AddSingleton<ILspLogger>(_logger)
+            .AddSingleton<ILspLogger>(Logger)
             .AddSingleton<AbstractRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
             .AddSingleton<AbstractHandlerProvider>(s => HandlerProvider)
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()

@@ -955,6 +955,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public INamedTypeSymbol GetSpecialType(SpecialType specialType)
         {
+            if (specialType <= SpecialType.None || specialType > SpecialType.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
+            }
+
             return (INamedTypeSymbol)CommonGetSpecialType(specialType).GetITypeSymbol();
         }
 
@@ -3688,7 +3693,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyMakeMemberMissingMap != null && _lazyMakeMemberMissingMap.ContainsKey(member);
         }
 
-        internal void MakeTypeMissing(SpecialType type)
+        internal void MakeTypeMissing(ExtendedSpecialType type)
         {
             MakeTypeMissing((int)type);
         }
@@ -3708,7 +3713,7 @@ namespace Microsoft.CodeAnalysis
             _lazyMakeWellKnownTypeMissingMap[(int)type] = true;
         }
 
-        internal bool IsTypeMissing(SpecialType type)
+        internal bool IsTypeMissing(ExtendedSpecialType type)
         {
             return IsTypeMissing((int)type);
         }

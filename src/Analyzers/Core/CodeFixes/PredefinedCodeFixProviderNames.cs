@@ -43,6 +43,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string ConvertToRecord = nameof(ConvertToRecord);
     public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
     public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
+    public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
     public const string DeclareAsNullable = nameof(DeclareAsNullable);
     public const string DisambiguateSameVariable = nameof(DisambiguateSameVariable);
@@ -72,6 +73,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string JsonDetection = nameof(JsonDetection);
     public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
     public const string MakeLocalFunctionStatic = nameof(MakeLocalFunctionStatic);
+    public const string MakeAnonymousFunctionStatic = nameof(MakeAnonymousFunctionStatic);
     public const string MakeMemberRequired = nameof(MakeMemberRequired);
     public const string MakeMemberStatic = nameof(MakeMemberStatic);
     public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);

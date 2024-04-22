@@ -38,8 +38,6 @@ internal class CodeGenerationNamespaceInfo
 
     private static IList<ISymbol> GetImports(CodeGenerationNamespaceInfo info)
     {
-        return info == null
-            ? SpecializedCollections.EmptyList<ISymbol>()
-            : info._imports;
+        return info == null ? [] : info._imports;
     }
 }

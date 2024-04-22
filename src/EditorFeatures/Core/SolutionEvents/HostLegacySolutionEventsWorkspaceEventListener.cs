@@ -49,8 +49,8 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
 
     public void StartListening(Workspace workspace, object? serviceOpt)
     {
-        // We only support this option to disable crawling in internal perf runs to lower noise.  It is not exposed to
-        // the user.
+        // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower noise.
+        // It is not exposed to the user.
         if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
         {
             workspace.WorkspaceChanged += OnWorkspaceChanged;

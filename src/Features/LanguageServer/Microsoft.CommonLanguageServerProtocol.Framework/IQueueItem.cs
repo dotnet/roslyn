@@ -6,13 +6,16 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <summary>
 /// An item to be queued for execution.
 /// </summary>
 /// <typeparam name="TRequestContext">The type of the request context to be passed along to the handler.</typeparam>
-public interface IQueueItem<TRequestContext>
+internal interface IQueueItem<TRequestContext>
 {
     /// <summary>
     /// Executes the work specified by this queue item.

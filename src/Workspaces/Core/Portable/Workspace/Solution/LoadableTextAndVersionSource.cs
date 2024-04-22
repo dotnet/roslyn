@@ -35,10 +35,10 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cache
         private WeakReference<TextAndVersion>? _weakInstance;
 
         private Task<TextAndVersion> LoadAsync(CancellationToken cancellationToken)
-            => Source.Loader.LoadTextAsync(Options, cancellationToken);
+            => Source.TextLoader.LoadTextAsync(Options, cancellationToken);
 
         private TextAndVersion LoadSynchronously(CancellationToken cancellationToken)
-            => Source.Loader.LoadTextSynchronously(Options, cancellationToken);
+            => Source.TextLoader.LoadTextSynchronously(Options, cancellationToken);
 
         public bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
         {
@@ -102,13 +102,13 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader, bool cache
         }
     }
 
-    public readonly TextLoader Loader = loader;
+    public TextLoader TextLoader { get; } = loader;
     public readonly bool CacheResult = cacheResult;
 
     private LazyValueWithOptions? _lazyValue;
 
     public bool CanReloadText
-        => Loader.CanReloadText;
+        => TextLoader.CanReloadText;
 
     private LazyValueWithOptions GetLazyValue(LoadTextOptions options)
     {

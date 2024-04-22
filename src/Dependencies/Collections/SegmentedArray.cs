@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.Collections
 {
     internal static class SegmentedArray
     {
+#if NET6_0_OR_GREATER
+        /// <seealso cref="Array.Clear(Array)"/>
+#endif
+        internal static void Clear<T>(SegmentedArray<T> array)
+            => Clear(array, 0, array.Length);
+
         /// <seealso cref="Array.Clear(Array, int, int)"/>
         internal static void Clear<T>(SegmentedArray<T> array, int index, int length)
         {
@@ -84,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (length == 0)
                 return;
 
-            if (sourceArray.SyncRoot == destinationArray.SyncRoot
+            if (SegmentedCollectionsMarshal.AsSegments(sourceArray) == SegmentedCollectionsMarshal.AsSegments(destinationArray)
                 && sourceIndex + length > destinationIndex)
             {
                 // We are copying in the same array with overlap
@@ -209,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             if ((uint)startIndex > (uint)array.Length)
             {
-                ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
+                ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_IndexMustBeLessOrEqual();
             }
 
             if ((uint)count > (uint)(array.Length - startIndex))
@@ -278,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // accept -1 and 0 as valid startIndex for compatibility reason.
                 if (startIndex is not (-1) and not 0)
                 {
-                    ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
+                    ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_IndexMustBeLess();
                 }
 
                 // only 0 is a valid value for count if array is empty
@@ -293,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // Make sure we're not out of range
             if ((uint)startIndex >= (uint)array.Length)
             {
-                ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
+                ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_IndexMustBeLess();
             }
 
             // 2nd half of this also catches when startIndex == MAXINT, so MAXINT - 0 + 1 == -1, which is < 0.
@@ -439,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             public AlignedSegmentEnumerator<T> GetEnumerator()
-                => new((T[][])_first.SyncRoot, _firstOffset, (T[][])_second.SyncRoot, _secondOffset, _length);
+                => new(SegmentedCollectionsMarshal.AsSegments(_first), _firstOffset, SegmentedCollectionsMarshal.AsSegments(_second), _secondOffset, _length);
         }
 
         private struct AlignedSegmentEnumerator<T>
@@ -525,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             public UnalignedSegmentEnumerator<T> GetEnumerator()
-                => new((T[][])_first.SyncRoot, _firstOffset, (T[][])_second.SyncRoot, _secondOffset, _length);
+                => new(SegmentedCollectionsMarshal.AsSegments(_first), _firstOffset, SegmentedCollectionsMarshal.AsSegments(_second), _secondOffset, _length);
 
             public ReverseEnumerable Reverse()
                 => new(this);
@@ -540,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 public UnalignedSegmentEnumerator<T>.Reverse GetEnumerator()
-                => new((T[][])_enumerable._first.SyncRoot, _enumerable._firstOffset, (T[][])_enumerable._second.SyncRoot, _enumerable._secondOffset, _enumerable._length);
+                => new(SegmentedCollectionsMarshal.AsSegments(_enumerable._first), _enumerable._firstOffset, SegmentedCollectionsMarshal.AsSegments(_enumerable._second), _enumerable._secondOffset, _enumerable._length);
 
                 public UnalignedSegmentEnumerable<T> Reverse()
                     => _enumerable;
@@ -669,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             public SegmentEnumerator<T> GetEnumerator()
-                => new((T[][])_array.SyncRoot, _offset, _length);
+                => new(SegmentedCollectionsMarshal.AsSegments(_array), _offset, _length);
 
             public ReverseEnumerable Reverse()
                 => new(this);
@@ -684,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 public SegmentEnumerator<T>.Reverse GetEnumerator()
-                    => new((T[][])_enumerable._array.SyncRoot, _enumerable._offset, _enumerable._length);
+                    => new(SegmentedCollectionsMarshal.AsSegments(_enumerable._array), _enumerable._offset, _enumerable._length);
 
                 public SegmentEnumerable<T> Reverse()
                     => _enumerable;

@@ -9,15 +9,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+
 internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsParams, TReport, TReturn>
     : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, IDisposable
     where TDiagnosticsParams : IPartialResultParams<TReport>
@@ -61,10 +64,17 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
             return [];
 
+        Contract.ThrowIfNull(context.Solution);
+
         var category = GetDiagnosticCategory(diagnosticsParams);
+
+        // TODO: Implement as extensibility point. https://github.com/dotnet/roslyn/issues/72896
 
         if (category == PullDiagnosticCategories.Task)
             return GetTaskListDiagnosticSources(context, GlobalOptions);
+
+        if (category == PullDiagnosticCategories.EditAndContinue)
+            return await EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution, document => context.IsTracking(document.GetURI()), cancellationToken).ConfigureAwait(false);
 
         // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
         if (category == null || category == PullDiagnosticCategories.WorkspaceDocumentsAndProject)
@@ -126,9 +136,27 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
+    /// <summary>
+    /// There are three potential sources for reporting workspace diagnostics:
+    ///
+    ///  1. Full solution analysis: If the user has enabled Full solution analysis, we always run analysis on the latest
+    ///                             project snapshot and return up-to-date diagnostics computed from this analysis.
+    ///
+    ///  2. Code analysis service: Otherwise, if full solution analysis is disabled, and if we have diagnostics from an explicitly
+    ///                            triggered code analysis execution on either the current or a prior project snapshot, we return
+    ///                            diagnostics from this execution. These diagnostics may be stale with respect to the current
+    ///                            project snapshot, but they match user's intent of not enabling continuous background analysis
+    ///                            for always having up-to-date workspace diagnostics, but instead computing them explicitly on
+    ///                            specific project snapshots by manually running the "Run Code Analysis" command on a project or solution.
+    ///
+    ///  3. EnC analysis: Emit and debugger diagnostics associated with a closed document or not associated with any document.
+    ///
+    /// If full solution analysis is disabled AND code analysis was never executed for the given project,
+    /// we have no workspace diagnostics to report and bail out.
+    /// </summary>
     public static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
         RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
     {
@@ -138,66 +166,62 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 
         var solution = context.Solution;
         var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
-        var codeAnalysisService = solution.Workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
+        var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
         foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
             await AddDocumentsAndProjectAsync(project, cancellationToken).ConfigureAwait(false);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
 
         async Task AddDocumentsAndProjectAsync(Project project, CancellationToken cancellationToken)
         {
-            // There are two potential sources for reporting workspace diagnostics:
-            //
-            //  1. Full solution analysis: If the user has enabled Full solution analysis, we always run analysis on the latest
-            //                             project snapshot and return up-to-date diagnostics computed from this analysis.
-            //
-            //  2. Code analysis service: Otherwise, if full solution analysis is disabled, and if we have diagnostics from an explicitly
-            //                            triggered code analysis execution on either the current or a prior project snapshot, we return
-            //                            diagnostics from this execution. These diagnostics may be stale with respect to the current
-            //                            project snapshot, but they match user's intent of not enabling continuous background analysis
-            //                            for always having up-to-date workspace diagnostics, but instead computing them explicitly on
-            //                            specific project snapshots by manually running the "Run Code Analysis" command on a project or solution.
-            //
-            // If full solution analysis is disabled AND code analysis was never executed for the given project,
-            // we have no workspace diagnostics to report and bail out.
             var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
             if (!fullSolutionAnalysisEnabled && !codeAnalysisService.HasProjectBeenAnalyzed(project.Id))
                 return;
 
-            var documents = ImmutableArray<TextDocument>.Empty.AddRange(project.Documents).AddRange(project.AdditionalDocuments);
+            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
+                ? ShouldIncludeAnalyzer : null;
+
+            AddDocumentSources(project.Documents);
+            AddDocumentSources(project.AdditionalDocuments);
 
             // If all features are enabled for source generated documents, then compute todo-comments/diagnostics for them.
             if (enableDiagnosticsInSourceGeneratedFiles)
             {
                 var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-                documents = documents.AddRange(sourceGeneratedDocuments);
-            }
-
-            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
-                ? ShouldIncludeAnalyzer : null;
-            foreach (var document in documents)
-            {
-                if (!ShouldSkipDocument(context, document))
-                {
-                    // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
-                    var documentDiagnosticSource = fullSolutionAnalysisEnabled
-                        ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, shouldIncludeAnalyzer)
-                        : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
-                    result.Add(documentDiagnosticSource);
-                }
+                AddDocumentSources(sourceGeneratedDocuments);
             }
 
             // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
-            var projectDiagnosticSource = fullSolutionAnalysisEnabled
-                ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, shouldIncludeAnalyzer)
-                : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
-            result.Add(projectDiagnosticSource);
+            AddProjectSource();
+
+            return;
+
+            void AddDocumentSources(IEnumerable<TextDocument> documents)
+            {
+                foreach (var document in documents)
+                {
+                    if (!ShouldSkipDocument(context, document))
+                    {
+                        // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
+                        var documentDiagnosticSource = fullSolutionAnalysisEnabled
+                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, shouldIncludeAnalyzer)
+                            : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
+                        result.Add(documentDiagnosticSource);
+                    }
+                }
+            }
+
+            void AddProjectSource()
+            {
+                var projectDiagnosticSource = fullSolutionAnalysisEnabled
+                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, shouldIncludeAnalyzer)
+                    : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
+                result.Add(projectDiagnosticSource);
+            }
 
             bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
-            {
-                return analyzer.IsCompilerAnalyzer() ? compilerFullSolutionAnalysisEnabled : analyzersFullSolutionAnalysisEnabled;
-            }
+                => analyzer.IsCompilerAnalyzer() ? compilerFullSolutionAnalysisEnabled : analyzersFullSolutionAnalysisEnabled;
         }
     }
 

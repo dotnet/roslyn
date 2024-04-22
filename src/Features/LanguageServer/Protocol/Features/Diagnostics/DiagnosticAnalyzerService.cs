@@ -26,12 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
-
-        // use eventMap and taskQueue to serialize events
-        private readonly EventMap _eventMap = new();
-        private readonly TaskQueue _eventQueue;
-
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
@@ -39,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
+        private readonly IDiagnosticsRefresher _diagnosticsRefresher;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
-            IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
             IGlobalOptionService globalOptions,
@@ -52,18 +46,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
-
+            _diagnosticsRefresher = diagnosticsRefresher;
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
-
-            _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
-
-            registrationService.Register(this);
 
             globalOptions.AddOptionChangedHandler(this, (_, e) =>
             {
                 if (IsGlobalOptionAffectingDiagnostics(e.Option))
                 {
-                    diagnosticsRefresher.RequestWorkspaceRefresh();
+                    RequestDiagnosticRefresh();
                 }
             });
         }
@@ -75,9 +65,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption;
 
-        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
-        {
-        }
+        public void RequestDiagnosticRefresh()
+            => _diagnosticsRefresher?.RequestWorkspaceRefresh();
 
         public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
             TextDocument document,

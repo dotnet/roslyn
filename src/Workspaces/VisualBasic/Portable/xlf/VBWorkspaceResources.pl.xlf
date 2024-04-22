@@ -227,21 +227,6 @@
         <target state="translated">Wprowadza operację konwersji typu, która nie zgłasza wyjątku. Jeśli próba konwersji nie powiedzie się, element TryCast zwróci wartość Nothing, którą Twój program może użyć do testów.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">Węzeł nie jest elementem podrzędnym elementu głównego.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">Węzeł nie znajduje się na liście elementów podrzędnych elementu nadrzędnego</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Elementy towarzyszące składni nie są skojarzone z tokenem</target>
-        <note />
-      </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
         <target state="translated">&lt;typeOrMember&gt;</target>

@@ -59,7 +59,7 @@ internal abstract partial class AbstractFindUsagesService
         {
             lock (_gate)
             {
-                return _definitions.ToImmutableArray();
+                return [.. _definitions];
             }
         }
     }

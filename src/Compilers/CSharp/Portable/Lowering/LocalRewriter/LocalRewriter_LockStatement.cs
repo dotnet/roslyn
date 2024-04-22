@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundLockTempInit = new BoundExpressionStatement(lockSyntax, assignmentToLockTemp);
             BoundExpression exitCallExpr;
 
-            MethodSymbol exitMethod;
+            MethodSymbol? exitMethod;
             if (TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Exit, out exitMethod))
             {
                 exitCallExpr = BoundCall.Synthesized(
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement exitCall = new BoundExpressionStatement(lockSyntax, exitCallExpr);
 
-            MethodSymbol enterMethod;
+            MethodSymbol? enterMethod;
 
             if ((TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Enter2, out enterMethod, isOptional: true) ||
                  TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Enter, out enterMethod)) && // If we didn't find the overload introduced in .NET 4.0, then use the older one. 
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression enterCallExpr;
 
-                if ((object)enterMethod != null)
+                if ((object?)enterMethod != null)
                 {
                     Debug.Assert(enterMethod.ParameterCount == 1);
 

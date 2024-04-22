@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
@@ -145,7 +146,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
             }
         }
 
-        var specificDiagnosticOptions = specificDiagnosticOptionsList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, ReportDiagnostic>>();
+        var specificDiagnosticOptions = specificDiagnosticOptionsList ?? [];
 
         var concurrentBuild = reader.ReadBoolean();
         var deterministic = reader.ReadBoolean();
@@ -158,7 +159,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
         var xmlReferenceResolver = XmlFileResolver.Default;
         var sourceReferenceResolver = SourceFileResolver.Default;
         var assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default;
-        var strongNameProvider = new DesktopStrongNameProvider();
+        var strongNameProvider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, Path.GetTempPath());
 
         return (
             outputKind,
@@ -231,7 +232,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
             }
         }
 
-        var features = featuresList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, string>>();
+        var features = featuresList ?? [];
         return (kind, documentationMode, features);
     }
 }

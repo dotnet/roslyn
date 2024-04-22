@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-public interface ITextDocumentIdentifierHandler<TRequest, TTextDocumentIdentifier> : ITextDocumentIdentifierHandler
+internal interface ITextDocumentIdentifierHandler<TRequest, TTextDocumentIdentifier> : ITextDocumentIdentifierHandler
 {
     /// <summary>
     /// Gets the identifier of the document from the request, if the request provides one.
@@ -12,6 +15,6 @@ public interface ITextDocumentIdentifierHandler<TRequest, TTextDocumentIdentifie
     TTextDocumentIdentifier GetTextDocumentIdentifier(TRequest request);
 }
 
-public interface ITextDocumentIdentifierHandler
+internal interface ITextDocumentIdentifierHandler
 {
 }

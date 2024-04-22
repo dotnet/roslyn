@@ -191,21 +191,30 @@ internal sealed partial class ProjectSystemProject
         _filePath = filePath;
         _parseOptions = parseOptions;
 
-        var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
-
-        if (filePath != null && fileExtensionToWatch != null)
-        {
-            // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
-            // having to add explicit file watches everywhere.
-            var projectDirectoryToWatch = new WatchedDirectory(Path.GetDirectoryName(filePath)!, fileExtensionToWatch);
-            _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
-        }
-        else
-        {
-            _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext();
-        }
-
+        var watchedDirectories = GetWatchedDirectories(language, filePath);
+        _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
         _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
+
+        static WatchedDirectory[] GetWatchedDirectories(string? language, string? filePath)
+        {
+            if (filePath is null)
+            {
+                return [];
+            }
+
+            var rootPath = Path.GetDirectoryName(filePath);
+            if (rootPath is null)
+            {
+                return [];
+            }
+
+            return language switch
+            {
+                LanguageNames.VisualBasic => [new(rootPath, ".vb")],
+                LanguageNames.CSharp => [new(rootPath, ".cs"), new(rootPath, ".razor"), new(rootPath, ".cshtml")],
+                _ => []
+            };
+        }
     }
 
     private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> updateSolution, bool logThrowAwayTelemetry = false)
@@ -533,35 +542,27 @@ internal sealed partial class ProjectSystemProject
                     solutionChanges,
                     documentFileNamesAdded,
                     documentsToOpen,
-                    (s, documents) => s.AddDocuments(documents),
+                    static (s, documents) => s.AddDocuments(documents),
                     WorkspaceChangeKind.DocumentAdded,
-                    (s, ids) => s.RemoveDocuments(ids),
+                    static (s, ids) => s.RemoveDocuments(ids),
                     WorkspaceChangeKind.DocumentRemoved);
 
                 _additionalFiles.UpdateSolutionForBatch(
                     solutionChanges,
                     documentFileNamesAdded,
                     additionalDocumentsToOpen,
-                    (s, documents) =>
-                    {
-                        foreach (var document in documents)
-                        {
-                            s = s.AddAdditionalDocument(document);
-                        }
-
-                        return s;
-                    },
+                    static (s, documents) => s.AddAdditionalDocuments(documents),
                     WorkspaceChangeKind.AdditionalDocumentAdded,
-                    (s, ids) => s.RemoveAdditionalDocuments(ids),
+                    static (s, ids) => s.RemoveAdditionalDocuments(ids),
                     WorkspaceChangeKind.AdditionalDocumentRemoved);
 
                 _analyzerConfigFiles.UpdateSolutionForBatch(
                     solutionChanges,
                     documentFileNamesAdded,
                     analyzerConfigDocumentsToOpen,
-                    (s, documents) => s.AddAnalyzerConfigDocuments(documents),
+                    static (s, documents) => s.AddAnalyzerConfigDocuments(documents),
                     WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
-                    (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
+                    static (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
                     WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
                 // Metadata reference removing. Do this before adding in case this removes a project reference that
@@ -989,7 +990,7 @@ internal sealed partial class ProjectSystemProject
         }
     }
 
-    private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
+    internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
     private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
     private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
     [
@@ -1002,6 +1003,7 @@ internal sealed partial class ProjectSystemProject
 
     private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
     {
+        fullPath = Path.GetFullPath(fullPath);
         // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
         // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
         if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==

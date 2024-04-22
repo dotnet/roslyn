@@ -26,27 +26,28 @@ namespace Microsoft.CodeAnalysis.Host;
 #if NETCOREAPP
 [SupportedOSPlatform("windows")]
 #endif
-internal partial class TemporaryStorageService : ITemporaryStorageService2
+internal sealed partial class TemporaryStorageService : ITemporaryStorageServiceInternal
 {
     /// <summary>
-    /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other
-    /// storage units.
+    /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other storage
+    /// units.
     /// </summary>
     /// <remarks>
-    /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
-    /// something better.</para>
+    /// <para>The value of 256k reduced the number of files dumped to separate memory mapped files by 60% compared to
+    /// the next lower power-of-2 size for Roslyn.sln itself.</para>
     /// </remarks>
-    /// <seealso cref="_weakFileReference"/>
-    private const long SingleFileThreshold = 128 * 1024;
+    /// <seealso cref="_fileReference"/>
+    private const long SingleFileThreshold = 256 * 1024;
 
     /// <summary>
     /// The size in bytes of a memory mapped file created to store multiple temporary objects.
     /// </summary>
     /// <remarks>
-    /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
-    /// something better.</para>
+    /// <para>This value (8mb) creates roughly 35 memory mapped files (around 300MB) to store the contents of all of
+    /// Roslyn.sln a snapshot. This keeps the data safe, so that we can drop it from memory when not needed, but
+    /// reconstitute the contents we originally had in the snapshot in case the original files change on disk.</para>
     /// </remarks>
-    /// <seealso cref="_weakFileReference"/>
+    /// <seealso cref="_fileReference"/>
     private const long MultiFileBlockSize = SingleFileThreshold * 32;
 
     private readonly IWorkspaceThreadingService? _workspaceThreadingService;
@@ -65,34 +66,25 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
 
     /// <summary>
     /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer
-    /// allocation until space is no longer available in it.
+    /// allocation until space is no longer available in it.  Access should be synchronized on <see cref="_gate"/>
     /// </summary>
-    /// <remarks>
-    /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
-    /// </remarks>
-    private ReferenceCountedDisposable<MemoryMappedFile>.WeakReference _weakFileReference;
+    private MemoryMappedFile? _fileReference;
 
-    /// <summary>The name of the current memory mapped file for multiple storage units.</summary>
-    /// <remarks>
-    /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
-    /// </remarks>
-    /// <seealso cref="_weakFileReference"/>
+    /// <summary>The name of the current memory mapped file for multiple storage units. Access should be synchronized on
+    /// <see cref="_gate"/></summary>
+    /// <seealso cref="_fileReference"/>
     private string? _name;
 
-    /// <summary>The total size of the current memory mapped file for multiple storage units.</summary>
-    /// <remarks>
-    /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
-    /// </remarks>
-    /// <seealso cref="_weakFileReference"/>
+    /// <summary>The total size of the current memory mapped file for multiple storage units. Access should be
+    /// synchronized on <see cref="_gate"/></summary>
+    /// <seealso cref="_fileReference"/>
     private long _fileSize;
 
     /// <summary>
-    /// The offset into the current memory mapped file where the next storage unit can be held.
+    /// The offset into the current memory mapped file where the next storage unit can be held. Access should be
+    /// synchronized on <see cref="_gate"/>.
     /// </summary>
-    /// <remarks>
-    /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
-    /// </remarks>
-    /// <seealso cref="_weakFileReference"/>
+    /// <seealso cref="_fileReference"/>
     private long _offset;
 
     [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
@@ -105,8 +97,9 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
         => new TemporaryTextStorage(this);
 
-    public ITemporaryTextStorageInternal AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
-        => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding);
+    public TemporaryTextStorage AttachTemporaryTextStorage(
+        string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
+        => new(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
 
     ITemporaryStreamStorageInternal ITemporaryStorageServiceInternal.CreateTemporaryStreamStorage()
         => CreateTemporaryStreamStorage();
@@ -114,8 +107,8 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     internal TemporaryStreamStorage CreateTemporaryStreamStorage()
         => new(this);
 
-    public ITemporaryStreamStorageInternal AttachTemporaryStreamStorage(string storageName, long offset, long size)
-        => new TemporaryStreamStorage(this, storageName, offset, size);
+    public TemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size)
+        => new(this, storageName, offset, size);
 
     /// <summary>
     /// Allocate shared storage of a specified size.
@@ -128,27 +121,22 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     /// <returns>A <see cref="MemoryMappedInfo"/> describing the allocated block.</returns>
     private MemoryMappedInfo CreateTemporaryStorage(long size)
     {
+        // Larger blocks are allocated separately
         if (size >= SingleFileThreshold)
-        {
-            // Larger blocks are allocated separately
-            var mapName = CreateUniqueName(size);
-            var storage = MemoryMappedFile.CreateNew(mapName, size);
-            return new MemoryMappedInfo(new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, offset: 0, size: size);
-        }
+            return MemoryMappedInfo.CreateNew(CreateUniqueName(size), size: size);
 
         lock (_gate)
         {
             // Obtain a reference to the memory mapped file, creating one if necessary. If a reference counted
             // handle to a memory mapped file is obtained in this section, it must either be disposed before
             // returning or returned to the caller who will own it through the MemoryMappedInfo.
-            var reference = _weakFileReference.TryAddReference();
+            var reference = _fileReference;
             if (reference == null || _offset + size > _fileSize)
             {
                 var mapName = CreateUniqueName(MultiFileBlockSize);
-                var file = MemoryMappedFile.CreateNew(mapName, MultiFileBlockSize);
 
-                reference = new ReferenceCountedDisposable<MemoryMappedFile>(file);
-                _weakFileReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(reference);
+                reference = MemoryMappedFile.CreateNew(mapName, MultiFileBlockSize);
+                _fileReference = reference;
                 _name = mapName;
                 _fileSize = MultiFileBlockSize;
                 _offset = size;
@@ -167,53 +155,56 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     public static string CreateUniqueName(long size)
         => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
-    private sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryTextStorageWithName
+    public sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryStorageWithName
     {
         private readonly TemporaryStorageService _service;
         private SourceHashAlgorithm _checksumAlgorithm;
         private Encoding? _encoding;
-        private ImmutableArray<byte> _checksum;
+        private ImmutableArray<byte> _contentHash;
         private MemoryMappedInfo? _memoryMappedInfo;
 
         public TemporaryTextStorage(TemporaryStorageService service)
             => _service = service;
 
-        public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
+        public TemporaryTextStorage(
+            TemporaryStorageService service,
+            string storageName,
+            long offset,
+            long size,
+            SourceHashAlgorithm checksumAlgorithm,
+            Encoding? encoding,
+            ImmutableArray<byte> contentHash)
         {
             _service = service;
             _checksumAlgorithm = checksumAlgorithm;
             _encoding = encoding;
-            _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
+            _contentHash = contentHash;
+            _memoryMappedInfo = MemoryMappedInfo.OpenExisting(storageName, offset, size);
         }
 
         // TODO: cleanup https://github.com/dotnet/roslyn/issues/43037
-        // Offet, Size not accessed if Name is null
+        // Offset, Size not accessed if Name is null
         public string? Name => _memoryMappedInfo?.Name;
         public long Offset => _memoryMappedInfo!.Offset;
         public long Size => _memoryMappedInfo!.Size;
+
+        /// <summary>
+        /// Gets the value for the <see cref="SourceText.ChecksumAlgorithm"/> property for the <see cref="SourceText"/>
+        /// represented by this temporary storage.
+        /// </summary>
         public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
+
+        /// <summary>
+        /// Gets the value for the <see cref="SourceText.Encoding"/> property for the <see cref="SourceText"/>
+        /// represented by this temporary storage.
+        /// </summary>
         public Encoding? Encoding => _encoding;
 
-        public ImmutableArray<byte> GetContentHash()
-        {
-            if (_checksum.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetContentHash());
-            }
-
-            return _checksum;
-        }
-
-        public void Dispose()
-        {
-            // Destructors of SafeHandle and FileStream in MemoryMappedFile
-            // will eventually release resources if this Dispose is not called
-            // explicitly
-            _memoryMappedInfo?.Dispose();
-
-            _memoryMappedInfo = null;
-            _encoding = null;
-        }
+        /// <summary>
+        /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
+        /// to calling <see cref="SourceText.GetContentHash"/>.
+        /// </summary>
+        public ImmutableArray<byte> ContentHash => _contentHash;
 
         public SourceText ReadText(CancellationToken cancellationToken)
         {
@@ -264,6 +255,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
             {
                 _checksumAlgorithm = text.ChecksumAlgorithm;
                 _encoding = text.Encoding;
+                _contentHash = text.GetContentHash();
 
                 // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
                 var size = Encoding.Unicode.GetMaxByteCount(text.Length);
@@ -301,7 +293,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
         }
     }
 
-    internal class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
+    internal sealed class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
     {
         private readonly TemporaryStorageService _service;
         private MemoryMappedInfo? _memoryMappedInfo;
@@ -312,7 +304,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
         public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long offset, long size)
         {
             _service = service;
-            _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
+            _memoryMappedInfo = MemoryMappedInfo.OpenExisting(storageName, offset, size);
         }
 
         // TODO: clean up https://github.com/dotnet/roslyn/issues/43037
@@ -320,15 +312,6 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
         public string? Name => _memoryMappedInfo?.Name;
         public long Offset => _memoryMappedInfo!.Offset;
         public long Size => _memoryMappedInfo!.Size;
-
-        public void Dispose()
-        {
-            // Destructors of SafeHandle and FileStream in MemoryMappedFile
-            // will eventually release resources if this Dispose is not called
-            // explicitly
-            _memoryMappedInfo?.Dispose();
-            _memoryMappedInfo = null;
-        }
 
         Stream ITemporaryStreamStorageInternal.ReadStream(CancellationToken cancellationToken)
             => ReadStream(cancellationToken);
@@ -348,28 +331,10 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
             }
         }
 
-        public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
-        {
-            // See commentary in ReadTextAsync for why this is implemented this way.
-            return Task.Factory.StartNew<Stream>(() => ReadStream(cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
-        }
-
-        public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
-        {
-            // The Wait() here will not actually block, since with useAsync: false, the
-            // entire operation will already be done when WaitStreamMaybeAsync completes.
-            WriteStreamMaybeAsync(stream, useAsync: false, cancellationToken: cancellationToken).GetAwaiter().GetResult();
-        }
-
-        public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
-            => WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
-
-        private async Task WriteStreamMaybeAsync(Stream stream, bool useAsync, CancellationToken cancellationToken)
+        public void WriteStream(Stream stream, CancellationToken cancellationToken)
         {
             if (_memoryMappedInfo != null)
-            {
                 throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
 
             using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
             {
@@ -377,32 +342,15 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
                 _memoryMappedInfo = _service.CreateTemporaryStorage(size);
                 using var viewStream = _memoryMappedInfo.CreateWritableStream();
 
-                var buffer = SharedPools.ByteArray.Allocate();
-                try
+                using var pooledObject = SharedPools.ByteArray.GetPooledObject();
+                var buffer = pooledObject.Object;
+                while (true)
                 {
-                    while (true)
-                    {
-                        int count;
-                        if (useAsync)
-                        {
-                            count = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            count = stream.Read(buffer, 0, buffer.Length);
-                        }
+                    var count = stream.Read(buffer, 0, buffer.Length);
+                    if (count == 0)
+                        break;
 
-                        if (count == 0)
-                        {
-                            break;
-                        }
-
-                        viewStream.Write(buffer, 0, count);
-                    }
-                }
-                finally
-                {
-                    SharedPools.ByteArray.Free(buffer);
+                    viewStream.Write(buffer, 0, count);
                 }
             }
         }

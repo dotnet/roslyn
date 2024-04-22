@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(member);
-                NamedTypeSymbol type = descriptor.DeclaringTypeId <= (int)SpecialType.Count
-                                            ? this.GetSpecialType((SpecialType)descriptor.DeclaringTypeId)
-                                            : this.GetWellKnownType((WellKnownType)descriptor.DeclaringTypeId);
+                NamedTypeSymbol type = descriptor.IsSpecialTypeMember
+                                            ? this.GetSpecialType(descriptor.DeclaringSpecialType)
+                                            : this.GetWellKnownType(descriptor.DeclaringWellKnownType);
                 Symbol? result = null;
 
                 if (!type.IsErrorType())
@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
             {
-                if ((int)type.OriginalDefinition.SpecialType == typeId)
+                if ((int)type.OriginalDefinition.ExtendedSpecialType == typeId)
                 {
                     if (type.IsDefinition)
                     {

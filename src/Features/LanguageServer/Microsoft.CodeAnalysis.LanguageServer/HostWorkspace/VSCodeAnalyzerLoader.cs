@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -17,20 +13,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export(typeof(VSCodeAnalyzerLoader)), Shared]
 internal class VSCodeAnalyzerLoader
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
-    private readonly DiagnosticService _diagnosticService;
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSCodeAnalyzerLoader(IDiagnosticAnalyzerService analyzerService, IDiagnosticService diagnosticService)
+    public VSCodeAnalyzerLoader()
     {
-        _analyzerService = analyzerService;
-        _diagnosticService = (DiagnosticService)diagnosticService;
     }
 
+#pragma warning disable CA1822 // Mark members as static
     public void InitializeDiagnosticsServices()
+#pragma warning restore CA1822 // Mark members as static
     {
-        _diagnosticService.Register((IDiagnosticUpdateSource)_analyzerService);
     }
 
     public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader(ExtensionAssemblyManager extensionAssemblyManager, ILogger logger)

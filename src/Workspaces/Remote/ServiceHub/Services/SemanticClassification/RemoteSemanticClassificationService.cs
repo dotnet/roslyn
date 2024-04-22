@@ -33,11 +33,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(document);
 
-                if (options.ForceFrozenPartialSemanticsForCrossProcessOperations)
-                {
-                    // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
-                    document = document.WithFrozenPartialSemantics(cancellationToken);
-                }
+                // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
+                document = options.FrozenPartialSemantics ? document.WithFrozenPartialSemantics(cancellationToken) : document;
+                solution = document.Project.Solution;
 
                 using var _ = Classifier.GetPooledList(out var temp);
                 await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     _workQueue.AddWork((document, type, options));
                 }
 
-                return SerializableClassifiedSpans.Dehydrate(temp.ToImmutableArray());
+                return SerializableClassifiedSpans.Dehydrate([.. temp]);
             }, cancellationToken);
         }
     }

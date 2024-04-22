@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification;
@@ -95,10 +96,9 @@ internal partial class AbstractSyntaxClassificationService
 
         private void ProcessNodes()
         {
-            while (_pendingNodes.Count > 0)
+            while (_pendingNodes.TryPop(out var nodeOrToken))
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                var nodeOrToken = _pendingNodes.Pop();
 
                 if (nodeOrToken.FullSpan.IntersectsWith(_textSpan))
                 {

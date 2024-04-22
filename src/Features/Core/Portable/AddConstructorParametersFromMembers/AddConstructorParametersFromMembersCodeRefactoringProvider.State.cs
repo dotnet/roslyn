@@ -92,7 +92,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
                 }
             }
 
-            return applicableConstructors.ToImmutable();
+            return applicableConstructors.ToImmutableAndClear();
         }
 
         private static async Task<bool> IsApplicableConstructorAsync(IMethodSymbol constructor, Document document, ImmutableArray<string> parameterNamesForSelectedMembers, CancellationToken cancellationToken)

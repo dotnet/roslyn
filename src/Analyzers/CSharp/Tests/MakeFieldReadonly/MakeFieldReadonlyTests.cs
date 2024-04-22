@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
     [Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
     public class MakeFieldReadonlyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
-        private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("strict", "true")]);
+        private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePairUtil.Create("strict", "true")]);
 
         public MakeFieldReadonlyTests(ITestOutputHelper logger)
           : base(logger)

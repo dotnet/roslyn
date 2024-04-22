@@ -9,6 +9,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 
+using static SyntaxFactory;
+
 /// <summary>
 /// Base class to represent a pattern constructed from various checks
 /// </summary>
@@ -48,12 +50,12 @@ internal abstract class AnalyzedPattern
             // semantics, and for 'C.X' could be a compile error.
             //
             // So lets create a pattern syntax and make sure the result is the same
-            var dummyStatement = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+            var dummyStatement = ExpressionStatement(AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
-                SyntaxFactory.IdentifierName("_"),
-                SyntaxFactory.IsPatternExpression(
+                IdentifierName("_"),
+                IsPatternExpression(
                     binaryExpression.Left,
-                    SyntaxFactory.ConstantPattern(SyntaxFactory.ParenthesizedExpression(binaryExpression.Right.WithAdditionalAnnotations(s_annotation)))
+                    ConstantPattern(ParenthesizedExpression(binaryExpression.Right.WithAdditionalAnnotations(s_annotation)))
                 )
             ));
 
@@ -149,7 +151,7 @@ internal abstract class AnalyzedPattern
                 return null;
 
             var compareTarget = target == leftTarget ? rightTarget : leftTarget;
-            if (!SyntaxFactory.AreEquivalent(target.Syntax, compareTarget.Syntax))
+            if (!AreEquivalent(target.Syntax, compareTarget.Syntax))
                 return null;
 
             return new Binary(leftPattern, rightPattern, isDisjunctive, token, target);

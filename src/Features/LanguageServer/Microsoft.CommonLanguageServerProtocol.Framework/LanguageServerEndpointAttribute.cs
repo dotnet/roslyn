@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System;
 using System.Linq;
 
@@ -11,7 +14,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// An attribute which identifies the method which an <see cref="IMethodHandler"/> implements.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = false)]
-public class LanguageServerEndpointAttribute : Attribute
+internal class LanguageServerEndpointAttribute : Attribute
 {
     /// <summary>
     /// Contains the method that this <see cref="IMethodHandler"/> implements.
@@ -38,6 +41,6 @@ public class LanguageServerEndpointAttribute : Attribute
     public LanguageServerEndpointAttribute(string method, string language, params string[] additionalLanguages)
     {
         Method = method;
-        Languages = new[] { language }.Concat(additionalLanguages).ToArray();
+        Languages = [language, .. additionalLanguages];
     }
 }

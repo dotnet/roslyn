@@ -190,6 +190,9 @@ internal partial class FindReferencesSearchEngine
         using var _2 = PooledDictionary<Document, MetadataUnifyingSymbolHashSet>.GetInstance(out var documentToSymbols);
         try
         {
+            // scratch hashset to place results in. Populated/inspected/cleared in inner loop.
+            using var _3 = PooledHashSet<Document>.GetInstance(out var foundDocuments);
+
             await AddGlobalAliasesAsync(project, allSymbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
 
             foreach (var symbol in allSymbols)
@@ -198,18 +201,23 @@ internal partial class FindReferencesSearchEngine
 
                 foreach (var finder in _finders)
                 {
-                    var documents = await finder.DetermineDocumentsToSearchAsync(
-                        symbol, globalAliases, project, _documents, _options, cancellationToken).ConfigureAwait(false);
+                    await finder.DetermineDocumentsToSearchAsync(
+                        symbol, globalAliases, project, _documents,
+                        StandardCallbacks<Document>.AddToHashSet,
+                        foundDocuments,
+                        _options, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var document in documents)
+                    foreach (var document in foundDocuments)
                     {
                         var docSymbols = GetSymbolSet(documentToSymbols, document);
                         docSymbols.Add(symbol);
                     }
+
+                    foundDocuments.Clear();
                 }
             }
 
-            using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            using var _4 = ArrayBuilder<Task>.GetInstance(out var tasks);
             foreach (var (document, docSymbols) in documentToSymbols)
             {
                 tasks.Add(CreateWorkAsync(() => ProcessDocumentAsync(
@@ -262,16 +270,17 @@ internal partial class FindReferencesSearchEngine
             // the symbol being searched for).  As such, we're almost certainly going to have to do semantic checks
             // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
             // just grab those once here and hold onto them for the lifetime of this call.
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var cache = FindReferenceCache.GetCache(model);
+            var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // scratch array to place results in. Populated/inspected/cleared in inner loop.
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var foundReferenceLocations);
 
             foreach (var symbol in symbols)
             {
                 var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                var state = new FindReferencesDocumentState(
-                    document, model, root, cache, globalAliases);
-                await ProcessDocumentAsync(symbol, state).ConfigureAwait(false);
+                var state = new FindReferencesDocumentState(cache, globalAliases);
+
+                await ProcessDocumentAsync(symbol, state, foundReferenceLocations).ConfigureAwait(false);
             }
         }
         finally
@@ -280,8 +289,7 @@ internal partial class FindReferencesSearchEngine
         }
 
         async Task ProcessDocumentAsync(
-            ISymbol symbol,
-            FindReferencesDocumentState state)
+            ISymbol symbol, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> foundReferenceLocations)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -292,10 +300,12 @@ internal partial class FindReferencesSearchEngine
                 var group = _symbolToGroup[symbol];
                 foreach (var finder in _finders)
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, state, _options, cancellationToken).ConfigureAwait(false);
-                    foreach (var (_, location) in references)
+                    await finder.FindReferencesInDocumentAsync(
+                        symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, foundReferenceLocations, _options, cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, location) in foundReferenceLocations)
                         await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+
+                    foundReferenceLocations.Clear();
                 }
             }
         }

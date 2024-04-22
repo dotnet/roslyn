@@ -6,27 +6,19 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 [Export(typeof(AnalyzerFileWatcherService))]
-internal sealed class AnalyzerFileWatcherService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AnalyzerFileWatcherService(SVsServiceProvider serviceProvider)
 {
-    private static readonly object s_analyzerChangedErrorId = new();
-
-    private readonly VisualStudioWorkspaceImpl _workspace;
-    private readonly HostDiagnosticUpdateSource _updateSource;
-    private readonly IVsFileChangeEx _fileChangeService;
+    private readonly IVsFileChangeEx _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
 
     private readonly Dictionary<string, FileChangeTracker> _fileChangeTrackers = new(StringComparer.OrdinalIgnoreCase);
 
@@ -37,37 +29,6 @@ internal sealed class AnalyzerFileWatcherService
     private readonly Dictionary<string, DateTime> _assemblyUpdatedTimesUtc = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly object _guard = new();
-
-    private readonly DiagnosticDescriptor _analyzerChangedRule = new(
-        id: IDEDiagnosticIds.AnalyzerChangedId,
-        title: ServicesVSResources.AnalyzerChangedOnDisk,
-        messageFormat: ServicesVSResources.The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted,
-        category: FeaturesResources.Roslyn_HostError,
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AnalyzerFileWatcherService(
-        VisualStudioWorkspaceImpl workspace,
-        HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-        SVsServiceProvider serviceProvider)
-    {
-        _workspace = workspace;
-        _updateSource = hostDiagnosticUpdateSource;
-        _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-    }
-
-    private void AddAnalyzerChangedWarningArgs(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, string analyzerPath)
-    {
-        var messageArguments = new string[] { analyzerPath };
-
-        var project = _workspace.CurrentSolution.GetProject(projectId);
-        if (project != null && DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, project, out var diagnostic))
-        {
-            _updateSource.UpdateAndAddDiagnosticsArgsForProject(ref builder, projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(diagnostic));
-        }
-    }
 
     private static DateTime? GetLastUpdateTimeUtc(string fullPath)
     {
@@ -88,7 +49,7 @@ internal sealed class AnalyzerFileWatcherService
         }
     }
 
-    internal void TrackFilePathAndReportErrorIfChanged(string filePath, ProjectId projectId)
+    internal void TrackFilePathAndReportErrorIfChanged(string filePath)
     {
         lock (_guard)
         {
@@ -107,13 +68,6 @@ internal sealed class AnalyzerFileWatcherService
 
                 if (currentFileUpdateTime != null)
                 {
-                    if (currentFileUpdateTime != assemblyUpdatedTime)
-                    {
-                        using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-                        AddAnalyzerChangedWarningArgs(ref argsBuilder.AsRef(), projectId, filePath);
-                        _updateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
-                    }
-
                     // If the the tracker is in place, at this point we can stop checking any further for this assembly
                     if (tracker.PreviousCallToStartFileChangeHasAsynchronouslyCompleted)
                     {
@@ -152,20 +106,5 @@ internal sealed class AnalyzerFileWatcherService
 
         tracker.Dispose();
         tracker.UpdatedOnDisk -= Tracker_UpdatedOnDisk;
-
-        // Traverse the chain of requesting assemblies to get back to the original analyzer
-        // assembly.
-        using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-        foreach (var project in _workspace.CurrentSolution.Projects)
-        {
-            var analyzerFileReferences = project.AnalyzerReferences.OfType<AnalyzerFileReference>();
-
-            if (analyzerFileReferences.Any(a => a.FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
-            {
-                AddAnalyzerChangedWarningArgs(ref argsBuilder.AsRef(), project.Id, filePath);
-            }
-        }
-
-        _updateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
     }
 }

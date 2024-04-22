@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         where TTag : ITag
     {
         private readonly EditorTestWorkspace _workspace;
-        public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
@@ -33,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public DiagnosticTaggerWrapper(
             EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null,
-            IDiagnosticUpdateSource? updateSource = null,
             bool createTaggerProvider = true)
         {
             _threadingContext = workspace.GetService<IThreadingContext>();
@@ -48,13 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.OpenFiles);
 
             _workspace = workspace;
-
-            DiagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
-
-            if (updateSource is object)
-            {
-                DiagnosticService.Register(updateSource);
-            }
 
             if (createTaggerProvider)
             {

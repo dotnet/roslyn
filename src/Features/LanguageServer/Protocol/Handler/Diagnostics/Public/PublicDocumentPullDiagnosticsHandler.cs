@@ -66,11 +66,14 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
             Items = [],
         });
 
-    protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-        => new(new RelatedUnchangedDocumentDiagnosticReport
+    protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, out DocumentDiagnosticPartialReport report)
+    {
+        report = new RelatedUnchangedDocumentDiagnosticReport
         {
             ResultId = resultId
-        });
+        };
+        return true;
+    }
 
     protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {
@@ -94,7 +97,11 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
         var nonLocalDocumentDiagnostics = diagnosticParams.Identifier == DocumentNonLocalDiagnosticIdentifier.ToString();
 
         // Task list items are not reported through the public LSP diagnostic API.
-        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetDiagnosticSources(DiagnosticKind.All, nonLocalDocumentDiagnostics, taskList: false, context, GlobalOptions));
+        var source = nonLocalDocumentDiagnostics
+            ? DocumentPullDiagnosticHandler.GetNonLocalDiagnosticSource(context, GlobalOptions)
+            : DocumentPullDiagnosticHandler.GetDiagnosticSource(DiagnosticKind.All, context);
+
+        return new(source != null ? [source] : []);
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)

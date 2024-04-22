@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Attributes on type. Set once after construction. IsNull means not set.  
         Protected m_lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
-        Private ReadOnly _corTypeId As SpecialType
+        Private ReadOnly _corTypeId As ExtendedSpecialType
 
         Private _lazyDocComment As String
         Private _lazyExpandedDocComment As String
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 emittedName = MetadataHelpers.BuildQualifiedName(emittedName, MetadataName)
                 _corTypeId = SpecialTypes.GetTypeFromMetadataName(emittedName)
             Else
-                _corTypeId = SpecialType.None
+                _corTypeId = Nothing
             End If
 
             If containingSymbol.Kind = SymbolKind.NamedType Then
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Public Overrides ReadOnly Property SpecialType As SpecialType
+        Public Overrides ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
             Get
                 Return _corTypeId
             End Get

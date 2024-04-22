@@ -371,8 +371,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 Case BoundKind.Call
                     Dim t = DirectCast(node, BoundCall)
-                    Return Not (t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate, True) OrElse
-                                t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate4, True) OrElse
+                    Return Not (t.Method = F.SpecialMember(SpecialMember.System_Delegate__CreateDelegate, True) OrElse
+                                t.Method = F.SpecialMember(SpecialMember.System_Delegate__CreateDelegate4, True) OrElse
                                 t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, True))
                 Case Else
                     Return True

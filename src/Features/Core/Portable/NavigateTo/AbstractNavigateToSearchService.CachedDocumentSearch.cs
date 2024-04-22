@@ -84,7 +84,7 @@ internal abstract partial class AbstractNavigateToSearchService
             var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted);
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 (service, callbackId, cancellationToken) =>
-                    service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, [.. kinds], callbackId, cancellationToken),
                 callback, cancellationToken).ConfigureAwait(false);
 
             return;

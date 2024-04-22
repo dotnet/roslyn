@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 
@@ -10,7 +13,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// Manages handler discovery and distribution.
 /// </summary>
-public abstract class AbstractHandlerProvider
+internal abstract class AbstractHandlerProvider
 {
     /// <summary>
     /// Gets the <see cref="RequestHandlerMetadata"/>s for all registered methods.

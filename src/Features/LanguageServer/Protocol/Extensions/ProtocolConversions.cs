@@ -95,6 +95,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, ImmutableArray.Create(LSP.CompletionItemKind.Text) }
         }.ToImmutableDictionary();
 
+        /// <summary>
+        /// Mapping from tags to LSP completion item tags.  The value lists the potential LSP tags from
+        /// least-preferred to most preferred.  More preferred kinds will be chosen if the client states they support
+        /// it.  This mapping allows values including extensions to the kinds defined by VS (but not in the core LSP
+        /// spec).
+        /// </summary>
+        public static readonly ImmutableDictionary<string, ImmutableArray<LSP.CompletionItemTag>> RoslynTagToCompletionItemTags = new Dictionary<string, ImmutableArray<LSP.CompletionItemTag>>()
+        {
+            { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
+        }.ToImmutableDictionary();
+
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
         public static async Task<Completion.CompletionTrigger> LSPToRoslynCompletionTriggerAsync(
@@ -379,7 +390,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 else
                 {
                     var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                    textChanges = newText.GetTextChanges(oldText).ToImmutableArray();
+                    textChanges = [.. newText.GetTextChanges(oldText)];
                 }
 
                 // Map all the text changes' spans for this document.

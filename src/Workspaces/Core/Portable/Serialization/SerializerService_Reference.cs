@@ -7,10 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -22,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Serialization;
 internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
-
-    private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
     public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
     {
@@ -44,7 +39,7 @@ internal partial class SerializerService
 
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             switch (reference)
             {
@@ -62,13 +57,13 @@ internal partial class SerializerService
         return Checksum.Create(stream);
     }
 
-    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
         {
             if (portable is ISupportTemporaryStorage supportTemporaryStorage)
             {
-                if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
+                if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, cancellationToken))
                 {
                     return;
                 }
@@ -143,7 +138,7 @@ internal partial class SerializerService
     {
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
             WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
@@ -313,7 +308,7 @@ internal partial class SerializerService
     }
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-        ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         var storages = reference.GetStorages();
         if (storages == null)
@@ -330,8 +325,6 @@ internal partial class SerializerService
             {
                 return false;
             }
-
-            context.AddResource(storage);
 
             pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
         }
@@ -363,32 +356,6 @@ internal partial class SerializerService
         }
 
         var metadataKind = (MetadataImageKind)imageKind;
-        if (_storageService == null)
-        {
-            if (metadataKind == MetadataImageKind.Assembly)
-            {
-                using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-
-                var count = reader.ReadInt32();
-                for (var i = 0; i < count; i++)
-                {
-                    metadataKind = (MetadataImageKind)reader.ReadInt32();
-                    Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-
-#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                    pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
-#pragma warning restore CA2016 
-                }
-
-                return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
-            }
-
-            Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-            return (ReadModuleMetadataFrom(reader, kind), storages: default);
-#pragma warning restore CA2016
-        }
-
         if (metadataKind == MetadataImageKind.Assembly)
         {
             using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
@@ -425,33 +392,18 @@ internal partial class SerializerService
         var storageStream = storage.ReadStream(cancellationToken);
         Contract.ThrowIfFalse(length == storageStream.Length);
 
-        GetMetadata(storageStream, length, out var metadata, out var lifeTimeObject);
-
-        // make sure we keep storageStream alive while Metadata is alive
-        // we use conditional weak table since we can't control metadata liftetime
-        if (lifeTimeObject != null)
-            s_lifetimeMap.Add(metadata, lifeTimeObject);
-
-        return (metadata, storage);
+        // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+        // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+        // the metadata.
+        unsafe
+        {
+            var metadata = ModuleMetadata.CreateFromMetadata(
+                (IntPtr)storageStream.PositionPointer, (int)storageStream.Length, storageStream.Dispose);
+            return (metadata, storage);
+        }
     }
 
-    private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
-    {
-        Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
-
-        var array = reader.ReadByteArray();
-        var pinnedObject = new PinnedObject(array);
-
-        var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
-
-        // make sure we keep storageStream alive while Metadata is alive
-        // we use conditional weak table since we can't control metadata liftetime
-        s_lifetimeMap.Add(metadata, pinnedObject);
-
-        return metadata;
-    }
-
-    private (ITemporaryStreamStorageInternal storage, long length) GetTemporaryStorage(
+    private (TemporaryStorageService.TemporaryStreamStorage storage, long length) GetTemporaryStorage(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
@@ -472,49 +424,19 @@ internal partial class SerializerService
         }
         else
         {
-            var service2 = (ITemporaryStorageService2)_storageService;
+            var service2 = (TemporaryStorageService)_storageService;
 
             var name = reader.ReadRequiredString();
             var offset = reader.ReadInt64();
             var size = reader.ReadInt64();
 
+#pragma warning disable CA1416 // Validate platform compatibility
             var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
+#pragma warning restore CA1416 // Validate platform compatibility
             var length = size;
 
             return (storage, length);
         }
-    }
-
-    private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
-    {
-        if (stream is UnmanagedMemoryStream unmanagedStream)
-        {
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-            unsafe
-            {
-                metadata = ModuleMetadata.CreateFromMetadata(
-                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-                lifeTimeObject = null;
-                return;
-            }
-        }
-
-        PinnedObject pinnedObject;
-        if (stream is MemoryStream memory &&
-            memory.TryGetBuffer(out var buffer) &&
-            buffer.Offset == 0)
-        {
-            pinnedObject = new PinnedObject(buffer.Array!);
-        }
-        else
-        {
-            var array = new byte[length];
-            stream.Read(array, 0, (int)length);
-            pinnedObject = new PinnedObject(array);
-        }
-
-        metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), (int)length);
-        lifeTimeObject = pinnedObject;
     }
 
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
@@ -558,35 +480,6 @@ internal partial class SerializerService
             // might not actually exist on disk.
             // in that case, rather than crashing, we will handle it gracefully.
             return null;
-        }
-    }
-
-    private sealed class PinnedObject : IDisposable
-    {
-        // shouldn't be read-only since GCHandle is a mutable struct
-        private GCHandle _gcHandle;
-
-        public PinnedObject(byte[] array)
-            => _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-
-        internal IntPtr GetPointer()
-            => _gcHandle.AddrOfPinnedObject();
-
-        private void OnDispose()
-        {
-            if (_gcHandle.IsAllocated)
-            {
-                _gcHandle.Free();
-            }
-        }
-
-        ~PinnedObject()
-            => OnDispose();
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            OnDispose();
         }
     }
 

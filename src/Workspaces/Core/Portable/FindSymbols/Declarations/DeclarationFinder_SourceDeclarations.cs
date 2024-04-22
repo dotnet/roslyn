@@ -186,7 +186,7 @@ internal static partial class DeclarationFinder
                 project, query, criteria, result, cancellationToken).ConfigureAwait(false);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
@@ -198,7 +198,7 @@ internal static partial class DeclarationFinder
         await AddCompilationSourceDeclarationsWithNormalQueryAsync(
             project, query, filter, result, cancellationToken).ConfigureAwait(false);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(

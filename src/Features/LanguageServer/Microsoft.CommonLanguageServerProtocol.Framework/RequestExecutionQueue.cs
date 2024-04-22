@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -9,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -33,7 +37,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <para>
 /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
 /// and any consumers observing the results of the task returned from
-/// <see cref="ExecuteAsync{TRequestType, TResponseType}(TRequestType, string, ILspServices, CancellationToken)"/>
+/// <see cref="ExecuteAsync{TRequestType, TResponseType}(TRequestType, string, string, ILspServices, CancellationToken)"/>
 /// will see the results of the handling of the request, whenever it occurred.
 /// </para>
 /// <para>
@@ -46,7 +50,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
-public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
+internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
 {
     protected readonly ILspLogger _logger;
     protected readonly AbstractHandlerProvider _handlerProvider;
@@ -66,19 +70,6 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     protected Task? _queueProcessingTask;
 
     public CancellationToken CancellationToken => _cancelSource.Token;
-
-    [Obsolete($"Use constructor with {nameof(AbstractHandlerProvider)} instead.", error: false)]
-    public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
-    {
-        _languageServer = languageServer;
-        _logger = logger;
-        if (handlerProvider is AbstractHandlerProvider abstractHandlerProvider)
-        {
-            _handlerProvider = abstractHandlerProvider;
-        }
-
-        _handlerProvider = new WrappedHandlerProvider(handlerProvider);
-    }
 
     public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {
@@ -112,12 +103,14 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     /// </summary>
     /// <param name="request">The request to handle.</param>
     /// <param name="methodName">The name of the LSP method.</param>
+    /// <param name="lspServices">The set of LSP services to use.</param>
     /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
     /// The request could also be cancelled by the queue shutting down.</param>
     /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
     public virtual Task<TResponse> ExecuteAsync<TRequest, TResponse>(
         TRequest request,
         string methodName,
+        string languageName,
         ILspServices lspServices,
         CancellationToken requestCancellationToken)
     {
@@ -129,6 +122,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         var combinedCancellationToken = combinedTokenSource.Token;
         var (item, resultTask) = CreateQueueItem<TRequest, TResponse>(
             methodName,
+            languageName,
             request,
             lspServices,
             combinedCancellationToken);
@@ -150,22 +144,18 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     internal (IQueueItem<TRequestContext>, Task<TResponse>) CreateQueueItem<TRequest, TResponse>(
         string methodName,
+        string languageName,
         TRequest request,
         ILspServices lspServices,
         CancellationToken cancellationToken)
     {
-        var language = GetLanguageForRequest<TRequest>(methodName, request);
-
         return QueueItem<TRequest, TResponse, TRequestContext>.Create(methodName,
-            language,
+            languageName,
             request,
             lspServices,
             _logger,
             cancellationToken);
     }
-
-    protected virtual string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
-        => LanguageServerConstants.DefaultLanguageName;
 
     private async Task ProcessQueueAsync()
     {
@@ -301,6 +291,16 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     }
 
     /// <summary>
+    /// Allows XAML to inspect the request before its dispatched.
+    /// Should not generally be used, this will be replaced by the OOP XAML server.
+    /// </summary>
+    [Obsolete("Only for use by legacy XAML LSP")]
+    protected internal virtual void BeforeRequest<TRequest>(TRequest request)
+    {
+        return;
+    }
+
+    /// <summary>
     /// Choose the method handler for the given request. By default this calls the <see cref="AbstractHandlerProvider"/>.
     /// </summary>
     protected virtual IMethodHandler GetHandlerForRequest(IQueueItem<TRequestContext> work)
@@ -311,6 +311,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     /// which would otherwise be lost to the fire-and-forget task in the queue.
     /// </summary>
     /// <param name="nonMutatingRequestTask">The task to be inspected.</param>
+    /// <param name="rethrowExceptions">If exceptions should be re-thrown.</param>
     /// <returns>The task from <paramref name="nonMutatingRequestTask"/>, to allow chained calls if needed.</returns>
     public virtual Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
     {

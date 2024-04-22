@@ -157,7 +157,7 @@ internal partial class ScreenshotInProcess
                         return;
                     }
 
-                    frames = s_frames.ToArray();
+                    frames = [.. s_frames];
                 }
 
                 // Make sure the frames are processed in order of their timestamps
@@ -303,7 +303,7 @@ internal partial class ScreenshotInProcess
             Marshal.FreeHGlobal(imageBuffer);
         }
 
-        return resultFrames.ToArray();
+        return [.. resultFrames];
     }
 
     private static void WritePngSignature(Stream stream, byte[] buffer)

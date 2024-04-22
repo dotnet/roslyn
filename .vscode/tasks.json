@@ -73,22 +73,13 @@
         "command": "dotnet",
         "args": [
           "pwsh",
+          "-noprofile",
           "${workspaceFolder}/scripts/vscode-build.ps1",
           "-filePath",
           "${file}",
           "-msbuildEngine",
           "dotnet"
         ],
-        "windows": {
-          "command": "powershell",
-          "args": [
-            "${workspaceFolder}/scripts/vscode-build.ps1",
-            "-filePath",
-            "${file}",
-            "-msbuildEngine",
-            "dotnet"
-          ],
-        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },

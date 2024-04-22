@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ReportErrorOnSpecialMember(System_Object__Equals, SpecialMember.System_Object__Equals, diagnostics, ref hasErrors);
             ReportErrorOnSpecialMember(System_Object__ToString, SpecialMember.System_Object__ToString, diagnostics, ref hasErrors);
             ReportErrorOnSpecialMember(System_Object__GetHashCode, SpecialMember.System_Object__GetHashCode, diagnostics, ref hasErrors);
-            ReportErrorOnWellKnownMember(System_String__Format_IFormatProvider, WellKnownMember.System_String__Format_IFormatProvider, diagnostics, ref hasErrors);
+            ReportErrorOnSpecialMember(System_String__Format_IFormatProvider, SpecialMember.System_String__Format_IFormatProvider, diagnostics, ref hasErrors);
 
             // optional synthesized attributes:
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public MethodSymbol System_String__Format_IFormatProvider
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Format_IFormatProvider) as MethodSymbol; }
+            get { return this.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Format_IFormatProvider) as MethodSymbol; }
         }
 
         #endregion

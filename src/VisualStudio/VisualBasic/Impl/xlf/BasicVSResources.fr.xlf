@@ -182,11 +182,6 @@
         <target state="translated">Importer des directives</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">Trier les Imports</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
         <target state="translated">Suggérer des imports pour les types dans les packages _NuGet</target>

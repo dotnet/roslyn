@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
             if (expression is LiteralExpressionSyntax literal)
             {
-                return SpecializedCollections.SingletonEnumerable(literal.Token);
+                return [literal.Token];
             }
             else if (expression is InterpolatedStringExpressionSyntax interpolation)
             {

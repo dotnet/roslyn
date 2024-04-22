@@ -92,7 +92,7 @@ internal abstract class AbstractSelectedMembers<
             AddSelectedMemberDeclarations(member, membersToKeep);
         }
 
-        return selectedMembers.ToImmutable();
+        return selectedMembers.ToImmutableAndClear();
 
         void AddAllMembers(TMemberDeclarationSyntax member)
         {

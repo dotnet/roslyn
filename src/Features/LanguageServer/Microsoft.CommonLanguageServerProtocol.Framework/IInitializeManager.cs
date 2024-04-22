@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CommonLanguageServerProtocol.Framework;
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
 
-public interface IInitializeManager<TRequest, TResponse>
+namespace Microsoft.CommonLanguageServerProtocol.Framework;
+internal interface IInitializeManager<TRequest, TResponse>
 {
     /// <summary>
     /// Gets a response to be used for "initialize", completing the negoticaitons between client and server.

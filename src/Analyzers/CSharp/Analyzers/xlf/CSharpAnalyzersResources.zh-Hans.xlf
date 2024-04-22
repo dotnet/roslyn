@@ -12,6 +12,11 @@
         <target state="translated">向 “{0}” 语句添加大括号。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="new">Anonymous function can be made static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
         <target state="translated">箭头表达式子句标记后不允许空行</target>
@@ -92,6 +97,11 @@
         <target state="translated">可以删除 Lambda 表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="new">Make anonymous function static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_member_readonly">
         <source>Make member 'readonly'</source>
         <target state="translated">将成员设为“readonly”</target>
@@ -170,11 +180,6 @@
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
         <target state="translated">删除冗余的可为空的指令</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">请删除忽略运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
@@ -457,9 +462,9 @@
         <target state="translated">可简化 "new" 表达式</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="translated">"typeof" 可以转换为 "nameof"</target>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
+        <target state="translated">“Typeof”可以转换为“nameof”</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

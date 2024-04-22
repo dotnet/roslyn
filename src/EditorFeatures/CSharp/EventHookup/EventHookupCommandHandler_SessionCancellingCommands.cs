@@ -7,7 +7,6 @@
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
@@ -19,7 +18,7 @@ internal partial class EventHookupCommandHandler :
     public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        EventHookupSessionManager.CancelAndDismissExistingSessions();
+        EventHookupSessionManager.DismissExistingSessions();
         return false;
     }
 

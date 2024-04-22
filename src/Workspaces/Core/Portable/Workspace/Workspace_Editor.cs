@@ -39,7 +39,7 @@ public abstract partial class Workspace
 
     private readonly Dictionary<DocumentId, TextTracker> _textTrackers = [];
     private readonly Dictionary<DocumentId, SourceTextContainer> _documentToAssociatedBufferMap = [];
-    private readonly Dictionary<DocumentId, SourceGeneratedDocumentIdentity> _openSourceGeneratedDocumentIdentities = [];
+    private readonly Dictionary<DocumentId, (SourceGeneratedDocumentIdentity identity, DateTime generationDateTime)> _openSourceGeneratedDocumentIdentities = [];
 
     /// <summary>
     /// True if this workspace supports manually opening and closing documents.
@@ -195,9 +195,7 @@ public abstract partial class Workspace
         using (_stateLock.DisposableWait())
         {
             if (_projectToOpenDocumentsMap.Count == 0)
-            {
-                return SpecializedCollections.EmptyEnumerable<DocumentId>();
-            }
+                return [];
 
             if (projectId != null)
             {
@@ -206,7 +204,7 @@ public abstract partial class Workspace
                     return documentIds;
                 }
 
-                return SpecializedCollections.EmptyEnumerable<DocumentId>();
+                return [];
             }
 
             return _projectToOpenDocumentsMap.SelectManyAsArray(kvp => kvp.Value);
@@ -287,12 +285,10 @@ public abstract partial class Workspace
         return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
     }
 
-    internal bool TryGetOpenSourceGeneratedDocumentIdentity(DocumentId id, out SourceGeneratedDocumentIdentity documentIdentity)
+    internal bool TryGetOpenSourceGeneratedDocumentIdentity(DocumentId id, out (SourceGeneratedDocumentIdentity identity, DateTime generationDateTime) documentIdentity)
     {
         using (_serializationLock.DisposableWait())
-        {
             return _openSourceGeneratedDocumentIdentities.TryGetValue(id, out documentIdentity);
-        }
     }
 
     /// <summary>
@@ -456,7 +452,7 @@ public abstract partial class Workspace
             AddToOpenDocumentMap(documentId);
 
             _documentToAssociatedBufferMap.Add(documentId, textContainer);
-            _openSourceGeneratedDocumentIdentities.Add(documentId, document.Identity);
+            _openSourceGeneratedDocumentIdentities.Add(documentId, (document.Identity, document.GenerationDateTime));
 
             UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
 

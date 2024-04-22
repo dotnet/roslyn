@@ -16,5 +16,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         None = 0,
         Static = 1,
         ReassignedVariable = 2,
+        Deprecated = 4,
     }
 }

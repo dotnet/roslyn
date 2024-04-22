@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -160,7 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
 
         /// <summary>Lazily caches SyntaxTrees by their path. Used to look up the syntax tree referenced by an interceptor.</summary>
+        /// <remarks>Must be removed prior to interceptors stable release.</remarks>
         private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _pathToSyntaxTree;
+
+        /// <summary>Lazily caches SyntaxTrees by their xxHash128 checksum. Used to look up the syntax tree referenced by an interceptor.</summary>
+        private ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> _contentHashToSyntaxTree;
 
         public override string Language
         {
@@ -1075,6 +1080,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal OneOrMany<SyntaxTree> GetSyntaxTreesByContentHash(ReadOnlyMemory<byte> contentHash)
+        {
+            Debug.Assert(contentHash.Length == InterceptableLocation1.ContentHashLength);
+
+            var contentHashToSyntaxTree = _contentHashToSyntaxTree;
+            if (contentHashToSyntaxTree.IsDefault)
+            {
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _contentHashToSyntaxTree, computeHashToSyntaxTree());
+                contentHashToSyntaxTree = _contentHashToSyntaxTree;
+            }
+
+            return contentHashToSyntaxTree.TryGetValue(contentHash, out var value) ? value : OneOrMany<SyntaxTree>.Empty;
+
+            ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> computeHashToSyntaxTree()
+            {
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>>(ContentHashComparer.Instance);
+                foreach (var tree in SyntaxTrees)
+                {
+                    var text = tree.GetText();
+                    var hash = text.GetContentHash().AsMemory();
+                    builder[hash] = builder.TryGetValue(hash, out var existing) ? existing.Add(tree) : OneOrMany.Create(tree);
+                }
+                return builder.ToImmutable();
+            }
+        }
+
         internal OneOrMany<SyntaxTree> GetSyntaxTreesByPath(string path)
         {
             // We could consider storing this on SyntaxAndDeclarationManager instead, and updating it incrementally.
@@ -1629,9 +1660,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the symbol for the predefined type from the COR Library referenced by this compilation.
         /// </summary>
-        internal new NamedTypeSymbol GetSpecialType(SpecialType specialType)
+        internal NamedTypeSymbol GetSpecialType(ExtendedSpecialType specialType)
         {
-            if (specialType <= SpecialType.None || specialType > SpecialType.Count)
+            if ((int)specialType <= (int)SpecialType.None || (int)specialType >= (int)InternalSpecialType.NextAvailable)
             {
                 throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
@@ -1647,7 +1678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = Assembly.GetSpecialType(specialType);
             }
 
-            Debug.Assert(result.SpecialType == specialType);
+            Debug.Assert(result.ExtendedSpecialType == specialType);
             return result;
         }
 
@@ -2396,15 +2427,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
-        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
-        private ConcurrentDictionary<(string FilePath, int Line, int Character), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
+        internal bool InterceptorsDiscoveryComplete;
 
-        internal void AddInterception(string filePath, int line, int character, Location attributeLocation, MethodSymbol interceptor)
+        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
+        private ConcurrentDictionary<(string FilePath, int Position), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
+
+        internal void AddInterception(string filePath, int position, Location attributeLocation, MethodSymbol interceptor)
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
+            Debug.Assert(!InterceptorsDiscoveryComplete);
 
             var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
-            dictionary.AddOrUpdate((filePath, line, character),
+            dictionary.AddOrUpdate((filePath, position),
                 addValueFactory: static (key, newValue) => OneOrMany.Create(newValue),
                 updateValueFactory: static (key, existingValues, newValue) =>
                 {
@@ -2424,27 +2458,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
         }
 
-        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
+        internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(SimpleNameSyntax? node)
         {
-            if (_interceptions is null || callLocation is null)
+            if (node is null)
             {
                 return null;
             }
 
-            var callLineColumn = callLocation.GetLineSpan().Span.Start;
-            Debug.Assert(callLocation.SourceTree is not null);
-            var key = (callLocation.SourceTree.FilePath, callLineColumn.Line, callLineColumn.Character);
-
-            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation))
+            ((SourceModuleSymbol)SourceModule).DiscoverInterceptorsIfNeeded();
+            if (_interceptions is null)
             {
-                if (interceptionsAtAGivenLocation is [var oneInterception])
-                {
-                    return oneInterception;
-                }
+                return null;
+            }
 
-                // Duplicate interceptors is an error in the declaration phase.
-                // This method is only expected to be called if no such errors are present.
-                throw ExceptionUtilities.Unreachable();
+            var key = (node.SyntaxTree.FilePath, node.Position);
+            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation) && interceptionsAtAGivenLocation is [var oneInterception])
+            {
+                return oneInterception;
             }
 
             return null;

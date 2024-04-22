@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ImmutableArray<ISuggestedActionSetCollector> collectors,
                 CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 // We should only be called with the orderings we exported in order from highest pri to lowest pri.
                 Contract.ThrowIfFalse(Orderings.SequenceEqual(collectors.SelectAsArray(c => c.Priority)));
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ArrayBuilder<ISuggestedActionSetCollector> completedCollectors,
                 CancellationToken cancellationToken)
             {
-                AssertIsForeground();
-                using var state = SourceState.TryAddReference();
+                _threadingContext.ThrowIfNotOnUIThread();
+                using var state = _state.TryAddReference();
                 if (state is null)
                     return;
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // especially important as we are sending disparate requests for diagnostics, and we do not want the
                     // individual diagnostic requests to redo all the work to run source generators, create skeletons,
                     // etc.
-                    using var _1 = RemoteKeepAliveSession.Create(document.Project.Solution, _listener);
+                    using var _1 = await RemoteKeepAliveSession.CreateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                     // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
                     // this as each priority level will both sort and inline actions.  However, we don't want to
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var refactorings = await refactoringsTask.ConfigureAwait(false);
 
                 var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection, currentActionCount);
-                var convertedSets = filteredSets.Select(s => ConvertToSuggestedActionSet(s)).WhereNotNull().ToImmutableArray();
+                var convertedSets = filteredSets.Select(s => ConvertToSuggestedActionSet(s, document)).WhereNotNull().ToImmutableArray();
 
                 foreach (var set in convertedSets)
                     yield return set;
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]
-                SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet)
+                SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet, TextDocument originalDocument)
                 {
                     // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
                     if (unifiedSuggestedActionSet == null)
@@ -299,23 +299,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         => unifiedSuggestedAction switch
                         {
                             UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
-                                ThreadingContext, owner, codeFixAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, codeFixAction.Workspace, originalDocument, subjectBuffer,
                                 codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.OriginalCodeAction,
-                                ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors)),
+                                ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument)),
                             UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
-                                ThreadingContext, owner, codeRefactoringAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, codeRefactoringAction.Workspace, originalDocument, subjectBuffer,
                                 codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
-                                ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors)),
+                                ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
                             UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
-                                ThreadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
                                 fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
                             UnifiedFixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new FixAllCodeRefactoringSuggestedAction(
-                                ThreadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
                                 fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                             UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                                ThreadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
                                 nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
-                                nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s))),
+                                nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
                             _ => throw ExceptionUtilities.Unreachable()
                         };
                 }

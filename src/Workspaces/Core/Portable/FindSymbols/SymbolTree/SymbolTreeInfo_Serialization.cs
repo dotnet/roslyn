@@ -65,7 +65,7 @@ internal partial class SymbolTreeInfo
 
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                using (var writer = new ObjectWriter(stream, leaveOpen: true))
                 {
                     result.WriteTo(writer);
                 }
@@ -98,7 +98,7 @@ internal partial class SymbolTreeInfo
 
         // If the checksum doesn't need to match, then we can pass in 'null' here allowing any result to be found.
         using var stream = await storage.ReadStreamAsync(key, checksumMustMatch ? checksum : null, cancellationToken).ConfigureAwait(false);
-        using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
+        using var reader = ObjectReader.TryGetReader(stream);
 
         // We have some previously persisted data.  Attempt to read it back.  
         // If we're able to, and the version of the persisted data matches

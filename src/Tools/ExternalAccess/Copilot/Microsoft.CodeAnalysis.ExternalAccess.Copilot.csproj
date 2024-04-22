@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Copilot</RootNamespace>
-    <TargetFrameworks>net472;$(NetVS)</TargetFrameworks>
+    <TargetFrameworks>net472</TargetFrameworks>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -19,11 +19,17 @@
     <!--
       ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Conversations.CodeMappers.CSharp" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.CodeMappers.CSharp" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
   </ItemGroup>
 
   <ItemGroup>
