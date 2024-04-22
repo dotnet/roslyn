@@ -24,6 +24,8 @@ internal class WorkspaceHotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
     : AbstractHotReloadDiagnosticSourceProvider
     , IDiagnosticSourceProvider
 {
+    bool IDiagnosticSourceProvider.IsDocument => false;
+
     async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         if (context.Solution is not Solution solution)

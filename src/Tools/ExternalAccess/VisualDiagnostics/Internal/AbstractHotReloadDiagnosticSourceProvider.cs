@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 
-internal class AbstractHotReloadDiagnosticSourceProvider : IDiagnosticSourceProvider
+internal abstract class AbstractHotReloadDiagnosticSourceProvider : IDiagnosticSourceProvider
 {
     string IDiagnosticSourceProvider.Name => "HotReloadDiagnostic";
 

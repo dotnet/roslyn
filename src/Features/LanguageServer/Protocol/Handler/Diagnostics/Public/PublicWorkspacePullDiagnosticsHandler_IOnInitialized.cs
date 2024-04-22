@@ -14,12 +14,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
         public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             var sources = _diagnosticSourceManager.GetSourceNames(isDocument: false);
+            var regParams = new RegistrationParams
+            {
+                Registrations = sources.Select(FromSourceName).ToArray()
+            };
+            regParams.Registrations = []; // DISABLE FOR NOW; VS Code does not support workspace diagnostics
             await _clientLanguageServerManager.SendRequestAsync(
                 methodName: Methods.ClientRegisterCapabilityName,
-                @params: new RegistrationParams()
-                {
-                    Registrations = sources.Select(FromSourceName).ToArray()
-                },
+                @params: regParams,
                 cancellationToken).ConfigureAwait(false);
 
             Registration FromSourceName(string sourceName)

@@ -17,33 +17,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [Export(typeof(IDiagnosticSourceManager)), Shared]
     internal class DiagnosticSourceManager : IDiagnosticSourceManager
     {
-        private readonly Lazy<ImmutableDictionary<string, IDiagnosticSourceProvider>> _documentProviders;
-        private readonly Lazy<ImmutableDictionary<string, IDiagnosticSourceProvider>> _workspaceProviders;
-        private readonly Lazy<IEnumerable<IDiagnosticSourceProvider>> sourceProviders;
+        private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _documentProviders;
+        private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _workspaceProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DiagnosticSourceManager(/*[ImportMany] Lazy<IEnumerable<IDiagnosticSourceProvider>> sourceProviders*/)
+        public DiagnosticSourceManager([ImportMany] IEnumerable<IDiagnosticSourceProvider> sourceProviders)
         {
-            sourceProviders = new(() => new List<IDiagnosticSourceProvider>());
-            _documentProviders = new(() => sourceProviders.Value
+            _documentProviders = sourceProviders
                     .Where(p => p.IsDocument)
-                    .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp));
+                    .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
 
-            _workspaceProviders = new(() => sourceProviders.Value
+            _workspaceProviders = sourceProviders
                     .Where(p => !p.IsDocument)
-                    .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp));
+                    .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
         }
 
         /// <inheritdoc />
         public IEnumerable<string> GetSourceNames(bool isDocument)
-            => (isDocument ? _documentProviders : _workspaceProviders).Value.Keys;
+            => (isDocument ? _documentProviders : _workspaceProviders).Keys;
 
         /// <inheritdoc />
         public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, string sourceName, bool isDocument, CancellationToken cancellationToken)
         {
             var providersDictionary = isDocument ? _documentProviders : _workspaceProviders;
-            if (providersDictionary.Value.TryGetValue(sourceName, out var provider))
+            if (providersDictionary.TryGetValue(sourceName, out var provider))
                 return provider.CreateDiagnosticSourcesAsync(context, cancellationToken);
 
             return new([]);
