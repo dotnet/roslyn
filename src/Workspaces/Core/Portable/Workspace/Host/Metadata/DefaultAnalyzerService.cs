@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Host;
 [ExportWorkspaceService(typeof(IAnalyzerService)), Shared]
 internal sealed class DefaultAnalyzerService : IAnalyzerService
 {
-    private readonly DefaultAnalyzerAssemblyLoader _loader = new();
+    private readonly DefaultAnalyzerAssemblyLoader _loader = new([]);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -5,21 +5,23 @@
 using System;
 using System.Composition;
 using System.IO;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Host;
 
 [ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory() : IWorkspaceServiceFactory
+internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory([ImportMany] ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new DefaultAnalyzerAssemblyLoaderProvider(workspaceServices.Workspace.Kind ?? "default");
+        => new DefaultAnalyzerAssemblyLoaderProvider(workspaceServices.Workspace.Kind ?? "default", externalResolvers);
 
-    private sealed class DefaultAnalyzerAssemblyLoaderProvider(string workspaceKind) : IAnalyzerAssemblyLoaderProvider
+    private sealed class DefaultAnalyzerAssemblyLoaderProvider(string workspaceKind, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers) : IAnalyzerAssemblyLoaderProvider
     {
-        private readonly DefaultAnalyzerAssemblyLoader _loader = new();
+        private readonly DefaultAnalyzerAssemblyLoader _loader = new(externalResolvers);
 
         /// <summary>
         /// We include the <see cref="WorkspaceKind"/> of the workspace in the path we produce.  That way we don't
@@ -29,7 +31,8 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory() : IWorkspace
         /// correctness.  But it is annoying and does cause noise in our perf test harness.
         /// </summary>
         private readonly IAnalyzerAssemblyLoader _shadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-            Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind));
+            Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind),
+            externalResolvers: externalResolvers);
 
         public IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options)
             => options.ShadowCopy ? _shadowCopyLoader : _loader;
