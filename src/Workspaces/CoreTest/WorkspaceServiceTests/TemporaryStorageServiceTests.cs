@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             temporaryStorage.WriteTextAsync(text).Wait();
             // read text back from it
             var text2 = temporaryStorage.ReadTextAsync().Result;
-
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());
             Assert.Equal(text.Encoding, text2.Encoding);
