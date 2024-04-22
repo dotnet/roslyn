@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
+Imports Microsoft.VisualStudio.ProjectSystem
 Imports Newtonsoft.Json.Linq
 
 Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
@@ -47,6 +48,18 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
         End Function
 
         Friend Overrides Function GetOptionsDefaultValue([option] As IOption2) As Object
+            If [option].Equals(CompletionOptionsStorage.SnippetsBehavior) Then
+                Return SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
+            ElseIf [option].Equals(CompletionOptionsStorage.EnterKeyBehavior) Then
+                Return EnterKeyRule.Always
+            ElseIf [option].Equals(CompletionOptionsStorage.TriggerOnDeletion) Then
+                Return True
+            ElseIf [option].Equals(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces) Then
+                Return True
+            ElseIf [option].Equals(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets) Then
+                Return False
+            End If
+
             Return MyBase.GetOptionsDefaultValue([option])
         End Function
 
