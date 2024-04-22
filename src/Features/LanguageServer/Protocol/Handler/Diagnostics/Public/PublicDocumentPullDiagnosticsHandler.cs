@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
 // A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka changed / unchanged) followed
 // by n DocumentDiagnosticPartialResult literals.
-// See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
+// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticParams
 using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
 using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
 
@@ -93,8 +93,12 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(DocumentDiagnosticParams diagnosticParams, RequestContext context, CancellationToken cancellationToken)
     {
-        if (diagnosticParams.Identifier is string sourceName)
-            return _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, sourceName, true, cancellationToken);
+        if (context.TextDocument is { } document)
+        {
+            // Wrap all sources into ISourceProvider so that we can keep using DocumentDiagnosticReport
+            // (which supports a single source)
+            return new([new PublicDocumentDiagnosticSource(_diagnosticSourceManager, document, diagnosticParams.Identifier)]);
+        }
 
         return new([]);
     }
