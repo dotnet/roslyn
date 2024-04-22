@@ -547,6 +547,6 @@ internal partial class SerializerService
             => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
         public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
-            => _storagesOpt.IsDefault ? null : _storagesOpt;
+            => throw new InvalidOperationException();
     }
 }
