@@ -31,7 +31,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
         stream.Position = 0;
         var storage = new StreamStorage();
         storage.WriteStream(stream);
-        var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), 0, 0);
+        var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), Offset: 0, Size: stream.Length);
         var handle = new TemporaryStorageHandle(memoryMappedFile: null, identifier);
         s_streamStorage.Add(identifier, storage);
         return handle;
