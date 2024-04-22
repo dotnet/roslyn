@@ -246,16 +246,24 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <exception cref="BadImageFormatException" />
     private AssemblyMetadata CreateAssemblyMetadataFromMetadataImporter(FileKey fileKey)
     {
-        return CreateAssemblyMetadata(fileKey, fileKey =>
+        using var _ = ArrayBuilder<TemporaryStorageHandle>.GetInstance(out var storageHandles);
+        var newMetadata = CreateAssemblyMetadata(fileKey, fileKey =>
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(fileKey);
 
             // getting metadata didn't work out through importer. fallback to shadow copy one
             if (metadata == null)
-                GetMetadataFromTemporaryStorage(fileKey, out _, out metadata);
+            {
+                GetMetadataFromTemporaryStorage(fileKey, out var storageHandle, out metadata);
+                storageHandles.Add(storageHandle);
+            }
 
             return metadata;
         });
+
+        s_metadataToStorageHandles.Add(newMetadata, storageHandles.ToImmutable());
+
+        return newMetadata;
 
         ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
         {
