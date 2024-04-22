@@ -2651,7 +2651,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableText();
+            using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
