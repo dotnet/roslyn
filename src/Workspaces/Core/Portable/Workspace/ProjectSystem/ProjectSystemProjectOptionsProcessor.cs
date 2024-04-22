@@ -261,8 +261,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             using var stream = temporaryStorageService.ReadFromTemporaryStorageService(storageIdentifier, CancellationToken.None);
             using var reader = new StreamReader(stream);
 
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            while (reader.ReadLine() is string line)
                 yield return line;
         }
     }
