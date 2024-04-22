@@ -168,9 +168,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 for (var j = 1; j < 5; j++)
                 {
-                    using ITemporaryStreamStorageInternal storage1 = service.CreateTemporaryStreamStorage(),
-                                                  storage2 = service.CreateTemporaryStreamStorage();
-                    var storage3 = service.CreateTemporaryStreamStorage(); // let the finalizer run for this instance
+                    ITemporaryStreamStorageInternal
+                        storage1 = service.CreateTemporaryStreamStorage(),
+                        storage2 = service.CreateTemporaryStreamStorage(),
+                        storage3 = service.CreateTemporaryStreamStorage();
 
                     storage1.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1));
                     storage2.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i));
@@ -225,7 +226,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     using var s = storageHandles[i].ReadStream(CancellationToken.None);
                     Assert.Equal(1, s.ReadByte());
-                    storageHandles[i].Dispose();
                 }
             }
         }
