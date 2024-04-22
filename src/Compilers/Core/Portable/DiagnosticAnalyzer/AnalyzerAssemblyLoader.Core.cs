@@ -43,15 +43,16 @@ namespace Microsoft.CodeAnalysis
         internal AssemblyLoadContext CompilerLoadContext => _compilerLoadContext;
         internal AnalyzerLoadOption AnalyzerLoadOption => _loadOption;
 
-        internal AnalyzerAssemblyLoader()
-            : this(null, AnalyzerLoadOption.LoadFromDisk)
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+            : this(null, AnalyzerLoadOption.LoadFromDisk, externalResolvers)
         {
         }
 
-        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption)
+        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
         {
             _loadOption = loadOption;
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
+            _externalResolvers = externalResolvers;
         }
 
         public bool IsHostAssembly(Assembly assembly)
@@ -119,7 +120,11 @@ namespace Microsoft.CodeAnalysis
 
             protected override Assembly? Load(AssemblyName assemblyName)
             {
-                var simpleName = assemblyName.Name!;
+                if (_loader.ResolveAssemblyExternally(assemblyName) is { } externallyResolvedAssembly)
+                {
+                    return externallyResolvedAssembly;
+                }
+
                 try
                 {
                     if (_compilerLoadContext.LoadFromAssemblyName(assemblyName) is { } compilerAssembly)
@@ -134,6 +139,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Prefer registered dependencies in the same directory first.
+                var simpleName = assemblyName.Name!;
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
@@ -147,7 +153,7 @@ namespace Microsoft.CodeAnalysis
                 // Note: when loading from disk the .NET runtime has a fallback step that will handle
                 // satellite assembly loading if the call to Load(satelliteAssemblyName) fails. This
                 // loader has a mode where it loads from Stream though and the runtime will not handle
-                // that automatically. Rather than bifurate our loading behavior between Disk and
+                // that automatically. Rather than bifurcate our loading behavior between Disk and
                 // Stream both modes just handle satellite loading directly
                 if (assemblyName.CultureInfo is not null && simpleName.EndsWith(".resources", StringComparison.Ordinal))
                 {
