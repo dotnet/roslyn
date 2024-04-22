@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                     await Task.Yield();
 
-                    using Stream s1 = service.ReadFromTemporaryStorageService(storage1.Identifier, CancellationToken.None);
-                    using Stream s2 = service.ReadFromTemporaryStorageService(storage2.Identifier, CancellationToken.None);
-                    using Stream s3 = service.ReadFromTemporaryStorageService(storage3.Identifier, CancellationToken.None);
+                    using var s1 = service.ReadFromTemporaryStorageService(storage1.Identifier, CancellationToken.None);
+                    using var s2 = service.ReadFromTemporaryStorageService(storage2.Identifier, CancellationToken.None);
+                    using var s3 = service.ReadFromTemporaryStorageService(storage3.Identifier, CancellationToken.None);
                     Assert.Equal(1024 * i - 1, s1.Length);
                     Assert.Equal(1024 * i, s2.Length);
                     Assert.Equal(1024 * i + 1, s3.Length);
