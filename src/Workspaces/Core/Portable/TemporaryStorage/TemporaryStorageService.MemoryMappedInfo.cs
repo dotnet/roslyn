@@ -22,11 +22,6 @@ internal partial class TemporaryStorageService
     /// metadata dll shadow copy. shared view will help those cases.
     /// </summary>
     /// <remarks>
-    /// <para>Instances of this class should be disposed when they are no longer needed. After disposing this
-    /// instance, it should no longer be used. However, streams obtained through <see cref="CreateReadableStream"/>
-    /// or <see cref="CreateWritableStream"/> will not be invalidated until they are disposed independently (which
-    /// may occur before or after the <see cref="MemoryMappedInfo"/> is disposed.</para>
-    ///
     /// <para>This class and its nested types have familiar APIs and predictable behavior when used in other code,
     /// but are non-trivial to work on. The implementations of <see cref="IDisposable"/> adhere to the best
     /// practices described in
@@ -34,7 +29,7 @@ internal partial class TemporaryStorageService
     /// Update: Dispose, Finalization, and Resource Management</see>. Additional notes regarding operating system
     /// behavior leveraged for efficiency are given in comments.</para>
     /// </remarks>
-    internal sealed class MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size) : IDisposable
+    internal sealed class MemoryMappedInfo(MemoryMappedFile memoryMappedFile, string name, long offset, long size) : IDisposable
     {
         /// <summary>
         /// The memory mapped file.
@@ -44,7 +39,7 @@ internal partial class TemporaryStorageService
         /// However, the operating system does not actually close the views which are in use until the file handles
         /// are closed as well, even if the file is disposed first.</para>
         /// </remarks>
-        private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile = memoryMappedFile;
+        private readonly MemoryMappedFile _memoryMappedFile = memoryMappedFile;
 
         /// <summary>
         /// A weak reference to a read-only view for the memory mapped file.
@@ -62,7 +57,7 @@ internal partial class TemporaryStorageService
         private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakReadAccessor;
 
         public MemoryMappedInfo(string name, long offset, long size)
-            : this(new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(name)), name, offset, size)
+            : this(MemoryMappedFile.OpenExisting(name), name, offset, size)
         {
         }
 
@@ -96,14 +91,7 @@ internal partial class TemporaryStorageService
             if (streamAccessor == null)
             {
                 var rawAccessor = RunWithCompactingGCFallback(
-                    static info =>
-                    {
-                        using var memoryMappedFile = info._memoryMappedFile.TryAddReference();
-                        if (memoryMappedFile is null)
-                            throw new ObjectDisposedException(typeof(MemoryMappedInfo).FullName);
-
-                        return memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read);
-                    },
+                    static info => info._memoryMappedFile.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read),
                     this);
                 streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
                 _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
@@ -120,14 +108,7 @@ internal partial class TemporaryStorageService
         public Stream CreateWritableStream()
         {
             return RunWithCompactingGCFallback(
-                static info =>
-                {
-                    using var memoryMappedFile = info._memoryMappedFile.TryAddReference();
-                    if (memoryMappedFile is null)
-                        throw new ObjectDisposedException(typeof(MemoryMappedInfo).FullName);
-
-                    return memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write);
-                },
+                static info => info._memoryMappedFile.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write),
                 this);
         }
 

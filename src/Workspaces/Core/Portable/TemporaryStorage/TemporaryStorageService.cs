@@ -36,7 +36,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     /// <para>The value of 256k reduced the number of files dumped to separate memory mapped files by 60% compared to
     /// the next lower power-of-2 size for Roslyn.sln itself.</para>
     /// </remarks>
-    /// <seealso cref="_weakFileReference"/>
+    /// <seealso cref="_fileReference"/>
     private const long SingleFileThreshold = 256 * 1024;
 
     /// <summary>
@@ -47,7 +47,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     /// Roslyn.sln a snapshot. This keeps the data safe, so that we can drop it from memory when not needed, but
     /// reconstitute the contents we originally had in the snapshot in case the original files change on disk.</para>
     /// </remarks>
-    /// <seealso cref="_weakFileReference"/>
+    /// <seealso cref="_fileReference"/>
     private const long MultiFileBlockSize = SingleFileThreshold * 32;
 
     private readonly IWorkspaceThreadingService? _workspaceThreadingService;
@@ -68,23 +68,23 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer
     /// allocation until space is no longer available in it.  Access should be synchronized on <see cref="_gate"/>
     /// </summary>
-    private ReferenceCountedDisposable<MemoryMappedFile>.WeakReference _weakFileReference;
+    private MemoryMappedFile? _fileReference;
 
     /// <summary>The name of the current memory mapped file for multiple storage units. Access should be synchronized on
     /// <see cref="_gate"/></summary>
-    /// <seealso cref="_weakFileReference"/>
+    /// <seealso cref="_fileReference"/>
     private string? _name;
 
     /// <summary>The total size of the current memory mapped file for multiple storage units. Access should be
     /// synchronized on <see cref="_gate"/></summary>
-    /// <seealso cref="_weakFileReference"/>
+    /// <seealso cref="_fileReference"/>
     private long _fileSize;
 
     /// <summary>
     /// The offset into the current memory mapped file where the next storage unit can be held. Access should be
     /// synchronized on <see cref="_gate"/>.
     /// </summary>
-    /// <seealso cref="_weakFileReference"/>
+    /// <seealso cref="_fileReference"/>
     private long _offset;
 
     [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
@@ -140,8 +140,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         {
             // Larger blocks are allocated separately
             var mapName = CreateUniqueName(size);
-            var storage = MemoryMappedFile.CreateNew(mapName, size);
-            return new MemoryMappedInfo(new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, offset: 0, size: size);
+            return new MemoryMappedInfo(mapName, offset: 0, size: size);
         }
 
         lock (_gate)
@@ -149,14 +148,13 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             // Obtain a reference to the memory mapped file, creating one if necessary. If a reference counted
             // handle to a memory mapped file is obtained in this section, it must either be disposed before
             // returning or returned to the caller who will own it through the MemoryMappedInfo.
-            var reference = _weakFileReference.TryAddReference();
+            var reference = _fileReference;
             if (reference == null || _offset + size > _fileSize)
             {
                 var mapName = CreateUniqueName(MultiFileBlockSize);
-                var file = MemoryMappedFile.CreateNew(mapName, MultiFileBlockSize);
 
-                reference = new ReferenceCountedDisposable<MemoryMappedFile>(file);
-                _weakFileReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(reference);
+                reference = MemoryMappedFile.CreateNew(mapName, MultiFileBlockSize);
+                _fileReference = reference;
                 _name = mapName;
                 _fileSize = MultiFileBlockSize;
                 _offset = size;
@@ -325,7 +323,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         }
     }
 
-    internal sealed class TemporaryStreamStorage : IDisposable
+    internal sealed class TemporaryStreamStorage
     {
         private readonly TemporaryStorageService _service;
         private MemoryMappedInfo? _memoryMappedInfo;
@@ -342,15 +340,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         public string Name => _memoryMappedInfo!.Name;
         public long Offset => _memoryMappedInfo!.Offset;
         public long Size => _memoryMappedInfo!.Size;
-
-        public void Dispose()
-        {
-            // Destructors of SafeHandle and FileStream in MemoryMappedFile
-            // will eventually release resources if this Dispose is not called
-            // explicitly
-            _memoryMappedInfo?.Dispose();
-            _memoryMappedInfo = null;
-        }
 
         public UnmanagedMemoryStream ReadStream(CancellationToken cancellationToken)
         {
