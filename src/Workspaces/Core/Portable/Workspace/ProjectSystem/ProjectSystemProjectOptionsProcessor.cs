@@ -71,7 +71,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         // Dispose the existing stored command-line and then persist the new one so we can
         // recover it later.  Only bother persisting things if we have a non-empty string.
 
-        _commandLineStorage?.Dispose();
         _commandLineStorage = null;
         if (!arguments.IsEmpty)
         {
@@ -276,7 +275,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         lock (_gate)
         {
             DisposeOfRuleSetFile_NoLock();
-            _commandLineStorage?.Dispose();
         }
     }
 }
