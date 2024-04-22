@@ -18837,11 +18837,11 @@ System.Console.Write(" + expression + @");";
         [InlineData(@"$""{ConstChar}""", "c", true)]
         [InlineData(@"$""{ConstChar}{ConstChar}""", "cc", true)]
         [InlineData(@"$""{ConstString}{ConstString}""", "ss", true)]
-        [InlineData(@"$""{null}""", "", false)]
+        [InlineData(@"$""{null}""", "", true)]
         [InlineData(@"$""{NullString}""", "", true)]
-        [InlineData(@"$""{null}{NullString}""", "", false)]
+        [InlineData(@"$""{null}{NullString}""", "", true)]
         [InlineData(@"$""n{NullString}u{NullString}{default(string)}{'l'}{""l ""}{NullString}{'v'}{NullString}{""alue""}""", "null value", true)]
-        [InlineData(@"$""null{(string?)null}"" + $""{null}"" + $""{default}""", "null", false)]
+        [InlineData(@"$""null{(string)null}"" + $""{null}"" + $""{default}""", "null", false)]
         public void MixStringCharNullConstantsToLiteral(string expression, string output, bool isConst)
         {
             var code = @"
