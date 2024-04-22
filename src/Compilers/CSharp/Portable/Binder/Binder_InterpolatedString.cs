@@ -142,8 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     value.ConstantValueOpt == null ||
                                     !(interpolation is { FormatClause: null, AlignmentClause: null }) ||
                                     !(value is { ConstantValueOpt.IsBad: false }
-                                        and ({ ConstantValueOpt: { IsString: true } or { IsChar: true } }
-                                            or { ConstantValueOpt.IsNull: true, Type.SpecialType: SpecialType.System_String })
+                                        and ({ ConstantValueOpt: { IsString: true } or { IsChar: true } or { IsNull: true } })
                                     )
                                 )
                                 {
