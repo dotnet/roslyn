@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime;
-using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
@@ -22,35 +21,25 @@ internal partial class TemporaryStorageService
     /// metadata dll shadow copy. shared view will help those cases.
     /// </summary>
     /// <remarks>
-    /// <para>This class and its nested types have familiar APIs and predictable behavior when used in other code,
-    /// but are non-trivial to work on. The implementations of <see cref="IDisposable"/> adhere to the best
-    /// practices described in
-    /// <see href="http://joeduffyblog.com/2005/04/08/dg-update-dispose-finalization-and-resource-management/">DG
-    /// Update: Dispose, Finalization, and Resource Management</see>. Additional notes regarding operating system
-    /// behavior leveraged for efficiency are given in comments.</para>
+    /// <para>This class and its nested types have familiar APIs and predictable behavior when used in other code, but
+    /// are non-trivial to work on.</para>
     /// </remarks>
-    internal sealed class MemoryMappedInfo(MemoryMappedFile memoryMappedFile, string name, long offset, long size) : IDisposable
+    internal sealed class MemoryMappedInfo(MemoryMappedFile memoryMappedFile, string name, long offset, long size)
     {
         /// <summary>
         /// The memory mapped file.
         /// </summary>
-        /// <remarks>
-        /// <para>It is possible for the file to be disposed prior to the view and/or the streams which use it.
-        /// However, the operating system does not actually close the views which are in use until the file handles
-        /// are closed as well, even if the file is disposed first.</para>
-        /// </remarks>
         private readonly MemoryMappedFile _memoryMappedFile = memoryMappedFile;
 
         /// <summary>
         /// A weak reference to a read-only view for the memory mapped file.
         /// </summary>
         /// <remarks>
-        /// <para>This holds a weak counted reference to current <see cref="MemoryMappedViewAccessor"/>, which
-        /// allows additional accessors for the same address space to be obtained up until the point when no
-        /// external code is using it. When the memory is no longer being used by any <see
-        /// cref="MemoryMappedViewUnmanagedMemoryStream"/> objects, the view of the memory mapped file is unmapped,
-        /// making the process address space it previously claimed available for other purposes. If/when it is
-        /// needed again, a new view is created.</para>
+        /// <para>This holds a weak counted reference to current <see cref="MemoryMappedViewAccessor"/>, which allows
+        /// additional accessors for the same address space to be obtained up until the point when no external code is
+        /// using it. When the memory is no longer being used by any <see cref="MemoryMappedViewUnmanagedMemoryStream"/>
+        /// objects, the view of the memory mapped file is unmapped, making the process address space it previously
+        /// claimed available for other purposes. If/when it is needed again, a new view is created.</para>
         ///
         /// <para>This view is read-only, so it is only used by <see cref="CreateReadableStream"/>.</para>
         /// </remarks>
@@ -84,9 +73,9 @@ internal partial class TemporaryStorageService
         /// </summary>
         public UnmanagedMemoryStream CreateReadableStream()
         {
-            // Note: TryAddReference behaves according to its documentation even if the target object has been
-            // disposed. If it returns non-null, then the object will not be disposed before the returned
-            // reference is disposed (see comments on _memoryMappedFile and TryAddReference).
+            // Note: TryAddReference behaves according to its documentation even if the target object has been disposed.
+            // If it returns non-null, then the object will not be disposed before the returned reference is disposed
+            // (see comments on _memoryMappedFile and TryAddReference).
             var streamAccessor = _weakReadAccessor.TryAddReference();
             if (streamAccessor == null)
             {
@@ -113,16 +102,15 @@ internal partial class TemporaryStorageService
         }
 
         /// <summary>
-        /// Run a function which may fail with an <see cref="IOException"/> if not enough memory is available to
-        /// satisfy the request. In this case, a full compacting GC pass is forced and the function is attempted
-        /// again.
+        /// Run a function which may fail with an <see cref="IOException"/> if not enough memory is available to satisfy
+        /// the request. In this case, a full compacting GC pass is forced and the function is attempted again.
         /// </summary>
         /// <remarks>
-        /// <para><see cref="MemoryMappedFile.CreateViewAccessor(long, long, MemoryMappedFileAccess)"/> and
-        /// <see cref="MemoryMappedFile.CreateViewStream(long, long, MemoryMappedFileAccess)"/> will use a native
-        /// memory map, which can't trigger a GC. In this case, we'd otherwise crash with OOM, so we don't care
-        /// about creating a UI delay with a full forced compacting GC. If it crashes the second try, it means we're
-        /// legitimately out of resources.</para>
+        /// <para><see cref="MemoryMappedFile.CreateViewAccessor(long, long, MemoryMappedFileAccess)"/> and <see
+        /// cref="MemoryMappedFile.CreateViewStream(long, long, MemoryMappedFileAccess)"/> will use a native memory map,
+        /// which can't trigger a GC. In this case, we'd otherwise crash with OOM, so we don't care about creating a UI
+        /// delay with a full forced compacting GC. If it crashes the second try, it means we're legitimately out of
+        /// resources.</para>
         /// </remarks>
         /// <typeparam name="TArg">The type of argument to pass to the callback.</typeparam>
         /// <typeparam name="T">The type returned by the function.</typeparam>
@@ -152,42 +140,22 @@ internal partial class TemporaryStorageService
             GC.Collect();
         }
 
-        public void Dispose()
-        {
-            // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
-            // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
-            _memoryMappedFile.Dispose();
-        }
-
         private sealed unsafe class MemoryMappedViewUnmanagedMemoryStream : UnmanagedMemoryStream
         {
             private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
-            private byte* _start;
 
             public MemoryMappedViewUnmanagedMemoryStream(ReferenceCountedDisposable<MemoryMappedViewAccessor> accessor, long length)
                 : base((byte*)accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + accessor.Target.PointerOffset, length)
             {
                 _accessor = accessor;
-                _start = this.PositionPointer;
             }
 
             protected override void Dispose(bool disposing)
             {
                 base.Dispose(disposing);
-
                 if (disposing)
-                {
                     _accessor.Dispose();
-                }
-
-                _start = null;
             }
-
-            /// <summary>
-            /// Get underlying native memory directly.
-            /// </summary>
-            public IntPtr GetPointer()
-                => (IntPtr)_start;
         }
     }
 }
