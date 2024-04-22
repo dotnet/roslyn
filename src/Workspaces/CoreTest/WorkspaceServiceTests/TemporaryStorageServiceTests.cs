@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // write text into it
             temporaryStorage.WriteTextAsync(text).Wait();
-
             // read text back from it
             var text2 = temporaryStorage.ReadTextAsync().Result;
 
