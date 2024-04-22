@@ -33,7 +33,7 @@ public interface ITemporaryStreamStorage : IDisposable
 /// <summary>
 /// TemporaryStorage can be used to read and write text to a temporary storage location.
 /// </summary>
-internal interface ITemporaryTextStorageInternal : IDisposable
+internal interface ITemporaryTextStorageInternal
 {
     SourceText ReadText(CancellationToken cancellationToken = default);
     Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default);
