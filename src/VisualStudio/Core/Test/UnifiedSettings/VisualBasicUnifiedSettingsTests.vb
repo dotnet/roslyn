@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
-Imports Microsoft.VisualStudio.ProjectSystem
 Imports Newtonsoft.Json.Linq
 
 Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
@@ -48,15 +47,27 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
         End Function
 
         Friend Overrides Function GetOptionsDefaultValue([option] As IOption2) As Object
+            ' The default values of some options are set at runtime. option.defaultValue is just a dummy value in this case.
+            ' However, in unified settings we always set the correct value in registration.json.
             If [option].Equals(CompletionOptionsStorage.SnippetsBehavior) Then
+                ' CompletionOptionsStorage.SnippetsBehavior's default value is SnippetsRule.Default.
+                ' It's overridden differently per-language at runtime.
                 Return SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
             ElseIf [option].Equals(CompletionOptionsStorage.EnterKeyBehavior) Then
+                ' CompletionOptionsStorage.EnterKeyBehavior's default value is EnterKeyBehavior.Default.
+                ' It's overridden differently per-language at runtime.
                 Return EnterKeyRule.Always
             ElseIf [option].Equals(CompletionOptionsStorage.TriggerOnDeletion) Then
+                ' CompletionOptionsStorage.TriggerOnDeletion's default value is null.
+                ' It's enabled by default for Visual Basic
                 Return True
             ElseIf [option].Equals(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces) Then
+                ' CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces's default value is null
+                ' It's enabled by default for Visual Basic
                 Return True
             ElseIf [option].Equals(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets) Then
+                ' CompletionViewOptionsStorage.EnableArgumentCompletionSnippets' default value is null
+                ' It's disabled by default for Visual Basic
                 Return False
             End If
 
