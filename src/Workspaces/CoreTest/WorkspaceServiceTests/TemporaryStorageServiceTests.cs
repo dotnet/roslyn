@@ -93,7 +93,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Nothing has been written yet
             Assert.Throws<InvalidOperationException>(() => storage.ReadText());
             Assert.Throws<AggregateException>(() => storage.ReadTextAsync().Result);
-
             // write a normal string
             var text = SourceText.From(new string(' ', 4096) + "public class A {}");
             storage.WriteTextAsync(text).Wait();
