@@ -74,7 +74,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // create a temporary storage location
             var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
-
             // write text into it
             temporaryStorage.WriteTextAsync(text).Wait();
 
