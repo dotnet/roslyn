@@ -39,7 +39,7 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class DocumentCompilerSyntaxDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
         : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(diagnosticAnalyzerService,
-            DiagnosticKind.CompilerSemantic, PullDiagnosticCategories.DocumentCompilerSyntax)
+            DiagnosticKind.CompilerSyntax, PullDiagnosticCategories.DocumentCompilerSyntax)
     {
     }
 
@@ -55,18 +55,18 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     [ExportDiagnosticSourceProvider, Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class DocumentAnalyzerSemanticDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
+    internal sealed class DocumentAnalyzerSyntaxDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
         : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(diagnosticAnalyzerService,
-            DiagnosticKind.AnalyzerSemantic, PullDiagnosticCategories.DocumentAnalyzerSemantic)
+            DiagnosticKind.AnalyzerSyntax, PullDiagnosticCategories.DocumentAnalyzerSyntax)
     {
     }
 
     [ExportDiagnosticSourceProvider, Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class DocumentAnalyzerSyntaxDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
+    internal sealed class DocumentAnalyzerSemanticDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
         : AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(diagnosticAnalyzerService,
-            DiagnosticKind.AnalyzerSyntax, PullDiagnosticCategories.DocumentAnalyzerSyntax)
+            DiagnosticKind.AnalyzerSemantic, PullDiagnosticCategories.DocumentAnalyzerSemantic)
     {
     }
 }

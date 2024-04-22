@@ -4,23 +4,25 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 /// <summary>
 /// Aggregates multiple source diagnostics
 /// </summary>
-internal sealed class PublicDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
+internal sealed class AggregatedDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
     private readonly IDiagnosticSourceManager _diagnosticSourceManager;
     private readonly string? _sourceName;
 
-    public PublicDocumentDiagnosticSource(IDiagnosticSourceManager diagnosticSourceManager, TextDocument document, string? sourceName) : base(document)
+    public AggregatedDocumentDiagnosticSource(IDiagnosticSourceManager diagnosticSourceManager,
+        TextDocument document, string? sourceName) : base(document)
     {
         _diagnosticSourceManager = diagnosticSourceManager;
         _sourceName = sourceName;
@@ -31,17 +33,14 @@ internal sealed class PublicDocumentDiagnosticSource : AbstractDocumentDiagnosti
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-        var isLive = this.IsLiveSource();
         foreach (var name in GetSourceNames())
         {
             var sources = await _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, name, true, cancellationToken).ConfigureAwait(false);
             foreach (var source in sources)
             {
-                if (source.IsLiveSource() == isLive)
-                {
-                    var namedDiagnostics = await source.GetDiagnosticsAsync(context, cancellationToken).ConfigureAwait(false);
-                    diagnostics.AddRange(namedDiagnostics);
-                }
+                Debug.Assert(source.IsLiveSource(), "All document sources should be live");
+                var namedDiagnostics = await source.GetDiagnosticsAsync(context, cancellationToken).ConfigureAwait(false);
+                diagnostics.AddRange(namedDiagnostics);
             }
         }
 
@@ -49,5 +48,18 @@ internal sealed class PublicDocumentDiagnosticSource : AbstractDocumentDiagnosti
     }
 
     private IEnumerable<string> GetSourceNames()
-        => string.IsNullOrEmpty(this._sourceName) ? _diagnosticSourceManager.GetSourceNames(isDocument: true) : [_sourceName];
+    {
+        if (this._sourceName != null)
+        {
+            yield return this._sourceName;
+        }
+        else
+        {
+            foreach (var name in _diagnosticSourceManager.GetSourceNames(isDocument: true))
+            {
+                if (name != PullDiagnosticCategories.Task)
+                    yield return name;
+            }
+        }
+    }
 }

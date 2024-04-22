@@ -11,40 +11,48 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+
+[Export(typeof(IDiagnosticSourceManager)), Shared]
+internal class DiagnosticSourceManager : IDiagnosticSourceManager
 {
-    [Export(typeof(IDiagnosticSourceManager)), Shared]
-    internal class DiagnosticSourceManager : IDiagnosticSourceManager
+    private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _documentProviders;
+    private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _workspaceProviders;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DiagnosticSourceManager([ImportMany] IEnumerable<IDiagnosticSourceProvider> sourceProviders)
     {
-        private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _documentProviders;
-        private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _workspaceProviders;
+        _documentProviders = sourceProviders
+                .Where(p => p.IsDocument)
+                .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DiagnosticSourceManager([ImportMany] IEnumerable<IDiagnosticSourceProvider> sourceProviders)
+        _workspaceProviders = sourceProviders
+                .Where(p => !p.IsDocument)
+                .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<string> GetSourceNames(bool isDocument)
+        => (isDocument ? _documentProviders : _workspaceProviders).Keys;
+
+    /// <inheritdoc />
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, string? sourceName, bool isDocument, CancellationToken cancellationToken)
+    {
+        var providersDictionary = isDocument ? _documentProviders : _workspaceProviders;
+        if (sourceName != null)
         {
-            _documentProviders = sourceProviders
-                    .Where(p => p.IsDocument)
-                    .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
-
-            _workspaceProviders = sourceProviders
-                    .Where(p => !p.IsDocument)
-                    .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<string> GetSourceNames(bool isDocument)
-            => (isDocument ? _documentProviders : _workspaceProviders).Keys;
-
-        /// <inheritdoc />
-        public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, string sourceName, bool isDocument, CancellationToken cancellationToken)
-        {
-            var providersDictionary = isDocument ? _documentProviders : _workspaceProviders;
             if (providersDictionary.TryGetValue(sourceName, out var provider))
                 return provider.CreateDiagnosticSourcesAsync(context, cancellationToken);
-
-            return new([]);
         }
+        else if (isDocument)
+        {
+            if (context.TextDocument is { } document)
+                return new([new AggregatedDocumentDiagnosticSource(this, document, null)]);
+        }
+
+        return new([]);
     }
 }

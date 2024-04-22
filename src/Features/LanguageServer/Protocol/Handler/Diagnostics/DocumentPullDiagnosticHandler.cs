@@ -74,14 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
             VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            if (diagnosticsParams.QueryingDiagnosticKind?.Value is string sourceName)
-            {
-                return _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, sourceName, true, cancellationToken);
-            }
-            else
-            {
-                return new([]);
-            }
+            return _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, diagnosticsParams.QueryingDiagnosticKind?.Value, true, cancellationToken);
         }
 
         protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)

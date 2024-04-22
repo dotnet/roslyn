@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -97,7 +96,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
         {
             // Wrap all sources into ISourceProvider so that we can keep using DocumentDiagnosticReport
             // (which supports a single source)
-            return new([new PublicDocumentDiagnosticSource(_diagnosticSourceManager, document, diagnosticParams.Identifier)]);
+            return new([new AggregatedDocumentDiagnosticSource(_diagnosticSourceManager, document, diagnosticParams.Identifier)]);
         }
 
         return new([]);

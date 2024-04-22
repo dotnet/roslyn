@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
@@ -13,24 +14,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
     {
         public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
-            var sources = _diagnosticSourceManager.GetSourceNames(isDocument: false);
-            var regParams = new RegistrationParams
+            if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true && IsFsaEnabled())
             {
-                Registrations = sources.Select(FromSourceName).ToArray()
-            };
-            regParams.Registrations = []; // DISABLE FOR NOW; VS Code does not support workspace diagnostics
-            await _clientLanguageServerManager.SendRequestAsync(
-                methodName: Methods.ClientRegisterCapabilityName,
-                @params: regParams,
-                cancellationToken).ConfigureAwait(false);
+                var sources = _diagnosticSourceManager.GetSourceNames(isDocument: false);
+                var regParams = new RegistrationParams
+                {
+                    Registrations = sources.Select(FromSourceName).ToArray()
+                };
+                regParams.Registrations = []; // DISABLE FOR NOW; VS Code does not support workspace diagnostics
+                await _clientLanguageServerManager.SendRequestAsync(
+                    methodName: Methods.ClientRegisterCapabilityName,
+                    @params: regParams,
+                    cancellationToken).ConfigureAwait(false);
 
-            Registration FromSourceName(string sourceName)
-            => new()
+                Registration FromSourceName(string sourceName)
+                => new()
+                {
+                    Id = sourceName,
+                    Method = Methods.WorkspaceDiagnosticName,
+                    RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName }
+                };
+            }
+
+            bool IsFsaEnabled()
             {
-                Id = sourceName,
-                Method = Methods.WorkspaceDiagnosticName,
-                RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName }
-            };
+                foreach (var language in context.SupportedLanguages)
+                {
+                    if (GlobalOptions.GetBackgroundAnalysisScope(language) == BackgroundAnalysisScope.FullSolution)
+                        return true;
+                }
+
+                return false;
+            }
         }
     }
 }
