@@ -10,6 +10,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -24,13 +25,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteAnalyzerAssemblyLoaderService([ImportMany] ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        public RemoteAnalyzerAssemblyLoaderService([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
         {
             var baseDirectory = Path.GetDirectoryName(Path.GetFullPath(typeof(RemoteAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location));
             Debug.Assert(baseDirectory != null);
 
-            _loader = new(baseDirectory, externalResolvers);
-            _shadowCopyLoader = new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), externalResolvers);
+            var resolvers = externalResolvers.ToImmutableArray();
+            _loader = new(baseDirectory, resolvers);
+            _shadowCopyLoader = new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), resolvers);
         }
 
         public IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options)
