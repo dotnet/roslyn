@@ -220,7 +220,6 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
             // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
             stream = _temporaryStorageService.ReadFromTemporaryStorageService(storageHandle.Identifier, CancellationToken.None);
-            GC.KeepAlive(storageHandle);
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
         }
@@ -247,16 +246,24 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <exception cref="BadImageFormatException" />
     private AssemblyMetadata CreateAssemblyMetadataFromMetadataImporter(FileKey fileKey)
     {
-        return CreateAssemblyMetadata(fileKey, fileKey =>
+        using var _ = ArrayBuilder<TemporaryStorageHandle>.GetInstance(out var storageHandles);
+        var newMetadata = CreateAssemblyMetadata(fileKey, fileKey =>
         {
             var metadata = TryCreateModuleMetadataFromMetadataImporter(fileKey);
 
             // getting metadata didn't work out through importer. fallback to shadow copy one
             if (metadata == null)
-                GetMetadataFromTemporaryStorage(fileKey, out _, out metadata);
+            {
+                GetMetadataFromTemporaryStorage(fileKey, out var storageHandle, out metadata);
+                storageHandles.Add(storageHandle);
+            }
 
             return metadata;
         });
+
+        s_metadataToStorageHandles.Add(newMetadata, storageHandles.ToImmutable());
+
+        return newMetadata;
 
         ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
         {
