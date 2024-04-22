@@ -115,9 +115,9 @@ abc
   IL_004b:  call       ""void System.Console.WriteLine(string)""
   IL_0050:  ldstr      ""d""
   IL_0055:  call       ""void System.Console.WriteLine(string)""
-  IL_005a:  ldstr      ""abc(d)""
+  IL_005a:  ldstr      """"
   IL_005f:  call       ""void System.Console.WriteLine(string)""
-  IL_0064:  ldstr      ""d""
+  IL_0064:  ldstr      ""abc""
   IL_0069:  call       ""void System.Console.WriteLine(string)""
   IL_006e:  ret
 }
@@ -300,8 +300,8 @@ baa
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       87 (0x57)
-  .maxstack  2
+  // Code size       88 (0x58)
+  .maxstack  3
   .locals init (object V_0) //a
   IL_0000:  ldstr      ""a""
   IL_0005:  stloc.0
@@ -321,11 +321,12 @@ baa
   IL_003b:  ldloc.0
   IL_003c:  call       ""string string.Format(string, object)""
   IL_0041:  call       ""void System.Console.WriteLine(string)""
-  IL_0046:  ldstr      ""b{0}{0}""
+  IL_0046:  ldstr      ""b{0}{1}""
   IL_004b:  ldloc.0
-  IL_004c:  call       ""string string.Format(string, object)""
-  IL_0051:  call       ""void System.Console.WriteLine(string)""
-  IL_0056:  ret
+  IL_004c:  ldloc.0
+  IL_004d:  call       ""string string.Format(string, object, object)""
+  IL_0052:  call       ""void System.Console.WriteLine(string)""
+  IL_0057:  ret
 }
 ");
         }
