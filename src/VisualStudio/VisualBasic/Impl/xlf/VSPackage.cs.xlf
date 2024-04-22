@@ -140,11 +140,6 @@ Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direk
         <target state="new">Always include snippets</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Prázdný soubor skriptu Visual Basicu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
         <target state="new">Include snippets when ?-Tab is typed after an identifier</target>
@@ -163,11 +158,6 @@ Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direk
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>Only add new line on enter after end of fully typed word</source>
         <target state="new">Only add new line on enter after end of fully typed word</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Skript Visual Basicu</target>
         <note />
       </trans-unit>
     </body>
