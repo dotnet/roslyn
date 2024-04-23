@@ -486,8 +486,6 @@ internal sealed class ProjectStateChecksums(
             await ChecksumCollection.FindAsync(assetPath, state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
         }
     }
-<<<<<<< Updated upstream
-=======
 
     public override string ToString()
         => $"""
@@ -502,7 +500,6 @@ internal sealed class ProjectStateChecksums(
                 AdditionalDocuments={AdditionalDocuments.Checksum}
                 AnalyzerConfigDocuments={AnalyzerConfigDocuments.Checksum}
             """;
->>>>>>> Stashed changes
 }
 
 internal sealed class DocumentStateChecksums(
