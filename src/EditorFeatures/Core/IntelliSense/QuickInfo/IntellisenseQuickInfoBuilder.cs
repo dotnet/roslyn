@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,13 +15,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
@@ -150,13 +147,8 @@ internal static class IntellisenseQuickInfoBuilder
     }
 
     /// <summary>
-    /// test
+    /// 
     /// </summary>
-    /// <param name="document">x</param>
-    /// <param name="position"></param>
-    /// <param name="elements"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns>stugg</returns>
     private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, int? position, List<object> elements, string descriptionText, CancellationToken cancellationToken)
     {
         if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
