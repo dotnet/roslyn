@@ -16,12 +16,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 internal sealed class XamlDiagnosticSource(IXamlDiagnosticSource xamlDiagnosticSource, TextDocument document) : IDiagnosticSource
 {
+    bool IDiagnosticSource.IsLiveSource() => true;
     Project IDiagnosticSource.GetProject() => document.Project;
     ProjectOrDocumentId IDiagnosticSource.GetId() => new(document.Id);
-
     TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => new() { Uri = document.GetURI() };
     string IDiagnosticSource.ToDisplayString() => $"{this.GetType().Name}: {document.FilePath ?? document.Name} in {document.Project.Name}";
-    bool IDiagnosticSource.IsLiveSource() => true;
 
     async Task<ImmutableArray<DiagnosticData>> IDiagnosticSource.GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
     {

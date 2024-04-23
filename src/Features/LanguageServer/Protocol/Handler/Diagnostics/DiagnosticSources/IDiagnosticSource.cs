@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 /// Wrapper around a source for diagnostics (e.g. a <see cref="Project"/> or <see cref="Document"/>)
 /// so that we can share per file diagnostic reporting code in <see cref="AbstractPullDiagnosticHandler{TDiagnosticsParams, TReport, TReturn}"/>
 /// </summary>
-internal interface IDiagnosticSource // we'll need one for XHR errors
+internal interface IDiagnosticSource
 {
     Project GetProject();
     ProjectOrDocumentId GetId();

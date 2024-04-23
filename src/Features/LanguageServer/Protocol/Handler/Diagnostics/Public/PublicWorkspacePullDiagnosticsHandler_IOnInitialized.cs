@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
                 {
                     Registrations = sources.Select(FromSourceName).ToArray()
                 };
-                //regParams.Registrations = []; // DISABLE FOR NOW; VS Code does not support workspace diagnostics
                 await _clientLanguageServerManager.SendRequestAsync(
                     methodName: Methods.ClientRegisterCapabilityName,
                     @params: regParams,

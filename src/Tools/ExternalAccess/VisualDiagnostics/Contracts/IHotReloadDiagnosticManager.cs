@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
         ImmutableArray<IHotReloadDiagnosticSource> Sources { get; }
 
         /// <summary>
-        /// Registers source of hot reload diagnostics.
+        /// Registers source of hot reload diagnostics. Callers are responsible for refreshing diagnostics after registration.
         /// </summary>
         void Register(IHotReloadDiagnosticSource source);
 
         /// <summary>
-        /// Unregisters source of hot reload diagnostics.
+        /// Unregisters source of hot reload diagnostics. Callers are responsible for refreshing diagnostics after un-registration.
         /// </summary>
         void Unregister(IHotReloadDiagnosticSource source);
 

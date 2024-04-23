@@ -10,18 +10,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
-[ExportDiagnosticSourceProvider, Shared]
+[Export(typeof(IDiagnosticSourceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class XamlDiagnosticSourceProvider([Import(AllowDefault = true)] IXamlDiagnosticSource? xamlDiagnosticSource) : IDiagnosticSourceProvider
 {
     bool IDiagnosticSourceProvider.IsDocument => true;
 
-    string IDiagnosticSourceProvider.Name => "XamlDiagnosticSource";
+    string IDiagnosticSourceProvider.Name => "XamlDiagnostics";
 
     ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {

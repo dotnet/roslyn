@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
 {
-    internal class HotReloadDocumentDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> errors)
+    internal class HotReloadDocumentDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
         public DocumentId DocumentId => documentId;
-        public ImmutableArray<Diagnostic> Errors => errors;
+        public ImmutableArray<Diagnostic> Diagnostics => diagnostics;
     }
 }

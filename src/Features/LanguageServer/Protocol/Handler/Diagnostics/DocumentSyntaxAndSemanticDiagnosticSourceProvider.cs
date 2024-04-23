@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -34,7 +33,7 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
         return new([source]);
     }
 
-    [ExportDiagnosticSourceProvider, Shared]
+    [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class DocumentCompilerSyntaxDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
@@ -43,7 +42,7 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     {
     }
 
-    [ExportDiagnosticSourceProvider, Shared]
+    [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class DocumentCompilerSemanticDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
@@ -52,7 +51,7 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     {
     }
 
-    [ExportDiagnosticSourceProvider, Shared]
+    [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class DocumentAnalyzerSyntaxDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
@@ -61,7 +60,7 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
     {
     }
 
-    [ExportDiagnosticSourceProvider, Shared]
+    [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class DocumentAnalyzerSemanticDiagnosticSourceProvider([Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)

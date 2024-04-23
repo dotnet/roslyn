@@ -1,8 +1,8 @@
 const Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.AbstractHotReloadDiagnosticSourceProvider.SourceName = "HotReloadDiagnostic" -> string!
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadDocumentDiagnostics
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadDocumentDiagnostics.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadDocumentDiagnostics.DocumentId.get -> Microsoft.CodeAnalysis.DocumentId!
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadDocumentDiagnostics.Errors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadDocumentDiagnostics.HotReloadDocumentDiagnostics(Microsoft.CodeAnalysis.DocumentId! documentId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> errors) -> void
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.HotReloadDocumentDiagnostics.HotReloadDocumentDiagnostics(Microsoft.CodeAnalysis.DocumentId! documentId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!> diagnostics) -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IHotReloadDiagnosticManager
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IHotReloadDiagnosticManager.Refresh() -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IHotReloadDiagnosticManager.Register(Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IHotReloadDiagnosticSource! source) -> void

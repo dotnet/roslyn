@@ -25,15 +25,9 @@ internal sealed class HotReloadDiagnosticManager(IDiagnosticsRefresher diagnosti
     {
         // We use array instead of e.g. HashSet because we expect the number of sources to be small. Usually 1.
         if (!_sources.Contains(source))
-        {
             _sources = _sources.Add(source);
-        }
     }
 
     void IHotReloadDiagnosticManager.Unregister(IHotReloadDiagnosticSource source)
-    {
-        // We use array instead of e.g. HashSet because we expect the number of sources to be small. Usually 1.
-        _sources = _sources.Remove(source);
-        diagnosticsRefresher.RequestWorkspaceRefresh();
-    }
+        => _sources = _sources.Remove(source);
 }

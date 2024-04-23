@@ -71,4 +71,3 @@ internal abstract class AbstractWorkspaceDiagnosticSourceProvider(string name) :
         return document.IsRazorDocument();
     }
 }
-
