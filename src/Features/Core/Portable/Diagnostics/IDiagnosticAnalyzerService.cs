@@ -69,11 +69,9 @@ internal interface IDiagnosticAnalyzerService
     Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Get diagnostics of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned
-    /// should be up-to-date with respect to the given solution. Note that for project case, this method returns
-    /// diagnostics from all project documents as well. Use <see cref="GetProjectDiagnosticsForIdsAsync(Solution,
-    /// ProjectId?, ImmutableHashSet{string}?, Func{DiagnosticAnalyzer, bool}?, bool, bool, CancellationToken)"/> if you
-    /// want to fetch only project diagnostics without source locations.
+    /// Get diagnostics of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
+    /// Note that for project case, this method returns diagnostics from all project documents as well. Use <see cref="GetProjectDiagnosticsForIdsAsync(Solution, ProjectId?, ImmutableHashSet{string}?, Func{DiagnosticAnalyzer, bool}?, bool, bool, CancellationToken)"/>
+    /// if you want to fetch only project diagnostics without source locations.
     /// </summary>
     /// <param name="solution">Solution to fetch the diagnostics for.</param>
     /// <param name="projectId">Optional project to scope the returned diagnostics.</param>
@@ -82,25 +80,22 @@ internal interface IDiagnosticAnalyzerService
     /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
     /// <param name="includeSuppressedDiagnostics">Indicates if diagnostics suppressed in source via pragmas and SuppressMessageAttributes should be returned.</param>
     /// <param name="includeLocalDocumentDiagnostics">
-    /// Indicates if local document diagnostics must be returned. Local diagnostics are the ones that are reported by
-    /// analyzers on the same file for which the callback was received and hence can be computed by analyzing a single
-    /// file in isolation.
+    /// Indicates if local document diagnostics must be returned.
+    /// Local diagnostics are the ones that are reported by analyzers on the same file for which the callback was received
+    /// and hence can be computed by analyzing a single file in isolation.
     /// </param>
     /// <param name="includeNonLocalDocumentDiagnostics">
-    /// Indicates if non-local document diagnostics must be returned. Non-local diagnostics are the ones reported by
-    /// analyzers either at compilation end callback OR in a different file from which the callback was made. Entire
-    /// project must be analyzed to get the complete set of non-local document diagnostics.
+    /// Indicates if non-local document diagnostics must be returned.
+    /// Non-local diagnostics are the ones reported by analyzers either at compilation end callback OR
+    /// in a different file from which the callback was made. Entire project must be analyzed to get the
+    /// complete set of non-local document diagnostics.
     /// </param>
-    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds,
-        Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, DiagnosticKind diagnosticKind,
-        bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
-    /// the given solution. all diagnostics returned should be up-to-date with respect to the given solution. Note that
-    /// this method doesn't return any document diagnostics. Use <see cref="GetDiagnosticsForIdsAsync"/> to also fetch
-    /// those.
+    /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
+    /// Note that this method doesn't return any document diagnostics. Use <see cref="GetDiagnosticsForIdsAsync(Solution, ProjectId, DocumentId, ImmutableHashSet{string}, Func{DiagnosticAnalyzer, bool}?, bool, bool, bool, CancellationToken)"/> to also fetch those.
     /// </summary>
     /// <param name="solution">Solution to fetch the diagnostics for.</param>
     /// <param name="projectId">Optional project to scope the returned diagnostics.</param>
@@ -108,10 +103,11 @@ internal interface IDiagnosticAnalyzerService
     /// <param name="shouldIncludeAnalyzer">Option callback to filter out analyzers to execute for computing diagnostics.</param>
     /// <param name="includeSuppressedDiagnostics">Indicates if diagnostics suppressed in source via SuppressMessageAttributes should be returned.</param>
     /// <param name="includeNonLocalDocumentDiagnostics">
-    /// Indicates if non-local document diagnostics must be returned. Non-local diagnostics are the ones reported by
-    /// analyzers either at compilation end callback. Entire project must be analyzed to get the complete set of
-    /// non-local diagnostics.
+    /// Indicates if non-local document diagnostics must be returned.
+    /// Non-local diagnostics are the ones reported by analyzers either at compilation end callback.
+    /// Entire project must be analyzed to get the complete set of non-local diagnostics.
     /// </param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>

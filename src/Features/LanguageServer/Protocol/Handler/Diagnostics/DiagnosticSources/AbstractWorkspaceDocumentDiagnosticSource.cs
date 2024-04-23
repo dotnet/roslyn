@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument document) : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
-    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, DiagnosticKind diagnosticKind, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
-        => new FullSolutionAnalysisDiagnosticSource(document, diagnosticKind, shouldIncludeAnalyzer);
+    public static AbstractWorkspaceDocumentDiagnosticSource CreateForFullSolutionAnalysisDiagnostics(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+        => new FullSolutionAnalysisDiagnosticSource(document, shouldIncludeAnalyzer);
 
     public static AbstractWorkspaceDocumentDiagnosticSource CreateForCodeAnalysisDiagnostics(TextDocument document, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         => new CodeAnalysisDiagnosticSource(document, codeAnalysisService);
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, DiagnosticKind diagnosticKind, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
+    private sealed class FullSolutionAnalysisDiagnosticSource(TextDocument document, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
         /// <summary>
@@ -35,8 +35,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             if (Document is SourceGeneratedDocument sourceGeneratedDocument)
             {
                 // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
-                var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
-                    sourceGeneratedDocument, range: null, diagnosticKind, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(sourceGeneratedDocument, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return documentDiagnostics;
             }
             else
@@ -46,8 +45,8 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
                 // However we can include them as a part of workspace pull when FSA is on.
                 var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
                     Document.Project.Solution, Document.Project.Id, Document.Id,
-                    diagnosticIds: null, shouldIncludeAnalyzer, diagnosticKind,
-                    includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                    diagnosticIds: null, shouldIncludeAnalyzer, includeSuppressedDiagnostics: false,
+                    includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
                 return documentDiagnostics;
             }
         }

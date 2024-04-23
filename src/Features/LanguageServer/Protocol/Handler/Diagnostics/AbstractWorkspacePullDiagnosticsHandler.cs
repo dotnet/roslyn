@@ -78,7 +78,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 
         // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
         if (category == null || category == PullDiagnosticCategories.WorkspaceDocumentsAndProject)
-            return await GetDiagnosticSourcesAsync(context, GlobalOptions, category, cancellationToken).ConfigureAwait(false);
+            return await GetDiagnosticSourcesAsync(context, GlobalOptions, cancellationToken).ConfigureAwait(false);
 
         // if it's a category we don't recognize, return nothing.
         return [];
@@ -158,24 +158,9 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     /// we have no workspace diagnostics to report and bail out.
     /// </summary>
     public static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
-        RequestContext context, IGlobalOptionService globalOptions, string category, CancellationToken cancellationToken)
+        RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
-
-        var diagnosticKind = category switch
-        {
-            PullDiagnosticCategories.DocumentCompilerSyntax => DiagnosticKind.CompilerSyntax,
-            PullDiagnosticCategories.DocumentCompilerSemantic => DiagnosticKind.CompilerSemantic,
-            PullDiagnosticCategories.DocumentAnalyzerSyntax => DiagnosticKind.AnalyzerSyntax,
-            PullDiagnosticCategories.DocumentAnalyzerSemantic => DiagnosticKind.AnalyzerSemantic,
-            // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
-            null => DiagnosticKind.All,
-            // if it's a category we don't recognize, return nothing.
-            _ => (DiagnosticKind?)null,
-        };
-
-        if (diagnosticKind is null)
-            return [];
 
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
 
@@ -220,7 +205,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
                     {
                         // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
                         var documentDiagnosticSource = fullSolutionAnalysisEnabled
-                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, diagnosticKind.Value, shouldIncludeAnalyzer)
+                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, shouldIncludeAnalyzer)
                             : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
                         result.Add(documentDiagnosticSource);
                     }
