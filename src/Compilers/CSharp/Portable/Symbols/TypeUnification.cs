@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(extension is not null);
             Debug.Assert(type is not null);
+            map = null;
 
             if (type.IsErrorType())
             {
-                map = null;
                 return false;
             }
 
@@ -64,14 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (SourceExtensionTypeSymbol.CheckUnderspecifiedGenericExtension(extensionUnderlyingType, extension.TypeParameters,
                     BindingDiagnosticBag.Discarded, Location.None, extension))
             {
-                map = null;
                 return false;
             }
 
             // PROTOTYPE we'll want to adjust the handling for differences that aren't relevant to the CLR, such as object/dynamic
             if (TypeSymbol.Equals(extensionUnderlyingType, type, TypeCompareKind.CLRSignatureCompareOptions))
             {
-                map = null;
                 return true;
             }
 
@@ -79,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool result = CanUnifyHelper(extensionUnderlyingType, type, onlySubstituteInLHS: true, ref substitution);
             if (!result)
             {
-                map = null;
                 return false;
             }
 
@@ -99,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We cannot allow any of the type parameters of the extension's containing type to be substituted
             if (hasSubstitutionForContainingTypeTypeParameter(extension.ContainingType, substitution))
             {
-                map = null;
                 return false;
             }
 
