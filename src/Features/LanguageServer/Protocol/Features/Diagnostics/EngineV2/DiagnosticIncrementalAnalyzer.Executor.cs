@@ -26,86 +26,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
             CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
+            // Compute the diagnostic data for all the requested state sets for this particular project.
+            var projectAnalysisData = await GetProjectAnalysisDataWorkerAsync().ConfigureAwait(false);
+
+            // Now, save all that data to the in-memory storage, so it can be retrieved later when making requests for
+            // other documents within the same project.
+            await SaveAllStatesToInMemoryStorageAsync().ConfigureAwait(false);
+
+            return projectAnalysisData;
+
+            async Task SaveAllStatesToInMemoryStorageAsync()
             {
-                try
+                foreach (var stateSet in stateSets)
                 {
-                    // PERF: We need to flip this to false when we do actual diffing.
-                    var avoidLoadingData = true;
-                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var state = stateSet.GetOrCreateProjectState(project.Id);
 
-                    // We can't return here if we have open file only analyzers since saved data for open file only analyzer
-                    // is incomplete -- it only contains info on open files rather than whole project.
-                    if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, ideOptions.CleanupOptions?.SimplifierOptions))
-                    {
-                        return existingData;
-                    }
-
-                        // We are forcing full solution analysis for all diagnostics.
-                     var   fullAnalysisEnabled = true;
-                        var compilerFullAnalysisEnabled = true;
-                        var analyzersFullAnalysisEnabled = true;
-
-                    if (!fullAnalysisEnabled)
-                    {
-                        Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
-
-                        // If we are producing document diagnostics for some other document in this project, we still want to show
-                        // certain project-level diagnostics that would cause file-level diagnostics to be broken. We will only do this though if
-                        // some file that's open is depending on this project though -- that way we're going to only be analyzing projects
-                        // that have already had compilations produced for.
-                        var shouldProduceOutput = false;
-
-                        var projectDependencyGraph = project.Solution.GetProjectDependencyGraph();
-
-                        foreach (var openDocumentId in project.Solution.Workspace.GetOpenDocumentIds())
-                        {
-                            if (openDocumentId.ProjectId == project.Id || projectDependencyGraph.DoesProjectTransitivelyDependOnProject(openDocumentId.ProjectId, project.Id))
-                            {
-                                shouldProduceOutput = true;
-                                break;
-                            }
-                        }
-
-                        var results = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
-
-                        if (shouldProduceOutput)
-                        {
-                            (results, _) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(
-                                results,
-                                project,
-                                version,
-                                cancellationToken).ConfigureAwait(false);
-                        }
-
-                        return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, results);
-                    }
-
-                    // Reduce the state sets to analyze based on individual full solution analysis values
-                    // for compiler diagnostics and analyzers.
-                    if (!compilerFullAnalysisEnabled)
-                    {
-                        Debug.Assert(analyzersFullAnalysisEnabled);
-                        stateSets = stateSets.WhereAsArray(s => !s.Analyzer.IsCompilerAnalyzer());
-                    }
-                    else if (!analyzersFullAnalysisEnabled)
-                    {
-                        stateSets = stateSets.WhereAsArray(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer());
-                    }
-
-                    var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideOptions, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
-
-                    // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
-                    // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
-                    // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
-                    result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
-
-                    return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
+                    if (projectAnalysisData.TryGetResult(stateSet.Analyzer, out var analyzerResult))
+                        await state.SaveToInMemoryStorageAsync(project, analyzerResult).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            }
+
+            async Task<ProjectAnalysisData> GetProjectAnalysisDataWorkerAsync()
+            {
+                using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    try
+                    {
+                        // PERF: We need to flip this to false when we do actual diffing.
+                        var avoidLoadingData = true;
+                        var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                        var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+
+                        // We can't return here if we have open file only analyzers since saved data for open file only analyzer
+                        // is incomplete -- it only contains info on open files rather than whole project.
+                        if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, ideOptions.CleanupOptions?.SimplifierOptions))
+                            return existingData;
+
+                        var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideOptions, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
+
+                        // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
+                        // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
+                        // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
+                        result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
+
+                        return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
                 }
             }
         }
@@ -174,8 +143,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (compilationWithAnalyzers?.Analyzers.Length > 0)
                 {
                     // calculate regular diagnostic analyzers diagnostics
-                    var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(project, compilationWithAnalyzers,
-                        logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
+                    var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(
+                        project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
 
                     result = resultMap.AnalysisResult;
 
@@ -220,12 +189,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
                             cancellationToken).ConfigureAwait(false);
 
-                    var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, cancellationToken).ConfigureAwait(false);
                     return MergeExistingDiagnostics(version, existing, result);
                 }
 
                 // we couldn't reduce the set.
-                return await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);
+                return await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideAnalyzers, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

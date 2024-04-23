@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
-                var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, forceAnalyzerRun: true, cancellationToken).ConfigureAwait(false);
+                var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, cancellationToken).ConfigureAwait(false);
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
 
@@ -52,25 +52,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         diagnostics.AddRange(analyzerResult.GetAllDiagnostics());
                 }
 
-                await SaveAllStatesToInMemoryStorageAsync(project, result, stateSets).ConfigureAwait(false);
-
                 return diagnostics.ToImmutableAndClear();
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        private static async Task SaveAllStatesToInMemoryStorageAsync(
-            Project project, ProjectAnalysisData analysisData, ImmutableArray<StateSet> stateSets)
-        {
-            foreach (var stateSet in stateSets)
-            {
-                var state = stateSet.GetOrCreateProjectState(project.Id);
-
-                if (analysisData.TryGetResult(stateSet.Analyzer, out var analyzerResult))
-                    await state.SaveToInMemoryStorageAsync(project, analyzerResult).ConfigureAwait(false);
             }
         }
 
