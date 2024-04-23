@@ -49,7 +49,7 @@
     </ItemGroup>
   </Target>
   
-  <Target Name="GenerateFilteredReferenceAssemblies" BeforeTargets="CoreCompile" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
+  <Target Name="GenerateFilteredReferenceAssemblies" Condition="Exists('$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll')" BeforeTargets="CoreCompile" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
 
     <MakeDir Directories="$(_OutputDir)" />
     <Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask References="@(_InputReference)" ApiSets="@(ApiSet)" OutputDir="$(_OutputDir)" />
