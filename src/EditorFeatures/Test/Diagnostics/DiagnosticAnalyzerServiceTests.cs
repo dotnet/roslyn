@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
                 workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: _ => true,
-                includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
+                includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
             Assert.NotEmpty(diagnostics);
         }
 
