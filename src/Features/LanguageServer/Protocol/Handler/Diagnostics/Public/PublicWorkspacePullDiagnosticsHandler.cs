@@ -36,7 +36,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
         _clientLanguageServerManager = clientLanguageServerManager;
     }
 
-    protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams) 
+    protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)

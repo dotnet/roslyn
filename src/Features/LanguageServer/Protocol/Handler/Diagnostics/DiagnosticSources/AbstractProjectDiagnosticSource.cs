@@ -33,7 +33,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             : null;
     public string ToDisplayString() => Project.Name;
 
-    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer) 
+    private sealed class FullSolutionAnalysisDiagnosticSource(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer)
         : AbstractProjectDiagnosticSource(project)
     {
         /// <summary>
@@ -55,7 +55,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
         }
     }
 
-    private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService) 
+    private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         : AbstractProjectDiagnosticSource(project)
     {
         /// <summary>

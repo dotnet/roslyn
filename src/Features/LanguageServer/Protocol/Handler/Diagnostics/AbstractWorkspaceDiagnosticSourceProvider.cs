@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractWorkspaceDiagnosticSourceProvider(string name) : IDiagnosticSourceProvider
