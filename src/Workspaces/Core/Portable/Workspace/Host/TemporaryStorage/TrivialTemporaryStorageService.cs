@@ -17,8 +17,6 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
 {
     public static readonly TrivialTemporaryStorageService Instance = new();
 
-    private static readonly ConditionalWeakTable<TemporaryStorageIdentifier, StreamStorage> s_streamStorage = new();
-
     private TrivialTemporaryStorageService()
     {
     }
@@ -26,24 +24,24 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
     public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
         => new TextStorage();
 
-    public TemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
+    public ITemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
         stream.Position = 0;
         var storage = new StreamStorage();
         storage.WriteStream(stream);
         var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), Offset: 0, Size: stream.Length);
-        var handle = new TemporaryStorageHandle(memoryMappedFile: null, identifier);
-        s_streamStorage.Add(identifier, storage);
+        var handle = new TrivialStorageHandle(identifier, storage);
         return handle;
     }
 
-    public Stream ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken)
+    private sealed class TrivialStorageHandle(
+        TemporaryStorageIdentifier storageIdentifier,
+        StreamStorage streamStorage) : ITemporaryStorageHandle
     {
-        Contract.ThrowIfFalse(
-            s_streamStorage.TryGetValue(storageIdentifier, out var streamStorage),
-            "StorageIdentifier was not created by this storage service!");
+        public TemporaryStorageIdentifier Identifier => storageIdentifier;
 
-        return streamStorage.ReadStream();
+        public Stream ReadFromTemporaryStorage(CancellationToken cancellationToken)
+            => streamStorage.ReadStream();
     }
 
     private sealed class StreamStorage
