@@ -37,8 +37,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// </summary>
     protected const int WorkspaceDiagnosticIdentifier = 1;
     protected const int DocumentDiagnosticIdentifier = 2;
-    // internal for testing purposes
-    internal const int DocumentNonLocalDiagnosticIdentifier = 3;
 
     private readonly IDiagnosticsRefresher _diagnosticRefresher;
     protected readonly IGlobalOptionService GlobalOptions;
