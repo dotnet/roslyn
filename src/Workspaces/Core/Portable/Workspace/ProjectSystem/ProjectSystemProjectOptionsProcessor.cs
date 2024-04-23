@@ -39,7 +39,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     /// (especially in cases with many references).
     /// </summary>
     /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
-    private TemporaryStorageHandle? _commandLineStorageHandle;
+    private ITemporaryStorageHandle? _commandLineStorageHandle;
 
     private CommandLineArguments _commandLineArgumentsForCommandLine;
     private string? _explicitRuleSetFilePath;
@@ -247,7 +247,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // includes in the IDE so we can be watching for changes again.
             var commandLine = _commandLineStorageHandle == null
                 ? ImmutableArray<string>.Empty
-                : EnumerateLines(_temporaryStorageService, _commandLineStorageHandle.Identifier).ToImmutableArray();
+                : EnumerateLines(_commandLineStorageHandle).ToImmutableArray();
 
             DisposeOfRuleSetFile_NoLock();
             ReparseCommandLine_NoLock(commandLine);
@@ -255,10 +255,9 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         }
 
         static IEnumerable<string> EnumerateLines(
-            ITemporaryStorageServiceInternal temporaryStorageService,
-            TemporaryStorageIdentifier storageIdentifier)
+            ITemporaryStorageHandle storageHandle)
         {
-            using var stream = temporaryStorageService.ReadFromTemporaryStorageService(storageIdentifier, CancellationToken.None);
+            using var stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
             using var reader = new StreamReader(stream);
 
             while (reader.ReadLine() is string line)

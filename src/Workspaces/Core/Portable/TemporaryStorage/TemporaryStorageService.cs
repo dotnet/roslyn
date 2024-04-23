@@ -101,28 +101,22 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
         => new(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
 
+    ITemporaryStorageHandle ITemporaryStorageServiceInternal.WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
+        => WriteToTemporaryStorage(stream, cancellationToken);
+
     public TemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
         stream.Position = 0;
         var storage = new TemporaryStreamStorage(this);
         storage.WriteStream(stream, cancellationToken);
         var identifier = new TemporaryStorageIdentifier(storage.Name, storage.Offset, storage.Size);
-        return new(storage.MemoryMappedInfo.MemoryMappedFile, identifier);
-    }
-
-    Stream ITemporaryStorageServiceInternal.ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken)
-        => ReadFromTemporaryStorageService(storageIdentifier, cancellationToken);
-
-    public UnmanagedMemoryStream ReadFromTemporaryStorageService(TemporaryStorageIdentifier storageIdentifier, CancellationToken cancellationToken)
-    {
-        var storage = new TemporaryStreamStorage(this, storageIdentifier.Name, storageIdentifier.Offset, storageIdentifier.Size);
-        return storage.ReadStream(cancellationToken);
+        return new(this, storage.MemoryMappedInfo.MemoryMappedFile, identifier);
     }
 
     internal TemporaryStorageHandle GetHandle(TemporaryStorageIdentifier storageIdentifier)
     {
-        var storage = new TemporaryStreamStorage(this, storageIdentifier.Name, storageIdentifier.Offset, storageIdentifier.Size);
-        return new(storage.MemoryMappedInfo.MemoryMappedFile, storageIdentifier);
+        var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
+        return new(this, memoryMappedFile, storageIdentifier);
     }
 
     /// <summary>
@@ -169,6 +163,22 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     public static string CreateUniqueName(long size)
         => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
+
+    public sealed class TemporaryStorageHandle(
+        TemporaryStorageService storageService, MemoryMappedFile memoryMappedFile, TemporaryStorageIdentifier identifier) : ITemporaryStorageHandle
+    {
+        public TemporaryStorageIdentifier Identifier => identifier;
+
+        Stream ITemporaryStorageHandle.ReadFromTemporaryStorage(CancellationToken cancellationToken)
+            => ReadFromTemporaryStorage(cancellationToken);
+
+        public UnmanagedMemoryStream ReadFromTemporaryStorage(CancellationToken cancellationToken)
+        {
+            var storage = new TemporaryStreamStorage(
+                storageService, memoryMappedFile, this.Identifier.Name, this.Identifier.Offset, this.Identifier.Size);
+            return storage.ReadStream(cancellationToken);
+        }
+    }
 
     public sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryStorageWithName
     {
@@ -316,10 +326,11 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         public TemporaryStreamStorage(TemporaryStorageService service)
             => _service = service;
 
-        public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long offset, long size)
+        public TemporaryStreamStorage(
+            TemporaryStorageService service, MemoryMappedFile file, string storageName, long offset, long size)
         {
             _service = service;
-            _memoryMappedInfo = MemoryMappedInfo.OpenExisting(storageName, offset, size);
+            _memoryMappedInfo = new MemoryMappedInfo(file, storageName, offset, size);
         }
 
         public MemoryMappedInfo MemoryMappedInfo => _memoryMappedInfo ?? throw new InvalidOperationException();

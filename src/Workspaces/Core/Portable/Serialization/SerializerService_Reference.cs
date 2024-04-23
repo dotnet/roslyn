@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
+using static TemporaryStorageService;
+
 internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
@@ -307,7 +309,7 @@ internal partial class SerializerService
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
         PortableExecutableReference reference,
-        IReadOnlyList<TemporaryStorageHandle> handles,
+        IReadOnlyList<ITemporaryStorageHandle> handles,
         ObjectWriter writer,
         CancellationToken cancellationToken)
     {
@@ -401,7 +403,7 @@ internal partial class SerializerService
             // Now read in the module data using that identifier.  This will either be reading from the host's memory if
             // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
             // sent us the full contents.
-            var unmanagedStream = _storageService.ReadFromTemporaryStorageService(storageHandle.Identifier, cancellationToken);
+            var unmanagedStream = storageHandle.ReadFromTemporaryStorage(cancellationToken);
             Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
 
             // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
@@ -500,7 +502,7 @@ internal partial class SerializerService
         private readonly ImmutableArray<TemporaryStorageHandle> _storageHandles;
         private readonly DocumentationProvider _provider;
 
-        public IReadOnlyList<TemporaryStorageHandle> StorageHandles => _storageHandles;
+        public IReadOnlyList<ITemporaryStorageHandle> StorageHandles => _storageHandles;
 
         public SerializedMetadataReference(
             MetadataReferenceProperties properties,
