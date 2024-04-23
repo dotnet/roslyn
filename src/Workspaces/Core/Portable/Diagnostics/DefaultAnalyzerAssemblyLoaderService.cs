@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Host;
 internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new DefaultAnalyzerAssemblyLoaderProvider(workspaceServices.Workspace.Kind ?? "default", [ .. externalResolvers]);
+        => new DefaultAnalyzerAssemblyLoaderProvider(workspaceServices.Workspace.Kind ?? "default", [.. externalResolvers]);
 
     private sealed class DefaultAnalyzerAssemblyLoaderProvider(string workspaceKind, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers) : IAnalyzerAssemblyLoaderProvider
     {
@@ -28,7 +28,7 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory([ImportMany] I
         /// We include the <see cref="WorkspaceKind"/> of the workspace in the path we produce.  That way we don't
         /// collide in the common case of a normal host workspace and OOP workspace running together.  This avoids an
         /// annoying exception as each will try to clean up this directory, throwing exceptions because the other is
-        /// locking it.  The exception is fine, since the cleanup is just hygenic and isn't intended to be needed for
+        /// locking it.  The exception is fine, since the cleanup is just hygienic and isn't intended to be needed for
         /// correctness.  But it is annoying and does cause noise in our perf test harness.
         /// </summary>
         private readonly IAnalyzerAssemblyLoader _shadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
