@@ -27,7 +27,7 @@ internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer<TSyntaxK
        nameof(AnalyzersResources.Use_interpolated_string), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
     private static readonly LocalizableResourceString s_localizableStringCanBeConvertedToInterpolatedString = new(
-       nameof(AnalyzersResources.Use_interpolated_string), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+       nameof(AnalyzersResources.String_can_be_converted_to_interpolated_string), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
     private static DiagnosticDescriptor CreateDescriptor()
         => CreateDescriptorWithId(
