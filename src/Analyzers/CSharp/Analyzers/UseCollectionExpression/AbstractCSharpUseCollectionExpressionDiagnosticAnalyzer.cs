@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -26,14 +25,14 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
     protected readonly DiagnosticDescriptor UnnecessaryCodeDescriptor;
 
     protected AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
-        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-            // Ugly hack.  We need to create a descriptor to pass to our base *and* assign to one of our fields.
-            // The conditional pattern form lets us do that.
-            .Add(CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: false) is var descriptor ? descriptor : null, CodeStyleOptions2.PreferCollectionExpression)
-            .Add(CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: true) is var unnecessaryCodeDescriptor ? unnecessaryCodeDescriptor : null, CodeStyleOptions2.PreferCollectionExpression))
+        : base(
+            [
+                (CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: false), CodeStyleOptions2.PreferCollectionExpression),
+                (CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: true), CodeStyleOptions2.PreferCollectionExpression)
+            ])
     {
-        Descriptor = descriptor;
-        UnnecessaryCodeDescriptor = unnecessaryCodeDescriptor;
+        Descriptor = SupportedDiagnostics[0];
+        UnnecessaryCodeDescriptor = SupportedDiagnostics[1];
     }
 
     private static DiagnosticDescriptor CreateDescriptor(string diagnosticId, EnforceOnBuild enforceOnBuild, bool isUnnecessary)

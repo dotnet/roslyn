@@ -4,19 +4,16 @@
 
 // #define LOG
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -64,15 +61,17 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
         isUnnecessary: true);
 
     protected SimplifyTypeNamesDiagnosticAnalyzerBase()
-        : base(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>>.Empty
-              .Add(s_descriptorSimplifyNames, [])
-              .Add(s_descriptorSimplifyMemberAccess, [])
-              .Add(s_descriptorPreferBuiltinOrFrameworkType,
+        : base(
+            [
+              (s_descriptorSimplifyNames, []),
+              (s_descriptorSimplifyMemberAccess, []),
+              (s_descriptorPreferBuiltinOrFrameworkType,
               [
                   CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
                   CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
-              ]),
-              fadingOption: null)
+              ])
+            ],
+            fadingOption: null)
     {
     }
 
