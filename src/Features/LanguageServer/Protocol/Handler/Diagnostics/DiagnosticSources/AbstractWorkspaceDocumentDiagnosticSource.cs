@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,7 +76,10 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
                     _ => AsyncLazy.Create<IReadOnlyList<DiagnosticData>>(
                         async cancellationToken => await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
                             Document.Project.Solution, Document.Project.Id, documentId: null,
-                            diagnosticIds: null, shouldIncludeAnalyzer, includeSuppressedDiagnostics: false,
+                            diagnosticIds: null, shouldIncludeAnalyzer,
+                            // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this project.
+                            static (project, _) => [.. project.DocumentIds.Concat(project.AdditionalDocumentIds)],
+                            includeSuppressedDiagnostics: false,
                             includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false)));
             }
         }
