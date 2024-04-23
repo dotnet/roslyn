@@ -38,10 +38,10 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
 
     public MisplacedUsingDirectivesDiagnosticAnalyzer()
        : base(
-           [
+            [
                 (s_outsideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement),
                 (s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement)
-           ])
+            ])
     {
     }
 
