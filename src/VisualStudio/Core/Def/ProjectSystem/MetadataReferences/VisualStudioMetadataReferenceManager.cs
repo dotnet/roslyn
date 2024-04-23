@@ -303,11 +303,10 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         FileKey fileKey,
         Func<FileKey, (ModuleMetadata moduleMetadata, TemporaryStorageHandle? storageHandle)> moduleMetadataFactory)
     {
-        using var _1 = ArrayBuilder<TemporaryStorageHandle?>.GetInstance(out var storageHandles);
-        var (manifestModule, storageHandle) = moduleMetadataFactory(fileKey);
-        storageHandles.Add(storageHandle);
+        var (manifestModule, manifestHandle) = moduleMetadataFactory(fileKey);
 
-        using var _2 = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
+        using var _1 = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
+        using var _2 = ArrayBuilder<TemporaryStorageHandle?>.GetInstance(out var storageHandles);
 
         string? assemblyDir = null;
         foreach (var moduleName in manifestModule.GetModuleNames())
@@ -327,14 +326,18 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
 
         if (moduleBuilder.Count == 0)
+        {
             moduleBuilder.Add(manifestModule);
+            storageHandles.Add(manifestHandle);
+        }
 
         var result = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
 
         // If we got any null handles, then we weren't able to map this whole assembly into memory mapped files. So we
         // can't use those to transfer over the data efficiently to the OOP process.  In that case, we don't store the
         // handles at all.
-        if (storageHandles.Count > 0 && storageHandles.All(h => h != null))
+        Contract.ThrowIfTrue(storageHandles.Count == 0);
+        if (storageHandles.All(h => h != null))
             s_metadataToStorageHandles.Add(result, storageHandles.ToImmutable());
 
         return result;
