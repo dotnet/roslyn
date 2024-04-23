@@ -488,7 +488,18 @@ internal sealed class ProjectStateChecksums(
     }
 
     public override string ToString()
-        => $"ProjectStateChecksums({ProjectId})";
+        => $"""
+            ProjectStateChecksums({ProjectId})
+                Info={Info}
+                CompilationOptions={CompilationOptions}
+                ParseOptions={ParseOptions}
+                ProjectReferences={ProjectReferences.Checksum}
+                MetadataReferences={MetadataReferences.Checksum}
+                AnalyzerReferences={AnalyzerReferences.Checksum}
+                Documents={Documents.Checksum}
+                AdditionalDocuments={AdditionalDocuments.Checksum}
+                AnalyzerConfigDocuments={AnalyzerConfigDocuments.Checksum}
+            """;
 }
 
 internal sealed class DocumentStateChecksums(
