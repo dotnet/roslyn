@@ -71,8 +71,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-            var diagnostics = await analyzer.GetDiagnosticsAsync(
-                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
+            var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
+                workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: _ => true,
+                includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
             Assert.NotEmpty(diagnostics);
         }
 
