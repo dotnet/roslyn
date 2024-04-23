@@ -143,15 +143,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 for (var j = 1; j < 5; j++)
                 {
-                    var storage1 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1), CancellationToken.None);
-                    var storage2 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i), CancellationToken.None);
-                    var storage3 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1), CancellationToken.None);
+                    var handle1 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1), CancellationToken.None);
+                    var handle2 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i), CancellationToken.None);
+                    var handle3 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1), CancellationToken.None);
 
                     await Task.Yield();
 
-                    using var s1 = service.ReadFromTemporaryStorageService(storage1.Identifier, CancellationToken.None);
-                    using var s2 = service.ReadFromTemporaryStorageService(storage2.Identifier, CancellationToken.None);
-                    using var s3 = service.ReadFromTemporaryStorageService(storage3.Identifier, CancellationToken.None);
+                    using var s1 = service.ReadFromTemporaryStorageService(handle1.Identifier, CancellationToken.None);
+                    using var s2 = service.ReadFromTemporaryStorageService(handle2.Identifier, CancellationToken.None);
+                    using var s3 = service.ReadFromTemporaryStorageService(handle3.Identifier, CancellationToken.None);
                     Assert.Equal(1024 * i - 1, s1.Length);
                     Assert.Equal(1024 * i, s2.Length);
                     Assert.Equal(1024 * i + 1, s3.Length);
