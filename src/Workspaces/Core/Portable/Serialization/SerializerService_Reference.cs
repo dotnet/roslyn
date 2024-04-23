@@ -342,10 +342,11 @@ internal partial class SerializerService
         var metadataKind = (MetadataImageKind)imageKind;
         if (metadataKind == MetadataImageKind.Assembly)
         {
-            using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-            using var pooledHandles = Creator.CreateList<TemporaryStorageHandle>();
-
             var count = reader.ReadInt32();
+
+            var allMetadata = new FixedSizeArrayBuilder<ModuleMetadata>(count);
+            var allHandles = new FixedSizeArrayBuilder<TemporaryStorageHandle>(count);
+
             for (var i = 0; i < count; i++)
             {
                 metadataKind = (MetadataImageKind)reader.ReadInt32();
@@ -353,11 +354,11 @@ internal partial class SerializerService
 
                 var (metadata, storageHandle) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
 
-                pooledMetadata.Object.Add(metadata);
-                pooledHandles.Object.Add(storageHandle);
+                allMetadata.Add(metadata);
+                allHandles.Add(storageHandle);
             }
 
-            return (AssemblyMetadata.Create(pooledMetadata.Object), pooledHandles.Object.ToImmutableArrayOrEmpty());
+            return (AssemblyMetadata.Create(allMetadata.MoveToImmutable()), allHandles.MoveToImmutable());
         }
         else
         {
