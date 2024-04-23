@@ -3025,6 +3025,7 @@ implicit extension E<T, U> for C
     public static string f = "hi";
 }
 """;
+        // PROTOTYPE(static) we should fail to bind the extension member
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (5,20): error CS9328: The underlying type 'C' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
@@ -12162,6 +12163,149 @@ implicit extension E<T> for C<T>
     }
 
     [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext()
+    {
+        var src = """
+D<C.Nested<string>>.M();
+
+class D<T> where T : C.Nested<string>
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+
+class C { }
+
+implicit extension E for C
+{
+    public class Nested<U>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "C.Nested<string>").ToArray();
+        Assert.Equal("E.Nested<System.String>", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
+        Assert.Equal("E.Nested<System.String>", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_InvalidGenericExtension()
+    {
+        var src = """
+D<C.Nested<string>>.M();
+
+class D<T> where T : C.Nested<string>
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+
+class C { }
+
+implicit extension E<T> for C
+{
+    public class Nested<U>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE(static) we should fail to bind the extension member
+        comp.VerifyEmitDiagnostics(
+            // (13,20): error CS9328: The underlying type 'C' of implicit extension 'E<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // implicit extension E<T> for C
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T>", "T").WithLocation(13, 20));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "C.Nested<string>").ToArray();
+        Assert.Equal("E<T>.Nested<System.String>", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
+        Assert.Equal("E<T>.Nested<System.String>", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_InvalidGenericExtension_Metadata()
+    {
+        //implicit extension E<T> for object
+        //{
+        //    public class Nested<U>
+        //    {
+        //    }
+        //}
+
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E`1<T>
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+
+    .class nested public auto ansi beforefieldinit Nested`1<T, U>
+        extends [mscorlib]System.Object
+    {
+        .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+        {
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        }
+    }
+}
+""";
+
+        var src = """
+E<int> x = default;
+E<int>.Nested<string> y = default;
+D<System.Object.Nested<string>>.M();
+
+class D<T> where T : System.Object.Nested<string>
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+""";
+        // PROTOTYPE(static) we should fail to bind the extension member
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): warning CS0219: The variable 'x' is assigned but its value is never used
+            // E<int> x = default;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 8),
+            // (2,23): warning CS0219: The variable 'y' is assigned but its value is never used
+            // E<int>.Nested<string> y = default;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(2, 23));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "System.Object.Nested<string>").ToArray();
+        Assert.Equal("E<T>.Nested<System.String>", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
+        Assert.Equal("E<T>.Nested<System.String>", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_MatchingExtendedType_GenericType_GenericMember_OmittedTypeArgument()
     {
         var src = """
@@ -13748,6 +13892,7 @@ implicit extension E<U> for C<U> where U : C<U>.Nested
         var e = comp.GlobalNamespace.GetTypeMember("E");
         var u = e.TypeParameters.Single();
         Assert.Equal("E<U>.Nested", u.ConstraintTypes().Single().ToTestDisplayString());
+        Assert.False(u.ConstraintTypes().Single().IsErrorType());
     }
 
     [Fact]
