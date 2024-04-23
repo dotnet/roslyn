@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, TextDocument document)
     : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
-    public DiagnosticKind DiagnosticKind { get; } = diagnosticKind;
-
     /// <summary>
     /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
     /// </summary>
@@ -30,11 +28,11 @@ internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Te
         // GetDiagnosticsForSpanAsync will only run analyzers against the request document.
         // Also ensure we pass in "includeSuppressedDiagnostics = true" for unnecessary suppressions to be reported.
         var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
-            Document, range: null, diagnosticKind: this.DiagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            Document, range: null, diagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // Add cached Copilot diagnostics when computing analyzer semantic diagnostics.
         // TODO: move to a separate diagnostic source. https://github.com/dotnet/roslyn/issues/72896
-        if (DiagnosticKind == DiagnosticKind.AnalyzerSemantic)
+        if (diagnosticKind == DiagnosticKind.AnalyzerSemantic)
         {
             var copilotDiagnostics = await Document.GetCachedCopilotDiagnosticsAsync(span: null, cancellationToken).ConfigureAwait(false);
             allSpanDiagnostics = allSpanDiagnostics.AddRange(copilotDiagnostics);

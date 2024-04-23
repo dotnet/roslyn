@@ -486,6 +486,9 @@ internal sealed class ProjectStateChecksums(
             await ChecksumCollection.FindAsync(assetPath, state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
         }
     }
+
+    public override string ToString()
+        => $"ProjectStateChecksums({ProjectId})";
 }
 
 internal sealed class DocumentStateChecksums(
@@ -526,6 +529,9 @@ internal sealed class DocumentStateChecksums(
             onAssetFound(Text, text, arg);
         }
     }
+
+    public override string ToString()
+        => $"DocumentStateChecksums({DocumentId})";
 }
 
 /// <summary>
