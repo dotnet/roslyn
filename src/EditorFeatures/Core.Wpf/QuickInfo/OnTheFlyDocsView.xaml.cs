@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -178,8 +179,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// <param name="text">Response text to display.</param>
         public void SetResultText(string text)
         {
-            List<ClassifiedTextRun> runs = new();
-            new ClassifiedRunsToolTipWrapper(runs).WrapAndTruncate(text);
+            List<ClassifiedTextRun> runs = [new ClassifiedTextRun(ClassificationTypeNames.Text, text)];
+            //new ClassifiedRunsToolTipWrapper(runs).WrapAndTruncate(text);
             _responseControl.Content = ToUIElement(
                 new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(runs)));
         }
