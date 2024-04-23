@@ -1450,7 +1450,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static async Task VerifyAssetStorageAsync(InProcRemoteHostClient client, Solution solution)
         {
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(projectConeId: null, CancellationToken.None);
 
             var storage = client.TestData.WorkspaceManager.SolutionAssetCache;
 

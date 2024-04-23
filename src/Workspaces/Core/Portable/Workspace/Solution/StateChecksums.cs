@@ -540,6 +540,9 @@ internal sealed class DocumentStateChecksums(
             onAssetFound(Text, text, arg);
         }
     }
+
+    public override string ToString()
+        => $"DocumentStateChecksums({DocumentId})";
 }
 
 /// <summary>
