@@ -325,7 +325,7 @@
     <ProjectReference Include="..\..\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
       <Name>SemanticSearchRefs</Name>
 
-      <SetTargetFramework>TargetFramework=$(NetRoslyn)</SetTargetFramework>
+      <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 

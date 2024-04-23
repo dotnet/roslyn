@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>$(NetRoslyn)</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
 
     <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_BuildTaskTfm>
     <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_BuildTaskTfm>
@@ -35,7 +35,7 @@
 
     <ItemGroup>
       <_InputReference Include="@(ReferencePath)" 
-                       Condition="'%(ReferencePath.FrameworkReferenceName)' == 'Microsoft.NETCore.App' or 
+                       Condition="'%(ReferencePath.NuGetPackageId)' == 'NETStandard.Library' or 
                                   '%(ReferencePath.FileName)' == 'System.Collections.Immutable' or
                                   '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis' or
                                   '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.CSharp'" />
