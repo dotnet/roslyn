@@ -398,8 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
             // and that span cannot be captured in a returned ref struct
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
-            var canSkipCopyingArgument = !constructMethod.ReturnType.IsRefLikeType || constructMethod.Parameters[0].EffectiveScope == ScopedKind.ScopedValue;
-            BoundExpression span = canSkipCopyingArgument && IsSingleReadOnlySpanSpread(node, elementType, out var spreadExpression)
+            BoundExpression span = IsSingleReadOnlySpanSpread(node, elementType, out var spreadExpression) && (!constructMethod.ReturnType.IsRefLikeType || constructMethod.Parameters[0].EffectiveScope == ScopedKind.ScopedValue)
                 ? spreadExpression
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
