@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,19 +18,17 @@ using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, Re
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
 
-internal sealed partial class PublicDocumentPullDiagnosticsHandler// : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>, IOnInitialized
+internal sealed partial class PublicDocumentPullDiagnosticsHandler : IOnInitialized
 {
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        // Dynamically register a non-local document diagnostic source if Full solution background analysis is enabled
-        // for analyzer execution. This diagnostic source reports diagnostics in open documents that are reported
-        // when analyzing other documents or at compilation end.
-        if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true && IsFsaEnabled())
+        // Dynamically register for all of our document diagnostic sources.
+        if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true)
         {
             // TODO: Hookup an option changed handler for changes to BackgroundAnalysisScopeOption
             //       to dynamically register/unregister the non-local document diagnostic source.
 
-            var sources = _diagnosticSourceManager.GetSourceNames(isDocument: true);
+            var sources = DiagnosticSourceManager.GetSourceNames(isDocument: true).Where(source => source != PullDiagnosticCategories.Task);
             await _clientLanguageServerManager.SendRequestAsync(
                 methodName: Methods.ClientRegisterCapabilityName,
                 @params: new RegistrationParams()
@@ -42,20 +41,9 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler// : AbstractD
         Registration FromSourceName(string sourceName)
             => new()
             {
-                Id = sourceName,
+                Id = Guid.NewGuid().ToString(),
                 Method = Methods.TextDocumentDiagnosticName,
                 RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName }
             };
-
-        bool IsFsaEnabled()
-        {
-            foreach (var language in context.SupportedLanguages)
-            {
-                if (GlobalOptions.GetBackgroundAnalysisScope(language) == BackgroundAnalysisScope.FullSolution)
-                    return true;
-            }
-
-            return false;
-        }
     }
 }

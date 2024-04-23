@@ -21,19 +21,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
                 {
                     Registrations = sources.Select(FromSourceName).ToArray()
                 };
-                regParams.Registrations = []; // DISABLE FOR NOW; VS Code does not support workspace diagnostics
+                //regParams.Registrations = []; // DISABLE FOR NOW; VS Code does not support workspace diagnostics
                 await _clientLanguageServerManager.SendRequestAsync(
                     methodName: Methods.ClientRegisterCapabilityName,
                     @params: regParams,
                     cancellationToken).ConfigureAwait(false);
 
                 Registration FromSourceName(string sourceName)
-                => new()
                 {
-                    Id = sourceName,
-                    Method = Methods.WorkspaceDiagnosticName,
-                    RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName }
-                };
+                    return new()
+                    {
+                        Id = sourceName,
+                        Method = Methods.WorkspaceDiagnosticName,
+                        RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName, InterFileDependencies = true, WorkDoneProgress = true }
+                    };
+                }
             }
 
             bool IsFsaEnabled()

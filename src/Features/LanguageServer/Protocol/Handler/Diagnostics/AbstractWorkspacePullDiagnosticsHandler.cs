@@ -51,10 +51,9 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         _workspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
     }
 
-    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
+    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
     {
-        var sourceName = GetDiagnosticCategory(diagnosticsParams);
-        return _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, sourceName, false, cancellationToken);
+        return _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, requestDiagnosticCategory, false, cancellationToken);
     }
 
     private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)

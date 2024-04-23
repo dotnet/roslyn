@@ -27,6 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSo
         /// <param name="sourceName">Source name.</param>
         /// <param name="isDocument">True for document sources and false for workspace sources.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, string? sourceName, bool isDocument, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, string sourceName, bool isDocument, CancellationToken cancellationToken);
     }
 }

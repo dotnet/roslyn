@@ -67,8 +67,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         GlobalOptions = globalOptions;
     }
 
-    protected virtual string? GetDiagnosticSourceIdentifier(TDiagnosticsParams diagnosticsParams) => null;
-
     /// <summary>
     /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
     /// used so we can report which documents were removed and can have all their diagnostics cleared.
@@ -79,7 +77,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// Returns all the documents that should be processed in the desired order to process them in.
     /// </summary>
     protected abstract ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
-        TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken);
+        TDiagnosticsParams diagnosticsParams, string requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates the appropriate LSP type to report a new set of diagnostics and resultId.
@@ -105,7 +103,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// </summary>
     protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource);
 
-    protected abstract string? GetDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
+    protected abstract string GetRequestDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
 
     /// <summary>
     /// Used by public workspace pull diagnostics to allow it to keep the connection open until
@@ -133,9 +131,8 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             Contract.ThrowIfNull(context.Solution);
 
             var clientCapabilities = context.GetRequiredClientCapabilities();
-            var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
-            var sourceIdentifier = GetDiagnosticSourceIdentifier(diagnosticsParams) ?? "";
-            var handlerName = $"{this.GetType().Name}(category: {category}, source: {sourceIdentifier})";
+            var category = GetRequestDiagnosticCategory(diagnosticsParams);
+            var handlerName = $"{this.GetType().Name}(category: {category})";
             context.TraceInformation($"{handlerName} started getting diagnostics");
 
             var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
@@ -159,7 +156,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
             var orderedSources = await GetOrderedDiagnosticSourcesAsync(
-                diagnosticsParams, context, cancellationToken).ConfigureAwait(false);
+                diagnosticsParams, category, context, cancellationToken).ConfigureAwait(false);
 
             context.TraceInformation($"Processing {orderedSources.Length} documents");
 

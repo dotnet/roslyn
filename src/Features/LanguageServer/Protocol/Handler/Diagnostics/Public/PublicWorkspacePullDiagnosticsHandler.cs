@@ -36,11 +36,11 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
         _clientLanguageServerManager = clientLanguageServerManager;
     }
 
-    /// <summary>
-    /// Public API doesn't support categories (yet).
-    /// </summary>
-    protected override string? GetDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
-        => null;
+    protected override string GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
+    {
+        Contract.ThrowIfNull(diagnosticsParams.Identifier, "Received a diagnostic request without an identifier");
+        return diagnosticsParams.Identifier;
+    }
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
         => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
