@@ -263,10 +263,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var ideOptions = Owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
-                    project, ideOptions, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
+                var compilation = await CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var result = await Owner.GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, cancellationToken).ConfigureAwait(false);
+                var result = await Owner.GetProjectAnalysisDataAsync(compilation, project, ideOptions, stateSets, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
