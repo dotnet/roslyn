@@ -218,7 +218,7 @@ internal partial class SolutionCompilationState
         private static SkeletonReferenceSet? CreateSkeletonSet(
             SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
-            var metadata = TryCreateMetadata();
+            var (metadata, storageHandle) = TryCreateMetadataAndHandle();
             if (metadata == null)
                 return null;
 
@@ -226,10 +226,11 @@ internal partial class SolutionCompilationState
             // the stream as well.
             return new SkeletonReferenceSet(
                 metadata,
+                storageHandle,
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
 
-            AssemblyMetadata? TryCreateMetadata()
+            (AssemblyMetadata? metadata, TemporaryStorageHandle storageHandle) TryCreateMetadataAndHandle()
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -261,11 +262,7 @@ internal partial class SolutionCompilationState
                             var result = AssemblyMetadata.CreateFromStream(
                                 temporaryStorageService.ReadFromTemporaryStorageService(handle.Identifier, cancellationToken), leaveOpen: false);
 
-                            // Note: because we are using a memory-mapped file, we need to keep the handle alive during
-                            // the call to ReadFromTemporaryStorageService.  Otherwise, the memory-mapped file could be
-                            // released before we read what we need out of it.
-                            GC.KeepAlive(handle);
-                            return result;
+                            return (result, handle);
                         }
 
                         if (logger != null)
@@ -287,7 +284,7 @@ internal partial class SolutionCompilationState
                             m["Errors"] = string.Join(";", groups);
                         }));
 
-                        return null;
+                        return (null, null!);
                     }
                 }
                 finally
