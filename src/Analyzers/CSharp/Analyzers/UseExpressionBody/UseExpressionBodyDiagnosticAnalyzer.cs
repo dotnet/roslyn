@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -14,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public const string FixesError = nameof(FixesError);
 
@@ -28,16 +27,16 @@ internal class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDia
         _syntaxKinds = _helpers.SelectManyAsArray(h => h.SyntaxKinds);
     }
 
-    private static ImmutableDictionary<DiagnosticDescriptor, IOption2> GetSupportedDescriptorsWithOptions()
+    private static ImmutableArray<(DiagnosticDescriptor, IOption2)> GetSupportedDescriptorsWithOptions()
     {
-        var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, IOption2>();
+        var builder = new FixedSizeArrayBuilder<(DiagnosticDescriptor, IOption2)>(_helpers.Length);
         foreach (var helper in _helpers)
         {
             var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.EnforceOnBuild, hasAnyCodeStyleOption: true, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
-            builder.Add(descriptor, helper.Option);
+            builder.Add((descriptor, helper.Option));
         }
 
-        return builder.ToImmutable();
+        return builder.MoveToImmutable();
     }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
