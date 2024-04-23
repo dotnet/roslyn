@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -51,8 +53,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(extension is not null);
             Debug.Assert(type is not null);
 
+            if (type.IsErrorType())
+            {
+                map = null;
+                return false;
+            }
+
             var extensionUnderlyingType = extension.ExtendedTypeNoUseSiteDiagnostics;
             Debug.Assert(extensionUnderlyingType is not null);
+            if (SourceExtensionTypeSymbol.CheckUnderspecifiedGenericExtension(extensionUnderlyingType, extension.TypeParameters,
+                    BindingDiagnosticBag.Discarded, Location.None, extension))
+            {
+                map = null;
+                return false;
+            }
 
             // PROTOTYPE we'll want to adjust the handling for differences that aren't relevant to the CLR, such as object/dynamic
             if (TypeSymbol.Equals(extensionUnderlyingType, type, TypeCompareKind.CLRSignatureCompareOptions))
@@ -63,24 +77,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MutableTypeMap? substitution = null;
             bool result = CanUnifyHelper(extensionUnderlyingType, type, onlySubstituteInLHS: true, ref substitution);
+            if (!result)
+            {
+                map = null;
+                return false;
+            }
+
 #if DEBUG
-            if (result && (extensionUnderlyingType is not null && type is not null))
+            if (extensionUnderlyingType is not null && type is not null)
             {
                 var substitutedUnderlyingType = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(extensionUnderlyingType));
                 Debug.Assert(substitutedUnderlyingType.Type.Equals(type, TypeCompareKind.CLRSignatureCompareOptions));
             }
-#endif
 
-            // In error scenarios where we end up with unsubstituted type parameters,
-            // we reject the extension.
             foreach (var typeParameter in extension.TypeParameters)
             {
-                if (substitution is null || !substitution.Contains(typeParameter))
-                {
-                    map = null;
-                    return false;
-                }
+                Debug.Assert(substitution!.Contains(typeParameter));
             }
+#endif
 
             // We cannot allow any of the type parameters of the extension's containing type to be substituted
             if (hasSubstitutionForContainingTypeTypeParameter(extension.ContainingType, substitution))

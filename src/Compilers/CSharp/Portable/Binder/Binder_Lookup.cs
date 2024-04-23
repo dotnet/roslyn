@@ -247,6 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void GetCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
             Binder originalBinder, ConsList<TypeSymbol>? basesBeingResolved)
         {
+            if (type.IsErrorType())
+            {
+                return;
+            }
+
             var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             binder.GetImplicitExtensionTypes(extensions, originalBinder);
 

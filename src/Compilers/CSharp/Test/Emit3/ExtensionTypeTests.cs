@@ -3025,21 +3025,22 @@ implicit extension E<T, U> for C
     public static string f = "hi";
 }
 """;
-        // PROTOTYPE(static) we should fail to bind the extension member
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
+            // (1,14): error CS0117: 'C' does not contain a definition for 'f'
+            // string s = C.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C", "f").WithLocation(1, 14),
             // (5,20): error CS9328: The underlying type 'C' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
             // implicit extension E<T, U> for C
             Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T, U>", "T").WithLocation(5, 20),
             // (5,20): error CS9328: The underlying type 'C' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
             // implicit extension E<T, U> for C
-            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T, U>", "U").WithLocation(5, 20)
-            );
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T, U>", "U").WithLocation(5, 20));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.f");
-        Assert.Equal("System.String E<T, U>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [Fact]
@@ -12197,7 +12198,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_InvalidGenericExtension()
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_UnderspecifiedGenericExtension()
     {
         var src = """
 D<C.Nested<string>>.M();
@@ -12220,8 +12221,13 @@ implicit extension E<T> for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE(static) we should fail to bind the extension member
         comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0426: The type name 'Nested<>' does not exist in the type 'C'
+            // D<C.Nested<string>>.M();
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "C").WithLocation(1, 5),
+            // (3,24): error CS0426: The type name 'Nested<>' does not exist in the type 'C'
+            // class D<T> where T : C.Nested<string>
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "C").WithLocation(3, 24),
             // (13,20): error CS9328: The underlying type 'C' of implicit extension 'E<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
             // implicit extension E<T> for C
             Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T>", "T").WithLocation(13, 20));
@@ -12229,12 +12235,60 @@ implicit extension E<T> for C
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "C.Nested<string>").ToArray();
-        Assert.Equal("E<T>.Nested<System.String>", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
-        Assert.Equal("E<T>.Nested<System.String>", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(qualifiedName[0]).Symbol);
+        Assert.Null(model.GetSymbolInfo(qualifiedName[1]).Symbol);
     }
 
     [Fact]
-    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_InvalidGenericExtension_Metadata()
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_AmbiguousGenericExtension()
+    {
+        var src = """
+I.Nested<string>.M2();
+D<I.Nested<string>>.M();
+
+class D<T> where T : I.Nested<string>
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+
+interface I2<T> { }
+interface I : I2<long>, I2<byte> { }
+
+implicit extension E<T, U> for I2<T>
+{
+    public class Nested<V>
+    {
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,3): error CS0117: 'I' does not contain a definition for 'Nested'
+            // I.Nested<string>.M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Nested<string>").WithArguments("I", "Nested").WithLocation(1, 3),
+            // (2,5): error CS0426: The type name 'Nested<>' does not exist in the type 'I'
+            // D<I.Nested<string>>.M();
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "I").WithLocation(2, 5),
+            // (4,24): error CS0426: The type name 'Nested<>' does not exist in the type 'I'
+            // class D<T> where T : I.Nested<string>
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "I").WithLocation(4, 24),
+            // (15,20): error CS9328: The underlying type 'I2<T>' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
+            // implicit extension E<T, U> for I2<T>
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("I2<T>", "E<T, U>", "U").WithLocation(15, 20));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "I.Nested<string>").ToArray();
+        Assert.Null(model.GetSymbolInfo(qualifiedName[0]).Symbol);
+        Assert.Null(model.GetSymbolInfo(qualifiedName[1]).Symbol);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_UnderspecifiedGenericExtension_Metadata()
     {
         //implicit extension E<T> for object
         //{
@@ -12285,7 +12339,6 @@ class D<T> where T : System.Object.Nested<string>
     }
 }
 """;
-        // PROTOTYPE(static) we should fail to bind the extension member
         var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,8): warning CS0219: The variable 'x' is assigned but its value is never used
@@ -12293,7 +12346,13 @@ class D<T> where T : System.Object.Nested<string>
             Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 8),
             // (2,23): warning CS0219: The variable 'y' is assigned but its value is never used
             // E<int>.Nested<string> y = default;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(2, 23));
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(2, 23),
+            // (3,17): error CS0426: The type name 'Nested<>' does not exist in the type 'object'
+            // D<System.Object.Nested<string>>.M();
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "object").WithLocation(3, 17),
+            // (5,36): error CS0426: The type name 'Nested<>' does not exist in the type 'object'
+            // class D<T> where T : System.Object.Nested<string>
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "object").WithLocation(5, 36));
 
         var e = comp.GlobalNamespace.GetTypeMember("E");
         VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
@@ -12301,8 +12360,8 @@ class D<T> where T : System.Object.Nested<string>
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "System.Object.Nested<string>").ToArray();
-        Assert.Equal("E<T>.Nested<System.String>", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
-        Assert.Equal("E<T>.Nested<System.String>", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(qualifiedName[0]).Symbol);
+        Assert.Null(model.GetSymbolInfo(qualifiedName[1]).Symbol);
     }
 
     [Fact]

@@ -365,11 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Nested type parameter references might not be valid in error scenarios.
                         //Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.ConstraintTypes));
                         //Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(ImmutableArray<TypeSymbol>.CreateFrom(this.Interfaces)));
-
-                        // PROTOTYPE(static) depending on the resolution for test ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_InvalidGenericExtension
-                        //   we may be able to restore these assertions
-                        //Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.EffectiveBaseClassNoUseSiteDiagnostics));
-                        //Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.DeducedBaseTypeNoUseSiteDiagnostics));
+                        Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.EffectiveBaseClassNoUseSiteDiagnostics));
+                        Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.DeducedBaseTypeNoUseSiteDiagnostics));
                         break;
 
                     case CompletionPart.None:
