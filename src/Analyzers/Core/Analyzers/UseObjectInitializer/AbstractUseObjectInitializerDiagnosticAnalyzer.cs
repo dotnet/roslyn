@@ -63,8 +63,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
     protected AbstractUseObjectInitializerDiagnosticAnalyzer()
         : base(
             [
-                (s_descriptor, CodeStyleOptions2.PreferObjectInitializer),
-                (s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferObjectInitializer)
+                (s_descriptor, CodeStyleOptions2.PreferObjectInitializer)
             ])
     {
     }

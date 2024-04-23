@@ -21,18 +21,15 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
     public static readonly ImmutableDictionary<string, string?> ChangesSemantics =
         ImmutableDictionary<string, string?>.Empty.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
 
-    protected new readonly DiagnosticDescriptor Descriptor;
     protected readonly DiagnosticDescriptor UnnecessaryCodeDescriptor;
 
     protected AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
         : base(
             [
-                (CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: false), CodeStyleOptions2.PreferCollectionExpression),
-                (CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: true), CodeStyleOptions2.PreferCollectionExpression)
+                (CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: false), CodeStyleOptions2.PreferCollectionExpression)
             ])
     {
-        Descriptor = SupportedDiagnostics[0];
-        UnnecessaryCodeDescriptor = SupportedDiagnostics[1];
+        UnnecessaryCodeDescriptor = CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: true);
     }
 
     private static DiagnosticDescriptor CreateDescriptor(string diagnosticId, EnforceOnBuild enforceOnBuild, bool isUnnecessary)

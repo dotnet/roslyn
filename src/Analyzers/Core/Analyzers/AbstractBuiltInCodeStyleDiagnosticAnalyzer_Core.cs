@@ -40,9 +40,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         SupportedDiagnostics = supportedDiagnostics;
 
         Descriptor = SupportedDiagnostics[0];
-        Debug.Assert(
-            !supportedDiagnostics.Any(static descriptor => descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Unnecessary))
-            || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer or AbstractBuiltInCodeStyleDiagnosticAnalyzer);
+        Debug.Assert(!supportedDiagnostics.Any(descriptor => descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Unnecessary)) || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer);
     }
 
     public virtual bool IsHighPriority => false;
