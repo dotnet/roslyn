@@ -63,13 +63,13 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
     protected SimplifyTypeNamesDiagnosticAnalyzerBase()
         : base(
             [
-              (s_descriptorSimplifyNames, []),
-              (s_descriptorSimplifyMemberAccess, []),
-              (s_descriptorPreferBuiltinOrFrameworkType,
-              [
-                  CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
-                  CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
-              ])
+                (s_descriptorSimplifyNames, []),
+                (s_descriptorSimplifyMemberAccess, []),
+                (s_descriptorPreferBuiltinOrFrameworkType,
+                [
+                    CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
+                    CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+                ])
             ],
             fadingOption: null)
     {
