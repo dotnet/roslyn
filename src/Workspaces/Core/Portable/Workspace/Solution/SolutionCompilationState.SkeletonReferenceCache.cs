@@ -230,7 +230,7 @@ internal partial class SolutionCompilationState
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
 
-            (AssemblyMetadata? metadata, TemporaryStorageHandle storageHandle) TryCreateMetadataAndHandle()
+            (AssemblyMetadata? metadata, ITemporaryStorageHandle storageHandle) TryCreateMetadataAndHandle()
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -260,7 +260,7 @@ internal partial class SolutionCompilationState
                             // Now read the data back from the stream from the memory mapped file.  This will come back as an
                             // UnmanagedMemoryStream, which our assembly/metadata subsystem is optimized around. 
                             var result = AssemblyMetadata.CreateFromStream(
-                                temporaryStorageService.ReadFromTemporaryStorageService(handle.Identifier, cancellationToken), leaveOpen: false);
+                                handle.ReadFromTemporaryStorage(cancellationToken), leaveOpen: false);
 
                             return (result, handle);
                         }

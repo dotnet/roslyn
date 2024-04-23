@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
+using static TemporaryStorageService;
+
 /// <summary>
 /// Manages metadata references for VS projects. 
 /// </summary>
@@ -208,7 +210,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             }
 
             // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
-            stream = _temporaryStorageService.ReadFromTemporaryStorageService(storageHandle.Identifier, CancellationToken.None);
+            stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
         }

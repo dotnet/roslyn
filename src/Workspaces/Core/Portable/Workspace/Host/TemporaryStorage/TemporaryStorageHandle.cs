@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
 
@@ -12,13 +13,16 @@ namespace Microsoft.CodeAnalysis.Host;
 /// Represents a handle to data stored to temporary storage (generally a memory mapped file).  As long as this handle is
 /// alive, the data should remain in storage and can be readable from any process using the information provided in <see
 /// cref="Identifier"/>.  Use <see cref="ITemporaryStorageServiceInternal.WriteToTemporaryStorage"/> to write the data
-/// to temporary storage and get a handle to it.  Use <see
-/// cref="ITemporaryStorageServiceInternal.ReadFromTemporaryStorageService"/> to read the data back in any process.
+/// to temporary storage and get a handle to it.  Use <see cref="ReadFromTemporaryStorage"/> to read the data back in
+/// any process.
 /// </summary>
-internal sealed class TemporaryStorageHandle(MemoryMappedFile? memoryMappedFile, TemporaryStorageIdentifier identifier)
+internal interface ITemporaryStorageHandle
 {
-    public readonly MemoryMappedFile? MemoryMappedFile = memoryMappedFile;
-    private readonly TemporaryStorageIdentifier? _identifier = identifier;
+    public TemporaryStorageIdentifier Identifier { get; }
 
-    public TemporaryStorageIdentifier Identifier => _identifier ?? throw new InvalidOperationException("Handle has already been disposed");
+    /// <summary>
+    /// Reads the data indicated to by this handle into a stream.  This stream can be created in a different process
+    /// than the one that wrote the data originally.
+    /// </summary>
+    Stream ReadFromTemporaryStorage(CancellationToken cancellationToken);
 }

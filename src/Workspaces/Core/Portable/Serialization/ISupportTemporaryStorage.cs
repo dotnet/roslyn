@@ -14,5 +14,5 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal interface ISupportTemporaryStorage
 {
-    IReadOnlyList<TemporaryStorageHandle>? StorageHandles { get; }
+    IReadOnlyList<ITemporaryStorageHandle>? StorageHandles { get; }
 }
