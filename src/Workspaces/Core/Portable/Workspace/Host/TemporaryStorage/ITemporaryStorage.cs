@@ -40,9 +40,3 @@ internal interface ITemporaryTextStorageInternal
     void WriteText(SourceText text, CancellationToken cancellationToken = default);
     Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default);
 }
-
-internal interface ITemporaryStreamStorageInternal
-{
-    Stream ReadStream(CancellationToken cancellationToken = default);
-    void WriteStream(Stream stream, CancellationToken cancellationToken = default);
-}
