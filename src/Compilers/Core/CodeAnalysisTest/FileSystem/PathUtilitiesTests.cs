@@ -428,9 +428,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [InlineData(@"C:\\a", @"C:/a")]
         [InlineData(@"C:\a\b\c\", @"C:/a/b/c/")]
         [InlineData(@"/\a", @"//a")]
+        [InlineData(@"a\\\b", @"a/b")]
+        [InlineData(@"\\\a\b\c", @"///a/b/c")]
+        [InlineData(@"\\\\a\b\c", @"///a/b/c")]
         public void CollapseWithForwardSlash(string input, string output)
         {
-            AssertEx.Equal(output, PathUtilities.CollapseWithForwardSlash(input));
+            AssertEx.Equal(output, PathUtilities.CollapseWithForwardSlash(input.AsSpan()));
         }
     }
 }

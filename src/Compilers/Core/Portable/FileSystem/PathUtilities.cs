@@ -784,12 +784,12 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Replaces all sequences of '\' or '/' with a single '/' but preserves UNC prefix '//'.
         /// </summary>
-        public static string CollapseWithForwardSlash(string p)
+        public static string CollapseWithForwardSlash(ReadOnlySpan<char> path)
         {
-            var sb = new StringBuilder(p.Length);
+            var sb = new StringBuilder(path.Length);
 
             int start = 0;
-            if (p.Length > 1 && IsAnyDirectorySeparator(p[0]) && IsAnyDirectorySeparator(p[1]))
+            if (path.Length > 1 && IsAnyDirectorySeparator(path[0]) && IsAnyDirectorySeparator(path[1]))
             {
                 // Preserve UNC paths.
                 sb.Append("//");
@@ -797,9 +797,9 @@ namespace Roslyn.Utilities
             }
 
             bool wasDirectorySeparator = false;
-            for (int i = start; i < p.Length; i++)
+            for (int i = start; i < path.Length; i++)
             {
-                if (IsAnyDirectorySeparator(p[i]))
+                if (IsAnyDirectorySeparator(path[i]))
                 {
                     if (!wasDirectorySeparator)
                     {
@@ -809,7 +809,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    sb.Append(p[i]);
+                    sb.Append(path[i]);
                     wasDirectorySeparator = false;
                 }
             }
