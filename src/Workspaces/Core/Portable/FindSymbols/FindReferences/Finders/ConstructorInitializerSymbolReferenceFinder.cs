@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -19,11 +18,13 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind == MethodKind.Constructor;
 
-    protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected override Task DetermineDocumentsToSearchAsync<TData>(
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -47,12 +48,14 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
             }
 
             return false;
-        }, symbol.ContainingType.Name, cancellationToken);
+        }, symbol.ContainingType.Name, processResult, processResultData, cancellationToken);
     }
 
-    protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -67,7 +70,9 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
             static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
             (state, methodSymbol, cancellationToken));
 
-        return await FindReferencesInTokensAsync(methodSymbol, state, totalTokens, cancellationToken).ConfigureAwait(false);
+        await FindReferencesInTokensAsync(methodSymbol, state, totalTokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+
+        return;
 
         // local functions
         static bool TokensMatch(

@@ -8,12 +8,7 @@
 using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
-
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public interface ILspLogger
-#else
 internal interface ILspLogger
-#endif
 {
     void LogStartContext(string message, params object[] @params);
     void LogEndContext(string message, params object[] @params);

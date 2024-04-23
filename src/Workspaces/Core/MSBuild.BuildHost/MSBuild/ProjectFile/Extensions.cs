@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 references.Add(packageReference);
             }
 
-            return references.ToImmutableArray();
+            return [.. references];
         }
 
         /// <summary>

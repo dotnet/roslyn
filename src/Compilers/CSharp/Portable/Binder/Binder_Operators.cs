@@ -4339,13 +4339,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, hasErrors: constantValue?.IsBad == true);
             }
 
-            TypeSymbol type;
             bool hasErrors;
             if (bestType.IsErrorType())
             {
                 trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
                 falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
-                type = bestType;
                 hasErrors = true;
             }
             else
@@ -4353,9 +4351,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
                 falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
                 hasErrors = trueExpr.HasAnyErrors || falseExpr.HasAnyErrors;
-                // If one of the conversions went wrong (e.g. return type of method group being converted
-                // didn't match), then we don't want to use bestType because it's not accurate.
-                type = hasErrors ? CreateErrorType() : bestType;
             }
 
             if (!hasErrors)
@@ -4364,7 +4359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = constantValue != null && constantValue.IsBad;
             }
 
-            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: type, wasTargetTyped: false, type, hasErrors);
+            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: bestType, wasTargetTyped: false, bestType, hasErrors);
         }
 #nullable disable
 
