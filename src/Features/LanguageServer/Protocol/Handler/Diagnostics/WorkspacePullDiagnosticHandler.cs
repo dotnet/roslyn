@@ -40,31 +40,31 @@ internal sealed partial class WorkspacePullDiagnosticHandler(
         }
     ];
 
-protected override VSInternalWorkspaceDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
-    => CreateReport(identifier, diagnostics: null, resultId: null);
+    protected override VSInternalWorkspaceDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
+        => CreateReport(identifier, diagnostics: null, resultId: null);
 
-protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, [NotNullWhen(true)] out VSInternalWorkspaceDiagnosticReport[]? report)
-{
-    // Skip reporting 'unchanged' document reports for workspace pull diagnostics.  There are often a ton of
-    // these and we can save a lot of memory not serializing/deserializing all of this.
-    report = null;
-    return false;
-}
+    protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, [NotNullWhen(true)] out VSInternalWorkspaceDiagnosticReport[]? report)
+    {
+        // Skip reporting 'unchanged' document reports for workspace pull diagnostics.  There are often a ton of
+        // these and we can save a lot of memory not serializing/deserializing all of this.
+        report = null;
+        return false;
+    }
 
-protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-    => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
+    protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+        => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
-protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
-{
-    // All workspace diagnostics are potential duplicates given that they can be overridden by the diagnostics
-    // produced by document diagnostics.
-    return ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: true);
-}
+    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
+    {
+        // All workspace diagnostics are potential duplicates given that they can be overridden by the diagnostics
+        // produced by document diagnostics.
+        return ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: true);
+    }
 
-protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
-{
-    return progress.GetFlattenedValues();
-}
+    protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
+    {
+        return progress.GetFlattenedValues();
+    }
 
-internal override TestAccessor GetTestAccessor() => new(this);
+    internal override TestAccessor GetTestAccessor() => new(this);
 }

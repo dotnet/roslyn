@@ -36,7 +36,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
     protected override string? GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
 
-    public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) 
+    public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams)
         => diagnosticsParams.TextDocument;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
