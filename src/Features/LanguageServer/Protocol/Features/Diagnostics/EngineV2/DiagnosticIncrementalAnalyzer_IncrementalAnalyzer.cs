@@ -42,22 +42,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
 
                 // no cancellation after this point.
+                cancellationToken = CancellationToken.None;
+
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
                     if (result.TryGetResult(stateSet.Analyzer, out var analyzerResult))
-                    {
                         diagnostics.AddRange(analyzerResult.GetAllDiagnostics());
-                        await state.SaveToInMemoryStorageAsync(project, analyzerResult).ConfigureAwait(false);
-                    }
                 }
+
+                await SaveAllStatesToInMemoryStorageAsync(project, result, stateSets).ConfigureAwait(false);
 
                 return diagnostics.ToImmutableAndClear();
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        private static async Task SaveAllStatesToInMemoryStorageAsync(
+            Project project, ProjectAnalysisData analysisData, ImmutableArray<StateSet> stateSets)
+        {
+            foreach (var stateSet in stateSets)
+            {
+                var state = stateSet.GetOrCreateProjectState(project.Id);
+
+                if (analysisData.TryGetResult(stateSet.Analyzer, out var analyzerResult))
+                    await state.SaveToInMemoryStorageAsync(project, analyzerResult).ConfigureAwait(false);
             }
         }
 

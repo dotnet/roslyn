@@ -293,6 +293,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         AppendDiagnostics(analysisResult.GetOtherDiagnostics());
                     }
                 }
+
+                await SaveAllStatesToInMemoryStorageAsync(project, result, stateSets).ConfigureAwait(false);
             }
 
             private bool ShouldIncludeStateSet(Project project, StateSet stateSet)

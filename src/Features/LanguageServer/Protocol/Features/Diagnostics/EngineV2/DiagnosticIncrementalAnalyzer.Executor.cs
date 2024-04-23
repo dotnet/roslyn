@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
         /// </summary>
         private async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
-            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, ImmutableArray<StateSet> stateSets, bool forceAnalyzerRun, CancellationToken cancellationToken)
+            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
             {
@@ -42,15 +42,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return existingData;
                     }
 
-                    // PERF: Check whether we want to analyze this project or not.
-                    var fullAnalysisEnabled = GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullAnalysisEnabled, out var analyzersFullAnalysisEnabled);
-                    if (forceAnalyzerRun)
-                    {
                         // We are forcing full solution analysis for all diagnostics.
-                        fullAnalysisEnabled = true;
-                        compilerFullAnalysisEnabled = true;
-                        analyzersFullAnalysisEnabled = true;
-                    }
+                     var   fullAnalysisEnabled = true;
+                        var compilerFullAnalysisEnabled = true;
+                        var analyzersFullAnalysisEnabled = true;
 
                     if (!fullAnalysisEnabled)
                     {
@@ -99,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         stateSets = stateSets.WhereAsArray(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer());
                     }
 
-                    var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideOptions, stateSets, forceAnalyzerRun, existingData.Result, cancellationToken).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideOptions, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
 
                     // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
                     // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
@@ -169,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Calculate all diagnostics for a given project using analyzers referenced by the project and specified IDE analyzers.
         /// </summary>
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, ImmutableArray<DiagnosticAnalyzer> ideAnalyzers, bool forcedAnalysis, CancellationToken cancellationToken)
+            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, ImmutableArray<DiagnosticAnalyzer> ideAnalyzers, CancellationToken cancellationToken)
         {
             try
             {
@@ -180,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     // calculate regular diagnostic analyzers diagnostics
                     var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(project, compilationWithAnalyzers,
-                        forcedAnalysis, logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
+                        logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
 
                     result = resultMap.AnalysisResult;
 
@@ -198,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, ImmutableArray<StateSet> stateSets, bool forcedAnalysis,
+            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IdeAnalyzerOptions ideOptions, ImmutableArray<StateSet> stateSets,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
         {
             try
