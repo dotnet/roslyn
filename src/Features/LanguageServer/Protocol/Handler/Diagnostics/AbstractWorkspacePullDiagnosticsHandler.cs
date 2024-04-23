@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.LanguageServer.Protocol;
@@ -141,21 +140,20 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 
     /// <summary>
     /// There are three potential sources for reporting workspace diagnostics:
-    ///
-    ///  1. Full solution analysis: If the user has enabled Full solution analysis, we always run analysis on the latest
-    ///                             project snapshot and return up-to-date diagnostics computed from this analysis.
-    ///
-    ///  2. Code analysis service: Otherwise, if full solution analysis is disabled, and if we have diagnostics from an explicitly
-    ///                            triggered code analysis execution on either the current or a prior project snapshot, we return
-    ///                            diagnostics from this execution. These diagnostics may be stale with respect to the current
-    ///                            project snapshot, but they match user's intent of not enabling continuous background analysis
-    ///                            for always having up-to-date workspace diagnostics, but instead computing them explicitly on
-    ///                            specific project snapshots by manually running the "Run Code Analysis" command on a project or solution.
-    ///
-    ///  3. EnC analysis: Emit and debugger diagnostics associated with a closed document or not associated with any document.
-    ///
-    /// If full solution analysis is disabled AND code analysis was never executed for the given project,
-    /// we have no workspace diagnostics to report and bail out.
+    /// <list type="number">
+    /// <item>Full solution analysis: If the user has enabled Full solution analysis, we always run analysis on the
+    /// latest project snapshot and return up-to-date diagnostics computed from this analysis.</item>
+    /// <item>Code analysis service: Otherwise, if full solution analysis is disabled, and if we have diagnostics from
+    /// an explicitly triggered code analysis execution on either the current or a prior project snapshot, we return
+    /// diagnostics from this execution. These diagnostics may be stale with respect to the current project snapshot,
+    /// but they match user's intent of not enabling continuous background analysis for always having up-to-date
+    /// workspace diagnostics, but instead computing them explicitly on specific project snapshots by manually running
+    /// the "Run Code Analysis" command on a project or solution.</item>
+    /// <item>EnC analysis: Emit and debugger diagnostics associated with a closed document or not associated with any
+    /// document.</item>
+    /// </list>
+    /// If full solution analysis is disabled AND code analysis was never executed for the given project, we have no
+    /// workspace diagnostics to report and bail out.
     /// </summary>
     public static async ValueTask<ImmutableArray<IDiagnosticSource>> GetDiagnosticSourcesAsync(
         RequestContext context, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
@@ -179,8 +177,9 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
             if (!fullSolutionAnalysisEnabled && !codeAnalysisService.HasProjectBeenAnalyzed(project.Id))
                 return;
 
-            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
-                ? ShouldIncludeAnalyzer : null;
+            var ideOptions = globalOptions.GetIdeAnalyzerOptions(project);
+
+            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = ShouldIncludeAnalyzer;
 
             AddDocumentSources(project.Documents);
             AddDocumentSources(project.AdditionalDocuments);
@@ -221,7 +220,15 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
             }
 
             bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
-                => analyzer.IsCompilerAnalyzer() ? compilerFullSolutionAnalysisEnabled : analyzersFullSolutionAnalysisEnabled;
+            {
+                // We never want to return open-file-only analyzers for workspace diagnostics.  Workspace diags are
+                // always for the closed documents.  Not doing this also breaks caching in the diagnostic subsystem
+                // layer.
+                if (analyzer.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions))
+                    return false;
+
+                return analyzer.IsCompilerAnalyzer() ? compilerFullSolutionAnalysisEnabled : analyzersFullSolutionAnalysisEnabled;
+            }
         }
     }
 

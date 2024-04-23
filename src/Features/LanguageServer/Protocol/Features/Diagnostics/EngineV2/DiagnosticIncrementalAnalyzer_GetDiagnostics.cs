@@ -266,14 +266,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var ideOptions = Owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
-                // PERF: get analyzers that are not suppressed and marked as open file only
-                // this is perf optimization. we cache these result since we know the result. (no diagnostics)
-                var activeAnalyzers = stateSets
-                    .Select(s => s.Analyzer)
-                    .Where(a => !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
-
-                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                    project, ideOptions, activeAnalyzers, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
+                    project, ideOptions, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 var result = await Owner.GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, cancellationToken).ConfigureAwait(false);
 

@@ -40,9 +40,10 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             }
             else
             {
-                // We call GetDiagnosticsForIdsAsync as we want to ensure we get the full set of diagnostics for this document
-                // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
-                // However we can include them as a part of workspace pull when FSA is on.
+                // We call GetDiagnosticsForIdsAsync as we want to ensure we get the full set of diagnostics for this
+                // document including those reported as a compilation end diagnostic.  These are not included in
+                // document pull (uses GetDiagnosticsForSpan) due to cost. However we can include them as a part of
+                // workspace pull when FSA is on.
                 var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
                     Document.Project.Solution, Document.Project.Id, Document.Id,
                     diagnosticIds: null, shouldIncludeAnalyzer, includeSuppressedDiagnostics: false,

@@ -22,18 +22,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
-
                 // get driver only with active analyzers.
                 var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
-                // PERF: get analyzers that are not suppressed and marked as open file only
-                // this is perf optimization. we cache these result since we know the result. (no diagnostics)
-                var activeAnalyzers = stateSets
-                    .Select(s => s.Analyzer)
-                    .Where(a => !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
+                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project, ideOptions);
 
-                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
+                    project, ideOptions, stateSets, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, cancellationToken).ConfigureAwait(false);
 
@@ -73,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
         /// </summary>
-        private ImmutableArray<StateSet> GetStateSetsForFullSolutionAnalysis(ImmutableArray<StateSet> stateSets, Project project)
+        private ImmutableArray<StateSet> GetStateSetsForFullSolutionAnalysis(
+            ImmutableArray<StateSet> stateSets, Project project, IdeAnalyzerOptions ideOptions)
         {
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
@@ -101,10 +97,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.WhereAsArray(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project));
+            return stateSets.WhereAsArray(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, ideOptions));
         }
 
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
+        private bool IsCandidateForFullSolutionAnalysis(
+            DiagnosticAnalyzer analyzer, Project project, IdeAnalyzerOptions ideOptions)
         {
             // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
             if (analyzer == FileContentLoadAnalyzer.Instance ||
@@ -114,17 +111,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
+            // Open-file-only analyzers are never candidates for full solution analysis, as they have explicitly marked
+            // themselves as only being reportable for open files.
+            if (analyzer.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions))
+                return false;
+
             if (analyzer.IsBuiltInAnalyzer())
             {
-                // always return true for builtin analyzer. we can't use
-                // descriptor check since many builtin analyzer always return 
-                // hidden descriptor regardless what descriptor it actually
-                // return on runtime. they do this so that they can control
-                // severity through option page rather than rule set editor.
-                // this is special behavior only ide analyzer can do. we hope
-                // once we support editorconfig fully, third party can use this
-                // ability as well and we can remove this kind special treatment on builtin
-                // analyzer.
+                // always return true for builtin analyzer. we can't use descriptor check since many builtin analyzer
+                // always return hidden descriptor regardless what descriptor it actually return on runtime. they do
+                // this so that they can control severity through option page rather than rule set editor. this is
+                // special behavior only ide analyzer can do. we hope once we support editorconfig fully, third party
+                // can use this ability as well and we can remove this kind special treatment on builtin analyzer.
                 return true;
             }
 
