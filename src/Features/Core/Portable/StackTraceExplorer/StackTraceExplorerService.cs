@@ -106,6 +106,6 @@ internal class StackTraceExplorerService : IStackTraceExplorerService
             }
         }
 
-        return potentialMatches.ToImmutableArray();
+        return [.. potentialMatches];
     }
 }

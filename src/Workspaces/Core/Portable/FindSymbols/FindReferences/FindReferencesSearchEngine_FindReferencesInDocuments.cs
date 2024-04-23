@@ -87,32 +87,35 @@ internal partial class FindReferencesSearchEngine
             // appropriate finders checking this document for hits.  We're likely going to need to perform syntax
             // and semantics checks in this file.  So just grab those once here and hold onto them for the lifetime
             // of this call.
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var cache = FindReferenceCache.GetCache(model);
+            var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
             foreach (var symbol in symbols)
             {
-                var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
-                var state = new FindReferencesDocumentState(document, model, root, cache, globalAliases);
+                var globalAliases = TryGet(symbolToGlobalAliases, symbol);
+                var state = new FindReferencesDocumentState(cache, globalAliases);
 
-                await PerformSearchInDocumentWorkerAsync(symbol, document, state).ConfigureAwait(false);
+                await PerformSearchInDocumentWorkerAsync(symbol, state).ConfigureAwait(false);
             }
         }
 
         async ValueTask PerformSearchInDocumentWorkerAsync(
-            ISymbol symbol, Document document, FindReferencesDocumentState state)
+            ISymbol symbol, FindReferencesDocumentState state)
         {
+            // Scratch buffer to place references for each finder. Cleared at the end of every loop iteration.
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
+
             // Always perform a normal search, looking for direct references to exactly that symbol.
             foreach (var finder in _finders)
             {
-                var references = await finder.FindReferencesInDocumentAsync(
-                    symbol, state, _options, cancellationToken).ConfigureAwait(false);
-                foreach (var (_, location) in references)
+                await finder.FindReferencesInDocumentAsync(
+                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken).ConfigureAwait(false);
+                foreach (var (_, location) in referencesForFinder)
                 {
                     var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
                     await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                 }
+
+                referencesForFinder.Clear();
             }
 
             // Now, for symbols that could involve inheritance, look for references to the same named entity, and

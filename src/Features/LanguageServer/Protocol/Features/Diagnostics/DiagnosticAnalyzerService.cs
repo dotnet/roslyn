@@ -121,12 +121,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-        {
-            var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
-            return analyzer.GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
-        }
-
         public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);

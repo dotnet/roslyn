@@ -99,7 +99,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
                 {
                     lock (gate)
                     {
-                        output.AppendLine($"{document.FilePath}: {BitConverter.ToString(snapshotChecksum.ToArray())} : {BitConverter.ToString(fileChecksum.ToArray())}");
+                        output.AppendLine($"{document.FilePath}: {BitConverter.ToString([.. snapshotChecksum])} : {BitConverter.ToString([.. fileChecksum])}");
                         outOfDateCount++;
                     }
                 }

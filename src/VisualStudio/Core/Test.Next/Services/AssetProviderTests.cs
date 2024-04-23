@@ -76,7 +76,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // build checksum
             await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(projectConeId: null, CancellationToken.None);
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 
@@ -104,7 +104,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // build checksum
             await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(projectConeId: null, CancellationToken.None);
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 

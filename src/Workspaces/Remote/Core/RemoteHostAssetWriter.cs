@@ -10,6 +10,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -150,14 +151,11 @@ internal readonly struct RemoteHostAssetWriter(
         // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
         var foundChecksumCount = 0;
 
-        while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+        await foreach (var (checksum, asset) in channelReader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
         {
-            while (channelReader.TryRead(out var item))
-            {
-                await WriteSingleAssetToPipeAsync(
-                    pooledStream.Object, objectWriter, item.checksum, item.asset, cancellationToken).ConfigureAwait(false);
-                foundChecksumCount++;
-            }
+            await WriteSingleAssetToPipeAsync(
+                pooledStream.Object, objectWriter, checksum, asset, cancellationToken).ConfigureAwait(false);
+            foundChecksumCount++;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -219,7 +217,7 @@ internal readonly struct RemoteHostAssetWriter(
         objectWriter.WriteByte((byte)asset.GetWellKnownSynchronizationKind());
 
         // Now serialize out the asset itself.
-        _serializer.Serialize(asset, objectWriter, _scope.ReplicationContext, cancellationToken);
+        _serializer.Serialize(asset, objectWriter, cancellationToken);
     }
 
     private void WriteSentinelByteToPipeWriter()

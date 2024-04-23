@@ -155,7 +155,7 @@ internal partial class AutomaticLineEnderCommandHandler
                       oldNode: embeddedStatementOwner,
                       newNode: AddBlockToEmbeddedStatementOwner(embeddedStatementOwner, formattingOptions),
                       anchorNode: embeddedStatementOwner,
-                      nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(statement),
+                      nodesToInsert: [statement],
                       formattingOptions,
                       cancellationToken),
             DoStatementSyntax doStatementNode => AddBraceToDoStatement(services, root, doStatementNode, formattingOptions, statement, cancellationToken),
@@ -195,7 +195,7 @@ internal partial class AutomaticLineEnderCommandHandler
                 oldNode: doStatementNode,
                 newNode: AddBlockToEmbeddedStatementOwner(doStatementNode, formattingOptions),
                 anchorNode: doStatementNode,
-                nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                nodesToInsert: [innerStatement],
                 formattingOptions,
                 cancellationToken);
         }
@@ -251,7 +251,7 @@ internal partial class AutomaticLineEnderCommandHandler
                 ifStatementNode,
                 AddBlockToEmbeddedStatementOwner(ifStatementNode, formattingOptions),
                 ifStatementNode,
-                ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                [innerStatement],
                 formattingOptions,
                 cancellationToken);
         }
@@ -319,7 +319,7 @@ internal partial class AutomaticLineEnderCommandHandler
                 elseClauseNode,
                 WithBraces(elseClauseNode, formattingOptions),
                 elseClauseNode.Parent!,
-                ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                [innerStatement],
                 formattingOptions,
                 cancellationToken);
         }

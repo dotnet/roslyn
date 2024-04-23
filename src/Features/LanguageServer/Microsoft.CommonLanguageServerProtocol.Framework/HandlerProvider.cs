@@ -15,7 +15,7 @@ using System.Threading;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider : AbstractHandlerProvider, IHandlerProvider
+internal class HandlerProvider : AbstractHandlerProvider
 {
     private readonly ILspServices _lspServices;
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;

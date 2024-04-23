@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static void VerifyResults(IEnumerable<ISymbol> declarations, string[] expectedResults)
         {
             declarations = declarations.OrderBy(d => d.ToString());
-            expectedResults = expectedResults.OrderBy(r => r).ToArray();
+            expectedResults = [.. expectedResults.OrderBy(r => r)];
 
             for (var i = 0; i < expectedResults.Length; i++)
             {

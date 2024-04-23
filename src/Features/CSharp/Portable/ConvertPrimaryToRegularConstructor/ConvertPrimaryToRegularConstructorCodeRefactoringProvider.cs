@@ -240,7 +240,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 }
             }
 
-            return result.ToImmutableHashSet();
+            return [.. result];
         }
 
         void RemovePrimaryConstructorParameterList()
