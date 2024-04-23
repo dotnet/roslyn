@@ -537,7 +537,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(0, diagnostics.Count())
 
                 diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project.Solution, projectId:=Nothing, documentId:=Nothing, diagnosticIds:=Nothing, Function(a) True,
+                    project.Solution, projectId:=Nothing, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Dim diagnostic = diagnostics.First()
                 Assert.True(diagnostic.Id = "AD0001")
@@ -608,7 +608,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                     Dim document = project.Documents.Single()
                     Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                        project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, Function(a) True,
+                        project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                         includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
                     Assert.Equal(1, diagnostics.Count())
                     Dim diagnostic = diagnostics.First()
@@ -950,7 +950,7 @@ class AnonymousFunctions
                 ' Verify no duplicate analysis/diagnostics.
                 Dim document = project.Documents.Single()
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, Function(a) True,
+                    project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)).
                     Select(Function(d) d.Id = NamedTypeAnalyzer.DiagDescriptor.Id)
 
@@ -1045,7 +1045,7 @@ class AnonymousFunctions
                 ' Verify project diagnostics contains diagnostics reported on both partial definitions.
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, Function(a) True,
+                    project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.Equal(2, diagnostics.Count())
                 Dim file1HasDiag = False, file2HasDiag = False
@@ -2148,7 +2148,7 @@ class MyClass
 
                 ' Get diagnostics explicitly
                 Dim hiddenDiagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, Function(a) True,
+                    project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.Equal(1, hiddenDiagnostics.Count())
                 Assert.Equal(analyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
@@ -2235,7 +2235,7 @@ class C
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
-                    project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, Function(a) True,
+                    project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.Equal(0, diagnostics.Count())
             End Using

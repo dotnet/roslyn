@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
                 Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsForIdsAsync(
-                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing, diagnosticIds:=Nothing, Function(a) True,
+                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeSuppressedDiagnostics:=False, includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None).Result
 
                 If diagnostics Is Nothing Then
