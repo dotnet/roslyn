@@ -145,13 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             spreadExpression = null;
 
-            if (node is
-                {
-                    Elements:
-                    [
-                        BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr, IteratorBody: not BoundExpressionStatement { Expression: BoundConversion { ConversionKind: not ConversionKind.Identity } } }
-                    ]
-                } &&
+            if (node.Elements is
+                [
+                    BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr, IteratorBody: not BoundExpressionStatement { Expression: BoundConversion { ConversionKind: not ConversionKind.Identity } } }
+                ] &&
                 spreadType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
             {
                 spreadExpression = expr;
