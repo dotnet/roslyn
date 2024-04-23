@@ -12186,7 +12186,7 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E+Nested`1[System.String]"), verify: Verification.FailsPEVerify)
            .VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
