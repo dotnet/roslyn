@@ -147,12 +147,18 @@ internal static class IntellisenseQuickInfoBuilder
     }
 
     /// <summary>
-    /// 
+    /// Determines if it is possible to add the OnTheFlyDocs element to the QuickInfo content.
     /// </summary>
     private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, int? position, List<object> elements, string descriptionText, CancellationToken cancellationToken)
     {
         if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
                 await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+        {
+            return false;
+        }
+
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
+            await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false) is false)
         {
             return false;
         }

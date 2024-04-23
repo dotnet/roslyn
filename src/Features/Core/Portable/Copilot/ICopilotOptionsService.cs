@@ -24,5 +24,5 @@ internal interface ICopilotOptionsService : ILanguageService
     /// </summary>
     Task<bool> IsCodeAnalysisOptionEnabledAsync();
 
-    Task<bool> IsOnTheFlyDocsOptionEnabledASync();
+    Task<bool> IsOnTheFlyDocsOptionEnabledAsync();
 }

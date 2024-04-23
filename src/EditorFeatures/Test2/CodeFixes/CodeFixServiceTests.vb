@@ -319,6 +319,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Public Function IsCodeAnalysisOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsCodeAnalysisOptionEnabledAsync
                 Return Task.FromResult(True)
             End Function
+
+            Public Function IsOnTheFlyDocsOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsOnTheFlyDocsOptionEnabledASync
+                Return Task.FromResult(True)
+            End Function
         End Class
 
         <ExportLanguageService(GetType(ICopilotCodeAnalysisService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
