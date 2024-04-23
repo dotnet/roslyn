@@ -60,5 +60,5 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
 
-    Task<string> GetOnTheFlyDocsAsync(string descriptionText, string symbolText, CancellationToken cancellationToken);
+    Task<string> GetOnTheFlyDocsAsync(string descriptionText, ImmutableArray<string> symbolStrings, CancellationToken cancellationToken);
 }

@@ -10,8 +10,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -25,11 +27,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     internal class OnTheFlyDocsViewFactory : IViewElementFactory
     {
         private readonly IViewElementFactoryService _factoryService;
+        private readonly IThreadingContext _threadingContext;
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService)
+        public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IThreadingContext threadingContext)
         {
             _factoryService = factoryService;
+            _threadingContext = threadingContext;
         }
 
         public TView? CreateViewElement<TView>(ITextView textView, object model) where TView : class
@@ -40,10 +44,15 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
             if (model is not OnTheFlyDocsElement onTheFlyDocsElement)
             {
-                throw new InvalidOperationException("TView must be ");
+                throw new InvalidOperationException("model must be an OnTheFlyDocsElement");
             }
 
-            return new OnTheFlyDocsView(textView, _factoryService, onTheFlyDocsElement.Document, onTheFlyDocsElement.Position, onTheFlyDocsElement.DescriptionText, onTheFlyDocsElement.CancellationToken) as TView;
+            Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
+            {
+                m["SymbolText"] = onTheFlyDocsElement.DescriptionText;
+            }, LogLevel.Information));
+
+            return new OnTheFlyDocsView(textView, _factoryService, _threadingContext, onTheFlyDocsElement.Document, onTheFlyDocsElement.Symbol, onTheFlyDocsElement.DescriptionText, onTheFlyDocsElement.CancellationToken) as TView;
         }
     }
 }

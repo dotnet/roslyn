@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.CompletedTask
             End Function
 
-            Public Function GetOnTheFlyDocsAsync(descriptionText As String, symbolText As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
+            Public Function GetOnTheFlyDocsAsync(descriptionText As String, symbolStrings As ImmutableArray(Of String), cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
                 Return Task.FromResult(descriptionText)
             End Function
         End Class

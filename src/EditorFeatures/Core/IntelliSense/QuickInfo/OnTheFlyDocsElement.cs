@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.IntelliSense.QuickInfo
     internal class OnTheFlyDocsElement
     {
         internal Document Document { get; }
-        internal int Position { get; }
+        internal ISymbol Symbol { get; }
         internal string DescriptionText { get; }
         internal CancellationToken CancellationToken { get; }
 
-        public OnTheFlyDocsElement(Document document, int position, string descriptionText, CancellationToken cancellationToken)
+        public OnTheFlyDocsElement(Document document, ISymbol symbol, string descriptionText, CancellationToken cancellationToken)
         {
             Document = document;
-            Position = position;
+            Symbol = symbol;
             DescriptionText = descriptionText;
             CancellationToken = cancellationToken;
         }

@@ -41,8 +41,7 @@ internal partial class QuickInfoSourceProvider
         IAsynchronousOperationListener asyncListener,
         Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
         EditorOptionsService editorOptionsService,
-        IInlineRenameService inlineRenameService,
-        IViewElementFactoryService viewElementFactoryService) : IAsyncQuickInfoSource
+        IInlineRenameService inlineRenameService) : IAsyncQuickInfoSource
     {
         private readonly ITextBuffer _subjectBuffer = subjectBuffer;
         private readonly IThreadingContext _threadingContext = threadingContext;
@@ -51,7 +50,6 @@ internal partial class QuickInfoSourceProvider
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
         private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
         private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
-        private readonly IViewElementFactoryService _viewElementFactoryService = viewElementFactoryService;
 
         public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
         {
@@ -92,7 +90,7 @@ internal partial class QuickInfoSourceProvider
                         return await IntellisenseQuickInfoBuilder.BuildItemAsync(
                             trackingSpan, item, document, classificationOptions, lineFormattingOptions,
                             _threadingContext, _operationExecutor,
-                            _asyncListener, _streamingPresenter, triggerPoint.Value, _viewElementFactoryService, session.TextView,
+                            _asyncListener, _streamingPresenter, triggerPoint.Value,
                             cancellationToken).ConfigureAwait(false);
                     }
 

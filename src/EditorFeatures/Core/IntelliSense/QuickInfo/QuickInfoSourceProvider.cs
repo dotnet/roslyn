@@ -33,8 +33,7 @@ internal partial class QuickInfoSourceProvider(
     IAsynchronousOperationListenerProvider listenerProvider,
     Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
     EditorOptionsService editorOptionsService,
-    IInlineRenameService inlineRenameService,
-    IViewElementFactoryService viewElementFactoryService) : IAsyncQuickInfoSourceProvider
+    IInlineRenameService inlineRenameService) : IAsyncQuickInfoSourceProvider
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
@@ -42,7 +41,6 @@ internal partial class QuickInfoSourceProvider(
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
     private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
-    private readonly IViewElementFactoryService _viewElementFactoryService = viewElementFactoryService;
 
     public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
     {
@@ -51,6 +49,6 @@ internal partial class QuickInfoSourceProvider(
 
         return new QuickInfoSource(
             textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _editorOptionsService,
-            _inlineRenameService, _viewElementFactoryService);
+            _inlineRenameService);
     }
 }
