@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         public async Task ThrowsOnInvalidLanguageSpecificHandler(bool mutatingLspWorkspace)
         {
             // Arrange
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace, extraExportedTypes: [typeof(TestDuplicateLanguageSpecificHandler)]));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace,
+                composition: Composition.AddParts(typeof(TestDuplicateLanguageSpecificHandler))));
         }
 
         [Theory, CombinatorialData]

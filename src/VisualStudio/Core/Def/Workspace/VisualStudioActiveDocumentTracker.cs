@@ -7,10 +7,8 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -31,8 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 /// Can be accessed via the <see cref="IDocumentTrackingService"/> as a workspace service.
 /// </summary>
 [Export]
-internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedObject, IVsSelectionEvents
+internal sealed class VisualStudioActiveDocumentTracker : IVsSelectionEvents
 {
+    private readonly IThreadingContext _threadingContext;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
     /// <summary>
@@ -51,12 +50,12 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
         IThreadingContext threadingContext,
         [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-        : base(threadingContext, assertIsForeground: false)
     {
+        _threadingContext = threadingContext;
         _editorAdaptersFactoryService = editorAdaptersFactoryService;
-        ThreadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
+        _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
         {
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var monitorSelectionService = (IVsMonitorSelection?)await asyncServiceProvider.GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
             Assumes.Present(monitorSelectionService);
@@ -83,16 +82,11 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
     public event EventHandler? DocumentsChanged;
 
     /// <summary>
-    /// Raised when a non-Roslyn text buffer is edited, which can be used to back off of expensive background processing. May be raised on any thread.
-    /// </summary>
-    public event EventHandler<EventArgs>? NonRoslynBufferTextChanged;
-
-    /// <summary>
     /// Returns the <see cref="DocumentId"/> of the active document in a given <see cref="Workspace"/>.
     /// </summary>
     public DocumentId? TryGetActiveDocument(Workspace workspace)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         // Fetch both fields locally. If there's a write between these, that's fine -- it might mean we
         // don't return the DocumentId for something we could have if _activeFrame isn't listed in _visibleFrames.
@@ -122,7 +116,7 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
     /// </summary>
     public ImmutableArray<DocumentId> GetVisibleDocuments(Workspace workspace)
     {
-        ThisCanBeCalledOnAnyThread();
+        // ThisCanBeCalledOnAnyThread();
 
         var visibleFramesSnapshot = _visibleFrames;
 
@@ -143,7 +137,7 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
 
     public void TrackNewActiveWindowFrame(IVsWindowFrame frame)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         Contract.ThrowIfNull(frame);
 
@@ -168,7 +162,7 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
 
     private void RemoveFrame(FrameListener frame)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (frame.Frame == _activeFrame)
         {
@@ -185,7 +179,7 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
 
     int IVsSelectionEvents.OnElementValueChanged([ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSSELELEMID")] uint elementid, object varValueOld, object varValueNew)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         // Process and track newly active document frame.
         // Note that sometimes we receive 'SEID_WindowFrame' instead of 'SEID_DocumentFrame'
@@ -227,16 +221,13 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
         {
             _documentTracker = service;
 
-            _documentTracker.AssertIsForeground();
+            _documentTracker._threadingContext.ThrowIfNotOnUIThread();
 
             this.Frame = frame;
             ((IVsWindowFrame2)frame).Advise(this, out _frameEventsCookie);
 
             TryInitializeTextBuffer();
         }
-
-        private void NonRoslynTextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-            => _documentTracker.NonRoslynBufferTextChanged?.Invoke(_documentTracker, EventArgs.Empty);
 
         /// <summary>
         /// Returns the current DocumentId for this window frame. Care must be made with this value, since "current" could change asynchronously as the document
@@ -293,7 +284,7 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
         {
             RoslynDebug.Assert(TextBuffer is null);
 
-            _documentTracker.AssertIsForeground();
+            _documentTracker._threadingContext.ThrowIfNotOnUIThread();
 
             if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID12.VSFPROPID_IsDocDataInitialized, out var boxedIsDocDataInitialized)))
             {
@@ -310,17 +301,10 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
                 }
             }
 
-            if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)))
+            if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData)) &&
+                docData is IVsTextBuffer bufferAdapter)
             {
-                if (docData is IVsTextBuffer bufferAdapter)
-                {
-                    TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
-
-                    if (TextBuffer != null && !TextBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
-                    {
-                        TextBuffer.Changed += NonRoslynTextBuffer_Changed;
-                    }
-                }
+                TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
             }
 
             return;
@@ -328,13 +312,8 @@ internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedOb
 
         private int Disconnect()
         {
-            _documentTracker.AssertIsForeground();
+            _documentTracker._threadingContext.ThrowIfNotOnUIThread();
             _documentTracker.RemoveFrame(this);
-
-            if (TextBuffer != null)
-            {
-                TextBuffer.Changed -= NonRoslynTextBuffer_Changed;
-            }
 
             if (_frameEventsCookie != VSConstants.VSCOOKIE_NIL)
             {

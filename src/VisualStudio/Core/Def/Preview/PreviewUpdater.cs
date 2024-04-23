@@ -15,15 +15,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal partial class PreviewUpdater : ForegroundThreadAffinitizedObject
+internal sealed partial class PreviewUpdater
 {
     private PreviewDialogWorkspace? _previewWorkspace;
     private readonly ITextView _textView;
     private DocumentId? _currentDocumentId;
     private readonly PreviewTagger _tagger;
 
-    public PreviewUpdater(IThreadingContext threadingContext, ITextView textView)
-        : base(threadingContext)
+    public PreviewUpdater(ITextView textView)
     {
         _textView = textView;
         _tagger = new PreviewTagger(textView.TextBuffer);

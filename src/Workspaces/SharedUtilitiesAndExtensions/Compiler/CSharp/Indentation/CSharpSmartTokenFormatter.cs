@@ -58,8 +58,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
         // Exception 2: Similar behavior for do-while
         if (common.ContainsDiagnostics && !CloseBraceOfTryOrDoBlock(endToken))
         {
-            smartTokenformattingRules = ImmutableArray<AbstractFormattingRule>.Empty.Add(
-                new NoLineChangeFormattingRule()).AddRange(_formattingRules);
+            smartTokenformattingRules = [new NoLineChangeFormattingRule(), .. _formattingRules];
         }
 
         var formatter = CSharpSyntaxFormatting.Instance;

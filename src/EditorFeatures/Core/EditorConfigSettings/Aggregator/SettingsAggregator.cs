@@ -93,7 +93,7 @@ internal partial class SettingsAggregator : ISettingsAggregator
             TryAddProviderForLanguage(LanguageNames.VisualBasic, workspace, providers);
         }
 
-        return new CombinedOptionsProviderFactory<T>(providers.ToImmutableArray());
+        return new CombinedOptionsProviderFactory<T>([.. providers]);
 
         static void TryAddProviderForLanguage(string language, Workspace workspace, List<ISettingsProviderFactory<T>> providers)
         {

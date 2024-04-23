@@ -42,6 +42,12 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
         return false;
     }
 
+    /// <summary>
+    /// Attempt to return the original loader if we still have it.
+    /// </summary>
+    public TextLoader? TextLoader
+        => (_initialSourceOrRecoverableText as ITextAndVersionSource)?.TextLoader;
+
     public ITemporaryTextStorageInternal? Storage
         => (_initialSourceOrRecoverableText as RecoverableText)?.Storage;
 

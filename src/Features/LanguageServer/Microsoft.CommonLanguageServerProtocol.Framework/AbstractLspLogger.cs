@@ -9,11 +9,7 @@ using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public abstract class AbstractLspLogger : ILspLogger
-#else
 internal abstract class AbstractLspLogger : ILspLogger
-#endif
 {
     public abstract void LogDebug(string message, params object[] @params);
     public abstract void LogStartContext(string message, params object[] @params);

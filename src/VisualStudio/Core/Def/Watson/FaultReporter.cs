@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting;
 
 internal static class FaultReporter
 {
+    /// <summary>
+    /// We can no longer use the common fault description property as it has to be suppressed due to poisoned data in past releases.
+    /// This means that prism will no longer show the fault description either.  We'll store the clean description in a custom
+    /// property so we can access it manually if needed.
+    /// </summary>
+    private const string CustomFaultDescriptionPropertyName = "roslyn.fault.description";
+
     private static readonly object _guard = new();
     private static ImmutableArray<TelemetrySession> s_telemetrySessions = [];
     private static ImmutableArray<TraceSource> s_loggers = [];
@@ -130,9 +137,10 @@ internal static class FaultReporter
                 logger.TraceEvent(TraceEventType.Error, 1, logMessage);
             }
 
+            var description = GetDescription(exception);
             var faultEvent = new FaultEvent(
                 eventName: TelemetryLogger.GetEventName(FunctionId.NonFatalWatson),
-                description: GetDescription(exception),
+                description: description,
                 severity,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
@@ -166,6 +174,8 @@ internal static class FaultReporter
                     // See https://aka.ms/roslynnfwdocs for more details
                     return 0;
                 });
+
+            faultEvent.Properties[CustomFaultDescriptionPropertyName] = description;
 
             foreach (var session in s_telemetrySessions)
             {
@@ -252,8 +262,9 @@ internal static class FaultReporter
         {
         }
 
-        // If we couldn't get a stack, do this
-        return exception.Message;
+        // If we couldn't get a stack, report a generic message.
+        // The exception message is already reported in a separate cred-scanned property.
+        return "Roslyn NonFatal Watson";
     }
 
     private static IList<string> CollectLogHubFilePaths()

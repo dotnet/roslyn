@@ -26,12 +26,6 @@ internal partial class SolutionAssetStorage
         public readonly SolutionCompilationState CompilationState = compilationState;
 
         /// <summary>
-        ///  Will be disposed from <see cref="DecreaseScopeRefCount(Scope)"/> when the last ref-count to this scope goes
-        ///  away.
-        /// </summary>
-        public readonly SolutionReplicationContext ReplicationContext = new();
-
-        /// <summary>
         /// Only safe to read write while <see cref="_gate"/> is held.
         /// </summary>
         public int RefCount = 1;

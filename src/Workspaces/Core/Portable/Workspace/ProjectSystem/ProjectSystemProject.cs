@@ -191,21 +191,30 @@ internal sealed partial class ProjectSystemProject
         _filePath = filePath;
         _parseOptions = parseOptions;
 
-        var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
-
-        if (filePath != null && fileExtensionToWatch != null)
-        {
-            // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
-            // having to add explicit file watches everywhere.
-            var projectDirectoryToWatch = new WatchedDirectory(Path.GetDirectoryName(filePath)!, fileExtensionToWatch);
-            _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
-        }
-        else
-        {
-            _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext();
-        }
-
+        var watchedDirectories = GetWatchedDirectories(language, filePath);
+        _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
         _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
+
+        static WatchedDirectory[] GetWatchedDirectories(string? language, string? filePath)
+        {
+            if (filePath is null)
+            {
+                return [];
+            }
+
+            var rootPath = Path.GetDirectoryName(filePath);
+            if (rootPath is null)
+            {
+                return [];
+            }
+
+            return language switch
+            {
+                LanguageNames.VisualBasic => [new(rootPath, ".vb")],
+                LanguageNames.CSharp => [new(rootPath, ".cs"), new(rootPath, ".razor"), new(rootPath, ".cshtml")],
+                _ => []
+            };
+        }
     }
 
     private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> updateSolution, bool logThrowAwayTelemetry = false)
