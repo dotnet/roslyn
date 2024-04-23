@@ -26,7 +26,7 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
 {
     protected readonly IDiagnosticSourceManager DiagnosticSourceManager = diagnosticSourceManager;
 
-    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
+    protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
     {
         return DiagnosticSourceManager.CreateDiagnosticSourcesAsync(context, requestDiagnosticCategory, isDocument: true, cancellationToken);
     }

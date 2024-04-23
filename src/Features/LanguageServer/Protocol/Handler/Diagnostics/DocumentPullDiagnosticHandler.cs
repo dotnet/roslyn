@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -24,11 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
         }
 
-        protected override string GetRequestDiagnosticCategory(VSInternalDocumentDiagnosticsParams diagnosticsParams)
-        {
-            Contract.ThrowIfNull(diagnosticsParams.QueryingDiagnosticKind, "Received a diagnostic request without a source");
-            return diagnosticsParams.QueryingDiagnosticKind.Value.Value;
-        }
+        protected override string? GetRequestDiagnosticCategory(VSInternalDocumentDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;

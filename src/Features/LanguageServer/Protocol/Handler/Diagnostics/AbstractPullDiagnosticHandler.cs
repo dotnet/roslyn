@@ -77,7 +77,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// Returns all the documents that should be processed in the desired order to process them in.
     /// </summary>
     protected abstract ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
-        TDiagnosticsParams diagnosticsParams, string requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken);
+        TDiagnosticsParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates the appropriate LSP type to report a new set of diagnostics and resultId.
@@ -103,7 +103,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// </summary>
     protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource);
 
-    protected abstract string GetRequestDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
+    protected abstract string? GetRequestDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
 
     /// <summary>
     /// Used by public workspace pull diagnostics to allow it to keep the connection open until

@@ -4,13 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
@@ -36,11 +33,8 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
         _clientLanguageServerManager = clientLanguageServerManager;
     }
 
-    protected override string GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
-    {
-        Contract.ThrowIfNull(diagnosticsParams.Identifier, "Received a diagnostic request without an identifier");
-        return diagnosticsParams.Identifier;
-    }
+    protected override string? GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
+        => diagnosticsParams.Identifier;
 
     public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 

@@ -36,11 +36,8 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
         _clientLanguageServerManager = clientLanguageServerManager;
     }
 
-    protected override string GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
-    {
-        Contract.ThrowIfNull(diagnosticsParams.Identifier, "Received a diagnostic request without an identifier");
-        return diagnosticsParams.Identifier;
-    }
+    protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams) 
+        => diagnosticsParams.Identifier;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
         => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);

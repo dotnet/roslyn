@@ -24,11 +24,8 @@ internal sealed partial class WorkspacePullDiagnosticHandler(
     : AbstractWorkspacePullDiagnosticsHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>(
         workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
-    protected override string GetRequestDiagnosticCategory(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-    {
-        Contract.ThrowIfNull(diagnosticsParams.QueryingDiagnosticKind, "Received a diagnostic request without a source");
-        return diagnosticsParams.QueryingDiagnosticKind.Value.Value;
-    }
+    protected override string? GetRequestDiagnosticCategory(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+        => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
     protected override VSInternalWorkspaceDiagnosticReport[] CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
     => [
