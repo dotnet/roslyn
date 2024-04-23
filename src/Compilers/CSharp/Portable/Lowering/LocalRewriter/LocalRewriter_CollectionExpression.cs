@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // it is more efficient to emit a direct call of `ImmutableArray.Create`
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType) &&
                             _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray &&
-                            !IsSingleReadOnlySpanSpread(node, arrayElementType, out _))
+                            !IsSingleReadOnlySpanSpread(node, out _))
                         {
                             return VisitImmutableArrayCollectionExpression(node, arrayElementType, asImmutableArray);
                         }
@@ -141,13 +141,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsSingleReadOnlySpanSpread(BoundCollectionExpression node, TypeWithAnnotations elementType, [NotNullWhen(true)] out BoundExpression? spreadExpression)
+        private bool IsSingleReadOnlySpanSpread(BoundCollectionExpression node, [NotNullWhen(true)] out BoundExpression? spreadExpression)
         {
             spreadExpression = null;
 
-            if (node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol { TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [var spreadElementType] } spreadType } expr }] } &&
-                spreadType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T) &&
-                spreadElementType.Equals(elementType, TypeCompareKind.CLRSignatureCompareOptions))
+            if (node is
+                {
+                    Elements:
+                    [
+                        BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr, IteratorBody: not BoundExpressionStatement { Expression: BoundConversion { ConversionKind: not ConversionKind.Identity } } }
+                    ]
+                } &&
+                spreadType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
             {
                 spreadExpression = expr;
             }
@@ -398,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
             // and that span cannot be captured in a returned ref struct
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
-            BoundExpression span = IsSingleReadOnlySpanSpread(node, elementType, out var spreadExpression) && (!constructMethod.ReturnType.IsRefLikeType || constructMethod.Parameters[0].EffectiveScope == ScopedKind.ScopedValue)
+            BoundExpression span = IsSingleReadOnlySpanSpread(node, out var spreadExpression) && (!constructMethod.ReturnType.IsRefLikeType || constructMethod.Parameters[0].EffectiveScope == ScopedKind.ScopedValue)
                 ? spreadExpression
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
