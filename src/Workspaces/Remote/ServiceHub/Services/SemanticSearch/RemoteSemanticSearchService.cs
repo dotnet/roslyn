@@ -63,11 +63,7 @@ internal sealed class RemoteSemanticSearchService(
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var service = solution.Services.GetLanguageServices(language).GetService<ISemanticSearchService>();
-            if (service == null)
-            {
-                return new ExecuteQueryResult(FeaturesResources.Semantic_search_only_supported_on_net_core);
-            }
+            var service = solution.Services.GetLanguageServices(language).GetRequiredService<ISemanticSearchService>();
 
             var clientCallbacks = new ClientCallbacks(callback, callbackId);
 

@@ -2640,11 +2640,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="new">Semantic Search</target>
         <note />
       </trans-unit>
-      <trans-unit id="Semantic_search_only_supported_on_net_core">
-        <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Semantic_search_query_failed_to_compile">
         <source>Semantic search query failed to compile</source>
         <target state="new">Semantic search query failed to compile</target>

@@ -3240,9 +3240,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Query" xml:space="preserve">
     <value>Query</value>
   </data>
-  <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
-    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools > Options > Text Editor > C# > Advanced).</value>
-  </data>
   <data name="Semantic_search_query_terminated_with_exception" xml:space="preserve">
     <value>Semantic search query terminated with exception</value>
   </data>

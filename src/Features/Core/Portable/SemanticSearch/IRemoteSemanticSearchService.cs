@@ -8,7 +8,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -131,19 +130,28 @@ internal static class RemoteSemanticSearchServiceProxy
     public static async ValueTask<ExecuteQueryResult> ExecuteQueryAsync(Solution solution, string language, string query, string referenceAssembliesDir, ISemanticSearchResultsObserver results, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-        if (client == null)
+        if (client != null)
         {
-            return new ExecuteQueryResult(FeaturesResources.Semantic_search_only_supported_on_net_core);
+            var serverCallback = new ServerCallback(solution, results, classificationOptions);
+
+            var result = await client.TryInvokeAsync<IRemoteSemanticSearchService, ExecuteQueryResult>(
+                solution,
+                (service, solutionInfo, callbackId, cancellationToken) => service.ExecuteQueryAsync(solutionInfo, callbackId, language, query, referenceAssembliesDir, cancellationToken),
+                callbackTarget: serverCallback,
+                cancellationToken).ConfigureAwait(false);
+
+            if (result.HasValue)
+            {
+                return result.Value;
+            }
         }
 
-        var serverCallback = new ServerCallback(solution, results, classificationOptions);
+        return await ExecuteQueryInCurrentProcessAsync(solution, language, query, referenceAssembliesDir, results, classificationOptions, cancellationToken).ConfigureAwait(false);
+    }
 
-        var result = await client.TryInvokeAsync<IRemoteSemanticSearchService, ExecuteQueryResult>(
-            solution,
-            (service, solutionInfo, callbackId, cancellationToken) => service.ExecuteQueryAsync(solutionInfo, callbackId, language, query, referenceAssembliesDir, cancellationToken),
-            callbackTarget: serverCallback,
-            cancellationToken).ConfigureAwait(false);
-
-        return result.Value;
+    public static async ValueTask<ExecuteQueryResult> ExecuteQueryInCurrentProcessAsync(Solution solution, string language, string query, string referenceAssembliesDir, ISemanticSearchResultsObserver results, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+    {
+        var service = solution.Services.GetLanguageServices(language).GetRequiredService<ISemanticSearchService>();
+        return await service.ExecuteQueryAsync(solution, query, referenceAssembliesDir, results, classificationOptions, traceSource: null, cancellationToken).ConfigureAwait(false);
     }
 }
