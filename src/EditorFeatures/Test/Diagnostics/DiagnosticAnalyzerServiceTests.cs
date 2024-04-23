@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
             var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
-                workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: _ => true,
+                workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
                 includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
             Assert.NotEmpty(diagnostics);
         }
