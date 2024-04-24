@@ -56,7 +56,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
         var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
         var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
-        foreach (var project in solution.GetProjectsInPriorityOrder(context.SupportedLanguages))
+        foreach (var project in WorkspaceDiagnosticSourceHelpers.GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
             await AddDocumentsAndProjectAsync(project, diagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
 
         return result.ToImmutableAndClear();
@@ -89,7 +89,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
             {
                 foreach (var document in documents)
                 {
-                    if (!context.ShouldSkipDocument(document))
+                    if (!WorkspaceDiagnosticSourceHelpers.ShouldSkipDocument(context, document))
                     {
                         // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
                         var documentDiagnosticSource = fullSolutionAnalysisEnabled

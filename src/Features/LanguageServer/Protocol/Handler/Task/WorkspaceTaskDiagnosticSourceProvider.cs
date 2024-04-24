@@ -31,11 +31,11 @@ internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOpti
         if (globalOptions.GetTaskListOptions().ComputeForClosedFiles)
         {
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
-            foreach (var project in context.Solution.GetProjectsInPriorityOrder(context.SupportedLanguages))
+            foreach (var project in WorkspaceDiagnosticSourceHelpers.GetProjectsInPriorityOrder(context.Solution, context.SupportedLanguages))
             {
                 foreach (var document in project.Documents)
                 {
-                    if (!context.ShouldSkipDocument(document))
+                    if (!WorkspaceDiagnosticSourceHelpers.ShouldSkipDocument(context, document))
                         result.Add(new TaskListDiagnosticSource(document, globalOptions));
                 }
             }

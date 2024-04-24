@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal static class WorkspaceDiagnosticSourceHelpers
 {
-    public static IEnumerable<Project> GetProjectsInPriorityOrder(this Solution solution, ImmutableArray<string> supportedLanguages)
+    public static IEnumerable<Project> GetProjectsInPriorityOrder(Solution solution, ImmutableArray<string> supportedLanguages)
     {
         return GetProjectsInPriorityOrderWorker(solution)
             .WhereNotNull()
@@ -39,7 +39,7 @@ internal static class WorkspaceDiagnosticSourceHelpers
         }
     }
 
-    public static bool ShouldSkipDocument(this RequestContext context, TextDocument document)
+    public static bool ShouldSkipDocument(RequestContext context, TextDocument document)
     {
         // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
         // Each handler treats those as separate worlds that they are responsible for.

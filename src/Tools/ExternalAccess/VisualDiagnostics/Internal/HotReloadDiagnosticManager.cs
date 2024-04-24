@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class HotReloadDiagnosticManager([Import] IDiagnosticsRefresher diagnosticsRefresher) : IHotReloadDiagnosticManager
 {
-    private readonly object syncLock = new();
+    private readonly object _syncLock = new();
     private ImmutableArray<IHotReloadDiagnosticSourceProvider> _providers = ImmutableArray<IHotReloadDiagnosticSourceProvider>.Empty;
     ImmutableArray<IHotReloadDiagnosticSourceProvider> IHotReloadDiagnosticManager.Providers => _providers;
     void IHotReloadDiagnosticManager.RequestRefresh() => diagnosticsRefresher.RequestWorkspaceRefresh();
@@ -26,7 +26,7 @@ internal sealed class HotReloadDiagnosticManager([Import] IDiagnosticsRefresher 
     {
         // We use array instead of e.g. HashSet because we expect the number of sources to be small.
         // Usually 2, one workspace and one document provider.
-        lock (syncLock)
+        lock (_syncLock)
         {
             foreach (var provider in providers)
             {
@@ -38,7 +38,7 @@ internal sealed class HotReloadDiagnosticManager([Import] IDiagnosticsRefresher 
 
     void IHotReloadDiagnosticManager.Unregister(IEnumerable<IHotReloadDiagnosticSourceProvider> providers)
     {
-        lock (syncLock)
+        lock (_syncLock)
         {
             foreach (var provider in providers)
                 _providers = _providers.Remove(provider);
