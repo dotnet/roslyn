@@ -38,27 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
-            : base(enclosing, ConstructFlags(owner, enclosing))
+            : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
         {
             Debug.Assert(!enclosing.Flags.Includes(BinderFlags.InCatchFilter));
             Debug.Assert((object)owner != null);
             _methodSymbol = owner;
-        }
-
-        private static BinderFlags ConstructFlags(MethodSymbol owner, Binder enclosing)
-        {
-            BinderFlags flags = enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary;
-
-            if (owner.IsIterator && enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync))
-            {
-                // Spec §13.3.1: "An iterator block always defines a safe context,
-                // even when its declaration is nested in an unsafe context."
-                // Note that if the iterator method itself has the unsafe modifier,
-                // its body binder will have the UnsafeRegion flag applied by the BinderFactory.
-                flags &= ~BinderFlags.UnsafeRegion;
-            }
-
-            return flags;
         }
 
         private static void RecordDefinition<T>(SmallDictionary<string, Symbol> declarationMap, ImmutableArray<T> definitions) where T : Symbol

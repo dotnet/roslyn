@@ -416,7 +416,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? new WithMethodTypeParametersBinder(match, _enclosing)
                     : _enclosing;
 
-                binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+                binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers,
+                    isIterator: match.IsIterator);
+
                 binder = new InMethodBinder(match, binder);
             }
 

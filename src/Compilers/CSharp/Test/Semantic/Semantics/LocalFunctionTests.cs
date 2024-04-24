@@ -2391,6 +2391,12 @@ class C
                 // (27,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
+                // (33,36): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("ref and unsafe in async and iterator methods").WithLocation(33, 36),
                 // (37,40): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(37, 40),
@@ -2400,12 +2406,6 @@ class C
                 // (39,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //                 Local(&x);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Local(&x)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(39, 17),
-                // (33,44): error CS1637: Iterators cannot have pointer type parameters
-                //     public unsafe IEnumerable<int> M4(int* a)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
-                // (33,36): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public unsafe IEnumerable<int> M4(int* a)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("ref and unsafe in async and iterator methods").WithLocation(33, 36),
                 // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));

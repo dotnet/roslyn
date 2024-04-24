@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(methodDecl.Modifiers);
+                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(methodDecl.Modifiers,
+                        isIterator: usage == NodeUsage.MethodBody && method?.IsIterator == true);
                     binderCache.TryAdd(key, resultBinder);
                 }
 
@@ -339,7 +340,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
-                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers,
+                        isIterator: inBody && method?.IsIterator == true);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -399,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
                 {
-                    resultBinder = VisitCore(parent.Parent).WithUnsafeRegionIfNecessary(parent.Modifiers);
+                    resultBinder = VisitCore(parent.Parent);
 
                     var propertySymbol = GetPropertySymbol(parent, resultBinder);
                     var accessor = propertySymbol.GetMethod;
@@ -407,6 +409,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         resultBinder = new InMethodBinder(accessor, resultBinder);
                     }
+
+                    resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers,
+                        isIterator: accessor?.IsIterator == true);
 
                     binderCache.TryAdd(key, resultBinder);
                 }

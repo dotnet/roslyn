@@ -91,11 +91,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BinderWithContainingMemberOrLambda(this, this.Flags | flags, containing);
         }
 
-        internal Binder WithUnsafeRegionIfNecessary(SyntaxTokenList modifiers)
+        internal Binder WithUnsafeRegionIfNecessary(SyntaxTokenList modifiers, bool isIterator = false)
         {
-            return (this.Flags.Includes(BinderFlags.UnsafeRegion) || !modifiers.Any(SyntaxKind.UnsafeKeyword))
-                ? this
-                : new Binder(this, this.Flags | BinderFlags.UnsafeRegion);
+            var insideUnsafe = this.Flags.Includes(BinderFlags.UnsafeRegion);
+            var hasUnsafeModifier = modifiers.Any(SyntaxKind.UnsafeKeyword);
+
+            if (insideUnsafe == hasUnsafeModifier)
+            {
+                return this;
+            }
+
+            if (insideUnsafe)
+            {
+                Debug.Assert(!hasUnsafeModifier);
+                return isIterator && this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync)
+                    ? new Binder(this, this.Flags & ~BinderFlags.UnsafeRegion)
+                    : this;
+            }
+
+            Debug.Assert(hasUnsafeModifier);
+            return new Binder(this, this.Flags | BinderFlags.UnsafeRegion);
         }
 
         internal Binder WithCheckedOrUncheckedRegion(bool @checked)
