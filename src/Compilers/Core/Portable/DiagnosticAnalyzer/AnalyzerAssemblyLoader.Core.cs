@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
-                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this, _compilerLoadContext);
+                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
             }
@@ -108,14 +108,12 @@ namespace Microsoft.CodeAnalysis
         {
             internal string Directory { get; }
             private readonly AnalyzerAssemblyLoader _loader;
-            private readonly AssemblyLoadContext _compilerLoadContext;
 
-            public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader, AssemblyLoadContext compilerLoadContext)
+            public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader)
                 : base(isCollectible: true)
             {
                 Directory = directory;
                 _loader = loader;
-                _compilerLoadContext = compilerLoadContext;
             }
 
             protected override Assembly? Load(AssemblyName assemblyName)
