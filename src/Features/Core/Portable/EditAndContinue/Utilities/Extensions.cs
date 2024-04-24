@@ -187,4 +187,10 @@ internal static partial class Extensions
 
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
         => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
+
+    /// <summary>
+    /// Returns true if any member of the type implements an interface member explicitly.
+    /// </summary>
+    public static bool HasExplicitInterfaceImplementation(this INamedTypeSymbol type)
+        => type.GetMembers().Any(static member => member.ExplicitInterfaceImplementations().Any());
 }

@@ -18,4 +18,8 @@ internal sealed class EditAndContinueCapabilitiesGrantor(EditAndContinueCapabili
         GrantedCapabilities |= capabilities;
         return (_availableCapabilities & capabilities) == capabilities;
     }
+
+    public bool GrantNewTypeDefinition(INamedTypeSymbol type)
+        => Grant(EditAndContinueCapabilities.NewTypeDefinition) &&
+           (!type.HasExplicitInterfaceImplementation() || Grant(EditAndContinueCapabilities.AddExplicitInterfaceImplementation));
 }
