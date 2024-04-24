@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
@@ -102,22 +101,39 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     public TemporaryStorageTextHandle WriteToTemporaryStorage(SourceText text, CancellationToken cancellationToken)
     {
-        var storage = new TemporaryTextStorage(this);
-        storage.WriteText(text, cancellationToken);
-        return CreateHandleFromStorage(storage);
+        var memoryMappedInfo = WriteToMemoryMappedFile();
+        var identifier = new TemporaryStorageIdentifier(memoryMappedInfo.Name, memoryMappedInfo.Offset, memoryMappedInfo.Size);
+        return new(this, memoryMappedInfo.MemoryMappedFile, identifier, text.ChecksumAlgorithm, text.Encoding, text.GetContentHash());
+
+        MemoryMappedInfo WriteToMemoryMappedFile()
+        {
+            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
+            {
+                // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
+                var size = Encoding.Unicode.GetMaxByteCount(text.Length);
+                var memoryMappedInfo = this.CreateTemporaryStorage(size);
+
+                // Write the source text out as Unicode. We expect that to be cheap.
+                using var stream = memoryMappedInfo.CreateWritableStream();
+                {
+                    using var writer = new StreamWriter(stream, Encoding.Unicode);
+                    text.Write(writer, cancellationToken);
+                }
+
+                return memoryMappedInfo;
+            }
+        }
     }
 
     public async Task<TemporaryStorageTextHandle> WriteToTemporaryStorageAsync(SourceText text, CancellationToken cancellationToken)
     {
-        var storage = new TemporaryTextStorage(this);
-        await storage.WriteTextAsync(text, cancellationToken).ConfigureAwait(false);
-        return CreateHandleFromStorage(storage);
-    }
+        if (this._workspaceThreadingService is { IsOnMainThread: true })
+        {
+            await Task.Yield().ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+        }
 
-    private TemporaryStorageTextHandle CreateHandleFromStorage(TemporaryTextStorage storage)
-    {
-        var identifier = new TemporaryStorageIdentifier(storage.Name, storage.Offset, storage.Size);
-        return new(this, storage.MemoryMappedInfo.MemoryMappedFile, identifier, storage.ChecksumAlgorithm, storage.Encoding, storage.ContentHash);
+        return WriteToTemporaryStorage(text, cancellationToken);
     }
 
     ITemporaryStorageStreamHandle ITemporaryStorageServiceInternal.WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
@@ -126,27 +142,28 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     public TemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
         stream.Position = 0;
-        var memoryMappedInfo = WriteStreamToMemoryMappedFile();
+        var memoryMappedInfo = WriteToMemoryMappedFile();
         var identifier = new TemporaryStorageIdentifier(memoryMappedInfo.Name, memoryMappedInfo.Offset, memoryMappedInfo.Size);
         return new(memoryMappedInfo.MemoryMappedFile, identifier);
 
-        MemoryMappedInfo WriteStreamToMemoryMappedFile()
+        MemoryMappedInfo WriteToMemoryMappedFile()
         {
             using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
             {
                 var size = stream.Length;
                 var memoryMappedInfo = this.CreateTemporaryStorage(size);
                 using var viewStream = memoryMappedInfo.CreateWritableStream();
-
-                using var pooledObject = SharedPools.ByteArray.GetPooledObject();
-                var buffer = pooledObject.Object;
-                while (true)
                 {
-                    var count = stream.Read(buffer, 0, buffer.Length);
-                    if (count == 0)
-                        break;
+                    using var pooledObject = SharedPools.ByteArray.GetPooledObject();
+                    var buffer = pooledObject.Object;
+                    while (true)
+                    {
+                        var count = stream.Read(buffer, 0, buffer.Length);
+                        if (count == 0)
+                            break;
 
-                    viewStream.Write(buffer, 0, count);
+                        viewStream.Write(buffer, 0, count);
+                    }
                 }
 
                 return memoryMappedInfo;
@@ -272,95 +289,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             Debug.Assert(*src == 0xFEFF);
 
             return new DirectMemoryAccessStreamReader(src + 1, (int)stream.Length / sizeof(char) - 1);
-        }
-    }
-
-    private sealed class TemporaryTextStorage
-    {
-        private readonly TemporaryStorageService _service;
-        private SourceHashAlgorithm _checksumAlgorithm;
-        private Encoding? _encoding;
-        private ImmutableArray<byte> _contentHash;
-        private MemoryMappedInfo? _memoryMappedInfo;
-
-        public MemoryMappedInfo MemoryMappedInfo => _memoryMappedInfo ?? throw new InvalidOperationException();
-
-        public TemporaryTextStorage(TemporaryStorageService service)
-            => _service = service;
-
-        public TemporaryTextStorage(
-            TemporaryStorageService service,
-            string storageName,
-            long offset,
-            long size,
-            SourceHashAlgorithm checksumAlgorithm,
-            Encoding? encoding,
-            ImmutableArray<byte> contentHash)
-        {
-            _service = service;
-            _checksumAlgorithm = checksumAlgorithm;
-            _encoding = encoding;
-            _contentHash = contentHash;
-            _memoryMappedInfo = MemoryMappedInfo.OpenExisting(storageName, offset, size);
-        }
-
-        public string Name => this.MemoryMappedInfo.Name;
-        public long Offset => this.MemoryMappedInfo.Offset;
-        public long Size => this.MemoryMappedInfo.Size;
-
-        /// <summary>
-        /// Gets the value for the <see cref="SourceText.ChecksumAlgorithm"/> property for the <see cref="SourceText"/>
-        /// represented by this temporary storage.
-        /// </summary>
-        public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
-
-        /// <summary>
-        /// Gets the value for the <see cref="SourceText.Encoding"/> property for the <see cref="SourceText"/>
-        /// represented by this temporary storage.
-        /// </summary>
-        public Encoding? Encoding => _encoding;
-
-        /// <summary>
-        /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
-        /// to calling <see cref="SourceText.GetContentHash"/>.
-        /// </summary>
-        public ImmutableArray<byte> ContentHash => _contentHash;
-
-        public void WriteText(SourceText text, CancellationToken cancellationToken)
-        {
-            if (_memoryMappedInfo != null)
-            {
-                throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
-
-            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
-            {
-                _checksumAlgorithm = text.ChecksumAlgorithm;
-                _encoding = text.Encoding;
-                _contentHash = text.GetContentHash();
-
-                // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
-                var size = Encoding.Unicode.GetMaxByteCount(text.Length);
-                _memoryMappedInfo = _service.CreateTemporaryStorage(size);
-
-                // Write the source text out as Unicode. We expect that to be cheap.
-                using var stream = _memoryMappedInfo.CreateWritableStream();
-                using var writer = new StreamWriter(stream, Encoding.Unicode);
-
-                text.Write(writer, cancellationToken);
-            }
-        }
-
-        public async Task WriteTextAsync(SourceText text, CancellationToken cancellationToken)
-        {
-            // See commentary in ReadTextAsync for why this is implemented this way.
-            if (_service._workspaceThreadingService is { IsOnMainThread: true })
-            {
-                await Task.Yield().ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-
-            WriteText(text, cancellationToken);
         }
     }
 }
