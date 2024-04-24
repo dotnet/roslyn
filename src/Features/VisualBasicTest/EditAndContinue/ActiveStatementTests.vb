@@ -5137,7 +5137,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5167,7 +5167,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5284,7 +5284,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5403,7 +5403,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5432,7 +5432,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5515,7 +5515,7 @@ End Class
 
             ' No rude edit since the AS is within the nested function.
             edits.VerifySemanticDiagnostics(active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>

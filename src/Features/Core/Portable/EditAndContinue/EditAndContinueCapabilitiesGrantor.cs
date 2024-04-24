@@ -20,6 +20,17 @@ internal sealed class EditAndContinueCapabilitiesGrantor(EditAndContinueCapabili
     }
 
     public bool GrantNewTypeDefinition(INamedTypeSymbol type)
-        => Grant(EditAndContinueCapabilities.NewTypeDefinition) &&
-           (!type.HasExplicitInterfaceImplementation() || Grant(EditAndContinueCapabilities.AddExplicitInterfaceImplementation));
+    {
+        if (!Grant(EditAndContinueCapabilities.NewTypeDefinition))
+        {
+            return false;
+        }
+
+        if (type.HasExplicitlyImplementedInterfaceMember() && !Grant(EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
+        {
+            return false;
+        }
+
+        return true;
+    }
 }
