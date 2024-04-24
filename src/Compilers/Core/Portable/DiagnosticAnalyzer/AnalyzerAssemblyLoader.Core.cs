@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         {
             _loadOption = loadOption;
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
-            _externalResolvers = externalResolvers;
+            _externalResolvers = [.. externalResolvers, new CompilerAnalyzerAssemblyResolver(_compilerLoadContext)];
         }
 
         public bool IsHostAssembly(Assembly assembly)
@@ -125,19 +125,6 @@ namespace Microsoft.CodeAnalysis
                     return externallyResolvedAssembly;
                 }
 
-                try
-                {
-                    if (_compilerLoadContext.LoadFromAssemblyName(assemblyName) is { } compilerAssembly)
-                    {
-                        return compilerAssembly;
-                    }
-                }
-                catch
-                {
-                    // Expected to happen when the assembly cannot be resolved in the compiler / host
-                    // AssemblyLoadContext.
-                }
-
                 // Prefer registered dependencies in the same directory first.
                 var simpleName = assemblyName.Name!;
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
@@ -206,6 +193,13 @@ namespace Microsoft.CodeAnalysis
 
                 return IntPtr.Zero;
             }
+        }
+
+        internal sealed class CompilerAnalyzerAssemblyResolver(AssemblyLoadContext compilerContext) : IAnalyzerAssemblyResolver
+        {
+            private readonly AssemblyLoadContext _compilerAlc = compilerContext;
+
+            public Assembly? ResolveAssembly(AssemblyName assemblyName) => _compilerAlc.LoadFromAssemblyName(assemblyName);
         }
     }
 }
