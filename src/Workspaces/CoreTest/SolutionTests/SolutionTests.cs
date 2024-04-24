@@ -2216,7 +2216,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     if (solution.ContainsProject(referenced.ProjectId))
                     {
-                        var referencedMetadata = await solution.CompilationState.GetMetadataReferenceAsync(referenced, solution.GetProjectState(project.Id), CancellationToken.None);
+                        var referencedMetadata = await solution.CompilationState.GetMetadataReferenceAsync(
+                            referenced, solution.GetProjectState(project.Id), includeCrossLanguage: true, CancellationToken.None);
                         Assert.NotNull(referencedMetadata);
                         if (referencedMetadata is CompilationReference compilationReference)
                         {
