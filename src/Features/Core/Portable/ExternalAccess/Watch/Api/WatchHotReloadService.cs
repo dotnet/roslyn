@@ -121,6 +121,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     {
         Contract.ThrowIfFalse(_sessionId != default, "Session has not started");
         _encService.EndDebuggingSession(_sessionId);
+        _sessionId = default;
     }
 
     internal TestAccessor GetTestAccessor()
