@@ -52,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
                     trackingSpan.Object, quickInfoItem, document,
                     ClassificationOptions.Default, LineFormattingOptions.Default, threadingContext, operationExecutor,
-                    AsynchronousOperationListenerProvider.NullListener, streamingPresenter,
-                    CancellationToken.None)
+                    AsynchronousOperationListenerProvider.NullListener,
+                    streamingPresenter, CancellationToken.None)
             End Using
         End Function
 
