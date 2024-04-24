@@ -36,7 +36,7 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
     private readonly Document _document;
     private readonly OnTheFlyDocsElement _onTheFlyDocsElement;
     private readonly ContentControl _responseControl = new();
-    private State _currentState = State.OnDemandLink;
+    private OnTheFlyDocsState _currentState = OnTheFlyDocsState.OnDemandLink;
 
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -47,6 +47,9 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
     public event EventHandler ResultsRequested;
 
 #pragma warning disable CA1822 // Mark members as static
+    /// <summary>
+    /// Used to display the "On the fly documentation" directly in the associated XAML file.
+    /// </summary>
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
@@ -126,7 +129,7 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
         if (response is null || response.Length == 0)
         {
             SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
-            CurrentState = State.Finished;
+            CurrentState = OnTheFlyDocsState.Finished;
             Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
             {
                 m["ElapsedTime"] = copilotRequestTime;
@@ -135,7 +138,7 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
         else
         {
             SetResultText(response);
-            CurrentState = State.Finished;
+            CurrentState = OnTheFlyDocsState.Finished;
 
             Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
             {
@@ -148,7 +151,7 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
     /// <summary>
     /// Gets or sets the current state of the view.
     /// </summary>
-    public State CurrentState
+    public OnTheFlyDocsState CurrentState
     {
         get => _currentState;
         set => OnPropertyChanged(ref _currentState, value);
@@ -171,7 +174,7 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
 
     public void RequestResults()
     {
-        CurrentState = State.Loading;
+        CurrentState = OnTheFlyDocsState.Loading;
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
             m["SymbolHeaderText"] = _onTheFlyDocsElement.DescriptionText;

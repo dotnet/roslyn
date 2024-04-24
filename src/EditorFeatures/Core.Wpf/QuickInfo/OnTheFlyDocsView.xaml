@@ -15,17 +15,17 @@
         <ContentControl
             Visibility="{Binding Path=CurrentState,
                          Converter={StaticResource VisibilityConverter},
-                         ConverterParameter={x:Static local:State.OnDemandLink}}"
+                         ConverterParameter={x:Static local:OnTheFlyDocsState.OnDemandLink}}"
             Content="{Binding Path=OnDemandLinkContent}" />
         <ContentControl
             Visibility="{Binding Path=CurrentState,
                          Converter={StaticResource VisibilityConverter},
-                         ConverterParameter={x:Static local:State.Loading}}"
+                         ConverterParameter={x:Static local:OnTheFlyDocsState.Loading}}"
             Content="{Binding Path=LoadingContent}" />
         <ContentControl
             Visibility="{Binding Path=CurrentState,
                          Converter={StaticResource VisibilityConverter},
-                         ConverterParameter={x:Static local:State.Finished}}"
+                         ConverterParameter={x:Static local:OnTheFlyDocsState.Finished}}"
             Content="{Binding Path=ResultsContent}" />
 
     </Grid>
