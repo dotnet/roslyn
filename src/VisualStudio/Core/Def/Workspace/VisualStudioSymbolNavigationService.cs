@@ -180,7 +180,6 @@ internal sealed partial class VisualStudioSymbolNavigationService(
     public async Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
     {
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        _threadingContext.ThrowIfNotOnUIThread();
 
         var definitionItem = symbol.ToNonClassifiedDefinitionItem(project.Solution, includeHiddenLocations: true);
         definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);

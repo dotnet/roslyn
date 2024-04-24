@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 sets.Add(new UnifiedSuggestedActionSet(
                     originalSolution,
                     category,
-                    group.ToImmutableArray(),
+                    [.. group],
                     title: null,
                     priority,
                     applicableToSpan: groupKey.Item1.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
@@ -711,9 +711,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static ImmutableArray<UnifiedSuggestedActionSet> OrderActionSets(
             ImmutableArray<UnifiedSuggestedActionSet> actionSets, TextSpan? selectionOpt)
         {
-            return actionSets.OrderByDescending(s => s.Priority)
-                             .ThenBy(s => s, new UnifiedSuggestedActionSetComparer(selectionOpt))
-                             .ToImmutableArray();
+            return [.. actionSets.OrderByDescending(s => s.Priority).ThenBy(s => s, new UnifiedSuggestedActionSetComparer(selectionOpt))];
         }
 
         private static UnifiedSuggestedActionSet WithPriority(

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -49,54 +50,49 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         result.AddRange(enumerable.Cast<ISymbol>());
     }
 
-    protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
         INamedTypeSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-
-        await AddDocumentsToSearchAsync(symbol.Name, project, documents, result, cancellationToken).ConfigureAwait(false);
+        await AddDocumentsToSearchAsync(symbol.Name, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         if (globalAliases != null)
         {
             foreach (var alias in globalAliases)
-                await AddDocumentsToSearchAsync(alias, project, documents, result, cancellationToken).ConfigureAwait(false);
+                await AddDocumentsToSearchAsync(alias, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
 
-        result.AddRange(await FindDocumentsAsync(
-            project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false));
+        await FindDocumentsAsync(
+            project, documents, symbol.SpecialType.ToPredefinedType(), processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        result.AddRange(await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
-            project, documents, cancellationToken).ConfigureAwait(false));
-
-        return result.ToImmutableAndClear();
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
+            project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Looks for documents likely containing <paramref name="throughName"/> in them.  That name will either be the actual
     /// name of the named type we're looking for, or it might be a global alias to it.
     /// </summary>
-    private static async Task AddDocumentsToSearchAsync(
+    private static async Task AddDocumentsToSearchAsync<TData>(
         string throughName,
         Project project,
         IImmutableSet<Document>? documents,
-        ArrayBuilder<Document> result,
+        Action<Document, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
 
-        var documentsWithName = await FindDocumentsAsync(
-            project, documents, cancellationToken, throughName).ConfigureAwait(false);
+        await FindDocumentsAsync(
+            project, documents, processResult, processResultData, cancellationToken, throughName).ConfigureAwait(false);
 
-        var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(throughName, syntaxFacts, out var simpleName)
-            ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
-            : [];
-
-        result.AddRange(documentsWithName);
-        result.AddRange(documentsWithAttribute);
+        if (TryGetNameWithoutAttributeSuffix(throughName, syntaxFacts, out var simpleName))
+            await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, simpleName).ConfigureAwait(false);
     }
 
     private static bool IsPotentialReference(
@@ -109,9 +105,11 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
             predefinedType == actualType;
     }
 
-    protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
         INamedTypeSymbol namedType,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
@@ -120,31 +118,34 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         // First find all references to this type, either with it's actual name, or through potential
         // global alises to it.
         await AddReferencesToTypeOrGlobalAliasToItAsync(
-            namedType, state, initialReferences, cancellationToken).ConfigureAwait(false);
+            namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken).ConfigureAwait(false);
+
+        // The items in initialReferences need to be both reported and used later to calculate additional results.
+        foreach (var location in initialReferences)
+            processResult(location, processResultData);
 
         // This named type may end up being locally aliased as well.  If so, now find all the references
         // to the local alias.
 
-        initialReferences.AddRange(await FindLocalAliasReferencesAsync(
-            initialReferences, state, cancellationToken).ConfigureAwait(false));
+        await FindLocalAliasReferencesAsync(
+            initialReferences, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        initialReferences.AddRange(await FindPredefinedTypeReferencesAsync(
-            namedType, state, cancellationToken).ConfigureAwait(false));
+        await FindPredefinedTypeReferencesAsync(
+            namedType, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            namedType, state, cancellationToken).ConfigureAwait(false));
-
-        return initialReferences.ToImmutableAndClear();
+        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+            namedType, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync(
+    internal static async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync<TData>(
         INamedTypeSymbol namedType,
         FindReferencesDocumentState state,
-        ArrayBuilder<FinderLocation> nonAliasReferences,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         await AddNonAliasReferencesAsync(
-            namedType, namedType.Name, state, nonAliasReferences, cancellationToken).ConfigureAwait(false);
+            namedType, namedType.Name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         foreach (var globalAlias in state.GlobalAliases)
         {
@@ -155,7 +156,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
                 continue;
 
             await AddNonAliasReferencesAsync(
-                namedType, globalAlias, state, nonAliasReferences, cancellationToken).ConfigureAwait(false);
+                namedType, globalAlias, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -164,24 +165,27 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
     /// only if it referenced though <paramref name="name"/> (which might be the actual name
     /// of the type, or a global alias to it).
     /// </summary>
-    private static async ValueTask AddNonAliasReferencesAsync(
+    private static async ValueTask AddNonAliasReferencesAsync<TData>(
         INamedTypeSymbol symbol,
         string name,
         FindReferencesDocumentState state,
-        ArrayBuilder<FinderLocation> nonAliasesReferences,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
-        nonAliasesReferences.AddRange(await FindOrdinaryReferencesAsync(
-            symbol, name, state, cancellationToken).ConfigureAwait(false));
+        await FindOrdinaryReferencesAsync(
+            symbol, name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        nonAliasesReferences.AddRange(await FindAttributeReferencesAsync(
-            symbol, name, state, cancellationToken).ConfigureAwait(false));
+        await FindAttributeReferencesAsync(
+            symbol, name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    private static ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
+    private static ValueTask FindOrdinaryReferencesAsync<TData>(
         INamedTypeSymbol namedType,
         string name,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         // Get the parent node that best matches what this token represents.  For example, if we have `new a.b()`
@@ -190,17 +194,19 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         // associate with the type, but rather with the constructor itself.
 
         return FindReferencesInDocumentUsingIdentifierAsync(
-            namedType, name, state, cancellationToken);
+            namedType, name, state, processResult, processResultData, cancellationToken);
     }
 
-    private static ValueTask<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
+    private static ValueTask FindPredefinedTypeReferencesAsync<TData>(
         INamedTypeSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         var predefinedType = symbol.SpecialType.ToPredefinedType();
         if (predefinedType == PredefinedType.None)
-            return new([]);
+            return ValueTaskFactory.CompletedTask;
 
         var tokens = state.Root
             .DescendantTokens(descendIntoTrivia: true)
@@ -208,17 +214,19 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
                 static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
                 (state, predefinedType));
 
-        return FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken);
+        return FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
-    private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
+    private static ValueTask FindAttributeReferencesAsync<TData>(
         INamedTypeSymbol namedType,
         string name,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var nameWithoutSuffix)
-            ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, cancellationToken)
-            : new([]);
+            ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, processResult, processResultData, cancellationToken)
+            : ValueTaskFactory.CompletedTask;
     }
 }

@@ -3679,7 +3679,7 @@ record C(int X)
             expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true));
 
             edits.VerifySemantics(
-                expectedEdits.ToArray(),
+                [.. expectedEdits],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 

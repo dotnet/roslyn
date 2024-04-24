@@ -91,7 +91,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // sync
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText), cancellationToken),
+                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), cancellationToken),
                 CancellationToken.None);
 
             // apply change to solution
@@ -1450,7 +1450,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static async Task VerifyAssetStorageAsync(InProcRemoteHostClient client, Solution solution)
         {
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(projectConeId: null, CancellationToken.None);
 
             var storage = client.TestData.WorkspaceManager.SolutionAssetCache;
 
@@ -1525,7 +1525,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             ],
             [
                 "cs additional file content"
-            ], solution.ProjectIds.ToArray());
+            ], [.. solution.ProjectIds]);
 
             solution = AddProject(solution, LanguageNames.CSharp,
             [

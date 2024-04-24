@@ -1176,7 +1176,7 @@ internal sealed partial class SolutionCompilationState
 
         var documentStatesByProjectId = documentStates.ToDictionary(static state => state.Id.ProjectId);
         var newTrackerMap = CreateCompilationTrackerMap(
-            documentStatesByProjectId.Keys.ToImmutableArray(),
+            [.. documentStatesByProjectId.Keys],
             this.SolutionState.GetProjectDependencyGraph(),
             static (trackerMap, arg) =>
             {
@@ -1570,7 +1570,7 @@ internal sealed partial class SolutionCompilationState
 
             var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
 
-            var compilationTranslationAction = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+            var compilationTranslationAction = removeDocumentsFromProjectState(oldProjectState, [.. documentIdsInProject], removedDocumentStatesForProject);
             var newProjectState = compilationTranslationAction.NewProjectState;
 
             var stateChange = newCompilationState.SolutionState.ForkProject(

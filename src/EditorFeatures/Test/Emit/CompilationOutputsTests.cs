@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
             Stream? currentPdbStream = null;
 
             var outputs = new TestCompilationOutputs(
-                openAssemblyStream: () => currentPEStream = new MemoryStream(peImage.ToArray()),
+                openAssemblyStream: () => currentPEStream = new MemoryStream([.. peImage]),
                 openPdbStream: () =>
                 {
                     if (pdbStream == null)

@@ -192,7 +192,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        return allReferences.ToImmutableArray();
+        return [.. allReferences];
     }
 
     private static async Task FindResultsInAllSymbolsInStartingProjectAsync(

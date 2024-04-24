@@ -48,22 +48,6 @@ internal interface IDiagnosticAnalyzerService
     Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Get diagnostics for the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
-    /// </summary>
-    /// <param name="solution">Solution to fetch diagnostics for.</param>
-    /// <param name="projectId">Optional project to scope the returned diagnostics.</param>
-    /// <param name="documentId">Optional document to scope the returned diagnostics.</param>
-    /// <param name="includeSuppressedDiagnostics">Indicates if diagnostics suppressed in source via pragmas and SuppressMessageAttributes should be returned.</param>
-    /// <param name="includeNonLocalDocumentDiagnostics">
-    /// Indicates if non-local document diagnostics must be returned.
-    /// Non-local diagnostics are the ones reported by analyzers either at compilation end callback OR
-    /// in a different file from which the callback was made. Entire project must be analyzed to get the
-    /// complete set of non-local document diagnostics.
-    /// </param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
-
-    /// <summary>
     /// Force analyzes the given project by running all applicable analyzers on the project and caching the reported analyzer diagnostics.
     /// </summary>
     Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);

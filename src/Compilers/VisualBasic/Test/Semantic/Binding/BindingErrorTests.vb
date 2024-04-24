@@ -14072,6 +14072,52 @@ BC31440: 'AddressOf' cannot be applied to 'Private Sub Foo()' because 'Private S
 </expected>)
         End Sub
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72431")>
+        <Fact>
+        Public Sub BC31440ERR_NoPartialMethodInAddressOf_02()
+            Dim source =
+"Delegate Sub D()
+Partial Class Program
+    Shared Sub Main()
+        M1(AddressOf M2(Of Integer))
+    End Sub
+    Shared Sub M1(d As D)
+    End Sub
+    Private Shared Partial Sub M2(Of T)()
+    End Sub
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseEmitDiagnostics(
+<expected>
+    BC31440: 'AddressOf' cannot be applied to 'Private Shared Sub M2(Of Integer)()' because 'Private Shared Sub M2(Of Integer)()' is a partial method without an implementation.
+        M1(AddressOf M2(Of Integer))
+                     ~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72431")>
+        <Fact>
+        Public Sub BC31440ERR_NoPartialMethodInAddressOf_03()
+            Dim source =
+"Delegate Sub D()
+Partial Class C(Of T)
+    Shared Sub M1()
+        M2(AddressOf C(Of Integer).M3)
+    End Sub
+    Shared Sub M2(d As D)
+    End Sub
+    Private Shared Partial Sub M3()
+    End Sub
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseEmitDiagnostics(
+<expected>
+    BC31440: 'AddressOf' cannot be applied to 'Private Shared Sub M3()' because 'Private Shared Sub M3()' is a partial method without an implementation.
+        M2(AddressOf C(Of Integer).M3)
+                     ~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
         <Fact()>
         Public Sub BC31500ERR_BadAttributeSharedProperty1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
