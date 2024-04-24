@@ -3883,12 +3883,12 @@ class Program
 
                 comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
                 comp2.VerifyDiagnostics(
-                    // (6,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,22): error CS1503: Argument 1: cannot convert from 'int' to 'params System.ReadOnlySpan<long>'
                     //         Params.Test1(1);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1(1)").WithArguments("params collections").WithLocation(6, 9),
-                    // (9,9): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params System.ReadOnlySpan<long>").WithLocation(6, 22),
+                    // (9,16): error CS7036: There is no argument given that corresponds to the required parameter 'a' of 'Params.Test1(params ReadOnlySpan<long>)'
                     //         Params.Test1();
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1()").WithArguments("params collections").WithLocation(9, 9)
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("a", "Params.Test1(params System.ReadOnlySpan<long>)").WithLocation(9, 16)
                     );
             }
         }
@@ -3950,9 +3950,12 @@ class Program
 
                 comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
                 comp2.VerifyDiagnostics(
-                    // (6,18): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         var x1 = Params.Test1;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1").WithArguments("params collections").WithLocation(6, 18)
+                    // (9,12): error CS1503: Argument 1: cannot convert from 'int' to 'scoped System.ReadOnlySpan<long>'
+                    //         x1(1);
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "scoped System.ReadOnlySpan<long>").WithLocation(9, 12),
+                    // (12,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of '<anonymous delegate>'
+                    //         x1();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x1").WithArguments("arg", "<anonymous delegate>").WithLocation(12, 9)
                     );
             }
         }
@@ -4055,20 +4058,77 @@ class Program
             void verify(MetadataReference comp1Ref)
             {
                 var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
-                comp2.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp2, symbolValidator: checkParamsInDelegate1).VerifyDiagnostics();
+
+                void checkParamsInDelegate1(ModuleSymbol m)
+                {
+                    Assert.True(m.GlobalNamespace.GetTypeMember("<>f__AnonymousDelegate0").DelegateInvokeMethod.Parameters.Last().IsParams);
+                }
+
+                var expectedIL = @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<anonymous delegate> Program.<>O.<0>__Test1""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void Params.Test1(params System.Collections.Generic.IEnumerable<long>)""
+  IL_0010:  newobj     ""<>f__AnonymousDelegate0..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""<anonymous delegate> Program.<>O.<0>__Test1""
+  IL_001b:  call       ""void Program.M1<<anonymous delegate>>(<anonymous delegate>)""
+  IL_0020:  ldsfld     ""<anonymous delegate> Program.<>O.<0>__Test1""
+  IL_0025:  dup
+  IL_0026:  brtrue.s   IL_003b
+  IL_0028:  pop
+  IL_0029:  ldnull
+  IL_002a:  ldftn      ""void Params.Test1(params System.Collections.Generic.IEnumerable<long>)""
+  IL_0030:  newobj     ""<>f__AnonymousDelegate0..ctor(object, System.IntPtr)""
+  IL_0035:  dup
+  IL_0036:  stsfld     ""<anonymous delegate> Program.<>O.<0>__Test1""
+  IL_003b:  call       ""void Program.M1<<anonymous delegate>>(<anonymous delegate>)""
+  IL_0040:  ret
+}
+";
+                verifier.VerifyIL("Program.Test1", expectedIL);
 
                 comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
-                comp2.VerifyDiagnostics();
+                verifier = CompileAndVerify(comp2, symbolValidator: checkParamsInDelegate1).VerifyDiagnostics();
+                verifier.VerifyIL("Program.Test1", expectedIL);
 
                 comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
-                comp2.VerifyDiagnostics(
-                    // (6,17): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         var a = Params.Test1;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1").WithArguments("params collections").WithLocation(6, 17),
-                    // (8,12): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         M1(Params.Test1);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params.Test1").WithArguments("params collections").WithLocation(8, 12)
-                    );
+                verifier = CompileAndVerify(comp2, symbolValidator: checkParamsInDelegate1).VerifyDiagnostics();
+
+                // Note, we are using System.Action. which doesn't have params
+                verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Action<System.Collections.Generic.IEnumerable<long>> Program.<>O.<0>__Test1""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      ""void Params.Test1(params System.Collections.Generic.IEnumerable<long>)""
+  IL_0010:  newobj     ""System.Action<System.Collections.Generic.IEnumerable<long>>..ctor(object, System.IntPtr)""
+  IL_0015:  dup
+  IL_0016:  stsfld     ""System.Action<System.Collections.Generic.IEnumerable<long>> Program.<>O.<0>__Test1""
+  IL_001b:  call       ""void Program.M1<System.Action<System.Collections.Generic.IEnumerable<long>>>(System.Action<System.Collections.Generic.IEnumerable<long>>)""
+  IL_0020:  ldsfld     ""System.Action<System.Collections.Generic.IEnumerable<long>> Program.<>O.<0>__Test1""
+  IL_0025:  dup
+  IL_0026:  brtrue.s   IL_003b
+  IL_0028:  pop
+  IL_0029:  ldnull
+  IL_002a:  ldftn      ""void Params.Test1(params System.Collections.Generic.IEnumerable<long>)""
+  IL_0030:  newobj     ""System.Action<System.Collections.Generic.IEnumerable<long>>..ctor(object, System.IntPtr)""
+  IL_0035:  dup
+  IL_0036:  stsfld     ""System.Action<System.Collections.Generic.IEnumerable<long>> Program.<>O.<0>__Test1""
+  IL_003b:  call       ""void Program.M1<System.Action<System.Collections.Generic.IEnumerable<long>>>(System.Action<System.Collections.Generic.IEnumerable<long>>)""
+  IL_0040:  ret
+}
+");
             }
         }
 
@@ -4160,6 +4220,51 @@ class Program2
                         Assert.Equal("System.Int64[] e2", parameter.ToTestDisplayString());
                     }
                     ).VerifyDiagnostics(); // No language version diagnostics as expected. The 'params' modifier doesn't even make it to symbol and metadata.
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/csharplang/issues/8061")]
+        public void LanguageVersion_07_CallSite()
+        {
+            var src1 = @"
+public class Params
+{
+    static public void Test1(params System.ReadOnlySpan<long> a)
+    {
+        System.Console.Write(""span"");
+    }
+
+    static public void Test1(params long[] a)
+    {
+        System.Console.Write(""array"");
+    }
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        Params.Test1(1);
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference comp1Ref)
+            {
+                var comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+                CompileAndVerify(comp2, expectedOutput: ExpectedOutput("span"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+                CompileAndVerify(comp2, expectedOutput: ExpectedOutput("span"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
+                CompileAndVerify(comp2, expectedOutput: ExpectedOutput("array"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
             }
         }
 
