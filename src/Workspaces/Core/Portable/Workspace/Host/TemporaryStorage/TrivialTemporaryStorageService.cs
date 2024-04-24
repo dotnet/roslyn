@@ -31,36 +31,12 @@ internal sealed partial class TrivialTemporaryStorageService : ITemporaryStorage
 
     public ITemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
-        stream.Position = 0;
-        var storage = new StreamStorage();
-        storage.WriteStream(stream);
+        var newStream = new MemoryStream();
+        stream.CopyTo(newStream);
+        newStream.Position = 0;
+
         var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), Offset: 0, Size: stream.Length);
-        var handle = new TrivialStorageStreamHandle(identifier, storage);
+        var handle = new TrivialStorageStreamHandle(identifier, newStream);
         return handle;
-    }
-
-    private sealed class StreamStorage
-    {
-        private MemoryStream? _stream;
-
-        public Stream ReadStream()
-        {
-            var stream = _stream ?? throw new InvalidOperationException();
-
-            // Return a read-only view of the underlying buffer to prevent users from overwriting or directly
-            // disposing the backing storage.
-            return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
-        }
-
-        public void WriteStream(Stream stream)
-        {
-            var newStream = new MemoryStream();
-            stream.CopyTo(newStream);
-            var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
-            if (existingValue is not null)
-            {
-                throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
-        }
     }
 }
