@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInterpolatedString
 
         Protected Overrides Function FixOneAsync(
             document As Document,
-            semanticModel As SemanticModel,
             diagnostic As Diagnostic,
             editor As SyntaxEditor,
             cancellationToken As CancellationToken) As Task

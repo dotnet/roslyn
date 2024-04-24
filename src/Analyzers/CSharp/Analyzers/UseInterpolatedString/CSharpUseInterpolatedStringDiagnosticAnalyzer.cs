@@ -31,10 +31,6 @@ internal class CSharpUseInterpolatedStringDiagnosticAnalyzer() : AbstractUseInte
         if (stringLiteralExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return false;
 
-        // Check if the string contains '{' or '}' characters
-        if (!stringLiteralExpression.Token.Text.Contains('{') || !stringLiteralExpression.Token.Text.Contains('}'))
-            return false;
-
         // If there is a const keyword, do not offer the refactoring
         // An interpolated string is not const
         var syntaxFacts = this.GetSyntaxFacts();
