@@ -81,7 +81,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 {
                     GlobPattern = new RelativePattern
                     {
-                        BaseUri = ProtocolConversions.CreateRelativePatternBasUri(d.Path),
+                        BaseUri = ProtocolConversions.CreateRelativePatternBaseUri(d.Path),
                         Pattern = d.ExtensionFilter is not null ? "**/*" + d.ExtensionFilter : "**/*"
                     }
                 }).ToArray();

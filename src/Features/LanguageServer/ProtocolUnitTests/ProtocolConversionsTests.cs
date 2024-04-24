@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [InlineData("D:\\\\\\\\\\\u200e", "file:///D://///%E2%80%8E")]
         public void CreateRelativePatternBasUri_LocalPaths_Windows(string filePath, string expectedUri)
         {
-            var uri = ProtocolConversions.CreateRelativePatternBasUri(filePath);
+            var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
             Assert.Equal(expectedUri, uri.AbsoluteUri);
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [InlineData("\\\\\\\\\\\u200e", "file:///////%E2%80%8E")]
         public void CreateRelativePatternBasUri_LocalPaths_Unix(string filePath, string expectedRelativeUri)
         {
-            var uri = ProtocolConversions.CreateRelativePatternBasUri(filePath);
+            var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
             Assert.Equal(expectedRelativeUri, uri.AbsoluteUri);
         }
 
