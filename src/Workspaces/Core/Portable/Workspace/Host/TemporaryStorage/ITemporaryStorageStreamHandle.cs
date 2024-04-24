@@ -4,15 +4,17 @@
 
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host;
 
 /// <summary>
 /// Represents a handle to data stored to temporary storage (generally a memory mapped file).  As long as this handle is
 /// alive, the data should remain in storage and can be readable from any process using the information provided in <see
-/// cref="Identifier"/>.  Use <see cref="ITemporaryStorageServiceInternal.WriteToTemporaryStorage"/> to write the data
-/// to temporary storage and get a handle to it.  Use <see cref="ReadFromTemporaryStorage"/> to read the data back in
-/// any process.
+/// cref="Identifier"/>.  Use <see cref="ITemporaryStorageServiceInternal.WriteToTemporaryStorage(Stream,
+/// CancellationToken)"/> to write the data to temporary storage and get a handle to it.  Use <see
+/// cref="ReadFromTemporaryStorage"/> to read the data back in any process.
 /// </summary>
 internal interface ITemporaryStorageStreamHandle
 {
@@ -23,4 +25,12 @@ internal interface ITemporaryStorageStreamHandle
     /// than the one that wrote the data originally.
     /// </summary>
     Stream ReadFromTemporaryStorage(CancellationToken cancellationToken);
+}
+
+internal interface ITemporaryStorageTextHandle
+{
+    public TemporaryStorageIdentifier Identifier { get; }
+
+    SourceText ReadFromTemporaryStorage(CancellationToken cancellationToken);
+    Task<SourceText> ReadFromTemporaryStorageAsync(CancellationToken cancellationToken);
 }
