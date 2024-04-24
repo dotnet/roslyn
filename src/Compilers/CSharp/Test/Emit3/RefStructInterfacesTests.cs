@@ -16982,6 +16982,20 @@ public class Helper
         // IL_0006:  unbox.any  ""T""
         // IL_000b:  ret
     }
+    static U Test9<T, U>(T x)
+        where T : class
+        where U : T, allows ref struct
+    {
+#line 900
+        return x;
+    }
+    static U Test10<T, U>(T x)
+        where T : class
+        where U : T, allows ref struct
+    {
+#line 1000
+        return (U)x;
+    }
 }
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -17009,7 +17023,13 @@ public class Helper
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("U", "T").WithLocation(700, 16),
                 // (800,16): error CS0030: Cannot convert type 'U' to 'T'
                 //         return (T)y;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)y").WithArguments("U", "T").WithLocation(800, 16)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)y").WithArguments("U", "T").WithLocation(800, 16),
+                // (900,16): error CS0029: Cannot implicitly convert type 'T' to 'U'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("T", "U").WithLocation(900, 16),
+                // (1000,16): error CS0030: Cannot convert type 'T' to 'U'
+                //         return (U)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)x").WithArguments("T", "U").WithLocation(1000, 16)
                 );
         }
 
@@ -18578,7 +18598,7 @@ ref struct S
         }
 
         [Fact]
-        public void DelegateReceiver()
+        public void DelegateReceiver_01()
         {
             var src = @"
 class Helper1<T>
@@ -18613,6 +18633,92 @@ interface I1
                 // (12,14): error CS0123: No overload for 'M' matches delegate 'Action'
                 //         => y.M;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(12, 14)
+                );
+        }
+
+        [Fact]
+        public void DelegateReceiver_02()
+        {
+            var src = @"
+class Helper1<T>
+    where T : I1, allows ref struct
+{
+    static void Test1(T x)
+    {
+        var d1 = x.M;
+    }
+}
+
+class Helper2
+{
+    static void Test2(S y)
+    {
+        var d2 = y.M;
+    }
+}
+
+ref struct S
+{
+    public void M(){}
+}
+
+interface I1
+{
+    void M();
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0123: No overload for 'M' matches delegate 'Action'
+                //         var d1 = x.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(7, 20),
+                // (15,20): error CS0123: No overload for 'M' matches delegate 'Action'
+                //         var d2 = y.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(15, 20)
+                );
+        }
+
+        [Fact]
+        public void DelegateReceiver_03()
+        {
+            var src = @"
+class Helper1<T>
+    where T : I1, allows ref struct
+{
+    static void Test1(T x)
+    {
+        var d1 = x.M;
+    }
+}
+
+class Helper2
+{
+    static void Test2(S y)
+    {
+        var d2 = y.M;
+    }
+}
+
+ref struct S
+{
+    public void M(ref int x){}
+}
+
+interface I1
+{
+    void M(ref int x);
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0123: No overload for 'M' matches delegate '<anonymous delegate>'
+                //         var d1 = x.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "<anonymous delegate>").WithLocation(7, 20),
+                // (15,20): error CS0123: No overload for 'M' matches delegate '<anonymous delegate>'
+                //         var d2 = y.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "<anonymous delegate>").WithLocation(15, 20)
                 );
         }
 
@@ -18783,6 +18889,51 @@ ref struct S
                 // (15,15): error CS1978: Cannot use an expression of type 'S' as an argument to a dynamically dispatched operation.
                 //         h2.M2(y);
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "y").WithArguments("S").WithLocation(15, 15)
+                );
+        }
+
+        [Fact]
+        public void DynamicAccess_03()
+        {
+            var src = @"
+class Helper1<T>
+    where T : I1, allows ref struct
+{
+    static void Test1(dynamic h1, T x)
+    {
+        x.M(h1);
+    }
+}
+
+class Helper2
+{
+    static void Test2(dynamic h2, S y)
+    {
+        y.M(h2);
+    }
+}
+
+interface I1
+{
+    void M(int x);
+    void M(long x);
+}
+
+ref struct S : I1
+{
+    public void M(int x) => throw null;
+    public void M(long x) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS9230: Cannot perform a dynamic invocation on an expression with type 'T'.
+                //         x.M(h1);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "x").WithArguments("T").WithLocation(7, 9),
+                // (15,9): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                //         y.M(h2);
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "y").WithArguments("S").WithLocation(15, 9)
                 );
         }
     }
