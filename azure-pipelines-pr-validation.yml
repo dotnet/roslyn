@@ -318,12 +318,12 @@ extends:
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
             queueSpeedometerValidation: true
 
-      # Use post-build to publish symbol packages.
-      - template: /eng/common/templates-official/post-build/post-build.yml@self
-        parameters:
-          publishingInfraVersion: 3
-          # Symbol validation is not entirely reliable as of yet, so should be turned off until
-          # https://github.com/dotnet/arcade/issues/2871 is resolved.
-          enableSymbolValidation: false
-          enableSourceLinkValidation: false
-          SDLValidationParameters: false
+    # Use post-build to publish symbol packages.
+    - template: /eng/common/templates-official/post-build/post-build.yml@self
+      parameters:
+        publishingInfraVersion: 3
+        # Symbol validation is not entirely reliable as of yet, so should be turned off until
+        # https://github.com/dotnet/arcade/issues/2871 is resolved.
+        enableSymbolValidation: false
+        enableSourceLinkValidation: false
+        SDLValidationParameters: false
