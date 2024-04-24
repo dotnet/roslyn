@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -31,7 +29,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
         /// once we compute the diagnostics once for a particular project, we don't need to recompute them again as we
         /// walk every document within it.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, AsyncLazy<IReadOnlyList<DiagnosticData>>> s_projectToDiagnostics = new();
+        private static readonly ConditionalWeakTable<Project, AsyncLazy<ImmutableArray<DiagnosticData>>> s_projectToDiagnostics = new();
 
         /// <summary>
         /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
@@ -67,13 +65,13 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             }
 
             var result = await lazyDiagnostics.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return (ImmutableArray<DiagnosticData>)result;
+            return result;
 
-            AsyncLazy<IReadOnlyList<DiagnosticData>> GetLazyDiagnostics()
+            AsyncLazy<ImmutableArray<DiagnosticData>> GetLazyDiagnostics()
             {
                 return s_projectToDiagnostics.GetValue(
                     Document.Project,
-                    _ => AsyncLazy.Create<IReadOnlyList<DiagnosticData>>(
+                    _ => AsyncLazy.Create(
                         async cancellationToken => await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
                             Document.Project.Solution, Document.Project.Id, documentId: null,
                             diagnosticIds: null, shouldIncludeAnalyzer,
