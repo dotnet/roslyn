@@ -6,10 +6,13 @@ using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
@@ -126,5 +129,25 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         }
 
         return typeInfo.Nullability.FlowState;
+    }
+
+    protected override async Task<OnTheFlyDocsElement?> GetOnTheFlyDocsElementAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    {
+        var document = context.Document;
+        var position = context.Position;
+
+        var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+        var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+            document, position, cancellationToken).ConfigureAwait(false);
+
+        if (symbol is null)
+        {
+            return null;
+        }
+
+        if (symbol.DeclaringSyntaxReferences.Length == 0)
+        {
+            return null;
+        }
     }
 }

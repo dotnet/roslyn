@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -31,7 +32,7 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
     private readonly ITextView _textView;
     private readonly IViewElementFactoryService _viewElementFactoryService;
     private readonly IThreadingContext _threadingContext;
-    private readonly ISymbol _symbol;
+    private readonly OnTheFlyDocsElement _onTheFlyDocsElement;
     private readonly ContentControl _responseControl = new();
     private State _currentState = State.OnDemandLink;
 
@@ -47,12 +48,12 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IThreadingContext threadingContext, Document document, ISymbol symbol, string descriptionText)
+    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IThreadingContext threadingContext, Document document, OnTheFlyDocsElement onTheFlyDocsElement)
     {
         _textView = textView;
         _viewElementFactoryService = viewElementFactoryService;
         _threadingContext = threadingContext;
-        _symbol = symbol;
+        _onTheFlyDocsElement = onTheFlyDocsElement;
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
 
         OnDemandLinkContent = ToUIElement(
@@ -101,20 +102,19 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
                         ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.AI_generated_content_may_be_inaccurate)),
                 }));
 
-        ResultsRequested += (_, _) => PopulateAIDocumentationElements(threadingContext, document, symbol, descriptionText, _threadingContext.DisposalToken);
+        ResultsRequested += (_, _) => PopulateAIDocumentationElements(threadingContext, document, onTheFlyDocsElement, _threadingContext.DisposalToken);
         InitializeComponent();
     }
 
     /// <summary>
     /// Retrieves the documentation for the given symbol from the Copilot service and displays it in the view.
     /// </summary>
-    private async void PopulateAIDocumentationElements(IThreadingContext threadingContext, Document document, ISymbol symbol, string descriptionText, CancellationToken cancellationToken)
+    private async void PopulateAIDocumentationElements(IThreadingContext threadingContext, Document document, OnTheFlyDocsElement onTheFlyDocsElement, CancellationToken cancellationToken)
     {
         var copilotRequestTime = TimeSpan.Zero;
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
-        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference => reference.GetSyntax(cancellationToken).ToFullString()).ToImmutableArray();
         var stopwatch = Stopwatch.StartNew();
-        var response = await copilotService.GetOnTheFlyDocsAsync(descriptionText, symbolStrings, cancellationToken).ConfigureAwait(false);
+        var response = await copilotService.GetOnTheFlyDocsAsync(onTheFlyDocsElement.DescriptionText, onTheFlyDocsElement.SymbolReferences, cancellationToken).ConfigureAwait(false);
         stopwatch.Stop();
         copilotRequestTime = stopwatch.Elapsed;
 
@@ -170,7 +170,7 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
         CurrentState = State.Loading;
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolName"] = _symbol.Name;
+            m["SymbolHeaderText"] = _onTheFlyDocsElement.DescriptionText;
         }, LogLevel.Information));
 
         ResultsRequested?.Invoke(this, EventArgs.Empty);

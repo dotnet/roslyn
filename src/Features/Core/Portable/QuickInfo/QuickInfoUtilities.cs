@@ -33,7 +33,8 @@ internal static class QuickInfoUtilities
         bool showAwaitReturn,
         NullableFlowState flowState,
         SymbolDescriptionOptions options,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        OnTheFlyDocsElement? onTheFlyDocsElement = null)
     {
         var descriptionService = services.GetRequiredLanguageService<ISymbolDisplayService>(semanticModel.Language);
         var groups = await descriptionService.ToDescriptionGroupsAsync(semanticModel, span.Start, symbols, options, cancellationToken).ConfigureAwait(false);
@@ -152,7 +153,7 @@ internal static class QuickInfoUtilities
         if (supportedPlatforms?.HasValidAndInvalidProjects() == true)
             tags = tags.Add(WellKnownTags.Warning);
 
-        return QuickInfoItem.Create(span, tags, sections.ToImmutable());
+        return QuickInfoItem.Create(span, onTheFlyDocsElement, tags, sections.ToImmutable());
 
         bool TryGetGroupText(SymbolDescriptionGroups group, out ImmutableArray<TaggedText> taggedParts)
             => groups.TryGetValue(group, out taggedParts) && !taggedParts.IsDefaultOrEmpty;

@@ -29,6 +29,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var cancellationToken = context.CancellationToken;
         var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var services = context.Document.Project.Solution.Services;
+        var onTheFlyDocsElement = await GetOnTheFlyDocsElementAsync(context, cancellationToken).ConfigureAwait(false);
         return await CreateContentAsync(
             services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, cancellationToken).ConfigureAwait(false);
     }
@@ -178,6 +179,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
     protected abstract bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
     protected abstract bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, out SyntaxToken found);
+    protected abstract Task<OnTheFlyDocsElement?> GetOnTheFlyDocsElementAsync(QuickInfoContext context, CancellationToken cancellationToken);
 
     protected virtual NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
 
