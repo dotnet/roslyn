@@ -124,7 +124,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     private TemporaryStorageTextHandle CreateHandleFromStorage(TemporaryTextStorage storage)
     {
         var identifier = new TemporaryStorageTextIdentifier(
-            storage.Name, storage.Offset, storage.Size, storage.ChecksumAlgorithm, storage.Encoding);
+            storage.Name, storage.Offset, storage.Size, storage.ChecksumAlgorithm, storage.Encoding, storage.ContentHash);
         return new(this, storage.MemoryMappedInfo.MemoryMappedFile, identifier);
     }
 
@@ -144,6 +144,12 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     {
         var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
         return new(memoryMappedFile, storageIdentifier);
+    }
+
+    internal TemporaryStorageTextHandle GetHandle(TemporaryStorageTextIdentifier storageIdentifier)
+    {
+        var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
+        return new(this, memoryMappedFile, storageIdentifier);
     }
 
     /// <summary>
@@ -251,7 +257,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 #endif
     }
 
-    public sealed class TemporaryTextStorage // : ITemporaryTextStorageInternal, ITemporaryStorageWithName
+    private sealed class TemporaryTextStorage // : ITemporaryTextStorageInternal, ITemporaryStorageWithName
     {
         private readonly TemporaryStorageService _service;
         private SourceHashAlgorithm _checksumAlgorithm;

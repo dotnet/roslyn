@@ -385,7 +385,7 @@ internal partial class SerializerService
             // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
             // will not be released by the host.
             var storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
-            var storageHandle = _storageService.GetHandle(storageIdentifier);
+            var storageHandle = TemporaryStorageService.GetHandle(storageIdentifier);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
 
