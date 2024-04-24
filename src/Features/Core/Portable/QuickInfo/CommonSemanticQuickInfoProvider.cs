@@ -174,7 +174,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         return QuickInfoUtilities.CreateQuickInfoItemAsync(
             services, semanticModel, token.Span, symbols, supportedPlatforms,
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, cancellationToken, onTheFlyDocsElement);
+            tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, onTheFlyDocsElement, cancellationToken);
     }
 
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);

@@ -559,7 +559,7 @@ if (true)
                 trackingSpan.Object, info, document,
                 ClassificationOptions.Default, LineFormattingOptions.Default, threadingContext, operationExecutor,
                 AsynchronousOperationListenerProvider.NullListener,
-                streamingPresenter, position: null, CancellationToken.None);
+                streamingPresenter, CancellationToken.None);
             var containerElement = quickInfoItem.Item as ContainerElement;
 
             var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();

@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, options, cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, options, onTheFlyDocsElement:=Nothing, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Shared Function BuildContentForIntrinsicOperator(
@@ -242,6 +242,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 sections:=ImmutableArray.Create(
                     QuickInfoSection.Create(QuickInfoSectionKinds.Description, builder.ToTaggedText()),
                     QuickInfoSection.Create(QuickInfoSectionKinds.DocumentationComments, ImmutableArray.Create(New TaggedText(TextTags.Text, documentation.DocumentationText)))))
+        End Function
+
+        Protected Overrides Function GetOnTheFlyDocsElementAsync(context As QuickInfoContext, cancellationToken As CancellationToken) As Task(Of OnTheFlyDocsElement)
+            Return Task.FromResult(Of OnTheFlyDocsElement)(Nothing)
         End Function
     End Class
 End Namespace
