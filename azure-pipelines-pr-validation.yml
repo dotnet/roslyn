@@ -67,6 +67,7 @@ extends:
   parameters:
     featureFlags:
       autoBaseline: true
+      useArtifactDropTaskV1: true
     sdl:
       sbom:
         enabled: false
@@ -89,6 +90,18 @@ extends:
         timeoutInMinutes: 360
         templateContext:
           outputs:
+
+        # Publish OptProf configuration files to the artifact service
+          - output: artifactsDrop
+          displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+          condition: succeeded()
+          dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+          buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
+          sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+          toLowerCase: false
+          usePat: true
+          AccessToken: $(_DevDivDropAccessToken)
+          retentionDays: 90
 
           # Publish OptProf generated JSON files as a pipeline artifact. This allows for easy inspection from
           # a build execution.
@@ -249,19 +262,6 @@ extends:
           inputs:
             filePath: 'eng\publish-assets.ps1'
             arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -prValidation'
-          condition: succeeded()
-
-        # Publish OptProf configuration files
-        - task: 1ES.PublishArtifactsDrop@1
-          inputs:
-            dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-            buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
-            sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
-            toLowerCase: false
-            usePat: true
-            AccessToken: $(_DevDivDropAccessToken)
-            retentionDays: 90
-          displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
           condition: succeeded()
 
         - task: PublishTestResults@2
