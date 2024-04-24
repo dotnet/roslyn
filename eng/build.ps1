@@ -259,7 +259,11 @@ function BuildSolution() {
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
   $restoreUseStaticGraphEvaluation = $true
-  
+
+  $isNpmAvailable = IsNpmAvailable
+
+  $symbolPublishingExcludeFile = Join-Path $RepoRoot "eng\SymbolPublishingExclusionsFile.txt"
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -282,6 +286,8 @@ function BuildSolution() {
       /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
+      /p:IsNpmPackable=$isNpmAvailable `
+      /p:SymbolPublishingExclusionsFile=$symbolPublishingExcludeFile `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
