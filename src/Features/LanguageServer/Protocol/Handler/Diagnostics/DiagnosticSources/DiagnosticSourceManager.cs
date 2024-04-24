@@ -53,6 +53,7 @@ internal class DiagnosticSourceManager : IDiagnosticSourceManager
             if (providersDictionary.TryGetValue(sourceName, out var provider))
                 return await provider.CreateDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
 
+            context.TraceInformation($"No `{sourceName}` diagnostics for {isDocument}");
             return [];
         }
         else
@@ -83,7 +84,7 @@ internal class DiagnosticSourceManager : IDiagnosticSourceManager
             }
             else
             {
-                // For workspace we need to group sources by document and IsLiveSource
+                // For workspace we need to group sources by source id and IsLiveSource
                 sources = sources.GroupBy(s => (s.GetId(), s.IsLiveSource()), s => s)
                     .SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))
                     .ToImmutableArray();
@@ -93,10 +94,8 @@ internal class DiagnosticSourceManager : IDiagnosticSourceManager
         }
     }
 
-    private class AggregatedDocumentDiagnosticSource : IDiagnosticSource
+    private class AggregatedDocumentDiagnosticSource(ImmutableArray<IDiagnosticSource> sources) : IDiagnosticSource
     {
-        private readonly ImmutableArray<IDiagnosticSource> _sources;
-
         public static ImmutableArray<IDiagnosticSource> AggregateIfNeeded(IEnumerable<IDiagnosticSource> sources)
         {
             var result = sources.ToImmutableArray();
@@ -108,19 +107,16 @@ internal class DiagnosticSourceManager : IDiagnosticSourceManager
             return result;
         }
 
-        public AggregatedDocumentDiagnosticSource(ImmutableArray<IDiagnosticSource> sources)
-            => this._sources = sources;
-
         public bool IsLiveSource() => true;
-        public Project GetProject() => _sources[0].GetProject();
-        public ProjectOrDocumentId GetId() => _sources[0].GetId();
-        public TextDocumentIdentifier? GetDocumentIdentifier() => _sources[0].GetDocumentIdentifier();
-        public string ToDisplayString() => $"{this.GetType().Name}: count={_sources.Length}";
+        public Project GetProject() => sources[0].GetProject();
+        public ProjectOrDocumentId GetId() => sources[0].GetId();
+        public TextDocumentIdentifier? GetDocumentIdentifier() => sources[0].GetDocumentIdentifier();
+        public string ToDisplayString() => $"{this.GetType().Name}: count={sources.Length}";
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-            foreach (var source in _sources)
+            foreach (var source in sources)
             {
                 var namedDiagnostics = await source.GetDiagnosticsAsync(context, cancellationToken).ConfigureAwait(false);
                 diagnostics.AddRange(namedDiagnostics);

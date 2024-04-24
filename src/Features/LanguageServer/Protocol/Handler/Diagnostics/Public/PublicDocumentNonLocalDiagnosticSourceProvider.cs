@@ -26,15 +26,14 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
 
     public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        var textDocument = GetOpenDocument(context);
-        if (textDocument is null)
-            return new([]);
-
         // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
-        if (globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) != BackgroundAnalysisScope.FullSolution)
+        if (context.TextDocument == null ||
+            globalOptions.GetBackgroundAnalysisScope(context.TextDocument.Project.Language) != BackgroundAnalysisScope.FullSolution)
+        {
             return new([]);
+        }
 
-        return new([new NonLocalDocumentDiagnosticSource(textDocument, diagnosticAnalyzerService, ShouldIncludeAnalyzer)]);
+        return new([new NonLocalDocumentDiagnosticSource(context.TextDocument, diagnosticAnalyzerService, ShouldIncludeAnalyzer)]);
 
         // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
         bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();

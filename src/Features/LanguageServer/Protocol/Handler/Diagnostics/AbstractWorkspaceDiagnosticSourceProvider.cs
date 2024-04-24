@@ -19,14 +19,6 @@ internal abstract class AbstractWorkspaceDiagnosticSourceProvider(string name) :
 
     public abstract ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
 
-    protected static bool ShouldIgnoreContext(RequestContext context)
-    {
-        // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
-        // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
-        // document-diagnostics instead.
-        return context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
-    }
-
     protected static IEnumerable<Project> GetProjectsInPriorityOrder(
             Solution solution, ImmutableArray<string> supportedLanguages)
     {

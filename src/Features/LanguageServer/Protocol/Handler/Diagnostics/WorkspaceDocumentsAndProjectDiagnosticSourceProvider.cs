@@ -45,73 +45,68 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
     /// </summary>
     public override async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (!ShouldIgnoreContext(context))
+        Contract.ThrowIfNull(context.Solution);
+
+        using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
+
+        var solution = context.Solution;
+        var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
+        var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
+
+        foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
+            await AddDocumentsAndProjectAsync(project, diagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
+
+        return result.ToImmutableAndClear();
+
+        async Task AddDocumentsAndProjectAsync(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Solution);
-
-            using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
-
-            var solution = context.Solution;
-            var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
-            var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
-
-            foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
-                await AddDocumentsAndProjectAsync(project, diagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
-
-            return result.ToImmutableAndClear();
-
-            async Task AddDocumentsAndProjectAsync(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, CancellationToken cancellationToken)
-            {
-                var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
-                if (!fullSolutionAnalysisEnabled && !codeAnalysisService.HasProjectBeenAnalyzed(project.Id))
-                    return;
-
-                Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
-                    ? ShouldIncludeAnalyzer : null;
-
-                AddDocumentSources(project.Documents);
-                AddDocumentSources(project.AdditionalDocuments);
-
-                // If all features are enabled for source generated documents, then compute todo-comments/diagnostics for them.
-                if (enableDiagnosticsInSourceGeneratedFiles)
-                {
-                    var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-                    AddDocumentSources(sourceGeneratedDocuments);
-                }
-
-                // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
-                AddProjectSource();
-
+            var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
+            if (!fullSolutionAnalysisEnabled && !codeAnalysisService.HasProjectBeenAnalyzed(project.Id))
                 return;
 
-                void AddDocumentSources(IEnumerable<TextDocument> documents)
+            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
+                ? ShouldIncludeAnalyzer : null;
+
+            AddDocumentSources(project.Documents);
+            AddDocumentSources(project.AdditionalDocuments);
+
+            // If all features are enabled for source generated documents, then compute todo-comments/diagnostics for them.
+            if (enableDiagnosticsInSourceGeneratedFiles)
+            {
+                var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                AddDocumentSources(sourceGeneratedDocuments);
+            }
+
+            // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
+            AddProjectSource();
+
+            return;
+
+            void AddDocumentSources(IEnumerable<TextDocument> documents)
+            {
+                foreach (var document in documents)
                 {
-                    foreach (var document in documents)
+                    if (!ShouldSkipDocument(context, document))
                     {
-                        if (!ShouldSkipDocument(context, document))
-                        {
-                            // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
-                            var documentDiagnosticSource = fullSolutionAnalysisEnabled
-                                ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, diagnosticAnalyzerService, shouldIncludeAnalyzer)
-                                : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
-                            result.Add(documentDiagnosticSource);
-                        }
+                        // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
+                        var documentDiagnosticSource = fullSolutionAnalysisEnabled
+                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, diagnosticAnalyzerService, shouldIncludeAnalyzer)
+                            : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
+                        result.Add(documentDiagnosticSource);
                     }
                 }
-
-                void AddProjectSource()
-                {
-                    var projectDiagnosticSource = fullSolutionAnalysisEnabled
-                        ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, diagnosticAnalyzerService, shouldIncludeAnalyzer)
-                        : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
-                    result.Add(projectDiagnosticSource);
-                }
-
-                bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
-                    => analyzer.IsCompilerAnalyzer() ? compilerFullSolutionAnalysisEnabled : analyzersFullSolutionAnalysisEnabled;
             }
-        }
 
-        return [];
+            void AddProjectSource()
+            {
+                var projectDiagnosticSource = fullSolutionAnalysisEnabled
+                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, diagnosticAnalyzerService, shouldIncludeAnalyzer)
+                    : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
+                result.Add(projectDiagnosticSource);
+            }
+
+            bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
+                => analyzer.IsCompilerAnalyzer() ? compilerFullSolutionAnalysisEnabled : analyzersFullSolutionAnalysisEnabled;
+        }
     }
 }

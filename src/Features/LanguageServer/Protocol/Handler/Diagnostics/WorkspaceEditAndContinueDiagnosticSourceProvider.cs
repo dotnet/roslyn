@@ -20,12 +20,7 @@ internal sealed class WorkspaceEditAndContinueDiagnosticSourceProvider() : Abstr
 {
     public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (!ShouldIgnoreContext(context))
-        {
-            Contract.ThrowIfNull(context.Solution);
-            return EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution!, document => context.IsTracking(document.GetURI()), cancellationToken);
-        }
-
-        return new([]);
+        Contract.ThrowIfNull(context.Solution);
+        return EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution!, document => context.IsTracking(document.GetURI()), cancellationToken);
     }
 }

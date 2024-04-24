@@ -23,25 +23,22 @@ internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOpti
 {
     public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (!ShouldIgnoreContext(context))
+        Contract.ThrowIfNull(context.Solution);
+
+        // Only compute task list items for closed files if the option is on for it.
+        if (globalOptions.GetTaskListOptions().ComputeForClosedFiles)
         {
-            Contract.ThrowIfNull(context.Solution);
-
-            // Only compute task list items for closed files if the option is on for it.
-            if (globalOptions.GetTaskListOptions().ComputeForClosedFiles)
+            using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
+            foreach (var project in GetProjectsInPriorityOrder(context.Solution, context.SupportedLanguages))
             {
-                using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
-                foreach (var project in GetProjectsInPriorityOrder(context.Solution, context.SupportedLanguages))
+                foreach (var document in project.Documents)
                 {
-                    foreach (var document in project.Documents)
-                    {
-                        if (!ShouldSkipDocument(context, document))
-                            result.Add(new TaskListDiagnosticSource(document, globalOptions));
-                    }
+                    if (!ShouldSkipDocument(context, document))
+                        result.Add(new TaskListDiagnosticSource(document, globalOptions));
                 }
-
-                return new(result.ToImmutableAndClear());
             }
+
+            return new(result.ToImmutableAndClear());
         }
 
         return new([]);

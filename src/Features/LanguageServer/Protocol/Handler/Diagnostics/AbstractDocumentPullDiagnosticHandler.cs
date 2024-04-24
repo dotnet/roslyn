@@ -26,10 +26,37 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
 {
     protected readonly IDiagnosticSourceManager DiagnosticSourceManager = diagnosticSourceManager;
 
+    public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
+
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
     {
+        if (GetOpenDocument(context) is null)
+            return new([]);
+
         return DiagnosticSourceManager.CreateDiagnosticSourcesAsync(context, requestDiagnosticCategory, isDocument: true, cancellationToken);
     }
 
-    public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
+    protected static TextDocument? GetOpenDocument(RequestContext context)
+    {
+        // Note: context.Document may be null in the case where the client is asking about a document that we have
+        // since removed from the workspace.  In this case, we don't really have anything to process.
+        // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
+        //
+        // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
+        // handler treats those as separate worlds that they are responsible for.
+        var textDocument = context.TextDocument;
+        if (textDocument is null)
+        {
+            context.TraceInformation("Ignoring diagnostics request because no text document was provided");
+            return null;
+        }
+
+        if (!context.IsTracking(textDocument.GetURI()))
+        {
+            context.TraceWarning($"Ignoring diagnostics request for untracked document: {textDocument.GetURI()}");
+            return null;
+        }
+
+        return textDocument;
+    }
 }

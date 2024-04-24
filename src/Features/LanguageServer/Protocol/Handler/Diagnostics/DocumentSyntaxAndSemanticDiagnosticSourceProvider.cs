@@ -26,10 +26,10 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
 
     public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (GetOpenDocument(context) is not TextDocument textDocument)
+        if (context.TextDocument is null)
             return new([]);
 
-        var source = new DocumentDiagnosticSource(_diagnosticAnalyzerService, _kind, textDocument);
+        var source = new DocumentDiagnosticSource(_diagnosticAnalyzerService, _kind, context.TextDocument);
         return new([source]);
     }
 

@@ -20,10 +20,7 @@ internal sealed class DocumentTaskDiagnosticSourceProvider([Import] IGlobalOptio
 {
     public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (GetOpenDocument(context) is not TextDocument textDocument)
-            return new([]);
-
-        if (textDocument is not Document document)
+        if (context.TextDocument is not Document document)
         {
             context.TraceInformation("Ignoring task list diagnostics request because no document was provided");
             return new([]);

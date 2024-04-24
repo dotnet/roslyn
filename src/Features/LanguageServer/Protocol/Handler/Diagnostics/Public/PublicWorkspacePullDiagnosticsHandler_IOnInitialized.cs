@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
     {
         public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
-            if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true && IsFsaEnabled())
+            if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true)
             {
                 var sources = _diagnosticSourceManager.GetSourceNames(isDocument: false);
                 var regParams = new RegistrationParams
@@ -30,22 +29,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
                 {
                     return new()
                     {
+                        // Due to https://github.com/microsoft/language-server-protocol/issues/1723
+                        // we need to use textDocument/diagnostic instead of workspace/diagnostic
+                        Method = Methods.TextDocumentDiagnosticName,
                         Id = sourceName,
-                        Method = Methods.WorkspaceDiagnosticName,
                         RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName, InterFileDependencies = true, WorkDoneProgress = true }
                     };
                 }
-            }
-
-            bool IsFsaEnabled()
-            {
-                foreach (var language in context.SupportedLanguages)
-                {
-                    if (GlobalOptions.GetBackgroundAnalysisScope(language) == BackgroundAnalysisScope.FullSolution)
-                        return true;
-                }
-
-                return false;
             }
         }
     }
