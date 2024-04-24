@@ -3,13 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Drawing;
-using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;

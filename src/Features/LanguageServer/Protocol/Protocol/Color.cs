@@ -4,14 +4,13 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a color.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#color">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class Color
     {
         /// <summary>
@@ -20,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Value should be clamped to [0,1].
         /// </remarks>
-        [DataMember(Name = "red")]
+        [JsonPropertyName("red")]
         public decimal Red { get; set; }
 
         /// <summary>
@@ -29,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Value should be clamped to [0,1].
         /// </remarks>
-        [DataMember(Name = "green")]
+        [JsonPropertyName("green")]
         public decimal Green { get; set; }
 
         /// <summary>
@@ -38,7 +37,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Value should be clamped to [0,1].
         /// </remarks>
-        [DataMember(Name = "blue")]
+        [JsonPropertyName("blue")]
         public decimal Blue { get; set; }
 
         /// <summary>
@@ -47,7 +46,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Value should be clamped to [0,1].
         /// </remarks>
-        [DataMember(Name = "alpha")]
+        [JsonPropertyName("alpha")]
         public decimal Alpha { get; set; }
     }
 }

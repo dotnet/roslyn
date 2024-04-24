@@ -6,21 +6,19 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.Linq;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a source code diagnostic message.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#diagnostic">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class Diagnostic : IEquatable<Diagnostic>
     {
         /// <summary>
         /// Gets or sets the source code range.
         /// </summary>
-        [DataMember(Name = "range")]
+        [JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -30,8 +28,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the diagnostic severity.
         /// </summary>
-        [DataMember(Name = "severity")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("severity")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticSeverity? Severity
         {
             get;
@@ -44,8 +42,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// The value can be an <see cref="int"/>, <see cref="string"/>.
         /// </remarks>
-        [DataMember(Name = "code")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("code")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<int, string>? Code
         {
             get;
@@ -55,8 +53,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an optional value that describes the error code.
         /// </summary>
-        [DataMember(Name = "codeDescription")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("codeDescription")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CodeDescription? CodeDescription
         {
             get;
@@ -67,8 +65,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a human-readable string describing the source of this
         /// diagnostic, e.g. 'typescript' or 'super lint'. It usually appears in the user interface.
         /// </summary>
-        [DataMember(Name = "source")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("source")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Source
         {
             get;
@@ -78,7 +76,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the diagnostic's message.
         /// </summary>
-        [DataMember(Name = "message")]
+        [JsonPropertyName("message")]
         public string Message
         {
             get;
@@ -88,8 +86,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the diagnostic's tags.
         /// </summary>
-        [DataMember(Name = "tags")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("tags")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticTag[]? Tags
         {
             get;
@@ -99,8 +97,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the diagnostic related information
         /// </summary>
-        [DataMember(Name = "relatedInformation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("relatedInformation")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticRelatedInformation[]? RelatedInformation
         {
             get;

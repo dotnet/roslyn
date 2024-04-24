@@ -4,13 +4,11 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a setting that can be dynamically registered.
     /// </summary>
-    [DataContract]
     internal class DynamicRegistrationSetting
     {
         /// <summary>
@@ -32,8 +30,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether setting can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "dynamicRegistration")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("dynamicRegistration")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool DynamicRegistration
         {
             get;

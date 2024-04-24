@@ -4,22 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents capabilites for the completion list type.
     /// </summary>
-    [DataContract]
     internal class CompletionListSetting
     {
         /// <summary>
         /// Gets or sets a value containing the supported property names of the <see cref="CompletionList.ItemDefaults"/> object.
         /// If omitted, no properties are supported.
         /// </summary>
-        [DataMember(Name = "itemDefaults")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("itemDefaults")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? ItemDefaults
         {
             get;

@@ -5,8 +5,7 @@
 namespace Roslyn.LanguageServer.Protocol
 {
     using System;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Parameters for a request for Edits that can be applied to a previous response
@@ -14,27 +13,26 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensDeltaParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class SemanticTokensDeltaParams : ITextDocumentParams, IPartialResultParams<SemanticTokensDeltaPartialResult>
     {
         /// <summary>
         /// Gets or sets an identifier for the document to fetch semantic tokens from.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument { get; set; }
 
         /// <summary>
         /// Gets or sets a property indicating the version of the semantic
         /// tokens Document provider response that the edits will be applied to.
         /// </summary>
-        [DataMember(Name = "previousResultId")]
+        [JsonPropertyName("previousResultId")]
         public string PreviousResultId { get; set; }
 
         /// <summary>
         /// Gets or sets the value of the Progress instance.
         /// </summary>
-        [DataMember(Name = Methods.PartialResultTokenName, IsRequired = false)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName(Methods.PartialResultTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<SemanticTokensDeltaPartialResult>? PartialResultToken
         {
             get;

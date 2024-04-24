@@ -4,27 +4,25 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing a diagnostic pull request parameter used.
     /// </summary>
-    [DataContract]
     internal class VSInternalDiagnosticParams
     {
         /// <summary>
         /// Gets or sets the document for which diagnostics are desired.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument", IsRequired = true)]
+        [JsonPropertyName("_vs_textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier? TextDocument { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating what kind of diagnostic this request is querying for.
         /// </summary>
-        [DataMember(Name = "_vs_queryingDiagnosticKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_queryingDiagnosticKind")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalDiagnosticKind? QueryingDiagnosticKind { get; set; }
 
         /// <summary>
@@ -46,8 +44,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// document, then all reports are expected to have the same
         /// previousResultId.</para>
         /// </remarks>
-        [DataMember(Name = "_vs_previousResultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("_vs_previousResultId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? PreviousResultId { get; set; }
     }
 }

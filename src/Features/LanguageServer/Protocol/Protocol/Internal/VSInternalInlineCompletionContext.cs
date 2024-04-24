@@ -4,9 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.ComponentModel;
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Context for inline completion request.
@@ -18,8 +16,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets how completion was triggered.
         /// </summary>
-        [DataMember(Name = "_vs_triggerKind")]
-        [JsonProperty(Required = Required.Always)]
+        [JsonPropertyName("_vs_triggerKind")]
+        [JsonRequired]
         public VSInternalInlineCompletionTriggerKind TriggerKind { get; set; } = VSInternalInlineCompletionTriggerKind.Explicit;
 
         /// <summary>
@@ -27,8 +25,8 @@ namespace Roslyn.LanguageServer.Protocol
         ///
         /// See https://github.com/microsoft/vscode/blob/075ba020e8493f40dba89891b1a08453f2c067e9/src/vscode-dts/vscode.proposed.inlineCompletions.d.ts#L45.
         /// </summary>
-        [DataMember(Name = "_vs_selectedCompletionInfo")]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonPropertyName("_vs_selectedCompletionInfo")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public VSInternalSelectedCompletionInfo? SelectedCompletionInfo { get; set; }
     }
 }

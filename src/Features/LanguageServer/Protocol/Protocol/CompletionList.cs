@@ -4,23 +4,20 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a completion list.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionList">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class CompletionList
     {
         /// <summary>
         /// Gets or sets a value indicating whether Items is the complete list of items or not.  If incomplete is true, then
         /// filtering should ask the server again for completion item.
         /// </summary>
-        [DataMember(Name = "isIncomplete")]
+        [JsonPropertyName("isIncomplete")]
         public bool IsIncomplete
         {
             get;
@@ -30,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the list of completion items.
         /// </summary>
-        [DataMember(Name = "items")]
+        [JsonPropertyName("items")]
         public CompletionItem[] Items
         {
             get;
@@ -40,8 +37,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the completion list item defaults.
         /// </summary>
-        [DataMember(Name = "itemDefaults")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("itemDefaults")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CompletionListItemDefaults? ItemDefaults
         {
             get;

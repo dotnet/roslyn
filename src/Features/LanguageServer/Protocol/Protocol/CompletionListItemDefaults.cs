@@ -4,20 +4,18 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents default properties associated with the entire completion list.
     /// </summary>
-    [DataContract]
     internal class CompletionListItemDefaults
     {
         /// <summary>
         /// Gets or sets the default commit character set.
         /// </summary>
-        [DataMember(Name = "commitCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("commitCharacters")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? CommitCharacters
         {
             get;
@@ -27,8 +25,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default edit range.
         /// </summary>
-        [DataMember(Name = "editRange")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("editRange")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<Range, InsertReplaceRange>? EditRange
         {
             get;
@@ -38,8 +36,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default <see cref="InsertTextFormat"/>.
         /// </summary>
-        [DataMember(Name = "insertTextFormat")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("insertTextFormat")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public InsertTextFormat? InsertTextFormat
         {
             get;
@@ -49,8 +47,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default <see cref="InsertTextMode"/>.
         /// </summary>
-        [DataMember(Name = "insertTextMode")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("insertTextMode")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public InsertTextMode? InsertTextMode
         {
             get;
@@ -60,8 +58,8 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default completion item data.
         /// </summary>
-        [DataMember(Name = "data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("data")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Data
         {
             get;

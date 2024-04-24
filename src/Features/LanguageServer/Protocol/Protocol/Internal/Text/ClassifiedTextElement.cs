@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Roslyn.Text.Adornments;
 
 namespace Roslyn.Text.Adornments
 {

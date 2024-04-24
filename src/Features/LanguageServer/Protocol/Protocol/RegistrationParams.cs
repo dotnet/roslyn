@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent for the client/registerCapability request.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#registrationParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class RegistrationParams
     {
         /// <summary>
         /// Gets or sets the set of capabilities that are being registered.
         /// </summary>
-        [DataMember(Name = "registrations")]
+        [JsonPropertyName("registrations")]
         public Registration[] Registrations
         {
             get;

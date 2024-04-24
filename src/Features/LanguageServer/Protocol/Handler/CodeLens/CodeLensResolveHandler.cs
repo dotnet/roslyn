@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Roslyn.LanguageServer.Protocol;
 

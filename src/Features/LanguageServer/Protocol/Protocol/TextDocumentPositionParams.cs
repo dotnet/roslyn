@@ -4,20 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
-    using System.Runtime.Serialization;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class which represents a position within a text document.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentPositionParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    [DataContract]
     internal class TextDocumentPositionParams : ITextDocumentPositionParams
     {
         /// <summary>
         /// Gets or sets the value which identifies the document.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates the position within the document.
         /// </summary>
-        [DataMember(Name = "position")]
+        [JsonPropertyName("position")]
         public Position Position
         {
             get;
