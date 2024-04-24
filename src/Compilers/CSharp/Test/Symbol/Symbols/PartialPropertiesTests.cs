@@ -302,6 +302,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
+        public void AccessorKind_01()
+        {
+            // set vs init
+            var source = """
+                partial class C
+                {
+                    partial int P { get; set; }
+                    partial int P { get => throw null!; init { } }
+                }
+                """;
+            // PROTOTYPE(partial-properties): give an error diagnostic for an accessor kind difference
+            var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Extern_01()
+        {
+            // PROTOTYPE(partial-properties): test that appropriate flags are set in metadata for the property accessors.
+            // See ExtendedPartialMethodsTests.Extern_Symbols as a starting point.
+            var source = """
+                partial class C
+                {
+                    partial int P { get; set; }
+                    extern partial int P { get; set; }
+                }
+                """;
+            var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Extern_02()
+        {
+            var source = """
+                partial class C
+                {
+                    extern partial int P { get; set; }
+                    extern partial int P { get; set; }
+                }
+                """;
+            var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): error CS9301: Partial property 'C.P' must have an definition part.
+                //     extern partial int P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P").WithArguments("C.P").WithLocation(3, 24),
+                // (4,24): error CS9303: A partial property may not have multiple implementing declarations
+                //     extern partial int P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateImplementation, "P").WithLocation(4, 24),
+                // (4,24): error CS0102: The type 'C' already contains a definition for 'P'
+                //     extern partial int P { get; set; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
         public void Semantics_01()
         {
             // happy definition + implementation case

@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out _);
 
-            // PROTOTYPE(partial-properties): it's unclear if the subtle difference between former 'isAutoProperty' and '!accessorsHaveImplementation' matters
             bool isAutoProperty = (modifiers & DeclarationModifiers.Partial) == 0 && !accessorsHaveImplementation;
             bool isExpressionBodied = !hasAccessorList && GetArrowExpression(syntax) != null;
 
@@ -234,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 accessorsHaveImplementation = GetArrowExpression(syntax) is object;
+                Debug.Assert(accessorsHaveImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
             }
         }
 
@@ -582,11 +582,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsPartial => (_modifiers & DeclarationModifiers.Partial) != 0;
 
-        internal SourcePropertySymbol? OtherPartOfPartial { get => _otherPartOfPartial; }
+        internal SourcePropertySymbol? OtherPartOfPartial => _otherPartOfPartial;
 
         internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !IsExtern;
 
         internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || IsExtern);
+
+        internal SourcePropertySymbol? PartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
+
+        internal SourcePropertySymbol? PartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
 
         internal static void InitializePartialPropertyParts(SourcePropertySymbol definition, SourcePropertySymbol implementation)
         {
@@ -599,6 +603,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             definition._otherPartOfPartial = implementation;
             implementation._otherPartOfPartial = definition;
         }
-
     }
 }

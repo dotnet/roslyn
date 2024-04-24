@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if ((object)propertySymbol != null)
                                     {
                                         accessor = (parent.Kind() == SyntaxKind.GetAccessorDeclaration) ? propertySymbol.GetMethod : propertySymbol.SetMethod;
+                                        // PROTOTYPE(partial-properties): check if a property with no accessors could fail this assertion, in which case we should either adjust the assertion or remove it.
                                         Debug.Assert(accessor is not null || parent.HasErrors);
                                     }
                                     break;
@@ -616,8 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If this is a partial property, the property represents the defining part,
                         // not the implementation (property.Locations includes both parts). If the
                         // span is in fact in the implementation, return that property instead.
-                        var property = (SourcePropertySymbol)sym;
-                        var implementation = property.IsPartialDefinition ? property.OtherPartOfPartial : property;
+                        var implementation = ((SourcePropertySymbol)sym).PartialImplementationPart;
                         if ((object)implementation != null)
                         {
                             if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
