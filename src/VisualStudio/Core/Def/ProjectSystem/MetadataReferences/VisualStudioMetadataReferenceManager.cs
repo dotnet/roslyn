@@ -45,7 +45,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// name/offset/length to the remote process, and it can map that same memory in directly, instead of needing the
     /// host to send the entire contents of the assembly over the channel to the OOP process.
     /// </summary>
-    private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageHandle>> s_metadataToStorageHandles = new();
+    private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>> s_metadataToStorageHandles = new();
 
     private readonly MetadataCache _metadataCache = new();
     private readonly ImmutableArray<string> _runtimeDirectories;
@@ -88,7 +88,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
     }
 
-    public IReadOnlyList<TemporaryStorageHandle>? GetStorageHandles(string fullPath, DateTime snapshotTimestamp)
+    public IReadOnlyList<TemporaryStorageStreamHandle>? GetStorageHandles(string fullPath, DateTime snapshotTimestamp)
     {
         var key = new FileKey(fullPath, snapshotTimestamp);
         // check existing metadata
@@ -161,7 +161,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
     }
 
-    private (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) GetMetadataFromTemporaryStorage(
+    private (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) GetMetadataFromTemporaryStorage(
         FileKey moduleFileKey)
     {
         GetStorageInfoFromTemporaryStorage(moduleFileKey, out var storageHandle, out var stream);
@@ -176,7 +176,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
 
         void GetStorageInfoFromTemporaryStorage(
-            FileKey moduleFileKey, out TemporaryStorageHandle storageHandle, out UnmanagedMemoryStream stream)
+            FileKey moduleFileKey, out TemporaryStorageStreamHandle storageHandle, out UnmanagedMemoryStream stream)
         {
             int size;
 
@@ -301,12 +301,12 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <exception cref="BadImageFormatException" />
     private static AssemblyMetadata CreateAssemblyMetadata(
         FileKey fileKey,
-        Func<FileKey, (ModuleMetadata moduleMetadata, TemporaryStorageHandle? storageHandle)> moduleMetadataFactory)
+        Func<FileKey, (ModuleMetadata moduleMetadata, TemporaryStorageStreamHandle? storageHandle)> moduleMetadataFactory)
     {
         var (manifestModule, manifestHandle) = moduleMetadataFactory(fileKey);
 
         using var _1 = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
-        using var _2 = ArrayBuilder<TemporaryStorageHandle?>.GetInstance(out var storageHandles);
+        using var _2 = ArrayBuilder<TemporaryStorageStreamHandle?>.GetInstance(out var storageHandles);
 
         string? assemblyDir = null;
         foreach (var moduleName in manifestModule.GetModuleNames())

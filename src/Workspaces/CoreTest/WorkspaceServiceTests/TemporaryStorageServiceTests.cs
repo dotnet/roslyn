@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
 
             // 0 length streams are allowed
-            TemporaryStorageHandle handle;
+            TemporaryStorageStreamHandle handle;
             using (var stream1 = new MemoryStream())
             {
                 handle = service.WriteToTemporaryStorage(stream1, CancellationToken.None);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 // Create 4GB of memory mapped files
                 var fileCount = (int)((long)4 * 1024 * 1024 * 1024 / data.Length);
-                var storageHandles = new List<TemporaryStorageHandle>(fileCount);
+                var storageHandles = new List<TemporaryStorageStreamHandle>(fileCount);
                 for (var i = 0; i < fileCount; i++)
                 {
                     var handle = service.WriteToTemporaryStorage(data, CancellationToken.None);

@@ -38,7 +38,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     /// (especially in cases with many references).
     /// </summary>
     /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
-    private ITemporaryStorageHandle? _commandLineStorageHandle;
+    private ITemporaryStorageStreamHandle? _commandLineStorageHandle;
 
     private CommandLineArguments _commandLineArgumentsForCommandLine;
     private string? _explicitRuleSetFilePath;
@@ -254,7 +254,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         }
 
         static IEnumerable<string> EnumerateLines(
-            ITemporaryStorageHandle storageHandle)
+            ITemporaryStorageStreamHandle storageHandle)
         {
             using var stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
             using var reader = new StreamReader(stream);
