@@ -123,9 +123,8 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     private TemporaryStorageTextHandle CreateHandleFromStorage(TemporaryTextStorage storage)
     {
-        var identifier = new TemporaryStorageTextIdentifier(
-            storage.Name, storage.Offset, storage.Size, storage.ChecksumAlgorithm, storage.Encoding, storage.ContentHash);
-        return new(this, storage.MemoryMappedInfo.MemoryMappedFile, identifier);
+        var identifier = new TemporaryStorageIdentifier(storage.Name, storage.Offset, storage.Size);
+        return new(this, storage.MemoryMappedInfo.MemoryMappedFile, identifier, storage.ChecksumAlgorithm, storage.Encoding, storage.ContentHash);
     }
 
     ITemporaryStorageStreamHandle ITemporaryStorageServiceInternal.WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
@@ -140,16 +139,20 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         return new(storage.MemoryMappedInfo.MemoryMappedFile, identifier);
     }
 
-    internal static TemporaryStorageStreamHandle GetHandle(TemporaryStorageIdentifier storageIdentifier)
+    internal static TemporaryStorageStreamHandle GetStreamHandle(TemporaryStorageIdentifier storageIdentifier)
     {
         var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
         return new(memoryMappedFile, storageIdentifier);
     }
 
-    internal TemporaryStorageTextHandle GetHandle(TemporaryStorageTextIdentifier storageIdentifier)
+    internal TemporaryStorageTextHandle GetTextHandle(
+        TemporaryStorageIdentifier storageIdentifier,
+        SourceHashAlgorithm checksumAlgorithm,
+        Encoding? encoding,
+        ImmutableArray<byte> contentHash)
     {
         var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
-        return new(this, memoryMappedFile, storageIdentifier);
+        return new(this, memoryMappedFile, storageIdentifier, checksumAlgorithm, encoding, contentHash);
     }
 
     /// <summary>
@@ -200,10 +203,16 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     public sealed class TemporaryStorageTextHandle(
         TemporaryStorageService storageService,
         MemoryMappedFile memoryMappedFile,
-        TemporaryStorageTextIdentifier identifier)
+        TemporaryStorageIdentifier identifier,
+        SourceHashAlgorithm checksumAlgorithm,
+        Encoding? encoding,
+        ImmutableArray<byte> contentHash)
         : ITemporaryStorageTextHandle
     {
-        public TemporaryStorageTextIdentifier Identifier => identifier;
+        public TemporaryStorageIdentifier Identifier => identifier;
+        public SourceHashAlgorithm ChecksumAlgorithm => checksumAlgorithm;
+        public Encoding? Encoding => encoding;
+        public ImmutableArray<byte> ContentHash => contentHash;
 
         public async Task<SourceText> ReadFromTemporaryStorageAsync(CancellationToken cancellationToken)
         {
@@ -235,11 +244,11 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
                 using var reader = CreateTextReaderFromTemporaryStorage(stream);
 
                 // we pass in encoding we got from original source text even if it is null.
-                return storageService._textFactory.CreateText(reader, Identifier.Encoding, Identifier.ChecksumAlgorithm, cancellationToken);
+                return storageService._textFactory.CreateText(reader, encoding, checksumAlgorithm, cancellationToken);
             }
         }
 
-        private static unsafe TextReader CreateTextReaderFromTemporaryStorage(UnmanagedMemoryStream stream)
+        private static unsafe DirectMemoryAccessStreamReader CreateTextReaderFromTemporaryStorage(UnmanagedMemoryStream stream)
         {
             var src = (char*)stream.PositionPointer;
 

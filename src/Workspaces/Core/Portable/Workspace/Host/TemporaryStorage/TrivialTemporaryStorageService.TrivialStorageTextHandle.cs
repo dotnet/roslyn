@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis;
 internal sealed partial class TrivialTemporaryStorageService
 {
     private sealed class TrivialStorageTextHandle(
-        TemporaryStorageTextIdentifier identifier,
+        TemporaryStorageIdentifier identifier,
         TextStorage storage) : ITemporaryStorageTextHandle
     {
-        public TemporaryStorageTextIdentifier Identifier => identifier;
+        public TemporaryStorageIdentifier Identifier => identifier;
 
         public SourceText ReadFromTemporaryStorage(CancellationToken cancellationToken)
             => storage.ReadText();

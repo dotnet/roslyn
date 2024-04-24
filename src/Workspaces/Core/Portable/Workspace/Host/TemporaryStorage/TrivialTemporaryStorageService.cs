@@ -23,8 +23,7 @@ internal sealed partial class TrivialTemporaryStorageService : ITemporaryStorage
     {
         var storage = new TextStorage();
         storage.WriteText(text);
-        var identifier = new TemporaryStorageTextIdentifier(
-            Guid.NewGuid().ToString("N"), Offset: 0, Size: text.Length, text.ChecksumAlgorithm, text.Encoding, text.GetContentHash());
+        var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), Offset: 0, Size: text.Length);
         var handle = new TrivialStorageTextHandle(identifier, storage);
         return handle;
     }

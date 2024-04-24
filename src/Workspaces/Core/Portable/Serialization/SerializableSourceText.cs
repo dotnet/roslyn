@@ -57,7 +57,7 @@ internal sealed class SerializableSourceText
     public readonly Checksum ContentChecksum;
 
     public SerializableSourceText(TemporaryStorageTextHandle storageHandle)
-        : this(storageHandle, text: null, storageHandle.Identifier.ContentHash)
+        : this(storageHandle, text: null, storageHandle.ContentHash)
     {
     }
 
@@ -75,7 +75,7 @@ internal sealed class SerializableSourceText
         ContentChecksum = Checksum.Create(contentHash);
 
 #if DEBUG
-        var computedContentHash = TryGetText()?.GetContentHash() ?? _storageHandle!.Identifier.ContentHash;
+        var computedContentHash = TryGetText()?.GetContentHash() ?? _storageHandle!.ContentHash;
         Debug.Assert(contentHash.SequenceEqual(computedContentHash));
 #endif
     }
@@ -142,10 +142,14 @@ internal sealed class SerializableSourceText
     public void Serialize(ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
         if (_storageHandle is not null)
         {
             writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
             _storageHandle.Identifier.WriteTo(writer);
+            writer.WriteInt32((int)_storageHandle.ChecksumAlgorithm);
+            writer.WriteEncoding(_storageHandle.Encoding);
+            writer.WriteByteArray(ImmutableCollectionsMarshal.AsArray(_storageHandle.ContentHash)!);
         }
         else
         {
@@ -173,8 +177,11 @@ internal sealed class SerializableSourceText
 
         if (kind == SerializationKinds.MemoryMapFile)
         {
-            var identifier = TemporaryStorageTextIdentifier.ReadFrom(reader);
-            var storageHandle = storageService.GetHandle(identifier);
+            var identifier = TemporaryStorageIdentifier.ReadFrom(reader);
+            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
+            var encoding = reader.ReadEncoding();
+            var contentHash = ImmutableCollectionsMarshal.AsImmutableArray(reader.ReadByteArray());
+            var storageHandle = storageService.GetTextHandle(identifier, checksumAlgorithm, encoding, contentHash);
 
             return new SerializableSourceText(storageHandle);
         }
