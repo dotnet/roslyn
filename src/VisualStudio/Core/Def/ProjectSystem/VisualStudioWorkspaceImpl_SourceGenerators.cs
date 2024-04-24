@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
 
     public void SubscribeToSourceGeneratorImpactingEvents()
     {
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         if (_isSubscribedToSourceGeneratorImpactingEvents)
             return;
 

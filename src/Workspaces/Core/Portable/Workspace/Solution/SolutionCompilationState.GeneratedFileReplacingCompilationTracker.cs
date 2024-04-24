@@ -147,18 +147,6 @@ internal partial class SolutionCompilationState
                 await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
                 (await _replacementDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
-        public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
-        {
-            // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
-            // So this method should only be called if:
-            //
-            // 1. Project A has a open source generated document, and this CompilationTracker represents A
-            // 2. Project B references that A, and is being frozen for partial semantics.
-            //
-            // We generally don't use partial semantics in a different project than the open file, so this isn't a scenario we need to support.
-            throw new NotImplementedException();
-        }
-
         public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
             SolutionCompilationState compilationState, CancellationToken cancellationToken)
         {

@@ -543,15 +543,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Feat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics", "src\Tools\ExternalAccess\VisualDiagnostics\Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.csproj", "{6D819E80-BA2F-4317-8368-37F8F4434D3A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0F3118AE-8D36-4384-8E80-BD6566365305}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{47D004BE-F797-430E-8A18-4B0CDFD56643}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Replay", "src\Tools\Replay\Replay.csproj", "{DB96C25F-39A9-4A6A-92BC-D1E42717308F}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CommonLanguageServerProtocol.Framework.Shared", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.shproj", "{64EADED3-4B5D-4431-BBE5-A4ABA1C38C00}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.Binary", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Binary\Microsoft.CommonLanguageServerProtocol.Framework.Binary.csproj", "{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests", "src\Compilers\CSharp\Test\Emit3\Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests.csproj", "{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}"
 EndProject
@@ -1369,10 +1363,6 @@ Global
 		{DB96C25F-39A9-4A6A-92BC-D1E42717308F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB96C25F-39A9-4A6A-92BC-D1E42717308F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB96C25F-39A9-4A6A-92BC-D1E42717308F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1638,10 +1628,8 @@ Global
 		{5BABC440-4F1B-46E8-9068-DD7F02ED25D3} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{5762E483-75CE-4328-A410-511F30737712} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{6D819E80-BA2F-4317-8368-37F8F4434D3A} = {8977A560-45C2-4EC2-A849-97335B382C74}
-		{47D004BE-F797-430E-8A18-4B0CDFD56643} = {0F3118AE-8D36-4384-8E80-BD6566365305}
-		{DB96C25F-39A9-4A6A-92BC-D1E42717308F} = {47D004BE-F797-430E-8A18-4B0CDFD56643}
+		{DB96C25F-39A9-4A6A-92BC-D1E42717308F} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{64EADED3-4B5D-4431-BBE5-A4ABA1C38C00} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
-		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{52ABB0E4-C3A1-4897-B51B-18EDA83F5D20} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{FCE88BBD-9BBD-4871-B9B0-DE176D73A6B0} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
@@ -1691,7 +1679,6 @@ Global
 		src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{64eaded3-4b5d-4431-bbe5-a4aba1c38c00}*SharedItemsImports = 13
 		src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{686bf57e-a6ff-467b-aab3-44de916a9772}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{699fea05-aea7-403d-827e-53cf4e826955}*SharedItemsImports = 13
-		src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems*{730cadba-701f-4722-9b6f-1fcc0df2c95d}*SharedItemsImports = 5
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{76242a2d-2600-49dd-8c15-fea07ecb1843}*SharedItemsImports = 5
 		src\Analyzers\Core\Analyzers\Analyzers.projitems*{76e96966-4780-4040-8197-bde2879516f4}*SharedItemsImports = 13
 		src\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems*{7b7f4153-ae93-4908-b8f0-430871589f83}*SharedItemsImports = 13

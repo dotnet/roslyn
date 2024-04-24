@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/73099")]
         public async Task CanCloseSaveDialog()
         {
             await SetUpEditorAsync(

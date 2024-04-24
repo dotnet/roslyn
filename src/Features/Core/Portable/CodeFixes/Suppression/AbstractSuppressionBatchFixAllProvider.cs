@@ -110,7 +110,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        return fixesBag.ToImmutableArray();
+        return [.. fixesBag];
     }
 
     private async Task AddDocumentFixesAsync(
@@ -202,11 +202,10 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
     {
         return (action, diagnostics) =>
         {
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
-            builder.Push(action);
-            while (builder.Count > 0)
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var stack);
+            stack.Push(action);
+            while (stack.TryPop(out var currentAction))
             {
-                var currentAction = builder.Pop();
                 if (currentAction is { EquivalenceKey: var equivalenceKey }
                     && equivalenceKey == fixAllState.CodeActionEquivalenceKey)
                 {
@@ -215,7 +214,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
 
                 foreach (var nestedAction in currentAction.NestedActions)
                 {
-                    builder.Push(nestedAction);
+                    stack.Push(nestedAction);
                 }
             }
         };

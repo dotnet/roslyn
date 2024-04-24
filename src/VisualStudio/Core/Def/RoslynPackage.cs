@@ -273,7 +273,7 @@ internal sealed class RoslynPackage : AbstractPackage
         await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
 
         // Initialize keybinding reset detector
-        await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
+        await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(true);
     }
 
     private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)

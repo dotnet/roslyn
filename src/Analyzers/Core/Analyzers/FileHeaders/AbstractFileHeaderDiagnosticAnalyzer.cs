@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.FileHeaders;
 
@@ -24,9 +22,11 @@ internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCo
         => CreateDescriptorWithId(IDEDiagnosticIds.FileHeaderMismatch, EnforceOnBuildValues.FileHeaderMismatch, hasAnyCodeStyleOption: true, title, message);
 
     protected AbstractFileHeaderDiagnosticAnalyzer()
-        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                .Add(s_invalidHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate)
-                .Add(s_missingHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate))
+        : base(
+            [
+                (s_invalidHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate),
+                (s_missingHeaderDescriptor, CodeStyleOptions2.FileHeaderTemplate)
+            ])
     {
     }
 

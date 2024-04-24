@@ -68,7 +68,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             TestCreateTextInferredEncoding(
                 textFactoryService,
-                Encoding.UTF8.GetPreamble().Concat(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetBytes("Test")).ToArray(),
+                [
+                    .. Encoding.UTF8.GetPreamble(),
+                    .. new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetBytes("Test"),
+                ],
                 defaultEncoding: Encoding.GetEncoding(1254),
                 expectedEncoding: Encoding.UTF8);
         }
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var text = SourceText.From("Hello, World!");
 
             // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
+            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
             await temporaryStorage.WriteTextAsync(text);
 
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
             // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
+            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
             // Write text into it
             await temporaryStorage.WriteTextAsync(text);
 

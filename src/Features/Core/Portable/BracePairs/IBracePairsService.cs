@@ -50,9 +50,8 @@ internal abstract class AbstractBracePairsService : IBracePairsService
 
         stack.Add(root);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
-            var current = stack.Pop();
             if (current.IsNode)
             {
                 // Ignore nodes that have no intersection at all with the span we're being asked with. Note: if

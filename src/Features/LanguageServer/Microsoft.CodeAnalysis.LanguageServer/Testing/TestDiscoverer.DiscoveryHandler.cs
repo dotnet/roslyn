@@ -52,7 +52,7 @@ internal partial class TestDiscoverer
         public ImmutableArray<TestCase> GetTestCases()
         {
             Contract.ThrowIfFalse(_isComplete, "Tried to get test cases before discovery completed");
-            return _testCases.ToImmutableArray();
+            return [.. _testCases];
         }
 
         public bool IsAborted()

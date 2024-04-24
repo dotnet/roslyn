@@ -8,12 +8,7 @@
 using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
-
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public record RequestHandlerMetadata(string MethodName, Type? RequestType, Type? ResponseType, string Language)
-#else
 internal record RequestHandlerMetadata(string MethodName, Type? RequestType, Type? ResponseType, string Language)
-#endif
 {
     internal string HandlerDescription { get; } = $"{MethodName} ({Language})";
 }

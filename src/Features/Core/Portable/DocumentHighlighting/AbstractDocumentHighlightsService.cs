@@ -63,7 +63,9 @@ internal abstract partial class AbstractDocumentHighlightsService :
     private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
         Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        // Document highlights are not impacted by nullable analysis.  Get a semantic model with nullability disabled to
+        // lower the amount of work we need to do here.
+        var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var result = TryGetEmbeddedLanguageHighlights(document, semanticModel, position, options, cancellationToken);
         if (!result.IsDefaultOrEmpty)
             return result;

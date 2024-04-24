@@ -330,35 +330,28 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // they include any : or :: tokens. If they do, we can't remove the parentheses because
         // the parser would assume that the first : would begin the format clause of the interpolation.
 
-        var stack = s_nodeStackPool.AllocateAndClear();
-        try
+        using var pooledStack = s_nodeStackPool.GetPooledObject();
+        var stack = pooledStack.Object;
+
+        stack.Push(node.Expression);
+
+        while (stack.TryPop(out var expression))
         {
-            stack.Push(node.Expression);
-
-            while (stack.Count > 0)
+            foreach (var nodeOrToken in expression.ChildNodesAndTokens())
             {
-                var expression = stack.Pop();
-
-                foreach (var nodeOrToken in expression.ChildNodesAndTokens())
+                // Note: There's no need drill into other parenthesized expressions, since any colons in them would be unambiguous.
+                if (nodeOrToken.IsNode && !nodeOrToken.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
-                    // Note: There's no need drill into other parenthesized expressions, since any colons in them would be unambiguous.
-                    if (nodeOrToken.IsNode && !nodeOrToken.IsKind(SyntaxKind.ParenthesizedExpression))
+                    stack.Push(nodeOrToken.AsNode()!);
+                }
+                else if (nodeOrToken.IsToken)
+                {
+                    if (nodeOrToken.Kind() is SyntaxKind.ColonToken or SyntaxKind.ColonColonToken)
                     {
-                        stack.Push(nodeOrToken.AsNode()!);
-                    }
-                    else if (nodeOrToken.IsToken)
-                    {
-                        if (nodeOrToken.Kind() is SyntaxKind.ColonToken or SyntaxKind.ColonColonToken)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
-        }
-        finally
-        {
-            s_nodeStackPool.ClearAndFree(stack);
         }
 
         return false;

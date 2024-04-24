@@ -43,7 +43,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 // compilations would not be shared and we'd have to rebuild them.
                 solution,
                 (service, solutionInfo, callbackId, cancellationToken) =>
-                    service.SearchGeneratedDocumentsAsync(solutionInfo, projects.SelectAsArray(p => p.Id), searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    service.SearchGeneratedDocumentsAsync(solutionInfo, projects.SelectAsArray(p => p.Id), searchPattern, [.. kinds], callbackId, cancellationToken),
                 callback, cancellationToken).ConfigureAwait(false);
 
             return;
