@@ -198,9 +198,10 @@ internal static class IDEDiagnosticIds
     public const string UseCollectionExpressionForCreateDiagnosticId = "IDE0303";
     public const string UseCollectionExpressionForBuilderDiagnosticId = "IDE0304";
     public const string UseCollectionExpressionForFluentDiagnosticId = "IDE0305";
-    public const string UseInterpolatedStringDiagnosticId = "IDE0330";
 
     public const string MakeAnonymousFunctionStaticDiagnosticId = "IDE0320";
+
+    public const string UseInterpolatedStringDiagnosticId = "IDE0330";
 
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
