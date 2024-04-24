@@ -215,9 +215,7 @@ internal static class AbstractAssetProviderExtensions
         // Note: GetAssetsAsync will only succeed if we actually found all our assets (it crashes otherwise).  So we can
         // just safely assume we can index into checksumToAsset here.
 
-        // The result of GetAssetsArrayAsync wants the returned assets to be in the exact order of the checksums that
-        // were in 'checksums'.  So now fetch the assets in that order, even if we found them in an entirely different
-        // order.
+        // Order assets in the same order their checksums were requested in.
         var result = new FixedSizeArrayBuilder<T>(checksums.Children.Length);
         foreach (var checksum in checksums.Children)
             result.Add(checksumToAsset[checksum]);
