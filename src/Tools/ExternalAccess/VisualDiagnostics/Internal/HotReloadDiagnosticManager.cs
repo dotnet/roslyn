@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,20 +15,26 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 [Export(typeof(IHotReloadDiagnosticManager)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class HotReloadDiagnosticManager(IDiagnosticsRefresher diagnosticsRefresher) : IHotReloadDiagnosticManager
+internal sealed class HotReloadDiagnosticManager([Import] IDiagnosticsRefresher diagnosticsRefresher) : IHotReloadDiagnosticManager
 {
-    private ImmutableArray<IHotReloadDiagnosticSource> _sources = ImmutableArray<IHotReloadDiagnosticSource>.Empty;
+    private ImmutableArray<IHotReloadDiagnosticSourceProvider> _providers = ImmutableArray<IHotReloadDiagnosticSourceProvider>.Empty;
+    ImmutableArray<IHotReloadDiagnosticSourceProvider> IHotReloadDiagnosticManager.Providers => _providers;
+    void IHotReloadDiagnosticManager.RequestRefresh() => diagnosticsRefresher.RequestWorkspaceRefresh();
 
-    ImmutableArray<IHotReloadDiagnosticSource> IHotReloadDiagnosticManager.Sources => _sources;
-    void IHotReloadDiagnosticManager.Refresh() => diagnosticsRefresher.RequestWorkspaceRefresh();
-
-    void IHotReloadDiagnosticManager.Register(IHotReloadDiagnosticSource source)
+    void IHotReloadDiagnosticManager.Register(IEnumerable<IHotReloadDiagnosticSourceProvider> providers)
     {
-        // We use array instead of e.g. HashSet because we expect the number of sources to be small. Usually 1.
-        if (!_sources.Contains(source))
-            _sources = _sources.Add(source);
+        // We use array instead of e.g. HashSet because we expect the number of sources to be small.
+        // Usually 2, one workspace and one document provider.
+        foreach (var provider in providers)
+        {
+            if (!_providers.Contains(provider))
+                _providers = _providers.Add(provider);
+        }
     }
 
-    void IHotReloadDiagnosticManager.Unregister(IHotReloadDiagnosticSource source)
-        => _sources = _sources.Remove(source);
+    void IHotReloadDiagnosticManager.Unregister(IEnumerable<IHotReloadDiagnosticSourceProvider> providers)
+    {
+        foreach (var provider in providers)
+            _providers = _providers.Remove(provider);
+    }
 }

@@ -71,27 +71,32 @@ internal class DiagnosticSourceManager : IDiagnosticSourceManager
             }
 
             var sources = sourcesBuilder.ToImmutableAndClear();
-            if (sources.Length <= 1)
-            {
-                return sources;
-            }
+            return AggregateSourcesIfNeeded(sources, isDocument);
+        }
+    }
 
-            if (isDocument)
-            {
-                // Group all document sources into a single source.
-                Debug.Assert(sources.All(s => s.IsLiveSource()), "All document sources should be live");
-                sources = [new AggregatedDocumentDiagnosticSource(sources)];
-            }
-            else
-            {
-                // For workspace we need to group sources by source id and IsLiveSource
-                sources = sources.GroupBy(s => (s.GetId(), s.IsLiveSource()), s => s)
-                    .SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))
-                    .ToImmutableArray();
-            }
-
+    public static ImmutableArray<IDiagnosticSource> AggregateSourcesIfNeeded(ImmutableArray<IDiagnosticSource> sources, bool isDocument)
+    {
+        if (sources.Length <= 1)
+        {
             return sources;
         }
+
+        if (isDocument)
+        {
+            // Group all document sources into a single source.
+            Debug.Assert(sources.All(s => s.IsLiveSource()), "All document sources should be live");
+            sources = [new AggregatedDocumentDiagnosticSource(sources)];
+        }
+        else
+        {
+            // For workspace we need to group sources by source id and IsLiveSource
+            sources = sources.GroupBy(s => (s.GetId(), s.IsLiveSource()), s => s)
+                .SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))
+                .ToImmutableArray();
+        }
+
+        return sources;
     }
 
     private class AggregatedDocumentDiagnosticSource(ImmutableArray<IDiagnosticSource> sources) : IDiagnosticSource

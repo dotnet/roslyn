@@ -6,21 +6,20 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
+namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+
+/// <summary>
+/// Source of hot reload diagnostics.
+/// </summary>
+internal interface IHotReloadDiagnosticSource
 {
     /// <summary>
-    /// Source for hot reload diagnostics.
+    /// Text document for which diagnostics are provided.
     /// </summary>
-    internal interface IHotReloadDiagnosticSource
-    {
-        /// <summary>
-        /// Provides list of document ids that have hot reload diagnostics.
-        /// </summary>
-        ValueTask<ImmutableArray<DocumentId>> GetDocumentIdsAsync(CancellationToken cancellationToken);
+    TextDocument TextDocument { get; }
 
-        /// <summary>
-        /// Provides list of diagnostics for the given document.
-        /// </summary>
-        ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(TextDocument document, CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// Provides list of diagnostics for the given document.
+    /// </summary>
+    ValueTask<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(HotReloadRequestContext request, CancellationToken cancellationToken);
 }

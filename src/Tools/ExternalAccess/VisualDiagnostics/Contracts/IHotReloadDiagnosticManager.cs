@@ -2,30 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
+namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+
+internal interface IHotReloadDiagnosticManager
 {
-    internal interface IHotReloadDiagnosticManager
-    {
-        /// <summary>
-        /// Hot reload diagnostics for all sources.
-        /// </summary>
-        ImmutableArray<IHotReloadDiagnosticSource> Sources { get; }
+    /// <summary>
+    /// Refreshes hot reload diagnostics.
+    /// </summary>
+    void RequestRefresh();
 
-        /// <summary>
-        /// Registers source of hot reload diagnostics. Callers are responsible for refreshing diagnostics after registration.
-        /// </summary>
-        void Register(IHotReloadDiagnosticSource source);
+    /// <summary>
+    /// Registers providers of hot reload diagnostics. Callers are responsible for refreshing diagnostics after registration.
+    /// </summary>
+    void Register(IEnumerable<IHotReloadDiagnosticSourceProvider> providers);
 
-        /// <summary>
-        /// Unregisters source of hot reload diagnostics. Callers are responsible for refreshing diagnostics after un-registration.
-        /// </summary>
-        void Unregister(IHotReloadDiagnosticSource source);
+    /// <summary>
+    /// Unregisters providers of hot reload diagnostics. Callers are responsible for refreshing diagnostics after un-registration.
+    /// </summary>
+    void Unregister(IEnumerable<IHotReloadDiagnosticSourceProvider> providers);
 
-        /// <summary>
-        /// Requests refresh of hot reload diagnostics.
-        /// </summary>
-        void Refresh();
-    }
+    /// <summary>
+    /// Providers.
+    /// </summary>
+    ImmutableArray<IHotReloadDiagnosticSourceProvider> Providers { get; }
 }
