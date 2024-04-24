@@ -208,14 +208,18 @@ internal static class AbstractAssetProviderExtensions
 
         await assetProvider.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksumSet,
+            // Calling .Add here is safe.  As checksum-set is a unique set of checksums, we'll never have collions here.
             static (checksum, asset, checksumToAsset) => checksumToAsset.Add(checksum, asset),
             checksumToAsset,
             cancellationToken).ConfigureAwait(false);
 
         // Note: GetAssetsAsync will only succeed if we actually found all our assets (it crashes otherwise).  So we can
         // just safely assume we can index into checksumToAsset here.
+        Contract.ThrowIfTrue(checksumToAsset.Count != checksumSet.Count);
 
-        // Order assets in the same order their checksums were requested in.
+        // The result of GetAssetsArrayAsync wants the returned assets to be in the exact order of the checksums that
+        // were in 'checksums'.  So now fetch the assets in that order, even if we found them in an entirely different
+        // order.
         var result = new FixedSizeArrayBuilder<T>(checksums.Children.Length);
         foreach (var checksum in checksums.Children)
             result.Add(checksumToAsset[checksum]);
