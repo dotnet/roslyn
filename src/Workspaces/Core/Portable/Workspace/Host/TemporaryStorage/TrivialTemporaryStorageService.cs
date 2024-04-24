@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceInternal
+internal sealed partial class TrivialTemporaryStorageService : ITemporaryStorageServiceInternal
 {
     public static readonly TrivialTemporaryStorageService Instance = new();
 
@@ -24,24 +24,14 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
     public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
         => new TextStorage();
 
-    public ITemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
+    public ITemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
         stream.Position = 0;
         var storage = new StreamStorage();
         storage.WriteStream(stream);
         var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), Offset: 0, Size: stream.Length);
-        var handle = new TrivialStorageHandle(identifier, storage);
+        var handle = new TrivialStorageStreamHandle(identifier, storage);
         return handle;
-    }
-
-    private sealed class TrivialStorageHandle(
-        TemporaryStorageIdentifier storageIdentifier,
-        StreamStorage streamStorage) : ITemporaryStorageHandle
-    {
-        public TemporaryStorageIdentifier Identifier => storageIdentifier;
-
-        public Stream ReadFromTemporaryStorage(CancellationToken cancellationToken)
-            => streamStorage.ReadStream();
     }
 
     private sealed class StreamStorage

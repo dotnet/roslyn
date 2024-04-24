@@ -44,7 +44,7 @@ internal interface ITemporaryStorageServiceInternal : IWorkspaceService
     /// cref="Stream.Position"/> <code>0</code> within this method.  The caller does not need to reset the stream
     /// itself.
     /// </remarks>
-    ITemporaryStorageHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken);
+    ITemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken);
 
     ITemporaryTextStorageInternal CreateTemporaryTextStorage();
 }
