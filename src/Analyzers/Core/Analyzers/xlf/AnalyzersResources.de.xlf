@@ -122,8 +122,8 @@
         <note />
       </trans-unit>
       <trans-unit id="String_can_be_converted_to_interpolated_string">
-        <source>String can be converted to interpolated_string</source>
-        <target state="new">String can be converted to interpolated_string</target>
+        <source>String can be converted to interpolated string</source>
+        <target state="new">String can be converted to interpolated string</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_string">
