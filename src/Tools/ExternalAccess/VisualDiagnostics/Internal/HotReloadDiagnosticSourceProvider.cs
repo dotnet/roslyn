@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 
@@ -24,7 +25,7 @@ internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
     async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         var hotReloadContext = new HotReloadRequestContext(context);
-        List<IDiagnosticSource> sources = new();
+        using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var sources);
         foreach (var provider in diagnosticManager.Providers)
         {
             if (provider.IsDocument == isDocument)
@@ -34,23 +35,23 @@ internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
             }
         }
 
-        var result = sources.ToImmutableArray();
+        var result = sources.ToImmutableAndClear();
         return DiagnosticSourceManager.AggregateSourcesIfNeeded(result, isDocument);
     }
 
     [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class DocumentHotReloadDiagnosticSourceProvider([Import] IHotReloadDiagnosticManager diagnosticManager)
-    : HotReloadDiagnosticSourceProvider(diagnosticManager, isDocument: true)
+    private sealed class DocumentHotReloadDiagnosticSourceProvider([Import] IHotReloadDiagnosticManager diagnosticManager)
+        : HotReloadDiagnosticSourceProvider(diagnosticManager, isDocument: true)
     {
     }
 
     [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class WorkspaceHotReloadDiagnosticSourceProvider([Import] IHotReloadDiagnosticManager diagnosticManager)
-    : HotReloadDiagnosticSourceProvider(diagnosticManager, isDocument: false)
+    private sealed class WorkspaceHotReloadDiagnosticSourceProvider([Import] IHotReloadDiagnosticManager diagnosticManager)
+        : HotReloadDiagnosticSourceProvider(diagnosticManager, isDocument: false)
     {
     }
 }

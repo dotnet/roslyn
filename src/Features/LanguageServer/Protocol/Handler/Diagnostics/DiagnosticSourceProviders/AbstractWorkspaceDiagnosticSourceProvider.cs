@@ -20,7 +20,7 @@ internal abstract class AbstractWorkspaceDiagnosticSourceProvider(string name) :
     public abstract ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
 
     protected static IEnumerable<Project> GetProjectsInPriorityOrder(
-            Solution solution, ImmutableArray<string> supportedLanguages)
+        Solution solution, ImmutableArray<string> supportedLanguages)
     {
         return GetProjectsInPriorityOrderWorker(solution)
             .WhereNotNull()

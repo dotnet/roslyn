@@ -24,14 +24,14 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
 {
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
     public PublicWorkspacePullDiagnosticsHandler(
-    LspWorkspaceManager workspaceManager,
-    LspWorkspaceRegistrationService registrationService,
-    IClientLanguageServerManager clientLanguageServerManager,
-    IDiagnosticAnalyzerService analyzerService,
-    IDiagnosticSourceManager diagnosticSourceManager,
-    IDiagnosticsRefresher diagnosticRefresher,
-    IGlobalOptionService globalOptions)
-    : base(workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticRefresher, globalOptions)
+        LspWorkspaceManager workspaceManager,
+        LspWorkspaceRegistrationService registrationService,
+        IClientLanguageServerManager clientLanguageServerManager,
+        IDiagnosticAnalyzerService analyzerService,
+        IDiagnosticSourceManager diagnosticSourceManager,
+        IDiagnosticsRefresher diagnosticRefresher,
+        IGlobalOptionService globalOptions)
+        : base(workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticRefresher, globalOptions)
     {
         _clientLanguageServerManager = clientLanguageServerManager;
     }

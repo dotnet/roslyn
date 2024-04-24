@@ -7,35 +7,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+
+internal sealed partial class PublicWorkspacePullDiagnosticsHandler : IOnInitialized
 {
-    internal sealed partial class PublicWorkspacePullDiagnosticsHandler : IOnInitialized
+    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true)
         {
-            if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true)
-            {
-                var sources = _diagnosticSourceManager.GetSourceNames(isDocument: false);
-                var regParams = new RegistrationParams
+            var sources = DiagnosticSourceManager.GetSourceNames(isDocument: false);
+            await _clientLanguageServerManager.SendRequestAsync(
+                methodName: Methods.ClientRegisterCapabilityName,
+                @params: new RegistrationParams
                 {
                     Registrations = sources.Select(FromSourceName).ToArray()
-                };
-                await _clientLanguageServerManager.SendRequestAsync(
-                    methodName: Methods.ClientRegisterCapabilityName,
-                    @params: regParams,
-                    cancellationToken).ConfigureAwait(false);
+                },
+                cancellationToken).ConfigureAwait(false);
 
-                Registration FromSourceName(string sourceName)
+            Registration FromSourceName(string sourceName)
+            {
+                return new()
                 {
-                    return new()
-                    {
-                        // Due to https://github.com/microsoft/language-server-protocol/issues/1723
-                        // we need to use textDocument/diagnostic instead of workspace/diagnostic
-                        Method = Methods.TextDocumentDiagnosticName,
-                        Id = sourceName,
-                        RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName, InterFileDependencies = true, WorkDoneProgress = true }
-                    };
-                }
+                    // Due to https://github.com/microsoft/language-server-protocol/issues/1723
+                    // we need to use textDocument/diagnostic instead of workspace/diagnostic
+                    Method = Methods.TextDocumentDiagnosticName,
+                    Id = sourceName,
+                    RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName, InterFileDependencies = true, WorkDoneProgress = true }
+                };
             }
         }
     }

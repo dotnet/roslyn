@@ -230,7 +230,7 @@ internal partial class SolutionCompilationState
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
 
-            (AssemblyMetadata? metadata, ITemporaryStorageHandle storageHandle) TryCreateMetadataAndHandle()
+            (AssemblyMetadata? metadata, ITemporaryStorageStreamHandle storageHandle) TryCreateMetadataAndHandle()
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

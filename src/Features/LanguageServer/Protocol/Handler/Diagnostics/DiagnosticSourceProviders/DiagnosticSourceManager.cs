@@ -20,52 +20,67 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 [Export(typeof(IDiagnosticSourceManager)), Shared]
-internal class DiagnosticSourceManager : IDiagnosticSourceManager
+internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
 {
-    private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _documentProviders;
-    private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _workspaceProviders;
+    /// <summary>
+    /// Document level <see cref="IDiagnosticSourceProvider"/> providers ordered by name.
+    /// </summary>
+    private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _nameToDocumentProviderMap;
+
+    /// <summary>
+    /// Workspace level <see cref="IDiagnosticSourceProvider"/> providers ordered by name.
+    /// </summary>
+    private readonly ImmutableDictionary<string, IDiagnosticSourceProvider> _nameToWorkspaceProviderMap;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DiagnosticSourceManager([ImportMany] IEnumerable<IDiagnosticSourceProvider> sourceProviders)
     {
-        _documentProviders = sourceProviders
-                .Where(p => p.IsDocument)
-                .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
+        _nameToDocumentProviderMap = sourceProviders
+            .Where(p => p.IsDocument)
+            .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
 
-        _workspaceProviders = sourceProviders
-                .Where(p => !p.IsDocument)
-                .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
+        _nameToWorkspaceProviderMap = sourceProviders
+            .Where(p => !p.IsDocument)
+            .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
     }
 
     /// <inheritdoc />
-    public IEnumerable<string> GetSourceNames(bool isDocument)
-        => (isDocument ? _documentProviders : _workspaceProviders).Keys;
+    public ImmutableArray<string> GetSourceNames(bool isDocument)
+        => (isDocument ? _nameToDocumentProviderMap : _nameToWorkspaceProviderMap).Keys.ToImmutableArray();
 
-    /// <inheritdoc />
-    public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, string? sourceName, bool isDocument, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? sourceName, CancellationToken cancellationToken)
+        => CreateDiagnosticSourcesAsync(context, sourceName, _nameToDocumentProviderMap, isDocument: true, cancellationToken);
+
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(RequestContext context, string? sourceName, CancellationToken cancellationToken)
+        => CreateDiagnosticSourcesAsync(context, sourceName, _nameToWorkspaceProviderMap, isDocument: false, cancellationToken);
+
+    private static async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(
+        RequestContext context,
+        string? sourceName,
+        ImmutableDictionary<string, IDiagnosticSourceProvider> nameToProviderMap,
+        bool isDocument,
+        CancellationToken cancellationToken)
     {
-        var providersDictionary = isDocument ? _documentProviders : _workspaceProviders;
         if (sourceName != null)
         {
             // VS does not distinguish between document and workspace sources. Thus it can request
             // document diagnostics with workspace source name. We need to handle this case.
-            if (providersDictionary.TryGetValue(sourceName, out var provider))
+            if (nameToProviderMap.TryGetValue(sourceName, out var provider))
                 return await provider.CreateDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
 
-            context.TraceInformation($"No `{sourceName}` diagnostics for {isDocument}");
             return [];
         }
         else
         {
             // VS Code (and legacy VS ?) pass null sourceName when requesting all sources.
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var sourcesBuilder);
-            foreach (var kvp in providersDictionary)
+            foreach (var (name, provider) in nameToProviderMap)
             {
                 // Exclude Task diagnostics from the aggregated sources.
-                if (kvp.Key != PullDiagnosticCategories.Task)
+                if (name != PullDiagnosticCategories.Task)
                 {
-                    var namedSources = await kvp.Value.CreateDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
+                    var namedSources = await provider.CreateDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
                     sourcesBuilder.AddRange(namedSources);
                 }
             }
@@ -97,37 +112,5 @@ internal class DiagnosticSourceManager : IDiagnosticSourceManager
         }
 
         return sources;
-    }
-
-    private class AggregatedDocumentDiagnosticSource(ImmutableArray<IDiagnosticSource> sources) : IDiagnosticSource
-    {
-        public static ImmutableArray<IDiagnosticSource> AggregateIfNeeded(IEnumerable<IDiagnosticSource> sources)
-        {
-            var result = sources.ToImmutableArray();
-            if (result.Length > 1)
-            {
-                result = [new AggregatedDocumentDiagnosticSource(result)];
-            }
-
-            return result;
-        }
-
-        public bool IsLiveSource() => true;
-        public Project GetProject() => sources[0].GetProject();
-        public ProjectOrDocumentId GetId() => sources[0].GetId();
-        public TextDocumentIdentifier? GetDocumentIdentifier() => sources[0].GetDocumentIdentifier();
-        public string ToDisplayString() => $"{this.GetType().Name}: count={sources.Length}";
-
-        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-            foreach (var source in sources)
-            {
-                var namedDiagnostics = await source.GetDiagnosticsAsync(context, cancellationToken).ConfigureAwait(false);
-                diagnostics.AddRange(namedDiagnostics);
-            }
-
-            return diagnostics.ToImmutableAndClear();
-        }
     }
 }

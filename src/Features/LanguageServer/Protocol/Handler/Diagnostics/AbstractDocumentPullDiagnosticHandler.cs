@@ -33,7 +33,7 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
         if (GetOpenDocument(context) is null)
             return new([]);
 
-        return DiagnosticSourceManager.CreateDiagnosticSourcesAsync(context, requestDiagnosticCategory, isDocument: true, cancellationToken);
+        return DiagnosticSourceManager.CreateDocumentDiagnosticSourcesAsync(context, requestDiagnosticCategory, cancellationToken);
     }
 
     private static TextDocument? GetOpenDocument(RequestContext context)

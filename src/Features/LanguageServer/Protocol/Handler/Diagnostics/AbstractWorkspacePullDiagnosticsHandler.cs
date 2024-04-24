@@ -19,7 +19,6 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 {
     private readonly LspWorkspaceRegistrationService _workspaceRegistrationService;
     private readonly LspWorkspaceManager _workspaceManager;
-    protected readonly IDiagnosticSourceManager _diagnosticSourceManager;
 
     /// <summary>
     /// Flag that represents whether the LSP view of the world has changed.
@@ -37,13 +36,15 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         IDiagnosticsRefresher diagnosticRefresher,
         IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
     {
-        _diagnosticSourceManager = diagnosticSourceManager;
+        DiagnosticSourceManager = diagnosticSourceManager;
         _workspaceManager = workspaceManager;
         _workspaceRegistrationService = registrationService;
 
         _workspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
         _workspaceManager.LspTextChanged += OnLspTextChanged;
     }
+
+    protected IDiagnosticSourceManager DiagnosticSourceManager { get; }
 
     public void Dispose()
     {
@@ -61,7 +62,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
             return new([]);
         }
 
-        return _diagnosticSourceManager.CreateDiagnosticSourcesAsync(context, requestDiagnosticCategory, false, cancellationToken);
+        return DiagnosticSourceManager.CreateWorkspaceDiagnosticSourcesAsync(context, requestDiagnosticCategory, cancellationToken);
     }
 
     private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)

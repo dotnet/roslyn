@@ -29,9 +29,7 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
             return null;
         }
 
-        return new NonLocalDocumentDiagnosticSource(textDocument, diagnosticAnalyzerService, ShouldIncludeAnalyzer);
-
         // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
-        bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();
+        return new NonLocalDocumentDiagnosticSource(textDocument, diagnosticAnalyzerService, a => !a.IsCompilerAnalyzer());
     }
 }

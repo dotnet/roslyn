@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _lspServiceProvider = lspServiceProvider;
             _serverKind = serverKind;
 
+            VSCodeInternalExtensionUtilities.AddVSCodeInternalExtensionConverters(serializer);
+
             // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
             _baseServices = GetBaseServices(jsonRpc, logger, capabilitiesProvider, hostServices, serverKind, supportedLanguages);
 
