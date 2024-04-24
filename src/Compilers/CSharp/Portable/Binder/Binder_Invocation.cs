@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
             diagnostics.Add(expression, useSiteInfo);
 
-            if (resolution.IsExtensionMember(out Symbol extensionMember))
+            if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
             {
                 diagnostics.AddRange(resolution.Diagnostics);
                 var extensionMemberAccess = GetExtensionMemberAccess(expression, methodGroup.ReceiverOpt, extensionMember,
@@ -729,6 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(extensionMemberAccess.Kind != BoundKind.MethodGroup);
 
+                extensionMemberAccess = CheckValue(extensionMemberAccess, BindValueKind.RValue, diagnostics);
                 var extensionMemberInvocation = BindInvocationExpression(syntax, expression, methodName, extensionMemberAccess, analyzedArguments, diagnostics);
                 anyApplicableCandidates = !extensionMemberInvocation.HasAnyErrors;
                 return extensionMemberInvocation;
@@ -2372,7 +2373,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
             var boundArgument = BindExpression(argument, diagnostics);
-            boundArgument = ResolveToExtensionMemberIfPossible(boundArgument, diagnostics);
 
             bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
             if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)

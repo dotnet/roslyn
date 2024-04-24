@@ -105,21 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> DeconstructConversionInfo;
         }
 
-        private class ExtensionMemberUncommonData : NestedUncommonData
-        {
-            internal readonly Symbol ExtensionMember;
-
-            internal ExtensionMemberUncommonData(Symbol extensionMember, ImmutableArray<Conversion> nestedConversions)
-                : base(nestedConversions)
-            {
-                Debug.Assert(extensionMember is not null);
-                Debug.Assert(nestedConversions.Length == 1);
-                Debug.Assert(nestedConversions[0].Kind != ConversionKind.ExtensionMember);
-
-                ExtensionMember = extensionMember;
-            }
-        }
-
         private sealed class CollectionExpressionUncommonData : NestedUncommonData
         {
             internal CollectionExpressionUncommonData(
@@ -184,13 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isArrayIndex: false,
                 conversionResult: default,
                 conversionMethod: conversionMethod);
-        }
-
-        // For extension member conversion
-        internal Conversion(Symbol extensionMember, Conversion nestedConversion)
-        {
-            this._kind = ConversionKind.ExtensionMember;
-            _uncommonData = new ExtensionMemberUncommonData(extensionMember, nestedConversions: ImmutableArray.Create(nestedConversion));
         }
 
         internal Conversion(ConversionKind kind, ImmutableArray<Conversion> nestedConversions)
@@ -561,26 +539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var uncommonData = (DeconstructionUncommonData?)_uncommonData;
                 return uncommonData == null ? default : uncommonData.DeconstructConversionInfo;
             }
-        }
-
-        internal bool IsExtensionMemberConversion([NotNullWhen(true)] out Symbol? extensionMember, out Conversion nestedConversion)
-        {
-            if (Kind != ConversionKind.ExtensionMember)
-            {
-                extensionMember = null;
-                nestedConversion = default;
-                return false;
-            }
-
-            var uncommonData = (ExtensionMemberUncommonData?)_uncommonData;
-
-            Debug.Assert(uncommonData is not null);
-            extensionMember = uncommonData.ExtensionMember;
-
-            Debug.Assert(uncommonData._nestedConversionsOpt.Length == 1);
-            nestedConversion = uncommonData._nestedConversionsOpt[0];
-
-            return true;
         }
 
         internal CollectionExpressionTypeKind GetCollectionExpressionTypeKind(out TypeSymbol? elementType, out MethodSymbol? constructor, out bool isExpanded)

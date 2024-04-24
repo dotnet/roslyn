@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = value.Kind switch
             {
                 BoundKind.UnboundLambda => BindToInferredDelegateType(value, diagnostics),
-                BoundKind.MethodGroup => BindToExtensionMemberOrInferredDelegateType((BoundMethodGroup)value, diagnostics),
+                BoundKind.MethodGroup => BindToInferredDelegateType(value, diagnostics),
                 _ => BindToNaturalType(value, diagnostics)
             };
 

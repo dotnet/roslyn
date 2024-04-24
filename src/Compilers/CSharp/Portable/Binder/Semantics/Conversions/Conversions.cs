@@ -46,11 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Must be a bona fide delegate type, not an expression tree type.
             if (!destination.IsDelegateType())
             {
-                if (tryGetExtensionMemberConversion(source, destination, ref useSiteInfo, out var extensionMemberConversion))
-                {
-                    return extensionMemberConversion;
-                }
-
                 return Conversion.NoConversion;
             }
 
@@ -107,44 +102,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
-            if (resolution.IsExtensionMember(out var extensionMember))
-            {
-                var nestedConversion = ClassifyConversionFromExpressionType(extensionMember.GetTypeOrReturnType().Type, destination, isChecked: false, ref useSiteInfo);
-                if (nestedConversion.Kind != ConversionKind.NoConversion)
-                {
-                    return new Conversion(extensionMember, nestedConversion);
-                }
-            }
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(extensionMember: out _));
 
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, methodSymbol.ParameterCount);
             resolution.Free();
             return conversion;
-
-            bool tryGetExtensionMemberConversion(BoundMethodGroup source, TypeSymbol destination,
-                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Conversion extensionMemberConversion)
-            {
-                if (source is not { Methods: [], SearchExtensionMethods: true })
-                {
-                    extensionMemberConversion = default;
-                    return false;
-                }
-
-                MethodGroupResolution resolution = _binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
-                if (resolution.IsExtensionMember(out Symbol? extensionMember) && extensionMember is not NamedTypeSymbol)
-                {
-                    var nestedConversion = ClassifyConversionFromExpressionType(extensionMember.GetTypeOrReturnType().Type, destination, isChecked: false, ref useSiteInfo);
-                    if (nestedConversion.Kind != ConversionKind.NoConversion)
-                    {
-                        extensionMemberConversion = new Conversion(extensionMember, nestedConversion);
-                        return true;
-                    }
-                }
-
-                extensionMemberConversion = default;
-                return false;
-            }
         }
 #nullable disable
 

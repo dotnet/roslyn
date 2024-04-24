@@ -406,11 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
-            if (RequiresAssignableVariable(valueKind))
-            {
-                expr = ResolveToExtensionMemberIfPossible(expr, diagnostics);
-            }
-
             switch (expr.Kind)
             {
                 case BoundKind.PropertyGroup:
@@ -482,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
                 diagnostics.Add(expr.Syntax, useSiteInfo);
                 Symbol otherSymbol = null;
-                bool resolvedToUnusableSymbol = resolution.MethodGroup == null && !resolution.IsExtensionMember(out _);
+                bool resolvedToUnusableSymbol = resolution.MethodGroup == null && !resolution.IsNonMethodExtensionMember(out _);
                 if (!expr.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
                 hasResolutionErrors = resolution.HasAnyErrors;
                 if (hasResolutionErrors)

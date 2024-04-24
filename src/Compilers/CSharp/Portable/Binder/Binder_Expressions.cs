@@ -281,7 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression BindToNaturalType(BoundExpression expression, BindingDiagnosticBag diagnostics, bool reportNoTargetType = true)
         {
-            expression = ResolveToExtensionMemberIfPossible(expression, diagnostics);
+            Debug.Assert(object.ReferenceEquals(ResolveToNonMethodExtensionMemberIfPossible(expression, BindingDiagnosticBag.Discarded), expression),
+                "An empty method group that resolves to a non-method extension member should have been resolved by now");
 
             if (!expression.NeedsToBeConverted())
                 return expression;
@@ -407,24 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result?.WithWasConverted();
         }
-
-#nullable enable
-        private BoundExpression BindToExtensionMemberOrInferredDelegateType(BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics)
-        {
-            // PROTOTYPE test use-site diagnostics
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            MethodGroupResolution resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
-            diagnostics.Add(methodGroup.Syntax, useSiteInfo);
-            if (resolution.IsExtensionMember(out Symbol? extensionMember))
-            {
-                return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
-                    methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
-            }
-
-            // We have a method group so bind to an inferred delegate type
-            return BindToInferredDelegateType(methodGroup, diagnostics);
-        }
-#nullable disable
 
         private BoundExpression BindToInferredDelegateType(BoundExpression expr, BindingDiagnosticBag diagnostics)
         {
@@ -597,6 +580,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression result = bindExpressionInternal(node, diagnostics, invoked, indexed);
+
+            // Only invocation expressions need to resolve extension members as invoked (ie. filtering out non-invocable members)
+            // All other contexts can go ahead and resolve to a non-method extension member
+            if (!invoked)
+            {
+                result = ResolveToNonMethodExtensionMemberIfPossible(result, diagnostics);
+            }
 
             if (IsEarlyAttributeBinder && result.Kind == BoundKind.MethodGroup && (!IsInsideNameof || EnclosingNameofArgument != node))
             {
@@ -7499,7 +7489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
                         diagnostics.Add(expr.Syntax, useSiteInfo);
 
-                        if (resolution.IsExtensionMember(out Symbol extensionMember))
+                        if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
                             return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
@@ -7530,7 +7520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ResolveToExtensionMemberIfPossible(BoundExpression expr, BindingDiagnosticBag diagnostics)
+        internal BoundExpression ResolveToNonMethodExtensionMemberIfPossible(BoundExpression expr, BindingDiagnosticBag diagnostics)
         {
             switch (expr.Kind)
             {
@@ -7541,7 +7531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
                         diagnostics.Add(expr.Syntax, useSiteInfo);
 
-                        if (resolution.IsExtensionMember(out Symbol extensionMember))
+                        if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
                             resolution.Free();
@@ -8023,7 +8013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         options, returnRefKind, returnType, withDependencies, scope, in callingConvention,
                         out MethodGroupResolution extensionResult))
                 {
-                    if (extensionResult.IsExtensionMember(out _))
+                    if (extensionResult.IsNonMethodExtensionMember(out _))
                     {
                         return extensionResult;
                     }
