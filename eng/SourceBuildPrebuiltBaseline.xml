@@ -23,4 +23,12 @@
          prebuilt only for the repo CI build but not full source-build. -->
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0*" />
   </IgnorePatterns>
+  <Usages>
+    <Usage Id="System.Composition" Version="7.0.0" />
+    <Usage Id="System.Composition.AttributedModel" Version="7.0.0" />
+    <Usage Id="System.Composition.Convention" Version="7.0.0" />
+    <Usage Id="System.Composition.Hosting" Version="7.0.0" />
+    <Usage Id="System.Composition.Runtime" Version="7.0.0" />
+    <Usage Id="System.Composition.TypedParts" Version="7.0.0" />
+  </Usages>
 </UsageData>
