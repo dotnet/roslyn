@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.AddInstanceFieldToExistingType |
             EditAndContinueCapabilities.AddStaticFieldToExistingType |
             EditAndContinueCapabilities.AddMethodToExistingType |
-            EditAndContinueCapabilities.NewTypeDefinition;
+            EditAndContinueCapabilities.NewTypeDefinition |
+            EditAndContinueCapabilities.AddExplicitInterfaceImplementation;
 
         public const EditAndContinueCapabilities Net6RuntimeCapabilities =
             Net5RuntimeCapabilities |

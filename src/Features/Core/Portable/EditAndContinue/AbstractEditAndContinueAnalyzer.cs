@@ -2573,7 +2573,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             {
                                 if (processedSymbols.Add(newContainingType))
                                 {
-                                    if (capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                    if (capabilities.GrantNewTypeDefinition(containingType))
                                     {
                                         semanticEdits.Add(SemanticEditInfo.CreateReplace(containingTypeSymbolKey,
                                             IsPartialTypeEdit(oldContainingType, newContainingType, oldTree, newTree) ? containingTypeSymbolKey : null));
@@ -2607,7 +2607,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     // https://github.com/dotnet/roslyn/issues/54881
                                     diagnosticContext.Report(RudeEditKind.ChangingTypeParameters, cancellationToken);
                                 }
-                                else if (!capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                else if (!capabilities.GrantNewTypeDefinition(oldType))
                                 {
                                     diagnosticContext.Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
                                 }
@@ -2889,7 +2889,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     // therefore inserting the <Program>$ type
                                     Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol || IsGlobalMain(newSymbol));
 
-                                    if (!capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                    if (!capabilities.GrantNewTypeDefinition((newSymbol as INamedTypeSymbol) ?? newSymbol.ContainingType))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.InsertNotSupportedByRuntime,
@@ -3211,7 +3211,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     {
                         if (processedSymbols.Add(newContainingType))
                         {
-                            if (capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                            if (capabilities.GrantNewTypeDefinition(newContainingType))
                             {
                                 var oldContainingTypeKey = SymbolKey.Create(oldContainingType, cancellationToken);
                                 semanticEdits.Add(SemanticEditInfo.CreateReplace(oldContainingTypeKey,
@@ -3895,7 +3895,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         if (!oldStateMachineInfo.IsStateMachine &&
             newStateMachineInfo.IsStateMachine &&
-            !capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+            !capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
         {
             // Adding a state machine, either for async or iterator, will require creating a new helper class
             // so is a rude edit if the runtime doesn't support it
@@ -5690,9 +5690,11 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 }
             }
 
-            // If the old verison of the method had any lambdas the nwe know a closure type exists and a new one isn't needed.
+            // If the old version of the method had any lambdas then we know a closure type exists and a new one isn't needed.
             // We also know that adding a local function won't create a new closure type.
             // Otherwise, we assume a new type is needed.
+            // We also assume that the closure type does not implement an interface explicitly,
+            // so we do not need AddExplicitInterfaceImplementation capability.
 
             if (!oldHasLambdas && !isLocalFunction)
             {
