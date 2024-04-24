@@ -252,7 +252,7 @@ extends:
           condition: succeeded()
 
         # Publish OptProf configuration files
-        - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+        - task: 1ES.PublishArtifactsDrop@1
           inputs:
             dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
             buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
