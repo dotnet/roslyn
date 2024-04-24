@@ -5,22 +5,14 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract class AbstractWorkspaceDiagnosticSourceProvider(string name) : IDiagnosticSourceProvider
+internal static class WorkspaceDiagnosticSourceHelpers
 {
-    public bool IsDocument => false;
-    public string Name => name;
-
-    public abstract ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
-
-    protected static IEnumerable<Project> GetProjectsInPriorityOrder(
-        Solution solution, ImmutableArray<string> supportedLanguages)
+    public static IEnumerable<Project> GetProjectsInPriorityOrder(this Solution solution, ImmutableArray<string> supportedLanguages)
     {
         return GetProjectsInPriorityOrderWorker(solution)
             .WhereNotNull()
@@ -47,7 +39,7 @@ internal abstract class AbstractWorkspaceDiagnosticSourceProvider(string name) :
         }
     }
 
-    protected static bool ShouldSkipDocument(RequestContext context, TextDocument document)
+    public static bool ShouldSkipDocument(this RequestContext context, TextDocument document)
     {
         // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
         // Each handler treats those as separate worlds that they are responsible for.

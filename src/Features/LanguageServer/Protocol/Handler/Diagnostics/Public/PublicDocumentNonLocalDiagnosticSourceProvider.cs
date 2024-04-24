@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -17,19 +20,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
     [Import] IGlobalOptionService globalOptions,
     [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
-    : AbstractDocumentDiagnosticSourceProvider<TextDocument>(NonLocal)
+    : IDiagnosticSourceProvider
 {
     public const string NonLocal = "NonLocal_B69807DB-28FB-4846-884A-1152E54C8B62";
+    public bool IsDocument => true;
+    public string Name => NonLocal;
 
-    protected override IDiagnosticSource? CreateDiagnosticSource(TextDocument textDocument)
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
-        if (globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) != BackgroundAnalysisScope.FullSolution)
+        if (context.GetTrackedDocument<TextDocument>() is { } textDocument &&
+            globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) == BackgroundAnalysisScope.FullSolution)
         {
-            return null;
+            // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
+            return new([new NonLocalDocumentDiagnosticSource(textDocument, diagnosticAnalyzerService, a => !a.IsCompilerAnalyzer())]);
         }
 
-        // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
-        return new NonLocalDocumentDiagnosticSource(textDocument, diagnosticAnalyzerService, a => !a.IsCompilerAnalyzer());
+        return new([]);
     }
 }

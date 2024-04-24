@@ -7,27 +7,26 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 [Export(typeof(IDiagnosticSourceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DocumentTaskDiagnosticSourceProvider([Import] IGlobalOptionService globalOptions) : IDiagnosticSourceProvider
+internal sealed class DocumentEditAndContinueDiagnosticSourceProvider() : IDiagnosticSourceProvider
 {
     public bool IsDocument => true;
-    public string Name => PullDiagnosticCategories.Task;
+    public string Name => PullDiagnosticCategories.EditAndContinue;
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         if (context.GetTrackedDocument<Document>() is { } document)
         {
-            return new([new TaskListDiagnosticSource(document, globalOptions)]);
+            return new([EditAndContinueDiagnosticSource.CreateOpenDocumentSource(document)]);
         }
 
         return new([]);
     }
 }
-

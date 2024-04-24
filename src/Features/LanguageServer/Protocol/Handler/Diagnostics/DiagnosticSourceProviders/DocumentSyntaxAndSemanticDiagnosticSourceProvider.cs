@@ -3,26 +3,31 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider : AbstractDocumentDiagnosticSourceProvider<TextDocument>
+internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(
+    IDiagnosticAnalyzerService diagnosticAnalyzerService, DiagnosticKind kind, string sourceName)
+    : IDiagnosticSourceProvider
 {
-    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-    private readonly DiagnosticKind _kind;
+    public bool IsDocument => true;
+    public string Name => sourceName;
 
-    public AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvider(IDiagnosticAnalyzerService diagnosticAnalyzerService,
-        DiagnosticKind kind, string sourceName) : base(sourceName)
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        _diagnosticAnalyzerService = diagnosticAnalyzerService;
-        _kind = kind;
-    }
+        if (context.GetTrackedDocument<TextDocument>() is { } document)
+        {
+            return new([new DocumentDiagnosticSource(diagnosticAnalyzerService, kind, document)]);
+        }
 
-    protected override IDiagnosticSource? CreateDiagnosticSource(TextDocument document)
-        => new DocumentDiagnosticSource(_diagnosticAnalyzerService, _kind, document);
+        return new([]);
+    }
 
     [Export(typeof(IDiagnosticSourceProvider)), Shared]
     [method: ImportingConstructor]

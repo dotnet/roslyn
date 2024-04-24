@@ -18,10 +18,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 [Export(typeof(IDiagnosticSourceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOptionService globalOptions)
-    : AbstractWorkspaceDiagnosticSourceProvider(PullDiagnosticCategories.Task)
+internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOptionService globalOptions) : IDiagnosticSourceProvider
 {
-    public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    public bool IsDocument => false;
+    public string Name => PullDiagnosticCategories.Task;
+
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -29,11 +31,11 @@ internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOpti
         if (globalOptions.GetTaskListOptions().ComputeForClosedFiles)
         {
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
-            foreach (var project in GetProjectsInPriorityOrder(context.Solution, context.SupportedLanguages))
+            foreach (var project in context.Solution.GetProjectsInPriorityOrder(context.SupportedLanguages))
             {
                 foreach (var document in project.Documents)
                 {
-                    if (!ShouldSkipDocument(context, document))
+                    if (!context.ShouldSkipDocument(document))
                         result.Add(new TaskListDiagnosticSource(document, globalOptions));
                 }
             }

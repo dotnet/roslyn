@@ -23,8 +23,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
     [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService,
     [Import] IGlobalOptionService globalOptions)
-    : AbstractWorkspaceDiagnosticSourceProvider(PullDiagnosticCategories.WorkspaceDocumentsAndProject)
+    : IDiagnosticSourceProvider
 {
+    public bool IsDocument => false;
+    public string Name => PullDiagnosticCategories.WorkspaceDocumentsAndProject;
+
     /// <summary>
     /// There are three potential sources for reporting workspace diagnostics:
     ///
@@ -43,7 +46,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
     /// If full solution analysis is disabled AND code analysis was never executed for the given project,
     /// we have no workspace diagnostics to report and bail out.
     /// </summary>
-    public override async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -53,7 +56,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
         var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
         var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
-        foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
+        foreach (var project in solution.GetProjectsInPriorityOrder(context.SupportedLanguages))
             await AddDocumentsAndProjectAsync(project, diagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
 
         return result.ToImmutableAndClear();
@@ -86,7 +89,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
             {
                 foreach (var document in documents)
                 {
-                    if (!ShouldSkipDocument(context, document))
+                    if (!context.ShouldSkipDocument(document))
                     {
                         // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
                         var documentDiagnosticSource = fullSolutionAnalysisEnabled
