@@ -94,13 +94,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         _textFactory = textFactory;
     }
 
-    //public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
-    //    => new TemporaryTextStorage(this);
-
-    //public TemporaryTextStorage AttachTemporaryTextStorage(
-    //    string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
-    //    => new(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
-
     ITemporaryStorageTextHandle ITemporaryStorageServiceInternal.WriteToTemporaryStorage(SourceText text, CancellationToken cancellationToken)
         => WriteToTemporaryStorage(text, cancellationToken);
 
@@ -258,15 +251,9 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
             return new DirectMemoryAccessStreamReader(src + 1, (int)stream.Length / sizeof(char) - 1);
         }
-
-#if false
-            var storage = new TemporaryStreamStorage(
-                storageService, memoryMappedFile, this.Identifier.Name, this.Identifier.Offset, this.Identifier.Size);
-            return storage.ReadStream(cancellationToken);
-#endif
     }
 
-    private sealed class TemporaryTextStorage // : ITemporaryTextStorageInternal, ITemporaryStorageWithName
+    private sealed class TemporaryTextStorage
     {
         private readonly TemporaryStorageService _service;
         private SourceHashAlgorithm _checksumAlgorithm;
