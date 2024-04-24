@@ -126,10 +126,32 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     public TemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
     {
         stream.Position = 0;
-        var storage = new TemporaryStreamStorage(this);
-        storage.WriteStream(stream, cancellationToken);
-        var identifier = new TemporaryStorageIdentifier(storage.Name, storage.Offset, storage.Size);
-        return new(storage.MemoryMappedInfo.MemoryMappedFile, identifier);
+        var memoryMappedInfo = WriteStreamToMemoryMappedFile();
+        var identifier = new TemporaryStorageIdentifier(memoryMappedInfo.Name, memoryMappedInfo.Offset, memoryMappedInfo.Size);
+        return new(memoryMappedInfo.MemoryMappedFile, identifier);
+
+        MemoryMappedInfo WriteStreamToMemoryMappedFile()
+        {
+            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
+            {
+                var size = stream.Length;
+                var memoryMappedInfo = this.CreateTemporaryStorage(size);
+                using var viewStream = memoryMappedInfo.CreateWritableStream();
+
+                using var pooledObject = SharedPools.ByteArray.GetPooledObject();
+                var buffer = pooledObject.Object;
+                while (true)
+                {
+                    var count = stream.Read(buffer, 0, buffer.Length);
+                    if (count == 0)
+                        break;
+
+                    viewStream.Write(buffer, 0, count);
+                }
+
+                return memoryMappedInfo;
+            }
+        }
     }
 
     internal static TemporaryStorageStreamHandle GetStreamHandle(TemporaryStorageIdentifier storageIdentifier)
@@ -339,52 +361,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             }
 
             WriteText(text, cancellationToken);
-        }
-    }
-
-    internal sealed class TemporaryStreamStorage
-    {
-        private readonly TemporaryStorageService _service;
-        private MemoryMappedInfo? _memoryMappedInfo;
-
-        public TemporaryStreamStorage(TemporaryStorageService service)
-            => _service = service;
-
-        public TemporaryStreamStorage(
-            TemporaryStorageService service, MemoryMappedFile file, string storageName, long offset, long size)
-        {
-            _service = service;
-            _memoryMappedInfo = new MemoryMappedInfo(file, storageName, offset, size);
-        }
-
-        public MemoryMappedInfo MemoryMappedInfo => _memoryMappedInfo ?? throw new InvalidOperationException();
-
-        public string Name => this.MemoryMappedInfo.Name;
-        public long Offset => this.MemoryMappedInfo.Offset;
-        public long Size => this.MemoryMappedInfo.Size;
-
-        public void WriteStream(Stream stream, CancellationToken cancellationToken)
-        {
-            if (_memoryMappedInfo != null)
-                throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-
-            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
-            {
-                var size = stream.Length;
-                _memoryMappedInfo = _service.CreateTemporaryStorage(size);
-                using var viewStream = _memoryMappedInfo.CreateWritableStream();
-
-                using var pooledObject = SharedPools.ByteArray.GetPooledObject();
-                var buffer = pooledObject.Object;
-                while (true)
-                {
-                    var count = stream.Read(buffer, 0, buffer.Length);
-                    if (count == 0)
-                        break;
-
-                    viewStream.Write(buffer, 0, count);
-                }
-            }
         }
     }
 }
