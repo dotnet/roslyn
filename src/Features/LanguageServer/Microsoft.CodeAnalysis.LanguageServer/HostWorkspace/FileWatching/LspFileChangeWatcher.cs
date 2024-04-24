@@ -65,8 +65,9 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         /// The list of file paths we're watching manually that were outside the directories being watched. The count in this case counts
         /// the number of 
         /// </summary>
-        private readonly Dictionary<string, int> _watchedFiles = new Dictionary<string, int>(_stringComparer);
-        private static readonly StringComparer _stringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        private readonly Dictionary<string, int> _watchedFiles = new Dictionary<string, int>(s_stringComparer);
+        private static readonly StringComparer s_stringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        private static readonly StringComparison s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
         public FileChangeContext(ImmutableArray<WatchedDirectory> watchedDirectories, LspFileChangeWatcher lspFileChangeWatcher)
         {
@@ -80,7 +81,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 {
                     GlobPattern = new RelativePattern
                     {
-                        BaseUri = ProtocolConversions.CreateAbsoluteUri(d.Path),
+                        BaseUri = ProtocolConversions.CreateRelativePatternBasUri(d.Path),
                         Pattern = d.ExtensionFilter is not null ? "**/*" + d.ExtensionFilter : "**/*"
                     }
                 }).ToArray();
@@ -99,7 +100,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
                 // Unfortunately the LSP protocol doesn't give us any hint of which of the file watches we might have sent to the client
                 // was the one that registered for this change, so we have to check paths to see if this one we should respond to.
-                if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, StringComparison.Ordinal))
+                if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_stringComparison))
                 {
                     FileChanged?.Invoke(this, filePath);
                 }
@@ -128,7 +129,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         public IWatchedFile EnqueueWatchingFile(string filePath)
         {
             // If we already have this file under our path, we may not have to do additional watching
-            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, StringComparison.OrdinalIgnoreCase))
+            if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, s_stringComparison))
                 return NoOpWatchedFile.Instance;
 
             // Record that we're now watching this file
