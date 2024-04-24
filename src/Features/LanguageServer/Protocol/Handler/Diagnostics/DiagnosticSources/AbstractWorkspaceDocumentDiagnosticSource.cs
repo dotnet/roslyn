@@ -29,7 +29,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
         /// once we compute the diagnostics once for a particular project, we don't need to recompute them again as we
         /// walk every document within it.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, AsyncLazy<ImmutableArray<DiagnosticData>>> s_projectToDiagnostics = new();
+        private static readonly ConditionalWeakTable<Project, AsyncLazy<ILookup<DocumentId, DiagnosticData>>> s_projectToDiagnostics = new();
 
         /// <summary>
         /// This is a normal document source that represents live/fresh diagnostics that should supersede everything else.
@@ -65,20 +65,24 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             }
 
             var result = await lazyDiagnostics.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return result;
+            return result[Document.Id].ToImmutableArray();
 
-            AsyncLazy<ImmutableArray<DiagnosticData>> GetLazyDiagnostics()
+            AsyncLazy<ILookup<DocumentId, DiagnosticData>> GetLazyDiagnostics()
             {
                 return s_projectToDiagnostics.GetValue(
                     Document.Project,
                     _ => AsyncLazy.Create(
-                        async cancellationToken => await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                            Document.Project.Solution, Document.Project.Id, documentId: null,
-                            diagnosticIds: null, shouldIncludeAnalyzer,
-                            // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this project.
-                            static (project, _) => [.. project.DocumentIds.Concat(project.AdditionalDocumentIds)],
-                            includeSuppressedDiagnostics: false,
-                            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false)));
+                        async cancellationToken =>
+                        {
+                            var allDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
+                                Document.Project.Solution, Document.Project.Id, documentId: null,
+                                diagnosticIds: null, shouldIncludeAnalyzer,
+                                // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this project.
+                                static (project, _) => [.. project.DocumentIds.Concat(project.AdditionalDocumentIds)],
+                                includeSuppressedDiagnostics: false,
+                                includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                            return allDiagnostics.Where(d => d.DocumentId != null).ToLookup(d => d.DocumentId!);
+                        }));
             }
         }
     }
