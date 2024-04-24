@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the completion list should use suggestion mode. In suggestion mode items are "soft-selected" by default.
         /// </summary>
         [JsonPropertyName(SuggestionModeSerializedName)]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool SuggestionMode
         {
             get;

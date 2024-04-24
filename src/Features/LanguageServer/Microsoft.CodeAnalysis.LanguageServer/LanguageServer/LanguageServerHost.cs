@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
@@ -28,7 +29,8 @@ internal sealed class LanguageServerHost
 
     public LanguageServerHost(Stream inputStream, Stream outputStream, ExportProvider exportProvider, ILogger logger)
     {
-        var messageFormatter = new JsonMessageFormatter();
+        var messageFormatter = CreateJsonMessageFormatter();
+
         var handler = new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter);
 
         // If there is a jsonrpc disconnect or server shutdown, that is handled by the AbstractLanguageServer.  No need to do anything here.
@@ -44,7 +46,15 @@ internal sealed class LanguageServerHost
         var lspLogger = new LspServiceLogger(_logger);
 
         var hostServices = exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
-        _roslynLanguageServer = roslynLspFactory.Create(_jsonRpc, messageFormatter.JsonSerializer, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, lspLogger, hostServices);
+        _roslynLanguageServer = roslynLspFactory.Create(_jsonRpc, messageFormatter.JsonSerializerOptions, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, lspLogger, hostServices);
+    }
+
+    internal static SystemTextJsonFormatter CreateJsonMessageFormatter()
+    {
+        var messageFormatter = new SystemTextJsonFormatter();
+        messageFormatter.JsonSerializerOptions.AddVSCodeInternalExtensionConverters();
+        messageFormatter.JsonSerializerOptions.Converters.Add(new NaturalObjectConverter());
+        return messageFormatter;
     }
 
     public void Start()

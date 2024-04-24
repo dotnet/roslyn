@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
 using Roslyn.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
+using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.InlayHint request)
-            => GetTextDocument(request.Data) ?? throw new ArgumentException();
+            => GetInlayHintResolveData(request).TextDocument;
 
         public async Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
         {
@@ -54,13 +54,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             return request;
         }
 
-        private static LSP.TextDocumentIdentifier? GetTextDocument(object? requestData)
-        {
-            Contract.ThrowIfNull(requestData);
-            var resolveData = ((JToken)requestData).ToObject<DocumentResolveData>();
-            return resolveData?.TextDocument;
-        }
-
         private (InlayHintCache.InlayHintCacheEntry CacheEntry, InlineHint InlineHintToResolve) GetCacheEntry(InlayHintResolveData resolveData)
         {
             var cacheEntry = _inlayHintCache.GetCachedEntry(resolveData.ResultId);
@@ -70,7 +63,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 
         private static InlayHintResolveData GetInlayHintResolveData(LSP.InlayHint inlayHint)
         {
-            var resolveData = (inlayHint.Data as JToken)?.ToObject<InlayHintResolveData>();
+            Contract.ThrowIfNull(inlayHint.Data);
+            var resolveData = JsonSerializer.Deserialize<InlayHintResolveData>((JsonElement)inlayHint.Data, ProtocolConversions.LspJsonSerializerOptions);
             Contract.ThrowIfNull(resolveData, "Missing data for inlay hint resolve request");
             return resolveData;
         }

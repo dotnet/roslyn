@@ -1,9 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -31,10 +31,9 @@ internal class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolution
         return _projectSystem.OpenSolutionAsync(request.Solution.LocalPath);
     }
 
-    [DataContract]
     private class NotificationParams
     {
-        [DataMember(Name = "solution")]
+        [JsonPropertyName("solution")]
         public required Uri Solution { get; set; }
     }
 }

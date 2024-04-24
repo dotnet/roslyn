@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,13 +28,11 @@ using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Nerdbank.Streams;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
@@ -44,6 +44,8 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract partial class AbstractLanguageServerProtocolTests
     {
+        private static readonly SystemTextJsonFormatter s_messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+
         private protected readonly AbstractLspLogger TestOutputLspLogger;
         protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
         {
@@ -124,8 +126,8 @@ namespace Roslyn.Test.Utilities
         /// <param name="actual">the actual object to be converted to JSON.</param>
         public static void AssertJsonEquals<T1, T2>(T1 expected, T2 actual)
         {
-            var expectedStr = JsonConvert.SerializeObject(expected);
-            var actualStr = JsonConvert.SerializeObject(actual);
+            var expectedStr = JsonSerializer.Serialize(expected, s_messageFormatter.JsonSerializerOptions);
+            var actualStr = JsonSerializer.Serialize(actual, s_messageFormatter.JsonSerializerOptions);
             AssertEqualIgnoringWhitespace(expectedStr, actualStr);
         }
 
@@ -269,7 +271,7 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = JObject.FromObject(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document))),
+                Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), s_messageFormatter.JsonSerializerOptions),
                 Preselect = preselect,
                 VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
                 LabelDetails = labelDetails
@@ -512,13 +514,6 @@ namespace Roslyn.Test.Utilities
                }
            };
 
-        internal static JsonMessageFormatter CreateJsonMessageFormatter()
-        {
-            var messageFormatter = new JsonMessageFormatter();
-            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
-            return messageFormatter;
-        }
-
         internal sealed class TestLspServer : IAsyncDisposable
         {
             public readonly EditorTestWorkspace TestWorkspace;
@@ -545,7 +540,7 @@ namespace Roslyn.Test.Utilities
 
                 LanguageServer = target;
 
-                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()), clientTarget)
+                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, RoslynLanguageServer.CreateJsonMessageFormatter()), clientTarget)
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
@@ -607,13 +602,13 @@ namespace Roslyn.Test.Utilities
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
                 var factory = workspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
 
-                var jsonMessageFormatter = CreateJsonMessageFormatter();
+                var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
                 var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
-                var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializer, capabilitiesProvider, serverKind, logger, workspace.Services.HostServices);
+                var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, capabilitiesProvider, serverKind, logger, workspace.Services.HostServices);
 
                 jsonRpc.StartListening();
                 return languageServer;

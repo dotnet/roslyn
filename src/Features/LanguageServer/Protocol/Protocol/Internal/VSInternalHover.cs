@@ -9,7 +9,6 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Extension to Hover which adds additional data for colorization.
     /// </summary>
-    [DataContract]
     internal class VSInternalHover : Hover
     {
         /// <summary>

@@ -17,8 +17,8 @@ internal class ImageElementConverter : JsonConverter<ImageElement>
     {
         if (reader.TokenType == JsonTokenType.StartObject)
         {
-            ImageId? imageId = default;
-            string? automationName = default;
+            ImageId? imageId = null;
+            string? automationName = null;
 
             while (reader.Read())
             {

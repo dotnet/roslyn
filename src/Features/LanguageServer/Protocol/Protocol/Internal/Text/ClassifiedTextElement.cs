@@ -5,9 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text.Json.Serialization;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Text.Adornments
 {
+    [JsonConverter(typeof(ClassifiedTextElementConverter))]
     internal sealed class ClassifiedTextElement
     {
         public const string TextClassificationTypeName = "text";

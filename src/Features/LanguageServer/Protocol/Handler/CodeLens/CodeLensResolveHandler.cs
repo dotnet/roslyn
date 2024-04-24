@@ -5,10 +5,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Roslyn.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
@@ -81,7 +82,8 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
 
     private static CodeLensResolveData GetCodeLensResolveData(LSP.CodeLens codeLens)
     {
-        var resolveData = (codeLens.Data as JToken)?.ToObject<CodeLensResolveData>();
+        Contract.ThrowIfNull(codeLens.Data);
+        var resolveData = JsonSerializer.Deserialize<CodeLensResolveData>((JsonElement)codeLens.Data, ProtocolConversions.LspJsonSerializerOptions);
         Contract.ThrowIfNull(resolveData, "Missing data for code lens resolve request");
         return resolveData;
     }

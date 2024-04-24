@@ -20,7 +20,7 @@ internal class ContainerElementConverter : JsonConverter<ContainerElement>
     {
         if (reader.TokenType == JsonTokenType.StartObject)
         {
-            ContainerElementStyle? style = default;
+            ContainerElementStyle? style = null;
             List<object> objects = new();
 
             while (reader.Read())

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -19,8 +20,6 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -200,10 +199,9 @@ internal abstract partial class AbstractInProcLanguageClient(
         ILspServiceLoggerFactory lspLoggerFactory,
         CancellationToken cancellationToken)
     {
-        var jsonMessageFormatter = new JsonMessageFormatter();
-        VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonMessageFormatter.JsonSerializer);
+        var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
-        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
+        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter))
         {
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
@@ -215,7 +213,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
         var server = Create(
             jsonRpc,
-            jsonMessageFormatter.JsonSerializer,
+            messageFormatter.JsonSerializerOptions,
             languageClient,
             serverKind,
             logger,
@@ -227,7 +225,7 @@ internal abstract partial class AbstractInProcLanguageClient(
 
     public virtual AbstractLanguageServer<RequestContext> Create(
         JsonRpc jsonRpc,
-        JsonSerializer jsonSerializer,
+        JsonSerializerOptions options,
         ICapabilitiesProvider capabilitiesProvider,
         WellKnownLspServerKinds serverKind,
         AbstractLspLogger logger,
@@ -236,7 +234,7 @@ internal abstract partial class AbstractInProcLanguageClient(
         var server = new RoslynLanguageServer(
             LspServiceProvider,
             jsonRpc,
-            jsonSerializer,
+            options,
             capabilitiesProvider,
             logger,
             hostServices,
