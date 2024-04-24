@@ -21,10 +21,8 @@ internal sealed partial class TrivialTemporaryStorageService : ITemporaryStorage
 
     public ITemporaryStorageTextHandle WriteToTemporaryStorage(SourceText text, CancellationToken cancellationToken)
     {
-        var storage = new TextStorage();
-        storage.WriteText(text);
         var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), Offset: 0, Size: text.Length);
-        var handle = new TrivialStorageTextHandle(identifier, storage);
+        var handle = new TrivialStorageTextHandle(identifier, text);
         return handle;
     }
 
@@ -63,27 +61,6 @@ internal sealed partial class TrivialTemporaryStorageService : ITemporaryStorage
             {
                 throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
             }
-        }
-    }
-
-    private sealed class TextStorage
-    {
-        private SourceText? _sourceText;
-
-        public SourceText ReadText()
-            => _sourceText ?? throw new InvalidOperationException();
-
-        public Task<SourceText> ReadTextAsync()
-            => Task.FromResult(ReadText());
-
-        public void WriteText(SourceText text)
-        {
-            // This is a trivial implementation, indeed. Note, however, that we retain a strong
-            // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
-            // is appropriate for this trivial implementation.
-            var existingValue = Interlocked.CompareExchange(ref _sourceText, text, null);
-            if (existingValue is not null)
-                throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
         }
     }
 }

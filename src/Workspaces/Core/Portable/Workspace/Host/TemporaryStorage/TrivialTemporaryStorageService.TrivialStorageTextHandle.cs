@@ -13,12 +13,12 @@ internal sealed partial class TrivialTemporaryStorageService
 {
     private sealed class TrivialStorageTextHandle(
         TemporaryStorageIdentifier identifier,
-        TextStorage storage) : ITemporaryStorageTextHandle
+        SourceText sourceText) : ITemporaryStorageTextHandle
     {
         public TemporaryStorageIdentifier Identifier => identifier;
 
         public SourceText ReadFromTemporaryStorage(CancellationToken cancellationToken)
-            => storage.ReadText();
+            => sourceText;
 
         public Task<SourceText> ReadFromTemporaryStorageAsync(CancellationToken cancellationToken)
             => Task.FromResult(ReadFromTemporaryStorage(cancellationToken));
