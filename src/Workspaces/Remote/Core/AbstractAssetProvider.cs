@@ -189,6 +189,10 @@ internal static class AbstractAssetProviderExtensions
         await assetProvider.GetAssetsAsync(assetPath, checksumSet, callback, arg, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Returns an array of assets, corresponding to all the checksums found in the given <paramref name="checksums"/>.
+    /// The assets will be returned in the order corresponding to their checksum in <paramref name="checksums"/>.
+    /// </summary>
     public static async Task<ImmutableArray<T>> GetAssetsArrayAsync<T>(
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
