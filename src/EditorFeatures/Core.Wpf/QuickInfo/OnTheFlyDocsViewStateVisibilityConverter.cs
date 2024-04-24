@@ -8,17 +8,16 @@ using System.Windows;
 using System.Windows.Data;
 using static Microsoft.CodeAnalysis.Editor.QuickInfo.OnTheFlyDocsView;
 
-namespace Microsoft.CodeAnalysis.Editor.QuickInfo
-{
-    /// <summary>
-    /// Converts the <see cref="State"/> of the view to a <see cref="Visibility"/> value.
-    /// </summary>
-    internal class OnTheFlyDocsViewStateVisibilityConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-                => value is State state && parameter is State targetState && state == targetState ? Visibility.Visible : Visibility.Collapsed;
+namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
 
-        public object ConvertBack(object value, System.Type targetType, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
-    }
+/// <summary>
+/// Converts the <see cref="State"/> of the view to a <see cref="Visibility"/> value.
+/// </summary>
+internal class OnTheFlyDocsViewStateVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) 
+        => value is State state && parameter is State targetState && state == targetState ? Visibility.Visible : Visibility.Collapsed;
+
+    public object ConvertBack(object value, System.Type targetType, object parameter, CultureInfo culture) 
+        => throw new NotImplementedException();
 }

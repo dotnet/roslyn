@@ -2,32 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
 
-namespace Microsoft.CodeAnalysis.Editor.QuickInfo
+/// <summary>
+/// Represents the potential states of the view.
+/// </summary>
+public enum State
 {
     /// <summary>
-    /// Represents the potential states of the view.
+    /// The view is displaying the on-demand hyperlink.
     /// </summary>
-    public enum State
-    {
-        /// <summary>
-        /// The view is displaying the on-demand hyperlink.
-        /// </summary>
-        OnDemandLink,
+    OnDemandLink,
 
-        /// <summary>
-        /// The view is in the loading state.
-        /// </summary>
-        Loading,
+    /// <summary>
+    /// The view is in the loading state.
+    /// </summary>
+    Loading,
 
-        /// <summary>
-        /// The view is displaying computed results.
-        /// </summary>
-        Finished,
-    }
+    /// <summary>
+    /// The view is displaying computed results.
+    /// </summary>
+    Finished,
 }

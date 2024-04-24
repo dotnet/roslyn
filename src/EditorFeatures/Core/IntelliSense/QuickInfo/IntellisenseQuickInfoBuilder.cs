@@ -182,7 +182,7 @@ internal static class IntellisenseQuickInfoBuilder
             return false;
         }
 
-        elements.Add(new OnTheFlyDocsElement(document, symbol, descriptionText, cancellationToken));
+        elements.Add(new OnTheFlyDocsElement(document, symbol, descriptionText));
         return true;
     }
 

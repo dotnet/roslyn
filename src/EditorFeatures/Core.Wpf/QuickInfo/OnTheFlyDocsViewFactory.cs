@@ -18,41 +18,40 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo;
+
+[Export(typeof(IViewElementFactory))]
+[Name("My object converter")]
+[TypeConversion(from: typeof(OnTheFlyDocsElement), to: typeof(UIElement))]
+[Order(Before = "Default object converter")]
+internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 {
-    [Export(typeof(IViewElementFactory))]
-    [Name("My object converter")]
-    [TypeConversion(from: typeof(OnTheFlyDocsElement), to: typeof(UIElement))]
-    [Order(Before = "Default object converter")]
-    internal class OnTheFlyDocsViewFactory : IViewElementFactory
+    private readonly IViewElementFactoryService _factoryService;
+    private readonly IThreadingContext _threadingContext;
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IThreadingContext threadingContext)
     {
-        private readonly IViewElementFactoryService _factoryService;
-        private readonly IThreadingContext _threadingContext;
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IThreadingContext threadingContext)
+        _factoryService = factoryService;
+        _threadingContext = threadingContext;
+    }
+
+    public TView? CreateViewElement<TView>(ITextView textView, object model) where TView : class
+    {
+        if (typeof(TView) != typeof(UIElement))
         {
-            _factoryService = factoryService;
-            _threadingContext = threadingContext;
+            throw new InvalidOperationException("TView must be UIElement");
+        }
+        if (model is not OnTheFlyDocsElement onTheFlyDocsElement)
+        {
+            throw new InvalidOperationException("model must be an OnTheFlyDocsElement");
         }
 
-        public TView? CreateViewElement<TView>(ITextView textView, object model) where TView : class
+        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
         {
-            if (typeof(TView) != typeof(UIElement))
-            {
-                throw new InvalidOperationException("TView must be UIElement");
-            }
-            if (model is not OnTheFlyDocsElement onTheFlyDocsElement)
-            {
-                throw new InvalidOperationException("model must be an OnTheFlyDocsElement");
-            }
+            m["SymbolText"] = onTheFlyDocsElement.DescriptionText;
+        }, LogLevel.Information));
 
-            Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
-            {
-                m["SymbolText"] = onTheFlyDocsElement.DescriptionText;
-            }, LogLevel.Information));
-
-            return new OnTheFlyDocsView(textView, _factoryService, _threadingContext, onTheFlyDocsElement.Document, onTheFlyDocsElement.Symbol, onTheFlyDocsElement.DescriptionText, onTheFlyDocsElement.CancellationToken) as TView;
-        }
+        return new OnTheFlyDocsView(textView, _factoryService, _threadingContext, onTheFlyDocsElement.Document, onTheFlyDocsElement.Symbol, onTheFlyDocsElement.DescriptionText) as TView;
     }
 }

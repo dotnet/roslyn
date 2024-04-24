@@ -9,21 +9,18 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.IntelliSense.QuickInfo
-{
-    internal class OnTheFlyDocsElement
-    {
-        internal Document Document { get; }
-        internal ISymbol Symbol { get; }
-        internal string DescriptionText { get; }
-        internal CancellationToken CancellationToken { get; }
+namespace Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
 
-        public OnTheFlyDocsElement(Document document, ISymbol symbol, string descriptionText, CancellationToken cancellationToken)
-        {
-            Document = document;
-            Symbol = symbol;
-            DescriptionText = descriptionText;
-            CancellationToken = cancellationToken;
-        }
+internal sealed class OnTheFlyDocsElement
+{
+    internal Document Document { get; }
+    internal ISymbol Symbol { get; }
+    internal string DescriptionText { get; }
+
+    public OnTheFlyDocsElement(Document document, ISymbol symbol, string descriptionText)
+    {
+        Document = document;
+        Symbol = symbol;
+        DescriptionText = descriptionText;
     }
 }

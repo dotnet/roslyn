@@ -60,5 +60,10 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Method to fetch the on-the-fly documentation for a symbols <paramref name="descriptionText"/>
+    /// and the syntax references of the symbols in <paramref name="symbolStrings"/>.
+    /// </summary>
+    /// <returns></returns>
     Task<string> GetOnTheFlyDocsAsync(string descriptionText, ImmutableArray<string> symbolStrings, CancellationToken cancellationToken);
 }

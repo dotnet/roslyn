@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
     {
         private readonly ITextView _textView;
         private readonly IViewElementFactoryService _viewElementFactoryService;
+        private readonly IThreadingContext _threadingContext;
         private readonly ISymbol _symbol;
         private readonly ContentControl _responseControl = new();
         private State _currentState = State.OnDemandLink;
@@ -46,10 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-        public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IThreadingContext threadingContext, Document document, ISymbol symbol, string descriptionText, CancellationToken cancellationToken)
+        public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IThreadingContext threadingContext, Document document, ISymbol symbol, string descriptionText)
         {
             _textView = textView;
             _viewElementFactoryService = viewElementFactoryService;
+            _threadingContext = threadingContext;
             _symbol = symbol;
             var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
 
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                             ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.AI_generated_content_may_be_inaccurate)),
                     }));
 
-            ResultsRequested += (_, _) => PopulateAIDocumentationElements(threadingContext, document, symbol, descriptionText, cancellationToken);
+            ResultsRequested += (_, _) => PopulateAIDocumentationElements(threadingContext, document, symbol, descriptionText, _threadingContext.DisposalToken);
             InitializeComponent();
         }
 
