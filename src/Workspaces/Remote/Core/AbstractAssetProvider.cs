@@ -192,20 +192,32 @@ internal static class AbstractAssetProviderExtensions
     public static async Task<ImmutableArray<T>> GetAssetsArrayAsync<T>(
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
+        // Note: nothing stops 'checksums' from having multiple identical checksums in it.  First, collapse this down to
+        // a set so we're only asking about unique checksums.
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
 #if NET
         checksumSet.EnsureCapacity(checksums.Children.Length);
 #endif
         checksumSet.AddAll(checksums.Children);
 
-        using var _ = ArrayBuilder<T>.GetInstance(checksumSet.Count, out var builder);
+        using var _2 = PooledDictionary<Checksum, T>.GetInstance(out var checksumToAsset);
 
         await assetProvider.GetAssetHelper<T>().GetAssetsAsync(
             assetPath, checksumSet,
-            static (checksum, asset, builder) => builder.Add(asset),
-            builder,
+            static (checksum, asset, checksumToAsset) => checksumToAsset.Add(checksum, asset),
+            checksumToAsset,
             cancellationToken).ConfigureAwait(false);
 
-        return builder.ToImmutableAndClear();
+        // Note: GetAssetsAsync will only succeed if we actually found all our assets (it crashes otherwise).  So we can
+        // just safely assume we can index into checksumToAsset here.
+
+        // The result of GetAssetsArrayAsync wants the returned assets to be in the exact order of the checksums that
+        // were in 'checksums'.  So now fetch the assets in that order, even if we found them in an entirely different
+        // order.
+        var result = new FixedSizeArrayBuilder<T>(checksums.Children.Length);
+        foreach (var checksum in checksums.Children)
+            result.Add(checksumToAsset[checksum]);
+
+        return result.MoveToImmutable();
     }
 }
