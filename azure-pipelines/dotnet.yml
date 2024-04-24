@@ -17,7 +17,7 @@ steps:
     condition: and(succeeded(), ${{ parameters.RunTests }})
 
 - ${{ if parameters.IsOptProf }}:
-  # We have to artifically run this script so that the extra .nupkg is produced for variables/InsertConfigValues.ps1 to notice.
+  # We have to artifically run this script so that the extra .nupkg is produced for variables/InsertPropsValues.ps1 to notice.
   - powershell: azure-pipelines\artifacts\VSInsertion.ps1
     displayName: 🔧 Prepare VSInsertion artifact
 
