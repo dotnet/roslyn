@@ -230,6 +230,6 @@ internal static partial class Extensions
     /// <summary>
     /// Returns true if any member of the type implements an interface member explicitly.
     /// </summary>
-    public static bool HasExplicitInterfaceImplementation(this INamedTypeSymbol type)
+    public static bool HasExplicitlyImplementedInterfaceMember(this INamedTypeSymbol type)
         => type.GetMembers().Any(static member => member.ExplicitInterfaceImplementations().Any());
 }
