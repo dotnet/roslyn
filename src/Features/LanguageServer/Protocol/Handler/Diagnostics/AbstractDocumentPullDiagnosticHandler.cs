@@ -36,7 +36,7 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
         return DiagnosticSourceManager.CreateDiagnosticSourcesAsync(context, requestDiagnosticCategory, isDocument: true, cancellationToken);
     }
 
-    protected static TextDocument? GetOpenDocument(RequestContext context)
+    private static TextDocument? GetOpenDocument(RequestContext context)
     {
         // Note: context.Document may be null in the case where the client is asking about a document that we have
         // since removed from the workspace.  In this case, we don't really have anything to process.

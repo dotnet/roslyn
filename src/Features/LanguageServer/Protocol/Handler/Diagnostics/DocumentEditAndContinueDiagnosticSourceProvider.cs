@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -16,14 +13,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DocumentEditAndContinueDiagnosticSourceProvider()
-    : AbstractDocumentDiagnosticSourceProvider(PullDiagnosticCategories.EditAndContinue)
+    : AbstractDocumentDiagnosticSourceProvider<Document>(PullDiagnosticCategories.EditAndContinue)
 {
-    public override ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-    {
-        if (context.GetTrackedDocument<Document>() is not Document document)
-            return new([]);
-
-        var source = EditAndContinueDiagnosticSource.CreateOpenDocumentSource(document);
-        return new([source]);
-    }
+    protected override IDiagnosticSource? CreateDiagnosticSource(Document document)
+        => EditAndContinueDiagnosticSource.CreateOpenDocumentSource(document);
 }

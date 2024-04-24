@@ -8,10 +8,21 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract class AbstractDocumentDiagnosticSourceProvider(string name) : IDiagnosticSourceProvider
+internal abstract class AbstractDocumentDiagnosticSourceProvider<TDocument>(string name) : IDiagnosticSourceProvider where TDocument : TextDocument
 {
     public bool IsDocument => true;
     public string Name => name;
 
-    public abstract ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
+    protected abstract IDiagnosticSource? CreateDiagnosticSource(TDocument document);
+
+    public virtual ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    {
+        if (context.GetTrackedDocument<TDocument>() is { } document &&
+            CreateDiagnosticSource(document) is { } source)
+        {
+            return new([source]);
+        }
+
+        return new([]);
+    }
 }
