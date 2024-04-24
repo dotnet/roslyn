@@ -255,7 +255,7 @@ extends:
                        /p:PreReleaseVersionLabel=pr-validation
           condition: succeeded()
 
-        - template: eng\common\templates\steps\generate-sbom.yml@self
+        - template: /eng/common/templates-official/steps/generate-sbom.yml@self
 
         - task: PowerShell@2
           displayName: Publish Assets
@@ -284,7 +284,7 @@ extends:
 
     - stage: insert
       dependsOn:
-        - publish_using_darc
+      - publish_using_darc
       displayName: Insert to VS
 
       jobs:
