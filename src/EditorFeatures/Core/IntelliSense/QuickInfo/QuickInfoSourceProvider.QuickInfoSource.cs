@@ -90,7 +90,7 @@ internal partial class QuickInfoSourceProvider
                         return await IntellisenseQuickInfoBuilder.BuildItemAsync(
                             trackingSpan, item, document, classificationOptions, lineFormattingOptions,
                             _threadingContext, _operationExecutor,
-                            _asyncListener, _streamingPresenter, triggerPoint.Value,
+                            _asyncListener, _streamingPresenter,
                             cancellationToken).ConfigureAwait(false);
                     }
 

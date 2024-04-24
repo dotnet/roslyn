@@ -31,7 +31,6 @@ internal static class IntellisenseQuickInfoBuilder
     private static async Task<ContainerElement> BuildInteractiveContentAsync(
         CodeAnalysisQuickInfoItem quickInfoItem,
         IntellisenseQuickInfoBuilderContext? context,
-        int? position,
         CancellationToken cancellationToken)
     {
         // Build the first line of QuickInfo item, the images and the Description section should be on the first line with Wrapped style
@@ -139,7 +138,7 @@ internal static class IntellisenseQuickInfoBuilder
         }
 
         if (context is not null && quickInfoItem.OnTheFlyDocsElement is not null)
-            await TryAddOnTheFlyDocsAsync(context.Document, position, elements, quickInfoItem.OnTheFlyDocsElement, cancellationToken).ConfigureAwait(false);
+            await TryAddOnTheFlyDocsAsync(context.Document, elements, quickInfoItem.OnTheFlyDocsElement, cancellationToken).ConfigureAwait(false);
 
         return new ContainerElement(
                             ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
@@ -149,7 +148,7 @@ internal static class IntellisenseQuickInfoBuilder
     /// <summary>
     /// Determines if it is possible to add the OnTheFlyDocs element to the QuickInfo content.
     /// </summary>
-    private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, int? position, List<object> elements, OnTheFlyDocsElement onTheFlyDocsElement, CancellationToken cancellationToken)
+    private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, List<object> elements, OnTheFlyDocsElement onTheFlyDocsElement, CancellationToken cancellationToken)
     {
         if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
                 await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
@@ -177,11 +176,10 @@ internal static class IntellisenseQuickInfoBuilder
         IUIThreadOperationExecutor operationExecutor,
         IAsynchronousOperationListener asyncListener,
         Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-        int? position,
         CancellationToken cancellationToken)
     {
         var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, lineFormattingOptions, threadingContext, operationExecutor, asyncListener, streamingPresenter);
-        var content = await BuildInteractiveContentAsync(quickInfoItem, context, position, cancellationToken).ConfigureAwait(false);
+        var content = await BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
         return new IntellisenseQuickInfoItem(trackingSpan, content);
     }
 
@@ -196,6 +194,6 @@ internal static class IntellisenseQuickInfoBuilder
         IntellisenseQuickInfoBuilderContext? context,
         CancellationToken cancellationToken)
     {
-        return BuildInteractiveContentAsync(quickInfoItem, context, null, cancellationToken);
+        return BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken);
     }
 }

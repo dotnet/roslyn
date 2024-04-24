@@ -52,15 +52,15 @@ public sealed class QuickInfoItem
         ImmutableArray<QuickInfoSection> sections = default,
         ImmutableArray<TextSpan> relatedSpans = default)
     {
-        return Create(span, onTheFlyDocsElement: null, tags, sections, relatedSpans);
+        return Create(span, tags, sections, relatedSpans, onTheFlyDocsElement: null);
     }
 
     internal static QuickInfoItem Create(
         TextSpan span,
-        OnTheFlyDocsElement? onTheFlyDocsElement,
-        ImmutableArray<string> tags = default,
-        ImmutableArray<QuickInfoSection> sections = default,
-        ImmutableArray<TextSpan> relatedSpans = default)
+        ImmutableArray<string> tags,
+        ImmutableArray<QuickInfoSection> sections,
+        ImmutableArray<TextSpan> relatedSpans,
+        OnTheFlyDocsElement? onTheFlyDocsElement)
     {
         return new QuickInfoItem(span, tags, sections, relatedSpans, onTheFlyDocsElement);
     }

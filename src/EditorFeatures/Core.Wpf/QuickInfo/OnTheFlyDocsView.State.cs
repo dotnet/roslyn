@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
 /// <summary>
 /// Represents the potential states of the view.
 /// </summary>
-public enum State
+internal enum State
 {
     /// <summary>
     /// The view is displaying the on-demand hyperlink.

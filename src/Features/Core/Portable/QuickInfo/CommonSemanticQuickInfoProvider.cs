@@ -31,7 +31,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var services = context.Document.Project.Solution.Services;
         var onTheFlyDocsElement = await GetOnTheFlyDocsElementAsync(context, cancellationToken).ConfigureAwait(false);
         return await CreateContentAsync(
-            services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, cancellationToken).ConfigureAwait(false);
+            services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, onTheFlyDocsElement, cancellationToken).ConfigureAwait(false);
     }
 
     protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
@@ -42,7 +42,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
             return null;
 
         return await CreateContentAsync(
-            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, context.CancellationToken).ConfigureAwait(false);
+            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, onTheFlyDocsElement: null, context.CancellationToken).ConfigureAwait(false);
     }
 
     private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
@@ -156,6 +156,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         TokenInformation tokenInformation,
         SupportedPlatformData? supportedPlatforms,
         SymbolDescriptionOptions options,
+        OnTheFlyDocsElement? onTheFlyDocsElement,
         CancellationToken cancellationToken)
     {
         var syntaxFactsService = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
@@ -173,7 +174,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         return QuickInfoUtilities.CreateQuickInfoItemAsync(
             services, semanticModel, token.Span, symbols, supportedPlatforms,
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, cancellationToken);
+            tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, cancellationToken, onTheFlyDocsElement);
     }
 
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);

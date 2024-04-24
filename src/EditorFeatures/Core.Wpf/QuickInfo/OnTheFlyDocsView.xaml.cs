@@ -15,6 +15,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,6 +33,7 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
     private readonly ITextView _textView;
     private readonly IViewElementFactoryService _viewElementFactoryService;
     private readonly IThreadingContext _threadingContext;
+    private readonly Document _document;
     private readonly OnTheFlyDocsElement _onTheFlyDocsElement;
     private readonly ContentControl _responseControl = new();
     private State _currentState = State.OnDemandLink;
@@ -48,12 +50,14 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IThreadingContext threadingContext, Document document, OnTheFlyDocsElement onTheFlyDocsElement)
+    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IThreadingContext threadingContext, EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
     {
         _textView = textView;
         _viewElementFactoryService = viewElementFactoryService;
         _threadingContext = threadingContext;
-        _onTheFlyDocsElement = onTheFlyDocsElement;
+        _onTheFlyDocsElement = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement;
+        _document = editorFeaturesOnTheFlyDocsElement.Document;
+
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
 
         OnDemandLinkContent = ToUIElement(
@@ -102,23 +106,23 @@ internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
                         ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.AI_generated_content_may_be_inaccurate)),
                 }));
 
-        ResultsRequested += (_, _) => PopulateAIDocumentationElements(threadingContext, document, onTheFlyDocsElement, _threadingContext.DisposalToken);
+        ResultsRequested += (_, _) => PopulateAIDocumentationElements(_threadingContext.DisposalToken);
         InitializeComponent();
     }
 
     /// <summary>
     /// Retrieves the documentation for the given symbol from the Copilot service and displays it in the view.
     /// </summary>
-    private async void PopulateAIDocumentationElements(IThreadingContext threadingContext, Document document, OnTheFlyDocsElement onTheFlyDocsElement, CancellationToken cancellationToken)
+    private async void PopulateAIDocumentationElements(CancellationToken cancellationToken)
     {
         var copilotRequestTime = TimeSpan.Zero;
-        var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
+        var copilotService = _document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var stopwatch = Stopwatch.StartNew();
-        var response = await copilotService.GetOnTheFlyDocsAsync(onTheFlyDocsElement.DescriptionText, onTheFlyDocsElement.SymbolReferences, cancellationToken).ConfigureAwait(false);
+        var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.DescriptionText, _onTheFlyDocsElement.SymbolReferences, cancellationToken).ConfigureAwait(false);
         stopwatch.Stop();
         copilotRequestTime = stopwatch.Elapsed;
 
-        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         if (response is null || response.Length == 0)
         {
             SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);

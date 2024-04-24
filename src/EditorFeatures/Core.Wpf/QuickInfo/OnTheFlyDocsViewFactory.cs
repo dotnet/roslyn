@@ -42,16 +42,16 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
         {
             throw new InvalidOperationException("TView must be UIElement");
         }
-        if (model is not EditorFeaturesOnTheFlyDocsElement onTheFlyDocsElement)
+        if (model is not EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
         {
             throw new InvalidOperationException("model must be an OnTheFlyDocsElement");
         }
 
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = onTheFlyDocsElement.OnTheFlyDocsElement.DescriptionText;
+            m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.DescriptionText;
         }, LogLevel.Information));
 
-        return new OnTheFlyDocsView(textView, _factoryService, _threadingContext, onTheFlyDocsElement.Document, onTheFlyDocsElement.OnTheFlyDocsElement) as TView;
+        return new OnTheFlyDocsView(textView, _factoryService, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
     }
 }

@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(
                     trackingSpan.Object, quickInfoItem, document,
                     ClassificationOptions.Default, LineFormattingOptions.Default, threadingContext, operationExecutor,
-                    AsynchronousOperationListenerProvider.NullListener, streamingPresenter, position:=Nothing,
+                    AsynchronousOperationListenerProvider.NullListener, streamingPresenter,
                     CancellationToken.None)
             End Using
         End Function
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     trackingSpan.Object, codeAnalysisQuickInfoItem, document,
                     classificationOptions, LineFormattingOptions.Default, threadingContext, operationExecutor,
                     AsynchronousOperationListenerProvider.NullListener,
-                    streamingPresenter, Nothing, CancellationToken.None)
+                    streamingPresenter, CancellationToken.None)
             End Using
         End Function
     End Class
