@@ -26,9 +26,6 @@ using Roslyn.Utilities;
 
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Adornments;
-using Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 
@@ -90,8 +87,7 @@ internal partial class QuickInfoSourceProvider
                         return await IntellisenseQuickInfoBuilder.BuildItemAsync(
                             trackingSpan, item, document, classificationOptions, lineFormattingOptions,
                             _threadingContext, _operationExecutor,
-                            _asyncListener, _streamingPresenter,
-                            cancellationToken).ConfigureAwait(false);
+                            _asyncListener, _streamingPresenter, cancellationToken).ConfigureAwait(false);
                     }
 
                     return null;
