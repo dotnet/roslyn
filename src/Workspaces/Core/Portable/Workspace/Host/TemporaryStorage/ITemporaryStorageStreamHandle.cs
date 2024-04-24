@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Host;
 /// to temporary storage and get a handle to it.  Use <see cref="ReadFromTemporaryStorage"/> to read the data back in
 /// any process.
 /// </summary>
-internal interface ITemporaryStorageHandle
+internal interface ITemporaryStorageStreamHandle
 {
     public TemporaryStorageIdentifier Identifier { get; }
 
