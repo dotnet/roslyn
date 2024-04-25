@@ -91,26 +91,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BinderWithContainingMemberOrLambda(this, this.Flags | flags, containing);
         }
 
-        internal Binder WithUnsafeRegionIfNecessary(SyntaxTokenList modifiers, bool isIterator = false)
+        internal Binder WithUnsafeRegionIfNecessary(SyntaxTokenList modifiers, bool isIteratorBody = false)
         {
-            var insideUnsafe = this.Flags.Includes(BinderFlags.UnsafeRegion);
-            var hasUnsafeModifier = modifiers.Any(SyntaxKind.UnsafeKeyword);
+            // In C# 13 and above, iterator bodies define a safe context even when nested in an unsafe context.
+            // In C# 12 and below, we keep the behavior that nested iterator bodies (e.g., local functions)
+            // inherit the safe/unsafe context from their containing scope to avoid a breaking change.
+            var withoutUnsafe = isIteratorBody && this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync);
 
-            if (insideUnsafe == hasUnsafeModifier)
+            if (this.Flags.Includes(BinderFlags.UnsafeRegion))
             {
-                return this;
-            }
-
-            if (insideUnsafe)
-            {
-                Debug.Assert(!hasUnsafeModifier);
-                return isIterator && this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync)
+                return withoutUnsafe
                     ? new Binder(this, this.Flags & ~BinderFlags.UnsafeRegion)
                     : this;
             }
 
-            Debug.Assert(hasUnsafeModifier);
-            return new Binder(this, this.Flags | BinderFlags.UnsafeRegion);
+            return !withoutUnsafe && modifiers.Any(SyntaxKind.UnsafeKeyword)
+                ? new Binder(this, this.Flags | BinderFlags.UnsafeRegion)
+                : this;
         }
 
         internal Binder WithCheckedOrUncheckedRegion(bool @checked)

@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(methodDecl.Modifiers,
-                        isIterator: usage == NodeUsage.MethodBody && method?.IsIterator == true);
+                        isIteratorBody: usage == NodeUsage.MethodBody && method?.IsIterator == true);
                     binderCache.TryAdd(key, resultBinder);
                 }
 
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers,
-                        isIterator: inBody && method?.IsIterator == true);
+                        isIteratorBody: inBody && method?.IsIterator == true);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers,
-                        isIterator: accessor?.IsIterator == true);
+                        isIteratorBody: accessor?.IsIterator == true);
 
                     binderCache.TryAdd(key, resultBinder);
                 }

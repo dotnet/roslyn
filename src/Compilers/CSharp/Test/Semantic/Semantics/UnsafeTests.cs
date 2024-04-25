@@ -280,15 +280,8 @@ class C
                 //     unsafe System.Collections.Generic.IEnumerator<int> Goo()
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Goo").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56));
 
-            var expectedDiagnostics = new[]
-            {
-                // (6,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                //         yield return 1;
-                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(6, 9)
-            };
-
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1126,6 +1119,39 @@ unsafe class C
                 verify: Verification.Fails).VerifyDiagnostics();
         }
 
+        [Theory, CombinatorialData]
+        public void Iterator_Indexer_01(bool unsafeClass)
+        {
+            var code = $$"""
+                {{(unsafeClass ? "unsafe" : "")}} class C
+                {
+                    unsafe System.Collections.Generic.IEnumerable<int> this[int x]
+                    {
+                        get // error in C# 12: unsafe code may not appear in iterators
+                        {
+                            yield return 1; // error in C# 13: yield in unsafe context
+                        }
+                        set { }
+                    }
+                }
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         get // error in C# 12: unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,13): error CS9231: Cannot use 'yield return' in an 'unsafe' block
+                //             yield return 1; // error in C# 13: yield in unsafe context
+                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(7, 13)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
         [Fact]
         public void Iterator_UnsafeMethod_01()
         {
@@ -1175,9 +1201,21 @@ unsafe class C
 
             var expectedDiagnostics = new[]
             {
+                // (8,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         int *p = &x;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int *").WithLocation(8, 9),
+                // (8,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         int *p = &x;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(8, 18),
                 // (8,19): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
                 //         int *p = &x;
-                Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(8, 19)
+                Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(8, 19),
+                // (9,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         *p = *p + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(9, 10),
+                // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         *p = *p + 1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(9, 15)
             };
 
             CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
@@ -1188,30 +1226,33 @@ unsafe class C
         public void Iterator_UnsafeMethod_03()
         {
             var code = """
-                foreach (var x in new C().M()) System.Console.Write("E" + x);
-
                 class C
                 {
                     public unsafe System.Collections.Generic.IEnumerable<int> M()
                     {
                         int x = sizeof(nint);
-                        System.Console.Write("I" + x);
                         yield break;
                     }
                 }
                 """;
 
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (5,63): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,63): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public unsafe System.Collections.Generic.IEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 63),
-                // (7,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 63),
+                // (5,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         int x = sizeof(nint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 17));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 17));
 
-            var expectedOutput = "I" + IntPtr.Size;
-            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-            CompileAndVerify(code, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (5,17): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         int x = sizeof(nint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 17)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1223,7 +1264,6 @@ unsafe class C
                     public unsafe System.Collections.Generic.IEnumerable<int> M()
                     {
                         int x = sizeof(nint);
-                        System.Console.Write("I" + x);
                         yield return x;
                     }
                 }
@@ -1239,9 +1279,9 @@ unsafe class C
 
             var expectedDiagnostics = new[]
             {
-                // (7,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                //         yield return x;
-                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(7, 9)
+                // (5,17): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         int x = sizeof(nint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 17)
             };
 
             CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
@@ -1483,9 +1523,9 @@ unsafe class C
 
             var expectedDiagnostics = new[]
             {
-                // (7,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                //         yield return 1;
-                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(7, 9)
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         int* p = null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 9)
             };
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -1515,8 +1555,15 @@ unsafe class C
                 //         int* p = null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 9));
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         int* p = null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 9)
+            };
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1589,20 +1636,7 @@ unsafe class C
                 }
                 """;
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
-            if (unsafeMethod)
-            {
-                comp.VerifyDiagnostics(
-                    // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
-                    //     [A(null)]
-                    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*").WithLocation(8, 6),
-                    // (11,12): error CS1637: Iterators cannot have pointer type parameters
-                    //     M(int* p)
-                    Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(11, 12),
-                    // (13,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                    //         yield return *p;
-                    Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(13, 9));
-            }
-            else if (unsafeClass)
+            if (unsafeClass || unsafeMethod)
             {
                 // Signature is unsafe (like the class), body is safe.
                 comp.VerifyDiagnostics(
@@ -1707,20 +1741,7 @@ unsafe class C
                 }
                 """;
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
-            if (unsafeOperator)
-            {
-                comp.VerifyDiagnostics(
-                    // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
-                    //     [A(null)]
-                    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*").WithLocation(8, 6),
-                    // (11,25): error CS1637: Iterators cannot have pointer type parameters
-                    //     operator+(C c, int* p)
-                    Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(11, 25),
-                    // (13,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                    //         yield return *p;
-                    Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(13, 9));
-            }
-            else if (unsafeClass)
+            if (unsafeClass || unsafeOperator)
             {
                 // Signature is unsafe (like the class), body is safe.
                 comp.VerifyDiagnostics(
@@ -1836,20 +1857,7 @@ unsafe class C
                 }
                 """;
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
-            if (unsafeIndexer)
-            {
-                comp.VerifyDiagnostics(
-                    // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
-                    //     [A(null)]
-                    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*").WithLocation(8, 6),
-                    // (11,15): error CS1637: Iterators cannot have pointer type parameters
-                    //     this[int* p]
-                    Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(11, 15),
-                    // (13,15): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                    //         get { yield return *p; }
-                    Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(13, 15));
-            }
-            else if (unsafeClass)
+            if (unsafeClass || unsafeIndexer)
             {
                 // Signature is unsafe (like the class), body is safe.
                 comp.VerifyDiagnostics(
@@ -1962,17 +1970,7 @@ unsafe class C
                 }
                 """;
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
-            if (unsafeProperty)
-            {
-                comp.VerifyDiagnostics(
-                    // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
-                    //     [A(null)]
-                    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*").WithLocation(8, 6),
-                    // (13,15): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                    //         get { yield return sizeof(nint); }
-                    Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(13, 15));
-            }
-            else if (unsafeClass)
+            if (unsafeClass || unsafeProperty)
             {
                 // Signature is unsafe (like the class), body is unsafe.
                 comp.VerifyDiagnostics(
@@ -2085,20 +2083,7 @@ unsafe class C
                 }
                 """;
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
-            if (unsafeLocalFunction)
-            {
-                comp.VerifyDiagnostics(
-                    // (13,14): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
-                    //             [A(null)]
-                    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*").WithLocation(13, 14),
-                    // (16,24): error CS1637: Iterators cannot have pointer type parameters
-                    //             local(int* p)
-                    Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(16, 24),
-                    // (18,17): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                    //                 yield return *p;
-                    Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(18, 17));
-            }
-            else if (unsafeClass || unsafeMethod || unsafeBlock)
+            if (unsafeClass || unsafeMethod || unsafeBlock || unsafeLocalFunction)
             {
                 // Signature is unsafe (like the containing scope), body is safe.
                 comp.VerifyDiagnostics(
@@ -2866,9 +2851,6 @@ unsafe class C<T>
 
             var expectedDiagnostics = new[]
             {
-                // (6,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                //         yield return 1;
-                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(6, 9),
                 // (4,70): error CS1637: Iterators cannot have pointer type parameters
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int* p)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 70)
@@ -2887,9 +2869,6 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Iterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56)); //this is for putting "unsafe" on an iterator, not for the parameter type
 
             expectedDiagnostics = [
-                // (6,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                //         yield return 1;
-                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(6, 9),
                 // (4,70): error CS1637: Iterators cannot have pointer type parameters
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int* p)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 70)
@@ -2929,15 +2908,8 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Iterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56)
                 );
 
-            var expectedDiagnostics = new[]
-            {
-                // (6,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                //         yield return 1;
-                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(6, 9)
-            };
-
-            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
 
             var withUnsafeOnTypeAndMembers = string.Format(template, "unsafe", "unsafe");
             CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
@@ -2946,14 +2918,8 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Iterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56)
                 );
 
-            expectedDiagnostics = [
-                // (6,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                //         yield return 1;
-                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(6, 9)
-            ];
-
-            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
         [Fact]
