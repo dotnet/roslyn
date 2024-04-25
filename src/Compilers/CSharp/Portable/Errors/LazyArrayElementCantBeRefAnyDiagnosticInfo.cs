@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override DiagnosticInfo ResolveInfo()
         {
-            if (_possiblyRestrictedTypeSymbol.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+            if (_possiblyRestrictedTypeSymbol.IsRestrictedType())
             {
                 return new CSDiagnosticInfo(ErrorCode.ERR_ArrayElementCantBeRefAny, _possiblyRestrictedTypeSymbol.Type);
             }

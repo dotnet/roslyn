@@ -4025,7 +4025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bestType = CreateErrorType();
             }
 
-            if (bestType.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Test this for 'allows ref struct' type parameters? 
+            if (bestType.IsRestrictedType())
             {
                 // CS0611: Array elements cannot be of type '{0}'
                 Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
@@ -7516,7 +7516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < typeArgumentsWithAnnotations.Length; ++i)
                 {
                     var typeArgument = typeArgumentsWithAnnotations[i];
-                    if (typeArgument.Type.IsPointerOrFunctionPointer() || typeArgument.Type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing? 
+                    if (typeArgument.Type.IsPointerOrFunctionPointer() || typeArgument.Type.IsRestrictedType())
                     {
                         // "The type '{0}' may not be used as a type argument"
                         Error(diagnostics, ErrorCode.ERR_BadTypeArgument, typeArgumentsSyntax[i], typeArgument.Type);
@@ -10892,7 +10892,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - access cannot have unconstrained generic type
             // - access cannot be a pointer
             // - access cannot be a restricted type
-            // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
             if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerOrFunctionPointer() || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.

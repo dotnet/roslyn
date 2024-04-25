@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Pointer types and very special types are not convertible to object.
 
-            return !type.IsPointerOrFunctionPointer() && !type.IsRestrictedType() && !type.IsVoidType(); // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+            return !type.IsPointerOrFunctionPointer() && !type.IsRestrictedType() && !type.IsVoidType();
         }
 
         private BoundExpression BindDynamicBinaryOperator(

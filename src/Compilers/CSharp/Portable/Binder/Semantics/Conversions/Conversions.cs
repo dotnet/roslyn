@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //cannot capture stack-only types.
-            if (method.RequiresInstanceReceiver && methodGroup.Receiver?.Type?.IsRestrictedType() == true) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+            if (method.RequiresInstanceReceiver && methodGroup.Receiver?.Type?.IsRestrictedType() == true)
             {
                 return Conversion.NoConversion;
             }

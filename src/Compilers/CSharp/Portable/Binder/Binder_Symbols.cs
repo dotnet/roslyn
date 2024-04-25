@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Restricted types cannot be on the heap, but they can be on the stack, so are allowed in a stackalloc
                 if (ShouldCheckConstraints)
                 {
-                    if (type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+                    if (type.IsRestrictedType())
                     {
                         // CS0611: Array elements cannot be of type '{0}'
                         Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.Type);

@@ -2829,7 +2829,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if ((destination.TypeKind == TypeKind.TypeParameter) &&
+            if (destination is TypeParameterSymbol { AllowByRefLike: false } &&
+                !source.AllowByRefLike &&
                 source.DependsOn((TypeParameterSymbol)destination))
             {
                 return true;
@@ -2848,7 +2849,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Not a reference conversion.
             }
 
-            // PROTOTYPE(RefStructInterfaces): Check for AllowByRefLike?
+            if (source.AllowByRefLike)
+            {
+                return false;
+            }
 
             // The following implicit conversions exist for a given type parameter T:
             //
@@ -2868,7 +2872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // * From T to a type parameter U, provided T depends on U.
-            if ((destination.TypeKind == TypeKind.TypeParameter) &&
+            if (destination is TypeParameterSymbol { AllowByRefLike: false } &&
                 source.DependsOn((TypeParameterSymbol)destination))
             {
                 return true;
@@ -3221,8 +3225,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC: From T to a type parameter U, provided T depends on U
-            if ((destination.TypeKind == TypeKind.TypeParameter) &&
-                source.DependsOn((TypeParameterSymbol)destination))
+            if (destination is TypeParameterSymbol { AllowByRefLike: false } d &&
+                source.DependsOn(d))
             {
                 return true;
             }
@@ -3280,7 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // There are a couple of exceptions. The very special types ArgIterator, ArgumentHandle and 
             // TypedReference are not boxable: 
 
-            if (source.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+            if (source.IsRestrictedType())
             {
                 return false;
             }
@@ -3476,6 +3480,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterSymbol s = source as TypeParameterSymbol;
             TypeParameterSymbol t = destination as TypeParameterSymbol;
 
+            if (s?.AllowByRefLike == true || t?.AllowByRefLike == true)
+            {
+                return false;
+            }
+
             // SPEC: The following explicit conversions exist for a given type parameter T:
 
             // SPEC: If T is known to be a reference type, the conversions are all classified as explicit reference conversions.
@@ -3522,6 +3531,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeParameterSymbol s = source as TypeParameterSymbol;
             TypeParameterSymbol t = destination as TypeParameterSymbol;
+
+            if (s?.AllowByRefLike == true || t?.AllowByRefLike == true)
+            {
+                return false;
+            }
 
             // SPEC: The following explicit conversions exist for a given type parameter T:
 
@@ -3753,7 +3767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Ref-like types cannot be boxed or unboxed
-            if (destination.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+            if (destination.IsRestrictedType())
             {
                 return false;
             }
