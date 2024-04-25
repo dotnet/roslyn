@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Elements is
                 [
-                    BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr, IteratorBody: not BoundExpressionStatement { Expression: BoundConversion { ConversionKind: not ConversionKind.Identity } } }
+                    BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr, IteratorBody: BoundExpressionStatement { Expression: not BoundConversion { ConversionKind: not ConversionKind.Identity } } }
                 ] &&
                 spreadType.OriginalDefinition == (object)_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
             {
