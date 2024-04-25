@@ -24,6 +24,11 @@
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0*" />
   </IgnorePatterns>
   <Usages>
+    <Usage Id="Microsoft.Build" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Framework" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Tasks.Core" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Utilities.Core" Version="17.3.4" />
+    <Usage Id="Microsoft.NET.StringTools" Version="17.3.4" />
     <Usage Id="System.Composition" Version="7.0.0" />
     <Usage Id="System.Composition.AttributedModel" Version="7.0.0" />
     <Usage Id="System.Composition.Convention" Version="7.0.0" />
