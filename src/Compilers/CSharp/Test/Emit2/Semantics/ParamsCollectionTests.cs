@@ -7144,7 +7144,7 @@ class Program
                 expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
             VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions:TestOptions.RegularNext);
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             CompileAndVerify(
                 comp,
                 expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
