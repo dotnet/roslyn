@@ -316,42 +316,83 @@ internal sealed partial class SolutionCompilationState
 
     public SourceGeneratorExecutionVersionMap SourceGeneratorExecutionVersionMap => _sourceGeneratorExecutionVersionMap;
 
-    /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
-    public SolutionCompilationState AddProject(ProjectInfo projectInfo)
+    /// <inheritdoc cref="SolutionState.AddProjects(ArrayBuilder{ProjectInfo})"/>
+    public SolutionCompilationState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
     {
-        var newSolutionState = this.SolutionState.AddProject(projectInfo);
-        var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => { }, /* unused */ 0, skipEmptyCallback: true);
+        if (projectInfos.Count == 0)
+            return this;
 
-        var sourceGeneratorExecutionVersionMap = _sourceGeneratorExecutionVersionMap;
-        if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
+        var newSolutionState = this.SolutionState.AddProjects(projectInfos);
+
+        // When adding a project, we might add a project that an *existing* project now has a reference to.  That's
+        // because we allow existing projects to have 'dangling' project references.  As such, we have to ensure we do
+        // not reuse compilation trackers for any of those projects.
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var dependentProjects);
+        var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
+        foreach (var projectInfo in projectInfos)
+            dependentProjects.AddRange(newDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectInfo.Id));
+
+        var newTrackerMap = CreateCompilationTrackerMap(
+            static (projectId, dependentProjects) => !dependentProjects.Contains(projectId),
+            dependentProjects,
+            // We don't need to do anything here.  Compilation trackers are created on demand.  So we'll just keep the
+            // tracker map as-is, and have the trackers for these new projects be created when needed.
+            modifyNewTrackerInfo: static (_, _) => { }, argModifyNewTrackerInfo: default(VoidResult),
+            skipEmptyCallback: true);
+
+        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        foreach (var projectInfo in projectInfos)
         {
-            var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
-            versionMapBuilder.Add(projectInfo.Id, new());
-            sourceGeneratorExecutionVersionMap = new(versionMapBuilder.ToImmutable());
+            if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
+                versionMapBuilder.Add(projectInfo.Id, new());
         }
 
+        var sourceGeneratorExecutionVersionMap = new SourceGeneratorExecutionVersionMap(versionMapBuilder.ToImmutable());
         return Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap,
             sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
     }
 
-    /// <inheritdoc cref="SolutionState.RemoveProject(ProjectId)"/>
-    public SolutionCompilationState RemoveProject(ProjectId projectId)
+    /// <inheritdoc cref="SolutionState.RemoveProjects"/>
+    public SolutionCompilationState RemoveProjects(ArrayBuilder<ProjectId> projectIds)
     {
-        var newSolutionState = this.SolutionState.RemoveProject(projectId);
+        if (projectIds.Count == 0)
+            return this;
+
+        // Now go and remove the projects from teh solution-state itself.
+        var newSolutionState = this.SolutionState.RemoveProjects(projectIds);
+
+        var originalDependencyGraph = this.SolutionState.GetProjectDependencyGraph();
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var dependentProjects);
+
+        // Determine the set of projects that depend on the projects being removed.
+        foreach (var projectId in projectIds)
+        {
+            foreach (var dependentProject in originalDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
+                dependentProjects.Add(dependentProject);
+        }
+
+        // Now for each compilation tracker.
+        // 1. remove the compilation tracker if we're removing the project.
+        // 2. fork teh compilation tracker if it depended on a removed project.
+        // 3. do nothing for the rest.
         var newTrackerMap = CreateCompilationTrackerMap(
-            projectId,
-            newSolutionState.GetProjectDependencyGraph(),
-            static (trackerMap, projectId) =>
+            // Can reuse the compilation tracker for a project, unless it is some project that had a dependency on one
+            // of the projects removed.
+            static (projectId, dependentProjects) => !dependentProjects.Contains(projectId),
+            dependentProjects,
+            static (trackerMap, projectIds) =>
             {
-                trackerMap.Remove(projectId);
+                foreach (var projectId in projectIds)
+                    trackerMap.Remove(projectId);
             },
-            projectId,
+            projectIds,
             skipEmptyCallback: true);
 
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
-        versionMapBuilder.Remove(projectId);
+        foreach (var projectId in projectIds)
+            versionMapBuilder.Remove(projectId);
 
         return this.Branch(
             newSolutionState,
@@ -969,31 +1010,13 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Attempt to get the best readily available compilation for the project. It may be a
-    /// partially built compilation.
-    /// </summary>
-    private MetadataReference? GetPartialMetadataReference(
-        ProjectReference projectReference,
-        ProjectState fromProject)
-    {
-        // Try to get the compilation state for this project.  If it doesn't exist, don't do any
-        // more work.
-        if (!_projectIdToTrackerMap.TryGetValue(projectReference.ProjectId, out var state))
-        {
-            return null;
-        }
-
-        return state.GetPartialMetadataReference(fromProject, projectReference);
-    }
-
-    /// <summary>
     /// Get a metadata reference to this compilation info's compilation with respect to
     /// another project. For cross language references produce a skeletal assembly. If the
     /// compilation is not available, it is built. If a skeletal assembly reference is
     /// needed and does not exist, it is also built.
     /// </summary>
     private async Task<MetadataReference?> GetMetadataReferenceAsync(
-        ICompilationTracker tracker, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
+        ICompilationTracker tracker, ProjectState fromProject, ProjectReference projectReference, bool includeCrossLanguage, CancellationToken cancellationToken)
     {
         try
         {
@@ -1004,6 +1027,9 @@ internal sealed partial class SolutionCompilationState
                 var compilation = await tracker.GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
                 return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
             }
+
+            if (!includeCrossLanguage)
+                return null;
 
             // otherwise get a metadata only image reference that is built by emitting the metadata from the
             // referenced project's compilation and re-importing it.
@@ -1024,14 +1050,14 @@ internal sealed partial class SolutionCompilationState
     /// can happen when trying to build a skeleton reference that fails to build.
     /// </summary>
     public Task<MetadataReference?> GetMetadataReferenceAsync(
-        ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
+        ProjectReference projectReference, ProjectState fromProject, bool includeCrossLanguage, CancellationToken cancellationToken)
     {
         try
         {
             // Get the compilation state for this project.  If it's not already created, then this
             // will create it.  Then force that state to completion and get a metadata reference to it.
             var tracker = this.GetCompilationTracker(projectReference.ProjectId);
-            return GetMetadataReferenceAsync(tracker, fromProject, projectReference, cancellationToken);
+            return GetMetadataReferenceAsync(tracker, fromProject, projectReference, includeCrossLanguage, cancellationToken);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
         {
@@ -1135,7 +1161,7 @@ internal sealed partial class SolutionCompilationState
 
         var documentStatesByProjectId = documentStates.ToDictionary(static state => state.Id.ProjectId);
         var newTrackerMap = CreateCompilationTrackerMap(
-            documentStatesByProjectId.Keys.ToImmutableArray(),
+            [.. documentStatesByProjectId.Keys],
             this.SolutionState.GetProjectDependencyGraph(),
             static (trackerMap, arg) =>
             {
@@ -1529,7 +1555,7 @@ internal sealed partial class SolutionCompilationState
 
             var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
 
-            var compilationTranslationAction = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
+            var compilationTranslationAction = removeDocumentsFromProjectState(oldProjectState, [.. documentIdsInProject], removedDocumentStatesForProject);
             var newProjectState = compilationTranslationAction.NewProjectState;
 
             var stateChange = newCompilationState.SolutionState.ForkProject(

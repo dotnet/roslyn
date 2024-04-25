@@ -25,6 +25,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(AbstractEncapsulateFieldService), LanguageNames.CSharp), Shared]
@@ -76,7 +77,7 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
             if (makePrivate)
             {
                 root = root.ReplaceNode(fieldSyntax, fieldSyntax
-                    .WithModifiers([Token(SyntaxKind.PrivateKeyword), .. fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind()))])
+                    .WithModifiers([PrivateKeyword, .. fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind()))])
                     .WithAdditionalAnnotations(Formatter.Annotation)
                     .WithLeadingTrivia(fieldSyntax.GetLeadingTrivia())
                     .WithTrailingTrivia(fieldSyntax.GetTrailingTrivia()));

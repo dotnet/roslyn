@@ -16,13 +16,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
@@ -71,7 +72,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         string desiredSetMethodName,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
+        using var result = TemporaryArray<SyntaxNode>.Empty;
 
         if (propertyBackingField != null)
         {
@@ -99,7 +100,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
                 cancellationToken));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static SyntaxNode GetSetMethod(
@@ -131,7 +132,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             methodDeclaration = methodDeclaration.WithAttributeLists(setAccessorDeclaration.AttributeLists);
@@ -186,7 +187,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             if (propertyDeclaration.ExpressionBody != null)

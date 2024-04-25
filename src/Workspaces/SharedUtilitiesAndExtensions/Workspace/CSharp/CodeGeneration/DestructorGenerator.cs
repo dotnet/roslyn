@@ -13,6 +13,7 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class DestructorGenerator
@@ -51,11 +52,11 @@ internal static class DestructorGenerator
         var declaration = DestructorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), info),
             modifiers: default,
-            tildeToken: Token(SyntaxKind.TildeToken),
+            tildeToken: TildeToken,
             identifier: CodeGenerationDestructorInfo.GetTypeName(destructor).ToIdentifierToken(),
             parameterList: ParameterList(),
             body: hasNoBody ? null : GenerateBlock(destructor),
-            semicolonToken: hasNoBody ? Token(SyntaxKind.SemicolonToken) : default);
+            semicolonToken: hasNoBody ? SemicolonToken : default);
 
         return AddFormatterAndCodeGeneratorAnnotationsTo(
             ConditionallyAddDocumentationCommentTo(declaration, destructor, info, cancellationToken));

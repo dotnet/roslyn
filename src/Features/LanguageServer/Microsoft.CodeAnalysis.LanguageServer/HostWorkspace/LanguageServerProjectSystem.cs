@@ -185,7 +185,7 @@ internal sealed class LanguageServerProjectSystem
                 // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
                 //
                 // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore.ToImmutableHashSet(), cancellationToken);
+                await ProjectDependencyHelper.RestoreProjectsAsync([.. projectsThatNeedRestore], cancellationToken);
             }
         }
         finally

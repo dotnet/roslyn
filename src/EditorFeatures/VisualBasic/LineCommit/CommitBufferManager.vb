@@ -14,12 +14,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' This class watches for buffer-based events, tracks the dirty regions, and invokes the formatter as appropriate
     ''' </summary>
     Partial Friend Class CommitBufferManager
-        Inherits ForegroundThreadAffinitizedObject
 
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
-
         Private _referencingViews As Integer
 
         ''' <summary>
@@ -42,9 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Public Sub New(
             buffer As ITextBuffer,
             commitFormatter As ICommitFormatter,
-            inlineRenameService As IInlineRenameService,
-            threadingContext As IThreadingContext)
-            MyBase.New(threadingContext, assertIsForeground:=False)
+            inlineRenameService As IInlineRenameService)
 
             Contract.ThrowIfNull(buffer)
             Contract.ThrowIfNull(commitFormatter)
@@ -56,8 +52,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Sub
 
         Public Sub AddReferencingView()
-            ThisCanBeCalledOnAnyThread()
-
             SyncLock _referencingViewsLock
                 _referencingViews += 1
 
@@ -74,8 +68,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Sub
 
         Public Sub RemoveReferencingView()
-            ThisCanBeCalledOnAnyThread()
-
             SyncLock _referencingViewsLock
                 ' If someone enables line commit with a file already open, we might end up decrementing
                 ' the ref count too many times, so only do work if we are still above 0.

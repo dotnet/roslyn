@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
@@ -54,11 +55,8 @@ internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService c
         lock (_connectionGate)
         {
             // Go through all our pooled connections and close them.
-            while (_connectionsPool.Count > 0)
-            {
-                var connection = _connectionsPool.Pop();
+            while (_connectionsPool.TryPop(out var connection))
                 connection.Close_OnlyForUseBySQLiteConnectionPool();
-            }
         }
     }
 
@@ -97,10 +95,8 @@ internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService c
         lock (_connectionGate)
         {
             // If we have an available connection, just return that.
-            if (_connectionsPool.Count > 0)
-            {
-                return _connectionsPool.Pop();
-            }
+            if (_connectionsPool.TryPop(out var connection))
+                return connection;
         }
 
         // Otherwise create a new connection.

@@ -274,7 +274,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             .Concat(registeredWorkspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles))
             .ToImmutableArray();
 
-        using var _ = ArrayBuilder<(Workspace, Solution, bool)>.GetInstance(out var solutions);
+        var solutions = new FixedSizeArrayBuilder<(Workspace, Solution, bool)>(registeredWorkspaces.Length);
         foreach (var workspace in registeredWorkspaces)
         {
             // Retrieve the workspace's current view of the world at the time the request comes in. If this is changing
@@ -285,7 +285,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             solutions.Add((workspace, lspSolution, isForked));
         }
 
-        return solutions.ToImmutable();
+        return solutions.MoveToImmutable();
 
         async Task<(Solution Solution, bool IsForked)> GetLspSolutionForWorkspaceAsync(Workspace workspace, CancellationToken cancellationToken)
         {

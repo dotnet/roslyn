@@ -35,7 +35,7 @@ internal abstract partial class AbstractNavigateToSearchService
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 document.Project,
                 (service, solutionInfo, callbackId, cancellationToken) =>
-                service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, [.. kinds], callbackId, cancellationToken),
                 callback, cancellationToken).ConfigureAwait(false);
 
             return;
@@ -81,7 +81,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 // on the oop side.
                 solution,
                 (service, solutionInfo, callbackId, cancellationToken) =>
-                    service.SearchProjectsAsync(solutionInfo, projects.SelectAsArray(p => p.Id), priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    service.SearchProjectsAsync(solutionInfo, projects.SelectAsArray(p => p.Id), priorityDocumentIds, searchPattern, [.. kinds], callbackId, cancellationToken),
                 callback, cancellationToken).ConfigureAwait(false);
 
             return;

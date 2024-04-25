@@ -52,7 +52,7 @@ internal sealed class SolutionAssetCache
     /// </summary>
     private readonly TimeSpan _gcAfterTimeSpan;
 
-    private readonly ConcurrentDictionary<Checksum, Entry> _assets = new(concurrencyLevel: 4, capacity: 10);
+    private readonly ConcurrentDictionary<Checksum, Entry> _assets = new();
 
     private DateTime _lastGCRun;
     private DateTime _lastActivityTime;
@@ -83,6 +83,7 @@ internal sealed class SolutionAssetCache
 
     public object GetOrAdd(Checksum checksum, object value)
     {
+        Contract.ThrowIfNull(value);
         UpdateLastActivityTime();
 
         var entry = _assets.GetOrAdd(checksum, new Entry(value));

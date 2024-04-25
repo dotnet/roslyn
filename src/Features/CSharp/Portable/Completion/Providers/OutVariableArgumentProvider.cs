@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportArgumentProvider(nameof(OutVariableArgumentProvider), LanguageNames.CSharp)]
@@ -48,7 +49,7 @@ internal sealed class OutVariableArgumentProvider : ArgumentProvider
 
         var syntax = Argument(
             nameColon: null,
-            refKindKeyword: Token(SyntaxKind.OutKeyword),
+            refKindKeyword: OutKeyword,
             DeclarationExpression(
                 type: IdentifierName("var"),
                 designation: SingleVariableDesignation(Identifier(

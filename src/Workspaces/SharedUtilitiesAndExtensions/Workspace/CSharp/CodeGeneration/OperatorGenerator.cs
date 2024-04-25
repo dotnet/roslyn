@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 using static CodeGenerationHelpers;
 using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class OperatorGenerator
@@ -85,7 +86,7 @@ internal static class OperatorGenerator
 
         var operatorToken = Token(operatorSyntaxKind);
         var checkedToken = SyntaxFacts.IsCheckedOperator(method.MetadataName)
-            ? Token(SyntaxKind.CheckedKeyword)
+            ? CheckedKeyword
             : default;
 
         var operatorDecl = OperatorDeclaration(
@@ -93,13 +94,13 @@ internal static class OperatorGenerator
             modifiers: GenerateModifiers(method, destination, hasNoBody),
             returnType: method.ReturnType.GenerateTypeSyntax(),
             explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
-            operatorKeyword: Token(SyntaxKind.OperatorKeyword),
+            operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedToken,
             operatorToken: operatorToken,
             parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
-            semicolonToken: hasNoBody ? Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+            semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());
 
         operatorDecl = UseExpressionBodyIfDesired(info, operatorDecl, cancellationToken);
         return operatorDecl;
@@ -112,16 +113,14 @@ internal static class OperatorGenerator
         if (method.ExplicitInterfaceImplementations.Length == 0 &&
             !(destination is CodeGenerationDestination.InterfaceType && hasNoBody))
         {
-            tokens.Add(Token(SyntaxKind.PublicKeyword));
+            tokens.Add(PublicKeyword);
         }
 
-        tokens.Add(Token(SyntaxKind.StaticKeyword));
+        tokens.Add(StaticKeyword);
 
         if (method.IsAbstract)
-        {
-            tokens.Add(Token(SyntaxKind.AbstractKeyword));
-        }
+            tokens.Add(AbstractKeyword);
 
-        return tokens.ToImmutableAndClear().ToSyntaxTokenList();
+        return [.. tokens.ToImmutableAndClear()];
     }
 }

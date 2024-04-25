@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// did not meet the requirements, the return value will be a <see cref="BoundBadExpression"/> that
         /// (typically) wraps the subexpression.
         /// </summary>
-        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind)
+        internal BoundExpression BindValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind, bool dynamificationOfAssignmentResultIsHandled = false)
         {
             var result = this.BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
-            return CheckValue(result, valueKind, diagnostics);
+            return CheckValue(result, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled);
         }
 
         internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool reportNoTargetType = true)
@@ -5703,7 +5703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
                     boundMember = new BoundDynamicObjectInitializerMember(leftSyntax, memberName.Identifier.Text, implicitReceiver.Type, initializerType, hasErrors: false);
-                    return CheckValue(boundMember, valueKind, diagnostics);
+                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
                 }
                 else
                 {
@@ -5806,7 +5806,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics);
+                        var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
+
+                        Debug.Assert(valueKind is BindValueKind.RValue or BindValueKind.RefAssignable or BindValueKind.Assignable);
+
+                        if (valueKind == BindValueKind.Assignable)
+                        {
+                            indexer = (BoundIndexerAccess)AdjustAssignmentTargetForDynamic(indexer, forceDynamicResult: out _);
+                        }
+
                         boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, leftSyntax, diagnostics, hasErrors, ref resultKind);
                         arguments = indexer.Arguments;
@@ -5846,7 +5854,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors |= !CheckNestedObjectInitializerPropertySymbol(property, leftSyntax, diagnostics, hasErrors, ref resultKind);
                     }
 
-                    return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
+                    Debug.Assert(boundMember is not BoundIndexerAccess);
+                    return hasErrors ?
+                               boundMember :
+                               CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
 
                 case BoundKind.DynamicObjectInitializerMember:
                     break;
@@ -5863,7 +5874,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerElementAccess:
-                    return CheckValue(boundMember, valueKind, diagnostics);
+                    Debug.Assert(boundMember is not BoundIndexerAccess);
+                    return CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
 
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
@@ -5948,7 +5960,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case LookupResultKind.Inaccessible:
-                        boundMember = CheckValue(boundMember, valueKind, diagnostics);
+                        Debug.Assert(boundMember is not BoundIndexerAccess);
+                        boundMember = CheckValue(boundMember, valueKind, diagnostics, dynamificationOfAssignmentResultIsHandled: true);
                         Debug.Assert(boundMember.HasAnyErrors);
                         break;
 
@@ -9729,13 +9742,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 argumentSyntax, singleCandidate);
                         }
                     }
-                    else
+                    // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for expanded non-array params cases.
+                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 || IsMemberWithExpandedNonArrayParamsCollection(finalApplicableCandidates[0]))
                     {
                         var resultWithSingleCandidate = OverloadResolutionResult<PropertySymbol>.GetInstance();
                         resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);
                         overloadResolutionResult.Free();
 
-                        return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, resultWithSingleCandidate, diagnostics);
+                        return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, resultWithSingleCandidate, hasDynamicArgument: true, diagnostics);
                     }
                 }
 
@@ -9751,7 +9765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDynamicIndexer(syntax, receiver, analyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics);
             }
 
-            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, diagnostics);
+            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, hasDynamicArgument: false, diagnostics);
         }
 
         private BoundExpression BindIndexerOrIndexedPropertyAccessContinued(
@@ -9760,6 +9774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult,
+            bool hasDynamicArgument,
             BindingDiagnosticBag diagnostics)
         {
             BoundExpression propertyAccess;
@@ -9821,6 +9836,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
 
+                bool forceDynamicResultType = false;
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+                // Due to backward compatibility, invocations statically bound in presence of dynamic arguments
+                // should have dynamic result if their dynamic binding succeeded in C# 12 and there are no
+                // obvious reasons for the runtime binder to fail (ref return, for example).
+                if (hasDynamicArgument &&
+                    !(property.Type.IsDynamic() || property.ReturnsByRef ||
+                     !Conversions.ClassifyConversionFromExpressionType(property.Type, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit ||
+                     IsMemberWithExpandedNonArrayParamsCollection(resolutionResult)))
+                {
+                    var tryDynamicAccessDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                    BindDynamicIndexer(syntax, receiver, analyzedArguments, ImmutableArray.Create(property), tryDynamicAccessDiagnostics);
+                    forceDynamicResultType = !tryDynamicAccessDiagnostics.HasAnyResolvedErrors();
+                    tryDynamicAccessDiagnostics.Free();
+                }
+
+                diagnostics.Add(syntax, useSiteInfo);
+
                 ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
 
                 // Make sure that the result of overload resolution is valid.
@@ -9851,7 +9885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                     argsToParams,
                     defaultArguments: default,
-                    property.Type,
+                    forceDynamicResultType ? Compilation.DynamicType : property.Type,
                     gotError);
             }
 

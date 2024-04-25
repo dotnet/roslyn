@@ -30,6 +30,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature;
 
+using static CSharpSyntaxTokens;
+
 [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
 {
@@ -761,7 +763,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             index++;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(
@@ -916,7 +918,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
     }
 
     protected override SyntaxToken CommaTokenWithElasticSpace()
-        => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
+        => CommaToken.WithTrailingTrivia(ElasticSpace);
 
     protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);

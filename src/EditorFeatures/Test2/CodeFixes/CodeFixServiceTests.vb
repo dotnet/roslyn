@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ErrorLogger
 Imports Microsoft.CodeAnalysis.Host
@@ -304,6 +303,24 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             End Using
         End Function
 
+        <ExportLanguageService(GetType(ICopilotOptionsService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
+        Private Class NoCompilationCopilotOptionsService
+            Implements ICopilotOptionsService
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function IsRefineOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsRefineOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsCodeAnalysisOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsCodeAnalysisOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+        End Class
+
         <ExportLanguageService(GetType(ICopilotCodeAnalysisService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
         Private Class NoCompilationCopilotCodeAnalysisService
             Implements ICopilotCodeAnalysisService
@@ -314,14 +331,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             End Sub
 
             Public Shared Property Diagnostics As ImmutableArray(Of Diagnostic) = ImmutableArray(Of Diagnostic).Empty
-
-            Public Function IsRefineOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsRefineOptionEnabledAsync
-                Return Task.FromResult(True)
-            End Function
-
-            Public Function IsCodeAnalysisOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsCodeAnalysisOptionEnabledAsync
-                Return Task.FromResult(True)
-            End Function
 
             Public Function IsAvailableAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsAvailableAsync
                 Return Task.FromResult(True)

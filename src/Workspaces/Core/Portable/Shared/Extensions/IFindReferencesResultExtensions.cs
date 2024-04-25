@@ -139,6 +139,6 @@ internal static partial class IFindReferencesResultExtensions
             result.Add(reference);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 }

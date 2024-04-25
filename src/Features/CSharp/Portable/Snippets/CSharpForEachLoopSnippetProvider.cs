@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
@@ -78,14 +79,14 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
             typeInfo.Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
         {
             forEachStatement = ForEachStatement(
-                Token(SyntaxKind.AwaitKeyword),
-                Token(SyntaxKind.ForEachKeyword),
-                Token(SyntaxKind.OpenParenToken),
+                AwaitKeyword,
+                ForEachKeyword,
+                OpenParenToken,
                 varIdentifier,
                 Identifier(itemString),
-                Token(SyntaxKind.InKeyword),
+                InKeyword,
                 collectionIdentifier.WithoutLeadingTrivia(),
-                Token(SyntaxKind.CloseParenToken),
+                CloseParenToken,
                 Block());
         }
         else
@@ -112,7 +113,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         if (!ConstructedFromInlineExpression)
             arrayBuilder.Add(new SnippetPlaceholder(node.Expression.ToString(), node.Expression.SpanStart));
 
-        return arrayBuilder.ToImmutable();
+        return arrayBuilder.ToImmutableAndClear();
     }
 
     protected override int GetTargetCaretPosition(ForEachStatementSyntax forEachStatement, SourceText sourceText)

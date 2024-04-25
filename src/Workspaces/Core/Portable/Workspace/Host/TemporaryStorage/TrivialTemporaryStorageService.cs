@@ -4,15 +4,16 @@
 
 using System;
 using System.IO;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceInternal
+internal sealed partial class TrivialTemporaryStorageService : ITemporaryStorageServiceInternal
 {
     public static readonly TrivialTemporaryStorageService Instance = new();
 
@@ -20,23 +21,24 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
     {
     }
 
-    public ITemporaryStreamStorageInternal CreateTemporaryStreamStorage()
-        => new StreamStorage();
-
     public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
         => new TextStorage();
 
-    private sealed class StreamStorage : ITemporaryStreamStorageInternal
+    public ITemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
+    {
+        stream.Position = 0;
+        var storage = new StreamStorage();
+        storage.WriteStream(stream);
+        var identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString("N"), Offset: 0, Size: stream.Length);
+        var handle = new TrivialStorageStreamHandle(identifier, storage);
+        return handle;
+    }
+
+    private sealed class StreamStorage
     {
         private MemoryStream? _stream;
 
-        public void Dispose()
-        {
-            _stream?.Dispose();
-            _stream = null;
-        }
-
-        public Stream ReadStream(CancellationToken cancellationToken)
+        public Stream ReadStream()
         {
             var stream = _stream ?? throw new InvalidOperationException();
 
@@ -45,30 +47,10 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
         }
 
-        public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ReadStream(cancellationToken));
-        }
-
-        public void WriteStream(Stream stream, CancellationToken cancellationToken)
+        public void WriteStream(Stream stream)
         {
             var newStream = new MemoryStream();
             stream.CopyTo(newStream);
-            var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
-            if (existingValue is not null)
-            {
-                throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
-        }
-
-        public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken)
-        {
-            var newStream = new MemoryStream();
-#if NETCOREAPP
-            await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
-# else
-            await stream.CopyToAsync(newStream).ConfigureAwait(false);
-#endif
             var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
             if (existingValue is not null)
             {
@@ -97,9 +79,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             // is appropriate for this trivial implementation.
             var existingValue = Interlocked.CompareExchange(ref _sourceText, text, null);
             if (existingValue is not null)
-            {
                 throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
         }
 
         public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
