@@ -5117,9 +5117,10 @@ class C
                     old => old.WithDocumentText(documentId1, SourceText.From(lastContents)),
                     (_, _) => (WorkspaceChangeKind.DocumentChanged, documentId1.ProjectId, documentId1));
 
-                // ensure that the first document is fine, and we're not stack overflowing on it. Do this on a disparate
-                // cadence from our pulls of the second document to ensure we are testing the case where we haven't
-                // necessarily immediately pulled on hte first doc before pulling on the second.
+                // Ensure that the first document is fine, and we're not stack overflowing on simply getting the tree
+                // from it. Do this on a disparate cadence from our pulls of the second document to ensure we are
+                // testing the case where we haven't necessarily immediately pulled on hte first doc before pulling on
+                // the second.
                 if (i % 33 == 0)
                 {
                     var document1 = workspace.CurrentSolution.GetRequiredDocument(documentId1);

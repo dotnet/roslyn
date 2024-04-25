@@ -70,9 +70,11 @@ internal partial class DocumentState
         // We don't want to point at a long chain of linked files, deferring to each next link of the chain to
         // potentially do the work (or potentially failing out).  So, if we're about to point at a linked file which is
         // already linked to some other file, just point directly at that file instead.   This can help when there are
-        // pathological cases (like a large solution with a single file linked into every project in the solution).
+        // pathological cases (like a large solution with a single file linked into every project in the solution).  We
+        // only need to look one deep here as we'll pull that tree source forward to our level.  If another link is
+        // later added to us, it will do the same thing.
         var originalTreeSource = this.TreeSource;
-        while (originalTreeSource is LinkedFileTreeAndVersionSource linkedFileTreeAndVersionSource)
+        if (originalTreeSource is LinkedFileTreeAndVersionSource linkedFileTreeAndVersionSource)
             originalTreeSource = linkedFileTreeAndVersionSource.OriginalTreeSource;
 
         // Always pass along the sibling text.  We will always be in sync with that.
@@ -105,6 +107,7 @@ internal partial class DocumentState
         // that we don't actually realize the tree until we need it.  This way we can avoid doing extra work if
         // the tree is never actually needed.
 
+#if true
         var lazyComputation = AsyncLazy.Create(
             static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
             static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
@@ -113,6 +116,14 @@ internal partial class DocumentState
         var newTreeSource = new LinkedFileTreeAndVersionSource(
             originalTreeSource,
             lazyComputation);
+
+#else
+        var newTreeSource = SimpleTreeAndVersionSource.Create(
+            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            arg: (filePath: attributes.SyntaxTreeFilePath, languageServices, loadTextOptions, parseOptions, originalTreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
+
+#endif
 
         return new DocumentState(
             languageServices, services, attributes, parseOptions, siblingTextSource, loadTextOptions, newTreeSource);
