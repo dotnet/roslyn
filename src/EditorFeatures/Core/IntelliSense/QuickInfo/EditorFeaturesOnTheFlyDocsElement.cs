@@ -6,8 +6,6 @@ using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
 
-internal sealed class EditorFeaturesOnTheFlyDocsElement(Document document, OnTheFlyDocsElement onTheFlyDocsElement)
+internal sealed record EditorFeaturesOnTheFlyDocsElement(Document Document, OnTheFlyDocsElement OnTheFlyDocsElement)
 {
-    internal Document Document { get; } = document;
-    internal OnTheFlyDocsElement OnTheFlyDocsElement { get; } = onTheFlyDocsElement;
 }
