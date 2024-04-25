@@ -105,7 +105,7 @@ internal partial class DocumentState : TextDocumentState
         LanguageServices languageServices,
         PreservationMode mode = PreservationMode.PreserveValue)
     {
-        return AsyncLazyTreeAndVersionSource.Create(
+        return SimpleTreeAndVersionSource.Create(
             static (arg, c) => FullyParseTreeAsync(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
             static (arg, c) => FullyParseTree(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
             arg: (newTextSource, loadTextOptions, filePath, options, languageServices, mode));
@@ -168,7 +168,7 @@ internal partial class DocumentState : TextDocumentState
         ITextAndVersionSource newTextSource,
         LoadTextOptions loadTextOptions)
     {
-        return AsyncLazyTreeAndVersionSource.Create(
+        return SimpleTreeAndVersionSource.Create(
             static (arg, c) => IncrementallyParseTreeAsync(arg.oldTreeSource, arg.newTextSource, arg.loadTextOptions, c),
             static (arg, c) => IncrementallyParseTree(arg.oldTreeSource, arg.newTextSource, arg.loadTextOptions, c),
             arg: (oldTreeSource, newTextSource, loadTextOptions));
@@ -368,7 +368,7 @@ internal partial class DocumentState : TextDocumentState
             }
 
             if (newTree is not null)
-                newTreeSource = AsyncLazyTreeAndVersionSource.Create(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
+                newTreeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
         }
 
         // If we weren't able to reuse in a smart way, just reparse
@@ -528,7 +528,7 @@ internal partial class DocumentState : TextDocumentState
             _options,
             textSource: text,
             LoadTextOptions,
-            treeSource: AsyncLazyTreeAndVersionSource.Create(treeAndVersion));
+            treeSource: SimpleTreeAndVersionSource.Create(treeAndVersion));
 
         // use static method so we don't capture references to this
         static (ITextAndVersionSource, TreeAndVersion) CreateTreeWithLazyText(

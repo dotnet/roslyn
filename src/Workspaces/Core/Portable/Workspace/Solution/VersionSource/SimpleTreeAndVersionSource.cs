@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis;
 /// Simple implementation of <see cref="ITreeAndVersionSource"/> backed by an opaque <see
 /// cref="AsyncLazy{TreeAndVersion}"/>."/>
 /// </summary>
-internal sealed class AsyncLazyTreeAndVersionSource : ITreeAndVersionSource
+internal sealed class SimpleTreeAndVersionSource : ITreeAndVersionSource
 {
     private readonly AsyncLazy<TreeAndVersion> _source;
 
-    private AsyncLazyTreeAndVersionSource(AsyncLazy<TreeAndVersion> source)
+    private SimpleTreeAndVersionSource(AsyncLazy<TreeAndVersion> source)
     {
         _source = source;
     }
@@ -32,13 +32,13 @@ internal sealed class AsyncLazyTreeAndVersionSource : ITreeAndVersionSource
     public bool TryGetValue([NotNullWhen(true)] out TreeAndVersion? value)
         => _source.TryGetValue(out value);
 
-    public static AsyncLazyTreeAndVersionSource Create<TArg>(
+    public static SimpleTreeAndVersionSource Create<TArg>(
         Func<TArg, CancellationToken, Task<TreeAndVersion>> asynchronousComputeFunction,
         Func<TArg, CancellationToken, TreeAndVersion>? synchronousComputeFunction, TArg arg)
     {
         return new(AsyncLazy<TreeAndVersion>.Create(asynchronousComputeFunction, synchronousComputeFunction, arg));
     }
 
-    public static AsyncLazyTreeAndVersionSource Create(TreeAndVersion source)
+    public static SimpleTreeAndVersionSource Create(TreeAndVersion source)
         => new(AsyncLazy.Create(source));
 }
