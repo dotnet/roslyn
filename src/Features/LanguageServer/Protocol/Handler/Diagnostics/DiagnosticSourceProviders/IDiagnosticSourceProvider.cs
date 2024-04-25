@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal interface IDiagnosticSourceProvider
 {
     /// <summary>
-    /// True if this provider is for documents, false if it is for workspace.
+    /// <see langword="true"/> if this provider is for documents, <see langword="false"/> if it is for workspace.
     /// </summary>
     bool IsDocument { get; }
 
@@ -26,8 +26,8 @@ internal interface IDiagnosticSourceProvider
     /// <summary>
     /// Creates the diagnostic sources.
     /// </summary>
-    /// <param name="context">The context.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="context"/>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the request processing.</param>
     ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
 }
 

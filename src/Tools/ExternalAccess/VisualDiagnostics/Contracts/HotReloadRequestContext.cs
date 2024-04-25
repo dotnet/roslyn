@@ -8,7 +8,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
 
-internal class HotReloadRequestContext(RequestContext context)
+internal sealed class HotReloadRequestContext(RequestContext context)
 {
     internal LSP.ClientCapabilities ClientCapabilities => context.GetRequiredClientCapabilities();
     public TextDocument? TextDocument => context.TextDocument;

@@ -74,8 +74,8 @@ internal class AlwaysActivateInProcLanguageClient(
         serverCapabilities.DiagnosticProvider ??= new();
 
         // VS does not distinguish between document and workspace diagnostics, so we need to merge them.
-        var diagnosticSourceNames = _diagnosticSourceManager.GetSourceNames(isDocument: true)
-            .Concat(_diagnosticSourceManager.GetSourceNames(isDocument: false))
+        var diagnosticSourceNames = _diagnosticSourceManager.GetDocumentSourceProviderNames()
+            .Concat(_diagnosticSourceManager.GetWorkspaceSourceProviderNames())
             .Distinct();
         serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
         {

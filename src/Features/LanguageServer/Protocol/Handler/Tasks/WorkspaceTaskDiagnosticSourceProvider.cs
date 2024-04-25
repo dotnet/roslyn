@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Tasks;
 
 [Export(typeof(IDiagnosticSourceProvider)), Shared]
 [method: ImportingConstructor]

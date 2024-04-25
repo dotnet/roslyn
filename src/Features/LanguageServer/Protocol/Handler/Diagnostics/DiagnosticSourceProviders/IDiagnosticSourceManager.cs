@@ -9,29 +9,34 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 
 /// <summary>
-/// Manages the diagnostic sources that provide diagnostics for the language server.
+/// Provides centralized/singleton management of MEF based <see cref="IDiagnosticSourceProvider"/>s.
+/// Consumers - like diagnostic handlers - use it to get diagnostics from one or more providers.
 /// </summary>
 internal interface IDiagnosticSourceManager
 {
     /// <summary>
-    /// Returns the names of all the sources that provide diagnostics for the given <paramref name="isDocument"/>.
+    /// Returns the names of document level <see cref="IDiagnosticSourceProvider"/>s.
     /// </summary>
-    /// <param name="isDocument"><see langword="true" /> for document sources and <see langword="false" /> for workspace sources.</param>
-    ImmutableArray<string> GetSourceNames(bool isDocument);
+    ImmutableArray<string> GetDocumentSourceProviderNames();
 
     /// <summary>
-    /// Creates document diagnostic sources for the given <paramref name="sourceName"/>.
+    /// Returns the names of workspace level <see cref="IDiagnosticSourceProvider"/>s.
     /// </summary>
-    /// <param name="context">The context.</param>
-    /// <param name="sourceName">Source name.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? sourceName, CancellationToken cancellationToken);
+    ImmutableArray<string> GetWorkspaceSourceProviderNames();
 
     /// <summary>
-    /// Creates workspace diagnostic sources for the given <paramref name="sourceName"/>.
+    /// Creates document diagnostic sources for the given <paramref name="providerName"/>.
     /// </summary>
-    /// <param name="context">The context.</param>
-    /// <param name="sourceName">Source name.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(RequestContext context, string? sourceName, CancellationToken cancellationToken);
+    /// <param name="context"/>
+    /// <param name="providerName">Optional provider name. If <see langword="null"/> then diagnostics from all providers are used.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the request processing.</param>
+    ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? providerName, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Creates workspace diagnostic sources for the given <paramref name="providerName"/>.
+    /// </summary>
+    /// <param name="context"/>
+    /// <param name="providerName">Optional provider name. If not specified then diagnostics from all providers are used.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the request processing.</param>
+    ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(RequestContext context, string? providerName, CancellationToken cancellationToken);
 }

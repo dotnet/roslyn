@@ -30,14 +30,6 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(TDiagnosticsParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
     {
-        if (GetOpenDocument(context) is null)
-            return new([]);
-
-        return DiagnosticSourceManager.CreateDocumentDiagnosticSourcesAsync(context, requestDiagnosticCategory, cancellationToken);
-    }
-
-    private static TextDocument? GetOpenDocument(RequestContext context)
-    {
         // Note: context.Document may be null in the case where the client is asking about a document that we have
         // since removed from the workspace.  In this case, we don't really have anything to process.
         // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
@@ -48,15 +40,15 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
         if (textDocument is null)
         {
             context.TraceInformation("Ignoring diagnostics request because no text document was provided");
-            return null;
+            return new([]);
         }
 
         if (!context.IsTracking(textDocument.GetURI()))
         {
             context.TraceWarning($"Ignoring diagnostics request for untracked document: {textDocument.GetURI()}");
-            return null;
+            return new([]);
         }
 
-        return textDocument;
+        return DiagnosticSourceManager.CreateDocumentDiagnosticSourcesAsync(context, requestDiagnosticCategory, cancellationToken);
     }
 }

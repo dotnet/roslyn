@@ -16,7 +16,7 @@ internal interface IHotReloadDiagnosticSource
     /// <summary>
     /// Text document for which diagnostics are provided.
     /// </summary>
-    TextDocument TextDocument { get; }
+    DocumentId DocumentId { get; }
 
     /// <summary>
     /// Provides list of diagnostics for the given document.

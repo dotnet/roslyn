@@ -15,26 +15,21 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : IOnInitial
     {
         if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true)
         {
-            var sources = DiagnosticSourceManager.GetSourceNames(isDocument: false);
+            var providerNames = DiagnosticSourceManager.GetWorkspaceSourceProviderNames();
             await _clientLanguageServerManager.SendRequestAsync(
                 methodName: Methods.ClientRegisterCapabilityName,
                 @params: new RegistrationParams
                 {
-                    Registrations = sources.Select(FromSourceName).ToArray()
+                    Registrations = providerNames.Select(name => new Registration
+                    {
+                        // Due to https://github.com/microsoft/language-server-protocol/issues/1723
+                        // we need to use textDocument/diagnostic instead of workspace/diagnostic
+                        Method = Methods.TextDocumentDiagnosticName,
+                        Id = name,
+                        RegisterOptions = new DiagnosticRegistrationOptions { Identifier = name, InterFileDependencies = true, WorkDoneProgress = true }
+                    }).ToArray()
                 },
                 cancellationToken).ConfigureAwait(false);
-
-            Registration FromSourceName(string sourceName)
-            {
-                return new()
-                {
-                    // Due to https://github.com/microsoft/language-server-protocol/issues/1723
-                    // we need to use textDocument/diagnostic instead of workspace/diagnostic
-                    Method = Methods.TextDocumentDiagnosticName,
-                    Id = sourceName,
-                    RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName, InterFileDependencies = true, WorkDoneProgress = true }
-                };
-            }
         }
     }
 }

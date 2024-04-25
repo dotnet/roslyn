@@ -46,27 +46,31 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
     }
 
     /// <inheritdoc />
-    public ImmutableArray<string> GetSourceNames(bool isDocument)
-        => (isDocument ? _nameToDocumentProviderMap : _nameToWorkspaceProviderMap).Keys.ToImmutableArray();
+    public ImmutableArray<string> GetDocumentSourceProviderNames()
+        => _nameToDocumentProviderMap.Keys.ToImmutableArray();
 
-    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? sourceName, CancellationToken cancellationToken)
-        => CreateDiagnosticSourcesAsync(context, sourceName, _nameToDocumentProviderMap, isDocument: true, cancellationToken);
+    /// <inheritdoc />
+    public ImmutableArray<string> GetWorkspaceSourceProviderNames()
+        => _nameToWorkspaceProviderMap.Keys.ToImmutableArray();
 
-    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(RequestContext context, string? sourceName, CancellationToken cancellationToken)
-        => CreateDiagnosticSourcesAsync(context, sourceName, _nameToWorkspaceProviderMap, isDocument: false, cancellationToken);
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? providerName, CancellationToken cancellationToken)
+        => CreateDiagnosticSourcesAsync(context, providerName, _nameToDocumentProviderMap, isDocument: true, cancellationToken);
+
+    public ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(RequestContext context, string? providerName, CancellationToken cancellationToken)
+        => CreateDiagnosticSourcesAsync(context, providerName, _nameToWorkspaceProviderMap, isDocument: false, cancellationToken);
 
     private static async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(
         RequestContext context,
-        string? sourceName,
+        string? providerName,
         ImmutableDictionary<string, IDiagnosticSourceProvider> nameToProviderMap,
         bool isDocument,
         CancellationToken cancellationToken)
     {
-        if (sourceName != null)
+        if (providerName != null)
         {
             // VS does not distinguish between document and workspace sources. Thus it can request
             // document diagnostics with workspace source name. We need to handle this case.
-            if (nameToProviderMap.TryGetValue(sourceName, out var provider))
+            if (nameToProviderMap.TryGetValue(providerName, out var provider))
                 return await provider.CreateDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
 
             return [];
@@ -105,7 +109,10 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
         }
         else
         {
-            // For workspace we need to group sources by source id and IsLiveSource
+            // We ASSUME that all sources with the same ProjectOrDocumentID and IsLiveSource
+            // will have same value for GetDocumentIdentifier and GetProject(). Thus can be
+            // aggregated in a single source which will return same values. See
+            // AggregatedDocumentDiagnosticSource implementation for more details.
             sources = sources.GroupBy(s => (s.GetId(), s.IsLiveSource()), s => s)
                 .SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))
                 .ToImmutableArray();

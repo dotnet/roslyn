@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
@@ -19,11 +17,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 
 internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticManager diagnosticManager, bool isDocument) : IDiagnosticSourceProvider
 {
-    string IDiagnosticSourceProvider.Name => "HotReloadDiagnostics";
-    bool IDiagnosticSourceProvider.IsDocument => isDocument;
+    public string Name => "HotReloadDiagnostics";
+    public bool IsDocument => isDocument;
 
-    async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
+        if (context.Solution is not Solution solution)
+        {
+            return ImmutableArray<IDiagnosticSource>.Empty;
+        }
+
         var hotReloadContext = new HotReloadRequestContext(context);
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var sources);
         foreach (var provider in diagnosticManager.Providers)
@@ -31,7 +34,17 @@ internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
             if (provider.IsDocument == isDocument)
             {
                 var hotReloadSources = await provider.CreateDiagnosticSourcesAsync(hotReloadContext, cancellationToken).ConfigureAwait(false);
-                sources.AddRange(hotReloadSources.Select(s => new HotReloadDiagnosticSource(s)));
+                foreach (var hotReloadSource in hotReloadSources)
+                {
+                    // Look for additional document first. Currently most common hot reload diagnostics come from *.xaml files.
+                    TextDocument? textDocument =
+                        solution.GetAdditionalDocument(hotReloadSource.DocumentId) ??
+                        solution.GetDocument(hotReloadSource.DocumentId);
+                    if (textDocument != null)
+                    {
+                        sources.Add(new HotReloadDiagnosticSource(hotReloadSource, textDocument));
+                    }
+                }
             }
         }
 

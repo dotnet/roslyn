@@ -15,19 +15,18 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 
-internal sealed class HotReloadDiagnosticSource(IHotReloadDiagnosticSource source) : IDiagnosticSource
+internal sealed class HotReloadDiagnosticSource(IHotReloadDiagnosticSource source, TextDocument textDocument) : IDiagnosticSource
 {
-    async Task<ImmutableArray<DiagnosticData>> IDiagnosticSource.GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
     {
         var diagnostics = await source.GetDiagnosticsAsync(new HotReloadRequestContext(context), cancellationToken).ConfigureAwait(false);
-        var document = source.TextDocument;
-        var result = diagnostics.Select(diagnostic => DiagnosticData.Create(diagnostic, document)).ToImmutableArray();
+        var result = diagnostics.Select(diagnostic => DiagnosticData.Create(diagnostic, textDocument)).ToImmutableArray();
         return result;
     }
 
-    TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => new() { Uri = source.TextDocument.GetURI() };
-    ProjectOrDocumentId IDiagnosticSource.GetId() => new(source.TextDocument.Id);
-    Project IDiagnosticSource.GetProject() => source.TextDocument.Project;
-    bool IDiagnosticSource.IsLiveSource() => true;
-    string IDiagnosticSource.ToDisplayString() => $"{this.GetType().Name}: {source.TextDocument.FilePath ?? source.TextDocument.Name} in {source.TextDocument.Project.Name}";
+    public TextDocumentIdentifier? GetDocumentIdentifier() => new() { Uri = textDocument.GetURI() };
+    public ProjectOrDocumentId GetId() => new(textDocument.Id);
+    public Project GetProject() => textDocument.Project;
+    public bool IsLiveSource() => true;
+    public string ToDisplayString() => $"{this.GetType().Name}: {textDocument.FilePath ?? textDocument.Name} in {textDocument.Project.Name}";
 }

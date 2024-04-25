@@ -23,7 +23,8 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : IOnInitiali
             // TODO: Hookup an option changed handler for changes to BackgroundAnalysisScopeOption
             //       to dynamically register/unregister the non-local document diagnostic source.
 
-            var sources = DiagnosticSourceManager.GetSourceNames(isDocument: true).Where(source => source != PullDiagnosticCategories.Task);
+            // Task diagnostics shouldn't be reported through VSCode (it has its own task stuff). Additional cleanup needed.
+            var sources = DiagnosticSourceManager.GetDocumentSourceProviderNames().Where(source => source != PullDiagnosticCategories.Task);
             var registrations = sources.Select(FromSourceName).ToArray();
             await _clientLanguageServerManager.SendRequestAsync(
                 methodName: Methods.ClientRegisterCapabilityName,

@@ -18,11 +18,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 internal sealed class HotReloadDiagnosticManager([Import] IDiagnosticsRefresher diagnosticsRefresher) : IHotReloadDiagnosticManager
 {
     private readonly object _syncLock = new();
-    private ImmutableArray<IHotReloadDiagnosticSourceProvider> _providers = ImmutableArray<IHotReloadDiagnosticSourceProvider>.Empty;
-    ImmutableArray<IHotReloadDiagnosticSourceProvider> IHotReloadDiagnosticManager.Providers => _providers;
-    void IHotReloadDiagnosticManager.RequestRefresh() => diagnosticsRefresher.RequestWorkspaceRefresh();
+    public ImmutableArray<IHotReloadDiagnosticSourceProvider> Providers { get; private set; } = [];
 
-    void IHotReloadDiagnosticManager.Register(IEnumerable<IHotReloadDiagnosticSourceProvider> providers)
+    public void RequestRefresh()
+            => diagnosticsRefresher.RequestWorkspaceRefresh();
+
+    public void Register(IEnumerable<IHotReloadDiagnosticSourceProvider> providers)
     {
         // We use array instead of e.g. HashSet because we expect the number of sources to be small.
         // Usually 2, one workspace and one document provider.
@@ -30,18 +31,19 @@ internal sealed class HotReloadDiagnosticManager([Import] IDiagnosticsRefresher 
         {
             foreach (var provider in providers)
             {
-                if (!_providers.Contains(provider))
-                    _providers = _providers.Add(provider);
+                if (!Providers.Contains(provider))
+                    Providers = Providers.Add(provider);
             }
         }
     }
 
-    void IHotReloadDiagnosticManager.Unregister(IEnumerable<IHotReloadDiagnosticSourceProvider> providers)
+    public void Unregister(IEnumerable<IHotReloadDiagnosticSourceProvider> providers)
     {
         lock (_syncLock)
         {
-            foreach (var provider in providers)
-                _providers = _providers.Remove(provider);
+            foreach (var provider in Providers)
+                Providers = Providers.Remove(provider);
         }
     }
+
 }
