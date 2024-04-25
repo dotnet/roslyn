@@ -48,8 +48,8 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
     public TextLoader? TextLoader
         => (_initialSourceOrRecoverableText as ITextAndVersionSource)?.TextLoader;
 
-    public ITemporaryTextStorageInternal? Storage
-        => (_initialSourceOrRecoverableText as RecoverableText)?.Storage;
+    public ITemporaryStorageTextHandle? StorageHandle
+        => (_initialSourceOrRecoverableText as RecoverableText)?.StorageHandle;
 
     public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
     {
@@ -143,7 +143,7 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
         public readonly ITextAndVersionSource? InitialSource;
         public readonly LoadTextOptions LoadTextOptions;
 
-        public ITemporaryTextStorageInternal? _storage;
+        public ITemporaryStorageTextHandle? _storageHandle;
 
         public RecoverableText(ITextAndVersionSource source, TextAndVersion textAndVersion, LoadTextOptions options, SolutionServices services)
         {
@@ -166,37 +166,36 @@ internal sealed partial class RecoverableTextAndVersion(ITextAndVersionSource in
         public TextAndVersion ToTextAndVersion(SourceText text)
             => TextAndVersion.Create(text, Version, LoadDiagnostic);
 
-        public ITemporaryTextStorageInternal? Storage => _storage;
+        public ITemporaryStorageTextHandle? StorageHandle => _storageHandle;
 
         private async Task<SourceText> RecoverAsync(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_storage);
+            Contract.ThrowIfNull(_storageHandle);
 
             using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, cancellationToken))
             {
-                return await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
+                return await _storageHandle.ReadFromTemporaryStorageAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
         private SourceText Recover(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_storage);
+            Contract.ThrowIfNull(_storageHandle);
 
             using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, cancellationToken))
             {
-                return _storage.ReadText(cancellationToken);
+                return _storageHandle.ReadFromTemporaryStorage(cancellationToken);
             }
         }
 
         private async Task SaveAsync(SourceText text, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
+            Contract.ThrowIfFalse(_storageHandle == null); // Cannot save more than once
 
-            var storage = _storageService.CreateTemporaryTextStorage();
-            await storage.WriteTextAsync(text, cancellationToken).ConfigureAwait(false);
+            var handle = await _storageService.WriteToTemporaryStorageAsync(text, cancellationToken).ConfigureAwait(false);
 
-            // make sure write is done before setting _storage field
-            Interlocked.CompareExchange(ref _storage, storage, null);
+            // make sure write is done before setting _storageHandle field
+            Interlocked.CompareExchange(ref _storageHandle, handle, null);
 
             // Only set _initialValue to null once writing to the storage service completes fully. If the save did not
             // complete, we want to keep it around to service future requests.  Once we do clear out this value, then

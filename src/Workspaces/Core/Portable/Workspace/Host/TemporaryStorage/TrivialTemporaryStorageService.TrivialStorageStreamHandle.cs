@@ -12,11 +12,15 @@ internal sealed partial class TrivialTemporaryStorageService
 {
     private sealed class TrivialStorageStreamHandle(
         TemporaryStorageIdentifier storageIdentifier,
-        StreamStorage streamStorage) : ITemporaryStorageStreamHandle
+        MemoryStream streamCopy) : ITemporaryStorageStreamHandle
     {
         public TemporaryStorageIdentifier Identifier => storageIdentifier;
 
         public Stream ReadFromTemporaryStorage(CancellationToken cancellationToken)
-            => streamStorage.ReadStream();
+        {
+            // Return a read-only view of the underlying buffer to prevent users from overwriting or directly
+            // disposing the backing storage.
+            return new MemoryStream(streamCopy.GetBuffer(), 0, (int)streamCopy.Length, writable: false);
+        }
     }
 }
