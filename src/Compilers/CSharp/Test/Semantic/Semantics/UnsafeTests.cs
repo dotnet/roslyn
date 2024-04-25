@@ -1638,7 +1638,7 @@ unsafe class C
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             if (unsafeClass || unsafeMethod)
             {
-                // Signature is unsafe (like the class), body is safe.
+                // Signature is unsafe, body is safe.
                 comp.VerifyDiagnostics(
                     // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                     //     [A(null)]
@@ -1743,7 +1743,7 @@ unsafe class C
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             if (unsafeClass || unsafeOperator)
             {
-                // Signature is unsafe (like the class), body is safe.
+                // Signature is unsafe, body is safe.
                 comp.VerifyDiagnostics(
                     // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                     //     [A(null)]
@@ -1859,7 +1859,7 @@ unsafe class C
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             if (unsafeClass || unsafeIndexer)
             {
-                // Signature is unsafe (like the class), body is safe.
+                // Signature and setter is unsafe, getter is safe.
                 comp.VerifyDiagnostics(
                     // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                     //     [A(null)]
@@ -1972,7 +1972,7 @@ unsafe class C
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             if (unsafeClass || unsafeProperty)
             {
-                // Signature is unsafe (like the class), body is unsafe.
+                // Signature and setter is unsafe, getter is safe.
                 comp.VerifyDiagnostics(
                     // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                     //     [A(null)]
@@ -2085,7 +2085,7 @@ unsafe class C
             var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             if (unsafeClass || unsafeMethod || unsafeBlock || unsafeLocalFunction)
             {
-                // Signature is unsafe (like the containing scope), body is safe.
+                // Signature is unsafe, body is safe.
                 comp.VerifyDiagnostics(
                     // (13,14): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                     //             [A(null)]
