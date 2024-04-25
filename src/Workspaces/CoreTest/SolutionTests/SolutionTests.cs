@@ -5080,5 +5080,36 @@ class C
             var frozenCompilation = await frozenProject.GetCompilationAsync();
             Assert.Null(frozenCompilation);
         }
+
+        [Fact]
+        public async Task TestLargeLinkedFileChain()
+        {
+            using var workspace = CreateWorkspace();
+
+            var project1 = workspace.CurrentSolution
+                .AddProject($"Project1", $"Project1", LanguageNames.CSharp)
+                .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
+            var documentId1 = project1.DocumentIds.Single();
+
+            var project2 = project1.Solution
+                .AddProject($"Project2", $"Project2", LanguageNames.CSharp)
+                .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
+            var documentId2 = project2.DocumentIds.Single();
+
+            workspace.SetCurrentSolution(
+                _ => project2.Solution,
+                (_, _) => (WorkspaceChangeKind.SolutionAdded, null, null));
+
+            for (var i = 0; i < 4000; i++)
+            {
+                workspace.SetCurrentSolution(
+                    old => old.WithDocumentText(documentId1, SourceText.From($"//{new string('.', i)}//")),
+                    (_, _) => (WorkspaceChangeKind.DocumentChanged, documentId1.ProjectId, documentId1));
+            }
+
+            var document2 = workspace.CurrentSolution.GetRequiredDocument(documentId2);
+
+            var tree = await document2.GetSyntaxTreeAsync();
+        }
     }
 }
