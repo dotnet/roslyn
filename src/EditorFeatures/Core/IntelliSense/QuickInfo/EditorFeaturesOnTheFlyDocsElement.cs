@@ -4,8 +4,10 @@
 
 using Microsoft.CodeAnalysis.QuickInfo;
 
-namespace Microsoft.CodeAnalysis.IntelliSense.QuickInfo;
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 
-internal sealed record EditorFeaturesOnTheFlyDocsElement(Document Document, OnTheFlyDocsElement OnTheFlyDocsElement)
+internal sealed class EditorFeaturesOnTheFlyDocsElement(Document document, OnTheFlyDocsElement onTheFlyDocsElement)
 {
+    internal Document Document { get; } = document;
+    internal OnTheFlyDocsElement OnTheFlyDocsElement { get; } = onTheFlyDocsElement;
 }
