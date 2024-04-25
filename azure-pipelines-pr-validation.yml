@@ -58,6 +58,8 @@ variables:
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-GitHub-Versions-Repo-Write
   - group: DotNet-GitHub-Versions-Repo-Write
+  - name: Roslyn.GitHubToken
+    value: $(AccessToken-dotnet-build-bot-public-repo)
   - name: _DevDivDropAccessToken
     value: $(System.AccessToken)
 
@@ -170,6 +172,24 @@ extends:
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
+
+        - task: Powershell@2
+          displayName: Set build name
+          inputs:
+            targetType: inline
+            script: |
+              $pull_request = Invoke-RestMethod -Uri "https://api.github.com/repos/dotnet/roslyn/pulls/${{ parameters.PRNumber }}" `
+              -Headers @{
+                "Accept" = "application/vnd.github+json";
+                "Authorization" = "Bearer $(Roslyn.GitHubToken)";
+                "X-GitHub-Api-Version" = "2022-11-28"
+              }
+              $buildNumberName = "Validating '$pull_request.title' against VS:{{ parameters.VisualStudioBranchName }} #"
+              # Maximum buildnumber length is 255 chars
+              if ($buildNumberName.Length -GT 255) {
+                $buildNumberName = $buildNumberName.Substring(0, 255)
+              }
+              Write-Host "##vso[build.updatebuildnumber]$buildNumberName"
 
         - task: Powershell@2
           displayName: Tag PR validation build
