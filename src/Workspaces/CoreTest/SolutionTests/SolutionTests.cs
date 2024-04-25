@@ -5081,8 +5081,12 @@ class C
             Assert.Null(frozenCompilation);
         }
 
-        [Fact]
-        public async Task TestLargeLinkedFileChain()
+        [Theory]
+        [InlineData(1000)]
+        [InlineData(2000)]
+        [InlineData(4000)]
+        [InlineData(8000)]
+        public async Task TestLargeLinkedFileChain(int intermediatePullCount)
         {
             using var workspace = CreateWorkspace();
 
@@ -5106,24 +5110,31 @@ class C
                 _ => project2.Solution,
                 (_, _) => (WorkspaceChangeKind.SolutionAdded, null, null));
 
-            var lastContents = "";
-            for (var i = 0; i < 4000; i++)
+            for (var i = 1; i <= 8000; i++)
             {
-                lastContents = $"#if true //{new string('.', i)}//";
+                var lastContents = $"#if true //{new string('.', i)}//";
                 workspace.SetCurrentSolution(
                     old => old.WithDocumentText(documentId1, SourceText.From(lastContents)),
                     (_, _) => (WorkspaceChangeKind.DocumentChanged, documentId1.ProjectId, documentId1));
 
-                // ensure that the first document is fine, and we're not stack overflowing on it.
-                var document1 = workspace.CurrentSolution.GetRequiredDocument(documentId1);
-                await document1.GetSyntaxRootAsync();
+                // ensure that the first document is fine, and we're not stack overflowing on it. Do this on a disparate
+                // cadence from our pulls of the second document to ensure we are testing the case where we haven't
+                // necessarily immediately pulled on hte first doc before pulling on the second.
+                if (i % 33 == 0)
+                {
+                    var document1 = workspace.CurrentSolution.GetRequiredDocument(documentId1);
+                    await document1.GetSyntaxRootAsync();
+                }
+
+                if (i % intermediatePullCount == 0)
+                {
+                    var document2 = workspace.CurrentSolution.GetRequiredDocument(documentId2);
+
+                    // Getting the second document should both be fine, and have contents equivalent to what is in the first document.
+                    var root = await document2.GetSyntaxRootAsync();
+                    Assert.Equal(lastContents, root.ToFullString());
+                }
             }
-
-            var document2 = workspace.CurrentSolution.GetRequiredDocument(documentId2);
-
-            // Getting the second document should both be fine, and have contents equivalent to what is in the first document.
-            var root = await document2.GetSyntaxRootAsync();
-            Assert.Equal(lastContents, root.ToFullString());
         }
     }
 }
