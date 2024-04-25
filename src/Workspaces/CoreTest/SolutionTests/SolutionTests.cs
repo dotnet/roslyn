@@ -5088,11 +5088,13 @@ class C
 
             var project1 = workspace.CurrentSolution
                 .AddProject($"Project1", $"Project1", LanguageNames.CSharp)
+                .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"))
                 .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
             var documentId1 = project1.DocumentIds.Single();
 
             var project2 = project1.Solution
                 .AddProject($"Project2", $"Project2", LanguageNames.CSharp)
+                .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("RELEASE"))
                 .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
             var documentId2 = project2.DocumentIds.Single();
 
@@ -5103,13 +5105,17 @@ class C
             for (var i = 0; i < 4000; i++)
             {
                 workspace.SetCurrentSolution(
-                    old => old.WithDocumentText(documentId1, SourceText.From($"//{new string('.', i)}//")),
+                    old => old.WithDocumentText(documentId1, SourceText.From($"#if true //{new string('.', i)}//")),
                     (_, _) => (WorkspaceChangeKind.DocumentChanged, documentId1.ProjectId, documentId1));
+
+                // ensure that the first document is fine, and we're not stack overflowing on it.
+                var document1 = workspace.CurrentSolution.GetRequiredDocument(documentId1);
+                await document1.GetSyntaxRootAsync();
             }
 
             var document2 = workspace.CurrentSolution.GetRequiredDocument(documentId2);
 
-            var tree = await document2.GetSyntaxTreeAsync();
+            var root = await document2.GetSyntaxRootAsync();
         }
     }
 }
