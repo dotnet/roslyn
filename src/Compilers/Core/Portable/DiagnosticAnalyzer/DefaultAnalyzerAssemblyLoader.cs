@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal DefaultAnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
-            : base(externalResolvers ?? [])
+        internal DefaultAnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+            : base(externalResolvers)
         {
         }
 

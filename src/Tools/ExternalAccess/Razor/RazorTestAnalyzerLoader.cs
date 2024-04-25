@@ -27,6 +27,6 @@ internal class RazorTestAnalyzerLoader
 
     public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
     {
-        return new DefaultAnalyzerAssemblyLoader([]);
+        return new DefaultAnalyzerAssemblyLoader();
     }
 }
