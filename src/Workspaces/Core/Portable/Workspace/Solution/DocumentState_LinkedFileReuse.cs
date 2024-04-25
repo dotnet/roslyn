@@ -16,13 +16,13 @@ internal partial class DocumentState
     /// <summary>
     /// <see cref="ITreeAndVersionSource"/> when we're linked to another file.  This allows us to defer to the linked
     /// file to get the actual root.  Note: we won't know if we can actually use the contents of that linked file until
-    /// we actually go and realize it.  And if we are unable to use it, we will do a normal incremental parse on
-    /// ourselves and the *text contents* of the linked file.
+    /// we actually go and realize it.  And if we are unable to use it, we will do a normal incremental parse on our own
+    /// tree and the *text contents* of the linked file.
     /// </summary>
     /// <remarks>
     /// This holds onto our original tree source so that if we're continually overwritten (say because our linked file
     /// keeps getting edited) that we don't form a long chain of links we have to walk in the case where we do *not*
-    /// reused the contents of hte linked file.  In the case where we do not reuse, we will just do a normal incremental
+    /// reused the contents of the linked file.  In the case where we do not reuse, we will just do a normal incremental
     /// parse and we don't want a chain of those.  Instead, we'll have our last tree, and the latest linked-file text
     /// and can incrementally parse between those two.
     /// </remarks>
