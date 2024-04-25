@@ -6,14 +6,13 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using static Microsoft.CodeAnalysis.Editor.QuickInfo.OnTheFlyDocsView;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
 
 /// <summary>
 /// Converts the <see cref="OnTheFlyDocsState"/> of the view to a <see cref="Visibility"/> value.
 /// </summary>
-internal class OnTheFlyDocsViewStateVisibilityConverter : IValueConverter
+internal sealed class OnTheFlyDocsViewStateVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         => value is OnTheFlyDocsState state && parameter is OnTheFlyDocsState targetState && state == targetState ? Visibility.Visible : Visibility.Collapsed;
