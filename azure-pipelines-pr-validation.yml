@@ -166,7 +166,7 @@ extends:
                 "Accept" = "application/vnd.github+json";
                 "X-GitHub-Api-Version" = "2022-11-28"
               }
-              $buildNumberName = "Validating $(pull_request.user.login) '$($pull_request.title)' against VS ${{ parameters.VisualStudioBranchName }} #"
+              $buildNumberName = "Validating $($pull_request.user.login) '$($pull_request.title)' against VS ${{ parameters.VisualStudioBranchName }} #"
               $buildNumberName = $buildNumberName -replace '["/:<>\|?@*]','_'
               # Maximum buildnumber length is 255 chars
               if ($buildNumberName.Length -GT 255) {
