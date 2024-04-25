@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveAsyncModifier\RemoveAsyncModifierTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\RemoveUnnecessaryByValTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCall\RemoveUnnecessaryCallTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessarySuppressionsTests.vb" />
@@ -77,5 +78,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCall\" />
   </ItemGroup>
 </Project>

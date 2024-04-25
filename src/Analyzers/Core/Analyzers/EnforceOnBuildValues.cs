@@ -73,6 +73,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild ConvertTypeOfToNameOf = /*IDE0082*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseNotPattern = /*IDE0083*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseIsNotExpression = /*IDE0084*/ EnforceOnBuild.Recommended;
+    public const EnforceOnBuild RemoveUnnecessaryCall = /*IDE0085*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseImplicitObjectCreation = /*IDE0090*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild RemoveRedundantEquality = /*IDE0100*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild RemoveUnnecessaryDiscardDesignation = /*IDE0110*/ EnforceOnBuild.Recommended;

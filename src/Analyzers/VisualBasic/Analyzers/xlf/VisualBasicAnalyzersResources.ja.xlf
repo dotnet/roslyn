@@ -27,6 +27,11 @@
         <target state="translated">'ByVal' キーワードは必要ありません。削除することができます。</target>
         <note>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
       </trans-unit>
+      <trans-unit id="Remove_Call">
+        <source>'Call' keyword is unnecessary here and can be removed.</source>
+        <target state="new">'Call' keyword is unnecessary here and can be removed.</target>
+        <note>{locked: Call}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
       <trans-unit id="Use_IsNot_Nothing_check">
         <source>Use 'IsNot Nothing' check</source>
         <target state="translated">IsNot Nothing' チェックを使用します</target>

@@ -102,6 +102,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string RemoveSharedFromModuleMembers = nameof(RemoveSharedFromModuleMembers);
     public const string RemoveUnnecessaryAttributeSuppressions = nameof(RemoveUnnecessaryAttributeSuppressions);
     public const string RemoveUnnecessaryByVal = nameof(RemoveUnnecessaryByVal);
+    public const string RemoveUnnecessaryCall = nameof(RemoveUnnecessaryCall);
     public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
     public const string RemoveUnnecessaryDiscardDesignation = nameof(RemoveUnnecessaryDiscardDesignation);
     public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);

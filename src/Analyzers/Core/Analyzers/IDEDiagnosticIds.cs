@@ -146,6 +146,8 @@ internal static class IDEDiagnosticIds
     public const string UseNotPatternDiagnosticId = "IDE0083";
     public const string UseIsNotExpressionDiagnosticId = "IDE0084";
 
+    public const string RemoveUnnecessaryCallDiagnosticId = "IDE0085";
+
     public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
 
     public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
