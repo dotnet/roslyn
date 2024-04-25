@@ -5110,6 +5110,7 @@ class C
             var document2 = workspace.CurrentSolution.GetRequiredDocument(documentId2);
 
             var tree = await document2.GetSyntaxTreeAsync();
+            Console.WriteLine(tree);
         }
     }
 }

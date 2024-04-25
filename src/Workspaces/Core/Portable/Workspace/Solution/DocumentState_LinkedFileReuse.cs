@@ -14,14 +14,10 @@ namespace Microsoft.CodeAnalysis;
 internal partial class DocumentState
 {
     private sealed class LinkedFileTreeAndVersionSource(
-        ITextAndVersionSource siblingTextSource,
-        ITreeAndVersionSource siblingTreeSource,
-        bool forceEvenIfTreesWouldDiffer,
+        ITreeAndVersionSource originalTreeSource,
         AsyncLazy<TreeAndVersion> lazyComputation) : ITreeAndVersionSource
     {
-        public readonly ITextAndVersionSource SiblingTextSource = siblingTextSource;
-        public readonly ITreeAndVersionSource SiblingTreeSource = siblingTreeSource;
-        public readonly bool ForceEvenIfTreesWouldDiffer = forceEvenIfTreesWouldDiffer;
+        public readonly ITreeAndVersionSource OriginalTreeSource = originalTreeSource;
 
         public Task<TreeAndVersion> GetValueAsync(CancellationToken cancellationToken)
             => lazyComputation.GetValueAsync(cancellationToken);
@@ -62,11 +58,10 @@ internal partial class DocumentState
         // potentially do the work (or potentially failing out).  So, if we're about to point at a linked file which is
         // already linked to some other file, just point directly at that file instead.   This can help when there are
         // pathological cases (like a large solution with a single file linked into every project in the solution).
-        while (siblingTreeSource is LinkedFileTreeAndVersionSource linkedFileTreeAndVersionSource &&
-            linkedFileTreeAndVersionSource.SiblingTextSource == siblingTextSource &&
-            linkedFileTreeAndVersionSource.ForceEvenIfTreesWouldDiffer == forceEvenIfTreesWouldDiffer)
+        var originalTreeSource = this.TreeSource;
+        while (originalTreeSource is LinkedFileTreeAndVersionSource linkedFileTreeAndVersionSource)
         {
-            siblingTreeSource = linkedFileTreeAndVersionSource.SiblingTreeSource;
+            originalTreeSource = linkedFileTreeAndVersionSource.OriginalTreeSource;
         }
 
         // Always pass along the sibling text.  We will always be in sync with that.
@@ -78,14 +73,12 @@ internal partial class DocumentState
         // to the provided source, gets the tree from it, and then wraps its root in a new tree for us.
 
         var lazyComputation = AsyncLazy.Create(
-            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.SyntaxTreeFilePath, arg.LanguageServices, arg.LoadTextOptions, arg.ParseOptions, arg.TreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-            static (arg, cancellationToken) => TryReuseSiblingTree(arg.SyntaxTreeFilePath, arg.LanguageServices, arg.LoadTextOptions, arg.ParseOptions, arg.TreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-            arg: (Attributes.SyntaxTreeFilePath, LanguageServices, LoadTextOptions, ParseOptions, TreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
+            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.SyntaxTreeFilePath, arg.LanguageServices, arg.LoadTextOptions, arg.ParseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            static (arg, cancellationToken) => TryReuseSiblingTree(arg.SyntaxTreeFilePath, arg.LanguageServices, arg.LoadTextOptions, arg.ParseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            arg: (Attributes.SyntaxTreeFilePath, LanguageServices, LoadTextOptions, ParseOptions, originalTreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
 
         var newTreeSource = new LinkedFileTreeAndVersionSource(
-            siblingTextSource,
-            siblingTreeSource,
-            forceEvenIfTreesWouldDiffer,
+            originalTreeSource,
             lazyComputation);
 
         return new DocumentState(
