@@ -46,9 +46,6 @@ variables:
   - name: _DevDivDropAccessToken
     value: $(System.AccessToken)
 
-  - name: OriginalBuildNumber
-    value: $(Build.BuildNumber)
-
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
@@ -155,6 +152,10 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - powershell: Write-Host "##vso[task.setvariable variable=OriginalBuildNumber]$('$(Build.BuildNumber)')"
+          displayName: Setting OriginalBuildNumber variable
+          condition: succeeded()
+
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
