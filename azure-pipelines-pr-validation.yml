@@ -181,10 +181,9 @@ extends:
               $pull_request = Invoke-RestMethod -Uri "https://api.github.com/repos/dotnet/roslyn/pulls/${{ parameters.PRNumber }}" `
               -Headers @{
                 "Accept" = "application/vnd.github+json";
-                "Authorization" = "Bearer $(Roslyn.GitHubToken)";
                 "X-GitHub-Api-Version" = "2022-11-28"
               }
-              $buildNumberName = "Validating '$pull_request.title' against VS:{{ parameters.VisualStudioBranchName }} #"
+              $buildNumberName = "Validating '$($pull_request.title)' against VS:{{ parameters.VisualStudioBranchName }} #"
               # Maximum buildnumber length is 255 chars
               if ($buildNumberName.Length -GT 255) {
                 $buildNumberName = $buildNumberName.Substring(0, 255)
