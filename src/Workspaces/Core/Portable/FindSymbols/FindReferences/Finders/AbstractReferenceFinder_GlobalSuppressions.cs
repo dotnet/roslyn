@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -51,28 +50,30 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     ///     [assembly: SuppressMessage("RuleCategory", "RuleId', Scope = "member", Target = "~F:C.Field")]
     /// </summary>
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-    protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+    protected static async ValueTask FindReferencesInDocumentInsideGlobalSuppressionsAsync<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         if (!ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId))
-            return [];
+            return;
 
         // Check if we have any relevant global attributes in this document.
         var info = await SyntaxTreeIndex.GetRequiredIndexAsync(state.Document, cancellationToken).ConfigureAwait(false);
         if (!info.ContainsGlobalSuppressMessageAttribute)
-            return [];
+            return;
 
         var semanticModel = state.SemanticModel;
         var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();
         if (suppressMessageAttribute == null)
-            return [];
+            return;
 
         // Check if we have any instances of the symbol documentation comment ID string literals within global attributes.
         // These string literals represent references to the symbol.
         if (!TryGetExpectedDocumentationCommentId(docCommentId, out var expectedDocCommentId))
-            return [];
+            return;
 
         var syntaxFacts = state.SyntaxFacts;
 
@@ -80,17 +81,16 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         // perform semantic checks to ensure these are valid references to the symbol
         // and if so, add these locations to the computed references.
         var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
         foreach (var token in root.DescendantTokens())
         {
             if (IsCandidate(state, token, expectedDocCommentId.Span, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
             {
                 var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, state.Document, syntaxFacts);
-                locations.Add(new FinderLocation(token.GetRequiredParent(), referenceLocation));
+                processResult(new FinderLocation(token.GetRequiredParent(), referenceLocation), processResultData);
             }
         }
 
-        return locations.ToImmutable();
+        return;
 
         // Local functions
         static bool IsCandidate(

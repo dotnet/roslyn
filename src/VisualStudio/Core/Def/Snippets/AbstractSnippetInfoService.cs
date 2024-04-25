@@ -209,7 +209,7 @@ internal abstract class AbstractSnippetInfoService : ISnippetInfoService, IVsExp
             Marshal.FreeCoTaskMem(pSnippetInfo[0]);
         }
 
-        return snippetListBuilder.ToImmutable();
+        return snippetListBuilder.ToImmutableAndClear();
     }
 
     protected static IImmutableSet<string> GetShortcutsHashFromSnippets(ImmutableArray<SnippetInfo> updatedSnippets)

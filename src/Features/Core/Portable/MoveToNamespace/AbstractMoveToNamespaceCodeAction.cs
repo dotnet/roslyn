@@ -87,7 +87,7 @@ internal abstract partial class AbstractMoveToNamespaceCodeAction(
             }
         }
 
-        return operations.ToImmutable();
+        return operations.ToImmutableAndClear();
     }
 
     public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)

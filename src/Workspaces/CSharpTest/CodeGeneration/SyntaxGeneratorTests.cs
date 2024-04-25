@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -21,20 +20,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
+    using static CSharpSyntaxTokens;
     using static SyntaxFactory;
 
     [UseExportProvider]
-    public class SyntaxGeneratorTests
+    public sealed class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-            references: new[] { TestMetadata.Net451.mscorlib, TestMetadata.Net451.System });
+            references: [TestMetadata.Net451.mscorlib, TestMetadata.Net451.System]);
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;
-
-        public SyntaxGeneratorTests()
-        {
-        }
 
         private Workspace Workspace
             => _workspace ??= new AdhocWorkspace();
@@ -972,6 +968,20 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "explicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
         }
 
+        [Fact, WorkItem(63410, "https://github.com/dotnet/roslyn/issues/63410")]
+        public void TestCheckedOperator()
+        {
+            var comp = CSharpCompilation.Create(null, new[] { SyntaxFactory.ParseSyntaxTree("""
+                public class C
+                {
+                    public static C operator checked ++(C x) => x;
+                    public static C operator ++(C x) => x;
+                }
+                """) });
+            var operatorSymbol = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.CheckedIncrementOperatorName).Single();
+            VerifySyntax<OperatorDeclarationSyntax>(Generator.OperatorDeclaration(operatorSymbol), "public static global::C operator checked ++(global::C x)\r\n{\r\n}");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65833")]
         public void TestConversionOperatorDeclaration()
         {
@@ -1219,7 +1229,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                                TriviaList(
                                    Space))))
                    .WithSemicolonToken(
-                       Token(SyntaxKind.SemicolonToken)),
+                       SemicolonToken),
                    Generator.IdentifierName("i")),
                    "public object DoSomething() => new();");
 
@@ -1227,11 +1237,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.AsPublicInterfaceImplementation(
                 OperatorDeclaration(
                     PredefinedType(
-                        Token(SyntaxKind.IntKeyword)),
-                    Token(SyntaxKind.PlusToken))
+                        IntKeyword),
+                    PlusToken)
                 .WithModifiers([
-                    Token(SyntaxKind.PublicKeyword),
-                    Token(SyntaxKind.StaticKeyword)])
+                    PublicKeyword,
+                    StaticKeyword])
                 .WithExplicitInterfaceSpecifier(
                     ExplicitInterfaceSpecifier(
                         GenericName(
@@ -1246,7 +1256,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                                     Identifier("x"))
                                 .WithType(
                                     IdentifierName("C")),
-                                Token(SyntaxKind.CommaToken),
+                                CommaToken,
                                 Parameter(
                                     Identifier("y"))
                                 .WithType(
@@ -1257,7 +1267,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             SyntaxKind.NumericLiteralExpression,
                             Literal(0))))
                 .WithSemicolonToken(
-                    Token(SyntaxKind.SemicolonToken))
+                    SemicolonToken)
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public static int operator +(C x, C y) => 0;");
@@ -1271,7 +1281,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                         TriviaList(
                             Space)),
                     PredefinedType(
-                        Token(SyntaxKind.StringKeyword)))
+                        StringKeyword))
                 .WithModifiers(
                     [Token(
                         [],
@@ -1318,7 +1328,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             TriviaList(
                                 Space))))
                 .WithSemicolonToken(
-                    Token(SyntaxKind.SemicolonToken))
+                    SemicolonToken)
                 .NormalizeWhitespace(),
                     Generator.IdentifierName("i")),
                     "public static implicit operator string (C x) => null;");
@@ -1327,7 +1337,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.AsPublicInterfaceImplementation(
                 PropertyDeclaration(
                     PredefinedType(
-                        Token(SyntaxKind.IntKeyword)),
+                        IntKeyword),
                     Identifier("Num"))
                 .WithExplicitInterfaceSpecifier(
                     ExplicitInterfaceSpecifier(
@@ -1338,7 +1348,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             SyntaxKind.NumericLiteralExpression,
                             Literal(0))))
                 .WithSemicolonToken(
-                    Token(SyntaxKind.SemicolonToken))
+                    SemicolonToken)
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public int Num => 0;");
@@ -1347,7 +1357,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.AsPublicInterfaceImplementation(
                 PropertyDeclaration(
                     PredefinedType(
-                        Token(SyntaxKind.IntKeyword)),
+                        IntKeyword),
                     Identifier("Num"))
                 .WithExplicitInterfaceSpecifier(
                     ExplicitInterfaceSpecifier(
@@ -1362,7 +1372,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                                         SyntaxKind.NumericLiteralExpression,
                                         Literal(0))))
                             .WithSemicolonToken(
-                                Token(SyntaxKind.SemicolonToken))]))
+                                SemicolonToken)]))
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public int Num { get => 0; }");
@@ -1371,7 +1381,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.AsPublicInterfaceImplementation(
                 IndexerDeclaration(
                     PredefinedType(
-                        Token(SyntaxKind.IntKeyword)))
+                        IntKeyword))
                 .WithExplicitInterfaceSpecifier(
                     ExplicitInterfaceSpecifier(
                         IdentifierName("IGeneral")))
@@ -1381,14 +1391,14 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             Identifier("index"))
                             .WithType(
                                 PredefinedType(
-                                    Token(SyntaxKind.IntKeyword)))]))
+                                    IntKeyword))]))
                 .WithExpressionBody(
                     ArrowExpressionClause(
                         LiteralExpression(
                             SyntaxKind.NumericLiteralExpression,
                             Literal(0))))
                 .WithSemicolonToken(
-                    Token(SyntaxKind.SemicolonToken))
+                    SemicolonToken)
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public int this[int index] => 0;");
@@ -1397,7 +1407,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.AsPublicInterfaceImplementation(
                 IndexerDeclaration(
                     PredefinedType(
-                        Token(SyntaxKind.IntKeyword)))
+                        IntKeyword))
                 .WithExplicitInterfaceSpecifier(
                     ExplicitInterfaceSpecifier(
                         IdentifierName("IGeneral")))
@@ -1407,7 +1417,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                             Identifier("index"))
                             .WithType(
                                 PredefinedType(
-                                    Token(SyntaxKind.IntKeyword)))]))
+                                    IntKeyword))]))
                 .WithAccessorList(
                     AccessorList(
                         SingletonList<AccessorDeclarationSyntax>(
@@ -1419,7 +1429,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                                         SyntaxKind.NumericLiteralExpression,
                                         Literal(0))))
                             .WithSemicolonToken(
-                                Token(SyntaxKind.SemicolonToken)))))
+                                SemicolonToken))))
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public int this[int index] { get => 0; }");
@@ -1441,7 +1451,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                                 LiteralExpression(
                                     SyntaxKind.NullLiteralExpression)))
                         .WithSemicolonToken(
-                            Token(SyntaxKind.SemicolonToken)),
+                            SemicolonToken),
                         AccessorDeclaration(
                             SyntaxKind.RemoveAccessorDeclaration)
                         .WithExpressionBody(
@@ -1449,7 +1459,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                                 LiteralExpression(
                                     SyntaxKind.NullLiteralExpression)))
                         .WithSemicolonToken(
-                            Token(SyntaxKind.SemicolonToken))]))
+                            SemicolonToken)]))
                 .NormalizeWhitespace(),
                 Generator.IdentifierName("i")),
                 "public event EventHandler Event { add => null; remove => null; }");
@@ -2787,7 +2797,7 @@ public class C
         public void TestAddExpressionBodyMembersToInterface()
         {
             var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("m");
-            method = method.WithBody(null).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            method = method.WithBody(null).WithSemicolonToken(SemicolonToken);
             method = method.WithExpressionBody(ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
 
             VerifySyntax<InterfaceDeclarationSyntax>(Generator.AddMembers(Generator.InterfaceDeclaration("i"),
@@ -2800,11 +2810,11 @@ public class C
                 """);
 
             var getAccessor = (AccessorDeclarationSyntax)Generator.GetAccessorDeclaration();
-            getAccessor = getAccessor.WithBody(null).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            getAccessor = getAccessor.WithBody(null).WithSemicolonToken(SemicolonToken);
             getAccessor = getAccessor.WithExpressionBody(ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
 
             var setAccessor = (AccessorDeclarationSyntax)Generator.SetAccessorDeclaration();
-            setAccessor = setAccessor.WithBody(null).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            setAccessor = setAccessor.WithBody(null).WithSemicolonToken(SemicolonToken);
             setAccessor = setAccessor.WithExpressionBody(ArrowExpressionClause((ExpressionSyntax)Generator.InvocationExpression(Generator.IdentifierName("x"))));
 
             var property = (PropertyDeclarationSyntax)
@@ -3286,14 +3296,14 @@ public class C
 
             // expression bodied methods
             var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("p");
-            method = method.WithBody(null).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            method = method.WithBody(null).WithSemicolonToken(SemicolonToken);
             method = method.WithExpressionBody(ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
 
             Assert.Equal("x", Generator.GetExpression(method).ToString());
 
             // expression bodied local functions
-            var local = LocalFunctionStatement(PredefinedType(Token(SyntaxKind.VoidKeyword)), "p");
-            local = local.WithBody(null).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            var local = LocalFunctionStatement(PredefinedType(VoidKeyword), "p");
+            local = local.WithBody(null).WithSemicolonToken(SemicolonToken);
             local = local.WithExpressionBody(ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
 
             Assert.Equal("x", Generator.GetExpression(local).ToString());
@@ -3322,14 +3332,14 @@ public class C
 
             // expression bodied methods
             var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("p");
-            method = method.WithBody(null).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            method = method.WithBody(null).WithSemicolonToken(SemicolonToken);
             method = method.WithExpressionBody(ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
 
             Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(method, Generator.IdentifierName("y"))).ToString());
 
             // expression bodied local functions
-            var local = LocalFunctionStatement(PredefinedType(Token(SyntaxKind.VoidKeyword)), "p");
-            local = local.WithBody(null).WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
+            var local = LocalFunctionStatement(PredefinedType(VoidKeyword), "p");
+            local = local.WithBody(null).WithSemicolonToken(SemicolonToken);
             local = local.WithExpressionBody(ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
 
             Assert.Equal("y", Generator.GetExpression(Generator.WithExpression(local, Generator.IdentifierName("y"))).ToString());

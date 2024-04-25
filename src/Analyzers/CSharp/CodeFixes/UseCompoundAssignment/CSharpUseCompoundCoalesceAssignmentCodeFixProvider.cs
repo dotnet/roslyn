@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundCoalesceAssignment), Shared]
@@ -64,7 +65,7 @@ internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider : SyntaxEditor
                 var newAssignment = AssignmentExpression(
                     SyntaxKind.CoalesceAssignmentExpression,
                     assignment.Left,
-                    Token(SyntaxKind.QuestionQuestionEqualsToken).WithTriviaFrom(assignment.OperatorToken),
+                    QuestionQuestionEqualsToken.WithTriviaFrom(assignment.OperatorToken),
                     assignment.Right).WithTriviaFrom(assignment);
 
                 var newWhenTrueStatement = whenTrueStatement.ReplaceNode(assignment, newAssignment);
@@ -107,7 +108,7 @@ internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider : SyntaxEditor
                         var coalesceRight = (ParenthesizedExpressionSyntax)currentCoalesce.Right;
                         var assignment = (AssignmentExpressionSyntax)coalesceRight.Expression;
 
-                        var compoundOperator = Token(SyntaxKind.QuestionQuestionEqualsToken);
+                        var compoundOperator = QuestionQuestionEqualsToken;
                         var finalAssignment = AssignmentExpression(
                             SyntaxKind.CoalesceAssignmentExpression,
                             assignment.Left,

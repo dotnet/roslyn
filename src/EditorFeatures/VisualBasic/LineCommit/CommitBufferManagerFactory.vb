@@ -12,18 +12,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     Friend Class CommitBufferManagerFactory
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
-        Private ReadOnly _threadingContext As IThreadingContext
 
         <ImportingConstructor()>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(commitFormatter As ICommitFormatter, inlineRenameService As IInlineRenameService, threadingContext As IThreadingContext)
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
-            _threadingContext = threadingContext
         End Sub
 
         Public Function CreateForBuffer(buffer As ITextBuffer) As CommitBufferManager
-            Return buffer.Properties.GetOrCreateSingletonProperty(Function() New CommitBufferManager(buffer, _commitFormatter, _inlineRenameService, _threadingContext))
+            Return buffer.Properties.GetOrCreateSingletonProperty(Function() New CommitBufferManager(buffer, _commitFormatter, _inlineRenameService))
         End Function
     End Class
 End Namespace

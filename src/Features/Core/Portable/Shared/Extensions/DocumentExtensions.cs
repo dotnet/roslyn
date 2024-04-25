@@ -68,7 +68,7 @@ internal static class DocumentExtensions
             totalItems.AddRange(values.NullToEmpty());
         }
 
-        return totalItems.ToImmutableArray();
+        return [.. totalItems];
     }
 
     public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(

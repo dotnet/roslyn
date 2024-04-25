@@ -17,17 +17,6 @@ namespace Microsoft.CodeAnalysis.Copilot;
 internal interface ICopilotCodeAnalysisService : ILanguageService
 {
     /// <summary>
-    /// Returns true if we should show 'Refine using Copilot' hyperlink in the lightbulb
-    /// preview for code actions.
-    /// </summary>
-    Task<bool> IsRefineOptionEnabledAsync();
-
-    /// <summary>
-    /// Returns true if Copilot background code analysis feature is enabled.
-    /// </summary>
-    Task<bool> IsCodeAnalysisOptionEnabledAsync();
-
-    /// <summary>
     /// Returns true if the Copilot service is available for making Copilot code analysis requests.
     /// </summary>
     Task<bool> IsAvailableAsync(CancellationToken cancellationToken);

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -14,12 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
 
-internal sealed class WatchHotReloadService
+internal sealed class WatchHotReloadService(SolutionServices services, Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider)
 {
-    private sealed class DebuggerService(ImmutableArray<string> capabilities) : IManagedHotReloadService
+    private sealed class DebuggerService(Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider) : IManagedHotReloadService
     {
-        private readonly ImmutableArray<string> _capabilities = capabilities;
-
         public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
@@ -27,41 +24,39 @@ internal sealed class WatchHotReloadService
             => ValueTaskFactory.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
         public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_capabilities);
+            => capabilitiesProvider();
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
             => ValueTaskFactory.CompletedTask;
     }
 
-    public readonly struct Update
+    public readonly struct Update(
+        Guid moduleId,
+        ImmutableArray<byte> ilDelta,
+        ImmutableArray<byte> metadataDelta,
+        ImmutableArray<byte> pdbDelta,
+        ImmutableArray<int> updatedTypes,
+        ImmutableArray<string> requiredCapabilities)
     {
-        public readonly Guid ModuleId;
-        public readonly ImmutableArray<byte> ILDelta;
-        public readonly ImmutableArray<byte> MetadataDelta;
-        public readonly ImmutableArray<byte> PdbDelta;
-        public readonly ImmutableArray<int> UpdatedTypes;
-        public readonly ImmutableArray<string> RequiredCapabilities;
-
-        internal Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta, ImmutableArray<int> updatedTypes, ImmutableArray<string> requiredCapabilities)
-        {
-            ModuleId = moduleId;
-            ILDelta = ilDelta;
-            MetadataDelta = metadataDelta;
-            PdbDelta = pdbDelta;
-            UpdatedTypes = updatedTypes;
-            RequiredCapabilities = requiredCapabilities;
-        }
+        public readonly Guid ModuleId = moduleId;
+        public readonly ImmutableArray<byte> ILDelta = ilDelta;
+        public readonly ImmutableArray<byte> MetadataDelta = metadataDelta;
+        public readonly ImmutableArray<byte> PdbDelta = pdbDelta;
+        public readonly ImmutableArray<int> UpdatedTypes = updatedTypes;
+        public readonly ImmutableArray<string> RequiredCapabilities = requiredCapabilities;
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
         (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-    private readonly IEditAndContinueService _encService;
+    private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
+
     private DebuggingSessionId _sessionId;
-    private readonly ImmutableArray<string> _capabilities;
 
     public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>().Service, capabilities);
+        : this(services.SolutionServices, () => ValueTaskFactory.FromResult(capabilities))
+    {
+    }
 
     /// <summary>
     /// Starts the watcher.
@@ -72,7 +67,7 @@ internal sealed class WatchHotReloadService
     {
         var newSessionId = await _encService.StartDebuggingSessionAsync(
             solution,
-            new DebuggerService(_capabilities),
+            new DebuggerService(capabilitiesProvider),
             NullPdbMatchingSourceTextProvider.Instance,
             captureMatchingDocuments: [],
             captureAllMatchingDocuments: true,
@@ -80,6 +75,17 @@ internal sealed class WatchHotReloadService
             cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfFalse(_sessionId == default, "Session already started");
         _sessionId = newSessionId;
+    }
+
+    /// <summary>
+    /// Invoke when capabilities have changed.
+    /// </summary>
+    public void CapabilitiesChanged()
+    {
+        var sessionId = _sessionId;
+        Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+
+        _encService.BreakStateOrCapabilitiesChanged(sessionId, inBreakState: null);
     }
 
     /// <summary>
@@ -100,7 +106,7 @@ internal sealed class WatchHotReloadService
 
         if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
         {
-            _encService.CommitSolutionUpdate(sessionId, out _);
+            _encService.CommitSolutionUpdate(sessionId);
         }
 
         var updates = results.ModuleUpdates.Updates.SelectAsArray(
@@ -114,7 +120,7 @@ internal sealed class WatchHotReloadService
     public void EndSession()
     {
         Contract.ThrowIfFalse(_sessionId != default, "Session has not started");
-        _encService.EndDebuggingSession(_sessionId, out _);
+        _encService.EndDebuggingSession(_sessionId);
     }
 
     internal TestAccessor GetTestAccessor()

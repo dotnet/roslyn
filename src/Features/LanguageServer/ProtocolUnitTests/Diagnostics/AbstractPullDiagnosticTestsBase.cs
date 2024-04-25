@@ -35,12 +35,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
     using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
     using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
 
-    public abstract class AbstractPullDiagnosticTestsBase : AbstractLanguageServerProtocolTests
+    public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
     {
-        protected AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-        {
-        }
-
         private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
         {
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();

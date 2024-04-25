@@ -59,7 +59,7 @@ internal sealed class GlobalAssemblyCacheCompletionHelper
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)

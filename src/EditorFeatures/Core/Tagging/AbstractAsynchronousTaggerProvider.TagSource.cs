@@ -391,7 +391,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
 
             OnTagsChangedForBuffer(
-                [new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)],
+                [KeyValuePairUtil.Create(buffer, difference)],
                 highPriority: false);
         }
     }

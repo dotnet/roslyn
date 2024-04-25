@@ -19,6 +19,12 @@ internal sealed class ConstantTextAndVersionSource(TextAndVersion value) : IText
     public bool CanReloadText
         => false;
 
+    /// <summary>
+    /// Not built from a text loader.
+    /// </summary>
+    public TextLoader? TextLoader
+        => null;
+
     public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
         => _value;
 

@@ -72,7 +72,7 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
@@ -145,7 +145,7 @@ internal abstract partial class AbstractInheritanceMarginService
                 cancellationToken).ConfigureAwait(false));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsAsync(
@@ -269,7 +269,7 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return items.ToImmutable();
+        return items.ToImmutableAndClear();
     }
 
     private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
@@ -756,6 +756,6 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

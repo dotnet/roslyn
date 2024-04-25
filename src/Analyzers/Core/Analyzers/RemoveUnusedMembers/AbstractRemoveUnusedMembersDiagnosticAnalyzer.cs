@@ -611,10 +611,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     stack.Clear();
                     stack.Push(typeDeclaration);
 
-                    while (stack.Count > 0)
+                    while (stack.TryPop(out var currentType))
                     {
-                        var currentType = stack.Pop();
-
                         // Add the doc comments on the type itself.
                         AddDocumentationComments(currentType, documentationComments);
 

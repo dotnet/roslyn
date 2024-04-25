@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToTuple), Shared]
@@ -32,9 +33,9 @@ internal class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider
 
     protected override TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
         => TupleExpression(
-                Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonCreation.OpenBraceToken),
+                OpenParenToken.WithTriviaFrom(anonCreation.OpenBraceToken),
                 ConvertInitializers(anonCreation.Initializers),
-                Token(SyntaxKind.CloseParenToken).WithTriviaFrom(anonCreation.CloseBraceToken))
+                CloseParenToken.WithTriviaFrom(anonCreation.CloseBraceToken))
                         .WithPrependedLeadingTrivia(anonCreation.GetLeadingTrivia());
 
     private static SeparatedSyntaxList<ArgumentSyntax> ConvertInitializers(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
@@ -49,5 +50,5 @@ internal class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider
             ? null
             : NameColon(
                 nameEquals.Name,
-                Token(SyntaxKind.ColonToken).WithTriviaFrom(nameEquals.EqualsToken));
+                ColonToken.WithTriviaFrom(nameEquals.EqualsToken));
 }

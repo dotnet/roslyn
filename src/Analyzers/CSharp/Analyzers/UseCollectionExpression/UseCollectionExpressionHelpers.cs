@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class UseCollectionExpressionHelpers
@@ -690,10 +691,10 @@ internal static class UseCollectionExpressionHelpers
         InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
-        var openBracket = Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(initializer.OpenBraceToken);
+        var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);
         var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
             i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
-        var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(initializer.CloseBraceToken);
+        var closeBracket = CloseBracketToken.WithTriviaFrom(initializer.CloseBraceToken);
 
         // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
         // it was multiline, leave alone as we want the brackets to just replace the existing braces exactly as they are.
@@ -905,7 +906,7 @@ internal static class UseCollectionExpressionHelpers
             return default;
         }
 
-        return matches.ToImmutable();
+        return matches.ToImmutableAndClear();
     }
 
     public static bool IsCollectionFactoryCreate(

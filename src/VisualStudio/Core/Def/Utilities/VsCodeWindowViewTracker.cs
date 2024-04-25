@@ -6,10 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Text.Editor;
@@ -26,9 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 /// <remarks>
 /// All members of this class are UI thread affinitized, including the constructor.
 /// </remarks>
-internal sealed class VsCodeWindowViewTracker : ForegroundThreadAffinitizedObject, IDisposable, IVsCodeWindowEvents
+internal sealed class VsCodeWindowViewTracker : IDisposable, IVsCodeWindowEvents
 {
     private readonly IVsCodeWindow _codeWindow;
+    private readonly IThreadingContext _threadingContext;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
     private readonly ComEventSink _codeWindowEventsSink;
@@ -39,10 +38,12 @@ internal sealed class VsCodeWindowViewTracker : ForegroundThreadAffinitizedObjec
     private readonly Dictionary<IVsTextView, ITextView> _trackedTextViews = [];
 
     public VsCodeWindowViewTracker(IVsCodeWindow codeWindow, IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-        : base(threadingContext, assertIsForeground: true)
     {
         _codeWindow = codeWindow;
+        _threadingContext = threadingContext;
         _editorAdaptersFactoryService = editorAdaptersFactoryService;
+
+        _threadingContext.ThrowIfNotOnUIThread();
 
         _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
 
@@ -56,7 +57,7 @@ internal sealed class VsCodeWindowViewTracker : ForegroundThreadAffinitizedObjec
 
     private void StartTrackingView(IVsTextView pTextView)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (!_trackedTextViews.ContainsKey(pTextView))
         {
@@ -73,7 +74,7 @@ internal sealed class VsCodeWindowViewTracker : ForegroundThreadAffinitizedObjec
 
     private void StopTrackingView(IVsTextView pView)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (_trackedTextViews.TryGetValue(pView, out var view))
         {
@@ -86,7 +87,7 @@ internal sealed class VsCodeWindowViewTracker : ForegroundThreadAffinitizedObjec
 
     public ITextView GetActiveView()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         ErrorHandler.ThrowOnFailure(_codeWindow.GetLastActiveView(out var pView));
         Contract.ThrowIfNull(pView, $"{nameof(IVsCodeWindow.GetLastActiveView)} returned success, but did not provide a view.");
@@ -97,7 +98,7 @@ internal sealed class VsCodeWindowViewTracker : ForegroundThreadAffinitizedObjec
 
     int IVsCodeWindowEvents.OnNewView(IVsTextView pView)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         StartTrackingView(pView);
 
         return VSConstants.S_OK;
@@ -105,7 +106,7 @@ internal sealed class VsCodeWindowViewTracker : ForegroundThreadAffinitizedObjec
 
     int IVsCodeWindowEvents.OnCloseView(IVsTextView pView)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         StopTrackingView(pView);
 
         return VSConstants.S_OK;

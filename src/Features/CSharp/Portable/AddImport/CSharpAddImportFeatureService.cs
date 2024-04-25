@@ -28,6 +28,7 @@ using static Microsoft.CodeAnalysis.CSharp.AddImport.AddImportDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]
@@ -480,7 +481,7 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
 
         usingDirective = namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
             ? usingDirective
-            : usingDirective.WithStaticKeyword(Token(SyntaxKind.StaticKeyword));
+            : usingDirective.WithStaticKeyword(StaticKeyword);
 
         return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective, generator));
     }

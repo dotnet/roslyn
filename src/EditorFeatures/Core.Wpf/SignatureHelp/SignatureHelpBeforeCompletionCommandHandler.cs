@@ -7,6 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out ICommandHandler commandHandler)
             where TCommandArgs : EditorCommandArgs
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             if (!TryGetController(args, out var controller))
             {
                 commandHandler = null;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             Func<CommandState> nextHandler)
             where TCommandArgs : EditorCommandArgs
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             return TryGetControllerCommandHandler(args, out var commandHandler)
                 ? commandHandler.GetCommandState(args, nextHandler)
                 : nextHandler();
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             CommandExecutionContext context)
             where TCommandArgs : EditorCommandArgs
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             if (!TryGetControllerCommandHandler(args, out var commandHandler))
             {
                 nextHandler();
@@ -102,25 +103,25 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         CommandState IChainedCommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             return GetCommandStateWorker(args, nextHandler);
         }
 
         void IChainedCommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             ExecuteCommandWorker(args, nextHandler, context);
         }
 
         CommandState IChainedCommandHandler<InvokeSignatureHelpCommandArgs>.GetCommandState(InvokeSignatureHelpCommandArgs args, Func<CommandState> nextHandler)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             return CommandState.Available;
         }
 
         void IChainedCommandHandler<InvokeSignatureHelpCommandArgs>.ExecuteCommand(InvokeSignatureHelpCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             ExecuteCommandWorker(args, nextHandler, context);
         }
     }

@@ -77,7 +77,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
 
         void AddHintsIfAppropriate(SyntaxNode node)
         {
