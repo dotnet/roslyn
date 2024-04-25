@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     {
         /// <summary>
         /// Predicate kind for <see cref="CopyDataFlowOperationVisitor.SetAbstractValue(CopyAnalysisData, AnalysisEntity, CopyAbstractValue, System.Func{AnalysisEntity, CopyAbstractValue}, SetCopyAbstractValuePredicateKind?, bool)"/>
-        /// to indicte if the copy equality check for the SetAbstractValue call is a reference compare or a value compare operation.
+        /// to indicate if the copy equality check for the SetAbstractValue call is a reference compare or a value compare operation.
         /// </summary>
         internal enum SetCopyAbstractValuePredicateKind
         {

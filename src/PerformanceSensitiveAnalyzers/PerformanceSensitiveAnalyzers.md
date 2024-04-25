@@ -7,7 +7,7 @@ Because we inject the source of `PerformanceSensitiveAttribute` into projects re
 
 One way to resolve this issue is setting `GeneratePerformanceSensitiveAttribute` property to true in the project at the root of your IVT tree, and false otherwise.
 
-For example, given the dependecy graph below, if project A has IVT for project B, and project C has IVT for project D and project E. You need to set `GeneratePerformanceSensitiveAttribute` to true in A and C, and false in B, D and E.
+For example, given the dependency graph below, if project A has IVT for project B, and project C has IVT for project D and project E. You need to set `GeneratePerformanceSensitiveAttribute` to true in A and C, and false in B, D and E.
 
 ```text
      A

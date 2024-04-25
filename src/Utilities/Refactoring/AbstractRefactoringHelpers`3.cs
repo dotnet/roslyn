@@ -225,7 +225,7 @@ namespace Analyzer.Utilities
                     return locationLine.IsEmptyOrWhitespace();
                 }
 
-                // On hte same line.  This position is acceptable.
+                // On the same line.  This position is acceptable.
                 return true;
             }
         }

@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                          !targetMethod.IsExternallyVisible() &&
                          TryGetInterproceduralAnalysisResult(operation, out var invokedMethodAnalysisResult))
                 {
-                    // Check if this private/interal method that has hazardous usages of non-validated argument.
+                    // Check if this private/internal method that has hazardous usages of non-validated argument.
                     Debug.Assert(!targetMethod.IsVirtual && !targetMethod.IsOverride);
 
                     var hazardousParameterUsagesInInvokedMethod = invokedMethodAnalysisResult.HazardousParameterUsages;
