@@ -6608,6 +6608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (result == null)
                     {
                         if (finalApplicableCandidates.Length != 1 &&
+                            Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
                             HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
                         {
                             Error(diagnostics,
@@ -9732,8 +9733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 argumentSyntax, singleCandidate);
                         }
                     }
-                    // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for expanded non-array params cases.
-                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 || IsMemberWithExpandedNonArrayParamsCollection(finalApplicableCandidates[0]))
+                    // For C# 12 and earlier always bind at runtime.
+                    else if (Compilation.LanguageVersion > LanguageVersion.CSharp12)
                     {
                         var resultWithSingleCandidate = OverloadResolutionResult<PropertySymbol>.GetInstance();
                         resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);
@@ -9744,6 +9745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (finalApplicableCandidates.Length != 1 &&
+                    Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
                     HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
                 {
                     Error(diagnostics,
