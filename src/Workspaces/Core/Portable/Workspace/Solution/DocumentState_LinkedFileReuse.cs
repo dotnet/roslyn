@@ -13,6 +13,26 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class DocumentState
 {
+    private sealed class LinkedFileTreeAndVersionSource(
+        ITextAndVersionSource siblingTextSource,
+        ITreeAndVersionSource siblingTreeSource,
+        bool forceEvenIfTreesWouldDiffer,
+        AsyncLazy<TreeAndVersion> lazyComputation) : ITreeAndVersionSource
+    {
+        public readonly ITextAndVersionSource SiblingTextSource = siblingTextSource;
+        public readonly ITreeAndVersionSource SiblingTreeSource = siblingTreeSource;
+        public readonly bool ForceEvenIfTreesWouldDiffer = forceEvenIfTreesWouldDiffer;
+
+        public Task<TreeAndVersion> GetValueAsync(CancellationToken cancellationToken)
+            => lazyComputation.GetValueAsync(cancellationToken);
+
+        public TreeAndVersion GetValue(CancellationToken cancellationToken)
+            => lazyComputation.GetValue(cancellationToken);
+
+        public bool TryGetValue([NotNullWhen(true)] out TreeAndVersion? value)
+            => lazyComputation.TryGetValue(out value);
+    }
+
     /// <summary>
     /// Returns a new instance of this document state that points to <paramref name="siblingTextSource"/> as the
     /// text contents of the document, and which will produce a syntax tree that reuses from <paramref
@@ -21,7 +41,7 @@ internal partial class DocumentState
     /// </summary>
     public DocumentState UpdateTextAndTreeContents(
         ITextAndVersionSource siblingTextSource,
-        AsyncLazy<TreeAndVersion>? siblingTreeSource,
+        ITreeAndVersionSource? siblingTreeSource,
         bool forceEvenIfTreesWouldDiffer)
     {
         if (!SupportsSyntaxTree)
@@ -38,6 +58,17 @@ internal partial class DocumentState
 
         Contract.ThrowIfNull(siblingTreeSource);
 
+        // We don't want to point at a long chain of linked files, deferring to each next link of the chain to
+        // potentially do the work (or potentially failing out).  So, if we're about to point at a linked file which is
+        // already linked to some other file, just point directly at that file instead.   This can help when there are
+        // pathological cases (like a large solution with a single file linked into every project in the solution).
+        while (siblingTreeSource is LinkedFileTreeAndVersionSource linkedFileTreeAndVersionSource &&
+            linkedFileTreeAndVersionSource.SiblingTextSource == siblingTextSource &&
+            linkedFileTreeAndVersionSource.ForceEvenIfTreesWouldDiffer == forceEvenIfTreesWouldDiffer)
+        {
+            siblingTreeSource = linkedFileTreeAndVersionSource.SiblingTreeSource;
+        }
+
         // Always pass along the sibling text.  We will always be in sync with that.
 
         // if a sibling tree source is provided, then we'll want to attempt to use the tree it creates, to share as
@@ -46,22 +77,19 @@ internal partial class DocumentState
         // invariant that each document gets a unique SyntaxTree.  So, instead, we produce a ValueSource that defers
         // to the provided source, gets the tree from it, and then wraps its root in a new tree for us.
 
-        // copy data from this entity, and pass to static helper, so we don't keep this green node alive.
+        var lazyComputation = AsyncLazy.Create(
+            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.SyntaxTreeFilePath, arg.LanguageServices, arg.LoadTextOptions, arg.ParseOptions, arg.TreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            static (arg, cancellationToken) => TryReuseSiblingTree(arg.SyntaxTreeFilePath, arg.LanguageServices, arg.LoadTextOptions, arg.ParseOptions, arg.TreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            arg: (Attributes.SyntaxTreeFilePath, LanguageServices, LoadTextOptions, ParseOptions, TreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
 
-        var filePath = this.Attributes.SyntaxTreeFilePath;
-        var languageServices = this.LanguageServices;
-        var loadTextOptions = this.LoadTextOptions;
-        var parseOptions = this.ParseOptions;
-        var textAndVersionSource = this.TextAndVersionSource;
-        var treeSource = this.TreeSource;
-
-        var newTreeSource = AsyncLazy.Create(
-            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.treeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-            static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.treeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-            arg: (filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
+        var newTreeSource = new LinkedFileTreeAndVersionSource(
+            siblingTextSource,
+            siblingTreeSource,
+            forceEvenIfTreesWouldDiffer,
+            lazyComputation);
 
         return new DocumentState(
-            languageServices,
+            LanguageServices,
             Services,
             Attributes,
             _options,
@@ -172,9 +200,9 @@ internal partial class DocumentState
             LanguageServices languageServices,
             LoadTextOptions loadTextOptions,
             ParseOptions parseOptions,
-            AsyncLazy<TreeAndVersion> treeSource,
+            ITreeAndVersionSource treeSource,
             ITextAndVersionSource siblingTextSource,
-            AsyncLazy<TreeAndVersion> siblingTreeSource,
+            ITreeAndVersionSource siblingTreeSource,
             bool forceEvenIfTreesWouldDiffer,
             CancellationToken cancellationToken)
         {
@@ -195,9 +223,9 @@ internal partial class DocumentState
             LanguageServices languageServices,
             LoadTextOptions loadTextOptions,
             ParseOptions parseOptions,
-            AsyncLazy<TreeAndVersion> treeSource,
+            ITreeAndVersionSource treeSource,
             ITextAndVersionSource siblingTextSource,
-            AsyncLazy<TreeAndVersion> siblingTreeSource,
+            ITreeAndVersionSource siblingTreeSource,
             bool forceEvenIfTreesWouldDiffer,
             CancellationToken cancellationToken)
         {
