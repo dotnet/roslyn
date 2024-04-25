@@ -45,11 +45,9 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
             .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
     }
 
-    /// <inheritdoc />
     public ImmutableArray<string> GetDocumentSourceProviderNames()
         => _nameToDocumentProviderMap.Keys.ToImmutableArray();
 
-    /// <inheritdoc />
     public ImmutableArray<string> GetWorkspaceSourceProviderNames()
         => _nameToWorkspaceProviderMap.Keys.ToImmutableArray();
 
