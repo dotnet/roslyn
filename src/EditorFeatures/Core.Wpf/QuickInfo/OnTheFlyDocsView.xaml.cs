@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
 /// <summary>
 /// Interaction logic for OnTheFlyDocsView.xaml.
 /// </summary>
-internal partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
+internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyChanged
 {
     private readonly ITextView _textView;
     private readonly IViewElementFactoryService _viewElementFactoryService;
