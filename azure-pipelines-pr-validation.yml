@@ -46,7 +46,7 @@ variables:
   - name: _DevDivDropAccessToken
     value: $(System.AccessToken)
 
-  - name OriginalBuildNumber
+  - name: OriginalBuildNumber
     value: $(Build.BuildNumber)
 
 extends:
