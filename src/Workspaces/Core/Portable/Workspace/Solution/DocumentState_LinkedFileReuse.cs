@@ -115,13 +115,7 @@ internal partial class DocumentState
             lazyComputation);
 
         return new DocumentState(
-            languageServices,
-            services,
-            attributes,
-            parseOptions,
-            siblingTextSource,
-            loadTextOptions,
-            newTreeSource);
+            languageServices, services, attributes, parseOptions, siblingTextSource, loadTextOptions, newTreeSource);
 
         static bool TryReuseSiblingRoot(
             string filePath,
