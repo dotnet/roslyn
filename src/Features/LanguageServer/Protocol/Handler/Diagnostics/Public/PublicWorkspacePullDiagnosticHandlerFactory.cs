@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
@@ -16,12 +17,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 internal sealed class PublicWorkspacePullDiagnosticHandlerFactory(
     LspWorkspaceRegistrationService registrationService,
     IDiagnosticAnalyzerService analyzerService,
+    IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var workspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        return new PublicWorkspacePullDiagnosticsHandler(workspaceManager, registrationService, analyzerService, diagnosticsRefresher, globalOptions);
+        var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        return new PublicWorkspacePullDiagnosticsHandler(workspaceManager, registrationService, clientLanguageServerManager, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions);
     }
 }

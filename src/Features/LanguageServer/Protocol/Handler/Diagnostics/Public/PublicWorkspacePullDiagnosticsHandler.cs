@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -19,21 +20,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
 
 [Method(Methods.WorkspaceDiagnosticName)]
-internal sealed class PublicWorkspacePullDiagnosticsHandler(
-    LspWorkspaceManager workspaceManager,
-    LspWorkspaceRegistrationService registrationService,
-    IDiagnosticAnalyzerService analyzerService,
-    IDiagnosticsRefresher diagnosticRefresher,
-    IGlobalOptionService globalOptions)
-    : AbstractWorkspacePullDiagnosticsHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>(
-        workspaceManager, registrationService, analyzerService, diagnosticRefresher, globalOptions), IDisposable
+internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWorkspacePullDiagnosticsHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>, IDisposable
 {
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
+    public PublicWorkspacePullDiagnosticsHandler(
+        LspWorkspaceManager workspaceManager,
+        LspWorkspaceRegistrationService registrationService,
+        IClientLanguageServerManager clientLanguageServerManager,
+        IDiagnosticAnalyzerService analyzerService,
+        IDiagnosticSourceManager diagnosticSourceManager,
+        IDiagnosticsRefresher diagnosticRefresher,
+        IGlobalOptionService globalOptions)
+        : base(workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticRefresher, globalOptions)
+    {
+        _clientLanguageServerManager = clientLanguageServerManager;
+    }
 
-    /// <summary>
-    /// Public API doesn't support categories (yet).
-    /// </summary>
-    protected override string? GetDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
-        => null;
+    protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
+        => diagnosticsParams.Identifier;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
         => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
