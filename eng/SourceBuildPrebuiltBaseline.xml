@@ -35,4 +35,11 @@
     <UsagePattern IdentityGlob="System.Threading.Channels/8.0.0" />
     <UsagePattern IdentityGlob="System.Resources.Extensions/8.0.0" />
   </IgnorePatterns>
+  <Usages>
+    <Usage Id="Microsoft.Build" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Framework" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Tasks.Core" Version="17.3.4" IsDirectDependency="true" />
+    <Usage Id="Microsoft.Build.Utilities.Core" Version="17.3.4" />
+    <Usage Id="Microsoft.NET.StringTools" Version="17.3.4" />
+  </Usages>
 </UsageData>

@@ -31,7 +31,7 @@
     <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.7.4-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.8.36711</MicrosoftVisualStudioShellPackagesVersion>
     <!-- The version of MSBuild that we reference for things depending on MSBuildWorkspace -->
-    <RefOnlyMicrosoftBuildPackagesVersion>17.3.2</RefOnlyMicrosoftBuildPackagesVersion>
+    <RefOnlyMicrosoftBuildPackagesVersion>17.3.4</RefOnlyMicrosoftBuildPackagesVersion>
     <!-- The version of MSBuild that matches the version of MSBuild.StructuredLogger for apps using MSBuild as a regular API -->
     <MicrosoftBuildPackagesVersion>17.5.0</MicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
@@ -205,7 +205,7 @@
     <MicrosoftVisualStudioWorkspaceVSIntegrationVersion>17.1.11-preview-0002</MicrosoftVisualStudioWorkspaceVSIntegrationVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MicrosoftWin32RegistryVersion>5.0.0</MicrosoftWin32RegistryVersion>
-    <MSBuildStructuredLoggerVersion>2.2.169</MSBuildStructuredLoggerVersion>
+    <MSBuildStructuredLoggerVersion>2.2.206</MSBuildStructuredLoggerVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
