@@ -5,13 +5,16 @@
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
+using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Host;
 
 internal sealed partial class TemporaryStorageService
 {
     public sealed class TemporaryStorageStreamHandle(
-        TemporaryStorageService storageService, MemoryMappedFile memoryMappedFile, TemporaryStorageIdentifier identifier) : ITemporaryStorageStreamHandle
+        MemoryMappedFile memoryMappedFile,
+        TemporaryStorageIdentifier identifier)
+        : ITemporaryStorageStreamHandle
     {
         public TemporaryStorageIdentifier Identifier => identifier;
 
@@ -20,9 +23,13 @@ internal sealed partial class TemporaryStorageService
 
         public UnmanagedMemoryStream ReadFromTemporaryStorage(CancellationToken cancellationToken)
         {
-            var storage = new TemporaryStreamStorage(
-                storageService, memoryMappedFile, this.Identifier.Name, this.Identifier.Offset, this.Identifier.Size);
-            return storage.ReadStream(cancellationToken);
+            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadStream, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var info = new MemoryMappedInfo(memoryMappedFile, Identifier.Name, Identifier.Offset, Identifier.Size);
+                return info.CreateReadableStream();
+            }
         }
     }
 }
