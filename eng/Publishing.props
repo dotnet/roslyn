@@ -3,4 +3,16 @@
    <PropertyGroup>
       <PublishingVersion>3</PublishingVersion>
    </PropertyGroup>
+
+  <!-- During PR Validation we need to remove all Packages from being published as they are published separately to the CoreXT feed. -->
+  <PropertyGroup>
+    <PublishDependsOnTargets>$(PublishDependsOnTargets);_ResolvePublishRoslynNuGetPackages</PublishDependsOnTargets>
+  </PropertyGroup>
+
+  <Target Name="_ResolvePublishRoslynNuGetPackages">
+    <ItemGroup>
+      <!-- During PR Validation we need to remove all Packages from being published as they are published separately to the CoreXT feed. -->
+      <ItemsToPushToBlobFeed Remove="@(PackagesToPublish)" Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' " />
+    </ItemGroup>
+  </Target>
 </Project>

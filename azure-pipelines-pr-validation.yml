@@ -282,7 +282,7 @@ extends:
       # Publish to Build Asset Registry
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
         parameters:
-          publishUsingPipelines: false
+          publishUsingPipelines: true
           dependsOn:
           - PRValidationBuild
           pool:
