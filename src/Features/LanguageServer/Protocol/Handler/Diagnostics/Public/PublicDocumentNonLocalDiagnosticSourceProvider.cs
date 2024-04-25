@@ -22,7 +22,7 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
     [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService)
     : IDiagnosticSourceProvider
 {
-    public const string NonLocal = "NonLocal_B69807DB-28FB-4846-884A-1152E54C8B62";
+    public const string NonLocal = nameof(NonLocal);
     public bool IsDocument => true;
     public string Name => NonLocal;
 
