@@ -55,8 +55,10 @@ internal partial class DocumentState
         var textAndVersionSource = this.TextAndVersionSource;
         var treeSource = this.TreeSource;
 
-        var newTreeSource = GetReuseTreeSource(
-            filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer);
+        var newTreeSource = AsyncLazy.Create(
+            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.treeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.treeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            arg: (filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
 
         return new DocumentState(
             languageServices,
@@ -66,22 +68,6 @@ internal partial class DocumentState
             siblingTextSource,
             LoadTextOptions,
             newTreeSource);
-
-        static AsyncLazy<TreeAndVersion> GetReuseTreeSource(
-            string filePath,
-            LanguageServices languageServices,
-            LoadTextOptions loadTextOptions,
-            ParseOptions parseOptions,
-            AsyncLazy<TreeAndVersion> treeSource,
-            ITextAndVersionSource siblingTextSource,
-            AsyncLazy<TreeAndVersion> siblingTreeSource,
-            bool forceEvenIfTreesWouldDiffer)
-        {
-            return AsyncLazy.Create(
-                static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.treeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-                static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.treeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-                arg: (filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
-        }
 
         static bool TryReuseSiblingRoot(
             string filePath,
