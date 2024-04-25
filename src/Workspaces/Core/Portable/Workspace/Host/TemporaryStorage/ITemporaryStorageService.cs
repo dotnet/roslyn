@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-[Obsolete("API is no longer available")]
+[Obsolete("API is no longer available", error: true)]
 public interface ITemporaryStorageService : IWorkspaceService
 {
     ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default);

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-[Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.")]
+[Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.", error: true)]
 public interface ITemporaryTextStorage : IDisposable
 {
     SourceText ReadText(CancellationToken cancellationToken = default);
@@ -21,7 +21,7 @@ public interface ITemporaryTextStorage : IDisposable
     Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default);
 }
 
-[Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.")]
+[Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.", error: true)]
 public interface ITemporaryStreamStorage : IDisposable
 {
     Stream ReadStream(CancellationToken cancellationToken = default);
