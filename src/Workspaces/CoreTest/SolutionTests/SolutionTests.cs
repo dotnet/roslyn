@@ -2639,11 +2639,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-#if NETCOREAPP
-        [SupportedOSPlatform("windows")]
-#endif
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -2669,17 +2666,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text2, textOnDisk);
 
             // stop observing it and let GC reclaim it
-            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
-            {
-                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
-                observedText.AssertReleased();
-            }
-            else
-            {
-                // If this assertion fails, it means a new target supports the true temporary storage service, and the
-                // condition above should be updated to ensure 'AssertReleased' is called for this target.
-                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
-            }
+            observedText.AssertReleased();
 
             // if we ask for the same text again we should get the original content
             var observedText2 = sol.GetDocument(did).GetTextAsync().Result;

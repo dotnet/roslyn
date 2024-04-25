@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
@@ -12,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Host;
 /// used to identify that segment across processes, allowing for efficient sharing of data.
 /// </summary>
 internal sealed record TemporaryStorageIdentifier(
-    string Name, long Offset, long Size)
+    string? Name, long Offset, long Size)
 {
     public static TemporaryStorageIdentifier ReadFrom(ObjectReader reader)
         => new(
-            reader.ReadRequiredString(),
+            reader.ReadString(),
             reader.ReadInt64(),
             reader.ReadInt64());
 

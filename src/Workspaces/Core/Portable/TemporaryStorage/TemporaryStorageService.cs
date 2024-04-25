@@ -173,6 +173,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     internal static TemporaryStorageStreamHandle GetStreamHandle(TemporaryStorageIdentifier storageIdentifier)
     {
+        Contract.ThrowIfNull(storageIdentifier.Name, $"{nameof(GetStreamHandle)} should only be called for VS on Windows (where named memory mapped files as supported)");
         var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
         return new(memoryMappedFile, storageIdentifier);
     }
@@ -183,6 +184,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         Encoding? encoding,
         ImmutableArray<byte> contentHash)
     {
+        Contract.ThrowIfNull(storageIdentifier.Name, $"{nameof(GetTextHandle)} should only be called for VS on Windows (where named memory mapped files as supported)");
         var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
         return new(this, memoryMappedFile, storageIdentifier, checksumAlgorithm, encoding, contentHash);
     }
@@ -229,8 +231,15 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         }
     }
 
-    public static string CreateUniqueName(long size)
-        => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
+    public static string? CreateUniqueName(long size)
+    {
+        // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
+        // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
+        // until https://github.com/dotnet/runtime/issues/30878 is fixed.
+        return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
+            ? $"Roslyn Shared File: Size={size} Id={Guid.NewGuid():N}"
+            : null;
+    }
 
     public sealed class TemporaryStorageTextHandle(
         TemporaryStorageService storageService,
