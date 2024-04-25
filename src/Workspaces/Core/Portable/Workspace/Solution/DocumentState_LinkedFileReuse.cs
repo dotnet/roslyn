@@ -14,19 +14,13 @@ namespace Microsoft.CodeAnalysis;
 internal partial class DocumentState
 {
     /// <summary>
-    /// <see cref="ITreeAndVersionSource"/> when we're linked to another file.  This allows us to defer to the linked
-    /// file to get the actual root.  Note: we won't know if we can actually use the contents of that linked file until
-    /// we actually go and realize it.  And if we are unable to use it, we will do a normal incremental parse on our own
-    /// tree and the *text contents* of the linked file.
+    /// <see cref="ITreeAndVersionSource"/> when we're linked to another file (a 'sibling') and will attempt to reuse
+    /// that sibling's tree as our own. Note: we won't know if we can actually use the contents of that sibling file
+    /// until we actually go and realize it, as it may contains constructs (like pp-directives) that prevent use.  In
+    /// that case, we'll fall back to a normal incremental parse between our original <paramref
+    /// name="originalTreeSource"/> and the latest <em>text</em> contents of our sibling's file.
     /// </summary>
-    /// <remarks>
-    /// This holds onto our original tree source so that if we're continually overwritten (say because our linked file
-    /// keeps getting edited) that we don't form a long chain of links we have to walk in the case where we do *not*
-    /// reused the contents of the linked file.  In the case where we do not reuse, we will just do a normal incremental
-    /// parse and we don't want a chain of those.  Instead, we'll have our last tree, and the latest linked-file text
-    /// and can incrementally parse between those two.
-    /// </remarks>
-    private sealed class LinkedFileTreeAndVersionSource(
+    private sealed class LinkedFileReuseTreeAndVersionSource(
         ITreeAndVersionSource originalTreeSource,
         AsyncLazy<TreeAndVersion> lazyComputation) : ITreeAndVersionSource
     {
@@ -67,14 +61,15 @@ internal partial class DocumentState
 
         Contract.ThrowIfNull(siblingTreeSource);
 
-        // We don't want to point at a long chain of linked files, deferring to each next link of the chain to
-        // potentially do the work (or potentially failing out).  So, if we're about to point at a linked file which is
-        // already linked to some other file, just point directly at that file instead.   This can help when there are
-        // pathological cases (like a large solution with a single file linked into every project in the solution).  We
-        // only need to look one deep here as we'll pull that tree source forward to our level.  If another link is
+        // We don't want to point at a long chain of transformations as our sibling files change, deferring to each next
+        // link of the chain to potentially do the work (or potentially failing out). So, if we're about to do this,
+        // instead return our original tree-source so that in the case we are unable to use the sibling file's root, we
+        // can do a single step incremental parse between our original tree and the final sibling text.
+        //
+        // We only need to look one deep here as we'll pull that tree source forward to our level.  If another link is
         // later added to us, it will do the same thing.
         var originalTreeSource = this.TreeSource;
-        if (originalTreeSource is LinkedFileTreeAndVersionSource linkedFileTreeAndVersionSource)
+        if (originalTreeSource is LinkedFileReuseTreeAndVersionSource linkedFileTreeAndVersionSource)
             originalTreeSource = linkedFileTreeAndVersionSource.OriginalTreeSource;
 
         // Always pass along the sibling text.  We will always be in sync with that.
@@ -97,24 +92,18 @@ internal partial class DocumentState
         ITreeAndVersionSource siblingTreeSource,
         bool forceEvenIfTreesWouldDiffer)
     {
-        // if a sibling tree source is provided, then we'll want to attempt to use the tree it creates, to share as
-        // much memory as possible with linked files.  However, we can't point at that source directly.  If we did,
-        // we'd produce the *exact* same tree-reference as another file.  That would be bad as it would break the
-        // invariant that each document gets a unique SyntaxTree.  So, instead, we produce a ValueSource that defers
-        // to the provided source, gets the tree from it, and then wraps its root in a new tree for us.
-
-        // We're going to defer to the sibling tree source to get the tree if possible.  We'll do this lazily so
-        // that we don't actually realize the tree until we need it.  This way we can avoid doing extra work if
-        // the tree is never actually needed.
+        // if a sibling tree source is provided, then we'll want to attempt to use the tree it creates, to share as much
+        // memory as possible with linked files.  However, we can't point at that source directly.  If we did, we'd
+        // produce the *exact* same tree-reference as another file.  That would be bad as it would break the invariant
+        // that each document gets a unique SyntaxTree.  So, instead, we produce a tree-source that defers to the
+        // provided source, gets the tree from it, and then wraps its root in a new tree for us.
 
         var lazyComputation = AsyncLazy.Create(
             static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
             static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
             arg: (filePath: attributes.SyntaxTreeFilePath, languageServices, loadTextOptions, parseOptions, originalTreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
 
-        var newTreeSource = new LinkedFileTreeAndVersionSource(
-            originalTreeSource,
-            lazyComputation);
+        var newTreeSource = new LinkedFileReuseTreeAndVersionSource(originalTreeSource, lazyComputation);
 
         return new DocumentState(
             languageServices, services, attributes, parseOptions, siblingTextSource, loadTextOptions, newTreeSource);
