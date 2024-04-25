@@ -107,7 +107,6 @@ internal partial class DocumentState
         // that we don't actually realize the tree until we need it.  This way we can avoid doing extra work if
         // the tree is never actually needed.
 
-#if true
         var lazyComputation = AsyncLazy.Create(
             static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
             static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
@@ -116,14 +115,6 @@ internal partial class DocumentState
         var newTreeSource = new LinkedFileTreeAndVersionSource(
             originalTreeSource,
             lazyComputation);
-
-#else
-        var newTreeSource = SimpleTreeAndVersionSource.Create(
-            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-            static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-            arg: (filePath: attributes.SyntaxTreeFilePath, languageServices, loadTextOptions, parseOptions, originalTreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
-
-#endif
 
         return new DocumentState(
             languageServices, services, attributes, parseOptions, siblingTextSource, loadTextOptions, newTreeSource);
