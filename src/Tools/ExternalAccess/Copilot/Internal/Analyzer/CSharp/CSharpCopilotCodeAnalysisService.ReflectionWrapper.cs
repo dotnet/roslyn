@@ -151,12 +151,12 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             return _lazyStartRefinementSessionAsyncDelegate.Value(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
         }
 
-        public async Task<string> GetOnTheFlyDocsAsync(string descriptionText, ImmutableArray<string> symbolStrings, CancellationToken cancellationToken)
+        public async Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, CancellationToken cancellationToken)
         {
             if (_lazyGetOnTheFlyDocsAsyncDelegate.Value is null)
                 return string.Empty;
 
-            return await _lazyGetOnTheFlyDocsAsyncDelegate.Value(descriptionText, symbolStrings, cancellationToken).ConfigureAwait(false);
+            return await _lazyGetOnTheFlyDocsAsyncDelegate.Value(symbolSignature, declarationCode, cancellationToken).ConfigureAwait(false);
         }
     }
 }
