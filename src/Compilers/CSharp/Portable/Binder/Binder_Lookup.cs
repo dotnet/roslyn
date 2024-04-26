@@ -1933,7 +1933,7 @@ symIsHidden:;
             }
         }
 
-        private static TypeSymbol? RefineAccessThroughType(LookupOptions options, TypeSymbol accessThroughType)
+        private static TypeSymbol? RefineAccessThroughType(LookupOptions options, TypeSymbol? accessThroughType)
         {
             // Normally, when we access a protected instance member, we need to know the type of the receiver so we
             // can determine whether the member is actually accessible in the containing type.  There is one exception:
