@@ -124,16 +124,11 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     private void PopulateAIDocumentationElements(CancellationToken cancellationToken)
     {
         var copilotService = _document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
-
-        if (copilotService is not null)
-        {
-            _ = SetResultTextAsync(copilotService, cancellationToken);
-        }
+        _ = SetResultTextAsync(copilotService, cancellationToken);
     }
 
     private async Task SetResultTextAsync(ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
     {
-        var copilotRequestTime = TimeSpan.Zero;
         var stopwatch = Stopwatch.StartNew();
 
         try
@@ -141,7 +136,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
             using var token = _asyncListener.BeginAsyncOperation(nameof(SetResultTextAsync));
             var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, cancellationToken).ConfigureAwait(false);
             stopwatch.Stop();
-            copilotRequestTime = stopwatch.Elapsed;
+            var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -159,7 +154,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                 SetResultText(response);
                 CurrentState = OnTheFlyDocsState.Finished;
 
-                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Results_Displayed, KeyValueLogMessage.Create(m =>
                 {
                     m["ElapsedTime"] = copilotRequestTime;
                     m["ResponseLength"] = response.Length;
