@@ -174,8 +174,12 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                 SuggestedNames.Add(name);
             }
 
-            // Changing the list may have changed the text in the text box. We need to restore it.
-            BaseViewModel.IdentifierText = textInputBackup;
+            if (IsUsingDropdown)
+            {
+                // Changing the list may have changed the text in the text box. We need to restore it.
+                // This has a side effect of selecting all the text in the text box.
+                BaseViewModel.IdentifierText = textInputBackup;
+            }
 
             return;
         }
