@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -136,25 +133,6 @@ internal abstract partial class AbstractNavigateToSearchService
                     SearchProjectInCurrentProcessAsync(
                         project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
                         searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken)).ConfigureAwait(false);
-
-        
-            //await ProcessProjectsAsync(highPriProjects, onItemFound).ConfigureAwait(false);
-            //await ProcessProjectsAsync(lowPriProjects, onItemFound).ConfigureAwait(false);
         }
-
-        //async Task ProcessProjectsAsync(HashSet<Project> projects, Action<RoslynNavigateToItem> onItemFound)
-        //{
-        //    using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-        //    foreach (var project in projects)
-        //    {
-        //        if (cancellationToken.IsCancellationRequested)
-        //            return;
-
-        //        tasks.Add(;
-        //    }
-
-        //    await Task.WhenAll(tasks).ConfigureAwait(false);
-        //}
     }
 }
