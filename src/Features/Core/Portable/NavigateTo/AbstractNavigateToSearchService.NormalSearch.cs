@@ -115,69 +115,48 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        ClearCachedData();
-
-        var orderedDocuments = GetOrderedDocuments();
-
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
         await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchDocumentsAsync),
+            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchProjectsAsync),
             ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
 
         return;
 
-        IEnumerable<Document> GetOrderedDocuments()
+        async Task SearchProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
         {
             using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
             using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
 
-            using var _3 = PooledHashSet<Document>.GetInstance(out var seenDocuments);
-
-
-        }
-
-        async Task SearchDocumentsAsync(
-            IEnumerable<Document> orderedDocuments,
-            Action<RoslynNavigateToItem> onItemFound)
-        {
-            // If the user created a dotted pattern then we'll grab the last part of the name
-            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
-
-            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+            Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
 
             await Parallel.ForEachAsync(
-                orderedDocuments,
+                highPriProjects.Concat(lowPriProjects),
                 cancellationToken,
-                (document, cancellationToken) =>
-                    ProcessDocumentAsync(
-                        document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+                (project, cancellationToken) =>
+                    SearchProjectInCurrentProcessAsync(
+                        project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
+                        searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken)).ConfigureAwait(false);
+
+
+        
+            //await ProcessProjectsAsync(highPriProjects, onItemFound).ConfigureAwait(false);
+            //await ProcessProjectsAsync(lowPriProjects, onItemFound).ConfigureAwait(false);
         }
 
-        //async Task SearchProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
+        //async Task ProcessProjectsAsync(HashSet<Project> projects, Action<RoslynNavigateToItem> onItemFound)
         //{
+        //    using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-        //    Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
+        //    foreach (var project in projects)
+        //    {
+        //        if (cancellationToken.IsCancellationRequested)
+        //            return;
 
-        //    await ProcessProjectsAsync(highPriProjects, onItemFound).ConfigureAwait(false);
-        //    await ProcessProjectsAsync(lowPriProjects, onItemFound).ConfigureAwait(false);
+        //        tasks.Add(;
+        //    }
+
+        //    await Task.WhenAll(tasks).ConfigureAwait(false);
         //}
-
-        async Task ProcessProjectsAsync(HashSet<Project> projects, Action<RoslynNavigateToItem> onItemFound)
-        {
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-            foreach (var project in projects)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-
-                tasks.Add(SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
-                    searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
     }
 }
