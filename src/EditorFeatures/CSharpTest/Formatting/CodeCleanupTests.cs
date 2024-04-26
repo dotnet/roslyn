@@ -626,8 +626,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         }
 
         [Theory]
-        [InlineData(LanguageNames.CSharp, 49)]
-        [InlineData(LanguageNames.VisualBasic, 86)]
+        [InlineData(LanguageNames.CSharp, 50)]
+        [InlineData(LanguageNames.VisualBasic, 87)]
         public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int numberOfUnsupportedDiagnosticIds)
         {
             var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
