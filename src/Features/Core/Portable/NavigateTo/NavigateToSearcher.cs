@@ -346,7 +346,7 @@ internal sealed class NavigateToSearcher
         bool parallel,
         ImmutableArray<ImmutableArray<Project>> orderedProjects,
         HashSet<INavigateToSearchResult> seenItems,
-        Func<INavigateToSearchService, ImmutableArray<Project>, Func<Project, INavigateToSearchResult, Task>, Func<Task>, Task> processProjectAsync,
+        Func<INavigateToSearchService, ImmutableArray<Project>, Func<INavigateToSearchResult, Task>, Func<Task>, Task> processProjectAsync,
         CancellationToken cancellationToken)
     {
         // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -382,7 +382,7 @@ internal sealed class NavigateToSearcher
             await processProjectAsync(
                 searchService,
                 [.. grouping],
-                (project, result) =>
+                result =>
                 {
                     // If we're seeing a dupe in another project, then filter it out here.  The results from
                     // the individual projects will already contain the information about all the projects
@@ -522,7 +522,7 @@ internal sealed class NavigateToSearcher
         public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             foreach (var _ in projects)
                 await onProjectCompleted().ConfigureAwait(false);

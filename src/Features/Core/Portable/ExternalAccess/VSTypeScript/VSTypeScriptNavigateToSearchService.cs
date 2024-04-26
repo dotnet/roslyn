@@ -53,7 +53,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<INavigateToSearchResult, Task> onResultFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -79,7 +79,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
                     var results = await _searchService.SearchProjectAsync(
                         project, priorityDocuments.WhereAsArray(d => d.Project == project), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                     foreach (var result in results)
-                        await onResultFound(project, Convert(result)).ConfigureAwait(false);
+                        await onResultFound(Convert(result)).ConfigureAwait(false);
                 }
 
                 await onProjectCompleted().ConfigureAwait(false);

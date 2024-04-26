@@ -39,7 +39,7 @@ internal interface INavigateToSearchService : ILanguageService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<INavigateToSearchResult, Task> onResultFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken);
 }
@@ -66,7 +66,7 @@ internal interface IAdvancedNavigateToSearchService : INavigateToSearchService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<INavigateToSearchResult, Task> onResultFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken);
 
@@ -84,7 +84,7 @@ internal interface IAdvancedNavigateToSearchService : INavigateToSearchService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<INavigateToSearchResult, Task> onResultFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken);
 }

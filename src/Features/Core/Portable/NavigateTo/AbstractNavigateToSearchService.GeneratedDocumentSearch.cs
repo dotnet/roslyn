@@ -21,7 +21,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<INavigateToSearchResult, Task> onResultFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {

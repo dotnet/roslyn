@@ -25,7 +25,7 @@ internal abstract partial class AbstractNavigateToSearchService
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
-        var onItemFound = GetOnItemFoundCallback(solution, activeDocument: null, (_, i) => onResultFound(i), cancellationToken);
+        var onItemFound = GetOnItemFoundCallback(solution, activeDocument: null, onResultFound, cancellationToken);
 
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client != null)
@@ -58,7 +58,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<INavigateToSearchResult, Task> onResultFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
