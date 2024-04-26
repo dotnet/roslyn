@@ -63,7 +63,10 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <summary>
     /// Method to fetch the on-the-fly documentation for a symbols <paramref name="descriptionText"/>
     /// and the syntax references of the symbols in <paramref name="symbolStrings"/>.
+    /// <para>
+    /// <paramref name="descriptionText"/> is a formatted string representation of an <see cref="ISymbol"/>.<br/>
+    /// <paramref name="symbolStrings"/> is a list of a <see cref="SyntaxNode"/> string representation from their associated <see cref="ISymbol"/>
+    /// </para>
     /// </summary>
-    /// <returns></returns>
     Task<string> GetOnTheFlyDocsAsync(string descriptionText, ImmutableArray<string> symbolStrings, CancellationToken cancellationToken);
 }

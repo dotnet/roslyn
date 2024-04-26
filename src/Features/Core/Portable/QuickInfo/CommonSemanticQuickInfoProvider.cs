@@ -41,6 +41,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         if (tokenInformation.Symbols.IsDefaultOrEmpty)
             return null;
 
+        // onTheFlyDocElement is null here since On-The-Fly Docs are being computed at the document level.
         return await CreateContentAsync(
             context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, onTheFlyDocsElement: null, context.CancellationToken).ConfigureAwait(false);
     }
