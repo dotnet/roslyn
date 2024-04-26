@@ -191,7 +191,7 @@ internal sealed class NavigateToSearcher
         await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
         await service.SearchDocumentAsync(
             _activeDocument, _searchPattern, _kinds,
-            r => _callback.AddItemAsync(project, r, cancellationToken),
+            r => _callback.AddItemAsync(r, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -393,7 +393,7 @@ internal sealed class NavigateToSearcher
                             return Task.CompletedTask;
                     }
 
-                    return _callback.AddItemAsync(project, result, cancellationToken);
+                    return _callback.AddItemAsync(result, cancellationToken);
                 },
                 () => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
         }

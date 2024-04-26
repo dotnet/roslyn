@@ -128,5 +128,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
 
         public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
+
+        public string Language => InternalLanguageNames.TypeScript;
     }
 }

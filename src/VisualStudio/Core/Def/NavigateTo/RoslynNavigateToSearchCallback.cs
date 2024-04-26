@@ -51,7 +51,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
         }
 
-        public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+        public Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
         {
             // Convert roslyn pattern matches to the platform type.
             var matches = result.Matches.SelectAsArray(static m => new PatternMatch(
@@ -74,7 +74,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 matches,
                 result.NavigableItem.Document.FilePath,
                 perProviderItemPriority,
-                project.Language));
+                result.Language));
 
             return Task.CompletedTask;
         }

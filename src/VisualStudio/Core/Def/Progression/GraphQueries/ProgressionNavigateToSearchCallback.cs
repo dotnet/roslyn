@@ -14,11 +14,13 @@ internal sealed partial class SearchGraphQuery
 {
     private class ProgressionNavigateToSearchCallback : INavigateToSearchCallback
     {
+        private readonly Solution _solution;
         private readonly IGraphContext _context;
         private readonly GraphBuilder _graphBuilder;
 
-        public ProgressionNavigateToSearchCallback(IGraphContext context, GraphBuilder graphBuilder)
+        public ProgressionNavigateToSearchCallback(Solution solution, IGraphContext context, GraphBuilder graphBuilder)
         {
+            _solution = solution;
             _context = context;
             _graphBuilder = graphBuilder;
         }
@@ -36,9 +38,9 @@ internal sealed partial class SearchGraphQuery
         {
         }
 
-        public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+        public async Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
         {
-            var node = await _graphBuilder.CreateNodeAsync(project.Solution, result, cancellationToken).ConfigureAwait(false);
+            var node = await _graphBuilder.CreateNodeAsync(_solution, result, cancellationToken).ConfigureAwait(false);
             if (node != null)
             {
                 // _context.OutputNodes is not threadsafe.  So ensure only one navto callback can mutate it at a time.

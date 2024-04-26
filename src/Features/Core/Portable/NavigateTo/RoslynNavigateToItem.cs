@@ -87,7 +87,7 @@ internal readonly struct RoslynNavigateToItem(
         }
     }
 
-    private class NavigateToSearchResult : INavigateToSearchResult, INavigableItem
+    private sealed class NavigateToSearchResult : INavigateToSearchResult, INavigableItem
     {
         private static readonly char[] s_dotArray = ['.'];
 
@@ -118,7 +118,10 @@ internal readonly struct RoslynNavigateToItem(
 
             _additionalInformation = ComputeAdditionalInformation(in item, itemDocument);
             _secondarySort = new Lazy<string>(ComputeSecondarySort);
+            Language = itemDocument.Project.Language;
         }
+
+        public string Language { get; }
 
         private static string ComputeAdditionalInformation(in RoslynNavigateToItem item, Document itemDocument)
         {

@@ -39,22 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
-            {
-                ReportMatchResult(project, result);
-                return Task.CompletedTask;
-            }
-
-            public void ReportProgress(int current, int maximum)
-            {
-                _callback.ReportProgress(current, maximum);
-            }
-
-            public void ReportIncomplete()
-            {
-            }
-
-            private void ReportMatchResult(Project project, INavigateToSearchResult result)
+            public Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
             {
                 var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
 
@@ -67,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 var navigateToItem = new NavigateToItem(
                     result.Name,
                     result.Kind,
-                    GetNavigateToLanguage(project.Language),
+                    GetNavigateToLanguage(result.Language),
                     result.SecondarySort,
                     result,
                     patternMatch,
@@ -84,6 +69,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     // Catch this so that don't tear down OOP, but still report the exception so that we ensure this issue
                     // gets attention and is fixed.
                 }
+                return Task.CompletedTask;
+            }
+
+            public void ReportProgress(int current, int maximum)
+            {
+                _callback.ReportProgress(current, maximum);
+            }
+
+            public void ReportIncomplete()
+            {
             }
 
             private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)

@@ -12,7 +12,7 @@ internal interface INavigateToSearchCallback
     void Done(bool isFullyLoaded);
     void ReportIncomplete();
 
-    Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken);
+    Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken);
 
     void ReportProgress(int current, int maximum);
 }

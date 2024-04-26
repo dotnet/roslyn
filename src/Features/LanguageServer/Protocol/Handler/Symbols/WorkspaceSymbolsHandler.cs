@@ -70,16 +70,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             BufferedProgress<SymbolInformation[]> progress)
             : INavigateToSearchCallback
         {
-            public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+            public async Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
             {
-                var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(context.Solution);
+
+                var solution = context.Solution;
+                var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
 
                 var location = await ProtocolConversions.TextSpanToLocationAsync(
                     document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, context, cancellationToken).ConfigureAwait(false);
                 if (location == null)
                     return;
 
-                var service = project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
+                var service = solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
                 var symbolInfo = service.Create(
                     result.Name, result.AdditionalInformation, ProtocolConversions.NavigateToKindToSymbolKind(result.Kind), location, result.NavigableItem.Glyph);
 
