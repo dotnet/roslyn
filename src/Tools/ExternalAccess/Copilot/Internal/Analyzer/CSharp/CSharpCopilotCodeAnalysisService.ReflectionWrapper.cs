@@ -19,7 +19,7 @@ using GetAvailablePromptTitlesAsyncDelegateType = Func<Document, CancellationTok
 using GetCachedDiagnosticsAsyncDelegateType = Func<Document, string, CancellationToken, Task<ImmutableArray<Diagnostic>>>;
 using IsAvailableAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnostic?, CancellationToken, Task>;
-using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, CancellationToken, Task<string>>;
+using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<(string, string)>, CancellationToken, Task<string>>;
 
 internal sealed partial class CSharpCopilotCodeAnalysisService
 {
@@ -109,7 +109,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             => CreateDelegate<StartRefinementSessionAsyncDelegateType>(StartRefinementSessionAsyncMethodName, [typeof(Document), typeof(Document), typeof(Diagnostic), typeof(CancellationToken)]);
 
         private GetOnTheFlyDocsAsyncDelegateType? CreateGetOnTheFlyDocsAsyncDelegate()
-            => CreateDelegate<GetOnTheFlyDocsAsyncDelegateType>(GetOnTheFlyDocsAsyncMethodName, [typeof(string), typeof(ImmutableArray<string>), typeof(CancellationToken)]);
+            => CreateDelegate<GetOnTheFlyDocsAsyncDelegateType>(GetOnTheFlyDocsAsyncMethodName, [typeof(string), typeof(ImmutableArray<(string, string)>), typeof(CancellationToken)]);
 
         public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         {
@@ -151,7 +151,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             return _lazyStartRefinementSessionAsyncDelegate.Value(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
         }
 
-        public async Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, CancellationToken cancellationToken)
+        public async Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<(string, string)> declarationCode, CancellationToken cancellationToken)
         {
             if (_lazyGetOnTheFlyDocsAsyncDelegate.Value is null)
                 return string.Empty;
