@@ -15,7 +15,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : IOnInitial
     {
         if (clientCapabilities?.TextDocument?.Diagnostic?.DynamicRegistration is true)
         {
-            var providerNames = DiagnosticSourceManager.GetWorkspaceSourceProviderNames();
+            var providerNames = DiagnosticSourceManager.GetWorkspaceSourceProviderNames(clientCapabilities);
             await _clientLanguageServerManager.SendRequestAsync(
                 methodName: Methods.ClientRegisterCapabilityName,
                 @params: new RegistrationParams
@@ -26,7 +26,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : IOnInitial
                         // we need to use textDocument/diagnostic instead of workspace/diagnostic
                         Method = Methods.TextDocumentDiagnosticName,
                         Id = name,
-                        RegisterOptions = new DiagnosticRegistrationOptions { Identifier = name, InterFileDependencies = true, WorkDoneProgress = true }
+                        RegisterOptions = new DiagnosticRegistrationOptions { Identifier = name, InterFileDependencies = true, WorkDoneProgress = true, WorkspaceDiagnostics = true }
                     }).ToArray()
                 },
                 cancellationToken).ConfigureAwait(false);

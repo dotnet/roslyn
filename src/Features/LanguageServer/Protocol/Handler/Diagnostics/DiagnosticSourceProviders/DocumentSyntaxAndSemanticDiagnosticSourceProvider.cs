@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -18,6 +19,8 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
 {
     public bool IsDocument => true;
     public string Name => sourceName;
+
+    public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {

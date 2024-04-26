@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -21,6 +22,8 @@ internal sealed class XamlDiagnosticSourceProvider([Import(AllowDefault = true)]
     bool IDiagnosticSourceProvider.IsDocument => true;
 
     string IDiagnosticSourceProvider.Name => "XamlDiagnostics";
+
+    bool IDiagnosticSourceProvider.IsEnabled(ClientCapabilities clientCapabilities) => true;
 
     ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {

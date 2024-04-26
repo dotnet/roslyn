@@ -45,11 +45,11 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
             .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
     }
 
-    public ImmutableArray<string> GetDocumentSourceProviderNames()
-        => _nameToDocumentProviderMap.Keys.ToImmutableArray();
+    public ImmutableArray<string> GetDocumentSourceProviderNames(ClientCapabilities clientCapabilities)
+        => _nameToDocumentProviderMap.Where(kvp => kvp.Value.IsEnabled(clientCapabilities)).SelectAsArray(kvp => kvp.Key);
 
-    public ImmutableArray<string> GetWorkspaceSourceProviderNames()
-        => _nameToWorkspaceProviderMap.Keys.ToImmutableArray();
+    public ImmutableArray<string> GetWorkspaceSourceProviderNames(ClientCapabilities clientCapabilities)
+        => _nameToWorkspaceProviderMap.Where(kvp => kvp.Value.IsEnabled(clientCapabilities)).SelectAsArray(kvp => kvp.Key);
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? providerName, CancellationToken cancellationToken)
         => CreateDiagnosticSourcesAsync(context, providerName, _nameToDocumentProviderMap, isDocument: true, cancellationToken);
@@ -69,7 +69,10 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
             // VS does not distinguish between document and workspace sources. Thus it can request
             // document diagnostics with workspace source name. We need to handle this case.
             if (nameToProviderMap.TryGetValue(providerName, out var provider))
+            {
+                Contract.ThrowIfFalse(provider.IsEnabled(context.GetRequiredClientCapabilities()));
                 return await provider.CreateDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
+            }
 
             return [];
         }
@@ -79,12 +82,13 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var sourcesBuilder);
             foreach (var (name, provider) in nameToProviderMap)
             {
-                // Exclude Task diagnostics from the aggregated sources.
-                if (name != PullDiagnosticCategories.Task)
+                if (!provider.IsEnabled(context.GetRequiredClientCapabilities()))
                 {
-                    var namedSources = await provider.CreateDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
-                    sourcesBuilder.AddRange(namedSources);
+                    continue;
                 }
+
+                var namedSources = await provider.CreateDiagnosticSourcesAsync(context, cancellationToken).ConfigureAwait(false);
+                sourcesBuilder.AddRange(namedSources);
             }
 
             var sources = sourcesBuilder.ToImmutableAndClear();

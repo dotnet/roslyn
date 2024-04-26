@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 
@@ -25,6 +26,8 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
     public const string NonLocal = nameof(NonLocal);
     public bool IsDocument => true;
     public string Name => NonLocal;
+
+    public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {

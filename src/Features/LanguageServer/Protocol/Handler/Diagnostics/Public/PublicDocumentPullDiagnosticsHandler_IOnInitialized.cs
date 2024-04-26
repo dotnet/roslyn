@@ -24,7 +24,7 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : IOnInitiali
             //       to dynamically register/unregister the non-local document diagnostic source.
 
             // Task diagnostics shouldn't be reported through VSCode (it has its own task stuff). Additional cleanup needed.
-            var sources = DiagnosticSourceManager.GetDocumentSourceProviderNames().Where(source => source != PullDiagnosticCategories.Task);
+            var sources = DiagnosticSourceManager.GetDocumentSourceProviderNames(clientCapabilities);
             var registrations = sources.Select(FromSourceName).ToArray();
             await _clientLanguageServerManager.SendRequestAsync(
                 methodName: Methods.ClientRegisterCapabilityName,
@@ -36,11 +36,13 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : IOnInitiali
         }
 
         Registration FromSourceName(string sourceName)
-            => new()
+        {
+            return new()
             {
                 Id = Guid.NewGuid().ToString(),
                 Method = Methods.TextDocumentDiagnosticName,
-                RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName }
+                RegisterOptions = new DiagnosticRegistrationOptions { Identifier = sourceName, InterFileDependencies = true, WorkspaceDiagnostics = false }
             };
+        }
     }
 }
