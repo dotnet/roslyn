@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BinderWithContainingMemberOrLambda(this, this.Flags | flags, containing);
         }
 
-        internal Binder WithUnsafeRegionIfNecessary(SyntaxTokenList modifiers, bool isIteratorBody = false)
+        internal Binder SetOrClearUnsafeRegionIfNecessary(SyntaxTokenList modifiers, bool isIteratorBody = false)
         {
             // In C# 13 and above, iterator bodies define a safe context even when nested in an unsafe context.
             // In C# 12 and below, we keep the behavior that nested iterator bodies (e.g., local functions)
