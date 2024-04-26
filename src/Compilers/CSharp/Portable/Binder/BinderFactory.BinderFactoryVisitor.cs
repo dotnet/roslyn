@@ -216,10 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             //TODO: the error should be given in a different place, but should we ignore or consider the type args?
                             Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
 
-                            // Constructor cannot be an iterator, otherwise we would need to pass
-                            // `isIteratorBody` to `SetOrClearUnsafeRegionIfNecessary` below.
-                            Debug.Assert(!method.IsIterator);
-
                             resultBinder = new InMethodBinder(method, resultBinder);
                         }
                     }
@@ -250,10 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     SourceMemberMethodSymbol method = GetMethodSymbol(parent, resultBinder);
                     resultBinder = new InMethodBinder(method, resultBinder);
-
-                    // Destructor cannot be an iterator, otherwise we would need to pass
-                    // `isIteratorBody` to `SetOrClearUnsafeRegionIfNecessary` below.
-                    Debug.Assert(!method.IsIterator);
 
                     resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
