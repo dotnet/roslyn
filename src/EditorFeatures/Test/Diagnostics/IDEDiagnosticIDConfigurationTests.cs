@@ -655,6 +655,9 @@ dotnet_diagnostic.IDE0082.severity = %value%
 # IDE0084
 dotnet_diagnostic.IDE0084.severity = %value%
 
+# IDE0085
+dotnet_diagnostic.IDE0085.severity = %value%
+
 # IDE0100
 dotnet_diagnostic.IDE0100.severity = %value%
 
@@ -975,6 +978,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE0081", null, null),
                 ("IDE0082", null, null),
                 ("IDE0084", "visual_basic_style_prefer_isnot_expression", "true"),
+                ("IDE0085", null, null),
                 ("IDE0100", null, null),
                 ("IDE0120", null, null),
                 ("IDE0140", "visual_basic_style_prefer_simplified_object_creation", "true"),
