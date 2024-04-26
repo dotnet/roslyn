@@ -121,7 +121,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         var copilotRequestTime = TimeSpan.Zero;
         var copilotService = _document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var stopwatch = Stopwatch.StartNew();
-        var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.DescriptionText, _onTheFlyDocsElement.SymbolReferences, cancellationToken).ConfigureAwait(false);
+        var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, cancellationToken).ConfigureAwait(false);
         stopwatch.Stop();
         copilotRequestTime = stopwatch.Elapsed;
 
@@ -177,7 +177,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         CurrentState = OnTheFlyDocsState.Loading;
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = _onTheFlyDocsElement.DescriptionText;
+            m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
         }, LogLevel.Information));
 
         ResultsRequested?.Invoke(this, EventArgs.Empty);

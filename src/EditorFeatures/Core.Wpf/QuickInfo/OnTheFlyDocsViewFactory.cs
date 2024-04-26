@@ -21,13 +21,14 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.QuickInfo;
 
 [Export(typeof(IViewElementFactory))]
-[Name("My object converter")]
+[Name("OnTheFlyDocsElement converter")]
 [TypeConversion(from: typeof(EditorFeaturesOnTheFlyDocsElement), to: typeof(UIElement))]
-[Order(Before = "Default object converter")]
+[Order(Before = "Default")]
 internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 {
     private readonly IViewElementFactoryService _factoryService;
     private readonly IThreadingContext _threadingContext;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IThreadingContext threadingContext)
@@ -42,14 +43,12 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
         {
             throw new InvalidOperationException("TView must be UIElement");
         }
-        if (model is not EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
-        {
-            throw new InvalidOperationException("model must be an OnTheFlyDocsElement");
-        }
+
+        var editorFeaturesOnTheFlyDocsElement = (EditorFeaturesOnTheFlyDocsElement)model;
 
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.DescriptionText;
+            m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.SymbolSignature;
         }, LogLevel.Information));
 
         return new OnTheFlyDocsView(textView, _factoryService, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;

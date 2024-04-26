@@ -6,8 +6,13 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.QuickInfo;
 
-internal sealed class OnTheFlyDocsElement(string descriptionText, ImmutableArray<string> symbolReferences)
+/// <summary>
+/// Represents the data needed to provide on-the-fly documentation from an <see cref="ISymbol"/>.
+/// </summary>
+/// <param name="symbolSignature">formatted string representation of an <see cref="ISymbol"/></param>
+/// <param name="declarationCode">the symbol's declaration code</param>
+internal sealed class OnTheFlyDocsElement(string symbolSignature, ImmutableArray<string> declarationCode)
 {
-    internal string DescriptionText { get; } = descriptionText;
-    internal ImmutableArray<string> SymbolReferences { get; } = symbolReferences;
+    public string SymbolSignature { get; } = symbolSignature;
+    public ImmutableArray<string> DeclarationCode { get; } = declarationCode;
 }

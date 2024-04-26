@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 
 internal sealed class EditorFeaturesOnTheFlyDocsElement(Document document, OnTheFlyDocsElement onTheFlyDocsElement)
 {
-    internal Document Document { get; } = document;
-    internal OnTheFlyDocsElement OnTheFlyDocsElement { get; } = onTheFlyDocsElement;
+    public Document Document { get; } = document;
+    public OnTheFlyDocsElement OnTheFlyDocsElement { get; } = onTheFlyDocsElement;
 }

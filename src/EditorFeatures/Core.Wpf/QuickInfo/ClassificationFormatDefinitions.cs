@@ -17,7 +17,7 @@ internal sealed class ClassificationFormatDefinitions
     [ClassificationType(ClassificationTypeNames = ClassificationTypeDefinitions.ReducedEmphasisText)]
     [Name(ClassificationTypeDefinitions.ReducedEmphasisText)]
     [Order(After = Priority.High)]
-    [UserVisible(true)]
+    [UserVisible(false)]
     private class ReducedEmphasisTextFormat : ClassificationFormatDefinition
     {
         [ImportingConstructor]
