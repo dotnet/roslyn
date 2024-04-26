@@ -171,6 +171,7 @@ extends:
               if ($buildNumberName.Length -GT 255) {
                 $buildNumberName = $buildNumberName.Substring(0, 255)
               }
+              Write-Host "##vso[task.setvariable variable=FancyBuildNumber]$buildNumberName"
               Write-Host "##vso[build.updatebuildnumber]$buildNumberName"
 
         - task: Powershell@2
@@ -274,6 +275,11 @@ extends:
             testRunTitle: 'Unit Tests'
           condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
+        # We need to reset the BuildNumber before we pass off to Arcade
+        - powershell: Write-Host "##vso[build.updatebuildnumber]$(OriginalBuildNumber)"
+          displayName: Reset BuildNumber
+          condition: succeeded()
+
       # Publish to Build Asset Registry
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
         parameters:
@@ -294,6 +300,10 @@ extends:
         pool:
           vmImage: windows-2019
         steps:
+        # Arcade is done so we can set BuildNumber back
+        - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
+          displayName: Reset BuildNumber
+          condition: succeeded()
         - download: current
           artifact: VSSetup
         - powershell: |
@@ -314,6 +324,7 @@ extends:
             sourceBranch: $(ComponentBranchName)
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
             queueSpeedometerValidation: true
+            dropPath: '$(Pipeline.Workspace)\VSSetup'
 
     # Use post-build to publish symbol packages.
     - template: /eng/common/templates-official/post-build/post-build.yml@self
