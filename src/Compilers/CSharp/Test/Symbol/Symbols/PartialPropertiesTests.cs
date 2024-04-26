@@ -304,12 +304,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void AccessorKind_01()
         {
-            // set vs init
+            // definition has set but implementation has init
             var source = """
                 partial class C
                 {
                     partial int P { get; set; }
                     partial int P { get => throw null!; init { } }
+                }
+                """;
+            // PROTOTYPE(partial-properties): give an error diagnostic for an accessor kind difference
+            var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void AccessorKind_02()
+        {
+            // definition has init but implementation has set
+            var source = """
+                partial class C
+                {
+                    partial int P { get; init; }
+                    partial int P { get => throw null!; set { } }
                 }
                 """;
             // PROTOTYPE(partial-properties): give an error diagnostic for an accessor kind difference
@@ -333,6 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
             comp.VerifyEmitDiagnostics(
                 );
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.P");
+            // PROTOTYPE(partial-properties): a partial method definition should delegate to its implementation part to implement this API, i.e. return 'true' here
+            Assert.False(prop.GetPublicSymbol().IsExtern);
+            Assert.True(prop.PartialImplementationPart!.GetPublicSymbol().IsExtern);
         }
 
         [Fact]
