@@ -94,11 +94,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var data = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
             Contract.ThrowIfNull(data.Value);
 
-            using var context = new SolutionReplicationContext();
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                Serializer.Serialize(data.Value, writer, context, CancellationToken.None);
+                Serializer.Serialize(data.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await VerifyAssetSerializationAsync<SerializableSourceText>(
                 textChecksum, WellKnownSynchronizationKind.SerializableSourceText,
-                (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
+                (v, k, s) => new SolutionAsset(v.ContentChecksum, v));
         }
 
         internal async Task<T> VerifyAssetSerializationAsync<T>(

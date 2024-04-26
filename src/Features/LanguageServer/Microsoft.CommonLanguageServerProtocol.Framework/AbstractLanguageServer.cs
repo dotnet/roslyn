@@ -18,16 +18,10 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public abstract class AbstractLanguageServer<TRequestContext>
-#else
 internal abstract class AbstractLanguageServer<TRequestContext>
-#endif
 {
     private readonly JsonRpc _jsonRpc;
-#pragma warning disable IDE1006 // Naming Styles - Required for API compat, TODO - https://github.com/dotnet/roslyn/issues/72251
-    protected readonly ILspLogger _logger;
-#pragma warning restore IDE1006 // Naming Styles
+    protected readonly ILspLogger Logger;
 
     protected readonly JsonSerializer _jsonSerializer;
 
@@ -67,7 +61,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         JsonSerializer jsonSerializer,
         ILspLogger logger)
     {
-        _logger = logger;
+        Logger = logger;
         _jsonRpc = jsonRpc;
         _jsonSerializer = jsonSerializer;
 
@@ -93,35 +87,20 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     /// <remarks>This should only be called once, and then cached.</remarks>
     protected abstract ILspServices ConstructLspServices();
 
-    [Obsolete($"Use {nameof(HandlerProvider)} property instead.", error: false)]
-    protected virtual IHandlerProvider GetHandlerProvider()
-    {
-        var lspServices = _lspServices.Value;
-        var handlerProvider = new HandlerProvider(lspServices);
-        SetupRequestDispatcher(handlerProvider);
-
-        return handlerProvider;
-    }
-
     protected virtual AbstractHandlerProvider HandlerProvider
     {
         get
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            var handlerProvider = GetHandlerProvider();
-#pragma warning restore CS0618 // Type or member is obsolete
-            if (handlerProvider is AbstractHandlerProvider abstractHandlerProvider)
-            {
-                return abstractHandlerProvider;
-            }
-
-            return new WrappedHandlerProvider(handlerProvider);
+            var lspServices = _lspServices.Value;
+            var handlerProvider = new HandlerProvider(lspServices);
+            SetupRequestDispatcher(handlerProvider);
+            return handlerProvider;
         }
     }
 
     public ILspServices GetLspServices() => _lspServices.Value;
 
-    protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
+    protected virtual void SetupRequestDispatcher(AbstractHandlerProvider handlerProvider)
     {
         var entryPointMethodInfo = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.ExecuteRequestAsync))!;
         // Get unique set of methods from the handler provider for the default language.
@@ -187,7 +166,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     protected virtual IRequestExecutionQueue<TRequestContext> ConstructRequestExecutionQueue()
     {
         var handlerProvider = HandlerProvider;
-        var queue = new RequestExecutionQueue<TRequestContext>(this, _logger, handlerProvider);
+        var queue = new RequestExecutionQueue<TRequestContext>(this, Logger, handlerProvider);
 
         queue.Start();
 
@@ -201,7 +180,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     protected virtual string GetLanguageForRequest(string methodName, JToken? parameters)
     {
-        _logger.LogInformation($"Using default language handler for {methodName}");
+        Logger.LogInformation($"Using default language handler for {methodName}");
         return LanguageServerConstants.DefaultLanguageName;
     }
 
@@ -328,7 +307,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             // Immediately yield so that this does not run under the lock.
             await Task.Yield();
 
-            _logger.LogInformation(message);
+            Logger.LogInformation(message);
 
             // Allow implementations to do any additional cleanup on shutdown.
             var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
@@ -386,7 +365,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             }
             finally
             {
-                _logger.LogInformation("Exiting server");
+                Logger.LogInformation("Exiting server");
                 _serverExitedSource.TrySetResult(null);
             }
         }

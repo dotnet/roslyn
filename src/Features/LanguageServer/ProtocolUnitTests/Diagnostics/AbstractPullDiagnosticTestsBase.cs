@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             {
                 return new DocumentDiagnosticParams
                 {
-                    Identifier = testNonLocalDiagnostics ? DocumentPullDiagnosticHandler.DocumentNonLocalDiagnosticIdentifier.ToString() : null,
+                    Identifier = testNonLocalDiagnostics ? PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal : null,
                     PreviousResultId = previousResultId,
                     PartialResultToken = progress,
                     TextDocument = vsTextDocumentIdentifier,
