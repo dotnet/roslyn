@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// binder because extension method search stops at the first applicable
         /// method group from the nearest enclosing namespace.
         /// </summary>
-        internal void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string? name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string? name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
@@ -1870,6 +1870,7 @@ symIsHidden:;
                 new CSDiagnosticInfo(ErrorCode.ERR_BindToBogusProp1, symbol, method1 ?? method2);
         }
 
+#nullable enable
         /// <summary>
         /// Used by Add*LookupSymbolsInfo* to determine whether the symbol is of interest.
         /// Distinguish from <see cref="CheckViability"/>, which performs an analogous task for LookupSymbols*.
@@ -1877,7 +1878,7 @@ symIsHidden:;
         /// <remarks>
         /// Does not consider <see cref="Symbol.CanBeReferencedByName"/> - that is left to the caller.
         /// </remarks>
-        internal bool CanAddLookupSymbolInfo(Symbol symbol, LookupOptions options, LookupSymbolsInfo info, TypeSymbol accessThroughType, AliasSymbol aliasSymbol = null)
+        internal bool CanAddLookupSymbolInfo(Symbol symbol, LookupOptions options, LookupSymbolsInfo info, TypeSymbol? accessThroughType, AliasSymbol? aliasSymbol = null)
         {
             Debug.Assert(symbol.Kind != SymbolKind.Alias, "It is the caller's responsibility to unwrap aliased symbols.");
             Debug.Assert(aliasSymbol == null || aliasSymbol.GetAliasTarget(basesBeingResolved: null) == symbol);
@@ -1932,7 +1933,7 @@ symIsHidden:;
             }
         }
 
-        private static TypeSymbol RefineAccessThroughType(LookupOptions options, TypeSymbol accessThroughType)
+        private static TypeSymbol? RefineAccessThroughType(LookupOptions options, TypeSymbol accessThroughType)
         {
             // Normally, when we access a protected instance member, we need to know the type of the receiver so we
             // can determine whether the member is actually accessible in the containing type.  There is one exception:
@@ -1941,6 +1942,7 @@ symIsHidden:;
                 ? null
                 : accessThroughType;
         }
+#nullable disable
 
         /// <summary>
         /// A symbol is accessible for referencing in a cref if it is in the same assembly as the reference
@@ -2203,7 +2205,7 @@ symIsHidden:;
 
             void addMemberLookupSymbolsInfoInExtension(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder)
             {
-                AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType: type);
+                AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType: null);
 
                 if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
                 {
@@ -2286,7 +2288,8 @@ symIsHidden:;
             }
         }
 
-        private static void AddMemberLookupSymbolsInfoWithoutInheritance(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType)
+#nullable enable
+        private static void AddMemberLookupSymbolsInfoWithoutInheritance(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder, TypeSymbol? accessThroughType)
         {
             var candidateMembers = result.FilterName != null ? GetCandidateMembers(type, result.FilterName, options, originalBinder) : GetCandidateMembers(type, options, originalBinder);
             foreach (var symbol in candidateMembers)
@@ -2297,6 +2300,7 @@ symIsHidden:;
                 }
             }
         }
+#nullable disable
 
         private void AddWinRTMembersLookupSymbolsInfo(LookupSymbolsInfo result, NamedTypeSymbol type, LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType)
         {
@@ -2378,7 +2382,6 @@ symIsHidden:;
 
         internal void AddImplicitExtensionMemberLookupSymbolsInfoForType(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder)
         {
-            var accessThroughType = type;
             if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
             {
                 type = extendedType;
@@ -2391,7 +2394,7 @@ symIsHidden:;
 
                 foreach (NamedTypeSymbol extension in compatibleExtensions)
                 {
-                    AddMemberLookupSymbolsInfoWithoutInheritance(result, extension, options, scope.Binder, accessThroughType: accessThroughType);
+                    AddMemberLookupSymbolsInfoWithoutInheritance(result, extension, options, scope.Binder, accessThroughType: null);
                 }
 
                 compatibleExtensions.Clear();
