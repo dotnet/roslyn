@@ -21,13 +21,12 @@ internal static partial class SymbolUsageAnalysis
         private readonly Func<IMethodSymbol, BasicBlockAnalysisData> _analyzeLocalFunction;
 
         private OperationTreeAnalysisData(
-            PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolsWriteMap,
             PooledHashSet<ISymbol> symbolsRead,
             PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
             Func<IMethodSymbol, BasicBlockAnalysisData> analyzeLocalFunction)
         {
             _analyzeLocalFunction = analyzeLocalFunction;
-            SymbolsWriteBuilder = symbolsWriteMap;
+            SymbolsWriteBuilder = CreateSymbolsWriteMap(ImmutableArray<IParameterSymbol>.Empty);
             SymbolsReadBuilder = symbolsRead;
             LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
         }
@@ -42,11 +41,21 @@ internal static partial class SymbolUsageAnalysis
             ISymbol owningSymbol,
             Func<IMethodSymbol, BasicBlockAnalysisData> analyzeLocalFunction)
         {
-            return new OperationTreeAnalysisData(
-                symbolsWriteMap: CreateSymbolsWriteMap(owningSymbol.GetParameters()),
+            var analysisData = new OperationTreeAnalysisData(
                 symbolsRead: PooledHashSet<ISymbol>.GetInstance(),
                 lambdaOrLocalFunctionsBeingAnalyzed: PooledHashSet<IMethodSymbol>.GetInstance(),
                 analyzeLocalFunction);
+
+            analysisData.SetAnalysisDataOnEntryBlockStart(owningSymbol.GetParameters());
+
+            return analysisData;
+        }
+
+        private void SetAnalysisDataOnEntryBlockStart(ImmutableArray<IParameterSymbol> parameters)
+        {
+            UpdateSymbolsWriteMap(SymbolsWriteBuilder, parameters);
+            foreach (var parameter in parameters)
+                CurrentBlockAnalysisData.OnWriteReferenceFound(parameter, operation: null, maybeWritten: false);
         }
 
         protected override BasicBlockAnalysisData AnalyzeLocalFunctionInvocationCore(IMethodSymbol localFunction, CancellationToken cancellationToken)
