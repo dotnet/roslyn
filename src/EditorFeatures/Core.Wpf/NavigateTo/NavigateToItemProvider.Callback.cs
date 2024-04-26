@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -42,37 +43,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            public Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+            public Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
             {
-                var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
-
-                var patternMatch = new PatternMatch(
-                    GetPatternMatchKind(result.MatchKind),
-                    punctuationStripped: false,
-                    result.IsCaseSensitive,
-                    matchedSpans);
-
-                var project = _solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
-                var navigateToItem = new NavigateToItem(
-                    result.Name,
-                    result.Kind,
-                    GetNavigateToLanguage(project.Language),
-                    result.SecondarySort,
-                    result,
-                    patternMatch,
-                    _displayFactory);
-
-                try
+                foreach (var result in results)
                 {
-                    _callback.AddItem(navigateToItem);
+                    var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
+
+                    var patternMatch = new PatternMatch(
+                        GetPatternMatchKind(result.MatchKind),
+                        punctuationStripped: false,
+                        result.IsCaseSensitive,
+                        matchedSpans);
+
+                    var project = _solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
+                    var navigateToItem = new NavigateToItem(
+                        result.Name,
+                        result.Kind,
+                        GetNavigateToLanguage(project.Language),
+                        result.SecondarySort,
+                        result,
+                        patternMatch,
+                        _displayFactory);
+
+                    try
+                    {
+                        _callback.AddItem(navigateToItem);
+                    }
+                    catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+                    {
+                        // Mitigation for race condition in platform https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1534364
+                        //
+                        // Catch this so that don't tear down OOP, but still report the exception so that we ensure this issue
+                        // gets attention and is fixed.
+                    }
                 }
-                catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-                {
-                    // Mitigation for race condition in platform https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1534364
-                    //
-                    // Catch this so that don't tear down OOP, but still report the exception so that we ensure this issue
-                    // gets attention and is fixed.
-                }
+
                 return Task.CompletedTask;
             }
 

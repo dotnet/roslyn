@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -33,14 +32,22 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
-        Solution solution, Document? activeDocument, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+    private static Func<ImmutableArray<RoslynNavigateToItem>, Task> GetOnItemsFoundCallback(
+        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
     {
-        return async item =>
+        return async items =>
         {
-            var result = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
-            if (result != null)
-                await onResultFound(result).ConfigureAwait(false);
+            using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
+
+            foreach (var item in items)
+            {
+                var result = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
+                if (result != null)
+                    results.Add(result);
+            }
+
+            if (results.Count > 0)
+                await onResultsFound(results.ToImmutableAndClear()).ConfigureAwait(false);
         };
     }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,31 +56,34 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             _searchCallback.ReportIncomplete(IncompleteReason.Parsing);
         }
 
-        public Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+        public Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
             // Convert roslyn pattern matches to the platform type.
-            var matches = result.Matches.SelectAsArray(static m => new PatternMatch(
+            foreach (var result in results)
+            {
+                var matches = result.Matches.SelectAsArray(static m => new PatternMatch(
                 ConvertKind(m.Kind),
                 punctuationStripped: false,
                 m.IsCaseSensitive,
                 m.MatchedSpans.SelectAsArray(static s => s.ToSpan())));
 
-            // Weight the items based on the overall pattern matching weights.  We want the items that have the best
-            // pattern matches (low .Kind values) to have the highest float values (as higher is better for the VS
-            // api).
-            var perProviderItemPriority = float.MaxValue - Enumerable.Sum(result.Matches.Select(m => (int)m.Kind));
+                // Weight the items based on the overall pattern matching weights.  We want the items that have the best
+                // pattern matches (low .Kind values) to have the highest float values (as higher is better for the VS
+                // api).
+                var perProviderItemPriority = float.MaxValue - Enumerable.Sum(result.Matches.Select(m => (int)m.Kind));
 
-            var project = _solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
-            _searchCallback.AddItem(new RoslynCodeSearchResult(
-                _provider,
-                result,
-                GetResultType(result.Kind),
-                result.Name,
-                result.SecondarySort,
-                matches,
-                result.NavigableItem.Document.FilePath,
-                perProviderItemPriority,
-                project.Language));
+                var project = _solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
+                _searchCallback.AddItem(new RoslynCodeSearchResult(
+                    _provider,
+                    result,
+                    GetResultType(result.Kind),
+                    result.Name,
+                    result.SecondarySort,
+                    matches,
+                    result.NavigableItem.Document.FilePath,
+                    perProviderItemPriority,
+                    project.Language));
+            }
 
             return Task.CompletedTask;
         }

@@ -21,16 +21,16 @@ internal abstract partial class AbstractNavigateToSearchService
         Document document,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
-        var onItemFound = GetOnItemFoundCallback(solution, activeDocument: null, onResultFound, cancellationToken);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument: null, onResultsFound, cancellationToken);
 
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted: null);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted: null);
             // Don't need to sync the full solution when searching a single document.  Just sync the project that doc is in.
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 document.Project,
@@ -41,14 +41,14 @@ internal abstract partial class AbstractNavigateToSearchService
             return;
         }
 
-        await SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+        await SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
     }
 
-    public static Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onItemFound, CancellationToken cancellationToken)
+    public static Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
     {
         return SearchProjectInCurrentProcessAsync(
             document.Project, priorityDocuments: [], document, searchPattern, kinds,
-            onItemFound, () => Task.CompletedTask, cancellationToken);
+            onItemsFound, () => Task.CompletedTask, cancellationToken);
     }
 
     public async Task SearchProjectsAsync(
@@ -58,7 +58,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -67,13 +67,13 @@ internal abstract partial class AbstractNavigateToSearchService
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
         Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
-        var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound, cancellationToken);
 
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
             var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
-            var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted);
 
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 // Intentionally sync the full solution.   When SearchProjectAsync is called, we're searching all
@@ -88,7 +88,7 @@ internal abstract partial class AbstractNavigateToSearchService
         }
 
         await SearchProjectsInCurrentProcessAsync(
-            projects, priorityDocuments, searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+            projects, priorityDocuments, searchPattern, kinds, onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task SearchProjectsInCurrentProcessAsync(
@@ -96,7 +96,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -120,7 +120,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(SearchProjectInCurrentProcessAsync(
                     project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
-                    searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));
+                    searchPattern, kinds, onItemsFound, onProjectCompleted, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);

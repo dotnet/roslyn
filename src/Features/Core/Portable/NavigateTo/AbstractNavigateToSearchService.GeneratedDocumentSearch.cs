@@ -21,7 +21,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -29,12 +29,12 @@ internal abstract partial class AbstractNavigateToSearchService
         Contract.ThrowIfTrue(projects.IsEmpty);
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
-        var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound, cancellationToken);
 
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted);
 
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 // Sync and search the full solution snapshot.  While this function is called serially per project,
@@ -50,14 +50,14 @@ internal abstract partial class AbstractNavigateToSearchService
         }
 
         await SearchGeneratedDocumentsInCurrentProcessAsync(
-            projects, searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+            projects, searchPattern, kinds, onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task SearchGeneratedDocumentsInCurrentProcessAsync(
         ImmutableArray<Project> projects,
         string pattern,
         IImmutableSet<string> kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -76,7 +76,7 @@ internal abstract partial class AbstractNavigateToSearchService
             using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
 
             await ProcessDocumentsAsync(
-                searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, documents, cancellationToken).ConfigureAwait(false);
+                searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound, documents, cancellationToken).ConfigureAwait(false);
 
             await onProjectCompleted().ConfigureAwait(false);
         }

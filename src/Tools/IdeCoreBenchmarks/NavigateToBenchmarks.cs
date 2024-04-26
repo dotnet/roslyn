@@ -232,7 +232,7 @@ namespace IdeCoreBenchmarks
                 r =>
                 {
                     lock (results)
-                        results.Add(r);
+                        results.AddRange(r);
 
                     return Task.CompletedTask;
                 },

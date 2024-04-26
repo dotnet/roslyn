@@ -36,22 +36,25 @@ internal static class OmniSharpNavigateToSearcher
 
     private sealed class OmniSharpNavigateToCallbackImpl(Solution solution, OmniSharpNavigateToCallback callback) : INavigateToSearchCallback
     {
-        public async Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+        public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
-            var project = solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
-            var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
-            var omniSharpResult = new OmniSharpNavigateToSearchResult(
-                result.AdditionalInformation,
-                result.Kind,
-                (OmniSharpNavigateToMatchKind)result.MatchKind,
-                result.IsCaseSensitive,
-                result.Name,
-                result.NameMatchSpans,
-                result.SecondarySort,
-                result.Summary!,
-                new OmniSharpNavigableItem(result.NavigableItem.DisplayTaggedParts, document, result.NavigableItem.SourceSpan));
+            foreach (var result in results)
+            {
+                var project = solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
+                var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+                var omniSharpResult = new OmniSharpNavigateToSearchResult(
+                    result.AdditionalInformation,
+                    result.Kind,
+                    (OmniSharpNavigateToMatchKind)result.MatchKind,
+                    result.IsCaseSensitive,
+                    result.Name,
+                    result.NameMatchSpans,
+                    result.SecondarySort,
+                    result.Summary!,
+                    new OmniSharpNavigableItem(result.NavigableItem.DisplayTaggedParts, document, result.NavigableItem.SourceSpan));
 
-            await callback(project, omniSharpResult, cancellationToken).ConfigureAwait(false);
+                await callback(project, omniSharpResult, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         public void Done(bool isFullyLoaded)

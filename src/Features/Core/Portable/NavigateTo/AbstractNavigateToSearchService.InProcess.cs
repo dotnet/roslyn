@@ -40,7 +40,7 @@ internal abstract partial class AbstractNavigateToSearchService
     private static async Task SearchProjectInCurrentProcessAsync(
         Project project, ImmutableArray<Document> priorityDocuments,
         Document? searchDocument, string pattern, IImmutableSet<string> kinds,
-        Func<RoslynNavigateToItem, Task> onResultFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -62,10 +62,10 @@ internal abstract partial class AbstractNavigateToSearchService
             using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project.ContainsDocument(d.Id)), out var highPriDocs);
             using var _2 = GetPooledHashSet(project.Documents.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
 
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
             // Then process non-priority documents.
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -78,7 +78,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         HashSet<Document> documents,
         CancellationToken cancellationToken)
     {
@@ -91,7 +91,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 continue;
 
             cancellationToken.ThrowIfCancellationRequested();
-            tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onItemFound, cancellationToken));
+            tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onItemsFound, cancellationToken));
         }
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -102,7 +102,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<RoslynNavigateToItem, Task> onResultFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -110,7 +110,7 @@ internal abstract partial class AbstractNavigateToSearchService
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
         await ProcessIndexAsync(
-            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
+            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds, onItemsFound, index, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task ProcessIndexAsync(
@@ -119,7 +119,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<RoslynNavigateToItem, Task> onResultFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         TopLevelSyntaxTreeIndex index,
         CancellationToken cancellationToken)
     {
@@ -141,7 +141,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 documentKey, document,
                 declaredSymbolInfo,
                 nameMatcher, containerMatcher,
-                kinds, onResultFound, cancellationToken).ConfigureAwait(false);
+                kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -152,7 +152,7 @@ internal abstract partial class AbstractNavigateToSearchService
         PatternMatcher nameMatcher,
         PatternMatcher? containerMatcher,
         DeclaredSymbolInfoKindSet kinds,
-        Func<RoslynNavigateToItem, Task> onResultFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
         using var nameMatches = TemporaryArray<PatternMatch>.Empty;
@@ -176,7 +176,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
             var result = ConvertResult(
                 documentKey, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
-            await onResultFound(result).ConfigureAwait(false);
+            await onItemsFound([result]).ConfigureAwait(false);
         }
     }
 

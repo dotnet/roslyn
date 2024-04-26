@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.CodeAnalysis.NavigateTo;
+using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
@@ -38,14 +39,17 @@ internal sealed partial class SearchGraphQuery
         {
         }
 
-        public async Task AddItemAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+        public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
         {
-            var node = await _graphBuilder.CreateNodeAsync(_solution, result, cancellationToken).ConfigureAwait(false);
-            if (node != null)
+            foreach (var result in results)
             {
-                // _context.OutputNodes is not threadsafe.  So ensure only one navto callback can mutate it at a time.
-                lock (this)
-                    _context.OutputNodes.Add(node);
+                var node = await _graphBuilder.CreateNodeAsync(_solution, result, cancellationToken).ConfigureAwait(false);
+                if (node != null)
+                {
+                    // _context.OutputNodes is not threadsafe.  So ensure only one navto callback can mutate it at a time.
+                    lock (this)
+                        _context.OutputNodes.Add(node);
+                }
             }
         }
     }

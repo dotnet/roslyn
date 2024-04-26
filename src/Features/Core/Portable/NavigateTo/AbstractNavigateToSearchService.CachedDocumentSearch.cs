@@ -63,7 +63,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -73,7 +73,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
 
-        var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound, cancellationToken);
 
         var documentKeys = projects.SelectManyAsArray(p => p.Documents.Select(DocumentKey.ToDocumentKey));
         var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
@@ -81,7 +81,7 @@ internal abstract partial class AbstractNavigateToSearchService
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted);
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 (service, callbackId, cancellationToken) =>
                     service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, [.. kinds], callbackId, cancellationToken),
@@ -92,7 +92,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         var storageService = solution.Services.GetPersistentStorageService();
         await SearchCachedDocumentsInCurrentProcessAsync(
-            storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+            storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task SearchCachedDocumentsInCurrentProcessAsync(
@@ -101,7 +101,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<DocumentKey> priorityDocumentKeys,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -153,11 +153,11 @@ internal abstract partial class AbstractNavigateToSearchService
 
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+                onItemsFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+                onItemsFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
 
             // done with project.  Let the host know.
             await onProjectCompleted().ConfigureAwait(false);
@@ -169,7 +169,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         HashSet<DocumentKey> documentKeys,
         CancellationToken cancellationToken)
     {
@@ -185,7 +185,7 @@ internal abstract partial class AbstractNavigateToSearchService
                     return;
 
                 await ProcessIndexAsync(
-                    documentKey, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
+                    documentKey, document: null, patternName, patternContainer, kinds, onItemsFound, index, cancellationToken).ConfigureAwait(false);
             }, cancellationToken));
         }
 
