@@ -126,7 +126,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Action<RoslynNavigateToItem> onItemFound,
         TopLevelSyntaxTreeIndex index,
         CancellationToken cancellationToken)
     {
@@ -164,7 +164,7 @@ internal abstract partial class AbstractNavigateToSearchService
         PatternMatcher nameMatcher,
         PatternMatcher? containerMatcher,
         DeclaredSymbolInfoKindSet kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Action<RoslynNavigateToItem> onItemFound,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)

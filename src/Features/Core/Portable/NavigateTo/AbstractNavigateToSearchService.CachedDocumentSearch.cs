@@ -222,7 +222,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Action<RoslynNavigateToItem> onItemFound,
         HashSet<DocumentKey> documentKeys,
         CancellationToken cancellationToken)
     {
@@ -240,7 +240,7 @@ internal abstract partial class AbstractNavigateToSearchService
                     return;
 
                 ProcessIndex(
-                    documentKey, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
+                    documentKey, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken);
             }, cancellationToken));
         }
 
