@@ -47,16 +47,10 @@ variables:
     value: $(System.AccessToken)
 
 extends:
-  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
-    featureFlags:
-      autoBaseline: true
     sdl:
-      sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
-      sbom:
-        enabled: false
-      suppression:
-        suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+      enableAllTools: false
     pool:
       name: VSEngSS-MicroBuild2022-1ES
       demands:
