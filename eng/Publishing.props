@@ -13,7 +13,8 @@
           BeforeTargets="PublishToAzureDevOpsArtifacts">
     <ItemGroup>
       <!-- During PR Validation we need to remove all Packages from being published as they are published separately to the CoreXT feed. -->
-      <ItemsToPushToBlobFeed Remove="@(PackagesToPublish)" Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' " />
+      <ItemsToPushToBlobFeed Include="@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)" Exclude="@(ItemsToPushToBlobFeed)"
+                             Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' " />
     </ItemGroup>
   </Target>
 </Project>

@@ -147,16 +147,17 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
-        - powershell: Write-Host "##vso[task.setvariable variable=OriginalBuildNumber]$('$(Build.BuildNumber)')"
+        - powershell: Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$('$(Build.BuildNumber)')"
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
 
-        - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+        - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName;isreadonly=true]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
 
         - task: Powershell@2
-          displayName: Set build name
+          name: FancyBuild
+          displayName: Setting FancyBuild.BuildNumber
           inputs:
             targetType: inline
             script: |
@@ -171,7 +172,7 @@ extends:
               if ($buildNumberName.Length -GT 255) {
                 $buildNumberName = $buildNumberName.Substring(0, 255)
               }
-              Write-Host "##vso[task.setvariable variable=FancyBuildNumber]$buildNumberName"
+              Write-Host "##vso[task.setvariable variable=BuildNumber;isoutput=true;isreadonly=true]$buildNumberName"
               Write-Host "##vso[build.updatebuildnumber]$buildNumberName"
 
         - task: Powershell@2
@@ -296,6 +297,8 @@ extends:
 
       jobs:
       - job: insert
+        variables:
+          FancyBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['FancyBuild.BuildNumber']]
         displayName: Insert to VS
         pool:
           name: VSEngSS-MicroBuild2022-1ES
