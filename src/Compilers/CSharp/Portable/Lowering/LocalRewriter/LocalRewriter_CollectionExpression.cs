@@ -195,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         elementType,
                         elements,
-                        asReadOnlySpan: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan,
-                        _additionalLocals);
+                        asReadOnlySpan: collectionTypeKind == CollectionExpressionTypeKind.ReadOnlySpan);
                 }
 
                 Debug.Assert(IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
@@ -429,14 +428,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeWithAnnotations elementType,
             ImmutableArray<BoundNode> elements,
-            bool asReadOnlySpan,
-            ArrayBuilder<LocalSymbol> locals)
+            bool asReadOnlySpan)
         {
             Debug.Assert(elements.Length > 0);
             Debug.Assert(elements.All(e => e is BoundExpression));
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(_compilation.Assembly.RuntimeSupportsInlineArrayTypes);
+            Debug.Assert(_additionalLocals is { });
 
             int arrayLength = elements.Length;
             if (arrayLength == 1
@@ -451,8 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constructor = spanRefConstructor.AsMember(spanType);
                 var element = VisitExpression((BoundExpression)elements[0]);
                 var temp = _factory.StoreToTemp(element, out var assignment);
-                locals.Add(temp.LocalSymbol);
-                var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKind.In : RefKind.Ref]);
+                _additionalLocals.Add(temp.LocalSymbol);
+                var call = _factory.New(constructor, arguments: [temp], argumentRefKinds: [asReadOnlySpan ? RefKindExtensions.StrictIn : RefKind.Ref]);
                 return _factory.Sequence([assignment], call);
             }
 
@@ -469,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal inlineArrayLocal = _factory.StoreToTemp(new BoundDefaultExpression(syntax, inlineArrayType), out assignmentToTemp);
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             sideEffects.Add(assignmentToTemp);
-            locals.Add(inlineArrayLocal.LocalSymbol);
+            _additionalLocals.Add(inlineArrayLocal.LocalSymbol);
 
             // Populate the inline array.
             // InlineArrayElementRef<<>y__InlineArrayN<ElementType>, ElementType>(ref tmp, 0) = element0;

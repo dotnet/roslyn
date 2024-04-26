@@ -20919,7 +20919,7 @@ partial class Program
         }
 
         [Fact]
-        public void Span_SingleElement_TempReuse()
+        public void Span_SingleElement_TempsAreNotReused()
         {
             var source = """
                 using System;
@@ -20933,6 +20933,7 @@ partial class Program
                         {
                             Span<int> y = [x];
                             Console.Write(y[0]);
+                            y[0]++;
                         }
                         {
                             Span<int> y = [x];
@@ -20942,13 +20943,13 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("11"));
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("11"));
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M", """
                 {
-                  // Code size       49 (0x31)
-                  .maxstack  2
+                  // Code size       62 (0x3e)
+                  .maxstack  3
                   .locals init (int V_0,
                                 int V_1,
                                 System.Span<int> V_2, //y
@@ -20963,26 +20964,34 @@ partial class Program
                   IL_000d:  call       "ref int System.Span<int>.this[int].get"
                   IL_0012:  ldind.i4
                   IL_0013:  call       "void System.Console.Write(int)"
-                  IL_0018:  ldarg.0
-                  IL_0019:  stloc.1
-                  IL_001a:  ldloca.s   V_1
-                  IL_001c:  newobj     "System.Span<int>..ctor(ref int)"
-                  IL_0021:  stloc.3
-                  IL_0022:  ldloca.s   V_3
-                  IL_0024:  ldc.i4.0
-                  IL_0025:  call       "ref int System.Span<int>.this[int].get"
-                  IL_002a:  ldind.i4
-                  IL_002b:  call       "void System.Console.Write(int)"
-                  IL_0030:  ret
+                  IL_0018:  ldloca.s   V_2
+                  IL_001a:  ldc.i4.0
+                  IL_001b:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0020:  dup
+                  IL_0021:  ldind.i4
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  add
+                  IL_0024:  stind.i4
+                  IL_0025:  ldarg.0
+                  IL_0026:  stloc.1
+                  IL_0027:  ldloca.s   V_1
+                  IL_0029:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_002e:  stloc.3
+                  IL_002f:  ldloca.s   V_3
+                  IL_0031:  ldc.i4.0
+                  IL_0032:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0037:  ldind.i4
+                  IL_0038:  call       "void System.Console.Write(int)"
+                  IL_003d:  ret
                 }
                 """);
 
-            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("11"));
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("11"));
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Program.M", """
                 {
-                  // Code size       63 (0x3f)
+                  // Code size       76 (0x4c)
                   .maxstack  5
                   .locals init (System.Span<int> V_0, //y
                                 System.Span<int> V_1) //y
@@ -20999,20 +21008,141 @@ partial class Program
                   IL_0014:  call       "ref int System.Span<int>.this[int].get"
                   IL_0019:  ldind.i4
                   IL_001a:  call       "void System.Console.Write(int)"
-                  IL_001f:  ldloca.s   V_1
-                  IL_0021:  ldc.i4.1
-                  IL_0022:  newarr     "int"
+                  IL_001f:  ldloca.s   V_0
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  call       "ref int System.Span<int>.this[int].get"
                   IL_0027:  dup
-                  IL_0028:  ldc.i4.0
-                  IL_0029:  ldarg.0
-                  IL_002a:  stelem.i4
-                  IL_002b:  call       "System.Span<int>..ctor(int[])"
-                  IL_0030:  ldloca.s   V_1
-                  IL_0032:  ldc.i4.0
-                  IL_0033:  call       "ref int System.Span<int>.this[int].get"
-                  IL_0038:  ldind.i4
-                  IL_0039:  call       "void System.Console.Write(int)"
-                  IL_003e:  ret
+                  IL_0028:  ldind.i4
+                  IL_0029:  ldc.i4.1
+                  IL_002a:  add
+                  IL_002b:  stind.i4
+                  IL_002c:  ldloca.s   V_1
+                  IL_002e:  ldc.i4.1
+                  IL_002f:  newarr     "int"
+                  IL_0034:  dup
+                  IL_0035:  ldc.i4.0
+                  IL_0036:  ldarg.0
+                  IL_0037:  stelem.i4
+                  IL_0038:  call       "System.Span<int>..ctor(int[])"
+                  IL_003d:  ldloca.s   V_1
+                  IL_003f:  ldc.i4.0
+                  IL_0040:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0045:  ldind.i4
+                  IL_0046:  call       "void System.Console.Write(int)"
+                  IL_004b:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Span_SingleElement_TempsAreNotReused_SameBlock()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main() => M(1);
+
+                    static void M(int x)
+                    {
+                        Span<int> y = [x];
+                        Console.Write(y[0]);
+                        y[0]++;
+
+                        Span<int> z = [x];
+                        Console.Write(z[0]);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("11"));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       62 (0x3e)
+                  .maxstack  3
+                  .locals init (System.Span<int> V_0, //y
+                                System.Span<int> V_1, //z
+                                int V_2,
+                                int V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.2
+                  IL_0002:  ldloca.s   V_2
+                  IL_0004:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_0009:  stloc.0
+                  IL_000a:  ldloca.s   V_0
+                  IL_000c:  ldc.i4.0
+                  IL_000d:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0012:  ldind.i4
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  ldc.i4.0
+                  IL_001b:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0020:  dup
+                  IL_0021:  ldind.i4
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  add
+                  IL_0024:  stind.i4
+                  IL_0025:  ldarg.0
+                  IL_0026:  stloc.3
+                  IL_0027:  ldloca.s   V_3
+                  IL_0029:  newobj     "System.Span<int>..ctor(ref int)"
+                  IL_002e:  stloc.1
+                  IL_002f:  ldloca.s   V_1
+                  IL_0031:  ldc.i4.0
+                  IL_0032:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0037:  ldind.i4
+                  IL_0038:  call       "void System.Console.Write(int)"
+                  IL_003d:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("11"));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       76 (0x4c)
+                  .maxstack  5
+                  .locals init (System.Span<int> V_0, //y
+                                System.Span<int> V_1) //z
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.1
+                  IL_0003:  newarr     "int"
+                  IL_0008:  dup
+                  IL_0009:  ldc.i4.0
+                  IL_000a:  ldarg.0
+                  IL_000b:  stelem.i4
+                  IL_000c:  call       "System.Span<int>..ctor(int[])"
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  ldc.i4.0
+                  IL_0014:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0019:  ldind.i4
+                  IL_001a:  call       "void System.Console.Write(int)"
+                  IL_001f:  ldloca.s   V_0
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0027:  dup
+                  IL_0028:  ldind.i4
+                  IL_0029:  ldc.i4.1
+                  IL_002a:  add
+                  IL_002b:  stind.i4
+                  IL_002c:  ldloca.s   V_1
+                  IL_002e:  ldc.i4.1
+                  IL_002f:  newarr     "int"
+                  IL_0034:  dup
+                  IL_0035:  ldc.i4.0
+                  IL_0036:  ldarg.0
+                  IL_0037:  stelem.i4
+                  IL_0038:  call       "System.Span<int>..ctor(int[])"
+                  IL_003d:  ldloca.s   V_1
+                  IL_003f:  ldc.i4.0
+                  IL_0040:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0045:  ldind.i4
+                  IL_0046:  call       "void System.Console.Write(int)"
+                  IL_004b:  ret
                 }
                 """);
         }
