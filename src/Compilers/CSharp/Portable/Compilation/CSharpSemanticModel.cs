@@ -1770,10 +1770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (arities is null)
-                    {
-                        throw ExceptionUtilities.Unreachable();
-                    }
+                    Debug.Assert(arities is not null);
 
                     // The name maps to multiple symbols. Actually do a real lookup so 
                     // that we will properly figure out hiding and whatnot.
@@ -1800,7 +1797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lookupResult.IsMultiViable)
                 {
-                    if (lookupResult.Symbols.Any(t => t.Kind == SymbolKind.NamedType || t.Kind == SymbolKind.Namespace || t.Kind == SymbolKind.ErrorType))
+                    Debug.Assert(!lookupResult.Symbols.Any(t => t.Kind is SymbolKind.ErrorType or SymbolKind.Namespace));
+                    if (lookupResult.Symbols.Any(t => t.Kind is SymbolKind.NamedType))
                     {
                         // binder.ResultSymbol is defined only for type/namespace lookups
                         bool wasError;

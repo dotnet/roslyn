@@ -179,10 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        // Note: for public Lookup API purposes, we need to collect results from member lookup and extension member lookup;
-        // we use `skipType` to skip collecting the extension member lookup results from an extension type that we already
-        // collected members from (via direct member lookup).
-        internal void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, TypeSymbol type,
+        protected void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, TypeSymbol type,
             string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
             Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -962,10 +959,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Does a member lookup in a single type, without considering inheritance.
-        protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string? name, int arity,
+        protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
             LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var members = name is null ? GetCandidateMembers(type, options, originalBinder) : GetCandidateMembers(type, name, options, originalBinder);
+            var members = GetCandidateMembers(type, name, options, originalBinder);
 
             foreach (Symbol member in members)
             {
@@ -1216,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void LookupMembersInExtension(
             LookupResult current,
             NamedTypeSymbol type,
-            string? name,
+            string name,
             int arity,
             ConsList<TypeSymbol>? basesBeingResolved,
             LookupOptions options,
@@ -1225,6 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(type is { IsExtension: true });
+            Debug.Assert(name is not null);
 
             LookupMembersWithoutInheritance(current, type, name, arity, options, originalBinder, accessThroughType: type, diagnose, ref useSiteInfo, basesBeingResolved);
         }
@@ -2182,8 +2180,7 @@ symIsHidden:;
                     break;
 
                 case TypeKind.Interface:
-                    accessThroughType ??= type;
-                    this.AddMemberLookupSymbolsInfoInInterface(result, type, options, originalBinder, accessThroughType);
+                    this.AddMemberLookupSymbolsInfoInInterface(result, type, options, originalBinder, accessThroughType: accessThroughType ?? type);
                     break;
 
                 case TypeKind.Class:
@@ -2193,8 +2190,7 @@ symIsHidden:;
                 case TypeKind.Array:
                 case TypeKind.Dynamic:
                 case TypeKind.Submission:
-                    accessThroughType ??= type;
-                    this.AddMemberLookupSymbolsInfoInClass(result, type, options, originalBinder, accessThroughType);
+                    this.AddMemberLookupSymbolsInfoInClass(result, type, options, originalBinder, accessThroughType: accessThroughType ?? type);
                     break;
 
                 case TypeKind.Extension:
