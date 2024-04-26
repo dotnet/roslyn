@@ -82,7 +82,9 @@ internal abstract partial class AbstractNavigateToSearchService
         HashSet<Document> documents,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
         using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
         foreach (var document in documents)
@@ -90,7 +92,9 @@ internal abstract partial class AbstractNavigateToSearchService
             if (searchDocument != null && searchDocument != document)
                 continue;
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onItemsFound, cancellationToken));
         }
 
@@ -105,12 +109,15 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
         await Task.Yield().ConfigureAwait(false);
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
-        await ProcessIndexAsync(
-            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds, onItemsFound, index, cancellationToken).ConfigureAwait(false);
+        ProcessIndex(
+            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds,
+            item => onItemsFound([item]), index, cancellationToken);
     }
 
     private static void ProcessIndex(
@@ -135,6 +142,9 @@ internal abstract partial class AbstractNavigateToSearchService
 
         foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             // Namespaces are never returned in nav-to as they're too common and have too many locations.
             if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
                 continue;
@@ -157,6 +167,9 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<RoslynNavigateToItem, Task> onItemFound,
         CancellationToken cancellationToken)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
         using var nameMatches = TemporaryArray<PatternMatch>.Empty;
         using var containerMatches = TemporaryArray<PatternMatch>.Empty;
 
@@ -173,8 +186,7 @@ internal abstract partial class AbstractNavigateToSearchService
             // the relationship between this document and the other documents linked to it.  In the
             // case where the solution isn't fully loaded and we're just reading in cached data, we
             // don't know what other files we're linked to and can't merge results in this fashion.
-            var additionalMatchingProjects = await GetAdditionalProjectsWithMatchAsync(
-                document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
+            var additionalMatchingProjects = GetAdditionalProjectsWithMatch(document, declaredSymbolInfo, cancellationToken);
 
             var result = ConvertResult(
                 documentKey, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
@@ -219,7 +231,7 @@ internal abstract partial class AbstractNavigateToSearchService
             allPatternMatches.ToImmutableAndClear());
     }
 
-    private static ImmutableArray<ProjectId> GetAdditionalProjectsWithMatchAsync(
+    private static ImmutableArray<ProjectId> GetAdditionalProjectsWithMatch(
         Document? document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
     {
         if (document == null)
