@@ -52,6 +52,7 @@ extends:
     featureFlags:
       autoBaseline: true
     sdl:
+      sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
       sbom:
         enabled: false
       suppression:
