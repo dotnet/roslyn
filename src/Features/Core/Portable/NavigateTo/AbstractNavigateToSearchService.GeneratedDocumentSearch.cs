@@ -14,6 +14,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
+#if NET
+using Parallel = System.Threading.Tasks.Parallel;
+#else
+using Parallel = Roslyn.Utilities.Parallel;
+#endif
+
 internal abstract partial class AbstractNavigateToSearchService
 {
     public async Task SearchGeneratedDocumentsAsync(
@@ -81,22 +87,23 @@ internal abstract partial class AbstractNavigateToSearchService
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-            // Projects is already sorted in dependency order by the host.  Process in that order so that prior
-            // compilations are available for later projects when needed.
-            foreach (var project in projects)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                    return;
+            await Parallel.ForEachAsync(
+                projects,
+                cancellationToken,
+                async (project, cancellationToken) =>
+                {
+                    // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
+                    var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                    using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
 
-                // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
-                var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-                using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
+                    await Parallel.ForEachAsync(
+                        sourceGeneratedDocs,
+                        cancellationToken,
+                        (document, cancellationToken) => ProcessDocumentAsync(
+                            document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
 
-                await ProcessDocumentsAsync(
-                    searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, documents, cancellationToken).ConfigureAwait(false);
-
-                await onProjectCompleted().ConfigureAwait(false);
-            }
+                    await onProjectCompleted().ConfigureAwait(false);
+                }).ConfigureAwait(false);
         }
     }
 }
