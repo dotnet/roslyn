@@ -9475,10 +9475,8 @@ public class C
             AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
             AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-            // IInvalidOperation is pre-existing condition - https://github.com/dotnet/roslyn/issues/72916
-            var propertyRef = (IInvalidOperation)model.GetOperation(elementAccess);
-            //var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-            //AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, propertyRef.Type);
 
             var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
