@@ -7,9 +7,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Host;
 
 /// <summary>
-/// Identifier for a stream of data placed in a segment of temporary storage (generally a memory mapped file). Can be
-/// used to identify that segment across processes, allowing for efficient sharing of data.
+/// Identifier for a stream of data placed in a segment of a memory mapped file. Can be used to identify that segment
+/// across processes (where supported), allowing for efficient sharing of data.
 /// </summary>
+/// <param name="Name">The name of the segment in the temporary storage.  <see langword="null"/> on platforms that don't
+/// support cross process sharing of named memory mapped files.</param>
 internal sealed record TemporaryStorageIdentifier(
     string? Name, long Offset, long Size)
 {
