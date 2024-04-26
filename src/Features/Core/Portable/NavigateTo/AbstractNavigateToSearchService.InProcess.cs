@@ -40,14 +40,15 @@ internal abstract partial class AbstractNavigateToSearchService
     private static async Task SearchProjectInCurrentProcessAsync(
         Project project, ImmutableArray<Document> priorityDocuments,
         Document? searchDocument, string pattern, IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Action<RoslynNavigateToItem> onItemFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
         try
         {
             await Task.Yield().ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return;
 
             // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
             // of potentially stale indices.
@@ -62,10 +63,10 @@ internal abstract partial class AbstractNavigateToSearchService
             using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project.ContainsDocument(d.Id)), out var highPriDocs);
             using var _2 = GetPooledHashSet(project.Documents.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
 
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
             // Then process non-priority documents.
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -78,7 +79,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Action<RoslynNavigateToItem> onItemFound,
         HashSet<Document> documents,
         CancellationToken cancellationToken)
     {
@@ -95,7 +96,7 @@ internal abstract partial class AbstractNavigateToSearchService
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onItemsFound, cancellationToken));
+            tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onItemFound, cancellationToken));
         }
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -106,7 +107,7 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Action<RoslynNavigateToItem> onItemFound,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -116,8 +117,7 @@ internal abstract partial class AbstractNavigateToSearchService
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
         ProcessIndex(
-            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds,
-            item => onItemsFound([item]), index, cancellationToken);
+            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds, onItemFound, index, cancellationToken);
     }
 
     private static void ProcessIndex(
