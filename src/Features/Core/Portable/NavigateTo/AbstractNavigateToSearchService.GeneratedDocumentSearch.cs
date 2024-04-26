@@ -67,27 +67,31 @@ internal abstract partial class AbstractNavigateToSearchService
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
         await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer),
-            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader)).ConfigureAwait(false);
+            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchProjectsAsync),
+            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
 
+        return;
 
-        // If the user created a dotted pattern then we'll grab the last part of the name
-        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-        // Projects is already sorted in dependency order by the host.  Process in that order so that prior
-        // compilations are available for later projects when needed.
-        foreach (var project in projects)
+        async Task SearchProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
-            var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
+            // If the user created a dotted pattern then we'll grab the last part of the name
+            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
+            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-            await ProcessDocumentsAsync(
-                searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound, documents, cancellationToken).ConfigureAwait(false);
+            // Projects is already sorted in dependency order by the host.  Process in that order so that prior
+            // compilations are available for later projects when needed.
+            foreach (var project in projects)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
+                var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
 
-            await onProjectCompleted().ConfigureAwait(false);
+                await ProcessDocumentsAsync(
+                    searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, documents, cancellationToken).ConfigureAwait(false);
+
+                await onProjectCompleted().ConfigureAwait(false);
+            }
         }
     }
 }
