@@ -173,6 +173,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     internal static TemporaryStorageStreamHandle GetStreamHandle(TemporaryStorageIdentifier storageIdentifier)
     {
+        Contract.ThrowIfNull(storageIdentifier.Name, $"{nameof(GetStreamHandle)} should only be called for VS on Windows (where named memory mapped files as supported)");
         var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
         return new(memoryMappedFile, storageIdentifier);
     }
@@ -183,6 +184,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         Encoding? encoding,
         ImmutableArray<byte> contentHash)
     {
+        Contract.ThrowIfNull(storageIdentifier.Name, $"{nameof(GetTextHandle)} should only be called for VS on Windows (where named memory mapped files as supported)");
         var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
         return new(this, memoryMappedFile, storageIdentifier, checksumAlgorithm, encoding, contentHash);
     }
@@ -222,15 +224,21 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             else
             {
                 // Reserve additional space in the existing storage location
-                Contract.ThrowIfNull(_name);
                 _offset += size;
                 return new MemoryMappedInfo(reference, _name, _offset - size, size);
             }
         }
     }
 
-    public static string CreateUniqueName(long size)
-        => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
+    public static string? CreateUniqueName(long size)
+    {
+        // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including
+        // Mono) and .NET Core Windows. For non-Windows .NET Core scenarios, we return null to enable create the memory
+        // mapped file (just not in a way that can be shared across processes).
+        return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
+            ? $"Roslyn Shared File: Size={size} Id={Guid.NewGuid():N}"
+            : null;
+    }
 
     public sealed class TemporaryStorageTextHandle(
         TemporaryStorageService storageService,

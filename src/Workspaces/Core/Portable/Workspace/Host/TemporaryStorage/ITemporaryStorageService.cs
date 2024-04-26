@@ -18,7 +18,13 @@ public interface ITemporaryStorageService : IWorkspaceService
 }
 
 /// <summary>
-/// API to allow a client to write data to memory-mapped-file storage (allowing it to be shared across processes).
+/// API to allow a client to write data to memory-mapped-file storage.  That data can be read back in within the same
+/// process using a handle returned from the writing call.  The data can optionally be read back in from a different
+/// process, using the information contained with the handle's <code>Identifier</code> (see <see
+/// cref="TemporaryStorageIdentifier"/>), but only on systems that support named memory mapped files.  Currently, this
+/// is any .net on Windows and mono on unix systems.  This is not supported on .net core on unix systems (tracked here
+/// https://github.com/dotnet/runtime/issues/30878).  This is not a problem in practice as cross process sharing is only
+/// needed by the VS host, which is windows only.
 /// </summary>
 internal interface ITemporaryStorageServiceInternal : IWorkspaceService
 {
