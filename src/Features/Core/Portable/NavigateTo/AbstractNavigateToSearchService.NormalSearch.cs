@@ -10,14 +10,22 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
+#if NET
+using Parallel = System.Threading.Tasks.Parallel;
+#else
+using Parallel = Roslyn.Utilities.Parallel;
+#endif
+
 internal abstract partial class AbstractNavigateToSearchService
 {
+
     public async Task SearchDocumentAsync(
         Document document,
         string searchPattern,
@@ -107,24 +115,53 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
+        ClearCachedData();
+
+        var orderedDocuments = GetOrderedDocuments();
+
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
         await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchProjectsAsync),
+            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchDocumentsAsync),
             ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
 
         return;
 
-        async Task SearchProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
+        IEnumerable<Document> GetOrderedDocuments()
         {
             using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
             using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
 
-            Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
+            using var _3 = PooledHashSet<Document>.GetInstance(out var seenDocuments);
 
-            await ProcessProjectsAsync(highPriProjects, onItemFound).ConfigureAwait(false);
-            await ProcessProjectsAsync(lowPriProjects, onItemFound).ConfigureAwait(false);
+
         }
+
+        async Task SearchDocumentsAsync(
+            IEnumerable<Document> orderedDocuments,
+            Action<RoslynNavigateToItem> onItemFound)
+        {
+            // If the user created a dotted pattern then we'll grab the last part of the name
+            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+
+            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
+            await Parallel.ForEachAsync(
+                orderedDocuments,
+                cancellationToken,
+                (document, cancellationToken) =>
+                    ProcessDocumentAsync(
+                        document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+        }
+
+        //async Task SearchProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
+        //{
+
+        //    Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
+
+        //    await ProcessProjectsAsync(highPriProjects, onItemFound).ConfigureAwait(false);
+        //    await ProcessProjectsAsync(lowPriProjects, onItemFound).ConfigureAwait(false);
+        //}
 
         async Task ProcessProjectsAsync(HashSet<Project> projects, Action<RoslynNavigateToItem> onItemFound)
         {

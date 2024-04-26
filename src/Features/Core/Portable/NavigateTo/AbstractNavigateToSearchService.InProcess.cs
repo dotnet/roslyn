@@ -102,7 +102,7 @@ internal abstract partial class AbstractNavigateToSearchService
         await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
-    private static async Task ProcessDocumentAsync(
+    private static async ValueTask ProcessDocumentAsync(
         Document document,
         string patternName,
         string? patternContainer,
@@ -113,7 +113,6 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        await Task.Yield().ConfigureAwait(false);
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
         ProcessIndex(
