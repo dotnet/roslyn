@@ -381,7 +381,7 @@ class Test : System.Attribute
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "1121");
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: ExpectedOutput("1121"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
