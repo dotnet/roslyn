@@ -199,6 +199,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
+        internal static Uri CreateRelativePatternBaseUri(string path)
+        {
+            // According to VSCode LSP RelativePattern spec, 
+            // found at https://github.com/microsoft/vscode/blob/9e1974682eb84eebb073d4ae775bad1738c281f6/src/vscode-dts/vscode.d.ts#L2226
+            // the baseUri should not end in a trailing separator, nor should it 
+            // have any relative segmeents (., ..)
+            if (path[^1] == System.IO.Path.DirectorySeparatorChar)
+            {
+                path = path[..^1];
+            }
+
+            Debug.Assert(!path.Split(System.IO.Path.DirectorySeparatorChar).Any(p => p == "." || p == ".."));
+
+            return CreateAbsoluteUri(path);
+        }
+
         // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
         internal static string GetAbsoluteUriString(string absolutePath)
         {
