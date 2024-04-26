@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<Project, INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Solution solution,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<Project, INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Solution solution,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<Project, INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
                     It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
                     (Solution solution,
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
             callbackMock.Setup(c => c.ReportIncomplete());
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-            callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            callbackMock.Setup(c => c.AddItemAsync(result, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             // Because we returned a result when not fully loaded, we should notify the user that data was not complete.
             callbackMock.Setup(c => c.Done(false));
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
             callbackMock.Setup(c => c.ReportIncomplete());
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-            callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>()))
+            callbackMock.Setup(c => c.AddItemAsync(result, It.IsAny<CancellationToken>()))
                         .Returns(Task.CompletedTask);
 
             // Because the remote host wasn't fully loaded, we still notify that our results may be incomplete.
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-            callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>()))
+            callbackMock.Setup(c => c.AddItemAsync(result, It.IsAny<CancellationToken>()))
                         .Returns(Task.CompletedTask);
 
             // Because we did a full search, we should let the user know it was totally accurate.
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
             callbackMock.Setup(c => c.ReportIncomplete());
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-            callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            callbackMock.Setup(c => c.AddItemAsync(result, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             callbackMock.Setup(c => c.Done(true));
 
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             var callbackMock = new Mock<INavigateToSearchCallback>(MockBehavior.Strict);
             callbackMock.Setup(c => c.ReportIncomplete());
             callbackMock.Setup(c => c.ReportProgress(It.IsAny<int>(), It.IsAny<int>()));
-            callbackMock.Setup(c => c.AddItemAsync(It.IsAny<Project>(), result, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            callbackMock.Setup(c => c.AddItemAsync(result, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             callbackMock.Setup(c => c.Done(true));
 
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             public Action? OnSearchGeneratedDocumentsAsyncCalled { get; set; }
             public Action? OnSearchProjectsAsyncCalled { get; set; }
 
-            public Task SearchCachedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+            public Task SearchCachedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
             {
                 OnSearchCachedDocumentsAsyncCalled?.Invoke();
                 return Task.CompletedTask;
@@ -377,13 +377,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 return Task.CompletedTask;
             }
 
-            public Task SearchGeneratedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+            public Task SearchGeneratedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
             {
                 OnSearchGeneratedDocumentsAsyncCalled?.Invoke();
                 return Task.CompletedTask;
             }
 
-            public Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+            public Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
             {
                 OnSearchProjectsAsyncCalled?.Invoke();
                 return Task.CompletedTask;

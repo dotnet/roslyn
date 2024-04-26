@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Search.Data;
 using Microsoft.VisualStudio.Text.PatternMatching;
@@ -21,13 +22,16 @@ internal sealed partial class RoslynSearchItemsSourceProvider
     /// </summary>
     private sealed class RoslynNavigateToSearchCallback : INavigateToSearchCallback
     {
+        private readonly Solution _solution;
         private readonly RoslynSearchItemsSourceProvider _provider;
         private readonly ISearchCallback _searchCallback;
 
         public RoslynNavigateToSearchCallback(
+            Solution solution,
             RoslynSearchItemsSourceProvider provider,
             ISearchCallback searchCallback)
         {
+            _solution = solution;
             _provider = provider;
             _searchCallback = searchCallback;
         }
@@ -65,6 +69,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             // api).
             var perProviderItemPriority = float.MaxValue - Enumerable.Sum(result.Matches.Select(m => (int)m.Kind));
 
+            var project = _solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
             _searchCallback.AddItem(new RoslynCodeSearchResult(
                 _provider,
                 result,
@@ -74,7 +79,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 matches,
                 result.NavigableItem.Document.FilePath,
                 perProviderItemPriority,
-                result.Language));
+                project.Language));
 
             return Task.CompletedTask;
         }

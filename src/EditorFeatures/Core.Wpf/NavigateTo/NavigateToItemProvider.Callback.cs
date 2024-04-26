@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text.PatternMatching;
@@ -18,11 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         private class NavigateToItemProviderCallback : INavigateToSearchCallback
         {
+            private readonly Solution _solution;
             private readonly INavigateToItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
 
-            public NavigateToItemProviderCallback(INavigateToItemDisplayFactory displayFactory, INavigateToCallback callback)
+            public NavigateToItemProviderCallback(Solution solution, INavigateToItemDisplayFactory displayFactory, INavigateToCallback callback)
             {
+                _solution = solution;
                 _displayFactory = displayFactory;
                 _callback = callback;
             }
@@ -49,10 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     result.IsCaseSensitive,
                     matchedSpans);
 
+                var project = _solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
                 var navigateToItem = new NavigateToItem(
                     result.Name,
                     result.Kind,
-                    GetNavigateToLanguage(result.Language),
+                    GetNavigateToLanguage(project.Language),
                     result.SecondarySort,
                     result,
                     patternMatch,

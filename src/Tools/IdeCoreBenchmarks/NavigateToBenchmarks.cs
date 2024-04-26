@@ -229,7 +229,7 @@ namespace IdeCoreBenchmarks
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectsAsync(
                 solution, grouping.ToImmutableArray(), priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
-                (_, r) =>
+                r =>
                 {
                     lock (results)
                         results.Add(r);

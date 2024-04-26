@@ -20,7 +20,6 @@ internal interface INavigateToSearchResult
     ImmutableArray<TextSpan> NameMatchSpans { get; }
     string SecondarySort { get; }
     string? Summary { get; }
-    string Language { get; }
 
     INavigableItem NavigableItem { get; }
     ImmutableArray<PatternMatch> Matches { get; }

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            Func<Project, INavigateToSearchResult, Task> onResultFound,
+            Func<INavigateToSearchResult, Task> onResultFound,
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             {
                 var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                 foreach (var result in results)
-                    await onResultFound(project, new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
+                    await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
 
                 await onProjectCompleted().ConfigureAwait(false);
             }
