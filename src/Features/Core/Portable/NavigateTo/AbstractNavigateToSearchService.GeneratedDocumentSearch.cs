@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
@@ -62,6 +63,14 @@ internal abstract partial class AbstractNavigateToSearchService
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
+
+        await Task.WhenAll(
+            FindAllItemsAndWriteToChannelAsync(channel.Writer),
+            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader)).ConfigureAwait(false);
+
+
         // If the user created a dotted pattern then we'll grab the last part of the name
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);

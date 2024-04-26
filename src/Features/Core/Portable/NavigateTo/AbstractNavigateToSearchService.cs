@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -63,5 +64,44 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         var disposer = PooledHashSet<T>.GetInstance(out instance);
         instance.AddRange(items);
         return disposer;
+    }
+
+    private static async Task ReadItemsFromChannelAndReportToCallbackAsync(
+        ChannelReader<RoslynNavigateToItem> channelReader,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        CancellationToken cancellationToken)
+    {
+        await Task.Yield().ConfigureAwait(false);
+        using var _ = ArrayBuilder<RoslynNavigateToItem>.GetInstance(out var items);
+
+        while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            // Grab as many items as we can from the channel at once and report in a batch.
+            while (channelReader.TryRead(out var item))
+                items.Add(item);
+
+            await onItemsFound(items.ToImmutableAndClear()).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task FindAllItemsAndWriteToChannelAsync(
+        ChannelWriter<RoslynNavigateToItem> channelWriter,
+        Func<Action<RoslynNavigateToItem>, Task> findWorker)
+    {
+        Exception? exception = null;
+        try
+        {
+            await findWorker(item => channelWriter.TryWrite(item)).ConfigureAwait(false);
+        }
+        catch (Exception ex) when ((exception = ex) == null)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+        finally
+        {
+            // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
+            // writing task knows it's done.
+            channelWriter.TryComplete(exception);
+        }
     }
 }
