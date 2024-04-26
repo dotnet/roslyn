@@ -298,7 +298,7 @@ extends:
       - job: insert
         displayName: Insert to VS
         pool:
-          vmImage: windows-2019
+          name: VSEngSS-MicroBuild2022-1ES
         steps:
         # Arcade is done so we can set BuildNumber back
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
