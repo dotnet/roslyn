@@ -1485,8 +1485,44 @@ Delta.2: Test D2
             Assert.Collection(resolver.CalledFor, (a => Assert.Equal("Alpha", a.Name)), a => Assert.Equal(thisAssemblyName.Name, a.Name), a => Assert.Equal("Delta", a.Name));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void ExternalResolver_MultipleResolvers_CanIntercept_ReturningNull(AnalyzerTestKind kind)
+        {
+            var resolver1 = new TestAnalyzerAssemblyResolver(n => null);
+            var resolver2 = new TestAnalyzerAssemblyResolver(n => null);
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                loader.AddDependencyLocation(testFixture.Delta1);
+                Assembly delta = loader.LoadFromPath(testFixture.Delta1);
+                Assert.NotNull(delta);
+                VerifyDependencyAssemblies(loader, testFixture.Delta1);
+
+            }, externalResolvers: [resolver1, resolver2]);
+            Assert.Collection(resolver1.CalledFor, (a => Assert.Equal("Delta", a.Name)));
+            Assert.Collection(resolver2.CalledFor, (a => Assert.Equal("Delta", a.Name)));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExternalResolver_MultipleResolvers_ResolutionStops_AfterFirstResolve(AnalyzerTestKind kind)
+        {
+            var resolver1 = new TestAnalyzerAssemblyResolver(n => GetType().Assembly);
+            var resolver2 = new TestAnalyzerAssemblyResolver(n => null);
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                var thisAssembly = typeof(AnalyzerAssemblyLoaderTests).Assembly;
+                loader.AddDependencyLocation(thisAssembly.Location);
+                Assembly loaded = loader.LoadFromPath(thisAssembly.Location);
+                Assert.Equal(thisAssembly, loaded);
+
+            }, externalResolvers: [resolver1, resolver2]);
+            Assert.Collection(resolver1.CalledFor, (a => Assert.Equal(GetType().Assembly.GetName().Name, a.Name)));
+            Assert.Empty(resolver2.CalledFor);
+        }
+
         [Serializable]
-        class TestAnalyzerAssemblyResolver(Func<AssemblyName, Assembly?> func) : MarshalByRefObject, IAnalyzerAssemblyResolver
+        private class TestAnalyzerAssemblyResolver(Func<AssemblyName, Assembly?> func) : MarshalByRefObject, IAnalyzerAssemblyResolver
         {
             private readonly Func<AssemblyName, Assembly?> _func = func;
 

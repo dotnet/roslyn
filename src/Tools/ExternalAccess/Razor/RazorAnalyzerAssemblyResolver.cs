@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
@@ -13,7 +14,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     [Export(typeof(IAnalyzerAssemblyResolver)), Shared]
     internal class RazorAnalyzerAssemblyResolver : IAnalyzerAssemblyResolver
     {
-        internal static Func<AssemblyName, Assembly?>? AssemblyResolver;
+        private static Func<AssemblyName, Assembly?>? s_assemblyResolver;
+
+        /// <summary>
+        /// We use this as a heuristic to catch a case where we set the resolver too 
+        /// late and the resolver has already been asked to resolve a razor assembly.
+        /// 
+        /// Note this isn't perfectly accurate but is only used to trigger an assert
+        /// in debug builds. 
+        /// </summary>
+        private static bool s_razorRequested = false;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -21,6 +31,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
         }
 
-        public Assembly? ResolveAssembly(AssemblyName assemblyName) => AssemblyResolver?.Invoke(assemblyName);
+        internal static Func<AssemblyName, Assembly?>? AssemblyResolver
+        {
+            get => s_assemblyResolver;
+            set
+            {
+                Debug.Assert(s_assemblyResolver == null, "Assembly resolver should not be set multiple times.");
+                Debug.Assert(!s_razorRequested, "A razor assembly has already been requested before setting the resolver.");
+                s_assemblyResolver = value;
+            }
+        }
+
+        public Assembly? ResolveAssembly(AssemblyName assemblyName)
+        {
+            s_razorRequested |= assemblyName.FullName.Contains("Razor");
+            return s_assemblyResolver?.Invoke(assemblyName);
+        }
     }
 }

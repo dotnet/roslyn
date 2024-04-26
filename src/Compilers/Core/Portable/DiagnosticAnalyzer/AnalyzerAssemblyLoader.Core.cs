@@ -193,6 +193,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// A resolver which allows a passed in <see cref="AssemblyLoadContext"/> from the compiler 
+        /// to control assembly resolution. This is important because there are many exchange types
+        /// that need to unify across the multiple analyzer ALCs. These include common types from
+        /// <c>Microsoft.CodeAnalysis.dll</c> etc, as well as platform assemblies provided by a 
+        /// host such as visual studio.
+        /// </summary>
+        /// <remarks>
+        /// This resolver essentially forces any assembly that was loaded as a 'core' part of the
+        /// compiler to be shared across analyzers, and not loaded multiple times into each individual
+        /// analyzer ALC, even if the analyzer itself shipped a copy of said assembly.
+        /// </remarks>
+        /// <param name="compilerContext">The <see cref="AssemblyLoadContext"/> that the core
+        /// compiler assemblies are already loaded into.</param>
         internal sealed class CompilerAnalyzerAssemblyResolver(AssemblyLoadContext compilerContext) : IAnalyzerAssemblyResolver
         {
             private readonly AssemblyLoadContext _compilerAlc = compilerContext;
