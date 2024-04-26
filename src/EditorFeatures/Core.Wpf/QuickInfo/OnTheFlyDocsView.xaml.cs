@@ -139,12 +139,12 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         try
         {
             using var token = _asyncListener.BeginAsyncOperation(nameof(SetResultTextAsync));
-
             var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, cancellationToken).ConfigureAwait(false);
             stopwatch.Stop();
             copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (response is null || response.Length == 0)
             {
                 SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
@@ -174,28 +174,16 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         }
     }
 
-    /// <summary>
-    /// Gets or sets the current state of the view.
-    /// </summary>
     public OnTheFlyDocsState CurrentState
     {
         get => _currentState;
         set => OnPropertyChanged(ref _currentState, value);
     }
 
-    /// <summary>
-    /// Gets the content of the on-demand link state of the view.
-    /// </summary>
     public UIElement OnDemandLinkContent { get; }
 
-    /// <summary>
-    /// Gets the content of the loading state of the view.
-    /// </summary>
     public UIElement LoadingContent { get; }
 
-    /// <summary>
-    /// Gets the content of the results state of the view.
-    /// </summary>
     public UIElement ResultsContent { get; }
 
     public void RequestResults()

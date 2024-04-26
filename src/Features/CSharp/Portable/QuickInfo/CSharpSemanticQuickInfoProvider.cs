@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -152,7 +153,13 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
-        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference => reference.GetSyntax(cancellationToken).ToFullString()).ToImmutableArray();
+        var maxLength = 1000;
+        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
+        {
+            var fullString = reference.GetSyntax(cancellationToken).ToFullString();
+            return fullString.Length > maxLength ? fullString.Substring(0, maxLength) : fullString;
+        }).ToImmutableArray();
+
         return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings);
     }
 }
