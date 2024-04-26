@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     SourceMemberMethodSymbol method = null;
+                    bool isIteratorBody = false;
 
                     if (usage != NodeUsage.Normal && methodDecl.TypeParameterList != null)
                     {
@@ -177,11 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (usage == NodeUsage.MethodBody)
                     {
                         method = method ?? GetMethodSymbol(methodDecl, resultBinder);
+                        isIteratorBody = method.IsIterator;
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
-                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(methodDecl.Modifiers,
-                        isIteratorBody: usage == NodeUsage.MethodBody && method?.IsIterator == true);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(methodDecl.Modifiers, isIteratorBody: isIteratorBody);
                     binderCache.TryAdd(key, resultBinder);
                 }
 
@@ -215,6 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             //TODO: the error should be given in a different place, but should we ignore or consider the type args?
                             Debug.Assert(method.Arity == 0, "Generic Ctor, What to do?");
 
+                            // Constructor cannot be an iterator, otherwise we would need to pass
+                            // `isIteratorBody` to `SetOrClearUnsafeRegionIfNecessary` below.
+                            Debug.Assert(!method.IsIterator);
+
                             resultBinder = new InMethodBinder(method, resultBinder);
                         }
                     }
@@ -245,6 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     SourceMemberMethodSymbol method = GetMethodSymbol(parent, resultBinder);
                     resultBinder = new InMethodBinder(method, resultBinder);
+
+                    // Destructor cannot be an iterator, otherwise we would need to pass
+                    // `isIteratorBody` to `SetOrClearUnsafeRegionIfNecessary` below.
+                    Debug.Assert(!method.IsIterator);
 
                     resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
@@ -335,13 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultBinder = VisitCore(parent.Parent);
 
                     MethodSymbol method = GetMethodSymbol(parent, resultBinder);
+                    bool isIteratorBody = false;
                     if ((object)method != null && inBody)
                     {
+                        isIteratorBody = method.IsIterator;
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
-                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers,
-                        isIteratorBody: inBody && method?.IsIterator == true);
+                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers, isIteratorBody: isIteratorBody);
 
                     binderCache.TryAdd(key, resultBinder);
                 }
@@ -401,17 +411,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder resultBinder;
                 if (!binderCache.TryGetValue(key, out resultBinder))
                 {
-                    resultBinder = VisitCore(parent.Parent);
+                    resultBinder = VisitCore(parent.Parent).SetOrClearUnsafeRegionIfNecessary(parent.Modifiers);
 
                     var propertySymbol = GetPropertySymbol(parent, resultBinder);
                     var accessor = propertySymbol.GetMethod;
                     if ((object)accessor != null)
                     {
+                        // Expression body cannot be an iterator, otherwise we would need to pass
+                        // `isIteratorBody` to `SetOrClearUnsafeRegionIfNecessary` above.
+                        Debug.Assert(!accessor.IsIterator);
+
                         resultBinder = new InMethodBinder(accessor, resultBinder);
                     }
-
-                    resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(parent.Modifiers,
-                        isIteratorBody: accessor?.IsIterator == true);
 
                     binderCache.TryAdd(key, resultBinder);
                 }

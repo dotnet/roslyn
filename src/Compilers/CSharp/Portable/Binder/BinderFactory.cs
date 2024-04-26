@@ -151,6 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(constructor.Arity == 0, "Generic Ctor, What to do?");
                 resultBinder = new InMethodBinder(constructor, GetInTypeBodyBinder(typeDecl));
 
+                // Constructors cannot be an iterator, otherwise we would need to
+                // call `SetOrClearUnsafeRegionIfNecessary` and pass `isIteratorBody`.
+                Debug.Assert(!constructor.IsIterator);
+
                 _binderCache.TryAdd(key, resultBinder);
             }
 
