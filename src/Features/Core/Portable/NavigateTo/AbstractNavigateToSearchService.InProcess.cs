@@ -173,11 +173,13 @@ internal abstract partial class AbstractNavigateToSearchService
         using var nameMatches = TemporaryArray<PatternMatch>.Empty;
         using var containerMatches = TemporaryArray<PatternMatch>.Empty;
 
-        cancellationToken.ThrowIfCancellationRequested();
         if (kinds.Contains(declaredSymbolInfo.Kind) &&
             nameMatcher.AddMatches(declaredSymbolInfo.Name, ref nameMatches.AsRef()) &&
             containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, ref containerMatches.AsRef()) != false)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             // See if we have a match in a linked file.  If so, see if we have the same match in
             // other projects that this file is linked in.  If so, include the full set of projects
             // the match is in so we can display that well in the UI.

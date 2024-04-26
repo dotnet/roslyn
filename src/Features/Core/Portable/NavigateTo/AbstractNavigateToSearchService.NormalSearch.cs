@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -44,11 +45,15 @@ internal abstract partial class AbstractNavigateToSearchService
         await SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
     }
 
-    public static Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
+    public static async Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
     {
-        return SearchProjectInCurrentProcessAsync(
+        var results = new ConcurrentSet<RoslynNavigateToItem>();
+        await SearchProjectInCurrentProcessAsync(
             document.Project, priorityDocuments: [], document, searchPattern, kinds,
-            onItemsFound, () => Task.CompletedTask, cancellationToken);
+            t => results.Add(t), () => Task.CompletedTask, cancellationToken).ConfigureAwait(false);
+
+        if (results.Count > 0)
+            await onItemsFound(results.ToImmutableArray()).ConfigureAwait(false);
     }
 
     public async Task SearchProjectsAsync(
@@ -62,7 +67,9 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
         Contract.ThrowIfTrue(projects.IsEmpty);
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
@@ -100,27 +107,37 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
-        using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
+        var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
-        Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
-
-        await ProcessProjectsAsync(highPriProjects).ConfigureAwait(false);
-        await ProcessProjectsAsync(lowPriProjects).ConfigureAwait(false);
+        await Task.WhenAll(
+            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchProjectsAsync),
+            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
 
         return;
 
-        async Task ProcessProjectsAsync(HashSet<Project> projects)
+        async Task SearchProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
+        {
+            using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
+            using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
+
+            Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
+
+            await ProcessProjectsAsync(highPriProjects, onItemFound).ConfigureAwait(false);
+            await ProcessProjectsAsync(lowPriProjects, onItemFound).ConfigureAwait(false);
+        }
+
+        async Task ProcessProjectsAsync(HashSet<Project> projects, Action<RoslynNavigateToItem> onItemFound)
         {
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
             foreach (var project in projects)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 tasks.Add(SearchProjectInCurrentProcessAsync(
                     project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
-                    searchPattern, kinds, onItemsFound, onProjectCompleted, cancellationToken));
+                    searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);

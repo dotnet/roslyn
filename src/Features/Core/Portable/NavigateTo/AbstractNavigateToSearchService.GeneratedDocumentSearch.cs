@@ -26,7 +26,9 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
         Contract.ThrowIfTrue(projects.IsEmpty);
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
@@ -62,7 +64,8 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return;
 
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
@@ -82,7 +85,9 @@ internal abstract partial class AbstractNavigateToSearchService
             // compilations are available for later projects when needed.
             foreach (var project in projects)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
                 var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                 using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
