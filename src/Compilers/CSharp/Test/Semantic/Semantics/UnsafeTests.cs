@@ -1102,7 +1102,10 @@ unsafe class C
                         get
                         {
                             int x = 1;
-                            x = sizeof(nint);
+                            unsafe
+                            {
+                                x = sizeof(nint);
+                            }
                             yield break;
                         }
                         set
@@ -1129,7 +1132,7 @@ unsafe class C
                     {
                         get // error in C# 12: unsafe code may not appear in iterators
                         {
-                            yield return 1; // error in C# 13: yield in unsafe context
+                            yield return 1;
                         }
                         set { }
                     }
@@ -1141,15 +1144,8 @@ unsafe class C
                 //         get // error in C# 12: unsafe code may not appear in iterators
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9));
 
-            var expectedDiagnostics = new[]
-            {
-                // (7,13): error CS9231: Cannot use 'yield return' in an 'unsafe' block
-                //             yield return 1; // error in C# 13: yield in unsafe context
-                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(7, 13)
-            };
-
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1867,9 +1863,9 @@ unsafe class C
                     // (11,15): error CS1637: Iterators cannot have pointer type parameters
                     //     this[int* p]
                     Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(11, 15),
-                    // (13,15): error CS9231: Cannot use 'yield return' in an 'unsafe' block
+                    // (13,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                     //         get { yield return *p; }
-                    Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(13, 15));
+                    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(13, 29));
             }
             else
             {
@@ -1977,9 +1973,9 @@ unsafe class C
                     // (8,6): error CS0181: Attribute constructor parameter 'p' has type 'int*', which is not a valid attribute parameter type
                     //     [A(null)]
                     Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("p", "int*").WithLocation(8, 6),
-                    // (13,15): error CS9231: Cannot use 'yield return' in an 'unsafe' block
+                    // (13,28): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                     //         get { yield return sizeof(nint); }
-                    Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(13, 15));
+                    Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(13, 28));
             }
             else
             {

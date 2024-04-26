@@ -317,6 +317,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)accessor != null)
                         {
                             resultBinder = new InMethodBinder(accessor, resultBinder);
+
+                            resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(
+                                modifiers: default,
+                                isIteratorBody: accessor.IsIterator);
                         }
                     }
 
