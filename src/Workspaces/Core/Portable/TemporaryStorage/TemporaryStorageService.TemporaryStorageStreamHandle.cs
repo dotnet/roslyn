@@ -18,9 +18,6 @@ internal sealed partial class TemporaryStorageService
     {
         public TemporaryStorageIdentifier Identifier => identifier;
 
-        Stream ITemporaryStorageStreamHandle.ReadFromTemporaryStorage(CancellationToken cancellationToken)
-            => ReadFromTemporaryStorage(cancellationToken);
-
         public UnmanagedMemoryStream ReadFromTemporaryStorage(CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadStream, cancellationToken))
