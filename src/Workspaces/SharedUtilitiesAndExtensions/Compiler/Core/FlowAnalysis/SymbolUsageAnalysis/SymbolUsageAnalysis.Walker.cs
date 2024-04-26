@@ -196,12 +196,12 @@ internal static partial class SymbolUsageAnalysis
                     if (write.Kind != OperationKind.FlowCaptureReference)
                     {
                         Debug.Assert(symbolOpt != null);
-                        OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
-
                         if (isUsedCompoundAssignment)
                         {
                             OnReadReferenceFound(symbolOpt);
                         }
+
+                        OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
                     }
                     else
                     {
