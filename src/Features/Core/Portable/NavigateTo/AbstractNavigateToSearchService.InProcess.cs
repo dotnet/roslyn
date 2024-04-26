@@ -113,17 +113,19 @@ internal abstract partial class AbstractNavigateToSearchService
             DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds, onItemsFound, index, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ProcessIndexAsync(
+    private static void ProcessIndex(
         DocumentKey documentKey,
         Document? document,
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Func<RoslynNavigateToItem, Task> onItemFound,
         TopLevelSyntaxTreeIndex index,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
         var containerMatcher = patternContainer != null
             ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer, includeMatchedSpans: true)
             : null;
@@ -137,22 +139,22 @@ internal abstract partial class AbstractNavigateToSearchService
             if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
                 continue;
 
-            await AddResultIfMatchAsync(
+            AddResultIfMatch(
                 documentKey, document,
                 declaredSymbolInfo,
                 nameMatcher, containerMatcher,
-                kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
+                kinds, onItemFound, cancellationToken);
         }
     }
 
-    private static async Task AddResultIfMatchAsync(
+    private static void AddResultIfMatch(
         DocumentKey documentKey,
         Document? document,
         DeclaredSymbolInfo declaredSymbolInfo,
         PatternMatcher nameMatcher,
         PatternMatcher? containerMatcher,
         DeclaredSymbolInfoKindSet kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Func<RoslynNavigateToItem, Task> onItemFound,
         CancellationToken cancellationToken)
     {
         using var nameMatches = TemporaryArray<PatternMatch>.Empty;
@@ -176,7 +178,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
             var result = ConvertResult(
                 documentKey, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
-            await onItemsFound([result]).ConfigureAwait(false);
+            onItemFound(result);
         }
     }
 
@@ -217,20 +219,23 @@ internal abstract partial class AbstractNavigateToSearchService
             allPatternMatches.ToImmutableAndClear());
     }
 
-    private static async ValueTask<ImmutableArray<ProjectId>> GetAdditionalProjectsWithMatchAsync(
+    private static ImmutableArray<ProjectId> GetAdditionalProjectsWithMatchAsync(
         Document? document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
     {
         if (document == null)
             return [];
 
-        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
-
         var solution = document.Project.Solution;
         var linkedDocumentIds = document.GetLinkedDocumentIds();
+        if (linkedDocumentIds.Length == 0)
+            return [];
+
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
+
         foreach (var linkedDocumentId in linkedDocumentIds)
         {
             var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
-            var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).ConfigureAwait(false);
+            var index = TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
 
             // See if the index for the other file also contains this same info.  If so, merge the results so the
             // user only sees them as a single hit in the UI.

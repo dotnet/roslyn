@@ -10,9 +10,11 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -38,6 +40,8 @@ internal abstract partial class AbstractNavigateToSearchService
     /// full solution is available, this will be dropped (set to <see langword="null"/>) to release all cached data.
     /// </summary>
     private static StringTable? s_stringTable = new();
+
+    private static readonly UnboundedChannelOptions s_channelOptions = new() { SingleReader = true };
 
     private static void ClearCachedData()
     {
@@ -110,10 +114,6 @@ internal abstract partial class AbstractNavigateToSearchService
         if (!ShouldSearchCachedDocuments(out _, out _))
             return;
 
-        // If the user created a dotted pattern then we'll grab the last part of the name
-        var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
-        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
         // Process the documents by project group.  That way, when each project is done, we can
         // report that back to the host for progress.
         var groups = documentKeys.GroupBy(d => d.Project).ToImmutableArray();
@@ -125,25 +125,78 @@ internal abstract partial class AbstractNavigateToSearchService
         using var _2 = GetPooledHashSet(groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)), out var highPriorityGroups);
         using var _3 = GetPooledHashSet(groups.Where(g => !highPriorityGroups.Contains(g)), out var lowPriorityGroups);
 
-        await ProcessProjectGroupsAsync(highPriorityGroups).ConfigureAwait(false);
-        await ProcessProjectGroupsAsync(lowPriorityGroups).ConfigureAwait(false);
+        // If the user created a dotted pattern then we'll grab the last part of the name
+        var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
+        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
+        var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
+
+        await Task.WhenAll(
+            FindAllItemsAndWriteToChannelAsync(channel.Writer),
+            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader)).ConfigureAwait(false);
 
         return;
 
-        async Task ProcessProjectGroupsAsync(HashSet<IGrouping<ProjectKey, DocumentKey>> groups)
+        async Task ReadItemsFromChannelAndReportToCallbackAsync(ChannelReader<RoslynNavigateToItem> channelReader)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Yield().ConfigureAwait(false);
+            using var _ = ArrayBuilder<RoslynNavigateToItem>.GetInstance(out var items);
+
+            while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                // Grab as many items as we can from the channel at once and report in a batch.
+                while (channelReader.TryRead(out var item))
+                    items.Add(item);
+
+                await onItemsFound(items.ToImmutableAndClear()).ConfigureAwait(false);
+            }
+        }
+
+        async Task FindAllItemsAndWriteToChannelAsync(ChannelWriter<RoslynNavigateToItem> channelWriter)
+        {
+            Exception? exception = null;
+            try
+            {
+                await FindAllItemsAndWriteToChannelWorkerAsync(item => channel.Writer.TryWrite(item)).ConfigureAwait(false);
+            }
+            catch (Exception ex) when ((exception = ex) == null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+            finally
+            {
+                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
+                // writing task knows it's done.
+                channelWriter.TryComplete(exception);
+            }
+        }
+
+        async Task FindAllItemsAndWriteToChannelWorkerAsync(Action<RoslynNavigateToItem> onItemFound)
+        {
+            await Task.Yield().ConfigureAwait(false);
+
+            await ProcessProjectGroupsAsync(highPriorityGroups, onItemFound).ConfigureAwait(false);
+            await ProcessProjectGroupsAsync(lowPriorityGroups, onItemFound).ConfigureAwait(false);
+        }
+
+        async Task ProcessProjectGroupsAsync(HashSet<IGrouping<ProjectKey, DocumentKey>> groups, Action<RoslynNavigateToItem> onItemFound)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
             foreach (var group in groups)
-                tasks.Add(ProcessProjectGroupAsync(group));
+                tasks.Add(ProcessProjectGroupAsync(group, onItemFound));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        async Task ProcessProjectGroupAsync(IGrouping<ProjectKey, DocumentKey> group)
+        async Task ProcessProjectGroupAsync(IGrouping<ProjectKey, DocumentKey> group, Action<RoslynNavigateToItem> onItemFound)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             await Task.Yield().ConfigureAwait(false);
             var project = group.Key;
 
@@ -153,11 +206,11 @@ internal abstract partial class AbstractNavigateToSearchService
 
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemsFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+                onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemsFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+                onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
 
             // done with project.  Let the host know.
             await onProjectCompleted().ConfigureAwait(false);
@@ -169,11 +222,13 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Func<RoslynNavigateToItem, Task> onItemFound,
         HashSet<DocumentKey> documentKeys,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
         using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
         foreach (var documentKey in documentKeys)
@@ -184,8 +239,8 @@ internal abstract partial class AbstractNavigateToSearchService
                 if (index == null)
                     return;
 
-                await ProcessIndexAsync(
-                    documentKey, document: null, patternName, patternContainer, kinds, onItemsFound, index, cancellationToken).ConfigureAwait(false);
+                ProcessIndex(
+                    documentKey, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
             }, cancellationToken));
         }
 
@@ -197,7 +252,9 @@ internal abstract partial class AbstractNavigateToSearchService
         DocumentKey documentKey,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
+
         // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
         // fully loaded and we've switched over to normal navto lookup.
         if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out var stringTable))
