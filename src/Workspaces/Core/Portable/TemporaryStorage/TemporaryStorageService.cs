@@ -232,9 +232,9 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     public static string? CreateUniqueName(long size)
     {
-        // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
-        // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
-        // until https://github.com/dotnet/runtime/issues/30878 is fixed.
+        // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including
+        // Mono) and .NET Core Windows. For non-Windows .NET Core scenarios, we return null to enable create the memory
+        // mapped file (just not in a way that can be shared across processes).
         return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
             ? $"Roslyn Shared File: Size={size} Id={Guid.NewGuid():N}"
             : null;
