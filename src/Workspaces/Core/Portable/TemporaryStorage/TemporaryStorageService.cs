@@ -224,7 +224,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
             else
             {
                 // Reserve additional space in the existing storage location
-                Contract.ThrowIfNull(_name);
                 _offset += size;
                 return new MemoryMappedInfo(reference, _name, _offset - size, size);
             }
