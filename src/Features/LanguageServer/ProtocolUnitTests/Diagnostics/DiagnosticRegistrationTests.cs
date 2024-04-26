@@ -17,6 +17,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
+
 public class DiagnosticRegistrationTests : AbstractLanguageServerProtocolTests
 {
     public DiagnosticRegistrationTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
