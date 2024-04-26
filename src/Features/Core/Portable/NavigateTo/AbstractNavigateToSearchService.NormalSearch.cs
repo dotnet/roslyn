@@ -25,7 +25,6 @@ using Parallel = Roslyn.Utilities.Parallel;
 
 internal abstract partial class AbstractNavigateToSearchService
 {
-
     public async Task SearchDocumentAsync(
         Document document,
         string searchPattern,
@@ -137,7 +136,6 @@ internal abstract partial class AbstractNavigateToSearchService
                     SearchProjectInCurrentProcessAsync(
                         project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
                         searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken)).ConfigureAwait(false);
-
 
         
             //await ProcessProjectsAsync(highPriProjects, onItemFound).ConfigureAwait(false);

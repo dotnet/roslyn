@@ -20,6 +20,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
+#if NET
+using Parallel = System.Threading.Tasks.Parallel;
+#else
+using Parallel = Roslyn.Utilities.Parallel;
+#endif
+
 internal abstract partial class AbstractNavigateToSearchService
 {
     private static readonly ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
@@ -44,6 +50,8 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
+        Contract.ThrowIfTrue(priorityDocuments.Any(d => d.Project != project));
+
         try
         {
             if (cancellationToken.IsCancellationRequested)
@@ -58,11 +66,16 @@ internal abstract partial class AbstractNavigateToSearchService
 
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
+            await Parallel.ForEachAsync(
+                GetOrderedDocuments(),
+                cancellationToken,
+                (document, cancellationToken) => ProcessDocumentAsync(
+                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
 
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+            //await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
-            // Then process non-priority documents.
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+            //// Then process non-priority documents.
+            //await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -71,40 +84,55 @@ internal abstract partial class AbstractNavigateToSearchService
 
         IEnumerable<Document> GetOrderedDocuments()
         {
-            // Prioritize the active documents if we have any.
-            using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project.ContainsDocument(d.Id)), out var highPriDocs);
-            using var _2 = GetPooledHashSet(project.Documents.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
+            // If we're filtering down to a specific document, then only search that.
+            if (searchDocument != null)
+            {
+                yield return searchDocument;
+                yield break;
+            }
 
+            using var _1 = GetPooledHashSet(priorityDocuments, out var highPriDocs);
+
+            // First the high pri docs.
+            foreach (var document in highPriDocs)
+                yield return document;
+
+            // The rest of the docs in the project.
+            foreach (var document in project.Documents)
+            {
+                if (!highPriDocs.Contains(document))
+                    yield return document;
+            }
         }
     }
 
-    private static async Task ProcessDocumentsAsync(
-        Document? searchDocument,
-        string patternName,
-        string? patternContainer,
-        DeclaredSymbolInfoKindSet kinds,
-        Action<RoslynNavigateToItem> onItemFound,
-        HashSet<Document> documents,
-        CancellationToken cancellationToken)
-    {
-        if (cancellationToken.IsCancellationRequested)
-            return;
+    //private static async Task ProcessDocumentsAsync(
+    //    Document? searchDocument,
+    //    string patternName,
+    //    string? patternContainer,
+    //    DeclaredSymbolInfoKindSet kinds,
+    //    Action<RoslynNavigateToItem> onItemFound,
+    //    HashSet<Document> documents,
+    //    CancellationToken cancellationToken)
+    //{
+    //    if (cancellationToken.IsCancellationRequested)
+    //        return;
 
-        using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+    //    using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-        foreach (var document in documents)
-        {
-            if (searchDocument != null && searchDocument != document)
-                continue;
+    //    foreach (var document in documents)
+    //    {
+    //        if (searchDocument != null && searchDocument != document)
+    //            continue;
 
-            if (cancellationToken.IsCancellationRequested)
-                return;
+    //        if (cancellationToken.IsCancellationRequested)
+    //            return;
 
-            tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onItemFound, cancellationToken));
-        }
+    //        tasks.Add();
+    //    }
 
-        await Task.WhenAll(tasks).ConfigureAwait(false);
-    }
+    //    await Task.WhenAll(tasks).ConfigureAwait(false);
+    //}
 
     //async Task SearchDocumentsAsync(
     //    Action<RoslynNavigateToItem> onItemFound)
