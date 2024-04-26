@@ -5080,5 +5080,62 @@ class C
             var frozenCompilation = await frozenProject.GetCompilationAsync();
             Assert.Null(frozenCompilation);
         }
+
+        [Theory]
+        [InlineData(1000)]
+        [InlineData(2000)]
+        [InlineData(4000)]
+        [InlineData(8000)]
+        public async Task TestLargeLinkedFileChain(int intermediatePullCount)
+        {
+            using var workspace = CreateWorkspace();
+
+            var project1 = workspace.CurrentSolution
+                .AddProject($"Project1", $"Project1", LanguageNames.CSharp)
+                .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"))
+                .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
+            var documentId1 = project1.DocumentIds.Single();
+
+            // make another project, give a separate set of pp directives, so that we do *not* try to use the sibling
+            // root (from project1), but instead incrementally parse using the *contents* of the file in project1 again
+            // our actual tree.  This used to stack overflow since we'd create a long chain of incremental parsing steps
+            // for each edit made to the sibling file.
+            var project2 = project1.Solution
+                .AddProject($"Project2", $"Project2", LanguageNames.CSharp)
+                .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("RELEASE"))
+                .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
+            var documentId2 = project2.DocumentIds.Single();
+
+            workspace.SetCurrentSolution(
+                _ => project2.Solution,
+                (_, _) => (WorkspaceChangeKind.SolutionAdded, null, null));
+
+            for (var i = 1; i <= 8000; i++)
+            {
+                var lastContents = $"#if true //{new string('.', i)}//";
+                workspace.SetCurrentSolution(
+                    old => old.WithDocumentText(documentId1, SourceText.From(lastContents)),
+                    (_, _) => (WorkspaceChangeKind.DocumentChanged, documentId1.ProjectId, documentId1));
+
+                // Ensure that the first document is fine, and we're not stack overflowing on simply getting the tree
+                // from it. Do this on a disparate cadence from our pulls of the second document to ensure we are
+                // testing the case where we haven't necessarily immediately pulled on hte first doc before pulling on
+                // the second.
+                if (i % 33 == 0)
+                {
+                    var document1 = workspace.CurrentSolution.GetRequiredDocument(documentId1);
+                    await document1.GetSyntaxRootAsync();
+                }
+
+                if (i % intermediatePullCount == 0)
+                {
+                    var document2 = workspace.CurrentSolution.GetRequiredDocument(documentId2);
+
+                    // Getting the second document should both be fine, and have contents equivalent to what is in the first document.
+                    var root = await document2.GetSyntaxRootAsync();
+                    Assert.Equal(lastContents, root.ToFullString());
+                }
+            }
+        }
     }
 }
