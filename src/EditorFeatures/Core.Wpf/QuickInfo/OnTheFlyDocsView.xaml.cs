@@ -10,15 +10,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,6 +35,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 {
     private readonly ITextView _textView;
     private readonly IViewElementFactoryService _viewElementFactoryService;
+    private readonly IAsynchronousOperationListener _asyncListener;
     private readonly IThreadingContext _threadingContext;
     private readonly Document _document;
     private readonly OnTheFlyDocsElement _onTheFlyDocsElement;
@@ -53,10 +57,11 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IThreadingContext threadingContext, EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
+    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext, EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
     {
         _textView = textView;
         _viewElementFactoryService = viewElementFactoryService;
+        _asyncListener = listenerProvider.GetListener(FeatureAttribute.OnTheFlyDocs);
         _threadingContext = threadingContext;
         _onTheFlyDocsElement = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement;
         _document = editorFeaturesOnTheFlyDocsElement.Document;
@@ -116,35 +121,56 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     /// <summary>
     /// Retrieves the documentation for the given symbol from the Copilot service and displays it in the view.
     /// </summary>
-    private async void PopulateAIDocumentationElements(CancellationToken cancellationToken)
+    private void PopulateAIDocumentationElements(CancellationToken cancellationToken)
+    {
+        var copilotService = _document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
+
+        if (copilotService is not null)
+        {
+            _ = SetResultTextAsync(copilotService, cancellationToken);
+        }
+    }
+
+    private async Task SetResultTextAsync(ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
     {
         var copilotRequestTime = TimeSpan.Zero;
-        var copilotService = _document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var stopwatch = Stopwatch.StartNew();
-        var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, cancellationToken).ConfigureAwait(false);
-        stopwatch.Stop();
-        copilotRequestTime = stopwatch.Elapsed;
 
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        if (response is null || response.Length == 0)
+        try
         {
-            SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
-            CurrentState = OnTheFlyDocsState.Finished;
-            Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
+            using var token = _asyncListener.BeginAsyncOperation(nameof(SetResultTextAsync));
+
+            var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, cancellationToken).ConfigureAwait(false);
+            stopwatch.Stop();
+            copilotRequestTime = stopwatch.Elapsed;
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (response is null || response.Length == 0)
             {
-                m["ElapsedTime"] = copilotRequestTime;
-            }, LogLevel.Information));
+                SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
+                CurrentState = OnTheFlyDocsState.Finished;
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
+                {
+                    m["ElapsedTime"] = copilotRequestTime;
+                }, LogLevel.Information));
+            }
+            else
+            {
+                SetResultText(response);
+                CurrentState = OnTheFlyDocsState.Finished;
+
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
+                {
+                    m["ElapsedTime"] = copilotRequestTime;
+                    m["ResponseLength"] = response.Length;
+                }, LogLevel.Information));
+            }
         }
-        else
+        catch (OperationCanceledException)
         {
-            SetResultText(response);
-            CurrentState = OnTheFlyDocsState.Finished;
-
-            Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
-            {
-                m["ElapsedTime"] = copilotRequestTime;
-                m["ResponseLength"] = response.Length;
-            }, LogLevel.Information));
+        }
+        catch (Exception e) when (FatalError.ReportAndCatch(e))
+        {
         }
     }
 

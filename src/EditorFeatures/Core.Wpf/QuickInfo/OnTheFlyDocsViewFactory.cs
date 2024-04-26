@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -27,13 +28,15 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 {
     private readonly IViewElementFactoryService _factoryService;
+    private readonly IAsynchronousOperationListenerProvider _listenerProvider;
     private readonly IThreadingContext _threadingContext;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IThreadingContext threadingContext)
+    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext)
     {
         _factoryService = factoryService;
+        _listenerProvider = listenerProvider;
         _threadingContext = threadingContext;
     }
 
@@ -51,6 +54,6 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
             m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.SymbolSignature;
         }, LogLevel.Information));
 
-        return new OnTheFlyDocsView(textView, _factoryService, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
+        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
     }
 }
