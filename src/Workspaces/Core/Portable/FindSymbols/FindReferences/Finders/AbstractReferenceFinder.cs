@@ -171,12 +171,12 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        var tokens = await FindMatchingIdentifierTokensAsync(state, identifier, cancellationToken).ConfigureAwait(false);
+        var tokens = FindMatchingIdentifierTokens(state, identifier, cancellationToken);
         await FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    public static ValueTask<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
-        => state.Cache.FindMatchingIdentifierTokensAsync(state.Document, identifier, cancellationToken);
+    public static ImmutableArray<SyntaxToken> FindMatchingIdentifierTokens(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
+        => state.Cache.FindMatchingIdentifierTokens(identifier, cancellationToken);
 
     protected static async ValueTask FindReferencesInTokensAsync<TData>(
         ISymbol symbol,
