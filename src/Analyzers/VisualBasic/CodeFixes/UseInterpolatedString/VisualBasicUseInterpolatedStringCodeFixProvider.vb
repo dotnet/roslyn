@@ -17,9 +17,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseInterpolatedString
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseInterpolatedString), [Shared]>
-    Friend Class VisualBasicUseInterpolatedStringCodeFixProvider
+    Friend NotInheritable Class VisualBasicUseInterpolatedStringCodeFixProvider
         Inherits AbstractUseInterpolatedStringCodeFixProvider
 
+        ' TODO: Remove SuppressMessage
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()

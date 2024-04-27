@@ -13,9 +13,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseInterpolatedString;
 
-internal abstract partial class AbstractUseInterpolatedStringCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal abstract class AbstractUseInterpolatedStringCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseInterpolatedStringDiagnosticId];
+    protected abstract Task FixOneAsync(Document document, Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken);
+
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseInterpolatedStringDiagnosticId];
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -41,6 +43,4 @@ internal abstract partial class AbstractUseInterpolatedStringCodeFixProvider : S
             await this.FixOneAsync(document, diagnostic, editor, cancellationToken).ConfigureAwait(false);
         }
     }
-
-    protected abstract Task FixOneAsync(Document document, Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken);
 }

@@ -14,6 +14,10 @@ internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer<TSyntaxK
     where TExpressionSyntax : SyntaxNode
     where TStringLiteralExpressionSyntax : TExpressionSyntax
 {
+    protected abstract bool CanConvertToInterpolatedString(TStringLiteralExpressionSyntax stringLiteralExpression, ParseOptions parseOptions);
+
+    protected abstract ISyntaxFacts GetSyntaxFacts();
+
     protected AbstractUseInterpolatedStringDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseInterpolatedStringDiagnosticId,
                 EnforceOnBuildValues.UseInterpolatedString,
@@ -40,8 +44,6 @@ internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer<TSyntaxK
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-    protected abstract ISyntaxFacts GetSyntaxFacts();
-
     protected sealed override void InitializeWorker(AnalysisContext context)
     {
         var syntaxFacts = GetSyntaxFacts();
@@ -61,6 +63,4 @@ internal abstract class AbstractUseInterpolatedStringDiagnosticAnalyzer<TSyntaxK
             context.ReportDiagnostic(diagnostic);
         }
     }
-
-    protected abstract bool CanConvertToInterpolatedString(TStringLiteralExpressionSyntax stringLiteralExpression, ParseOptions parseOptions);
 }

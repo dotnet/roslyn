@@ -17,11 +17,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedString;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseInterpolatedStringDiagnosticAnalyzer() : AbstractUseInterpolatedStringDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, LiteralExpressionSyntax>
+internal sealed class CSharpUseInterpolatedStringDiagnosticAnalyzer() : AbstractUseInterpolatedStringDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, LiteralExpressionSyntax>
 {
     protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
 
-    protected sealed override bool CanConvertToInterpolatedString(LiteralExpressionSyntax stringLiteralExpression, ParseOptions parseOptions)
+    protected override bool CanConvertToInterpolatedString(LiteralExpressionSyntax stringLiteralExpression, ParseOptions parseOptions)
     {
         // Check if the token is a string literal
         if (stringLiteralExpression.Kind() != SyntaxKind.StringLiteralExpression)
