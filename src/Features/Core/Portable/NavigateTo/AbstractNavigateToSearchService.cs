@@ -66,43 +66,57 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         return disposer;
     }
 
-    private static async Task ReadItemsFromChannelAndReportToCallbackAsync(
-        ChannelReader<RoslynNavigateToItem> channelReader,
+    private static async Task PerformSearchAsync(
+        Func<Action<RoslynNavigateToItem>, Task> searchAsync,
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
-        await Task.Yield().ConfigureAwait(false);
-        using var _ = ArrayBuilder<RoslynNavigateToItem>.GetInstance(out var items);
+        var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
-        while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-        {
-            // Grab as many items as we can from the channel at once and report in a batch.
-            while (channelReader.TryRead(out var item))
-                items.Add(item);
+        await Task.WhenAll(
+            FindAllItemsAndWriteToChannelAsync(channel.Writer, searchAsync),
+            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
 
-            await onItemsFound(items.ToImmutableAndClear()).ConfigureAwait(false);
-        }
-    }
+        return;
 
-    private static async Task FindAllItemsAndWriteToChannelAsync(
-        ChannelWriter<RoslynNavigateToItem> channelWriter,
-        Func<Action<RoslynNavigateToItem>, Task> findWorker)
-    {
-        Exception? exception = null;
-        try
+        static async Task ReadItemsFromChannelAndReportToCallbackAsync(
+            ChannelReader<RoslynNavigateToItem> channelReader,
+            Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+            CancellationToken cancellationToken)
         {
             await Task.Yield().ConfigureAwait(false);
-            await findWorker(item => channelWriter.TryWrite(item)).ConfigureAwait(false);
+            using var _ = ArrayBuilder<RoslynNavigateToItem>.GetInstance(out var items);
+
+            while (await channelReader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                // Grab as many items as we can from the channel at once and report in a batch.
+                while (channelReader.TryRead(out var item))
+                    items.Add(item);
+
+                await onItemsFound(items.ToImmutableAndClear()).ConfigureAwait(false);
+            }
         }
-        catch (Exception ex) when ((exception = ex) == null)
+
+        static async Task FindAllItemsAndWriteToChannelAsync(
+           ChannelWriter<RoslynNavigateToItem> channelWriter,
+           Func<Action<RoslynNavigateToItem>, Task> findWorker)
         {
-            throw ExceptionUtilities.Unreachable();
-        }
-        finally
-        {
-            // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-            // writing task knows it's done.
-            channelWriter.TryComplete(exception);
+            Exception? exception = null;
+            try
+            {
+                await Task.Yield().ConfigureAwait(false);
+                await findWorker(item => channelWriter.TryWrite(item)).ConfigureAwait(false);
+            }
+            catch (Exception ex) when ((exception = ex) == null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+            finally
+            {
+                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
+                // writing task knows it's done.
+                channelWriter.TryComplete(exception);
+            }
         }
     }
 

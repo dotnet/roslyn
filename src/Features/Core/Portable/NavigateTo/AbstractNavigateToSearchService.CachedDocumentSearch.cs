@@ -108,9 +108,6 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
-            return;
-
         // Quick abort if OOP is now fully loaded.
         if (!ShouldSearchCachedDocuments(out _, out _))
             return;
@@ -130,11 +127,7 @@ internal abstract partial class AbstractNavigateToSearchService
         using var _2 = GetPooledHashSet(groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)), out var highPriorityGroups);
         using var _3 = GetPooledHashSet(groups.Where(g => !highPriorityGroups.Contains(g)), out var lowPriorityGroups);
 
-        var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
-
-        await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer, ProcessAllProjectGroupsAsync),
-            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
+        await PerformSearchAsync(ProcessAllProjectGroupsAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
 
         return;
 

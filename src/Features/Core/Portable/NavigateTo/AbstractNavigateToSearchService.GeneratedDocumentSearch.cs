@@ -64,18 +64,11 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
-            return;
-
         // If the user created a dotted pattern then we'll grab the last part of the name
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
-
-        await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer, ProcessAllProjectsAsync),
-            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
+        await PerformSearchAsync(ProcessAllProjectsAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
 
         return;
 

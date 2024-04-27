@@ -110,12 +110,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
 
-        var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
-
-        await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchAllProjectsAsync),
-            ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
-
+        await PerformSearchAsync(SearchAllProjectsAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
         return;
 
         Task SearchAllProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
