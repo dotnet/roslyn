@@ -55,9 +55,7 @@ internal abstract partial class AbstractNavigateToSearchService
             // of potentially stale indices.
             ClearCachedData();
 
-            // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
             await ParallelForEachAsync(

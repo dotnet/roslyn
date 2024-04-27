@@ -64,7 +64,6 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        // If the user created a dotted pattern then we'll grab the last part of the name
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 

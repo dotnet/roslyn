@@ -112,7 +112,6 @@ internal abstract partial class AbstractNavigateToSearchService
         if (!ShouldSearchCachedDocuments(out _, out _))
             return;
 
-        // If the user created a dotted pattern then we'll grab the last part of the name
         var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
