@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
@@ -52,11 +51,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         var results = new ConcurrentSet<RoslynNavigateToItem>();
         await SearchSingleDocumentAsync(
-            document, patternName, patternContainerOpt, kinds, t => results.Add(t), cancellationToken).ConfigureAwait(false);
-
-        await SearchProjectInCurrentProcessAsync(
-            document.Project, priorityDocuments: [], document, searchPattern, kinds,
-            t => results.Add(t), () => Task.CompletedTask, cancellationToken).ConfigureAwait(false);
+            document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
 
         if (results.Count > 0)
             await onItemsFound(results.ToImmutableArray()).ConfigureAwait(false);
@@ -113,6 +108,13 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
+        // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
+        // of potentially stale indices.
+        ClearCachedData();
+
+        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
         using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
         using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
 
@@ -121,11 +123,24 @@ internal abstract partial class AbstractNavigateToSearchService
         // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
         // projects with priority documents ahead of those without so we can get results for those faster.
         await PerformParallelSearchAsync(
-            highPriProjects.Concat(lowPriProjects),
-            (project, onItemFound, cancellationToken) => SearchProjectInCurrentProcessAsync(
-                project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
-                searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken),
-            onItemsFound,
-            cancellationToken).ConfigureAwait(false);
+            highPriProjects.Concat(lowPriProjects), SearchSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
+        return;
+
+        async ValueTask SearchSingleProjectAsync(
+            Project project,
+            Action<RoslynNavigateToItem> onItemFound,
+            CancellationToken cancellationToken)
+        {
+            using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
+            using var _2 = GetPooledHashSet(project.Documents.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
+
+            await ParallelForEachAsync(
+                highPriDocs.Concat(lowPriDocs),
+                cancellationToken,
+                (document, cancellationToken) => SearchSingleDocumentAsync(
+                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+
+            await onProjectCompleted().ConfigureAwait(false);
+        }
     }
 }

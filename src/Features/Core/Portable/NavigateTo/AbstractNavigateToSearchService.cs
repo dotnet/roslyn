@@ -133,6 +133,9 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         CancellationToken cancellationToken,
         Func<TSource, CancellationToken, ValueTask> body)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
 #if NET
         await Parallel.ForEachAsync(source, cancellationToken, body).ConfigureAwait(false);
 #else

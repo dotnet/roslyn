@@ -37,55 +37,6 @@ internal abstract partial class AbstractNavigateToSearchService
             (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy),
         ];
 
-    private static async ValueTask SearchProjectInCurrentProcessAsync(
-        Project project, ImmutableArray<Document> priorityDocuments,
-        string pattern, IImmutableSet<string> kinds,
-        Action<RoslynNavigateToItem> onItemFound,
-        Func<Task> onProjectCompleted,
-        CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfTrue(priorityDocuments.Any(d => d.Project != project));
-
-        try
-        {
-            if (cancellationToken.IsCancellationRequested)
-                return;
-
-            // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
-            // of potentially stale indices.
-            ClearCachedData();
-
-            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-            await ParallelForEachAsync(
-                GetOrderedDocuments(),
-                cancellationToken,
-                (document, cancellationToken) => SearchSingleDocumentAsync(
-                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
-        }
-        finally
-        {
-            await onProjectCompleted().ConfigureAwait(false);
-        }
-
-        IEnumerable<Document> GetOrderedDocuments()
-        {
-            using var _1 = GetPooledHashSet(priorityDocuments, out var highPriDocs);
-
-            // First the high pri docs.
-            foreach (var document in highPriDocs)
-                yield return document;
-
-            // The rest of the docs in the project.
-            foreach (var document in project.Documents)
-            {
-                if (!highPriDocs.Contains(document))
-                    yield return document;
-            }
-        }
-    }
-
     private static async ValueTask SearchSingleDocumentAsync(
         Document document,
         string patternName,
