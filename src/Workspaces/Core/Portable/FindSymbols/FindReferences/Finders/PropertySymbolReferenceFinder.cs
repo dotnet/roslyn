@@ -149,13 +149,13 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
             cancellationToken).ConfigureAwait(false);
 
         if (IsForEachProperty(symbol))
-            await FindReferencesInForEachStatementsAsync(symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInForEachStatements(symbol, state, processResult, processResultData, cancellationToken);
 
         if (symbol.IsIndexer)
             FindIndexerReferences(symbol, state, processResult, processResultData, options, cancellationToken);
 
-        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            symbol, state, processResult, processResultData, cancellationToken);
     }
 
     private static Task FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync<TData>(

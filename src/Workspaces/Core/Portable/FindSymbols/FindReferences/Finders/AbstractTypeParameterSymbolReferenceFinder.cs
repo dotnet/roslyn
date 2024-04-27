@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
 {
-    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
         ITypeParameterSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -31,19 +31,19 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
 
         var tokens = FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
 
-        await FindReferencesInTokensAsync(
+        FindReferencesInTokens(
             symbol, state,
             tokens.WhereAsArray(static (token, state) => !IsObjectCreationToken(token, state), state),
             processResult,
             processResultData,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         GetObjectCreationReferences(
             tokens.WhereAsArray(static (token, state) => IsObjectCreationToken(token, state), state),
             processResult,
             processResultData);
 
-        return;
+        return ValueTaskFactory.CompletedTask;
 
         static bool IsObjectCreationToken(SyntaxToken token, FindReferencesDocumentState state)
         {

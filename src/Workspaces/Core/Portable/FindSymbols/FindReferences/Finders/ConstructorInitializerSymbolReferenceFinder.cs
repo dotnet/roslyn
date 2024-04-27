@@ -51,7 +51,7 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
         }, symbol.ContainingType.Name, processResult, processResultData, cancellationToken);
     }
 
-    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol methodSymbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -67,9 +67,8 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
             static (token, tuple) => TokensMatch(tuple.state, token, tuple.methodSymbol.ContainingType.Name, tuple.cancellationToken),
             (state, methodSymbol, cancellationToken));
 
-        await FindReferencesInTokensAsync(methodSymbol, state, totalTokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
-
-        return;
+        FindReferencesInTokens(methodSymbol, state, totalTokens, processResult, processResultData, cancellationToken);
+        return ValueTaskFactory.CompletedTask;
 
         // local functions
         static bool TokensMatch(

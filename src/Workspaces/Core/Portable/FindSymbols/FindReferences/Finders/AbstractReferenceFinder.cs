@@ -161,8 +161,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
         => syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, name);
 
-    [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-    protected static async ValueTask FindReferencesInDocumentUsingIdentifierAsync<TData>(
+    protected static void FindReferencesInDocumentUsingIdentifier<TData>(
         ISymbol symbol,
         string identifier,
         FindReferencesDocumentState state,
@@ -171,7 +170,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         CancellationToken cancellationToken)
     {
         var tokens = FindMatchingIdentifierTokens(state, identifier, cancellationToken);
-        await FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
     public static ImmutableArray<SyntaxToken> FindMatchingIdentifierTokens(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
@@ -368,7 +367,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     protected delegate void CollectMatchingReferences<TData>(
         SyntaxNode node, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData);
 
-    protected static async Task FindReferencesInDocumentAsync<TData>(
+    protected static void FindReferencesInDocument<TData>(
         FindReferencesDocumentState state,
         Func<SyntaxTreeIndex, bool> isRelevantDocument,
         CollectMatchingReferences<TData> collectMatchingReferences,
@@ -377,7 +376,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         CancellationToken cancellationToken)
     {
         var document = state.Document;
-        var syntaxTreeInfo = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        var syntaxTreeInfo = state.Cache.SyntaxTreeIndex;
         if (isRelevantDocument(syntaxTreeInfo))
         {
             foreach (var node in state.Root.DescendantNodesAndSelf())
@@ -388,14 +387,15 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         }
     }
 
-    protected Task FindReferencesInForEachStatementsAsync<TData>(
+    protected void FindReferencesInForEachStatements<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        return;
 
         static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
             => syntaxTreeInfo.ContainsForEachStatement;
@@ -426,14 +426,15 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         }
     }
 
-    protected Task FindReferencesInCollectionInitializerAsync<TData>(
+    protected void FindReferencesInCollectionInitializer<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        return;
 
         static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
             => syntaxTreeInfo.ContainsCollectionInitializer;
@@ -468,14 +469,15 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         }
     }
 
-    protected Task FindReferencesInDeconstructionAsync<TData>(
+    protected void FindReferencesInDeconstruction<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        return;
 
         static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
             => syntaxTreeInfo.ContainsDeconstruction;
@@ -505,14 +507,15 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         }
     }
 
-    protected Task FindReferencesInAwaitExpressionAsync<TData>(
+    protected void FindReferencesInAwaitExpression<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        return;
 
         static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
             => syntaxTreeInfo.ContainsAwait;
@@ -535,14 +538,15 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         }
     }
 
-    protected Task FindReferencesInImplicitObjectCreationExpressionAsync<TData>(
+    protected void FindReferencesInImplicitObjectCreationExpression<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentAsync(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        return;
 
         static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
             => syntaxTreeInfo.ContainsImplicitObjectCreation;
@@ -902,10 +906,10 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         return new([]);
     }
 
-    protected static ValueTask FindReferencesInDocumentUsingSymbolNameAsync<TData>(
+    protected static void FindReferencesInDocumentUsingSymbolName<TData>(
         TSymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentUsingIdentifierAsync(
+        FindReferencesInDocumentUsingIdentifier(
             symbol, symbol.Name, state, processResult, processResultData, cancellationToken);
     }
 

@@ -62,8 +62,8 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
                 static (token, tuple) => IsPotentialReference(tuple.state.SyntaxFacts, tuple.op, token),
                 (state, op));
 
-        await FindReferencesInTokensAsync(
-            symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInTokens(
+            symbol, state, tokens, processResult, processResultData, cancellationToken);
         await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
             symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }

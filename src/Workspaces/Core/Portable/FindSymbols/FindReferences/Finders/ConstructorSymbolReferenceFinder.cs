@@ -118,14 +118,14 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
 
         // Finally, look for constructor references to predefined types (like `new int()`),
         // implicit object references, and inside global suppression attributes.
-        await FindPredefinedTypeReferencesAsync(
-            methodSymbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindPredefinedTypeReferences(
+            methodSymbol, state, processResult, processResultData, cancellationToken);
 
         await FindReferencesInImplicitObjectCreationExpressionAsync(
             methodSymbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            methodSymbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            methodSymbol, state, processResult, processResultData, cancellationToken);
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
             symbol, name, state, processResult, processResultData, cancellationToken);
     }
 
-    private static ValueTask FindPredefinedTypeReferencesAsync<TData>(
+    private static void FindPredefinedTypeReferences<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -167,7 +167,7 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
     {
         var predefinedType = symbol.ContainingType.SpecialType.ToPredefinedType();
         if (predefinedType == PredefinedType.None)
-            return ValueTaskFactory.CompletedTask;
+            return;
 
         var tokens = state.Root
             .DescendantTokens(descendIntoTrivia: true)
@@ -175,7 +175,7 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
                 static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
                 (state, predefinedType));
 
-        return FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken);
+        FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
     private static ValueTask FindAttributeReferencesAsync<TData>(
