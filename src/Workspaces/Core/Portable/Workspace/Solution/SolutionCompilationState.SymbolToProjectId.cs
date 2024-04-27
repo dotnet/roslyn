@@ -173,17 +173,6 @@ internal partial class SolutionCompilationState
 
             return projectId;
         }
-        else if (symbol.IsKind(SymbolKind.TypeParameter, out ITypeParameterSymbol? typeParameter) &&
-                 typeParameter.TypeParameterKind == TypeParameterKind.Cref)
-        {
-            Debug.Fail("");
-            return null;
-
-            //// Cref type parameters don't belong to any containing symbol.  But we can map them to a doc/project
-            //// using the declaring syntax of the type parameter itself.
-            //if (GetDocumentState(typeParameter.Locations[0].SourceTree, projectId: null) is { } document)
-            //    return new OriginatingProjectInfo(document.Id.ProjectId, ReferencedThrough: null);
-        }
 
         return null;
 
