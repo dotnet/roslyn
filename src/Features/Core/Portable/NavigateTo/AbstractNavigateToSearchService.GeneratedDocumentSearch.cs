@@ -68,15 +68,8 @@ internal abstract partial class AbstractNavigateToSearchService
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        await PerformSearchAsync(ProcessAllProjectsAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
-
+        await PerformParallelSearchAsync(projects, ProcessSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
         return;
-
-        Task ProcessAllProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
-            => ParallelForEachAsync(
-                projects,
-                cancellationToken,
-                (project, cancellationToken) => ProcessSingleProjectAsync(project, onItemFound, cancellationToken));
 
         async ValueTask ProcessSingleProjectAsync(
             Project project, Action<RoslynNavigateToItem> onItemFound, CancellationToken cancellationToken)

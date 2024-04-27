@@ -110,18 +110,14 @@ internal abstract partial class AbstractNavigateToSearchService
 
         Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
 
-        await PerformSearchAsync(SearchAllProjectsAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
-        return;
-
-        Task SearchAllProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
-            => ParallelForEachAsync(
-                highPriProjects.Concat(lowPriProjects),
-                cancellationToken,
-                (project, cancellationToken) =>
-                    // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
-                    // projects with priority documents ahead of those without so we can get results for those faster.
-                    SearchProjectInCurrentProcessAsync(
-                        project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
-                        searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));
+        // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
+        // projects with priority documents ahead of those without so we can get results for those faster.
+        await PerformParallelSearchAsync(
+            highPriProjects.Concat(lowPriProjects),
+            (project, onItemFound, cancellationToken) => SearchProjectInCurrentProcessAsync(
+                project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
+                searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken),
+            onItemsFound,
+            cancellationToken).ConfigureAwait(false);
     }
 }
