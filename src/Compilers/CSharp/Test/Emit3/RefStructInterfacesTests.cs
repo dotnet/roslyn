@@ -20556,25 +20556,5 @@ class C
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseRefLike, "t").WithArguments("t").WithLocation(12, 24)
                 );
         }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73068")]
-        public void GotoInLambda_OutOfScope_Backward()
-        {
-            var code = """
-                x:
-                System.Action a = () =>
-                {
-                    using System.IDisposable d = null;
-                    goto x;
-                };
-                """;
-            CreateCompilation(code).VerifyDiagnostics(
-                // (1,1): warning CS0164: This label has not been referenced
-                // x:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "x").WithLocation(1, 1),
-                // (5,5): error CS0159: No such label 'x' within the scope of the goto statement
-                //     goto x;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("x").WithLocation(5, 5));
-        }
     }
 }
