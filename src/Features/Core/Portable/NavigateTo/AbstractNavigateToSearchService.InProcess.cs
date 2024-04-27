@@ -159,53 +159,31 @@ internal abstract partial class AbstractNavigateToSearchService
             if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
                 continue;
 
-            AddResultIfMatch(
-                documentKey, document,
-                declaredSymbolInfo,
-                nameMatcher, containerMatcher,
-                kinds, linkedIndices,
-                onItemFound, cancellationToken);
-        }
-    }
+            using var nameMatches = TemporaryArray<PatternMatch>.Empty;
+            using var containerMatches = TemporaryArray<PatternMatch>.Empty;
 
-    private static void AddResultIfMatch(
-        DocumentKey documentKey,
-        Document? document,
-        DeclaredSymbolInfo declaredSymbolInfo,
-        PatternMatcher nameMatcher,
-        PatternMatcher? containerMatcher,
-        DeclaredSymbolInfoKindSet kinds,
-        ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices,
-        Action<RoslynNavigateToItem> onItemFound,
-        CancellationToken cancellationToken)
-    {
-        if (cancellationToken.IsCancellationRequested)
-            return;
+            if (kinds.Contains(declaredSymbolInfo.Kind) &&
+                nameMatcher.AddMatches(declaredSymbolInfo.Name, ref nameMatches.AsRef()) &&
+                containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, ref containerMatches.AsRef()) != false)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    return;
 
-        using var nameMatches = TemporaryArray<PatternMatch>.Empty;
-        using var containerMatches = TemporaryArray<PatternMatch>.Empty;
+                // See if we have a match in a linked file.  If so, see if we have the same match in
+                // other projects that this file is linked in.  If so, include the full set of projects
+                // the match is in so we can display that well in the UI.
+                //
+                // We can only do this in the case where the solution is loaded and thus we can examine
+                // the relationship between this document and the other documents linked to it.  In the
+                // case where the solution isn't fully loaded and we're just reading in cached data, we
+                // don't know what other files we're linked to and can't merge results in this fashion.
+                var additionalMatchingProjects = GetAdditionalProjectsWithMatch(
+                    document, declaredSymbolInfo, linkedIndices);
 
-        if (kinds.Contains(declaredSymbolInfo.Kind) &&
-            nameMatcher.AddMatches(declaredSymbolInfo.Name, ref nameMatches.AsRef()) &&
-            containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, ref containerMatches.AsRef()) != false)
-        {
-            if (cancellationToken.IsCancellationRequested)
-                return;
-
-            // See if we have a match in a linked file.  If so, see if we have the same match in
-            // other projects that this file is linked in.  If so, include the full set of projects
-            // the match is in so we can display that well in the UI.
-            //
-            // We can only do this in the case where the solution is loaded and thus we can examine
-            // the relationship between this document and the other documents linked to it.  In the
-            // case where the solution isn't fully loaded and we're just reading in cached data, we
-            // don't know what other files we're linked to and can't merge results in this fashion.
-            var additionalMatchingProjects = GetAdditionalProjectsWithMatch(
-                document, declaredSymbolInfo, linkedIndices);
-
-            var result = ConvertResult(
-                documentKey, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
-            onItemFound(result);
+                var result = ConvertResult(
+                    documentKey, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
+                onItemFound(result);
+            }
         }
     }
 
@@ -251,13 +229,10 @@ internal abstract partial class AbstractNavigateToSearchService
         DeclaredSymbolInfo declaredSymbolInfo,
         ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices)
     {
-        if (document == null)
+        if (document == null || linkedIndices is null || linkedIndices.Count == 0)
             return [];
 
-        if (linkedIndices is null || linkedIndices.Count == 0)
-            return [];
-
-        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
+        using var result = TemporaryArray<ProjectId>.Empty;
 
         foreach (var (index, projectId) in linkedIndices)
         {
@@ -267,7 +242,6 @@ internal abstract partial class AbstractNavigateToSearchService
                 result.Add(projectId);
         }
 
-        result.RemoveDuplicates();
         return result.ToImmutableAndClear();
     }
 

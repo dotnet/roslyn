@@ -126,6 +126,8 @@ internal abstract partial class AbstractNavigateToSearchService
 
             Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
 
+            // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
+            // projects with priority documents ahead of those without so we can get results for those faster.
             await Parallel.ForEachAsync(
                 highPriProjects.Concat(lowPriProjects),
                 cancellationToken,

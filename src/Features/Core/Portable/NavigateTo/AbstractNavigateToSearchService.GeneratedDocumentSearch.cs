@@ -94,7 +94,6 @@ internal abstract partial class AbstractNavigateToSearchService
                 {
                     // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
                     var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-                    using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
 
                     await Parallel.ForEachAsync(
                         sourceGeneratedDocs,
