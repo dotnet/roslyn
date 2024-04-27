@@ -2205,7 +2205,7 @@ symIsHidden:;
 
             void addMemberLookupSymbolsInfoInExtension(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder)
             {
-                AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType: null);
+                AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType: type);
 
                 if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
                 {
@@ -2382,6 +2382,7 @@ symIsHidden:;
 
         internal void AddImplicitExtensionMemberLookupSymbolsInfoForType(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder)
         {
+            var accessThroughType = type;
             if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
             {
                 type = extendedType;
@@ -2394,7 +2395,7 @@ symIsHidden:;
 
                 foreach (NamedTypeSymbol extension in compatibleExtensions)
                 {
-                    AddMemberLookupSymbolsInfoWithoutInheritance(result, extension, options, scope.Binder, accessThroughType: null);
+                    AddMemberLookupSymbolsInfoWithoutInheritance(result, extension, options, scope.Binder, accessThroughType);
                 }
 
                 compatibleExtensions.Clear();

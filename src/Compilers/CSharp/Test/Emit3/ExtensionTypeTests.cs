@@ -35897,4 +35897,54 @@ implicit extension ETop2 for C
 
         AssertSetStrictlyEqual(cStaticSymbols, model.LookupStaticMembers(position, c).ToTestDisplayStrings());
     }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Protected()
+    {
+        var src = """
+// we'll lookup here
+_ = C.M;
+
+class C
+{
+    int P => throw null; // we'll also lookup here
+}
+
+implicit extension E for C
+{
+    protected static int M = 0;
+    protected class Nested { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS0117: 'C' does not contain a definition for 'M'
+            // _ = C.M;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("C", "M").WithLocation(2, 7));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+
+        int positionInC = GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart;
+
+        string[] cSymbols = [
+            "System.Int32 C.P { get; }",
+            "System.Object System.Object.MemberwiseClone()",
+            "void System.Object.Finalize()",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(cSymbols, model.LookupSymbols(positionInC, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(cSymbols, model.LookupSymbols(positionInC, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(positionInC, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(positionInC, c).ToTestDisplayStrings());
+    }
 }
