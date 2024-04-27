@@ -112,7 +112,7 @@ internal partial class FindReferencesSearchEngine
                 foreach (var (_, location) in referencesForFinder)
                 {
                     var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                    await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                    await _progress.OnReferencesFoundAsync([(group, symbol, location)], cancellationToken).ConfigureAwait(false);
                 }
 
                 referencesForFinder.Clear();
@@ -138,7 +138,7 @@ internal partial class FindReferencesSearchEngine
                         var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
 
                         var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
-                        await _progress.OnReferenceFoundAsync(candidateGroup, candidate, location, cancellationToken).ConfigureAwait(false);
+                        await _progress.OnReferencesFoundAsync([(candidateGroup, candidate, location)], cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
