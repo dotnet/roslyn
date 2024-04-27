@@ -68,7 +68,8 @@ internal abstract partial class AbstractNavigateToSearchService
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        await PerformParallelSearchAsync(projects, ProcessSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
+        await PerformParallelSearchAsync(
+            projects, ProcessSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
         return;
 
         async ValueTask ProcessSingleProjectAsync(

@@ -122,15 +122,13 @@ internal abstract partial class AbstractNavigateToSearchService
 
         using var _1 = GetPooledHashSet(priorityDocumentKeys, out var priorityDocumentKeysSet);
 
-        // Sort the groups into a high pri group (projects that contain a high-pri doc), and low pri groups (those
-        // that don't), and process in that order.
+        // Sort the groups into a high pri group (projects that contain a high-pri doc), and low pri groups (those that
+        // don't), and process in that order.
         using var _2 = GetPooledHashSet(groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)), out var highPriorityGroups);
         using var _3 = GetPooledHashSet(groups.Where(g => !highPriorityGroups.Contains(g)), out var lowPriorityGroups);
 
         await PerformParallelSearchAsync(
-            highPriorityGroups.Concat(lowPriorityGroups),
-            ProcessSingleProjectGroupAsync,
-            onItemsFound, cancellationToken).ConfigureAwait(false);
+            highPriorityGroups.Concat(lowPriorityGroups), ProcessSingleProjectGroupAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
         return;
 
         async ValueTask ProcessSingleProjectGroupAsync(
