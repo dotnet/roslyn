@@ -66,6 +66,34 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         return disposer;
     }
 
+    private static Task PerformParallelSearchAsync<T>(
+        IEnumerable<T> items,
+        Func<T, Action<RoslynNavigateToItem>, CancellationToken, ValueTask> callback,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        CancellationToken cancellationToken)
+    {
+        return PerformSearchAsync(
+            onItemFound => ParallelForEachAsync(
+                items, cancellationToken,
+                (item, cancellationToken) => callback(item, onItemFound, cancellationToken)),
+            onItemsFound,
+            cancellationToken);
+    }
+
+#if false
+        Task SearchAllProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
+            => ParallelForEachAsync(
+                highPriProjects.Concat(lowPriProjects),
+                cancellationToken,
+                (project, cancellationToken) =>
+                    // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
+                    // projects with priority documents ahead of those without so we can get results for those faster.
+                    SearchProjectInCurrentProcessAsync(
+                        project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
+                        searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));
+
+#endif
+
     private static async Task PerformSearchAsync(
         Func<Action<RoslynNavigateToItem>, Task> searchAsync,
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
