@@ -4,6 +4,7 @@
 
 using System;
 using System.Buffers.Binary;
+using System.Collections.Immutable;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Channels;
@@ -95,43 +96,41 @@ internal readonly struct RemoteHostAssetWriter(
 #else
             () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
 #endif
+        // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
+        var foundChecksumCount = 0;
+        var @this = this;
 
-        // Spin up a task to go find all the requested checksums, adding results to the channel.
-        // Spin up a task to read from the channel, writing out the assets to the pipe-writer.
-        await Task.WhenAll(
-            FindAssetsFromScopeAndWriteToChannelAsync(channel.Writer, cancellationToken),
-            ReadAssetsFromChannelAndWriteToPipeAsync(channel.Reader, cancellationToken)).ConfigureAwait(false);
+        await channel.BatchProcessAsync(
+            FindAssetsAsync,
+            WriteToPipeAsync,
+            cancellationToken).ConfigureAwait(false);
+
+        // If we weren't canceled, we better have found and written out all the expected assets.
+        Contract.ThrowIfTrue(foundChecksumCount != _checksums.Length);
+
+        return;
+
+        async ValueTask WriteToPipeAsync(ImmutableArray<ChecksumAndAsset> checksumsAndAssets, CancellationToken cancellationToken)
+        {
+            foundChecksumCount += checksumsAndAssets.Length;
+            await @this.WriteBatchToPipeAsync(checksumsAndAssets, cancellationToken).ConfigureAwait(false);
+        }
     }
 
-    private async Task FindAssetsFromScopeAndWriteToChannelAsync(ChannelWriter<ChecksumAndAsset> channelWriter, CancellationToken cancellationToken)
+    private async ValueTask FindAssetsAsync(Action<ChecksumAndAsset> onItemFound, CancellationToken cancellationToken)
     {
-        Exception? exception = null;
-        try
-        {
-            await Task.Yield();
-
-            await _scope.FindAssetsAsync(
-                _assetPath, _checksums,
-                // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
-                // channel is only ever completed by us (after FindAssetsAsync completes or throws an exception) or if
-                // the cancellationToken is triggered above in WriteDataAsync. In that latter case, it's ok for writing
-                // to the channel to do nothing as we no longer need to write out those assets to the pipe.
-                static (checksum, asset, channelWriter) => channelWriter.TryWrite((checksum, asset)),
-                channelWriter, cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception ex) when ((exception = ex) == null)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-        finally
-        {
-            // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-            // writing task knows it's done.
-            channelWriter.TryComplete(exception);
-        }
+        await _scope.FindAssetsAsync(
+            _assetPath, _checksums,
+            // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
+            // channel is only ever completed by us (after FindAssetsAsync completes or throws an exception) or if
+            // the cancellationToken is triggered above in WriteDataAsync. In that latter case, it's ok for writing
+            // to the channel to do nothing as we no longer need to write out those assets to the pipe.
+            static (checksum, asset, onItemFound) => onItemFound((checksum, asset)),
+            onItemFound, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task ReadAssetsFromChannelAndWriteToPipeAsync(ChannelReader<ChecksumAndAsset> channelReader, CancellationToken cancellationToken)
+    private async ValueTask WriteBatchToPipeAsync(
+        ImmutableArray<ChecksumAndAsset> checksumsAndAssets, CancellationToken cancellationToken)
     {
         await Task.Yield();
 
@@ -148,20 +147,14 @@ internal readonly struct RemoteHostAssetWriter(
         _scope.SolutionChecksum.WriteTo(_pipeWriter);
         await _pipeWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-        // Keep track of how many checksums we found.  We must find all the checksums we were asked to find.
-        var foundChecksumCount = 0;
-
-        await foreach (var (checksum, asset) in channelReader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+        foreach (var (checksum, asset) in checksumsAndAssets)
         {
             await WriteSingleAssetToPipeAsync(
                 pooledStream.Object, objectWriter, checksum, asset, cancellationToken).ConfigureAwait(false);
-            foundChecksumCount++;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // If we weren't canceled, we better have found and written out all the expected assets.
-        Contract.ThrowIfTrue(foundChecksumCount != _checksums.Length);
     }
 
     private async ValueTask WriteSingleAssetToPipeAsync(
