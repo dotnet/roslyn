@@ -149,7 +149,7 @@ internal partial class SolutionCompilationState
             /// <summary>
             /// Used to determine which project an assembly symbol came from after the fact.
             /// </summary>
-            public readonly RootedSymbolSet RootedSymbolSet;
+            private SingleInitNullable<RootedSymbolSet> _rootedSymbolSet;
 
             /// <summary>
             /// The final compilation, with all references and source generators run. This is distinct from <see
@@ -168,8 +168,7 @@ internal partial class SolutionCompilationState
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
                 bool hasSuccessfullyLoaded,
-                CompilationTrackerGeneratorInfo generatorInfo,
-                RootedSymbolSet rootedSymbolSet)
+                CompilationTrackerGeneratorInfo generatorInfo)
                 : base(creationPolicy, generatorInfo)
             {
                 Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
@@ -179,7 +178,6 @@ internal partial class SolutionCompilationState
                 this.CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                 HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                 FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
-                RootedSymbolSet = rootedSymbolSet;
 
                 if (this.GeneratorInfo.Documents.IsEmpty)
                 {
@@ -213,7 +211,6 @@ internal partial class SolutionCompilationState
                 // Keep track of information about symbols from this Compilation.  This will help support other APIs
                 // the solution exposes that allows the user to map back from symbols to project information.
 
-                var unrootedSymbolSet = RootedSymbolSet.Create(finalCompilationWithGeneratedDocuments);
                 RecordAssemblySymbols(projectId, finalCompilationWithGeneratedDocuments, metadataReferenceToProjectId);
 
                 return new FinalCompilationTrackerState(
@@ -221,9 +218,12 @@ internal partial class SolutionCompilationState
                     finalCompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedDocuments,
                     hasSuccessfullyLoaded,
-                    generatorInfo,
-                    unrootedSymbolSet);
+                    generatorInfo);
             }
+
+            public RootedSymbolSet RootedSymbolSet => _rootedSymbolSet.Initialize(
+                static finalCompilationWithGeneratedDocuments => RootedSymbolSet.Create(finalCompilationWithGeneratedDocuments),
+                this.FinalCompilationWithGeneratedDocuments);
 
             public FinalCompilationTrackerState WithCreationPolicy(CreationPolicy creationPolicy)
                 => creationPolicy == this.CreationPolicy
@@ -232,8 +232,7 @@ internal partial class SolutionCompilationState
                         FinalCompilationWithGeneratedDocuments,
                         CompilationWithoutGeneratedDocuments,
                         HasSuccessfullyLoaded,
-                        GeneratorInfo,
-                        RootedSymbolSet);
+                        GeneratorInfo);
 
             private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
             {

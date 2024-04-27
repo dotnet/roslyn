@@ -106,10 +106,7 @@ namespace Microsoft.CodeAnalysis
                 out MetadataReferenceInfo? referencedThrough)
             {
                 Debug.Assert(symbol.Kind is SymbolKind.Assembly or SymbolKind.NetModule or SymbolKind.DynamicType);
-                var state = this.ReadState();
-
-                var unrootedSymbolSet = (state as FinalCompilationTrackerState)?.RootedSymbolSet;
-                if (unrootedSymbolSet == null)
+                if (this.ReadState() is not FinalCompilationTrackerState finalState)
                 {
                     // this was not a tracker that has handed out a compilation (all compilations handed out must be
                     // owned by a 'FinalState').  So this symbol could not be from us.
@@ -118,7 +115,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                return unrootedSymbolSet.Value.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out compilation, out referencedThrough);
+                return finalState.RootedSymbolSet.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out compilation, out referencedThrough);
             }
 
             /// <summary>
