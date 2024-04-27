@@ -21,12 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
-#if NET
-using Parallel = System.Threading.Tasks.Parallel;
-#else
-using Parallel = Roslyn.Utilities.ParallelUtilities;
-#endif
-
 using CachedIndexMap = ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<TopLevelSyntaxTreeIndex?>>;
 
 internal abstract partial class AbstractNavigateToSearchService
@@ -145,7 +139,7 @@ internal abstract partial class AbstractNavigateToSearchService
         return;
 
         Task ProcessAllProjectGroupsAsync(Action<RoslynNavigateToItem> onItemFound)
-            => Parallel.ForEachAsync(
+            => ParallelForEachAsync(
                 highPriorityGroups.Concat(lowPriorityGroups),
                 cancellationToken,
                 (group, cancellationToken) => ProcessSingleProjectGroupAsync(group, onItemFound, cancellationToken));
@@ -164,7 +158,7 @@ internal abstract partial class AbstractNavigateToSearchService
             using var _1 = GetPooledHashSet(group.Where(priorityDocumentKeysSet.Contains), out var highPriDocs);
             using var _2 = GetPooledHashSet(group.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
 
-            await Parallel.ForEachAsync(
+            await ParallelForEachAsync(
                 highPriDocs.Concat(lowPriDocs),
                 cancellationToken,
                 async (documentKey, cancellationToken) =>

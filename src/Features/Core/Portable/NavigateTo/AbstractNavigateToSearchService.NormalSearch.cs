@@ -14,12 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
-#if NET
-using Parallel = System.Threading.Tasks.Parallel;
-#else
-using Parallel = Roslyn.Utilities.ParallelUtilities;
-#endif
-
 internal abstract partial class AbstractNavigateToSearchService
 {
     public async Task SearchDocumentAsync(
@@ -125,7 +119,7 @@ internal abstract partial class AbstractNavigateToSearchService
         return;
 
         Task SearchAllProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
-            => Parallel.ForEachAsync(
+            => ParallelForEachAsync(
                 highPriProjects.Concat(lowPriProjects),
                 cancellationToken,
                 (project, cancellationToken) =>

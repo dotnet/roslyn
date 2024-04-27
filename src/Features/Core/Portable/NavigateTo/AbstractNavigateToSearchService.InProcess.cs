@@ -20,12 +20,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
-#if NET
-using Parallel = System.Threading.Tasks.Parallel;
-#else
-using Parallel = Roslyn.Utilities.ParallelUtilities;
-#endif
-
 internal abstract partial class AbstractNavigateToSearchService
 {
     private static readonly ImmutableArray<(PatternMatchKind roslynKind, NavigateToMatchKind vsKind)> s_kindPairs =
@@ -66,7 +60,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-            await Parallel.ForEachAsync(
+            await ParallelForEachAsync(
                 GetOrderedDocuments(),
                 cancellationToken,
                 (document, cancellationToken) => ProcessDocumentAsync(

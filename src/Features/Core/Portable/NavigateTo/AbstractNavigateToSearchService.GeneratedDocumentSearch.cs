@@ -14,12 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
-#if NET
-using Parallel = System.Threading.Tasks.Parallel;
-#else
-using Parallel = Roslyn.Utilities.ParallelUtilities;
-#endif
-
 internal abstract partial class AbstractNavigateToSearchService
 {
     public async Task SearchGeneratedDocumentsAsync(
@@ -86,7 +80,7 @@ internal abstract partial class AbstractNavigateToSearchService
         return;
 
         Task ProcessAllProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
-            => Parallel.ForEachAsync(
+            => ParallelForEachAsync(
                 projects,
                 cancellationToken,
                 (project, cancellationToken) => ProcessSingleProjectAsync(project, onItemFound, cancellationToken));
@@ -97,7 +91,7 @@ internal abstract partial class AbstractNavigateToSearchService
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-            await Parallel.ForEachAsync(
+            await ParallelForEachAsync(
                 sourceGeneratedDocs,
                 cancellationToken,
                 (document, cancellationToken) => ProcessDocumentAsync(

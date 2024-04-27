@@ -105,4 +105,28 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
             channelWriter.TryComplete(exception);
         }
     }
+
+#pragma warning disable CA1068 // CancellationToken parameters must come last
+    private static async Task ParallelForEachAsync<TSource>(
+#pragma warning restore CA1068 // CancellationToken parameters must come last
+        IEnumerable<TSource> source,
+        CancellationToken cancellationToken,
+        Func<TSource, CancellationToken, ValueTask> body)
+    {
+#if NET
+        await Parallel.ForEachAsync(source, cancellationToken, body).ConfigureAwait(false);
+#else
+        using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+        foreach (var item in source)
+        {
+            tasks.Add(Task.Run(async () =>
+            {
+                await body(item, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken));
+        }
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+#endif
+    }
 }
