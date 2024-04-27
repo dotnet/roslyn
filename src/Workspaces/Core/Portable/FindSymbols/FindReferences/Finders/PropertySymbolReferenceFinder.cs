@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -118,7 +119,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
     private static bool IsForEachProperty(IPropertySymbol symbol)
         => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
-    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
         IPropertySymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -126,7 +127,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await FindReferencesInDocumentUsingSymbolNameAsync(
+        FindReferencesInDocumentUsingSymbolName(
             symbol,
             state,
             static (loc, data) =>
@@ -146,7 +147,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
                     data.processResult(loc, data.processResultData);
             },
             processResultData: (self: this, symbol, state, processResult, processResultData, options, cancellationToken),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         if (IsForEachProperty(symbol))
             FindReferencesInForEachStatements(symbol, state, processResult, processResultData, cancellationToken);
@@ -156,6 +157,7 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
 
         FindReferencesInDocumentInsideGlobalSuppressions(
             symbol, state, processResult, processResultData, cancellationToken);
+        return ValueTaskFactory.CompletedTask;
     }
 
     private static Task FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync<TData>(

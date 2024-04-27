@@ -90,8 +90,8 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
             await FindLocalAliasReferencesAsync(
                 initialReferences, symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-            await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInDocumentInsideGlobalSuppressions(
+                symbol, state, processResult, processResultData, cancellationToken);
         }
     }
 

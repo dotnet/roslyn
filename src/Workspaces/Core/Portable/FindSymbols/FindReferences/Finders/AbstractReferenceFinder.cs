@@ -239,7 +239,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         return null;
     }
 
-    protected static async Task FindLocalAliasReferencesAsync<TData>(
+    protected static void FindLocalAliasReferences<TData>(
         ArrayBuilder<FinderLocation> initialReferences,
         ISymbol symbol,
         FindReferencesDocumentState state,
@@ -249,10 +249,10 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     {
         var aliasSymbols = GetLocalAliasSymbols(state, initialReferences, cancellationToken);
         if (!aliasSymbols.IsDefaultOrEmpty)
-            await FindReferencesThroughLocalAliasSymbolsAsync(symbol, state, aliasSymbols, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesThroughLocalAliasSymbols(symbol, state, aliasSymbols, processResult, processResultData, cancellationToken);
     }
 
-    protected static async Task FindLocalAliasReferencesAsync<TData>(
+    protected static void FindLocalAliasReferences<TData>(
         ArrayBuilder<FinderLocation> initialReferences,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -261,7 +261,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     {
         var aliasSymbols = GetLocalAliasSymbols(state, initialReferences, cancellationToken);
         if (!aliasSymbols.IsDefaultOrEmpty)
-            await FindReferencesThroughLocalAliasSymbolsAsync(state, aliasSymbols, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesThroughLocalAliasSymbols(state, aliasSymbols, processResult, processResultData, cancellationToken);
     }
 
     private static ImmutableArray<IAliasSymbol> GetLocalAliasSymbols(
@@ -280,7 +280,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         return aliasSymbols.ToImmutableAndClear();
     }
 
-    private static async Task FindReferencesThroughLocalAliasSymbolsAsync<TData>(
+    private static void FindReferencesThroughLocalAliasSymbols<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         ImmutableArray<IAliasSymbol> localAliasSymbols,
@@ -290,20 +290,20 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     {
         foreach (var localAliasSymbol in localAliasSymbols)
         {
-            await FindReferencesInDocumentUsingIdentifierAsync(
-                symbol, localAliasSymbol.Name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInDocumentUsingIdentifier(
+                symbol, localAliasSymbol.Name, state, processResult, processResultData, cancellationToken);
 
             // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
             // shortened name as well (e.g. using GooAttribute = MyNamespace.GooAttribute; [Goo] class C1 {})
             if (TryGetNameWithoutAttributeSuffix(localAliasSymbol.Name, state.SyntaxFacts, out var simpleName))
             {
-                await FindReferencesInDocumentUsingIdentifierAsync(
-                    symbol, simpleName, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+                FindReferencesInDocumentUsingIdentifier(
+                    symbol, simpleName, state, processResult, processResultData, cancellationToken);
             }
         }
     }
 
-    private static async Task FindReferencesThroughLocalAliasSymbolsAsync<TData>(
+    private static void FindReferencesThroughLocalAliasSymbols<TData>(
         FindReferencesDocumentState state,
         ImmutableArray<IAliasSymbol> localAliasSymbols,
         Action<FinderLocation, TData> processResult,
@@ -312,15 +312,15 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     {
         foreach (var aliasSymbol in localAliasSymbols)
         {
-            await FindReferencesInDocumentUsingIdentifierAsync(
-                aliasSymbol, aliasSymbol.Name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            FindReferencesInDocumentUsingIdentifier(
+                aliasSymbol, aliasSymbol.Name, state, processResult, processResultData, cancellationToken);
 
             // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
             // shortened name as well (e.g. using GooAttribute = MyNamespace.GooAttribute; [Goo] class C1 {})
             if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, state.SyntaxFacts, out var simpleName))
             {
-                await FindReferencesInDocumentUsingIdentifierAsync(
-                    aliasSymbol, simpleName, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+                FindReferencesInDocumentUsingIdentifier(
+                    aliasSymbol, simpleName, state, processResult, processResultData, cancellationToken);
             }
         }
     }
