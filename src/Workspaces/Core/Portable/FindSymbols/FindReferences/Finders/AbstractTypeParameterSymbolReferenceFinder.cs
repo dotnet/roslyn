@@ -29,7 +29,7 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
         // T()`). In the former case GetSymbolInfo can be used to bind the symbol and check if it matches this symbol.
         // in the latter though GetSymbolInfo will fail and we have to directly check if we have the right type info.
 
-        var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
+        var tokens = FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
 
         await FindReferencesInTokensAsync(
             symbol, state,

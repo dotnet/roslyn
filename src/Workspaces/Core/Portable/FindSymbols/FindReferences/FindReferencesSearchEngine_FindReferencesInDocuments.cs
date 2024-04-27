@@ -123,8 +123,7 @@ internal partial class FindReferencesSearchEngine
 
             if (InvolvesInheritance(symbol))
             {
-                var tokens = await AbstractReferenceFinder.FindMatchingIdentifierTokensAsync(
-                    state, symbol.Name, cancellationToken).ConfigureAwait(false);
+                var tokens = AbstractReferenceFinder.FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
 
                 foreach (var token in tokens)
                 {

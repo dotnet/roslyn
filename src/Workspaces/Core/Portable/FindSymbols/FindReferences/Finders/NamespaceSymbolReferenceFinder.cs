@@ -107,8 +107,7 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        var tokens = await FindMatchingIdentifierTokensAsync(
-            state, name, cancellationToken).ConfigureAwait(false);
+        var tokens = FindMatchingIdentifierTokens(state, name, cancellationToken);
 
         await FindReferencesInTokensAsync(
             symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);

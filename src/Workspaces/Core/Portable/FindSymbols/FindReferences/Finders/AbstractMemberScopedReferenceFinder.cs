@@ -64,7 +64,7 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
         }
         else if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
         {
-            var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
+            var tokens = FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
             await FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
     }

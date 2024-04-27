@@ -64,7 +64,7 @@ public static partial class SymbolFinder
             await progress.OnDefinitionFoundAsync(symbolGroup, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask OnReferenceFoundAsync(
+        public async ValueTask OnReferencesFoundAsync(
             ImmutableArray<(SerializableSymbolGroup serializableSymbolGroup, SerializableSymbolAndProjectId serializableSymbol, SerializableReferenceLocation reference)> references,
             CancellationToken cancellationToken)
         {
