@@ -81,9 +81,10 @@ internal partial class FindReferencesSearchEngine
         await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await Task.WhenAll(
-                FindAllReferencesAndWriteToChannelAsync(),
-                ReadReferencesFromChannelAndReportToCallbackAsync()).ConfigureAwait(false);
+            await channel.BatchProcessAsync(
+                PerformSearchAsync,
+                _progress.OnReferencesFoundAsync,
+                cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -92,42 +93,8 @@ internal partial class FindReferencesSearchEngine
 
         return;
 
-        async Task ReadReferencesFromChannelAndReportToCallbackAsync()
-        {
-            await Task.Yield().ConfigureAwait(false);
-            using var _ = ArrayBuilder<Reference>.GetInstance(out var references);
-
-            while (await channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // Grab as many items as we can from the channel at once and report in a batch.
-                while (channel.Reader.TryRead(out var reference))
-                    references.Add(reference);
-
-                await _progress.OnReferencesFoundAsync(references.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        async Task FindAllReferencesAndWriteToChannelAsync()
-        {
-            Exception? exception = null;
-            try
-            {
-                await Task.Yield().ConfigureAwait(false);
-                await PerformSearchAsync(item => channel.Writer.TryWrite(item)).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-                // writing task knows it's done.
-                channel.Writer.TryComplete(exception);
-            }
-        }
-
-        async ValueTask PerformSearchAsync(Action<Reference> onReferenceFound)
+        async ValueTask PerformSearchAsync(
+            Action<Reference> onReferenceFound, CancellationToken cancellationToken)
         {
             var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
             unifiedSymbols.AddRange(symbols);

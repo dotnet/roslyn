@@ -47,14 +47,15 @@ internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : Remote
 }
 
 internal sealed class NavigateToSearchServiceCallback(
-    Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
-    Func<Task>? onProjectCompleted)
+    Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, ValueTask> onItemsFound,
+    Func<Task>? onProjectCompleted,
+    CancellationToken cancellationToken)
 {
     public async ValueTask OnItemsFoundAsync(ImmutableArray<RoslynNavigateToItem> items)
     {
         try
         {
-            await onItemsFound(items).ConfigureAwait(false);
+            await onItemsFound(items, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
         {

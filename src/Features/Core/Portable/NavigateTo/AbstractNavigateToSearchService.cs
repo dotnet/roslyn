@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -36,10 +37,10 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<ImmutableArray<RoslynNavigateToItem>, Task> GetOnItemsFoundCallback(
-        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
+    private static Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, ValueTask> GetOnItemsFoundCallback(
+        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound)
     {
-        return async items =>
+        return async (items, cancellationToken) =>
         {
             using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
 
@@ -94,54 +95,22 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
     private static async Task PerformParallelSearchAsync<T>(
         IEnumerable<T> items,
         Func<T, Action<RoslynNavigateToItem>, CancellationToken, ValueTask> callback,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, ValueTask> onItemsFound,
         CancellationToken cancellationToken)
     {
         // Use an unbounded channel to allow the writing work to write as many items as it can find without blocking.
         // Concurrently, the reading task will grab items when available, and send them over to the host.
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
-        await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(),
-            ReadItemsFromChannelAndReportToCallbackAsync()).ConfigureAwait(false);
+        await channel.BatchProcessAsync(
+            PerformSearchAsync,
+            onItemsFound,
+            cancellationToken).ConfigureAwait(false);
 
-        async Task ReadItemsFromChannelAndReportToCallbackAsync()
-        {
-            await Task.Yield().ConfigureAwait(false);
-            using var _ = ArrayBuilder<RoslynNavigateToItem>.GetInstance(out var items);
+        return;
 
-            while (await channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // Grab as many items as we can from the channel at once and report in a batch.
-                while (channel.Reader.TryRead(out var item))
-                    items.Add(item);
-
-                await onItemsFound(items.ToImmutableAndClear()).ConfigureAwait(false);
-            }
-        }
-
-        async Task FindAllItemsAndWriteToChannelAsync()
-        {
-            Exception? exception = null;
-            try
-            {
-                await Task.Yield().ConfigureAwait(false);
-                await PerformSearchAsync(item => channel.Writer.TryWrite(item)).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-                // writing task knows it's done.
-                channel.Writer.TryComplete(exception);
-            }
-        }
-
-        Task PerformSearchAsync(Action<RoslynNavigateToItem> onItemFound)
-            => RoslynParallel.ForEachAsync(
-                items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound, cancellationToken));
+        async ValueTask PerformSearchAsync(Action<RoslynNavigateToItem> onItemFound, CancellationToken cancellationToken)
+            => await RoslynParallel.ForEachAsync(
+                items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound, cancellationToken)).ConfigureAwait(false);
     }
 }

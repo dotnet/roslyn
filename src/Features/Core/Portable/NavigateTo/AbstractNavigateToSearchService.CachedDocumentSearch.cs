@@ -73,7 +73,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
 
-        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound, cancellationToken);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound);
 
         var documentKeys = projects.SelectManyAsArray(p => p.Documents.Select(DocumentKey.ToDocumentKey));
         var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
@@ -81,7 +81,7 @@ internal abstract partial class AbstractNavigateToSearchService
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted, cancellationToken);
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 (service, callbackId, cancellationToken) =>
                     service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, [.. kinds], callbackId, cancellationToken),
@@ -101,7 +101,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<DocumentKey> priorityDocumentKeys,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, ValueTask> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
