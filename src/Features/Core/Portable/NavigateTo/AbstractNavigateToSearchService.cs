@@ -91,6 +91,7 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         Exception? exception = null;
         try
         {
+            await Task.Yield().ConfigureAwait(false);
             await findWorker(item => channelWriter.TryWrite(item)).ConfigureAwait(false);
         }
         catch (Exception ex) when ((exception = ex) == null)

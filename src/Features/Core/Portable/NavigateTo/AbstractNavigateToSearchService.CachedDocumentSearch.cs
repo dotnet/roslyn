@@ -143,8 +143,6 @@ internal abstract partial class AbstractNavigateToSearchService
 
         async Task ProcessBothProjectGroupsAsync(Action<RoslynNavigateToItem> onItemFound)
         {
-            await Task.Yield().ConfigureAwait(false);
-
             await ProcessProjectGroupsAsync(highPriorityGroups, onItemFound).ConfigureAwait(false);
             await ProcessProjectGroupsAsync(lowPriorityGroups, onItemFound).ConfigureAwait(false);
         }
@@ -167,7 +165,6 @@ internal abstract partial class AbstractNavigateToSearchService
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            await Task.Yield().ConfigureAwait(false);
             var project = group.Key;
 
             // Break the project into high-pri docs and low pri docs.

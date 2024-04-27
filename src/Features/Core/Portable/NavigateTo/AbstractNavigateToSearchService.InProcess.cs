@@ -71,11 +71,6 @@ internal abstract partial class AbstractNavigateToSearchService
                 cancellationToken,
                 (document, cancellationToken) => ProcessDocumentAsync(
                     document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
-
-            //await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
-
-            //// Then process non-priority documents.
-            //await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
