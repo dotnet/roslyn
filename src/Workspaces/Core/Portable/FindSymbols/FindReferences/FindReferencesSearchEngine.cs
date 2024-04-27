@@ -102,7 +102,7 @@ internal partial class FindReferencesSearchEngine
             await _progressTracker.AddItemsAsync(projectsToSearch.Length, cancellationToken).ConfigureAwait(false);
 
             // Pull off and start searching each project as soon as we can once we've done the inheritance cascade into it.
-            await ParallelForEachAsync(
+            await RoslynParallel.ForEachAsync(
                 GetProjectsAndSymbolsToSearchAsync(symbolSet, projectsToSearch, cancellationToken),
                 cancellationToken,
                 ProcessProjectAsync).ConfigureAwait(false);
@@ -137,33 +137,6 @@ internal partial class FindReferencesSearchEngine
                 yield return (currentProject, allSymbols);
             }
         }
-    }
-
-#pragma warning disable CA1068 // CancellationToken parameters must come last
-    private static async Task ParallelForEachAsync<TSource>(
-#pragma warning restore CA1068 // CancellationToken parameters must come last
-        IAsyncEnumerable<TSource> source,
-        CancellationToken cancellationToken,
-        Func<TSource, CancellationToken, ValueTask> body)
-    {
-        if (cancellationToken.IsCancellationRequested)
-            return;
-
-#if NET
-        await Parallel.ForEachAsync(source, cancellationToken, body).ConfigureAwait(false);
-#else
-        using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-        await foreach (var item in source)
-        {
-            tasks.Add(Task.Run(async () =>
-            {
-                await body(item, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken));
-        }
-
-        await Task.WhenAll(tasks).ConfigureAwait(false);
-#endif
     }
 
     public Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
@@ -254,14 +227,14 @@ internal partial class FindReferencesSearchEngine
                 }
             }
 
-            using var _4 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var (document, docSymbols) in documentToSymbols)
-            {
-                tasks.Add(CreateWorkAsync(() => ProcessDocumentAsync(
-                    document, docSymbols, symbolToGlobalAliases, cancellationToken), cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await RoslynParallel.ForEachAsync(
+                documentToSymbols,
+                cancellationToken,
+                async (kvp, cancellationToken) =>
+                {
+                    var (document, docSymbols) = kvp;
+                    await ProcessDocumentAsync(document, docSymbols, symbolToGlobalAliases, cancellationToken).ConfigureAwait(false);
+                }).ConfigureAwait(false);
         }
         finally
         {
@@ -305,21 +278,20 @@ internal partial class FindReferencesSearchEngine
         // just grab those once here and hold onto them for the lifetime of this call.
         var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
-        // scratch array to place results in. Populated/inspected/cleared in inner loop.
-        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var foundReferenceLocations);
+        await RoslynParallel.ForEachAsync(
+            symbols,
+            cancellationToken,
+            async (symbol, cancellationToken) =>
+            {
+                var globalAliases = TryGet(symbolToGlobalAliases, symbol);
+                var state = new FindReferencesDocumentState(cache, globalAliases);
 
-        foreach (var symbol in symbols)
-        {
-            var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-            var state = new FindReferencesDocumentState(cache, globalAliases);
-
-            await ProcessDocumentAsync(symbol, state, foundReferenceLocations).ConfigureAwait(false);
-        }
+                await ProcessDocumentAsync(symbol, state).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
         return;
 
-        async Task ProcessDocumentAsync(
-            ISymbol symbol, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> foundReferenceLocations)
+        async Task ProcessDocumentAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -328,6 +300,13 @@ internal partial class FindReferencesSearchEngine
                 // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
                 // happened.  So there must be a group for this symbol in our map.
                 var group = _symbolToGroup[symbol];
+
+                // scratch array to place results in. Populated/inspected/cleared in inner loop.
+                using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var foundReferenceLocations);
+
+                // Note: nearly every finder will no-op when passed a in a symbol it's not applicable to.  So it's
+                // simple to just iterate over all of them, knowing that will quickly skip all the irrelevant ones,
+                // and only do interesting work on the single relevant one.
                 foreach (var finder in _finders)
                 {
                     await finder.FindReferencesInDocumentAsync(
