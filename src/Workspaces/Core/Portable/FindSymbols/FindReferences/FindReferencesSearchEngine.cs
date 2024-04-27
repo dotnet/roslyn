@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -98,11 +99,25 @@ internal partial class FindReferencesSearchEngine
             // while we're processing each project linearly to update the symbol set we're searching for, we still
             // then process the projects in parallel once we know the set of symbols we're searching for in that
             // project.
-            var dependencyGraph = _solution.GetProjectDependencyGraph();
             await _progressTracker.AddItemsAsync(projectsToSearch.Length, cancellationToken).ConfigureAwait(false);
 
-            using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
+            await ParallelForEachAsync(
+                GetProjectsAndSymbolsToSearchAsync(symbolSet, projectsToSearch, cancellationToken),
+                cancellationToken,
+                async (tuple, cancellationToken) =>
+                    await ProcessProjectAsync(tuple.project, tuple.allSymbols, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+        finally
+        {
+            await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+        }
 
+        async IAsyncEnumerable<(Project project, ImmutableArray<ISymbol> allSymbols)> GetProjectsAndSymbolsToSearchAsync(
+            SymbolSet symbolSet,
+            ImmutableArray<Project> projectsToSearch,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var dependencyGraph = _solution.GetProjectDependencyGraph();
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
             {
                 var currentProject = _solution.GetRequiredProject(projectId);
@@ -114,21 +129,41 @@ internal partial class FindReferencesSearchEngine
                 // which is why we do it in this loop and not inside the concurrent project processing that happens
                 // below.
                 await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
-                allSymbols = symbolSet.GetAllSymbols();
+                var allSymbols = symbolSet.GetAllSymbols();
 
                 // Report any new symbols we've cascaded to to our caller.
                 await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-                tasks.Add(CreateWorkAsync(() => ProcessProjectAsync(currentProject, allSymbols, cancellationToken), cancellationToken));
+                yield return (currentProject, allSymbols);
             }
+        }
+    }
 
-            // Now, wait for all projects to complete.
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-        finally
+#pragma warning disable CA1068 // CancellationToken parameters must come last
+    private static async Task ParallelForEachAsync<TSource>(
+#pragma warning restore CA1068 // CancellationToken parameters must come last
+        IAsyncEnumerable<TSource> source,
+        CancellationToken cancellationToken,
+        Func<TSource, CancellationToken, ValueTask> body)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+#if NET
+        await Parallel.ForEachAsync(source, cancellationToken, body).ConfigureAwait(false);
+#else
+        using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+        await foreach (var item in source)
         {
-            await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+            tasks.Add(Task.Run(async () =>
+            {
+                await body(item, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken));
         }
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+#endif
     }
 
     public Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
