@@ -68,8 +68,8 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await FindReferencesInDocumentUsingSymbolNameAsync(
-            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInDocumentUsingSymbolName(
+            symbol, state, processResult, processResultData, cancellationToken);
 
         if (symbol.AssociatedSymbol is not IPropertySymbol property ||
             !options.AssociatePropertyReferencesWithSpecificAccessor)
