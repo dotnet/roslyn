@@ -112,6 +112,8 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
+        // Get the index for the file we're searching, as well as for its linked siblings.  We'll use the latter to add
+        // the information to a symbol about all the project TFMs is can be found in.
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
         using var _ = ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>.GetInstance(out var linkedIndices);
 

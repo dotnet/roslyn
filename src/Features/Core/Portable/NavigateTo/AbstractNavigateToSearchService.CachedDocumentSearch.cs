@@ -163,7 +163,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
             var project = group.Key;
 
-            // Break the project into high-pri docs and low pri docs.
+            // Break the project into high-pri docs and low pri docs, and process in that order.
             using var _1 = GetPooledHashSet(group.Where(priorityDocumentKeysSet.Contains), out var highPriDocs);
             using var _2 = GetPooledHashSet(group.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
 
@@ -177,7 +177,8 @@ internal abstract partial class AbstractNavigateToSearchService
                         return;
 
                     ProcessIndex(
-                        documentKey, document: null, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, index, cancellationToken);
+                        documentKey, document: null, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                        index, linkedIndices: null, onItemFound, cancellationToken);
                 }).ConfigureAwait(false);
 
             // done with project.  Let the host know.
