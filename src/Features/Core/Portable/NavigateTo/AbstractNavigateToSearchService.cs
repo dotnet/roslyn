@@ -68,8 +68,21 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         return disposer;
     }
 
-    //private static IEnumerable<T> OrderByPriority<T>(IEnumerable<T> items, Func<T, bool> isPriority)
-    //    => items.OrderBy((item1, item2) => (isPriority(item1) ? 0 : 1) - (isPriority(item2) ? 0 : 1));
+    private static IEnumerable<T> Prioritize<T>(IEnumerable<T> items, Func<T, bool> isPriority)
+    {
+        using var _ = ArrayBuilder<T>.GetInstance(out var normalItems);
+
+        foreach (var item in items)
+        {
+            if (isPriority(item))
+                yield return item;
+            else
+                normalItems.Add(item);
+        }
+
+        foreach (var item in normalItems)
+            yield return item;
+    }
 
     /// <summary>
     /// Main utility for searching across items in a solution.  The actual code to search the item should be provided in

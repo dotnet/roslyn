@@ -116,14 +116,12 @@ internal abstract partial class AbstractNavigateToSearchService
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         using var _ = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
-        var lowPriProjects = projects.Where(p => !highPriProjects.Contains(p));
-
-        Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
 
         // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
         // projects with priority documents ahead of those without so we can get results for those faster.
         await PerformParallelSearchAsync(
-            highPriProjects.Concat(lowPriProjects), SearchSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
+            Prioritize(projects, highPriProjects.Contains),
+            SearchSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
         return;
 
         async ValueTask SearchSingleProjectAsync(
@@ -132,10 +130,9 @@ internal abstract partial class AbstractNavigateToSearchService
             CancellationToken cancellationToken)
         {
             using var _ = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
-            var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d));
 
             await ParallelForEachAsync(
-                highPriDocs.Concat(lowPriDocs),
+                Prioritize(project.Documents, highPriDocs.Contains),
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(
                     document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
