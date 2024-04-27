@@ -32,7 +32,7 @@ internal sealed class CSharpUseInterpolatedStringCodeFixProvider() : AbstractUse
         editor.ReplaceNode(node, newNode);
     }
 
-    private static InterpolatedStringExpressionSyntax CreateInterpolatedString(SyntaxNode stringLiteralExpressionNode)
+    private static InterpolatedStringExpressionSyntax CreateInterpolatedString(LiteralExpressionSyntax stringLiteralExpressionNode)
     {
         var token = stringLiteralExpressionNode.GetFirstToken();
         var originalTokenKind = token.Kind();
