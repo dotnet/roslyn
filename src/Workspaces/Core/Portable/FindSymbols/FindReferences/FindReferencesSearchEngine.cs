@@ -79,7 +79,7 @@ internal partial class FindReferencesSearchEngine
         var channel = Channel.CreateUnbounded<Reference>(s_channelOptions);
 
         await Task.WhenAll(
-            FindAllReferemcesAndWriteToChannelAsync(),
+            FindAllReferencesAndWriteToChannelAsync(),
             ReadReferencesFromChannelAndReportToCallbackAsync()).ConfigureAwait(false);
 
         async Task ReadReferencesFromChannelAndReportToCallbackAsync()
@@ -97,7 +97,7 @@ internal partial class FindReferencesSearchEngine
             }
         }
 
-        async Task FindAllReferemcesAndWriteToChannelAsync()
+        async Task FindAllReferencesAndWriteToChannelAsync()
         {
             Exception? exception = null;
             try
