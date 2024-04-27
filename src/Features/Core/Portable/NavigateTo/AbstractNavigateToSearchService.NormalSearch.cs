@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -131,7 +132,7 @@ internal abstract partial class AbstractNavigateToSearchService
         {
             using var _ = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
 
-            await ParallelForEachAsync(
+            await RoslynParallel.ForEachAsync(
                 Prioritize(project.Documents, highPriDocs.Contains),
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(
