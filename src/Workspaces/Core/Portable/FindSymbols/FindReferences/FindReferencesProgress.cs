@@ -35,4 +35,12 @@ internal class NoOpFindReferencesProgress : IFindReferencesProgress
     public void OnReferenceFound(ISymbol symbol, ReferenceLocation location)
     {
     }
+
+    public void OnFindInDocumentStarted(Document document)
+    {
+    }
+
+    public void OnFindInDocumentCompleted(Document document)
+    {
+    }
 }
