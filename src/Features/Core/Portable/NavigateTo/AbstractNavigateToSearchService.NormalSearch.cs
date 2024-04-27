@@ -111,30 +111,28 @@ internal abstract partial class AbstractNavigateToSearchService
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
+        using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
+        using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
+
+        Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
+
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
         await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchProjectsAsync),
+            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchAllProjectsAsync),
             ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
 
         return;
 
-        async Task SearchProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
-        {
-            using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
-            using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
-
-            Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
-
-            // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
-            // projects with priority documents ahead of those without so we can get results for those faster.
-            await Parallel.ForEachAsync(
+        Task SearchAllProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
+            => Parallel.ForEachAsync(
                 highPriProjects.Concat(lowPriProjects),
                 cancellationToken,
                 (project, cancellationToken) =>
+                    // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
+                    // projects with priority documents ahead of those without so we can get results for those faster.
                     SearchProjectInCurrentProcessAsync(
                         project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
-                        searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken)).ConfigureAwait(false);
-        }
+                        searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));
     }
 }
