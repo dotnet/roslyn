@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -43,9 +44,16 @@ internal abstract partial class AbstractNavigateToSearchService
         await SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
+    public static async Task SearchDocumentInCurrentProcessAsync(
+        Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
     {
+        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
         var results = new ConcurrentSet<RoslynNavigateToItem>();
+        await SearchSingleDocumentAsync(
+            document, patternName, patternContainerOpt, kinds, t => results.Add(t), cancellationToken).ConfigureAwait(false);
+
         await SearchProjectInCurrentProcessAsync(
             document.Project, priorityDocuments: [], document, searchPattern, kinds,
             t => results.Add(t), () => Task.CompletedTask, cancellationToken).ConfigureAwait(false);

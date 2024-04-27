@@ -63,7 +63,7 @@ internal abstract partial class AbstractNavigateToSearchService
             await ParallelForEachAsync(
                 GetOrderedDocuments(),
                 cancellationToken,
-                (document, cancellationToken) => ProcessDocumentAsync(
+                (document, cancellationToken) => SearchSingleDocumentAsync(
                     document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
         }
         finally
@@ -95,7 +95,7 @@ internal abstract partial class AbstractNavigateToSearchService
         }
     }
 
-    private static async ValueTask ProcessDocumentAsync(
+    private static async ValueTask SearchSingleDocumentAsync(
         Document document,
         string patternName,
         string? patternContainer,
