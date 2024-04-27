@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 
 internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavigateToSearchService
 {
+    private static readonly UnboundedChannelOptions s_channelOptions = new() { SingleReader = true };
+
     public static readonly IImmutableSet<string> AllKinds = [
         NavigateToItemKind.Class,
         NavigateToItemKind.Constant,

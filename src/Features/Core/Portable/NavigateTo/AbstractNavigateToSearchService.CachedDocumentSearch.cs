@@ -38,8 +38,6 @@ internal abstract partial class AbstractNavigateToSearchService
     /// </summary>
     private static StringTable? s_stringTable = new();
 
-    private static readonly UnboundedChannelOptions s_channelOptions = new() { SingleReader = true };
-
     private static void ClearCachedData()
     {
         // Volatiles are technically not necessary due to automatic fencing of reference-type writes.  However,
