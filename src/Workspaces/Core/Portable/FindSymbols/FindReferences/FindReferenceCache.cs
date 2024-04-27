@@ -116,8 +116,6 @@ internal sealed class FindReferenceCache
         static async ValueTask<ImmutableArray<SyntaxToken>> ComputeAndCacheTokensAsync(
             FindReferenceCache cache, Document document, string identifier, SyntaxTreeIndex info, CancellationToken cancellationToken)
         {
-            var root = await cache.SemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
             // If the identifier was escaped in the file then we'll have to do a more involved search that actually
             // walks the root and checks all identifier tokens.
             //
@@ -125,13 +123,13 @@ internal sealed class FindReferenceCache
             if (info.ProbablyContainsEscapedIdentifier(identifier))
             {
                 return cache._identifierCache.GetOrAdd(
-                    identifier, _ => FindMatchingIdentifierTokensFromTree(cache.SyntaxFacts, identifier, root));
+                    identifier, _ => FindMatchingIdentifierTokensFromTree(cache.SyntaxFacts, identifier, cache.Root));
             }
             else
             {
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 return cache._identifierCache.GetOrAdd(
-                    identifier, _ => FindMatchingIdentifierTokensFromText(cache.SyntaxFacts, identifier, root, text, cancellationToken));
+                    identifier, _ => FindMatchingIdentifierTokensFromText(cache.SyntaxFacts, identifier, cache.Root, text, cancellationToken));
             }
         }
 
