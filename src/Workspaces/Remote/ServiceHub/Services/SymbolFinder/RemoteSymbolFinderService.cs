@@ -225,15 +225,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     (callback, cancellationToken) => callback.OnDefinitionFoundAsync(_callbackId, dehydratedGroup, cancellationToken), cancellationToken);
             }
 
-            public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation reference, CancellationToken cancellationToken)
+            public ValueTask OnReferencesFoundAsync(
+                ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
+                CancellationToken cancellationToken)
             {
-                var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, cancellationToken);
-                var dehydratedDefinition = SerializableSymbolAndProjectId.Dehydrate(_solution, definition, cancellationToken);
-                var dehydratedReference = SerializableReferenceLocation.Dehydrate(reference, cancellationToken);
+                var dehydrated = references.SelectAsArray(t =>
+                    (SerializableSymbolGroup.Dehydrate(_solution, t.group, cancellationToken),
+                     SerializableSymbolAndProjectId.Dehydrate(_solution, t.symbol, cancellationToken),
+                     SerializableReferenceLocation.Dehydrate(t.location, cancellationToken)));
 
                 return _callback.InvokeAsync(
-                    (callback, cancellationToken) => callback.OnReferenceFoundAsync(
-                        _callbackId, dehydratedGroup, dehydratedDefinition, dehydratedReference, cancellationToken), cancellationToken);
+                    (callback, cancellationToken) => callback.OnReferencesFoundAsync(
+                        _callbackId, dehydrated, cancellationToken), cancellationToken);
             }
 
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)

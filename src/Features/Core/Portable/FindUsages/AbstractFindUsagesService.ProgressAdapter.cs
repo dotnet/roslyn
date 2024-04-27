@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -105,17 +106,21 @@ internal abstract partial class AbstractFindUsagesService
             await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
+        public async ValueTask OnReferencesFoundAsync(
+            ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {
-            var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
-            var referenceItem = await location.TryCreateSourceReferenceItemAsync(
-                classificationOptions,
-                definitionItem,
-                includeHiddenLocations: false,
-                cancellationToken).ConfigureAwait(false);
+            foreach (var (group, _, location) in references)
+            {
+                var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
+                var referenceItem = await location.TryCreateSourceReferenceItemAsync(
+                    classificationOptions,
+                    definitionItem,
+                    includeHiddenLocations: false,
+                    cancellationToken).ConfigureAwait(false);
 
-            if (referenceItem != null)
-                await context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
+                if (referenceItem != null)
+                    await context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
