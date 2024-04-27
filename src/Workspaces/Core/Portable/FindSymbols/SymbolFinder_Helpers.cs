@@ -146,7 +146,7 @@ public static partial class SymbolFinder
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(equivalentTypesWithDifferingAssemblies);
-        Contract.ThrowIfTrue(!equivalentTypesWithDifferingAssemblies.Any());
+        Contract.ThrowIfTrue(equivalentTypesWithDifferingAssemblies.Count == 0);
 
         // Must contain equivalents named types residing in different assemblies.
         Contract.ThrowIfFalse(equivalentTypesWithDifferingAssemblies.All(kvp => !SymbolEquivalenceComparer.Instance.Equals(kvp.Key.ContainingAssembly, kvp.Value.ContainingAssembly)));
@@ -155,16 +155,13 @@ public static partial class SymbolFinder
         Contract.ThrowIfFalse(equivalentTypesWithDifferingAssemblies.All(kvp => kvp.Key.ContainingType == null));
         Contract.ThrowIfFalse(equivalentTypesWithDifferingAssemblies.All(kvp => kvp.Value.ContainingType == null));
 
-        // Cache compilations so we avoid recreating any as we walk the pairs of types.
-        using var _ = PooledHashSet<Compilation>.GetInstance(out var compilationSet);
-
         foreach (var (type1, type2) in equivalentTypesWithDifferingAssemblies)
         {
             // Check if type1 was forwarded to type2 in type2's compilation, or if type2 was forwarded to type1 in
             // type1's compilation.  We check both direction as this API is called from higher level comparison APIs
             // that are unordered.
-            if (!await VerifyForwardedTypeAsync(solution, candidate: type1, forwardedTo: type2, compilationSet, cancellationToken).ConfigureAwait(false) &&
-                !await VerifyForwardedTypeAsync(solution, candidate: type2, forwardedTo: type1, compilationSet, cancellationToken).ConfigureAwait(false))
+            if (!await VerifyForwardedTypeAsync(solution, candidate: type1, forwardedTo: type2, cancellationToken).ConfigureAwait(false) &&
+                !await VerifyForwardedTypeAsync(solution, candidate: type2, forwardedTo: type1, cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
@@ -181,7 +178,6 @@ public static partial class SymbolFinder
         Solution solution,
         INamedTypeSymbol candidate,
         INamedTypeSymbol forwardedTo,
-        HashSet<Compilation> compilationSet,
         CancellationToken cancellationToken)
     {
         // Only need to operate on original definitions.  i.e. List<T> is the type that is forwarded,
@@ -194,12 +190,6 @@ public static partial class SymbolFinder
             return false;
 
         var forwardedToCompilation = await forwardedToOriginatingProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        if (forwardedToCompilation == null)
-            return false;
-
-        // Cache the compilation so that if we need it while checking another set of forwarded types, we don't
-        // expensively throw it away and recreate it.
-        compilationSet.Add(forwardedToCompilation);
 
         var candidateFullMetadataName = candidate.ContainingNamespace?.IsGlobalNamespace != false
             ? candidate.MetadataName
