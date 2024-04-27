@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 
@@ -17,12 +18,12 @@ internal interface IDiagnosticSourceManager
     /// <summary>
     /// Returns the names of document level <see cref="IDiagnosticSourceProvider"/>s.
     /// </summary>
-    ImmutableArray<string> GetDocumentSourceProviderNames();
+    ImmutableArray<string> GetDocumentSourceProviderNames(ClientCapabilities clientCapabilities);
 
     /// <summary>
     /// Returns the names of workspace level <see cref="IDiagnosticSourceProvider"/>s.
     /// </summary>
-    ImmutableArray<string> GetWorkspaceSourceProviderNames();
+    ImmutableArray<string> GetWorkspaceSourceProviderNames(ClientCapabilities clientCapabilities);
 
     /// <summary>
     /// Creates document diagnostic sources for the given <paramref name="providerName"/>.

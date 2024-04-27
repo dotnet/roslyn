@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -20,6 +21,8 @@ internal sealed class WorkspaceEditAndContinueDiagnosticSourceProvider() : IDiag
 {
     public bool IsDocument => false;
     public string Name => PullDiagnosticCategories.EditAndContinue;
+
+    public bool IsEnabled(ClientCapabilities capabilities) => true;
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
