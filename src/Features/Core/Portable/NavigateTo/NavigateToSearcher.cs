@@ -438,7 +438,7 @@ internal sealed class NavigateToSearcher
             parallel: true,
             orderedProjects,
             seenItems,
-            async (service, projects, onItemsFound, onProjectCompleted) =>
+            async (service, projects, onResultsFound, onProjectCompleted) =>
             {
                 // if the language doesn't support searching cached docs, immediately transition the project to the
                 // completed state.
@@ -451,7 +451,7 @@ internal sealed class NavigateToSearcher
                 {
                     await advancedService.SearchCachedDocumentsAsync(
                         _solution, projects, GetPriorityDocuments(projects), _searchPattern, _kinds, _activeDocument,
-                        onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                        onResultsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
                 }
             },
             cancellationToken);
@@ -495,7 +495,7 @@ internal sealed class NavigateToSearcher
             parallel: false,
             filteredProjects,
             seenItems,
-            async (service, projects, onItemFound, onProjectCompleted) =>
+            async (service, projects, onResultsFound, onProjectCompleted) =>
             {
                 // if the language doesn't support searching generated docs, immediately transition the project to the
                 // completed state.
@@ -507,7 +507,7 @@ internal sealed class NavigateToSearcher
                 else
                 {
                     await advancedService.SearchGeneratedDocumentsAsync(
-                        _solution, projects, _searchPattern, _kinds, _activeDocument, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                        _solution, projects, _searchPattern, _kinds, _activeDocument, onResultsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
                 }
             },
             cancellationToken);
@@ -527,10 +527,10 @@ internal sealed class NavigateToSearcher
         public bool CanFilter
             => false;
 
-        public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultFound, CancellationToken cancellationToken)
+        public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             foreach (var _ in projects)
                 await onProjectCompleted().ConfigureAwait(false);
