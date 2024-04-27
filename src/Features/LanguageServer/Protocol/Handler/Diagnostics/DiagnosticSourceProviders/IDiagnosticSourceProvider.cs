@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -22,6 +23,8 @@ internal interface IDiagnosticSourceProvider
     /// Provider's name. Each should have a unique name within <see cref="IsDocument"/> scope.
     /// </summary>
     string Name { get; }
+
+    bool IsEnabled(ClientCapabilities clientCapabilities);
 
     /// <summary>
     /// Creates the diagnostic sources.

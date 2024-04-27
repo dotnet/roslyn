@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 
@@ -19,6 +20,8 @@ internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
 {
     public string Name => "HotReloadDiagnostics";
     public bool IsDocument => isDocument;
+
+    public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {

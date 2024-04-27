@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -27,6 +28,8 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
 {
     public bool IsDocument => false;
     public string Name => PullDiagnosticCategories.WorkspaceDocumentsAndProject;
+
+    public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 
     /// <summary>
     /// There are three potential sources for reporting workspace diagnostics:

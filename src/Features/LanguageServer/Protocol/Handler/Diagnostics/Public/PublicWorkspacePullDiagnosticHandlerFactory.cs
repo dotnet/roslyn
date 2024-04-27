@@ -24,7 +24,6 @@ internal sealed class PublicWorkspacePullDiagnosticHandlerFactory(
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var workspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-        return new PublicWorkspacePullDiagnosticsHandler(workspaceManager, registrationService, clientLanguageServerManager, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions);
+        return new PublicWorkspacePullDiagnosticsHandler(workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions);
     }
 }
