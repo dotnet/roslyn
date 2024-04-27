@@ -115,6 +115,10 @@ internal abstract partial class AbstractNavigateToSearchService
         if (!ShouldSearchCachedDocuments(out _, out _))
             return;
 
+        // If the user created a dotted pattern then we'll grab the last part of the name
+        var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
+        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
         // Process the documents by project group.  That way, when each project is done, we can
         // report that back to the host for progress.
         var groups = documentKeys.GroupBy(d => d.Project).ToImmutableArray();
@@ -125,10 +129,6 @@ internal abstract partial class AbstractNavigateToSearchService
         // that don't).
         using var _2 = GetPooledHashSet(groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)), out var highPriorityGroups);
         using var _3 = GetPooledHashSet(groups.Where(g => !highPriorityGroups.Contains(g)), out var lowPriorityGroups);
-
-        // If the user created a dotted pattern then we'll grab the last part of the name
-        var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
-        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
