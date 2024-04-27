@@ -101,11 +101,11 @@ internal partial class FindReferencesSearchEngine
             // project.
             await _progressTracker.AddItemsAsync(projectsToSearch.Length, cancellationToken).ConfigureAwait(false);
 
+            // Pull off and start searching each project as soon as we can once we've done the inheritance cascade into it.
             await ParallelForEachAsync(
                 GetProjectsAndSymbolsToSearchAsync(symbolSet, projectsToSearch, cancellationToken),
                 cancellationToken,
-                async (tuple, cancellationToken) =>
-                    await ProcessProjectAsync(tuple.project, tuple.allSymbols, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+                ProcessProjectAsync).ConfigureAwait(false);
         }
         finally
         {
@@ -219,8 +219,10 @@ internal partial class FindReferencesSearchEngine
         return DependentProjectsFinder.GetDependentProjectsAsync(_solution, symbols, projects, cancellationToken);
     }
 
-    private async Task ProcessProjectAsync(Project project, ImmutableArray<ISymbol> allSymbols, CancellationToken cancellationToken)
+    private async ValueTask ProcessProjectAsync((Project project, ImmutableArray<ISymbol> allSymbols) tuple, CancellationToken cancellationToken)
     {
+        var (project, allSymbols) = tuple;
+
         using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
         using var _2 = PooledDictionary<Document, MetadataUnifyingSymbolHashSet>.GetInstance(out var documentToSymbols);
         try
