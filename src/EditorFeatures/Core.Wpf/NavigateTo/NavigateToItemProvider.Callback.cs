@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text.PatternMatching;
@@ -18,11 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         private class NavigateToItemProviderCallback : INavigateToSearchCallback
         {
+            private readonly Solution _solution;
             private readonly INavigateToItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
 
-            public NavigateToItemProviderCallback(INavigateToItemDisplayFactory displayFactory, INavigateToCallback callback)
+            public NavigateToItemProviderCallback(Solution solution, INavigateToItemDisplayFactory displayFactory, INavigateToCallback callback)
             {
+                _solution = solution;
                 _displayFactory = displayFactory;
                 _callback = callback;
             }
@@ -39,9 +43,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
             }
 
-            public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+            public Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
             {
-                ReportMatchResult(project, result);
+                foreach (var result in results)
+                {
+                    var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
+
+                    var patternMatch = new PatternMatch(
+                        GetPatternMatchKind(result.MatchKind),
+                        punctuationStripped: false,
+                        result.IsCaseSensitive,
+                        matchedSpans);
+
+                    var project = _solution.GetRequiredProject(result.NavigableItem.Document.Project.Id);
+                    var navigateToItem = new NavigateToItem(
+                        result.Name,
+                        result.Kind,
+                        GetNavigateToLanguage(project.Language),
+                        result.SecondarySort,
+                        result,
+                        patternMatch,
+                        _displayFactory);
+
+                    try
+                    {
+                        _callback.AddItem(navigateToItem);
+                    }
+                    catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+                    {
+                        // Mitigation for race condition in platform https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1534364
+                        //
+                        // Catch this so that don't tear down OOP, but still report the exception so that we ensure this issue
+                        // gets attention and is fixed.
+                    }
+                }
+
                 return Task.CompletedTask;
             }
 
@@ -52,38 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             public void ReportIncomplete()
             {
-            }
-
-            private void ReportMatchResult(Project project, INavigateToSearchResult result)
-            {
-                var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
-
-                var patternMatch = new PatternMatch(
-                    GetPatternMatchKind(result.MatchKind),
-                    punctuationStripped: false,
-                    result.IsCaseSensitive,
-                    matchedSpans);
-
-                var navigateToItem = new NavigateToItem(
-                    result.Name,
-                    result.Kind,
-                    GetNavigateToLanguage(project.Language),
-                    result.SecondarySort,
-                    result,
-                    patternMatch,
-                    _displayFactory);
-
-                try
-                {
-                    _callback.AddItem(navigateToItem);
-                }
-                catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-                {
-                    // Mitigation for race condition in platform https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1534364
-                    //
-                    // Catch this so that don't tear down OOP, but still report the exception so that we ensure this issue
-                    // gets attention and is fixed.
-                }
             }
 
             private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)

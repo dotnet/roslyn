@@ -70,20 +70,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             BufferedProgress<SymbolInformation[]> progress)
             : INavigateToSearchCallback
         {
-            public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+            public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
             {
-                var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(context.Solution);
 
-                var location = await ProtocolConversions.TextSpanToLocationAsync(
-                    document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, context, cancellationToken).ConfigureAwait(false);
-                if (location == null)
-                    return;
+                foreach (var result in results)
+                {
+                    var solution = context.Solution;
+                    var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                var service = project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
-                var symbolInfo = service.Create(
-                    result.Name, result.AdditionalInformation, ProtocolConversions.NavigateToKindToSymbolKind(result.Kind), location, result.NavigableItem.Glyph);
+                    var location = await ProtocolConversions.TextSpanToLocationAsync(
+                        document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, context, cancellationToken).ConfigureAwait(false);
+                    if (location == null)
+                        return;
 
-                progress.Report(symbolInfo);
+                    var service = solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
+                    var symbolInfo = service.Create(
+                        result.Name, result.AdditionalInformation, ProtocolConversions.NavigateToKindToSymbolKind(result.Kind), location, result.NavigableItem.Glyph);
+
+                    progress.Report(symbolInfo);
+                }
             }
 
             public void Done(bool isFullyLoaded)

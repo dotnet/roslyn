@@ -89,10 +89,11 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             // Create a nav-to callback that will take results and translate them to aiosp results for the
             // callback passed to us.
 
+            var solution = provider._workspace.CurrentSolution;
             var searcher = NavigateToSearcher.Create(
-                provider._workspace.CurrentSolution,
+                solution,
                 provider._asyncListener,
-                new RoslynNavigateToSearchCallback(provider, searchCallback),
+                new RoslynNavigateToSearchCallback(solution, provider, searchCallback),
                 searchValue,
                 kinds,
                 provider._threadingContext.DisposalToken);
