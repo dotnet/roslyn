@@ -120,7 +120,7 @@ internal abstract partial class AbstractNavigateToSearchService
         foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
         {
             var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-            var linkedIndex = TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var linkedIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).ConfigureAwait(false);
             linkedIndices.Add((linkedIndex, linkedDocumentId.ProjectId));
         }
 
