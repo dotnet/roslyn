@@ -353,20 +353,17 @@ internal partial class FindReferencesSearchEngine
                 // happened.  So there must be a group for this symbol in our map.
                 var group = _symbolToGroup[symbol];
 
-                // scratch array to place results in. Populated/inspected/cleared in inner loop.
-                using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var foundReferenceLocations);
-
                 // Note: nearly every finder will no-op when passed a in a symbol it's not applicable to.  So it's
                 // simple to just iterate over all of them, knowing that will quickly skip all the irrelevant ones,
                 // and only do interesting work on the single relevant one.
                 foreach (var finder in _finders)
                 {
                     await finder.FindReferencesInDocumentAsync(
-                        symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, foundReferenceLocations, _options, cancellationToken).ConfigureAwait(false);
-                    foreach (var (_, location) in foundReferenceLocations)
-                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
-
-                    foundReferenceLocations.Clear();
+                        symbol, state,
+                        (loc, tuple) => tuple.onReferenceFound((tuple.group, tuple.symbol, loc.Location)),
+                        (group, symbol, onReferenceFound),
+                        _options,
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }
