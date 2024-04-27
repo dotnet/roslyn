@@ -115,8 +115,8 @@ internal abstract partial class AbstractNavigateToSearchService
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
-        using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
+        using var _ = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
+        var lowPriProjects = projects.Where(p => !highPriProjects.Contains(p));
 
         Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
 
@@ -131,8 +131,8 @@ internal abstract partial class AbstractNavigateToSearchService
             Action<RoslynNavigateToItem> onItemFound,
             CancellationToken cancellationToken)
         {
-            using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
-            using var _2 = GetPooledHashSet(project.Documents.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
+            using var _ = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
+            var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d));
 
             await ParallelForEachAsync(
                 highPriDocs.Concat(lowPriDocs),
