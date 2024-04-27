@@ -69,13 +69,15 @@ internal class StreamingProgressCollector(
         }
     }
 
-    public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
+    public ValueTask OnReferencesFoundAsync(
+        ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
         lock (_gate)
         {
-            _symbolToLocations[definition].Add(location);
+            foreach (var (_, definition, location) in references)
+                _symbolToLocations[definition].Add(location);
         }
 
-        return underlyingProgress.OnReferenceFoundAsync(group, definition, location, cancellationToken);
+        return underlyingProgress.OnReferencesFoundAsync(references, cancellationToken);
     }
 }

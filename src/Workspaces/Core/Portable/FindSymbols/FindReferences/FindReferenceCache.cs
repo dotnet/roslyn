@@ -96,10 +96,8 @@ internal sealed class FindReferenceCache
         return null;
     }
 
-    public async ValueTask<ImmutableArray<SyntaxToken>> FindMatchingIdentifierTokensAsync(
-        Document document,
-        string identifier,
-        CancellationToken cancellationToken)
+    public ImmutableArray<SyntaxToken> FindMatchingIdentifierTokens(
+        string identifier, CancellationToken cancellationToken)
     {
         if (identifier == "")
         {
