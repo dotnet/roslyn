@@ -39,7 +39,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
     private static async ValueTask SearchProjectInCurrentProcessAsync(
         Project project, ImmutableArray<Document> priorityDocuments,
-        Document? searchDocument, string pattern, IImmutableSet<string> kinds,
+        string pattern, IImmutableSet<string> kinds,
         Action<RoslynNavigateToItem> onItemFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
@@ -71,13 +71,6 @@ internal abstract partial class AbstractNavigateToSearchService
 
         IEnumerable<Document> GetOrderedDocuments()
         {
-            // If we're filtering down to a specific document, then only search that.
-            if (searchDocument != null)
-            {
-                yield return searchDocument;
-                yield break;
-            }
-
             using var _1 = GetPooledHashSet(priorityDocuments, out var highPriDocs);
 
             // First the high pri docs.
