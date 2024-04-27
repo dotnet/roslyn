@@ -101,50 +101,6 @@ internal abstract partial class AbstractNavigateToSearchService
         }
     }
 
-    //private static async Task ProcessDocumentsAsync(
-    //    Document? searchDocument,
-    //    string patternName,
-    //    string? patternContainer,
-    //    DeclaredSymbolInfoKindSet kinds,
-    //    Action<RoslynNavigateToItem> onItemFound,
-    //    HashSet<Document> documents,
-    //    CancellationToken cancellationToken)
-    //{
-    //    if (cancellationToken.IsCancellationRequested)
-    //        return;
-
-    //    using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-    //    foreach (var document in documents)
-    //    {
-    //        if (searchDocument != null && searchDocument != document)
-    //            continue;
-
-    //        if (cancellationToken.IsCancellationRequested)
-    //            return;
-
-    //        tasks.Add();
-    //    }
-
-    //    await Task.WhenAll(tasks).ConfigureAwait(false);
-    //}
-
-    //async Task SearchDocumentsAsync(
-    //    Action<RoslynNavigateToItem> onItemFound)
-    //{
-    //    // If the user created a dotted pattern then we'll grab the last part of the name
-    //    var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
-
-    //    var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-    //    await Parallel.ForEachAsync(
-    //        orderedDocuments,
-    //        cancellationToken,
-    //        (document, cancellationToken) =>
-    //            ProcessDocumentAsync(
-    //                document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
-    //}
-
     private static async ValueTask ProcessDocumentAsync(
         Document document,
         string patternName,
@@ -157,9 +113,18 @@ internal abstract partial class AbstractNavigateToSearchService
             return;
 
         var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        using var _ = ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>.GetInstance(out var linkedIndices);
+
+        foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+        {
+            var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
+            var linkedIndex = TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            linkedIndices.Add((linkedIndex, linkedDocumentId.ProjectId));
+        }
 
         ProcessIndex(
-            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds, onItemFound, index, cancellationToken);
+            DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds,
+            index, linkedIndices, onItemFound, cancellationToken);
     }
 
     private static void ProcessIndex(
@@ -168,8 +133,9 @@ internal abstract partial class AbstractNavigateToSearchService
         string patternName,
         string? patternContainer,
         DeclaredSymbolInfoKindSet kinds,
-        Action<RoslynNavigateToItem> onItemFound,
         TopLevelSyntaxTreeIndex index,
+        ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices,
+        Action<RoslynNavigateToItem> onItemFound,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -195,7 +161,8 @@ internal abstract partial class AbstractNavigateToSearchService
                 documentKey, document,
                 declaredSymbolInfo,
                 nameMatcher, containerMatcher,
-                kinds, onItemFound, cancellationToken);
+                kinds, linkedIndices,
+                onItemFound, cancellationToken);
         }
     }
 
@@ -206,6 +173,7 @@ internal abstract partial class AbstractNavigateToSearchService
         PatternMatcher nameMatcher,
         PatternMatcher? containerMatcher,
         DeclaredSymbolInfoKindSet kinds,
+        ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices,
         Action<RoslynNavigateToItem> onItemFound,
         CancellationToken cancellationToken)
     {
@@ -230,7 +198,8 @@ internal abstract partial class AbstractNavigateToSearchService
             // the relationship between this document and the other documents linked to it.  In the
             // case where the solution isn't fully loaded and we're just reading in cached data, we
             // don't know what other files we're linked to and can't merge results in this fashion.
-            var additionalMatchingProjects = GetAdditionalProjectsWithMatch(document, declaredSymbolInfo, cancellationToken);
+            var additionalMatchingProjects = GetAdditionalProjectsWithMatch(
+                document, declaredSymbolInfo, linkedIndices);
 
             var result = ConvertResult(
                 documentKey, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
@@ -276,27 +245,24 @@ internal abstract partial class AbstractNavigateToSearchService
     }
 
     private static ImmutableArray<ProjectId> GetAdditionalProjectsWithMatch(
-        Document? document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
+        Document? document,
+        DeclaredSymbolInfo declaredSymbolInfo,
+        ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>? linkedIndices)
     {
         if (document == null)
             return [];
 
-        var solution = document.Project.Solution;
-        var linkedDocumentIds = document.GetLinkedDocumentIds();
-        if (linkedDocumentIds.Length == 0)
+        if (linkedIndices is null || linkedIndices.Count == 0)
             return [];
 
         using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
 
-        foreach (var linkedDocumentId in linkedDocumentIds)
+        foreach (var (index, projectId) in linkedIndices)
         {
-            var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
-            var index = TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-
             // See if the index for the other file also contains this same info.  If so, merge the results so the
             // user only sees them as a single hit in the UI.
             if (index.DeclaredSymbolInfoSet.Contains(declaredSymbolInfo))
-                result.Add(linkedDocument.Project.Id);
+                result.Add(projectId);
         }
 
         result.RemoveDuplicates();
