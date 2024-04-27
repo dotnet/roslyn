@@ -17,229 +17,197 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class CSharpUseInterpolatedStringTests
 {
     [Fact]
-    public Task KeepInterpolatedStrings() => new VerifyCS.Test
+    public async Task KeepInterpolatedStrings()
     {
-        TestCode = """
-        class Program
-        {
-            private string MyString => $"My{42}String";
-        }
-        """,
-    }.RunAsync();
+        const string CodeWithInterpolatedString = """
+            class Program
+            {
+                private string MyString => $"My{42}String";
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(CodeWithInterpolatedString, CodeWithInterpolatedString);
+    }
 
     [Fact]
-    public Task KeepInterpolatedVerbatimStrings() => new VerifyCS.Test
+    public async Task KeepInterpolatedVerbatimStrings()
     {
-        TestCode = """
-        class Program
-        {
-            private string MyString1 => @$"My{42}String";
-            private string MyString2 => $@"My{42}String";
-        }
-        """,
-    }.RunAsync();
+        const string CodeWithInterpolatedVerbatimStrings = """
+            class Program
+            {
+                private string MyString1 => @$"My{42}String";
+                private string MyString2 => $@"My{42}String";
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(CodeWithInterpolatedVerbatimStrings, CodeWithInterpolatedVerbatimStrings);
+    }
 
     [Fact]
-    public Task KeepInterpolatedSingleLineRawStrings() => new VerifyCS.Test
+    public async Task KeepInterpolatedSingleLineRawStrings()
     {
-        TestCode = """"
-        class Program
+        await new VerifyCS.Test
         {
-            private string MyString1 => $"""My{42}String""";
-            private string MyString2 => $"""My{42}String""";
-        }
-        """",
-        LanguageVersion = LanguageVersion.CSharp11,
-    }.RunAsync();
+            TestCode = """"
+                class Program
+                {
+                    private string MyString1 => $"""My{42}String""";
+                    private string MyString2 => $"""My{42}String""";
+                }
+                """",
+            LanguageVersion = LanguageVersion.CSharp11,
+        }.RunAsync();
+    }
 
     [Fact]
-    public Task KeepInterpolatedMultiLineRawStrings() => new VerifyCS.Test
+    public async Task KeepInterpolatedMultiLineRawStrings()
     {
-        TestCode = """"
-        class Program
+        await new VerifyCS.Test
         {
-            private string MyString1 => $"""
-                My{42}String
-                """;
-            private string MyString2 => $"""
-                My{42}String
-                """;
-        }
-        """",
-        LanguageVersion = LanguageVersion.CSharp11,
-    }.RunAsync();
+            TestCode = """"
+                class Program
+                {
+                    private string MyString1 => $"""
+                        My{42}String
+                        """;
+                    private string MyString2 => $"""
+                        My{42}String
+                        """;
+                }
+                """",
+            LanguageVersion = LanguageVersion.CSharp11,
+        }.RunAsync();
+    }
 
     [Fact]
-    public Task FixRegularStrings() => new VerifyCS.Test
+    public async Task FixRegularStrings()
     {
-        TestCode = """
-        class Program
+        await new VerifyCS.Test
         {
-            private string MyString1 => "MyString";
-            private string MyString2 => "My{String";
-            private string MyString3 => "My}String";
-            private string MyString4 => "My{S}tring";
-            private string MyString5 => "My}S{tring";
-        }
-        """,
-        FixedCode = """
-        class Program
-        {
-            private string MyString1 => $"MyString";
-            private string MyString2 => $"My{{String";
-            private string MyString3 => $"My}}String";
-            private string MyString4 => $"My{{S}}tring";
-            private string MyString5 => $"My}}S{{tring";
-        }
-        """,
-        ExpectedDiagnostics =
-        {
-            // /0/Test0.cs(3,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(3, 33, 3, 43),
-            // /0/Test0.cs(4,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(4, 33, 4, 44),
-            // /0/Test0.cs(5,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(5, 33, 5, 44),
-            // /0/Test0.cs(6,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(6, 33, 6, 45),
-            // /0/Test0.cs(7,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(7, 33, 7, 45),
-        }
-    }.RunAsync();
+            TestCode = """
+                class Program
+                {
+                    private string MyString1 => [|"MyString"|];
+                    private string MyString2 => [|"My{String"|];
+                    private string MyString3 => [|"My}String"|];
+                    private string MyString4 => [|"My{S}tring"|];
+                    private string MyString5 => [|"My}S{tring"|];
+                }
+                """,
+            FixedCode = """
+                class Program
+                {
+                    private string MyString1 => $"MyString";
+                    private string MyString2 => $"My{{String";
+                    private string MyString3 => $"My}}String";
+                    private string MyString4 => $"My{{S}}tring";
+                    private string MyString5 => $"My}}S{{tring";
+                }
+                """,
+        }.RunAsync();
+    }
 
     [Fact]
-    public Task FixVerbatimStrings() => new VerifyCS.Test
+    public async Task FixVerbatimStrings()
     {
-        TestCode = """
-        class Program
+        await new VerifyCS.Test
         {
-            private string MyString1 => @"MyString";
-            private string MyString2 => @"My{String";
-            private string MyString3 => @"My}String";
-            private string MyString4 => @"My{S}tring";
-            private string MyString5 => @"My}S{tring";
-        }
-        """,
-        FixedCode = """
-        class Program
-        {
-            private string MyString1 => $@"MyString";
-            private string MyString2 => $@"My{{String";
-            private string MyString3 => $@"My}}String";
-            private string MyString4 => $@"My{{S}}tring";
-            private string MyString5 => $@"My}}S{{tring";
-        }
-        """,
-        ExpectedDiagnostics =
-        {
-            // /0/Test0.cs(3,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(3, 33, 3, 44),
-            // /0/Test0.cs(4,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(4, 33, 4, 45),
-            // /0/Test0.cs(5,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(5, 33, 5, 45),
-            // /0/Test0.cs(6,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(6, 33, 6, 46),
-            // /0/Test0.cs(7,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(7, 33, 7, 46),
-        }
-    }.RunAsync();
+            TestCode = """
+                class Program
+                {
+                    private string MyString1 => [|@"MyString"|];
+                    private string MyString2 => [|@"My{String"|];
+                    private string MyString3 => [|@"My}String"|];
+                    private string MyString4 => [|@"My{S}tring"|];
+                    private string MyString5 => [|@"My}S{tring"|];
+                }
+                """,
+            FixedCode = """
+                class Program
+                {
+                    private string MyString1 => $@"MyString";
+                    private string MyString2 => $@"My{{String";
+                    private string MyString3 => $@"My}}String";
+                    private string MyString4 => $@"My{{S}}tring";
+                    private string MyString5 => $@"My}}S{{tring";
+                }
+                """,
+        }.RunAsync();
+    }
 
     [Fact]
-    public Task FixSingleLineRawStrings() => new VerifyCS.Test
+    public async Task FixSingleLineRawStrings()
     {
-        TestCode = """"
-        class Program
+        await new VerifyCS.Test
         {
-            private string MyString1 => """MyString""";
-            private string MyString2 => """My{String""";
-            private string MyString3 => """My}String""";
-            private string MyString4 => """My{S}tring""";
-            private string MyString5 => """My}S{tring""";
-        }
-        """",
-        FixedCode = """"
-        class Program
-        {
-            private string MyString1 => $"""MyString""";
-            private string MyString2 => $"""My{{String""";
-            private string MyString3 => $"""My}}String""";
-            private string MyString4 => $"""My{{S}}tring""";
-            private string MyString5 => $"""My}}S{{tring""";
-        }
-        """",
-        LanguageVersion = LanguageVersion.CSharp11,
-        ExpectedDiagnostics =
-        {
-            // /0/Test0.cs(3,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(3, 33, 3, 47),
-            // /0/Test0.cs(4,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(4, 33, 4, 48),
-            // /0/Test0.cs(5,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(5, 33, 5, 48),
-            // /0/Test0.cs(6,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(6, 33, 6, 49),
-            // /0/Test0.cs(7,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(7, 33, 7, 49),
-        }
-    }.RunAsync();
+            TestCode = """"
+                class Program
+                {
+                    private string MyString1 => [|"""MyString"""|];
+                    private string MyString2 => [|"""My{String"""|];
+                    private string MyString3 => [|"""My}String"""|];
+                    private string MyString4 => [|"""My{S}tring"""|];
+                    private string MyString5 => [|"""My}S{tring"""|];
+                }
+                """",
+            FixedCode = """"
+                class Program
+                {
+                    private string MyString1 => $"""MyString""";
+                    private string MyString2 => $"""My{{String""";
+                    private string MyString3 => $"""My}}String""";
+                    private string MyString4 => $"""My{{S}}tring""";
+                    private string MyString5 => $"""My}}S{{tring""";
+                }
+                """",
+            LanguageVersion = LanguageVersion.CSharp11,
+        }.RunAsync();
+    }
 
     [Fact]
-    public Task FixMultiLineRawStrings() => new VerifyCS.Test
+    public async Task FixMultiLineRawStrings()
     {
-        TestCode = """"
-        class Program
+        await new VerifyCS.Test
         {
-            private string MyString1 => """
-                MyRawString
-                """;
-            private string MyString2 => """
-                My{String
-                """;
-            private string MyString3 => """
-                My}String
-                """;
-            private string MyString4 => """
-                My{S}tring
-                """;
-            private string MyString5 => """
-                My}S{tring
-                """;
-        }
-        """",
-        FixedCode = """"
-        class Program
-        {
-            private string MyString1 => $"""
-                MyRawString
-                """;
-            private string MyString2 => $"""
-                My{{String
-                """;
-            private string MyString3 => $"""
-                My}}String
-                """;
-            private string MyString4 => $"""
-                My{{S}}tring
-                """;
-            private string MyString5 => $"""
-                My}}S{{tring
-                """;
-        }
-        """",
-        LanguageVersion = LanguageVersion.CSharp11,
-        ExpectedDiagnostics =
-        {
-            // /0/Test0.cs(3,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(3, 33, 5, 12),
-            // /0/Test0.cs(6,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(6, 33, 8, 12),
-            // /0/Test0.cs(9,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(9, 33, 11, 12),
-            // /0/Test0.cs(12,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(12, 33, 14, 12),
-            // /0/Test0.cs(15,33): hidden IDE0330: String can be converted to interpolated string
-            VerifyCS.Diagnostic().WithSpan(15, 33, 17, 12),
-        }
-    }.RunAsync();
+            TestCode = """"
+                class Program
+                {
+                    private string MyString1 => [|"""
+                        MyRawString
+                        """|];
+                    private string MyString2 => [|"""
+                        My{String
+                        """|];
+                    private string MyString3 => [|"""
+                        My}String
+                        """|];
+                    private string MyString4 => [|"""
+                        My{S}tring
+                        """|];
+                    private string MyString5 => [|"""
+                        My}S{tring
+                        """|];
+                }
+                """",
+            FixedCode = """"
+                class Program
+                {
+                    private string MyString1 => $"""
+                        MyRawString
+                        """;
+                    private string MyString2 => $"""
+                        My{{String
+                        """;
+                    private string MyString3 => $"""
+                        My}}String
+                        """;
+                    private string MyString4 => $"""
+                        My{{S}}tring
+                        """;
+                    private string MyString5 => $"""
+                        My}}S{{tring
+                        """;
+                }
+                """",
+            LanguageVersion = LanguageVersion.CSharp11,
+        }.RunAsync();
+    }
 }

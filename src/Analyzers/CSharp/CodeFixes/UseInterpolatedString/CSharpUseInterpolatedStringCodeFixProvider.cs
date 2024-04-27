@@ -87,13 +87,16 @@ internal sealed class CSharpUseInterpolatedStringCodeFixProvider() : AbstractUse
         _ => SyntaxKind.InterpolatedStringEndToken,
     };
 
-    private static int GetStartIndex(SyntaxKind kind, bool isVerbatimString) => (isVerbatimString ? 1 : 0)
-        + kind switch
+    private static int GetStartIndex(SyntaxKind kind, bool isVerbatimString)
+    {
+        var startIndexNotConsideringVerbatimStringIdentifier = kind switch
         {
             SyntaxKind.SingleLineRawStringLiteralToken => 3,
             SyntaxKind.MultiLineRawStringLiteralToken => 3,
             _ => 1,
         };
+        return startIndexNotConsideringVerbatimStringIdentifier + (isVerbatimString ? 1 : 0);
+    }
 
     private static int GetEndIndex(SyntaxKind kind) => kind switch
     {
