@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 #if NET
 using Parallel = System.Threading.Tasks.Parallel;
 #else
-using Parallel = Roslyn.Utilities.Parallel;
+using Parallel = Roslyn.Utilities.ParallelUtilities;
 #endif
 
 using CachedIndexMap = ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<TopLevelSyntaxTreeIndex?>>;

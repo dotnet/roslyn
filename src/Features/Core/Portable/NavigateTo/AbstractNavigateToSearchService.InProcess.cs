@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 #if NET
 using Parallel = System.Threading.Tasks.Parallel;
 #else
-using Parallel = Roslyn.Utilities.Parallel;
+using Parallel = Roslyn.Utilities.ParallelUtilities;
 #endif
 
 internal abstract partial class AbstractNavigateToSearchService
