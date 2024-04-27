@@ -28,10 +28,6 @@ internal static partial class ValueTracker
 
         public ValueTask OnDefinitionFoundAsync(SymbolGroup symbolGroup, CancellationToken _) => new();
 
-        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken _) => new();
-
-        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken _) => new();
-
         public async ValueTask OnReferenceFoundAsync(SymbolGroup _, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
         {
             if (!location.Location.IsInSource)

@@ -58,14 +58,6 @@ internal sealed class CodeLensFindReferencesProgress(
     {
     }
 
-    public void OnFindInDocumentStarted(Document document)
-    {
-    }
-
-    public void OnFindInDocumentCompleted(Document document)
-    {
-    }
-
     private static bool FilterDefinition(ISymbol definition)
     {
         return definition.IsImplicitlyDeclared ||

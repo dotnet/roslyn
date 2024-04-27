@@ -260,33 +260,26 @@ internal partial class FindReferencesSearchEngine
         Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
         CancellationToken cancellationToken)
     {
-        await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
+        // We're doing to do all of our processing of this document at once.  This will necessitate all the
+        // appropriate finders checking this document for hits.  We know that in the initial pass to determine
+        // documents, this document was already considered a strong match (e.g. we know it contains the name of
+        // the symbol being searched for).  As such, we're almost certainly going to have to do semantic checks
+        // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
+        // just grab those once here and hold onto them for the lifetime of this call.
+        var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
-        try
+        // scratch array to place results in. Populated/inspected/cleared in inner loop.
+        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var foundReferenceLocations);
+
+        foreach (var symbol in symbols)
         {
-            // We're doing to do all of our processing of this document at once.  This will necessitate all the
-            // appropriate finders checking this document for hits.  We know that in the initial pass to determine
-            // documents, this document was already considered a strong match (e.g. we know it contains the name of
-            // the symbol being searched for).  As such, we're almost certainly going to have to do semantic checks
-            // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
-            // just grab those once here and hold onto them for the lifetime of this call.
-            var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
+            var globalAliases = TryGet(symbolToGlobalAliases, symbol);
+            var state = new FindReferencesDocumentState(cache, globalAliases);
 
-            // scratch array to place results in. Populated/inspected/cleared in inner loop.
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var foundReferenceLocations);
-
-            foreach (var symbol in symbols)
-            {
-                var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                var state = new FindReferencesDocumentState(cache, globalAliases);
-
-                await ProcessDocumentAsync(symbol, state, foundReferenceLocations).ConfigureAwait(false);
-            }
+            await ProcessDocumentAsync(symbol, state, foundReferenceLocations).ConfigureAwait(false);
         }
-        finally
-        {
-            await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
-        }
+
+        return;
 
         async Task ProcessDocumentAsync(
             ISymbol symbol, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> foundReferenceLocations)

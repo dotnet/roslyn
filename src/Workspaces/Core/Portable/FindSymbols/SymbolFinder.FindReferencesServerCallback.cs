@@ -40,18 +40,6 @@ public static partial class SymbolFinder
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             => progress.OnCompletedAsync(cancellationToken);
 
-        public async ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            await progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            await progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
         public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup dehydrated, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(dehydrated.Symbols.Count == 0);

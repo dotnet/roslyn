@@ -37,18 +37,6 @@ internal class StreamingFindReferencesProgressAdapter : IStreamingFindReferences
         return default;
     }
 
-    public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken)
-    {
-        _progress.OnFindInDocumentCompleted(document);
-        return default;
-    }
-
-    public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)
-    {
-        _progress.OnFindInDocumentStarted(document);
-        return default;
-    }
-
     public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
     {
         try

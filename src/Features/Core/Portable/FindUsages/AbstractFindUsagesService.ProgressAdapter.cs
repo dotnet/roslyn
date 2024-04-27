@@ -73,8 +73,6 @@ internal abstract partial class AbstractFindUsagesService
         // any of these.
         public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
-        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => default;
-        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => default;
 
         // More complicated forwarding functions.  These need to map from the symbols
         // used by the FAR engine to the INavigableItems used by the streaming FAR 

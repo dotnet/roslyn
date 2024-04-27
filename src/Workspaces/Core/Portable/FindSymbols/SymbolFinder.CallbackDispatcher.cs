@@ -43,12 +43,6 @@ public static partial class SymbolFinder
         public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup, CancellationToken cancellationToken)
             => GetFindReferencesCallback(callbackId).OnDefinitionFoundAsync(symbolGroup, cancellationToken);
 
-        public ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
-            => GetFindReferencesCallback(callbackId).OnFindInDocumentCompletedAsync(documentId, cancellationToken);
-
-        public ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
-            => GetFindReferencesCallback(callbackId).OnFindInDocumentStartedAsync(documentId, cancellationToken);
-
         public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference, CancellationToken cancellationToken)
             => GetFindReferencesCallback(callbackId).OnReferenceFoundAsync(symbolGroup, definition, reference, cancellationToken);
 

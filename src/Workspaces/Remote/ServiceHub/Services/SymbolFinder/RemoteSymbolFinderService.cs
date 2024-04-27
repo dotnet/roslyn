@@ -218,12 +218,6 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.OnCompletedAsync(_callbackId, cancellationToken), cancellationToken);
 
-            public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentStartedAsync(_callbackId, document.Id, cancellationToken), cancellationToken);
-
-            public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentCompletedAsync(_callbackId, document.Id, cancellationToken), cancellationToken);
-
             public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
             {
                 var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, cancellationToken);
