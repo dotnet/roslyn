@@ -147,12 +147,9 @@ internal partial class SolutionCompilationState
             public readonly bool HasSuccessfullyLoaded;
 
             /// <summary>
-            /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
-            /// This can be used to determine which project an assembly symbol came from after the fact.  This is
-            /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
-            /// compilation (or any of it's assemblies) may produce new assembly symbols.
+            /// Used to determine which project an assembly symbol came from after the fact.
             /// </summary>
-            public readonly UnrootedSymbolSet UnrootedSymbolSet;
+            public readonly RootedSymbolSet RootedSymbolSet;
 
             /// <summary>
             /// The final compilation, with all references and source generators run. This is distinct from <see
@@ -172,7 +169,7 @@ internal partial class SolutionCompilationState
                 Compilation compilationWithoutGeneratedDocuments,
                 bool hasSuccessfullyLoaded,
                 CompilationTrackerGeneratorInfo generatorInfo,
-                UnrootedSymbolSet unrootedSymbolSet)
+                RootedSymbolSet rootedSymbolSet)
                 : base(creationPolicy, generatorInfo)
             {
                 Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
@@ -182,7 +179,7 @@ internal partial class SolutionCompilationState
                 this.CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                 HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                 FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
-                UnrootedSymbolSet = unrootedSymbolSet;
+                RootedSymbolSet = rootedSymbolSet;
 
                 if (this.GeneratorInfo.Documents.IsEmpty)
                 {
@@ -216,7 +213,7 @@ internal partial class SolutionCompilationState
                 // Keep track of information about symbols from this Compilation.  This will help support other APIs
                 // the solution exposes that allows the user to map back from symbols to project information.
 
-                var unrootedSymbolSet = UnrootedSymbolSet.Create(finalCompilationWithGeneratedDocuments);
+                var unrootedSymbolSet = RootedSymbolSet.Create(finalCompilationWithGeneratedDocuments);
                 RecordAssemblySymbols(projectId, finalCompilationWithGeneratedDocuments, metadataReferenceToProjectId);
 
                 return new FinalCompilationTrackerState(
@@ -236,7 +233,7 @@ internal partial class SolutionCompilationState
                         CompilationWithoutGeneratedDocuments,
                         HasSuccessfullyLoaded,
                         GeneratorInfo,
-                        UnrootedSymbolSet);
+                        RootedSymbolSet);
 
             private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
             {

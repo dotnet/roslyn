@@ -63,7 +63,7 @@ internal partial class SolutionCompilationState
                 return false;
             }
 
-            return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(
+            return RootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(
                 symbol, primary, out compilation, out referencedThrough);
         }
 

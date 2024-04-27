@@ -2,17 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis;
 
-using SecondaryReferencedSymbol = (int hashCode, WeakReference<ISymbol> symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo);
+using SecondaryReferencedSymbol = (int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo);
 
 internal partial class SolutionCompilationState
 {
@@ -41,38 +38,19 @@ internal partial class SolutionCompilationState
         MetadataReferenceInfo? ReferencedThrough);
 
     /// <summary>
-    /// A helper type for mapping <see cref="ISymbol"/> back to an originating <see cref="Project"/>.
+    /// A helper type for mapping <see cref="ISymbol"/> back to an originating <see cref="Project"/>/<see
+    /// cref="Compilation"/>.
     /// </summary>
     /// <remarks>
     /// In IDE scenarios we have the need to map from an <see cref="ISymbol"/> to the <see cref="Project"/> that
-    /// contained a <see cref="Compilation"/> that could have produced that symbol.  This is especially needed with
-    /// OOP scenarios where we have to communicate to OOP from VS (And vice versa) what symbol we are referring to.
-    /// To do this, we pass along a project where this symbol could be found, and enough information (a <see
+    /// contained a <see cref="Compilation"/> that could have produced that symbol.  This is especially needed with OOP
+    /// scenarios where we have to communicate to OOP from VS (And vice versa) what symbol we are referring to. To do
+    /// this, we pass along a project where this symbol could be found, and enough information (a <see
     /// cref="SymbolKey"/>) to resolve that symbol back in that that <see cref="Project"/>.
-    /// <para>
-    /// This is challenging however as symbols do not necessarily have back-pointers to <see cref="Compilation"/>s,
-    /// and as such, we can't just see which Project produced the <see cref="Compilation"/> that produced that <see
-    /// cref="ISymbol"/>.  In other words, the <see cref="ISymbol"/> doesn't <c>root</c> the compilation.  Because
-    /// of that we keep track of those symbols per project in a <em>weak</em> fashion.  Then, we can later see if a
-    /// symbol came from a particular project by checking if it is one of those weak symbols.  We use weakly held
-    /// symbols to that a <see cref="ProjectState"/> instance doesn't hold symbols alive.  But, we know if we are
-    /// holding the symbol itself, then the weak-ref will stay alive such that we can do this containment check.
-    /// </para>
     /// </remarks>
-    private readonly struct UnrootedSymbolSet
+    private readonly struct RootedSymbolSet
     {
         public readonly Compilation Compilation;
-
-        /// <summary>
-        /// The <see cref="IAssemblySymbol"/> produced directly by <see cref="Compilation.Assembly"/>.
-        /// </summary>
-        public readonly WeakReference<IAssemblySymbol> PrimaryAssemblySymbol;
-
-        /// <summary>
-        /// The <see cref="IDynamicTypeSymbol"/> produced directly by <see cref="Compilation.DynamicType"/>.  Only
-        /// valid for <see cref="LanguageNames.CSharp"/>.
-        /// </summary>
-        public readonly WeakReference<ITypeSymbol?> PrimaryDynamicSymbol;
 
         /// <summary>
         /// The <see cref="IAssemblySymbol"/>s or <see cref="IModuleSymbol"/>s produced through <see
@@ -82,28 +60,16 @@ internal partial class SolutionCompilationState
         /// </summary>
         public readonly ImmutableArray<SecondaryReferencedSymbol> SecondaryReferencedSymbols;
 
-        private UnrootedSymbolSet(
+        private RootedSymbolSet(
             Compilation compilation,
-            WeakReference<IAssemblySymbol> primaryAssemblySymbol,
-            WeakReference<ITypeSymbol?> primaryDynamicSymbol,
             ImmutableArray<SecondaryReferencedSymbol> secondaryReferencedSymbols)
         {
             Compilation = compilation;
-            PrimaryAssemblySymbol = primaryAssemblySymbol;
-            PrimaryDynamicSymbol = primaryDynamicSymbol;
             SecondaryReferencedSymbols = secondaryReferencedSymbols;
         }
 
-        public static UnrootedSymbolSet Create(Compilation compilation)
+        public static RootedSymbolSet Create(Compilation compilation)
         {
-            var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
-
-            // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
-            // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
-            // underlying compilation is GC'ed.
-            var primaryDynamic = new WeakReference<ITypeSymbol?>(
-                compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
-
             // PERF: Preallocate this array so we don't have to resize it as we're adding assembly symbols.
             using var _ = ArrayBuilder<SecondaryReferencedSymbol>.GetInstance(
                 compilation.ExternalReferences.Length + compilation.DirectiveReferences.Length, out var secondarySymbols);
@@ -114,14 +80,14 @@ internal partial class SolutionCompilationState
                 if (symbol == null)
                     continue;
 
-                secondarySymbols.Add((ReferenceEqualityComparer.GetHashCode(symbol), new WeakReference<ISymbol>(symbol), MetadataReferenceInfo.From(reference)));
+                secondarySymbols.Add((ReferenceEqualityComparer.GetHashCode(symbol), symbol, MetadataReferenceInfo.From(reference)));
             }
 
-            // Sort all the secondary symbols by their hash.  This will allow us to easily binary search for
-            // them afterwards. Note: it is fine for multiple symbols to have the same reference hash.  The
-            // search algorithm will account for that.
+            // Sort all the secondary symbols by their hash.  This will allow us to easily binary search for them
+            // afterwards. Note: it is fine for multiple symbols to have the same reference hash.  The search algorithm
+            // will account for that.
             secondarySymbols.Sort(static (x, y) => x.hashCode.CompareTo(y.hashCode));
-            return new UnrootedSymbolSet(compilation, primaryAssembly, primaryDynamic, secondarySymbols.ToImmutable());
+            return new RootedSymbolSet(compilation, secondarySymbols.ToImmutable());
         }
 
         public bool ContainsAssemblyOrModuleOrDynamic(
@@ -133,8 +99,14 @@ internal partial class SolutionCompilationState
 
             if (primary)
             {
-                if (symbol.Equals(this.PrimaryAssemblySymbol.GetTarget()) ||
-                    symbol.Equals(this.PrimaryDynamicSymbol.GetTarget()))
+                if (this.Compilation.Assembly.Equals(symbol))
+                {
+                    compilation = this.Compilation;
+                    return true;
+                }
+
+                if (this.Compilation.Language == LanguageNames.CSharp &&
+                    this.Compilation.DynamicType.Equals(symbol))
                 {
                     compilation = this.Compilation;
                     return true;
@@ -163,7 +135,7 @@ internal partial class SolutionCompilationState
             while (index < secondarySymbols.Length && secondarySymbols[index].hashCode == symbolHash)
             {
                 var cached = secondarySymbols[index];
-                if (cached.symbol.TryGetTarget(out var otherSymbol) && otherSymbol == symbol)
+                if (cached.symbol == symbol)
                 {
                     referencedThrough = cached.referenceInfo;
                     compilation = this.Compilation;

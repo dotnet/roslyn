@@ -105,12 +105,10 @@ namespace Microsoft.CodeAnalysis
                 [NotNullWhen(true)] out Compilation? compilation,
                 out MetadataReferenceInfo? referencedThrough)
             {
-                Debug.Assert(symbol.Kind is SymbolKind.Assembly or
-                             SymbolKind.NetModule or
-                             SymbolKind.DynamicType);
+                Debug.Assert(symbol.Kind is SymbolKind.Assembly or SymbolKind.NetModule or SymbolKind.DynamicType);
                 var state = this.ReadState();
 
-                var unrootedSymbolSet = (state as FinalCompilationTrackerState)?.UnrootedSymbolSet;
+                var unrootedSymbolSet = (state as FinalCompilationTrackerState)?.RootedSymbolSet;
                 if (unrootedSymbolSet == null)
                 {
                     // this was not a tracker that has handed out a compilation (all compilations handed out must be
