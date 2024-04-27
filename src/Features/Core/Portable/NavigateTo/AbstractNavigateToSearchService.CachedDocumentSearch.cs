@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -14,15 +13,19 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
+
+#if NET
+using Parallel = System.Threading.Tasks.Parallel;
+#else
+using Parallel = Roslyn.Utilities.Parallel;
+#endif
 
 using CachedIndexMap = ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<TopLevelSyntaxTreeIndex?>>;
 
@@ -136,31 +139,24 @@ internal abstract partial class AbstractNavigateToSearchService
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
         await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer, ProcessBothProjectGroupsAsync),
+            FindAllItemsAndWriteToChannelAsync(channel.Writer, ProcessAllProjectGroupsAsync),
             ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
 
         return;
 
-        async Task ProcessBothProjectGroupsAsync(Action<RoslynNavigateToItem> onItemFound)
+        async Task ProcessAllProjectGroupsAsync(Action<RoslynNavigateToItem> onItemFound)
         {
-            await ProcessProjectGroupsAsync(highPriorityGroups, onItemFound).ConfigureAwait(false);
-            await ProcessProjectGroupsAsync(lowPriorityGroups, onItemFound).ConfigureAwait(false);
+            await Parallel.ForEachAsync(
+                highPriorityGroups.Concat(lowPriorityGroups),
+                cancellationToken,
+                (group, cancellationToken) =>
+                    ProcessProjectGroupAsync(group, onItemFound, cancellationToken)).ConfigureAwait(false);
         }
 
-        async Task ProcessProjectGroupsAsync(HashSet<IGrouping<ProjectKey, DocumentKey>> groups, Action<RoslynNavigateToItem> onItemFound)
-        {
-            if (cancellationToken.IsCancellationRequested)
-                return;
-
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-            foreach (var group in groups)
-                tasks.Add(ProcessProjectGroupAsync(group, onItemFound));
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        async Task ProcessProjectGroupAsync(IGrouping<ProjectKey, DocumentKey> group, Action<RoslynNavigateToItem> onItemFound)
+        async ValueTask ProcessProjectGroupAsync(
+            IGrouping<ProjectKey, DocumentKey> group,
+            Action<RoslynNavigateToItem> onItemFound,
+            CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -171,47 +167,22 @@ internal abstract partial class AbstractNavigateToSearchService
             using var _1 = GetPooledHashSet(group.Where(priorityDocumentKeysSet.Contains), out var highPriDocs);
             using var _2 = GetPooledHashSet(group.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
 
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+            await Parallel.ForEachAsync(
+                highPriDocs.Concat(lowPriDocs),
+                cancellationToken,
+                async (documentKey, cancellationToken) =>
+                {
+                    var index = await GetIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
+                    if (index == null)
+                        return;
 
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+                    ProcessIndex(
+                        documentKey, document: null, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, index, cancellationToken);
+                }).ConfigureAwait(false);
 
             // done with project.  Let the host know.
             await onProjectCompleted().ConfigureAwait(false);
         }
-    }
-
-    private static async Task SearchCachedDocumentsInCurrentProcessAsync(
-        IChecksummedPersistentStorageService storageService,
-        string patternName,
-        string? patternContainer,
-        DeclaredSymbolInfoKindSet kinds,
-        Action<RoslynNavigateToItem> onItemFound,
-        HashSet<DocumentKey> documentKeys,
-        CancellationToken cancellationToken)
-    {
-        if (cancellationToken.IsCancellationRequested)
-            return;
-
-        using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-        foreach (var documentKey in documentKeys)
-        {
-            tasks.Add(Task.Run(async () =>
-            {
-                var index = await GetIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
-                if (index == null)
-                    return;
-
-                ProcessIndex(
-                    documentKey, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken);
-            }, cancellationToken));
-        }
-
-        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     private static Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(
