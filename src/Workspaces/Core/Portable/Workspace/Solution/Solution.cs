@@ -194,6 +194,9 @@ public partial class Solution
     internal Project? GetOriginatingProject(ISymbol symbol)
         => GetProject(GetOriginatingProjectId(symbol));
 
+    internal Compilation? GetOriginatingCompilation(ISymbol symbol)
+        => _compilationState.GetOriginatingProjectInfo(symbol)?.Compilation;
+
     /// <summary>
     /// True if the solution contains the document in one of its projects
     /// </summary>

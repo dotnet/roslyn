@@ -100,7 +100,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+            public bool ContainsAssemblyOrModuleOrDynamic(
+                ISymbol symbol, bool primary,
+                [NotNullWhen(true)] out Compilation? compilation,
+                out MetadataReferenceInfo? referencedThrough)
             {
                 Debug.Assert(symbol.Kind is SymbolKind.Assembly or
                              SymbolKind.NetModule or
@@ -112,11 +115,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     // this was not a tracker that has handed out a compilation (all compilations handed out must be
                     // owned by a 'FinalState').  So this symbol could not be from us.
+                    compilation = null;
                     referencedThrough = null;
                     return false;
                 }
 
-                return unrootedSymbolSet.Value.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
+                return unrootedSymbolSet.Value.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out compilation, out referencedThrough);
             }
 
             /// <summary>

@@ -30,7 +30,10 @@ internal partial class SolutionCompilationState
         /// of the symbols returned by <see cref="Compilation.GetAssemblyOrModuleSymbol(MetadataReference)"/> for
         /// any of the references of the <see cref="Compilation.References"/>.
         /// </remarks>
-        bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough);
+        bool ContainsAssemblyOrModuleOrDynamic(
+            ISymbol symbol, bool primary,
+            [NotNullWhen(true)] out Compilation? compilation,
+            out MetadataReferenceInfo? referencedThrough);
 
         ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate);
 

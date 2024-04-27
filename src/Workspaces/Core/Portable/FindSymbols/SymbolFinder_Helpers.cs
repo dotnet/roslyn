@@ -185,11 +185,9 @@ public static partial class SymbolFinder
         candidate = GetOridinalUnderlyingType(candidate);
         forwardedTo = GetOridinalUnderlyingType(forwardedTo);
 
-        var forwardedToOriginatingProject = solution.GetOriginatingProject(forwardedTo);
-        if (forwardedToOriginatingProject == null)
+        var forwardedToCompilation = solution.GetOriginatingCompilation(forwardedTo);
+        if (forwardedToCompilation == null)
             return false;
-
-        var forwardedToCompilation = await forwardedToOriginatingProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
         var candidateFullMetadataName = candidate.ContainingNamespace?.IsGlobalNamespace != false
             ? candidate.MetadataName

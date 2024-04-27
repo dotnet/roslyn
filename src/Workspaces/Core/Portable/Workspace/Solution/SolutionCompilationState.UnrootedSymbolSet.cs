@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -27,10 +28,17 @@ internal partial class SolutionCompilationState
     /// <param name="ProjectId">
     /// The project the symbol originated from, i.e. the symbol is defined in the project or its metadata reference.
     /// </param>
-    /// <param name="ReferencedThrough">
-    /// If the symbol is defined in a metadata reference of <paramref name="ProjectId"/>, information about the reference.
+    /// <param name="Compilation">
+    /// The Compilation that produced the symbol.
     /// </param>
-    internal sealed record class OriginatingProjectInfo(ProjectId ProjectId, MetadataReferenceInfo? ReferencedThrough);
+    /// <param name="ReferencedThrough">
+    /// If the symbol is defined in a metadata reference of <paramref name="ProjectId"/>, information about the
+    /// reference.
+    /// </param>
+    internal sealed record class OriginatingProjectInfo(
+        ProjectId ProjectId,
+        Compilation Compilation,
+        MetadataReferenceInfo? ReferencedThrough);
 
     /// <summary>
     /// A helper type for mapping <see cref="ISymbol"/> back to an originating <see cref="Project"/>.
@@ -53,6 +61,8 @@ internal partial class SolutionCompilationState
     /// </remarks>
     private readonly struct UnrootedSymbolSet
     {
+        public readonly Compilation Compilation;
+
         /// <summary>
         /// The <see cref="IAssemblySymbol"/> produced directly by <see cref="Compilation.Assembly"/>.
         /// </summary>
@@ -73,10 +83,12 @@ internal partial class SolutionCompilationState
         public readonly ImmutableArray<SecondaryReferencedSymbol> SecondaryReferencedSymbols;
 
         private UnrootedSymbolSet(
+            Compilation compilation,
             WeakReference<IAssemblySymbol> primaryAssemblySymbol,
             WeakReference<ITypeSymbol?> primaryDynamicSymbol,
             ImmutableArray<SecondaryReferencedSymbol> secondaryReferencedSymbols)
         {
+            Compilation = compilation;
             PrimaryAssemblySymbol = primaryAssemblySymbol;
             PrimaryDynamicSymbol = primaryDynamicSymbol;
             SecondaryReferencedSymbols = secondaryReferencedSymbols;
@@ -109,17 +121,24 @@ internal partial class SolutionCompilationState
             // them afterwards. Note: it is fine for multiple symbols to have the same reference hash.  The
             // search algorithm will account for that.
             secondarySymbols.Sort(static (x, y) => x.hashCode.CompareTo(y.hashCode));
-            return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols.ToImmutable());
+            return new UnrootedSymbolSet(compilation, primaryAssembly, primaryDynamic, secondarySymbols.ToImmutable());
         }
 
-        public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+        public bool ContainsAssemblyOrModuleOrDynamic(
+            ISymbol symbol, bool primary,
+            [NotNullWhen(true)] out Compilation? compilation,
+            out MetadataReferenceInfo? referencedThrough)
         {
             referencedThrough = null;
 
             if (primary)
             {
-                return symbol.Equals(this.PrimaryAssemblySymbol.GetTarget()) ||
-                       symbol.Equals(this.PrimaryDynamicSymbol.GetTarget());
+                if (symbol.Equals(this.PrimaryAssemblySymbol.GetTarget()) ||
+                    symbol.Equals(this.PrimaryDynamicSymbol.GetTarget()))
+                {
+                    compilation = this.Compilation;
+                    return true;
+                }
             }
 
             var secondarySymbols = this.SecondaryReferencedSymbols;
@@ -130,7 +149,10 @@ internal partial class SolutionCompilationState
             // the location we should start looking at.
             var index = secondarySymbols.BinarySearch(symbolHash, static (item, symbolHash) => item.hashCode.CompareTo(symbolHash));
             if (index < 0)
+            {
+                compilation = null;
                 return false;
+            }
 
             // Could have multiple symbols with the same hash.  They will all be placed next to each other,
             // so walk backward to hit the first.
@@ -144,12 +166,14 @@ internal partial class SolutionCompilationState
                 if (cached.symbol.TryGetTarget(out var otherSymbol) && otherSymbol == symbol)
                 {
                     referencedThrough = cached.referenceInfo;
+                    compilation = this.Compilation;
                     return true;
                 }
 
                 index++;
             }
 
+            compilation = null;
             return false;
         }
     }
