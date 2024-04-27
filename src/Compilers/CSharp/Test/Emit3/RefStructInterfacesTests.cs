@@ -17557,6 +17557,68 @@ ref struct S : IEnumerable<int>
         }
 
         [Fact]
+        public void ScopedByDefault_02()
+        {
+            var src =
+@"
+using System.Collections.Generic;
+
+class Helper
+{
+    public static void Test1<T>()
+        where T : IEnumerable<int>, IAdd, new(), allows ref struct
+    {
+        var l1 = (params T x) => {};
+    }
+
+    public static void Test2()
+    {
+        var l2 = (params S y) => {};
+    }
+
+    public static void Test3<T>()
+        where T : IEnumerable<int>, IAdd, new()
+    {
+        var l3 = (params T z) => {};
+    }
+}
+
+interface IAdd
+{
+    void Add(int x);
+}
+
+ref struct S : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+    public void Add(int x){}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
+
+            var p = model.GetDeclaredSymbol(lambdas[0].ParameterList.Parameters[0]).GetSymbol<ParameterSymbol>();
+            AssertEx.Equal("params scoped T x", p.ToTestDisplayString()); // PROTOTYPE(RefStructInterfaces): Adjust symbol display to drop "scoped" once we have a necessary public API to check for 'AllowsRefLike'
+            Assert.Equal(ScopedKind.ScopedValue, p.EffectiveScope);
+
+            p = model.GetDeclaredSymbol(lambdas[1].ParameterList.Parameters[0]).GetSymbol<ParameterSymbol>();
+            AssertEx.Equal("params S y", p.ToTestDisplayString());
+            Assert.Equal(ScopedKind.ScopedValue, p.EffectiveScope);
+
+            p = model.GetDeclaredSymbol(lambdas[2].ParameterList.Parameters[0]).GetSymbol<ParameterSymbol>();
+            AssertEx.Equal("params T z", p.ToTestDisplayString());
+            Assert.Equal(ScopedKind.None, p.EffectiveScope);
+        }
+
+        [Fact]
         public void SystemActivatorCreateInstance()
         {
             var sourceA =
@@ -17643,8 +17705,6 @@ ref struct S
                 //     public static S P4;
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "S").WithArguments("S").WithLocation(15, 19)
                 );
-
-            // PROTOTYPE(RefStructInterfaces): Consider testing capturing primary constructor parameter of type allows ref struct.
         }
 
         [Fact]
@@ -20438,6 +20498,83 @@ ref struct S2
                 //         _ = h2 as S2;
                 Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "h2 as S2").WithArguments("S2").WithLocation(6, 13)
                 );
+        }
+
+        [Fact]
+        public void IllegalCapturing_01()
+        {
+            var source = @"
+ref struct R1
+{
+}
+
+ref struct R2<T>(R1 r1, T t)
+    where T : allows ref struct
+{
+    R1 M1() => r1;
+    T M2() => t;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,16): error CS9110: Cannot use primary constructor parameter 'r1' that has ref-like type inside an instance member
+                //     R1 M1() => r1;
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "r1").WithArguments("r1").WithLocation(9, 16),
+                // (10,15): error CS9110: Cannot use primary constructor parameter 't' that has ref-like type inside an instance member
+                //     T M2() => t;
+                Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, "t").WithArguments("t").WithLocation(10, 15)
+                );
+        }
+
+        [Fact]
+        public void IllegalCapturing_02()
+        {
+            var source = @"
+ref struct R1
+{
+}
+
+class C
+{
+    void M<T>(R1 r1, T t)
+        where T : allows ref struct
+    {
+        var d1 = () => r1;
+        var d2 = () => t;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,24): error CS9108: Cannot use parameter 'r1' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function
+                //         var d1 = () => r1;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseRefLike, "r1").WithArguments("r1").WithLocation(11, 24),
+                // (12,24): error CS9108: Cannot use parameter 't' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function
+                //         var d2 = () => t;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseRefLike, "t").WithArguments("t").WithLocation(12, 24)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73068")]
+        public void GotoInLambda_OutOfScope_Backward()
+        {
+            var code = """
+                x:
+                System.Action a = () =>
+                {
+                    using System.IDisposable d = null;
+                    goto x;
+                };
+                """;
+            CreateCompilation(code).VerifyDiagnostics(
+                // (1,1): warning CS0164: This label has not been referenced
+                // x:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "x").WithLocation(1, 1),
+                // (5,5): error CS0159: No such label 'x' within the scope of the goto statement
+                //     goto x;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("x").WithLocation(5, 5));
         }
     }
 }

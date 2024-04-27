@@ -4529,6 +4529,58 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73242")]
+        public void DelegateNaturalType_07()
+        {
+            var src = @"
+class Helper<T> 
+    where T : System.Collections.Generic.List<long>, new()
+{
+    static public void Test3(params T a) { System.Console.WriteLine("" {0}"", a is not null); }
+}
+
+class Program
+{
+    static void Main()
+    {
+        DoTest3<System.Collections.Generic.List<long>>();
+    }
+    static void DoTest3<T>()
+        where T : System.Collections.Generic.List<long>, new()
+    {
+        var a3 = Helper<T>.Test3;
+        M(a3)();
+    }
+
+    static T M<T>(T t) { System.Console.WriteLine(typeof(T)); return t; }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                symbolValidator: (m) =>
+                {
+                    var delegateType = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousDelegate0`1");
+                    MethodSymbol delegateInvokeMethod = delegateType.DelegateInvokeMethod;
+                    AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1 arg)", delegateInvokeMethod.ToTestDisplayString());
+
+                    // Strictly speaking it is a violation of language rules to decorate this parameter with ParamCollectionAttribute
+                    // because it lacks constraints that would make it a valid 'params' type
+                    // However, going through the trouble of porting constraints and differentiating/merging anonymous delegates based on them
+                    // is probably not worth the trouble for this edge scenario.
+                    // The types involved might be inaccessible on assembly level, etc.
+                    VerifyParamsAndAttribute(delegateInvokeMethod.Parameters[0], isParamArray: false, isParamCollection: true);
+                    Assert.False(delegateType.TypeParameters[0].HasConstructorConstraint);
+                    Assert.Empty(delegateType.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics);
+                },
+                expectedOutput: ExpectedOutput(@"
+<>f__AnonymousDelegate0`1[System.Collections.Generic.List`1[System.Int64]]
+ True
+")).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void BetterNess_01_ElementType()
         {
             var src = @"

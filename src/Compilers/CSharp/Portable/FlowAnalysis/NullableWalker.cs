@@ -11784,7 +11784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
-            Debug.Assert(node.Type is null || node.Type.IsErrorType() || node.Type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
+            Debug.Assert(node.Type is null || node.Type.IsErrorType() || node.Type.IsRefLikeType);
             return VisitStackAllocArrayCreationBase(node);
         }
 

@@ -1872,7 +1872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsBadLocalOrParameterCapture(Symbol symbol, TypeSymbol type, RefKind refKind)
         {
-            if (refKind != RefKind.None || type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+            if (refKind != RefKind.None || type.IsRestrictedType())
             {
                 var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
@@ -2046,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    Debug.Assert(parameter.Type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
+                                    Debug.Assert(parameter.Type.IsRefLikeTypeOrAllowsByRefLike());
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseRefLike, node, parameter.Name);
                                 }
                             }
@@ -2056,7 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool capture = (this.ContainingMember() is MethodSymbol containingMethod && (object)primaryCtor != containingMethod);
 
                                 if (capture &&
-                                    (parameter.RefKind != RefKind.None || parameter.Type.IsRestrictedType()) && // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+                                    (parameter.RefKind != RefKind.None || parameter.Type.IsRestrictedType()) &&
                                     !IsInsideNameof)
                                 {
                                     if (parameter.RefKind != RefKind.None)
@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                     else
                                     {
-                                        Debug.Assert(parameter.Type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
+                                        Debug.Assert(parameter.Type.IsRefLikeTypeOrAllowsByRefLike());
                                         Error(diagnostics, ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, node, parameter.Name);
                                     }
                                 }
@@ -3187,7 +3187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(errorCode is ErrorCode.ERR_BadSpecialByRefLocal or ErrorCode.ERR_BadSpecialByRefUsing or ErrorCode.ERR_BadSpecialByRefLock);
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
-                && type.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+                && type.IsRestrictedType())
             {
                 if (errorCode == ErrorCode.ERR_BadSpecialByRefLock)
                 {
