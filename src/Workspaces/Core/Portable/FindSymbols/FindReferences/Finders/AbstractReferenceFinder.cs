@@ -36,7 +36,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public abstract ValueTask FindReferencesInDocumentAsync<TData>(
         ISymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-    private static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+    private static (bool matched, CandidateReason reason) SymbolsMatch(
         ISymbol symbol, FindReferencesDocumentState state, SyntaxToken token, CancellationToken cancellationToken)
     {
         // delegates don't have exposed symbols for their constructors.  so when you do `new MyDel()`, that's only a
@@ -47,26 +47,25 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             : state.SyntaxFacts.TryGetBindableParent(token);
         parent ??= token.Parent!;
 
-        return SymbolsMatchAsync(symbol, state, parent, cancellationToken);
+        return SymbolsMatch(symbol, state, parent, cancellationToken);
     }
 
-    protected static ValueTask<(bool matched, CandidateReason reason)> SymbolsMatchAsync(
+    protected static (bool matched, CandidateReason reason) SymbolsMatch(
         ISymbol searchSymbol, FindReferencesDocumentState state, SyntaxNode node, CancellationToken cancellationToken)
     {
         var symbolInfo = state.Cache.GetSymbolInfo(node, cancellationToken);
-
-        return MatchesAsync(searchSymbol, state, symbolInfo, cancellationToken);
+        return Matches(searchSymbol, state, symbolInfo);
     }
 
-    protected static async ValueTask<(bool matched, CandidateReason reason)> MatchesAsync(
-        ISymbol searchSymbol, FindReferencesDocumentState state, SymbolInfo symbolInfo, CancellationToken cancellationToken)
+    protected static (bool matched, CandidateReason reason) Matches(
+        ISymbol searchSymbol, FindReferencesDocumentState state, SymbolInfo symbolInfo)
     {
-        if (await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false))
+        if (SymbolFinder.OriginalSymbolsMatch(state.Solution, searchSymbol, symbolInfo.Symbol))
             return (matched: true, CandidateReason.None);
 
         foreach (var candidate in symbolInfo.CandidateSymbols)
         {
-            if (await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
+            if (SymbolFinder.OriginalSymbolsMatch(state.Solution, searchSymbol, candidate))
                 return (matched: true, symbolInfo.CandidateReason);
         }
 
@@ -178,7 +177,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public static ImmutableArray<SyntaxToken> FindMatchingIdentifierTokens(FindReferencesDocumentState state, string identifier, CancellationToken cancellationToken)
         => state.Cache.FindMatchingIdentifierTokens(identifier, cancellationToken);
 
-    protected static async ValueTask FindReferencesInTokensAsync<TData>(
+    protected static void FindReferencesInTokens<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
         ImmutableArray<SyntaxToken> tokens,
@@ -193,12 +192,10 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (matched, reason) = await SymbolsMatchAsync(
-                symbol, state, token, cancellationToken).ConfigureAwait(false);
+            var (matched, reason) = SymbolsMatch(symbol, state, token, cancellationToken);
             if (matched)
             {
                 var finderLocation = CreateFinderLocation(state, token, reason, cancellationToken);
-
                 processResult(finderLocation, processResultData);
             }
         }

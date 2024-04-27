@@ -30,11 +30,10 @@ public static partial class SymbolFinder
         return true;
     }
 
-    internal static async Task<bool> OriginalSymbolsMatchAsync(
+    internal static bool OriginalSymbolsMatch(
         Solution solution,
         ISymbol? searchSymbol,
-        ISymbol? symbolToMatch,
-        CancellationToken cancellationToken)
+        ISymbol? symbolToMatch)
     {
         if (ReferenceEquals(searchSymbol, symbolToMatch))
             return true;
@@ -48,7 +47,7 @@ public static partial class SymbolFinder
         if (searchSymbol.Equals(symbolToMatch))
             return true;
 
-        if (await OriginalSymbolsMatchCoreAsync(solution, searchSymbol, symbolToMatch, cancellationToken).ConfigureAwait(false))
+        if (OriginalSymbolsMatchCore(solution, searchSymbol, symbolToMatch))
             return true;
 
         if (searchSymbol.Kind == SymbolKind.Namespace && symbolToMatch.Kind == SymbolKind.Namespace)
@@ -60,8 +59,8 @@ public static partial class SymbolFinder
             var namespace2Count = namespace2.ConstituentNamespaces.Length;
             if (namespace1Count != namespace2Count)
             {
-                if ((namespace1Count > 1 && await namespace1.ConstituentNamespaces.AnyAsync(static (n, arg) => NamespaceSymbolsMatchAsync(arg.solution, n, arg.namespace2, arg.cancellationToken), (solution, namespace2, cancellationToken)).ConfigureAwait(false)) ||
-                    (namespace2Count > 1 && await namespace2.ConstituentNamespaces.AnyAsync(static (n2, arg) => NamespaceSymbolsMatchAsync(arg.solution, arg.namespace1, n2, arg.cancellationToken), (solution, namespace1, cancellationToken)).ConfigureAwait(false)))
+                if ((namespace1Count > 1 && namespace1.ConstituentNamespaces.Any(static (n, arg) => OriginalSymbolsMatch(arg.solution, n, arg.namespace2), (solution, namespace2))) ||
+                    (namespace2Count > 1 && namespace2.ConstituentNamespaces.Any(static (n2, arg) => OriginalSymbolsMatch(arg.solution, arg.namespace1, n2), (solution, namespace1))))
                 {
                     return true;
                 }
@@ -71,11 +70,8 @@ public static partial class SymbolFinder
         return false;
     }
 
-    private static async Task<bool> OriginalSymbolsMatchCoreAsync(
-        Solution solution,
-        ISymbol searchSymbol,
-        ISymbol symbolToMatch,
-        CancellationToken cancellationToken)
+    private static bool OriginalSymbolsMatchCore(
+        Solution solution, ISymbol searchSymbol, ISymbol symbolToMatch)
     {
         if (searchSymbol == null || symbolToMatch == null)
             return false;
@@ -121,29 +117,19 @@ public static partial class SymbolFinder
         if (equivalentTypesWithDifferingAssemblies.Count > 0)
         {
             // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
-            return await VerifyForwardedTypesAsync(solution, equivalentTypesWithDifferingAssemblies, cancellationToken).ConfigureAwait(false);
+            return VerifyForwardedTypes(solution, equivalentTypesWithDifferingAssemblies);
         }
 
         // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
         return true;
     }
 
-    private static Task<bool> NamespaceSymbolsMatchAsync(
-        Solution solution,
-        INamespaceSymbol namespace1,
-        INamespaceSymbol namespace2,
-        CancellationToken cancellationToken)
-    {
-        return OriginalSymbolsMatchAsync(solution, namespace1, namespace2, cancellationToken);
-    }
-
     /// <summary>
     /// Verifies that all pairs of named types in equivalentTypesWithDifferingAssemblies are equivalent forwarded types.
     /// </summary>
-    private static async Task<bool> VerifyForwardedTypesAsync(
+    private static bool VerifyForwardedTypes(
         Solution solution,
-        Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies,
-        CancellationToken cancellationToken)
+        Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
     {
         Contract.ThrowIfNull(equivalentTypesWithDifferingAssemblies);
         Contract.ThrowIfTrue(equivalentTypesWithDifferingAssemblies.Count == 0);
@@ -160,8 +146,8 @@ public static partial class SymbolFinder
             // Check if type1 was forwarded to type2 in type2's compilation, or if type2 was forwarded to type1 in
             // type1's compilation.  We check both direction as this API is called from higher level comparison APIs
             // that are unordered.
-            if (!await VerifyForwardedTypeAsync(solution, candidate: type1, forwardedTo: type2, cancellationToken).ConfigureAwait(false) &&
-                !await VerifyForwardedTypeAsync(solution, candidate: type2, forwardedTo: type1, cancellationToken).ConfigureAwait(false))
+            if (!VerifyForwardedType(solution, candidate: type1, forwardedTo: type2) &&
+                !VerifyForwardedType(solution, candidate: type2, forwardedTo: type1))
             {
                 return false;
             }
@@ -174,11 +160,10 @@ public static partial class SymbolFinder
     /// Returns <see langword="true"/> if <paramref name="candidate"/> was forwarded to <paramref name="forwardedTo"/> in
     /// <paramref name="forwardedTo"/>'s <see cref="Compilation"/>.
     /// </summary>
-    private static async Task<bool> VerifyForwardedTypeAsync(
+    private static bool VerifyForwardedType(
         Solution solution,
         INamedTypeSymbol candidate,
-        INamedTypeSymbol forwardedTo,
-        CancellationToken cancellationToken)
+        INamedTypeSymbol forwardedTo)
     {
         // Only need to operate on original definitions.  i.e. List<T> is the type that is forwarded,
         // not List<string>.

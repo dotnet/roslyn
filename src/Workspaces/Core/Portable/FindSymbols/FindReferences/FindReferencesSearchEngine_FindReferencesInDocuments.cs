@@ -179,7 +179,7 @@ internal partial class FindReferencesSearchEngine
             // Counter-intuitive, but if these are matching symbols, they do *not* have an inheritance relationship.
             // We do *not* want to report these as they would have been found in the original call to the finders in
             // PerformSearchInTextSpanAsync.
-            if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
+            if (SymbolFinder.OriginalSymbolsMatch(_solution, searchSymbol, candidate))
                 return false;
 
             // walk up the original symbol's inheritance hierarchy to see if we hit the candidate. Don't walk down
@@ -188,7 +188,7 @@ internal partial class FindReferencesSearchEngine
                 this, [searchSymbol], includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
             foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
             {
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
+                if (SymbolFinder.OriginalSymbolsMatch(_solution, symbolUp, candidate))
                     return true;
             }
 
@@ -198,7 +198,7 @@ internal partial class FindReferencesSearchEngine
                 this, [candidate], includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
             foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
             {
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
+                if (SymbolFinder.OriginalSymbolsMatch(_solution, searchSymbol, candidateUp))
                     return true;
             }
 

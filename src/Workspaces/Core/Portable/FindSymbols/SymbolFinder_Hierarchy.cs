@@ -54,10 +54,8 @@ public static partial class SymbolFinder
                     var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                     var bestMember = sourceMember ?? m;
 
-                    if (await IsOverrideAsync(solution, bestMember, symbol, cancellationToken).ConfigureAwait(false))
-                    {
+                    if (IsOverride(solution, bestMember, symbol))
                         results.Add(bestMember);
-                    }
                 }
             }
         }
@@ -65,11 +63,11 @@ public static partial class SymbolFinder
         return results.ToImmutableAndFree();
     }
 
-    internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
+    internal static bool IsOverride(Solution solution, ISymbol member, ISymbol symbol)
     {
         for (var current = member; current != null; current = current.GetOverriddenMember())
         {
-            if (await OriginalSymbolsMatchAsync(solution, current.GetOverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
+            if (OriginalSymbolsMatch(solution, current.GetOverriddenMember(), symbol.OriginalDefinition))
                 return true;
         }
 
