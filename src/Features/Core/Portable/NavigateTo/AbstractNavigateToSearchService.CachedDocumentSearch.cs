@@ -144,16 +144,13 @@ internal abstract partial class AbstractNavigateToSearchService
 
         return;
 
-        async Task ProcessAllProjectGroupsAsync(Action<RoslynNavigateToItem> onItemFound)
-        {
-            await Parallel.ForEachAsync(
+        Task ProcessAllProjectGroupsAsync(Action<RoslynNavigateToItem> onItemFound)
+            => Parallel.ForEachAsync(
                 highPriorityGroups.Concat(lowPriorityGroups),
                 cancellationToken,
-                (group, cancellationToken) =>
-                    ProcessProjectGroupAsync(group, onItemFound, cancellationToken)).ConfigureAwait(false);
-        }
+                (group, cancellationToken) => ProcessSingleProjectGroupAsync(group, onItemFound, cancellationToken));
 
-        async ValueTask ProcessProjectGroupAsync(
+        async ValueTask ProcessSingleProjectGroupAsync(
             IGrouping<ProjectKey, DocumentKey> group,
             Action<RoslynNavigateToItem> onItemFound,
             CancellationToken cancellationToken)

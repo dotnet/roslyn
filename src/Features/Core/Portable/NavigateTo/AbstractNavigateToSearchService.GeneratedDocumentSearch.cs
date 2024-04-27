@@ -73,36 +73,37 @@ internal abstract partial class AbstractNavigateToSearchService
         if (cancellationToken.IsCancellationRequested)
             return;
 
+        // If the user created a dotted pattern then we'll grab the last part of the name
+        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
+        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
         await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(channel.Writer, SearchProjectsAsync),
+            FindAllItemsAndWriteToChannelAsync(channel.Writer, ProcessAllProjectsAsync),
             ReadItemsFromChannelAndReportToCallbackAsync(channel.Reader, onItemsFound, cancellationToken)).ConfigureAwait(false);
 
         return;
 
-        async Task SearchProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
-        {
-            // If the user created a dotted pattern then we'll grab the last part of the name
-            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-            await Parallel.ForEachAsync(
+        Task ProcessAllProjectsAsync(Action<RoslynNavigateToItem> onItemFound)
+            => Parallel.ForEachAsync(
                 projects,
                 cancellationToken,
-                async (project, cancellationToken) =>
-                {
-                    // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
-                    var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                (project, cancellationToken) => ProcessSingleProjectAsync(project, onItemFound, cancellationToken));
 
-                    await Parallel.ForEachAsync(
-                        sourceGeneratedDocs,
-                        cancellationToken,
-                        (document, cancellationToken) => ProcessDocumentAsync(
-                            document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+        async ValueTask ProcessSingleProjectAsync(
+            Project project, Action<RoslynNavigateToItem> onItemFound, CancellationToken cancellationToken)
+        {
+            // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
+            var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-                    await onProjectCompleted().ConfigureAwait(false);
-                }).ConfigureAwait(false);
+            await Parallel.ForEachAsync(
+                sourceGeneratedDocs,
+                cancellationToken,
+                (document, cancellationToken) => ProcessDocumentAsync(
+                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+
+            await onProjectCompleted().ConfigureAwait(false);
         }
     }
 }
