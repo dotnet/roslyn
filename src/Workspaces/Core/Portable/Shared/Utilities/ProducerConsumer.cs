@@ -14,20 +14,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
+internal readonly record struct ProducerConsumerOptions
+{
+    public static readonly ProducerConsumerOptions SingleReaderOptions = new() { SingleReader = true };
+    public static readonly ProducerConsumerOptions SingleReaderWriterOptions = new() { SingleReader = true, SingleWriter = true };
+
+    /// <inheritdoc cref="ChannelOptions.SingleWriter"/>
+    public bool SingleWriter { get; init; }
+
+    /// <inheritdoc cref="ChannelOptions.SingleReader"/>
+    public bool SingleReader { get; init; }
+}
+
 internal static class ProducerConsumer<TItem>
 {
     /// <summary>
-    /// Version of <see cref="RunAsync"/> when caller the prefers the results being pre-packaged into arrays to process.
+    /// Version of <see cref="RunImplAsync"/> when caller the prefers the results being pre-packaged into arrays to process.
     /// </summary>
-    public static Task RunUnboundedAsync<TArgs>(
-        UnboundedChannelOptions channelOptions,
+    public static Task RunAsync<TArgs>(
+        ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunAsync(
-            channelOptions,
+        return RunImplAsync(
+            options,
             static (onItemFound, args) => args.produceItems(onItemFound, args.args),
             static (reader, args) => ConsumeItemsAsArrayAsync(reader, args.consumeItems, args.args, args.cancellationToken),
             (produceItems, consumeItems, args, cancellationToken),
@@ -54,17 +66,17 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// Version of <see cref="RunAsync"/> when the caller prefers working with a stream of results.
+    /// Version of <see cref="RunImplAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
-    public static Task RunUnboundedAsync<TArgs>(
-        UnboundedChannelOptions channelOptions,
+    public static Task RunAsync<TArgs>(
+        ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<IAsyncEnumerable<TItem>, TArgs, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunAsync(
-            channelOptions,
+        return RunImplAsync(
+            options,
             static (onItemFound, args) => args.produceItems(onItemFound, args.args),
             static (reader, args) => args.consumeItems(reader.ReadAllAsync(args.cancellationToken), args.args),
             (produceItems, consumeItems, args, cancellationToken),
@@ -73,7 +85,7 @@ internal static class ProducerConsumer<TItem>
 
     /// <summary>
     /// Helper utility for the pattern of a pair of a production routine and consumption routine using a channel to
-    /// coordinate data transfer.  The provided <paramref name="channelOptions"/> are used to create a <see
+    /// coordinate data transfer.  The provided <paramref name="options"/> are used to create a <see
     /// cref="Channel{T}"/>, which will then then manage the rules and behaviors around the routines. Importantly, the
     /// channel handles backpressure, ensuring that if the consumption routine cannot keep up, that the production
     /// routine will be throttled.
@@ -86,14 +98,18 @@ internal static class ProducerConsumer<TItem>
     /// <paramref name="consumeItems"/> is the routine called to consume the items.  Similarly, reading can have just a
     /// single reader or multiple readers, depending on the value passed into <see cref="ChannelOptions.SingleReader"/>.
     /// </summary>
-    private static async Task RunAsync<TArgs>(
-        UnboundedChannelOptions channelOptions,
+    private static async Task RunImplAsync<TArgs>(
+        ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<ChannelReader<TItem>, TArgs, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
-        var channel = Channel.CreateUnbounded<TItem>(channelOptions);
+        var channel = Channel.CreateUnbounded<TItem>(new()
+        {
+            SingleReader = options.SingleReader,
+            SingleWriter = options.SingleWriter,
+        });
 
         // When cancellation happens, attempt to close the channel.  That will unblock the task processing the items.
         // Capture-free version is only available on netcore unfortunately.

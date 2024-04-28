@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 
 internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavigateToSearchService
 {
-    private static readonly UnboundedChannelOptions s_channelOptions = new() { SingleReader = true };
-
     public static readonly IImmutableSet<string> AllKinds = [
         NavigateToItemKind.Class,
         NavigateToItemKind.Constant,
@@ -96,10 +94,10 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
-        // Use an unbounded channel to allow the writing work to write as many items as it can find without blocking.
+        // Use the ProducerConsumer<> to allow the writing work to write as many items as it can find without blocking.
         // Concurrently, the reading task will grab items when available, and send them over to the host.
-        => ProducerConsumer<RoslynNavigateToItem>.RunUnboundedAsync(
-            s_channelOptions,
+        => ProducerConsumer<RoslynNavigateToItem>.RunAsync(
+            ProducerConsumerOptions.SingleReaderOptions,
             produceItems: static (onItemFound, args) => RoslynParallel.ForEachAsync(args.items, args.cancellationToken, (item, cancellationToken) => args.callback(item, onItemFound)),
             consumeItems: static (items, args) => args.onItemsFound(items),
             args: (items, callback, onItemsFound, cancellationToken),

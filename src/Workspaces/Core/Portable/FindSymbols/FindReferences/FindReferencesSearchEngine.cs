@@ -25,7 +25,6 @@ using Reference = (SymbolGroup group, ISymbol symbol, ReferenceLocation location
 internal partial class FindReferencesSearchEngine
 {
     private static readonly ObjectPool<MetadataUnifyingSymbolHashSet> s_metadataUnifyingSymbolHashSetPool = new(() => []);
-    private static readonly UnboundedChannelOptions s_channelOptions = new() { SingleReader = true };
 
     private readonly Solution _solution;
     private readonly IImmutableSet<Document>? _documents;
@@ -79,8 +78,8 @@ internal partial class FindReferencesSearchEngine
         await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await ProducerConsumer<Reference>.RunUnboundedAsync(
-                s_channelOptions,
+            await ProducerConsumer<Reference>.RunAsync(
+                ProducerConsumerOptions.SingleReaderOptions,
                 produceItems: static (onItemFound, args) => args.@this.PerformSearchAsync(args.symbols, onItemFound, args.cancellationToken),
                 consumeItems: static async (references, args) => await args.@this._progress.OnReferencesFoundAsync(references, @args.cancellationToken).ConfigureAwait(false),
                 (@this: this, symbols, cancellationToken),

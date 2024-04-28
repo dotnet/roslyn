@@ -63,17 +63,6 @@ internal readonly struct RemoteHostAssetWriter(
 
     private static readonly ObjectPool<ReadWriteStream> s_streamPool = new(() => new());
 
-    private static readonly UnboundedChannelOptions s_channelOptions = new()
-    {
-        // We have a single task reading the data from the channel and writing it to the pipe.  This option allows the
-        // channel to operate in a more efficient manner knowing it won't have to synchronize data for multiple readers.
-        SingleReader = true,
-
-        // Currently we only have a single writer writing to the channel when we call _scope.FindAssetsAsync. However,
-        // we could change this in the future to allow the search to happen in parallel.
-        SingleWriter = true,
-    };
-
     private readonly PipeWriter _pipeWriter = pipeWriter;
     private readonly Scope _scope = scope;
     private readonly AssetPath _assetPath = assetPath;
@@ -81,11 +70,16 @@ internal readonly struct RemoteHostAssetWriter(
     private readonly ISerializerService _serializer = serializer;
 
     public Task WriteDataAsync(CancellationToken cancellationToken)
-        // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
-        // find items, add them to the channel synchronously, and immediately continue searching for more items.
-        // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
-        => ProducerConsumer<ChecksumAndAsset>.RunUnboundedAsync(
-            s_channelOptions,
+        // Use the ProducderConsumer<> to communicate between the searching and writing tasks.  This allows the
+        // searching task to find items, add them to the channel synchronously, and immediately continue searching for
+        // more items. Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
+        => ProducerConsumer<ChecksumAndAsset>.RunAsync(
+            // We have a single task reading the data from the channel and writing it to the pipe.  This option allows
+            // the producer-consumer to operate in a more efficient manner knowing it won't have to synchronize data for
+            // multiple readers. Currently we only have a single writer writing to the channel when we call
+            // _scope.FindAssetsAsync. However, we could change this in the future to allow the search to happen in
+            // parallel.
+            ProducerConsumerOptions.SingleReaderWriterOptions,
             produceItems: static (onItemFound, args) => args.@this.FindAssetsAsync(onItemFound, args.cancellationToken),
             consumeItems: static (items, args) => args.@this.WriteBatchToPipeAsync(items, args.cancellationToken),
             args: (@this: this, cancellationToken),
