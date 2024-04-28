@@ -21,8 +21,8 @@ internal static class ChannelExtensions
     /// </summary>
     public static Task RunProducerConsumerAsync<TElement>(
         this Channel<TElement> channel,
-        Func<Action<TElement>, CancellationToken, ValueTask> produceElementsAsync,
-        Func<ImmutableArray<TElement>, CancellationToken, ValueTask> consumeElementsAsync,
+        Func<Action<TElement>, ValueTask> produceElementsAsync,
+        Func<ImmutableArray<TElement>, ValueTask> consumeElementsAsync,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
@@ -31,7 +31,7 @@ internal static class ChannelExtensions
             ConsumeElementsAsArrayAsync,
             cancellationToken);
 
-        async ValueTask ConsumeElementsAsArrayAsync(ChannelReader<TElement> reader, CancellationToken token)
+        async ValueTask ConsumeElementsAsArrayAsync(ChannelReader<TElement> reader)
         {
             using var _ = ArrayBuilder<TElement>.GetInstance(out var batch);
 
@@ -42,7 +42,7 @@ internal static class ChannelExtensions
                 while (channel.Reader.TryRead(out var item))
                     batch.Add(item);
 
-                await consumeElementsAsync(batch.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
+                await consumeElementsAsync(batch.ToImmutableAndClear()).ConfigureAwait(false);
             }
         }
     }
@@ -52,8 +52,8 @@ internal static class ChannelExtensions
     /// </summary>
     public static Task RunProducerConsumerAsync<TElement>(
         this Channel<TElement> channel,
-        Func<Action<TElement>, CancellationToken, ValueTask> produceElementsAsync,
-        Func<IAsyncEnumerable<TElement>, CancellationToken, ValueTask> consumeElementsAsync,
+        Func<Action<TElement>, ValueTask> produceElementsAsync,
+        Func<IAsyncEnumerable<TElement>, ValueTask> consumeElementsAsync,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
@@ -62,10 +62,8 @@ internal static class ChannelExtensions
             ConsumeElementsAsStreamAsync,
             cancellationToken);
 
-        async ValueTask ConsumeElementsAsStreamAsync(ChannelReader<TElement> reader, CancellationToken cancellationToken)
-        {
-            await consumeElementsAsync(reader.ReadAllAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
-        }
+        ValueTask ConsumeElementsAsStreamAsync(ChannelReader<TElement> reader)
+            => consumeElementsAsync(reader.ReadAllAsync(cancellationToken));
     }
 
     /// <summary>
@@ -84,8 +82,8 @@ internal static class ChannelExtensions
     /// </summary>
     private static async Task RunProducerConsumerImplAsync<TElement>(
         this Channel<TElement> channel,
-        Func<Action<TElement>, CancellationToken, ValueTask> produceElementsAsync,
-        Func<ChannelReader<TElement>, CancellationToken, ValueTask> consumeElementsAsync,
+        Func<Action<TElement>, ValueTask> produceElementsAsync,
+        Func<ChannelReader<TElement>, ValueTask> consumeElementsAsync,
         CancellationToken cancellationToken)
     {
         // When cancellation happens, attempt to close the channel.  That will unblock the task processing the elements.
@@ -107,7 +105,7 @@ internal static class ChannelExtensions
         async Task ReadFromChannelAndConsumeElementsAsync()
         {
             await Task.Yield().ConfigureAwait(false);
-            await consumeElementsAsync(channel.Reader, cancellationToken).ConfigureAwait(false);
+            await consumeElementsAsync(channel.Reader).ConfigureAwait(false);
         }
 
         async Task ProduceElementsAndWriteToChannelAsync()
@@ -116,7 +114,7 @@ internal static class ChannelExtensions
             try
             {
                 await Task.Yield().ConfigureAwait(false);
-                await produceElementsAsync(item => channel.Writer.TryWrite(item), cancellationToken).ConfigureAwait(false);
+                await produceElementsAsync(item => channel.Writer.TryWrite(item)).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
             {

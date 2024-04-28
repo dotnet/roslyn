@@ -32,12 +32,12 @@ internal abstract partial class AbstractNavigateToSearchService
         Contract.ThrowIfTrue(projects.IsEmpty);
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
-        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound, cancellationToken);
 
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted, cancellationToken);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted);
 
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 // Sync and search the full solution snapshot.  While this function is called serially per project,
@@ -60,7 +60,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Project> projects,
         string pattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, ValueTask> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -71,7 +71,7 @@ internal abstract partial class AbstractNavigateToSearchService
         return;
 
         async ValueTask ProcessSingleProjectAsync(
-            Project project, Action<RoslynNavigateToItem> onItemFound, CancellationToken cancellationToken)
+            Project project, Action<RoslynNavigateToItem> onItemFound)
         {
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);

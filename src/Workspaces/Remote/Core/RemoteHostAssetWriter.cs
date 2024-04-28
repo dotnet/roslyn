@@ -87,9 +87,10 @@ internal readonly struct RemoteHostAssetWriter(
         // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
         var channel = Channel.CreateUnbounded<ChecksumAndAsset>(s_channelOptions);
 
+        var @this = this;
         await channel.RunProducerConsumerAsync(
-            FindAssetsAsync,
-            WriteBatchToPipeAsync,
+            onItemFound => @this.FindAssetsAsync(onItemFound, cancellationToken),
+            items => @this.WriteBatchToPipeAsync(items, cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -108,8 +109,6 @@ internal readonly struct RemoteHostAssetWriter(
     private async ValueTask WriteBatchToPipeAsync(
         IAsyncEnumerable<ChecksumAndAsset> checksumsAndAssets, CancellationToken cancellationToken)
     {
-        await Task.Yield();
-
         // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
         // validation bytes at this point in time.  We'll write them between each asset we write out.  Using a single
         // object writer across all assets means we get the benefit of string deduplication across all assets we write

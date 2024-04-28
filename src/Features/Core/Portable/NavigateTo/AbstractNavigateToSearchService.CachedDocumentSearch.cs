@@ -73,7 +73,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
 
-        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound, cancellationToken);
 
         var documentKeys = projects.SelectManyAsArray(p => p.Documents.Select(DocumentKey.ToDocumentKey));
         var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
@@ -81,7 +81,7 @@ internal abstract partial class AbstractNavigateToSearchService
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted, cancellationToken);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted);
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 (service, callbackId, cancellationToken) =>
                     service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, [.. kinds], callbackId, cancellationToken),
@@ -101,7 +101,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<DocumentKey> priorityDocumentKeys,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, ValueTask> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -127,8 +127,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         async ValueTask ProcessSingleProjectGroupAsync(
             IGrouping<ProjectKey, DocumentKey> group,
-            Action<RoslynNavigateToItem> onItemFound,
-            CancellationToken cancellationToken)
+            Action<RoslynNavigateToItem> onItemFound)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;

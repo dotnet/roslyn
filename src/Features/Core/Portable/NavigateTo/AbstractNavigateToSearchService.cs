@@ -37,10 +37,10 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, ValueTask> GetOnItemsFoundCallback(
-        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound)
+    private static Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> GetOnItemsFoundCallback(
+        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
     {
-        return async (items, cancellationToken) =>
+        return async items =>
         {
             using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
 
@@ -94,8 +94,8 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
     /// </summary>
     private static async Task PerformParallelSearchAsync<T>(
         IEnumerable<T> items,
-        Func<T, Action<RoslynNavigateToItem>, CancellationToken, ValueTask> callback,
-        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, ValueTask> onItemsFound,
+        Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
+        Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> onItemsFound,
         CancellationToken cancellationToken)
     {
         // Use an unbounded channel to allow the writing work to write as many items as it can find without blocking.
@@ -109,8 +109,8 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
         return;
 
-        async ValueTask PerformSearchAsync(Action<RoslynNavigateToItem> onItemFound, CancellationToken cancellationToken)
+        async ValueTask PerformSearchAsync(Action<RoslynNavigateToItem> onItemFound)
             => await RoslynParallel.ForEachAsync(
-                items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound, cancellationToken)).ConfigureAwait(false);
+                items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound)).ConfigureAwait(false);
     }
 }
