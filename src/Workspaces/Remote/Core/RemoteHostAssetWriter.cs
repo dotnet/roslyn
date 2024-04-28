@@ -81,18 +81,15 @@ internal readonly struct RemoteHostAssetWriter(
     private readonly ISerializerService _serializer = serializer;
 
     public Task WriteDataAsync(CancellationToken cancellationToken)
-    {
         // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
         // find items, add them to the channel synchronously, and immediately continue searching for more items.
         // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
-        var channel = Channel.CreateUnbounded<ChecksumAndAsset>(s_channelOptions);
-
-        return channel.RunProducerConsumerAsync(
+        => ChannelManager<ChecksumAndAsset>.RunProducerConsumerAsync(
+            s_channelOptions,
             produceItems: static (onItemFound, args) => args.@this.FindAssetsAsync(onItemFound, args.cancellationToken),
             consumeItems: static (items, args) => args.@this.WriteBatchToPipeAsync(items, args.cancellationToken),
             args: (@this: this, cancellationToken),
             cancellationToken);
-    }
 
     private Task FindAssetsAsync(Action<ChecksumAndAsset> onItemFound, CancellationToken cancellationToken)
         => _scope.FindAssetsAsync(

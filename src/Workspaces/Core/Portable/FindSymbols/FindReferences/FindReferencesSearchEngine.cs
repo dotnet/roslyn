@@ -76,12 +76,11 @@ internal partial class FindReferencesSearchEngine
     public async Task FindReferencesAsync(
         ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
     {
-        var channel = Channel.CreateUnbounded<Reference>(s_channelOptions);
-
         await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await channel.RunProducerConsumerAsync(
+            await ChannelManager<Reference>.RunProducerConsumerAsync(
+                s_channelOptions,
                 produceItems: static (onItemFound, args) => args.@this.PerformSearchAsync(args.symbols, onItemFound, args.cancellationToken),
                 consumeItems: static async (references, args) => await args.@this._progress.OnReferencesFoundAsync(references, @args.cancellationToken).ConfigureAwait(false),
                 (@this: this, symbols, cancellationToken),

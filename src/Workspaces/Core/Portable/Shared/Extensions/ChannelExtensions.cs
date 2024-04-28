@@ -13,21 +13,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal static class ChannelExtensions
+internal static class ChannelManager<TItem>
 {
     /// <summary>
     /// Version of <see cref="RunProducerConsumerImplAsync"/> when caller the prefers the results being pre-packaged into arrays
     /// to process.
     /// </summary>
-    public static Task RunProducerConsumerAsync<TItem, TArgs>(
-        this Channel<TItem> channel,
+    public static Task RunProducerConsumerAsync<TArgs>(
+        UnboundedChannelOptions channelOptions,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
-            channel,
+            channelOptions,
             static (onItemFound, args) => args.produceItems(onItemFound, args.args),
             static (reader, args) => ConsumeItemsAsArrayAsync(reader, args.consumeItems, args.args, args.cancellationToken),
             (produceItems, consumeItems, args, cancellationToken),
@@ -56,15 +56,15 @@ internal static class ChannelExtensions
     /// <summary>
     /// Version of <see cref="RunProducerConsumerImplAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
-    public static Task RunProducerConsumerAsync<TItem, TArgs>(
-        this Channel<TItem> channel,
+    public static Task RunProducerConsumerAsync<TArgs>(
+        UnboundedChannelOptions channelOptions,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<IAsyncEnumerable<TItem>, TArgs, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
-            channel,
+            channelOptions,
             static (onItemFound, args) => args.produceItems(onItemFound, args.args),
             static (reader, args) => args.consumeItems(reader.ReadAllAsync(args.cancellationToken), args.args),
             (produceItems, consumeItems, args, cancellationToken),
@@ -85,13 +85,15 @@ internal static class ChannelExtensions
     /// </para>
     /// <paramref name="consumeItems"/> is the routine called to consume the items.
     /// </summary>
-    private static async Task RunProducerConsumerImplAsync<TItem, TArgs>(
-        this Channel<TItem> channel,
+    private static async Task RunProducerConsumerImplAsync<TArgs>(
+        UnboundedChannelOptions channelOptions,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<ChannelReader<TItem>, TArgs, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
+        var channel = Channel.CreateUnbounded<TItem>(channelOptions);
+
         // When cancellation happens, attempt to close the channel.  That will unblock the task processing the items.
         // Capture-free version is only available on netcore unfortunately.
         using var _ = cancellationToken.Register(
