@@ -82,8 +82,8 @@ internal partial class FindReferencesSearchEngine
         try
         {
             await channel.RunProducerConsumerAsync(
-                PerformSearchAsync,
-                async references => await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false),
+                produceItemsAsync: PerformSearchAsync,
+                consumeItemsAsync: async references => await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
         }
         finally

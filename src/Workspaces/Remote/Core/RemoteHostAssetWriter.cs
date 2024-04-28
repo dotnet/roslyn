@@ -80,7 +80,7 @@ internal readonly struct RemoteHostAssetWriter(
     private readonly ReadOnlyMemory<Checksum> _checksums = checksums;
     private readonly ISerializerService _serializer = serializer;
 
-    public async ValueTask WriteDataAsync(CancellationToken cancellationToken)
+    public Task WriteDataAsync(CancellationToken cancellationToken)
     {
         // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
         // find items, add them to the channel synchronously, and immediately continue searching for more items.
@@ -88,10 +88,10 @@ internal readonly struct RemoteHostAssetWriter(
         var channel = Channel.CreateUnbounded<ChecksumAndAsset>(s_channelOptions);
 
         var @this = this;
-        await channel.RunProducerConsumerAsync(
-            onItemFound => @this.FindAssetsAsync(onItemFound, cancellationToken),
-            items => @this.WriteBatchToPipeAsync(items, cancellationToken),
-            cancellationToken).ConfigureAwait(false);
+        return channel.RunProducerConsumerAsync(
+            produceItemsAsync: onItemFound => @this.FindAssetsAsync(onItemFound, cancellationToken),
+            consumeItemsAsync: items => @this.WriteBatchToPipeAsync(items, cancellationToken),
+            cancellationToken);
     }
 
     private Task FindAssetsAsync(Action<ChecksumAndAsset> onItemFound, CancellationToken cancellationToken)

@@ -19,30 +19,30 @@ internal static class ChannelExtensions
     /// Version of <see cref="RunProducerConsumerImplAsync"/> when caller the prefers the results being pre-packaged into arrays
     /// to process.
     /// </summary>
-    public static Task RunProducerConsumerAsync<TElement>(
-        this Channel<TElement> channel,
-        Func<Action<TElement>, Task> produceElementsAsync,
-        Func<ImmutableArray<TElement>, Task> consumeElementsAsync,
+    public static Task RunProducerConsumerAsync<TItem>(
+        this Channel<TItem> channel,
+        Func<Action<TItem>, Task> produceItemsAsync,
+        Func<ImmutableArray<TItem>, Task> consumeItemsAsync,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
             channel,
-            produceElementsAsync,
-            ConsumeElementsAsArrayAsync,
+            produceItemsAsync,
+            ConsumeItemsAsArrayAsync,
             cancellationToken);
 
-        async Task ConsumeElementsAsArrayAsync(ChannelReader<TElement> reader)
+        async Task ConsumeItemsAsArrayAsync(ChannelReader<TItem> reader)
         {
-            using var _ = ArrayBuilder<TElement>.GetInstance(out var batch);
+            using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
 
             while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 // Grab as many items as we can from the channel at once and report in a single array. Then wait for the
                 // next set of items to be available.
                 while (channel.Reader.TryRead(out var item))
-                    batch.Add(item);
+                    items.Add(item);
 
-                await consumeElementsAsync(batch.ToImmutableAndClear()).ConfigureAwait(false);
+                await consumeItemsAsync(items.ToImmutableAndClear()).ConfigureAwait(false);
             }
         }
     }
@@ -50,20 +50,20 @@ internal static class ChannelExtensions
     /// <summary>
     /// Version of <see cref="RunProducerConsumerImplAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
-    public static Task RunProducerConsumerAsync<TElement>(
-        this Channel<TElement> channel,
-        Func<Action<TElement>, Task> produceElementsAsync,
-        Func<IAsyncEnumerable<TElement>, Task> consumeElementsAsync,
+    public static Task RunProducerConsumerAsync<TItem>(
+        this Channel<TItem> channel,
+        Func<Action<TItem>, Task> produceItemsAsync,
+        Func<IAsyncEnumerable<TItem>, Task> consumeItemsAsync,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
             channel,
-            produceElementsAsync,
-            ConsumeElementsAsStreamAsync,
+            produceItemsAsync,
+            ConsumeItemsAsStreamAsync,
             cancellationToken);
 
-        Task ConsumeElementsAsStreamAsync(ChannelReader<TElement> reader)
-            => consumeElementsAsync(reader.ReadAllAsync(cancellationToken));
+        Task ConsumeItemsAsStreamAsync(ChannelReader<TItem> reader)
+            => consumeItemsAsync(reader.ReadAllAsync(cancellationToken));
     }
 
     /// <summary>
@@ -72,49 +72,49 @@ internal static class ChannelExtensions
     /// around the routines.  Importantly, it handles backpressure, ensuring that if the consumption routine cannot keep
     /// up, that the production routine will be throttled.
     /// <para>
-    /// <paramref name="produceElementsAsync"/> is the routine
-    /// called to actually produce the elements.  It will be passed an action that can be used to write elements to the
+    /// <paramref name="produceItemsAsync"/> is the routine
+    /// called to actually produce the items.  It will be passed an action that can be used to write items to the
     /// channel.  Note: the channel itself will have rules depending on if that writing can happen concurrently multiple
     /// write threads or just a single writer.  See <see cref="ChannelOptions.SingleWriter"/> for control of this when
     /// creating the channel.
     /// </para>
-    /// <paramref name="consumeElementsAsync"/> is the routine called to consume the elements.
+    /// <paramref name="consumeItemsAsync"/> is the routine called to consume the items.
     /// </summary>
-    private static async Task RunProducerConsumerImplAsync<TElement>(
-        this Channel<TElement> channel,
-        Func<Action<TElement>, Task> produceElementsAsync,
-        Func<ChannelReader<TElement>, Task> consumeElementsAsync,
+    private static async Task RunProducerConsumerImplAsync<TItem>(
+        this Channel<TItem> channel,
+        Func<Action<TItem>, Task> produceItemsAsync,
+        Func<ChannelReader<TItem>, Task> consumeItemsAsync,
         CancellationToken cancellationToken)
     {
-        // When cancellation happens, attempt to close the channel.  That will unblock the task processing the elements.
+        // When cancellation happens, attempt to close the channel.  That will unblock the task processing the items.
         // Capture-free version is only available on netcore unfortunately.
         using var _ = cancellationToken.Register(
 #if NET
-            static (obj, cancellationToken) => ((Channel<TElement>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
+            static (obj, cancellationToken) => ((Channel<TItem>)obj!).Writer.TryComplete(new OperationCanceledException(cancellationToken)),
             state: channel);
 #else
             () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
 #endif
 
         await Task.WhenAll(
-            ProduceElementsAndWriteToChannelAsync(),
-            ReadFromChannelAndConsumeElementsAsync()).ConfigureAwait(false);
+            ProduceItemsAndWriteToChannelAsync(),
+            ReadFromChannelAndConsumeItemsAsync()).ConfigureAwait(false);
 
         return;
 
-        async Task ReadFromChannelAndConsumeElementsAsync()
+        async Task ReadFromChannelAndConsumeItemsAsync()
         {
             await Task.Yield().ConfigureAwait(false);
-            await consumeElementsAsync(channel.Reader).ConfigureAwait(false);
+            await consumeItemsAsync(channel.Reader).ConfigureAwait(false);
         }
 
-        async Task ProduceElementsAndWriteToChannelAsync()
+        async Task ProduceItemsAndWriteToChannelAsync()
         {
             Exception? exception = null;
             try
             {
                 await Task.Yield().ConfigureAwait(false);
-                await produceElementsAsync(item => channel.Writer.TryWrite(item)).ConfigureAwait(false);
+                await produceItemsAsync(item => channel.Writer.TryWrite(item)).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
             {
