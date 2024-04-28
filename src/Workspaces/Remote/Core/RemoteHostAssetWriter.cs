@@ -70,15 +70,7 @@ internal readonly struct RemoteHostAssetWriter(
     private readonly ISerializerService _serializer = serializer;
 
     public Task WriteDataAsync(CancellationToken cancellationToken)
-        // Use the ProducderConsumer<> to communicate between the searching and writing tasks.  This allows the
-        // searching task to find items, add them to the channel synchronously, and immediately continue searching for
-        // more items. Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
         => ProducerConsumer<ChecksumAndAsset>.RunAsync(
-            // We have a single task reading the data from the channel and writing it to the pipe.  This option allows
-            // the producer-consumer to operate in a more efficient manner knowing it won't have to synchronize data for
-            // multiple readers. Currently we only have a single writer writing to the channel when we call
-            // _scope.FindAssetsAsync. However, we could change this in the future to allow the search to happen in
-            // parallel.
             ProducerConsumerOptions.SingleReaderWriterOptions,
             produceItems: static (onItemFound, args) => args.@this.FindAssetsAsync(onItemFound, args.cancellationToken),
             consumeItems: static (items, args) => args.@this.WriteBatchToPipeAsync(items, args.cancellationToken),

@@ -94,8 +94,6 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
-        // Use the ProducerConsumer<> to allow the writing work to write as many items as it can find without blocking.
-        // Concurrently, the reading task will grab items when available, and send them over to the host.
         => ProducerConsumer<RoslynNavigateToItem>.RunAsync(
             ProducerConsumerOptions.SingleReaderOptions,
             produceItems: static (onItemFound, args) => RoslynParallel.ForEachAsync(args.items, args.cancellationToken, (item, cancellationToken) => args.callback(item, onItemFound)),

@@ -16,7 +16,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal readonly record struct ProducerConsumerOptions
 {
+    /// <summary>
+    /// Used when the consumeItems routine will only pull items on a single thread (never concurrently). produceItems
+    /// can be called concurrently on many threads.
+    /// </summary>
     public static readonly ProducerConsumerOptions SingleReaderOptions = new() { SingleReader = true };
+
+    /// <summary>
+    /// Used when the consumeItems routine will only pull items on a single thread (never concurrently). produceItems
+    /// can be called on a single thread as well (never concurrently).
+    /// </summary>
     public static readonly ProducerConsumerOptions SingleReaderWriterOptions = new() { SingleReader = true, SingleWriter = true };
 
     /// <inheritdoc cref="ChannelOptions.SingleWriter"/>
