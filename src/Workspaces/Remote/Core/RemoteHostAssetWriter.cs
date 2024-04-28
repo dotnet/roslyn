@@ -94,10 +94,6 @@ internal readonly struct RemoteHostAssetWriter(
     private Task FindAssetsAsync(Action<ChecksumAndAsset> onItemFound, CancellationToken cancellationToken)
         => _scope.FindAssetsAsync(
             _assetPath, _checksums,
-            // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
-            // channel is only ever completed by us (after FindAssetsAsync completes or throws an exception) or if
-            // the cancellationToken is triggered above in WriteDataAsync. In that latter case, it's ok for writing
-            // to the channel to do nothing as we no longer need to write out those assets to the pipe.
             static (checksum, asset, onItemFound) => onItemFound((checksum, asset)),
             onItemFound, cancellationToken);
 
