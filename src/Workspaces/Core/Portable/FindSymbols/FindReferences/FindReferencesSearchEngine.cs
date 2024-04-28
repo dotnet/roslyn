@@ -128,32 +128,31 @@ internal partial class FindReferencesSearchEngine
             cancellationToken,
             async (tuple, cancellationToken) => await ProcessProjectAsync(
                 tuple.project, tuple.allSymbols, onReferenceFound, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-        return;
+    }
 
-        async IAsyncEnumerable<(Project project, ImmutableArray<ISymbol> allSymbols)> GetProjectsAndSymbolsToSearchAsync(
-            SymbolSet symbolSet,
-            ImmutableArray<Project> projectsToSearch,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<(Project project, ImmutableArray<ISymbol> allSymbols)> GetProjectsAndSymbolsToSearchAsync(
+        SymbolSet symbolSet,
+        ImmutableArray<Project> projectsToSearch,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var dependencyGraph = _solution.GetProjectDependencyGraph();
+        foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
         {
-            var dependencyGraph = _solution.GetProjectDependencyGraph();
-            foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
-            {
-                var currentProject = _solution.GetRequiredProject(projectId);
-                if (!projectsToSearch.Contains(currentProject))
-                    continue;
+            var currentProject = _solution.GetRequiredProject(projectId);
+            if (!projectsToSearch.Contains(currentProject))
+                continue;
 
-                // As we walk each project, attempt to grow the search set appropriately up and down the inheritance
-                // hierarchy and grab a copy of the symbols to be processed.  Note: this has to happen serially
-                // which is why we do it in this loop and not inside the concurrent project processing that happens
-                // below.
-                await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
-                var allSymbols = symbolSet.GetAllSymbols();
+            // As we walk each project, attempt to grow the search set appropriately up and down the inheritance
+            // hierarchy and grab a copy of the symbols to be processed.  Note: this has to happen serially
+            // which is why we do it in this loop and not inside the concurrent project processing that happens
+            // below.
+            await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
+            var allSymbols = symbolSet.GetAllSymbols();
 
-                // Report any new symbols we've cascaded to to our caller.
-                await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+            // Report any new symbols we've cascaded to to our caller.
+            await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-                yield return (currentProject, allSymbols);
-            }
+            yield return (currentProject, allSymbols);
         }
     }
 
