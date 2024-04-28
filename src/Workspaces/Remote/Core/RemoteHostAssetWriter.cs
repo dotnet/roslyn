@@ -84,7 +84,7 @@ internal readonly struct RemoteHostAssetWriter(
         // Create a channel to communicate between the searching and writing tasks.  This allows the searching task to
         // find items, add them to the channel synchronously, and immediately continue searching for more items.
         // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
-        => ChannelManager<ChecksumAndAsset>.RunProducerConsumerAsync(
+        => ProducerConsumer<ChecksumAndAsset>.RunUnboundedAsync(
             s_channelOptions,
             produceItems: static (onItemFound, args) => args.@this.FindAssetsAsync(onItemFound, args.cancellationToken),
             consumeItems: static (items, args) => args.@this.WriteBatchToPipeAsync(items, args.cancellationToken),

@@ -79,7 +79,7 @@ internal partial class FindReferencesSearchEngine
         await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await ChannelManager<Reference>.RunProducerConsumerAsync(
+            await ProducerConsumer<Reference>.RunUnboundedAsync(
                 s_channelOptions,
                 produceItems: static (onItemFound, args) => args.@this.PerformSearchAsync(args.symbols, onItemFound, args.cancellationToken),
                 consumeItems: static async (references, args) => await args.@this._progress.OnReferencesFoundAsync(references, @args.cancellationToken).ConfigureAwait(false),

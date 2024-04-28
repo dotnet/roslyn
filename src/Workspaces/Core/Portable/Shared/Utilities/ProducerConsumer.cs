@@ -14,13 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal static class ChannelManager<TItem>
+internal static class ProducerConsumer<TItem>
 {
     /// <summary>
     /// Version of <see cref="RunProducerConsumerImplAsync"/> when caller the prefers the results being pre-packaged into arrays
     /// to process.
     /// </summary>
-    public static Task RunProducerConsumerAsync<TArgs>(
+    public static Task RunUnboundedAsync<TArgs>(
         UnboundedChannelOptions channelOptions,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
@@ -57,7 +57,7 @@ internal static class ChannelManager<TItem>
     /// <summary>
     /// Version of <see cref="RunProducerConsumerImplAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
-    public static Task RunProducerConsumerAsync<TArgs>(
+    public static Task RunUnboundedAsync<TArgs>(
         UnboundedChannelOptions channelOptions,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<IAsyncEnumerable<TItem>, TArgs, Task> consumeItems,
