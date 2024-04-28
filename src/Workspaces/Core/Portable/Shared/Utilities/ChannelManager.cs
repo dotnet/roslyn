@@ -9,9 +9,10 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions;
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal static class ChannelManager<TItem>
 {
