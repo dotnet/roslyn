@@ -50,18 +50,21 @@ internal partial class SolutionCompilationState
             _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
         }
 
-        public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+        public bool ContainsAssemblyOrModuleOrDynamic(
+            ISymbol symbol, bool primary,
+            [NotNullWhen(true)] out Compilation? compilation,
+            out MetadataReferenceInfo? referencedThrough)
         {
             if (_compilationWithReplacements == null)
             {
                 // We don't have a compilation yet, so this couldn't have came from us
+                compilation = null;
                 referencedThrough = null;
                 return false;
             }
-            else
-            {
-                return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
-            }
+
+            return RootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(
+                symbol, primary, out compilation, out referencedThrough);
         }
 
         public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)

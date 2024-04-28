@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -75,7 +76,7 @@ internal abstract partial class AbstractNavigateToSearchService
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-            await ParallelForEachAsync(
+            await RoslynParallel.ForEachAsync(
                 sourceGeneratedDocs,
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(

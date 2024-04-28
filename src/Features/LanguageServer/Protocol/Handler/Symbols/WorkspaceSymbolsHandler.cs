@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(context.Solution);
+                var solution = context.Solution;
 
                 foreach (var result in results)
                 {
-                    var solution = context.Solution;
                     var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
 
                     var location = await ProtocolConversions.TextSpanToLocationAsync(

@@ -51,9 +51,6 @@ internal class StreamingProgressCollector(
     public ValueTask OnStartedAsync(CancellationToken cancellationToken) => underlyingProgress.OnStartedAsync(cancellationToken);
     public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => underlyingProgress.OnCompletedAsync(cancellationToken);
 
-    public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => underlyingProgress.OnFindInDocumentCompletedAsync(document, cancellationToken);
-    public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => underlyingProgress.OnFindInDocumentStartedAsync(document, cancellationToken);
-
     public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
     {
         try
@@ -72,13 +69,15 @@ internal class StreamingProgressCollector(
         }
     }
 
-    public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
+    public ValueTask OnReferencesFoundAsync(
+        ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
         lock (_gate)
         {
-            _symbolToLocations[definition].Add(location);
+            foreach (var (_, definition, location) in references)
+                _symbolToLocations[definition].Add(location);
         }
 
-        return underlyingProgress.OnReferenceFoundAsync(group, definition, location, cancellationToken);
+        return underlyingProgress.OnReferencesFoundAsync(references, cancellationToken);
     }
 }

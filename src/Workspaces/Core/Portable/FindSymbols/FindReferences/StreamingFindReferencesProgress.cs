@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -37,18 +38,6 @@ internal class StreamingFindReferencesProgressAdapter : IStreamingFindReferences
         return default;
     }
 
-    public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken)
-    {
-        _progress.OnFindInDocumentCompleted(document);
-        return default;
-    }
-
-    public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)
-    {
-        _progress.OnFindInDocumentStarted(document);
-        return default;
-    }
-
     public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
     {
         try
@@ -64,9 +53,11 @@ internal class StreamingFindReferencesProgressAdapter : IStreamingFindReferences
         }
     }
 
-    public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
+    public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
-        _progress.OnReferenceFound(symbol, location);
+        foreach (var (_, symbol, location) in references)
+            _progress.OnReferenceFound(symbol, location);
+
         return default;
     }
 

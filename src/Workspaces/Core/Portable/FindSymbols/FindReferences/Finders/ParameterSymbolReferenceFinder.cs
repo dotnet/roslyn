@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -46,7 +47,8 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        return FindReferencesInDocumentUsingIdentifierAsync(symbol, symbol.Name, state, processResult, processResultData, cancellationToken);
+        FindReferencesInDocumentUsingIdentifier(symbol, symbol.Name, state, processResult, processResultData, cancellationToken);
+        return ValueTaskFactory.CompletedTask;
     }
 
     protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(

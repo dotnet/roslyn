@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
@@ -136,10 +136,8 @@ internal abstract partial class AbstractNavigateToSearchService
             var project = group.Key;
 
             // Break the project into high-pri docs and low pri docs, and process in that order.
-            var highPriDocs = group.Where(priorityDocumentKeysSet.Contains);
-            var lowPriDocs = group.Where(d => !highPriDocs.Contains(d));
-            await ParallelForEachAsync(
-                highPriDocs.Concat(lowPriDocs),
+            await RoslynParallel.ForEachAsync(
+                Prioritize(group, priorityDocumentKeysSet.Contains),
                 cancellationToken,
                 async (documentKey, cancellationToken) =>
                 {
