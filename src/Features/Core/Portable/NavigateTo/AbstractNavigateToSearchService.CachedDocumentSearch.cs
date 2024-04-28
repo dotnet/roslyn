@@ -127,8 +127,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         async ValueTask ProcessSingleProjectGroupAsync(
             IGrouping<ProjectKey, DocumentKey> group,
-            Action<RoslynNavigateToItem> onItemFound,
-            CancellationToken cancellationToken)
+            Action<RoslynNavigateToItem> onItemFound)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;

@@ -127,8 +127,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         async ValueTask SearchSingleProjectAsync(
             Project project,
-            Action<RoslynNavigateToItem> onItemFound,
-            CancellationToken cancellationToken)
+            Action<RoslynNavigateToItem> onItemFound)
         {
             using var _ = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
 

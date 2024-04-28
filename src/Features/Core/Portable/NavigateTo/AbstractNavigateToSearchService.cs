@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -16,8 +15,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 
 internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavigateToSearchService
 {
-    private static readonly UnboundedChannelOptions s_channelOptions = new() { SingleReader = true };
-
     public static readonly IImmutableSet<string> AllKinds = [
         NavigateToItemKind.Class,
         NavigateToItemKind.Constant,
@@ -91,57 +88,15 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
     /// <code>Parallel.ForEachAsync</code>, allowing for parallel processing of the items, with a preference towards
     /// earlier items.
     /// </summary>
-    private static async Task PerformParallelSearchAsync<T>(
+    private static Task PerformParallelSearchAsync<T>(
         IEnumerable<T> items,
-        Func<T, Action<RoslynNavigateToItem>, CancellationToken, ValueTask> callback,
+        Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
-    {
-        // Use an unbounded channel to allow the writing work to write as many items as it can find without blocking.
-        // Concurrently, the reading task will grab items when available, and send them over to the host.
-        var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
-
-        await Task.WhenAll(
-            FindAllItemsAndWriteToChannelAsync(),
-            ReadItemsFromChannelAndReportToCallbackAsync()).ConfigureAwait(false);
-
-        async Task ReadItemsFromChannelAndReportToCallbackAsync()
-        {
-            await Task.Yield().ConfigureAwait(false);
-            using var _ = ArrayBuilder<RoslynNavigateToItem>.GetInstance(out var items);
-
-            while (await channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // Grab as many items as we can from the channel at once and report in a batch.
-                while (channel.Reader.TryRead(out var item))
-                    items.Add(item);
-
-                await onItemsFound(items.ToImmutableAndClear()).ConfigureAwait(false);
-            }
-        }
-
-        async Task FindAllItemsAndWriteToChannelAsync()
-        {
-            Exception? exception = null;
-            try
-            {
-                await Task.Yield().ConfigureAwait(false);
-                await PerformSearchAsync(item => channel.Writer.TryWrite(item)).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                // No matter what path we take (exceptional or non-exceptional), always complete the channel so the
-                // writing task knows it's done.
-                channel.Writer.TryComplete(exception);
-            }
-        }
-
-        Task PerformSearchAsync(Action<RoslynNavigateToItem> onItemFound)
-            => RoslynParallel.ForEachAsync(
-                items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound, cancellationToken));
-    }
+        => ProducerConsumer<RoslynNavigateToItem>.RunAsync(
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems: static (onItemFound, args) => RoslynParallel.ForEachAsync(args.items, args.cancellationToken, (item, cancellationToken) => args.callback(item, onItemFound)),
+            consumeItems: static (items, args) => args.onItemsFound(items),
+            args: (items, callback, onItemsFound, cancellationToken),
+            cancellationToken);
 }
