@@ -21,8 +21,8 @@ internal static class ChannelExtensions
     /// </summary>
     public static Task RunProducerConsumerAsync<TElement>(
         this Channel<TElement> channel,
-        Func<Action<TElement>, ValueTask> produceElementsAsync,
-        Func<ImmutableArray<TElement>, ValueTask> consumeElementsAsync,
+        Func<Action<TElement>, Task> produceElementsAsync,
+        Func<ImmutableArray<TElement>, Task> consumeElementsAsync,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
@@ -31,7 +31,7 @@ internal static class ChannelExtensions
             ConsumeElementsAsArrayAsync,
             cancellationToken);
 
-        async ValueTask ConsumeElementsAsArrayAsync(ChannelReader<TElement> reader)
+        async Task ConsumeElementsAsArrayAsync(ChannelReader<TElement> reader)
         {
             using var _ = ArrayBuilder<TElement>.GetInstance(out var batch);
 
@@ -52,8 +52,8 @@ internal static class ChannelExtensions
     /// </summary>
     public static Task RunProducerConsumerAsync<TElement>(
         this Channel<TElement> channel,
-        Func<Action<TElement>, ValueTask> produceElementsAsync,
-        Func<IAsyncEnumerable<TElement>, ValueTask> consumeElementsAsync,
+        Func<Action<TElement>, Task> produceElementsAsync,
+        Func<IAsyncEnumerable<TElement>, Task> consumeElementsAsync,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
@@ -62,7 +62,7 @@ internal static class ChannelExtensions
             ConsumeElementsAsStreamAsync,
             cancellationToken);
 
-        ValueTask ConsumeElementsAsStreamAsync(ChannelReader<TElement> reader)
+        Task ConsumeElementsAsStreamAsync(ChannelReader<TElement> reader)
             => consumeElementsAsync(reader.ReadAllAsync(cancellationToken));
     }
 
@@ -82,8 +82,8 @@ internal static class ChannelExtensions
     /// </summary>
     private static async Task RunProducerConsumerImplAsync<TElement>(
         this Channel<TElement> channel,
-        Func<Action<TElement>, ValueTask> produceElementsAsync,
-        Func<ChannelReader<TElement>, ValueTask> consumeElementsAsync,
+        Func<Action<TElement>, Task> produceElementsAsync,
+        Func<ChannelReader<TElement>, Task> consumeElementsAsync,
         CancellationToken cancellationToken)
     {
         // When cancellation happens, attempt to close the channel.  That will unblock the task processing the elements.

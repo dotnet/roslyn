@@ -37,7 +37,7 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> GetOnItemsFoundCallback(
+    private static Func<ImmutableArray<RoslynNavigateToItem>, Task> GetOnItemsFoundCallback(
         Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
     {
         return async items =>
@@ -95,7 +95,7 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
     private static async Task PerformParallelSearchAsync<T>(
         IEnumerable<T> items,
         Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
-        Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
         // Use an unbounded channel to allow the writing work to write as many items as it can find without blocking.
@@ -109,8 +109,8 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
         return;
 
-        async ValueTask PerformSearchAsync(Action<RoslynNavigateToItem> onItemFound)
-            => await RoslynParallel.ForEachAsync(
-                items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound)).ConfigureAwait(false);
+        Task PerformSearchAsync(Action<RoslynNavigateToItem> onItemFound)
+            => RoslynParallel.ForEachAsync(
+                items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound));
     }
 }

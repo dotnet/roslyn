@@ -47,7 +47,7 @@ internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : Remote
 }
 
 internal sealed class NavigateToSearchServiceCallback(
-    Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> onItemsFound,
+    Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
     Func<Task>? onProjectCompleted)
 {
     public async ValueTask OnItemsFoundAsync(ImmutableArray<RoslynNavigateToItem> items)

@@ -101,7 +101,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<DocumentKey> priorityDocumentKeys,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {

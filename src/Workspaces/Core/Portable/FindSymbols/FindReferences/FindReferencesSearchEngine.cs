@@ -83,7 +83,7 @@ internal partial class FindReferencesSearchEngine
         {
             await channel.RunProducerConsumerAsync(
                 PerformSearchAsync,
-                references => _progress.OnReferencesFoundAsync(references, cancellationToken),
+                async references => await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
         }
         finally
@@ -93,7 +93,7 @@ internal partial class FindReferencesSearchEngine
 
         return;
 
-        async ValueTask PerformSearchAsync(Action<Reference> onReferenceFound)
+        async Task PerformSearchAsync(Action<Reference> onReferenceFound)
         {
             var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
             unifiedSymbols.AddRange(symbols);

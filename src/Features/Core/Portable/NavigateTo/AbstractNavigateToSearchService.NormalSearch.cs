@@ -45,7 +45,7 @@ internal abstract partial class AbstractNavigateToSearchService
     }
 
     public static async Task SearchDocumentInCurrentProcessAsync(
-        Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> onItemsFound, CancellationToken cancellationToken)
+        Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
     {
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
@@ -105,7 +105,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, ValueTask> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
