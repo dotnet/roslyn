@@ -103,8 +103,9 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
         return channel.RunProducerConsumerAsync(
-            produceItemsAsync: onItemFound => RoslynParallel.ForEachAsync(items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound)),
-            consumeItemsAsync: onItemsFound,
+            produceItems: static (onItemFound, args) => RoslynParallel.ForEachAsync(args.items, args.cancellationToken, (item, cancellationToken) => args.callback(item, onItemFound)),
+            consumeItems: static (items, args) => args.onItemsFound(items),
+            args: (items, callback, onItemsFound, cancellationToken),
             cancellationToken);
     }
 }

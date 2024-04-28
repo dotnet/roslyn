@@ -87,10 +87,10 @@ internal readonly struct RemoteHostAssetWriter(
         // Concurrently, the writing task can read from the channel and write the items to the pipe-writer.
         var channel = Channel.CreateUnbounded<ChecksumAndAsset>(s_channelOptions);
 
-        var @this = this;
         return channel.RunProducerConsumerAsync(
-            produceItemsAsync: onItemFound => @this.FindAssetsAsync(onItemFound, cancellationToken),
-            consumeItemsAsync: items => @this.WriteBatchToPipeAsync(items, cancellationToken),
+            produceItems: static (onItemFound, args) => args.@this.FindAssetsAsync(onItemFound, args.cancellationToken),
+            consumeItems: static (items, args) => args.@this.WriteBatchToPipeAsync(items, args.cancellationToken),
+            args: (@this: this, cancellationToken),
             cancellationToken);
     }
 

@@ -19,19 +19,25 @@ internal static class ChannelExtensions
     /// Version of <see cref="RunProducerConsumerImplAsync"/> when caller the prefers the results being pre-packaged into arrays
     /// to process.
     /// </summary>
-    public static Task RunProducerConsumerAsync<TItem>(
+    public static Task RunProducerConsumerAsync<TItem, TArgs>(
         this Channel<TItem> channel,
-        Func<Action<TItem>, Task> produceItemsAsync,
-        Func<ImmutableArray<TItem>, Task> consumeItemsAsync,
+        Func<Action<TItem>, TArgs, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
+        TArgs args,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
             channel,
-            produceItemsAsync,
-            ConsumeItemsAsArrayAsync,
+            static (onItemFound, args) => args.produceItems(onItemFound, args.args),
+            static (reader, args) => ConsumeItemsAsArrayAsync(reader, args.consumeItems, args.args, args.cancellationToken),
+            (produceItems, consumeItems, args, cancellationToken),
             cancellationToken);
 
-        async Task ConsumeItemsAsArrayAsync(ChannelReader<TItem> reader)
+        static async Task ConsumeItemsAsArrayAsync(
+            ChannelReader<TItem> reader,
+            Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
+            TArgs args,
+            CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
 
@@ -39,10 +45,10 @@ internal static class ChannelExtensions
             {
                 // Grab as many items as we can from the channel at once and report in a single array. Then wait for the
                 // next set of items to be available.
-                while (channel.Reader.TryRead(out var item))
+                while (reader.TryRead(out var item))
                     items.Add(item);
 
-                await consumeItemsAsync(items.ToImmutableAndClear()).ConfigureAwait(false);
+                await consumeItems(items.ToImmutableAndClear(), args).ConfigureAwait(false);
             }
         }
     }
@@ -50,16 +56,18 @@ internal static class ChannelExtensions
     /// <summary>
     /// Version of <see cref="RunProducerConsumerImplAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
-    public static Task RunProducerConsumerAsync<TItem>(
+    public static Task RunProducerConsumerAsync<TItem, TArgs>(
         this Channel<TItem> channel,
-        Func<Action<TItem>, Task> produceItemsAsync,
-        Func<IAsyncEnumerable<TItem>, Task> consumeItemsAsync,
+        Func<Action<TItem>, TArgs, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, Task> consumeItems,
+        TArgs args,
         CancellationToken cancellationToken)
     {
         return RunProducerConsumerImplAsync(
             channel,
-            produceItemsAsync,
-            reader => consumeItemsAsync(reader.ReadAllAsync(cancellationToken)),
+            static (onItemFound, args) => args.produceItems(onItemFound, args.args),
+            static (reader, args) => args.consumeItems(reader.ReadAllAsync(args.cancellationToken), args.args),
+            (produceItems, consumeItems, args, cancellationToken),
             cancellationToken);
     }
 
@@ -69,18 +77,19 @@ internal static class ChannelExtensions
     /// around the routines.  Importantly, it handles backpressure, ensuring that if the consumption routine cannot keep
     /// up, that the production routine will be throttled.
     /// <para>
-    /// <paramref name="produceItemsAsync"/> is the routine
+    /// <paramref name="produceItems"/> is the routine
     /// called to actually produce the items.  It will be passed an action that can be used to write items to the
     /// channel.  Note: the channel itself will have rules depending on if that writing can happen concurrently multiple
     /// write threads or just a single writer.  See <see cref="ChannelOptions.SingleWriter"/> for control of this when
     /// creating the channel.
     /// </para>
-    /// <paramref name="consumeItemsAsync"/> is the routine called to consume the items.
+    /// <paramref name="consumeItems"/> is the routine called to consume the items.
     /// </summary>
-    private static async Task RunProducerConsumerImplAsync<TItem>(
+    private static async Task RunProducerConsumerImplAsync<TItem, TArgs>(
         this Channel<TItem> channel,
-        Func<Action<TItem>, Task> produceItemsAsync,
-        Func<ChannelReader<TItem>, Task> consumeItemsAsync,
+        Func<Action<TItem>, TArgs, Task> produceItems,
+        Func<ChannelReader<TItem>, TArgs, Task> consumeItems,
+        TArgs args,
         CancellationToken cancellationToken)
     {
         // When cancellation happens, attempt to close the channel.  That will unblock the task processing the items.
@@ -102,7 +111,7 @@ internal static class ChannelExtensions
         async Task ReadFromChannelAndConsumeItemsAsync()
         {
             await Task.Yield().ConfigureAwait(false);
-            await consumeItemsAsync(channel.Reader).ConfigureAwait(false);
+            await consumeItems(channel.Reader, args).ConfigureAwait(false);
         }
 
         async Task ProduceItemsAndWriteToChannelAsync()
@@ -111,7 +120,7 @@ internal static class ChannelExtensions
             try
             {
                 await Task.Yield().ConfigureAwait(false);
-                await produceItemsAsync(item => channel.Writer.TryWrite(item)).ConfigureAwait(false);
+                await produceItems(item => channel.Writer.TryWrite(item), args).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
             {

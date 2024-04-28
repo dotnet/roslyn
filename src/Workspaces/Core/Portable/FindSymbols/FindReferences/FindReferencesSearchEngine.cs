@@ -82,8 +82,9 @@ internal partial class FindReferencesSearchEngine
         try
         {
             await channel.RunProducerConsumerAsync(
-                produceItemsAsync: PerformSearchAsync,
-                consumeItemsAsync: async references => await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false),
+                produceItems: static (onItemFound, args) => args.@this.PerformSearchAsync(args.symbols, onItemFound, args.cancellationToken),
+                consumeItems: static async (references, args) => await args.@this._progress.OnReferencesFoundAsync(references, @args.cancellationToken).ConfigureAwait(false),
+                (@this: this, symbols, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
         finally
@@ -92,42 +93,44 @@ internal partial class FindReferencesSearchEngine
         }
 
         return;
+    }
 
-        async Task PerformSearchAsync(Action<Reference> onReferenceFound)
-        {
-            var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
-            unifiedSymbols.AddRange(symbols);
+    private async Task PerformSearchAsync(
+        ImmutableArray<ISymbol> symbols, Action<Reference> onReferenceFound, CancellationToken cancellationToken)
+    {
+        var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
+        unifiedSymbols.AddRange(symbols);
 
-            var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
-            await using var _ = disposable.ConfigureAwait(false);
+        var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposable.ConfigureAwait(false);
 
-            // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
-            // we'll expand this set as we discover new symbols to search for in each project.
-            var symbolSet = await SymbolSet.CreateAsync(
-                this, unifiedSymbols, includeImplementationsThroughDerivedTypes: true, cancellationToken).ConfigureAwait(false);
+        // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
+        // we'll expand this set as we discover new symbols to search for in each project.
+        var symbolSet = await SymbolSet.CreateAsync(
+            this, unifiedSymbols, includeImplementationsThroughDerivedTypes: true, cancellationToken).ConfigureAwait(false);
 
-            // Report the initial set of symbols to the caller.
-            var allSymbols = symbolSet.GetAllSymbols();
-            await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+        // Report the initial set of symbols to the caller.
+        var allSymbols = symbolSet.GetAllSymbols();
+        await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-            // Determine the set of projects we actually have to walk to find results in.  If the caller provided a
-            // set of documents to search, we only bother with those.
-            var projectsToSearch = await GetProjectsToSearchAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+        // Determine the set of projects we actually have to walk to find results in.  If the caller provided a
+        // set of documents to search, we only bother with those.
+        var projectsToSearch = await GetProjectsToSearchAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-            // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
-            // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,
-            // while we're processing each project linearly to update the symbol set we're searching for, we still
-            // then process the projects in parallel once we know the set of symbols we're searching for in that
-            // project.
-            await _progressTracker.AddItemsAsync(projectsToSearch.Length, cancellationToken).ConfigureAwait(false);
+        // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
+        // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,
+        // while we're processing each project linearly to update the symbol set we're searching for, we still
+        // then process the projects in parallel once we know the set of symbols we're searching for in that
+        // project.
+        await _progressTracker.AddItemsAsync(projectsToSearch.Length, cancellationToken).ConfigureAwait(false);
 
-            // Pull off and start searching each project as soon as we can once we've done the inheritance cascade into it.
-            await RoslynParallel.ForEachAsync(
-                GetProjectsAndSymbolsToSearchAsync(symbolSet, projectsToSearch, cancellationToken),
-                cancellationToken,
-                async (tuple, cancellationToken) => await ProcessProjectAsync(
-                    tuple.project, tuple.allSymbols, onReferenceFound, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-        }
+        // Pull off and start searching each project as soon as we can once we've done the inheritance cascade into it.
+        await RoslynParallel.ForEachAsync(
+            GetProjectsAndSymbolsToSearchAsync(symbolSet, projectsToSearch, cancellationToken),
+            cancellationToken,
+            async (tuple, cancellationToken) => await ProcessProjectAsync(
+                tuple.project, tuple.allSymbols, onReferenceFound, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+        return;
 
         async IAsyncEnumerable<(Project project, ImmutableArray<ISymbol> allSymbols)> GetProjectsAndSymbolsToSearchAsync(
             SymbolSet symbolSet,
