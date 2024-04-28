@@ -34,7 +34,7 @@ internal partial class SolutionCompilationState
     /// </param>
     internal sealed record class OriginatingProjectInfo(
         ProjectId ProjectId,
-        Compilation Compilation,
+        Compilation? Compilation,
         MetadataReferenceInfo? ReferencedThrough);
 
     /// <summary>
