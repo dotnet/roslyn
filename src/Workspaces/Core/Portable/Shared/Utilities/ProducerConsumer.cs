@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 internal static class ProducerConsumer<TItem>
 {
     /// <summary>
-    /// Version of <see cref="RunProducerConsumerImplAsync"/> when caller the prefers the results being pre-packaged into arrays
-    /// to process.
+    /// Version of <see cref="RunAsync"/> when caller the prefers the results being pre-packaged into arrays to process.
     /// </summary>
     public static Task RunUnboundedAsync<TArgs>(
         UnboundedChannelOptions channelOptions,
@@ -27,7 +26,7 @@ internal static class ProducerConsumer<TItem>
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunProducerConsumerImplAsync(
+        return RunAsync(
             channelOptions,
             static (onItemFound, args) => args.produceItems(onItemFound, args.args),
             static (reader, args) => ConsumeItemsAsArrayAsync(reader, args.consumeItems, args.args, args.cancellationToken),
@@ -55,7 +54,7 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// Version of <see cref="RunProducerConsumerImplAsync"/> when the caller prefers working with a stream of results.
+    /// Version of <see cref="RunAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
     public static Task RunUnboundedAsync<TArgs>(
         UnboundedChannelOptions channelOptions,
@@ -64,7 +63,7 @@ internal static class ProducerConsumer<TItem>
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunProducerConsumerImplAsync(
+        return RunAsync(
             channelOptions,
             static (onItemFound, args) => args.produceItems(onItemFound, args.args),
             static (reader, args) => args.consumeItems(reader.ReadAllAsync(args.cancellationToken), args.args),
@@ -86,7 +85,7 @@ internal static class ProducerConsumer<TItem>
     /// </para>
     /// <paramref name="consumeItems"/> is the routine called to consume the items.
     /// </summary>
-    private static async Task RunProducerConsumerImplAsync<TArgs>(
+    private static async Task RunAsync<TArgs>(
         UnboundedChannelOptions channelOptions,
         Func<Action<TItem>, TArgs, Task> produceItems,
         Func<ChannelReader<TItem>, TArgs, Task> consumeItems,
@@ -123,6 +122,11 @@ internal static class ProducerConsumer<TItem>
             try
             {
                 await Task.Yield().ConfigureAwait(false);
+
+                // It's ok to use TryWrite here.  TryWrite always succeeds unless the channel is completed. And the
+                // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
+                // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
+                // channel to do nothing as we no longer need to write out those assets to the pipe.
                 await produceItems(item => channel.Writer.TryWrite(item), args).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
