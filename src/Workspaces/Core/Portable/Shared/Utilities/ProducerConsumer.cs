@@ -73,10 +73,10 @@ internal static class ProducerConsumer<TItem>
 
     /// <summary>
     /// Helper utility for the pattern of a pair of a production routine and consumption routine using a channel to
-    /// coordinate data transfer.  The channel options are provided by the caller.  Those options will be used to create
-    /// a <see cref="Channel{T}"/>, which will then then manage the rules and behaviors around the routines.
-    /// Importantly, it handles backpressure, ensuring that if the consumption routine cannot keep up, that the
-    /// production routine will be throttled.
+    /// coordinate data transfer.  The provided <paramref name="channelOptions"/> are used to create a <see
+    /// cref="Channel{T}"/>, which will then then manage the rules and behaviors around the routines. Importantly, the
+    /// channel handles backpressure, ensuring that if the consumption routine cannot keep up, that the production
+    /// routine will be throttled.
     /// <para>
     /// <paramref name="produceItems"/> is the routine
     /// called to actually produce the items.  It will be passed an action that can be used to write items to the
