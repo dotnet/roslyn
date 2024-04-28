@@ -81,7 +81,7 @@ internal partial class FindReferencesSearchEngine
         await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await channel.BatchProcessAsync(
+            await channel.RunProducerConsumerAsync(
                 PerformSearchAsync,
                 _progress.OnReferencesFoundAsync,
                 cancellationToken).ConfigureAwait(false);

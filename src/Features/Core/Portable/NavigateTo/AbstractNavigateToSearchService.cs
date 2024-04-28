@@ -102,7 +102,7 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         // Concurrently, the reading task will grab items when available, and send them over to the host.
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
-        await channel.BatchProcessAsync(
+        await channel.RunProducerConsumerAsync(
             PerformSearchAsync,
             onItemsFound,
             cancellationToken).ConfigureAwait(false);
