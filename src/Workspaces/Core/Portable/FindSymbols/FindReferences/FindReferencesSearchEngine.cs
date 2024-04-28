@@ -245,11 +245,8 @@ internal partial class FindReferencesSearchEngine
             await RoslynParallel.ForEachAsync(
                 documentToSymbols,
                 cancellationToken,
-                async (kvp, cancellationToken) =>
-                {
-                    var (document, docSymbols) = kvp;
-                    await ProcessDocumentAsync(document, docSymbols, symbolToGlobalAliases, onReferenceFound, cancellationToken).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                (kvp, cancellationToken) =>
+                    ProcessDocumentAsync(kvp.Key, kvp.Value, symbolToGlobalAliases, onReferenceFound, cancellationToken)).ConfigureAwait(false);
         }
         finally
         {
@@ -279,7 +276,7 @@ internal partial class FindReferencesSearchEngine
     private static PooledHashSet<U>? TryGet<T, U>(Dictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
         => dictionary.TryGetValue(key, out var set) ? set : null;
 
-    private async Task ProcessDocumentAsync(
+    private async ValueTask ProcessDocumentAsync(
         Document document,
         MetadataUnifyingSymbolHashSet symbols,
         Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
@@ -340,7 +337,7 @@ internal partial class FindReferencesSearchEngine
                 {
                     await finder.FindReferencesInDocumentAsync(
                         symbol, state,
-                        (loc, tuple) => tuple.onReferenceFound((tuple.group, tuple.symbol, loc.Location)),
+                        static (loc, tuple) => tuple.onReferenceFound((tuple.group, tuple.symbol, loc.Location)),
                         (group, symbol, onReferenceFound),
                         _options,
                         cancellationToken).ConfigureAwait(false);
