@@ -375,7 +375,6 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        var document = state.Document;
         var syntaxTreeInfo = state.Cache.SyntaxTreeIndex;
         if (isRelevantDocument(syntaxTreeInfo))
         {
