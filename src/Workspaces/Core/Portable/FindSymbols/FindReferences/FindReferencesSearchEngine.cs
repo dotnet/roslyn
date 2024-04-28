@@ -91,8 +91,6 @@ internal partial class FindReferencesSearchEngine
         {
             await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
         }
-
-        return;
     }
 
     private async Task PerformSearchAsync(
