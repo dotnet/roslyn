@@ -59,11 +59,8 @@ internal static class ChannelExtensions
         return RunProducerConsumerImplAsync(
             channel,
             produceItemsAsync,
-            ConsumeItemsAsStreamAsync,
+            reader => consumeItemsAsync(reader.ReadAllAsync(cancellationToken)),
             cancellationToken);
-
-        Task ConsumeItemsAsStreamAsync(ChannelReader<TItem> reader)
-            => consumeItemsAsync(reader.ReadAllAsync(cancellationToken));
     }
 
     /// <summary>
