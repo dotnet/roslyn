@@ -132,7 +132,7 @@ internal partial class SolutionCompilationState
                     while (index < secondarySymbols.Length && secondarySymbols[index].hashCode == symbolHash)
                     {
                         var cached = secondarySymbols[index];
-                        if (cached.symbol == symbol)
+                        if (Equals(cached.symbol, symbol))
                         {
                             referencedThrough = cached.referenceInfo;
                             compilation = this.Compilation;
