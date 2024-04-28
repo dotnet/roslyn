@@ -78,13 +78,13 @@ internal static class ProducerConsumer<TItem>
     /// channel handles backpressure, ensuring that if the consumption routine cannot keep up, that the production
     /// routine will be throttled.
     /// <para>
-    /// <paramref name="produceItems"/> is the routine
-    /// called to actually produce the items.  It will be passed an action that can be used to write items to the
-    /// channel.  Note: the channel itself will have rules depending on if that writing can happen concurrently multiple
-    /// write threads or just a single writer.  See <see cref="ChannelOptions.SingleWriter"/> for control of this when
-    /// creating the channel.
+    /// <paramref name="produceItems"/> is the routine called to actually produce the items.  It will be passed an
+    /// action that can be used to write items to the channel.  Note: the channel itself will have rules depending on if
+    /// that writing can happen concurrently multiple write threads or just a single writer.  See <see
+    /// cref="ChannelOptions.SingleWriter"/> for control of this when creating the channel.
     /// </para>
-    /// <paramref name="consumeItems"/> is the routine called to consume the items.
+    /// <paramref name="consumeItems"/> is the routine called to consume the items.  Similarly, reading can have just a
+    /// single reader or multiple readers, depending on the value passed into <see cref="ChannelOptions.SingleReader"/>.
     /// </summary>
     private static async Task RunAsync<TArgs>(
         UnboundedChannelOptions channelOptions,
