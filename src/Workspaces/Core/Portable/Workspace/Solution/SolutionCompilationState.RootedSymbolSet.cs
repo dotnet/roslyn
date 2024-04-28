@@ -95,13 +95,12 @@ internal partial class SolutionCompilationState
             [NotNullWhen(true)] out Compilation? compilation,
             out MetadataReferenceInfo? referencedThrough)
         {
-            referencedThrough = null;
-
             if (primary)
             {
                 if (this.Compilation.Assembly.Equals(symbol))
                 {
                     compilation = this.Compilation;
+                    referencedThrough = null;
                     return true;
                 }
 
@@ -109,43 +108,44 @@ internal partial class SolutionCompilationState
                     this.Compilation.DynamicType.Equals(symbol))
                 {
                     compilation = this.Compilation;
+                    referencedThrough = null;
                     return true;
                 }
             }
-
-            var secondarySymbols = this.SecondaryReferencedSymbols;
-
-            var symbolHash = ReferenceEqualityComparer.GetHashCode(symbol);
-
-            // The secondary symbol array is sorted by the symbols' hash codes.  So do a binary search to find
-            // the location we should start looking at.
-            var index = secondarySymbols.BinarySearch(symbolHash, static (item, symbolHash) => item.hashCode.CompareTo(symbolHash));
-            if (index < 0)
+            else
             {
-                compilation = null;
-                return false;
-            }
+                var secondarySymbols = this.SecondaryReferencedSymbols;
 
-            // Could have multiple symbols with the same hash.  They will all be placed next to each other,
-            // so walk backward to hit the first.
-            while (index > 0 && secondarySymbols[index - 1].hashCode == symbolHash)
-                index--;
+                var symbolHash = ReferenceEqualityComparer.GetHashCode(symbol);
 
-            // Now, walk forward through the stored symbols with the same hash looking to see if any are a reference match.
-            while (index < secondarySymbols.Length && secondarySymbols[index].hashCode == symbolHash)
-            {
-                var cached = secondarySymbols[index];
-                if (cached.symbol == symbol)
+                // The secondary symbol array is sorted by the symbols' hash codes.  So do a binary search to find
+                // the location we should start looking at.
+                var index = secondarySymbols.BinarySearch(symbolHash, static (item, symbolHash) => item.hashCode.CompareTo(symbolHash));
+                if (index >= 0)
                 {
-                    referencedThrough = cached.referenceInfo;
-                    compilation = this.Compilation;
-                    return true;
-                }
+                    // Could have multiple symbols with the same hash.  They will all be placed next to each other,
+                    // so walk backward to hit the first.
+                    while (index > 0 && secondarySymbols[index - 1].hashCode == symbolHash)
+                        index--;
 
-                index++;
+                    // Now, walk forward through the stored symbols with the same hash looking to see if any are a reference match.
+                    while (index < secondarySymbols.Length && secondarySymbols[index].hashCode == symbolHash)
+                    {
+                        var cached = secondarySymbols[index];
+                        if (cached.symbol.Equals(symbol))
+                        {
+                            referencedThrough = cached.referenceInfo;
+                            compilation = this.Compilation;
+                            return true;
+                        }
+
+                        index++;
+                    }
+                }
             }
 
             compilation = null;
+            referencedThrough = null;
             return false;
         }
     }

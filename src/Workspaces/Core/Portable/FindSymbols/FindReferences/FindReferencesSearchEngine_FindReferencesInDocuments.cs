@@ -98,29 +98,36 @@ internal partial class FindReferencesSearchEngine
             }
         }
 
-        async ValueTask PerformSearchInDocumentWorkerAsync(
-            ISymbol symbol, FindReferencesDocumentState state)
+        async ValueTask PerformSearchInDocumentWorkerAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
-            // Scratch buffer to place references for each finder. Cleared at the end of every loop iteration.
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
-
             // Always perform a normal search, looking for direct references to exactly that symbol.
+            await DirectSymbolSearchAsync(symbol, state).ConfigureAwait(false);
+
+            // Now, for symbols that could involve inheritance, look for references to the same named entity, and
+            // see if it's a reference to a symbol that shares an inheritance relationship with that symbol.
+            await InheritanceSymbolSearchAsync(symbol, state).ConfigureAwait(false);
+        }
+
+        async ValueTask DirectSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
+        {
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
             foreach (var finder in _finders)
             {
                 await finder.FindReferencesInDocumentAsync(
                     symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken).ConfigureAwait(false);
-                foreach (var (_, location) in referencesForFinder)
-                {
-                    var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                    await _progress.OnReferencesFoundAsync([(group, symbol, location)], cancellationToken).ConfigureAwait(false);
-                }
-
-                referencesForFinder.Clear();
             }
 
-            // Now, for symbols that could involve inheritance, look for references to the same named entity, and
-            // see if it's a reference to a symbol that shares an inheritance relationship with that symbol.
+            if (referencesForFinder.Count > 0)
+            {
+                var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                var references = referencesForFinder.SelectAsArray(r => (group, symbol, r.Location));
 
+                await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        async ValueTask InheritanceSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
+        {
             if (InvolvesInheritance(symbol))
             {
                 var tokens = AbstractReferenceFinder.FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);

@@ -296,7 +296,7 @@ internal partial class FindReferencesSearchEngine
         // just grab those once here and hold onto them for the lifetime of this call.
         var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
-        // This search almost always involves trying to find the tokens matching the nname of the symbol we'er looking
+        // This search almost always involves trying to find the tokens matching the name of the symbol we're looking
         // for.  Get the cache ready with those tokens so that kicking of N searches to search for each symbol in
         // parallel doesn't cause us to compute and cache the same thing concurrently.
 

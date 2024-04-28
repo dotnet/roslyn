@@ -121,72 +121,73 @@ internal sealed class FindReferenceCache
         //
         // otherwise, we can use the text of the document to quickly find candidates and test those directly.
         return this.SyntaxTreeIndex.ProbablyContainsEscapedIdentifier(identifier)
-            ? _identifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromTree())
-            : _identifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromText());
+            ? _identifierCache.GetOrAdd(identifier, identifier => FindMatchingIdentifierTokensFromTree(identifier, cancellationToken))
+            : _identifierCache.GetOrAdd(identifier, _ => FindMatchingIdentifierTokensFromText(identifier, cancellationToken));
+    }
 
-        bool IsMatch(string identifier, SyntaxToken token)
-            => !token.IsMissing && this.SyntaxFacts.IsIdentifier(token) && this.SyntaxFacts.TextMatch(token.ValueText, identifier);
+    private bool IsMatch(string identifier, SyntaxToken token)
+        => !token.IsMissing && this.SyntaxFacts.IsIdentifier(token) && this.SyntaxFacts.TextMatch(token.ValueText, identifier);
 
-        ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromTree()
+    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromTree(
+        string identifier, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+        using var obj = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+
+        var stack = obj.Object;
+        stack.Push(this.Root);
+
+        while (stack.TryPop(out var current))
         {
-            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
-            using var obj = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
-
-            var stack = obj.Object;
-            stack.Push(this.Root);
-
-            while (stack.TryPop(out var current))
+            cancellationToken.ThrowIfCancellationRequested();
+            if (current.IsNode)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (current.IsNode)
-                {
-                    foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
-                        stack.Push(child);
-                }
-                else if (current.IsToken)
-                {
-                    var token = current.AsToken();
-                    if (IsMatch(identifier, token))
-                        result.Add(token);
+                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                    stack.Push(child);
+            }
+            else if (current.IsToken)
+            {
+                var token = current.AsToken();
+                if (IsMatch(identifier, token))
+                    result.Add(token);
 
-                    if (token.HasStructuredTrivia)
+                if (token.HasStructuredTrivia)
+                {
+                    // structured trivia can only be leading trivia
+                    foreach (var trivia in token.LeadingTrivia)
                     {
-                        // structured trivia can only be leading trivia
-                        foreach (var trivia in token.LeadingTrivia)
-                        {
-                            if (trivia.HasStructure)
-                                stack.Push(trivia.GetStructure()!);
-                        }
+                        if (trivia.HasStructure)
+                            stack.Push(trivia.GetStructure()!);
                     }
                 }
             }
-
-            return result.ToImmutableAndClear();
         }
 
-        ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText()
-        {
-            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
-
-            var index = 0;
-            while ((index = this.Text.IndexOf(identifier, index, this.SyntaxFacts.IsCaseSensitive)) >= 0)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var token = this.Root.FindToken(index, findInsideTrivia: true);
-                var span = token.Span;
-                if (span.Start == index && span.Length == identifier.Length && IsMatch(identifier, token))
-                    result.Add(token);
-
-                var nextIndex = index + identifier.Length;
-                nextIndex = Math.Max(nextIndex, token.SpanStart);
-                index = nextIndex;
-            }
-
-            return result.ToImmutableAndClear();
-        }
+        return result.ToImmutableAndClear();
     }
 
+    private ImmutableArray<SyntaxToken> FindMatchingIdentifierTokensFromText(
+        string identifier, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
+        var index = 0;
+        while ((index = this.Text.IndexOf(identifier, index, this.SyntaxFacts.IsCaseSensitive)) >= 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var token = this.Root.FindToken(index, findInsideTrivia: true);
+            var span = token.Span;
+            if (span.Start == index && span.Length == identifier.Length && IsMatch(identifier, token))
+                result.Add(token);
+
+            var nextIndex = index + identifier.Length;
+            nextIndex = Math.Max(nextIndex, token.SpanStart);
+            index = nextIndex;
+        }
+
+        return result.ToImmutableAndClear();
+    }
     public IEnumerable<SyntaxToken> GetConstructorInitializerTokens(
         ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
     {
