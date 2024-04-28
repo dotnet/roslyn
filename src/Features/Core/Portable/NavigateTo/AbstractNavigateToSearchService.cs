@@ -92,7 +92,7 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
     /// <code>Parallel.ForEachAsync</code>, allowing for parallel processing of the items, with a preference towards
     /// earlier items.
     /// </summary>
-    private static async Task PerformParallelSearchAsync<T>(
+    private static Task PerformParallelSearchAsync<T>(
         IEnumerable<T> items,
         Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
@@ -102,15 +102,9 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         // Concurrently, the reading task will grab items when available, and send them over to the host.
         var channel = Channel.CreateUnbounded<RoslynNavigateToItem>(s_channelOptions);
 
-        await channel.RunProducerConsumerAsync(
-            PerformSearchAsync,
+        return channel.RunProducerConsumerAsync(
+            onItemFound => RoslynParallel.ForEachAsync(items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound)),
             onItemsFound,
-            cancellationToken).ConfigureAwait(false);
-
-        return;
-
-        Task PerformSearchAsync(Action<RoslynNavigateToItem> onItemFound)
-            => RoslynParallel.ForEachAsync(
-                items, cancellationToken, (item, cancellationToken) => callback(item, onItemFound));
+            cancellationToken);
     }
 }
