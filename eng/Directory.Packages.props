@@ -295,7 +295,7 @@
     <PackageVersion Include="Basic.CompilerLog.Util" Version="0.6.1" />
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="1.6.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net50" Version="1.6.0" />
-    <PackageVersion Include="Basic.Reference.Assemblies.Net60" Version="1.2.4" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net60" Version="1.6.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net70" Version="1.3.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.4.5" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net461" Version="1.3.0" />
