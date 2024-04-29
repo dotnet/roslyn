@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -29,14 +30,16 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 {
     private readonly IViewElementFactoryService _factoryService;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+    private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
     private readonly IThreadingContext _threadingContext;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext)
+    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoBroker asyncQuickInfoBroker, IThreadingContext threadingContext)
     {
         _factoryService = factoryService;
         _listenerProvider = listenerProvider;
+        _asyncQuickInfoBroker = asyncQuickInfoBroker;
         _threadingContext = threadingContext;
     }
 
@@ -54,6 +57,13 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
             m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.SymbolSignature;
         }, LogLevel.Information));
 
-        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
+        var quickInfoSession = _asyncQuickInfoBroker.GetSession(textView);
+
+        if (quickInfoSession is null)
+        {
+            throw new Exception("QuickInfoSession is null");
+        }
+
+        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, _asyncQuickInfoBroker, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
     }
 }

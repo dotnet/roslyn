@@ -3,11 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +18,11 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
 
@@ -36,10 +34,13 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     private readonly ITextView _textView;
     private readonly IViewElementFactoryService _viewElementFactoryService;
     private readonly IAsynchronousOperationListener _asyncListener;
+    private readonly IAsyncQuickInfoSession _asyncQuickInfoSession;
     private readonly IThreadingContext _threadingContext;
     private readonly Document _document;
     private readonly OnTheFlyDocsElement _onTheFlyDocsElement;
     private readonly ContentControl _responseControl = new();
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+
     private OnTheFlyDocsState _currentState = OnTheFlyDocsState.OnDemandLink;
 
     /// <inheritdoc/>
@@ -57,11 +58,12 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext, EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
+    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoSession asyncQuickInfoSession, IThreadingContext threadingContext, EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
     {
         _textView = textView;
         _viewElementFactoryService = viewElementFactoryService;
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.OnTheFlyDocs);
+        _asyncQuickInfoSession = asyncQuickInfoSession;
         _threadingContext = threadingContext;
         _onTheFlyDocsElement = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement;
         _document = editorFeaturesOnTheFlyDocsElement.Document;
@@ -114,7 +116,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                         ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.AI_generated_content_may_be_inaccurate)),
                 }));
 
-        ResultsRequested += (_, _) => PopulateAIDocumentationElements(_threadingContext.DisposalToken);
+        ResultsRequested += (_, _) => PopulateAIDocumentationElements(_cancellationTokenSource.Token);
+        _asyncQuickInfoSession.StateChanged += (_, _) => OnQuickInfoSessionChanged();
         InitializeComponent();
     }
 
@@ -123,22 +126,23 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     /// </summary>
     private void PopulateAIDocumentationElements(CancellationToken cancellationToken)
     {
+        using var token = _asyncListener.BeginAsyncOperation(nameof(SetResultTextAsync));
         var copilotService = _document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         _ = SetResultTextAsync(copilotService, cancellationToken);
     }
 
     private async Task SetResultTextAsync(ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
     {
-        var stopwatch = Stopwatch.StartNew();
+        var stopwatch = SharedStopwatch.StartNew();
 
         try
         {
-            using var token = _asyncListener.BeginAsyncOperation(nameof(SetResultTextAsync));
             var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, cancellationToken).ConfigureAwait(false);
-            stopwatch.Stop();
             var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (response is null || response.Length == 0)
             {
@@ -166,6 +170,14 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         }
         catch (Exception e) when (FatalError.ReportAndCatch(e))
         {
+        }
+    }
+
+    private void OnQuickInfoSessionChanged()
+    {
+        if (_asyncQuickInfoSession.State == QuickInfoSessionState.Dismissed)
+        {
+            _cancellationTokenSource.Cancel();
         }
     }
 
