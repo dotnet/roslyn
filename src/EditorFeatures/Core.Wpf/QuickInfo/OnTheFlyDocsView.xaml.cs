@@ -127,8 +127,11 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     private void PopulateAIDocumentationElements(CancellationToken cancellationToken)
     {
         var token = _asyncListener.BeginAsyncOperation(nameof(SetResultTextAsync));
-        var copilotService = _document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
-        _ = SetResultTextAsync(copilotService, cancellationToken).CompletesAsyncOperation(token);
+        var copilotService = _document.GetLanguageService<ICopilotCodeAnalysisService>();
+        if (copilotService is not null)
+        {
+            _ = SetResultTextAsync(copilotService, cancellationToken).CompletesAsyncOperation(token);
+        }
     }
 
     private async Task SetResultTextAsync(ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)

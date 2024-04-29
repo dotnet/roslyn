@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GoToDefinition;
@@ -136,8 +137,21 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
 
     protected override async Task<OnTheFlyDocsElement?> GetOnTheFlyDocsElementAsync(QuickInfoContext context, CancellationToken cancellationToken)
     {
+
         var document = context.Document;
         var position = context.Position;
+
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+            !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
+            !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
+        {
+            return null;
+        }
 
         var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
         var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(

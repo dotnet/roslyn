@@ -137,33 +137,11 @@ internal static class IntellisenseQuickInfoBuilder
         }
 
         if (context is not null && quickInfoItem.OnTheFlyDocsElement is not null)
-            await TryAddOnTheFlyDocsAsync(context.Document, elements, quickInfoItem.OnTheFlyDocsElement, cancellationToken).ConfigureAwait(false);
+            elements.Add(new EditorFeaturesOnTheFlyDocsElement(context.Document, quickInfoItem.OnTheFlyDocsElement));
 
         return new ContainerElement(
                             ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
                             elements);
-    }
-
-    /// <summary>
-    /// Tries to add the OnTheFlyDocsElement to the QuickInfo view if copilot is available
-    /// and the on-the-fly docs option is enabled.
-    /// </summary>
-    private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, List<object> elements, OnTheFlyDocsElement onTheFlyDocsElement, CancellationToken cancellationToken)
-    {
-        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-            !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-        {
-            return false;
-        }
-
-        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
-            !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
-        {
-            return false;
-        }
-
-        elements.Add(new EditorFeaturesOnTheFlyDocsElement(document, onTheFlyDocsElement));
-        return true;
     }
 
     internal static async Task<IntellisenseQuickInfoItem> BuildItemAsync(
