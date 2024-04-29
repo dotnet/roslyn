@@ -299,7 +299,7 @@
     <PackageVersion Include="Basic.Reference.Assemblies.Net70" Version="1.3.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.4.5" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net461" Version="1.6.0" />
-    <PackageVersion Include="Basic.Reference.Assemblies.NetStandard13" Version="1.2.4" />
+    <PackageVersion Include="Basic.Reference.Assemblies.NetStandard13" Version="1.6.0" />
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
     <!--
     Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert
