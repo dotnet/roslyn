@@ -630,5 +630,6 @@ internal enum FunctionId
     Copilot_On_The_Fly_Docs_Loading_State_Entered = 811,
     Copilot_On_The_Fly_Docs_Results_Displayed = 812,
     Copilot_On_The_Fly_Docs_Error_Displayed = 813,
+    Copilot_On_The_Fly_Docs_Results_Canceled = 814,
     Copilot_Rename = 851
 }

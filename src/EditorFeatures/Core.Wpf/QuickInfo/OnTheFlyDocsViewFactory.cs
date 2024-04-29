@@ -64,6 +64,6 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
             throw new Exception("QuickInfoSession is null");
         }
 
-        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, _asyncQuickInfoBroker, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
+        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
     }
 }

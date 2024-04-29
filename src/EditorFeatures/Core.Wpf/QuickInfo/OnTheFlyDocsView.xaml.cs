@@ -167,6 +167,10 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         }
         catch (OperationCanceledException)
         {
+            Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Results_Canceled, KeyValueLogMessage.Create(m =>
+            {
+                m["ElapsedTime"] = stopwatch.Elapsed;
+            }, LogLevel.Information));
         }
         catch (Exception e) when (FatalError.ReportAndCatch(e))
         {
