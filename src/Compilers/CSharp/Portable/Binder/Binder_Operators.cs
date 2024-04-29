@@ -3566,7 +3566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * If either type is a restricted type, the type check isn't supported because
+                    // * If either type is a restricted type, the type check isn't supported for some scenarios because
                     //   a restricted type cannot be boxed or unboxed into.
                     if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
                     {
