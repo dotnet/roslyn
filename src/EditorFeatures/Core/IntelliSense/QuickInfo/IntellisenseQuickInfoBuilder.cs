@@ -150,7 +150,7 @@ internal static class IntellisenseQuickInfoBuilder
     /// </summary>
     private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, List<object> elements, OnTheFlyDocsElement onTheFlyDocsElement, CancellationToken cancellationToken)
     {
-        if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
             !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
         {
             return false;
