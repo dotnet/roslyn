@@ -1952,7 +1952,7 @@ namespace System
         }
     }
 }
-", referencedAssemblies:=Basic.Reference.Assemblies.Net461.All)
+", referencedAssemblies:=Basic.Reference.Assemblies.Net461.References.All)
             Dim csharpCompReference As MetadataReference = csharpComp.EmitToImageReference()
 
             ' Using Net461 to get a framework without ValueTuple
@@ -2143,7 +2143,7 @@ namespace System
         }
     }
 }
-", referencedAssemblies:=Basic.Reference.Assemblies.Net461.All)
+", referencedAssemblies:=Basic.Reference.Assemblies.Net461.References.All)
 
             ' Using Net461 to get a framework without ValueTuple
 
