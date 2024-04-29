@@ -156,9 +156,9 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         var maxLength = 1000;
         var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
         {
-            var node = reference.GetSyntax(cancellationToken);
-            var fullString = node.ToFullString();
-            return fullString.Length > maxLength ? fullString[..maxLength] : fullString;
+            var span = reference.Span;
+            var sourceText = reference.SyntaxTree.GetText(cancellationToken);
+            return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
         }).ToImmutableArray();
 
         return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language);

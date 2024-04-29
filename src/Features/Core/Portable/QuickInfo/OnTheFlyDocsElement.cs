@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.QuickInfo;
 
 /// <summary>
-/// Represents the data needed to provide on-the-fly documentation from an <see cref="ISymbol"/>.
+/// Represents the data needed to provide on-the-fly documentation from the symbol.
 /// </summary>
-/// <param name="symbolSignature">formatted string representation of an <see cref="ISymbol"/></param>
+/// <param name="symbolSignature">formatted string representation of a symbol/></param>
 /// <param name="declarationCode">the symbol's declaration code</param>
 /// <param name="language">the language of the symbol</param>
 internal sealed class OnTheFlyDocsElement(string symbolSignature, ImmutableArray<string> declarationCode, string language)

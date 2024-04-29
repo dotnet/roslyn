@@ -145,7 +145,8 @@ internal static class IntellisenseQuickInfoBuilder
     }
 
     /// <summary>
-    /// Determines if it is possible to add the OnTheFlyDocs element to the QuickInfo content.
+    /// Tries to add the OnTheFlyDocsElement to the QuickInfo view if copilot is available
+    /// and the on-the-fly docs option is enabled.
     /// </summary>
     private static async Task<bool> TryAddOnTheFlyDocsAsync(Document document, List<object> elements, OnTheFlyDocsElement onTheFlyDocsElement, CancellationToken cancellationToken)
     {
