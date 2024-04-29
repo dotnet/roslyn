@@ -67,7 +67,7 @@ internal partial class FindReferencesSearchEngine
             // If we're an explicit invocation, just defer to the threadpool to execute all our work in parallel to get
             // things done as quickly as possible.  If we're running implicitly, then use a exclusive scheduler as
             // that's the most built-in way in the TPL to get will run things serially.
-            TaskScheduler = _options.Explicit ? null : s_exclusiveScheduler,
+            TaskScheduler = _options.Explicit ? TaskScheduler.Default : s_exclusiveScheduler,
         };
 
     public Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)

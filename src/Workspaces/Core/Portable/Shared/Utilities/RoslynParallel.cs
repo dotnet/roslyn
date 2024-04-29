@@ -83,5 +83,5 @@ internal static class RoslynParallel
     }
 
     public static Task CreateWorkAsync(TaskScheduler scheduler, Func<Task> createWorkAsync, CancellationToken cancellationToken)
-        => scheduler is null ? createWorkAsync() : Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, scheduler).Unwrap();
+        => Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, scheduler).Unwrap();
 }
