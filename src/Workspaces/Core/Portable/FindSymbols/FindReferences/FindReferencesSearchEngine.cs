@@ -23,8 +23,6 @@ using Reference = (SymbolGroup group, ISymbol symbol, ReferenceLocation location
 
 internal partial class FindReferencesSearchEngine
 {
-    private static readonly ObjectPool<MetadataUnifyingSymbolHashSet> s_metadataUnifyingSymbolHashSetPool = new(() => []);
-
     private readonly Solution _solution;
     private readonly IImmutableSet<Document>? _documents;
     private readonly ImmutableArray<IReferenceFinder> _finders;
@@ -32,11 +30,6 @@ internal partial class FindReferencesSearchEngine
     private readonly IStreamingFindReferencesProgress _progress;
     private readonly FindReferencesSearchOptions _options;
 
-    /// <summary>
-    /// Scheduler to run our tasks on.  If we're in <see cref="FindReferencesSearchOptions.Explicit"/> mode, we'll
-    /// run all our tasks concurrently.  Otherwise, we will run them serially using <see cref="s_exclusiveScheduler"/>
-    /// </summary>
-    private readonly TaskScheduler _scheduler;
     private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
     /// <summary>
@@ -60,13 +53,22 @@ internal partial class FindReferencesSearchEngine
         _options = options;
 
         _progressTracker = progress.ProgressTracker;
-
-        // If we're an explicit invocation, just defer to the threadpool to execute all our work in parallel to get
-        // things done as quickly as possible.  If we're running implicitly, then use a
-        // ConcurrentExclusiveSchedulerPair's exclusive scheduler as that's the most built-in way in the TPL to get
-        // will run things serially.
-        _scheduler = _options.Explicit ? TaskScheduler.Default : s_exclusiveScheduler;
     }
+
+    /// <summary>
+    /// Options to control the parallelism of the search.   If we're in <see
+    /// cref="FindReferencesSearchOptions.Explicit"/> mode, we'll run all our tasks concurrently.  Otherwise, we will
+    /// run them serially using <see cref="s_exclusiveScheduler"/>
+    /// </summary>
+    private ParallelOptions GetParallelOptions(CancellationToken cancellationToken)
+        => new()
+        {
+            CancellationToken = cancellationToken,
+            // If we're an explicit invocation, just defer to the threadpool to execute all our work in parallel to get
+            // things done as quickly as possible.  If we're running implicitly, then use a exclusive scheduler as
+            // that's the most built-in way in the TPL to get will run things serially.
+            TaskScheduler = _options.Explicit ? TaskScheduler.Default : s_exclusiveScheduler,
+        };
 
     public Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)
         => FindReferencesAsync([symbol], cancellationToken);
@@ -112,17 +114,12 @@ internal partial class FindReferencesSearchEngine
         // set of documents to search, we only bother with those.
         var projectsToSearch = await GetProjectsToSearchAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-        // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
-        // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,
-        // while we're processing each project linearly to update the symbol set we're searching for, we still
-        // then process the projects in parallel once we know the set of symbols we're searching for in that
-        // project.
         await _progressTracker.AddItemsAsync(projectsToSearch.Length, cancellationToken).ConfigureAwait(false);
 
         // Pull off and start searching each project as soon as we can once we've done the inheritance cascade into it.
         await RoslynParallel.ForEachAsync(
             GetProjectsAndSymbolsToSearchAsync(symbolSet, projectsToSearch, cancellationToken),
-            cancellationToken,
+            GetParallelOptions(cancellationToken),
             async (tuple, cancellationToken) => await ProcessProjectAsync(
                 tuple.project, tuple.allSymbols, onReferenceFound, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
     }
@@ -132,6 +129,11 @@ internal partial class FindReferencesSearchEngine
         ImmutableArray<Project> projectsToSearch,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
+        // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,
+        // while we're processing each project linearly to update the symbol set we're searching for, we still
+        // then process the projects in parallel once we know the set of symbols we're searching for in that
+        // project.
         var dependencyGraph = _solution.GetProjectDependencyGraph();
         foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
         {
@@ -152,9 +154,6 @@ internal partial class FindReferencesSearchEngine
             yield return (currentProject, allSymbols);
         }
     }
-
-    public Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
-        => Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap();
 
     /// <summary>
     /// Notify the caller of the engine about the definitions we've found that we're looking for.  We'll only notify
@@ -231,10 +230,7 @@ internal partial class FindReferencesSearchEngine
                         _options, cancellationToken).ConfigureAwait(false);
 
                     foreach (var document in foundDocuments)
-                    {
-                        var docSymbols = GetSymbolSet(documentToSymbols, document);
-                        docSymbols.Add(symbol);
-                    }
+                        GetSymbolSet(documentToSymbols, document).Add(symbol);
 
                     foundDocuments.Clear();
                 }
@@ -242,17 +238,14 @@ internal partial class FindReferencesSearchEngine
 
             await RoslynParallel.ForEachAsync(
                 documentToSymbols,
-                cancellationToken,
+                GetParallelOptions(cancellationToken),
                 (kvp, cancellationToken) =>
                     ProcessDocumentAsync(kvp.Key, kvp.Value, symbolToGlobalAliases, onReferenceFound, cancellationToken)).ConfigureAwait(false);
         }
         finally
         {
             foreach (var (_, symbols) in documentToSymbols)
-            {
-                symbols.Clear();
-                s_metadataUnifyingSymbolHashSetPool.Free(symbols);
-            }
+                MetadataUnifyingSymbolHashSet.ClearAndFree(symbols);
 
             FreeGlobalAliases(symbolToGlobalAliases);
 
@@ -260,15 +253,7 @@ internal partial class FindReferencesSearchEngine
         }
 
         static MetadataUnifyingSymbolHashSet GetSymbolSet<T>(PooledDictionary<T, MetadataUnifyingSymbolHashSet> dictionary, T key) where T : notnull
-        {
-            if (!dictionary.TryGetValue(key, out var set))
-            {
-                set = s_metadataUnifyingSymbolHashSetPool.Allocate();
-                dictionary.Add(key, set);
-            }
-
-            return set;
-        }
+            => dictionary.GetOrAdd(key, static _ => MetadataUnifyingSymbolHashSet.AllocateFromPool());
     }
 
     private static PooledHashSet<U>? TryGet<T, U>(Dictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
@@ -304,13 +289,13 @@ internal partial class FindReferencesSearchEngine
 
         await RoslynParallel.ForEachAsync(
             symbols,
-            cancellationToken,
+            GetParallelOptions(cancellationToken),
             async (symbol, cancellationToken) =>
             {
                 // symbolToGlobalAliases is safe to read in parallel.  It is created fully before this point and is no
                 // longer mutated.
-                var globalAliases = TryGet(symbolToGlobalAliases, symbol);
-                var state = new FindReferencesDocumentState(cache, globalAliases);
+                var state = new FindReferencesDocumentState(
+                    cache, TryGet(symbolToGlobalAliases, symbol));
 
                 await ProcessDocumentAsync(symbol, state, onReferenceFound).ConfigureAwait(false);
             }).ConfigureAwait(false);
@@ -357,24 +342,13 @@ internal partial class FindReferencesSearchEngine
                 var aliases = await finder.DetermineGlobalAliasesAsync(
                     symbol, project, cancellationToken).ConfigureAwait(false);
                 if (aliases.Length > 0)
-                {
-                    var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
-                    globalAliases.AddRange(aliases);
-                }
+                    GetGlobalAliasesSet(symbolToGlobalAliases, symbol).AddRange(aliases);
             }
         }
     }
 
     private static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
-    {
-        if (!dictionary.TryGetValue(key, out var set))
-        {
-            set = PooledHashSet<string>.GetInstance();
-            dictionary.Add(key, set);
-        }
-
-        return set;
-    }
+        => dictionary.GetOrAdd(key, static _ => PooledHashSet<string>.GetInstance());
 
     private static void FreeGlobalAliases(PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
     {
