@@ -101,12 +101,12 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class NetCoreApp
     {
-        public static ImmutableArray<Net70.ReferenceInfo> AllReferenceInfos { get; } = ImmutableArray.CreateRange(Net70.References.All);
-        public static ImmutableArray<MetadataReference> References { get; } = ImmutableArray.CreateRange<MetadataReference>(Net70.All);
+        public static ImmutableArray<Net70.ReferenceInfo> AllReferenceInfos { get; } = ImmutableArray.CreateRange(Net70.ReferenceInfos.All);
+        public static ImmutableArray<MetadataReference> References { get; } = ImmutableArray.CreateRange<MetadataReference>(Net70.References.All);
 
-        public static PortableExecutableReference netstandard { get; } = Net70.netstandard;
-        public static PortableExecutableReference mscorlib { get; } = Net70.mscorlib;
-        public static PortableExecutableReference SystemRuntime { get; } = Net70.SystemRuntime;
+        public static PortableExecutableReference netstandard { get; } = Net70.References.netstandard;
+        public static PortableExecutableReference mscorlib { get; } = Net70.References.mscorlib;
+        public static PortableExecutableReference SystemRuntime { get; } = Net70.References.SystemRuntime;
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ namespace Roslyn.Test.Utilities
             TargetFramework.NetStandard20 => NetStandard20References,
             TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net50")),
             TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net60")),
-            TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
+            TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.References.All),
             TargetFramework.Net80 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net80")),
             TargetFramework.NetFramework => NetFramework.References,
             TargetFramework.NetLatest => NetLatest,
