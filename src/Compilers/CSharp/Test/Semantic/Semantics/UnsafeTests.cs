@@ -588,14 +588,6 @@ unsafe class C
                 }
                 """;
 
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (3,58): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //     public System.Collections.Generic.IEnumerable<int> M(int*[] a)
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 58),
-                // (6,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         x = sizeof(nint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 13));
-
             var expectedDiagnostics = new[]
             {
                 // (3,58): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -606,6 +598,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(6, 13)
             };
 
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -1502,11 +1495,6 @@ unsafe class C
                 }
                 """;
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         int* p = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 9));
-
             var expectedDiagnostics = new[]
             {
                 // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1514,6 +1502,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 9)
             };
 
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -1533,11 +1522,6 @@ unsafe class C
                 }
                 """;
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         int* p = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 9));
-
             var expectedDiagnostics = new[]
             {
                 // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1545,6 +1529,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 9)
             };
 
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -10172,10 +10157,6 @@ struct S
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         yield return sizeof(S);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22));
 
             var expectedDiagnostics = new[]
             {
@@ -10184,6 +10165,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(S)").WithArguments("S").WithLocation(6, 22)
             };
 
+            CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
         }
@@ -10548,10 +10530,6 @@ struct S
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc int[1]").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17));
 
             var expectedDiagnostics = new[]
             {
@@ -10560,6 +10538,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[1]").WithLocation(6, 17)
             };
 
+            CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
         }

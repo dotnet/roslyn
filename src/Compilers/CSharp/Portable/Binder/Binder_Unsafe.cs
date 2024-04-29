@@ -56,15 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            else if (this.IsIndirectlyInIterator && MessageID.IDS_FeatureRefUnsafeInIteratorAsync.GetFeatureAvailabilityDiagnosticInfo(Compilation) is { } unsafeInIteratorDiagnosticInfo)
-            {
-                return unsafeInIteratorDiagnosticInfo;
-            }
             else if (!this.InUnsafeRegion)
             {
                 return ((object)sizeOfTypeOpt == null)
                     ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
                     : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
+            }
+            else if (this.IsIndirectlyInIterator && MessageID.IDS_FeatureRefUnsafeInIteratorAsync.GetFeatureAvailabilityDiagnosticInfo(Compilation) is { } unsafeInIteratorDiagnosticInfo)
+            {
+                return unsafeInIteratorDiagnosticInfo;
             }
             else
             {
