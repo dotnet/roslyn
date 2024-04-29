@@ -322,6 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Add all extension methods in this namespace to the given list. If name or arity
         /// or both are provided, only those extension methods that match are included.
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="nameOpt">Optional method name</param>
         /// <param name="arity">Method arity</param>
         /// <param name="options">Lookup options</param>
-        internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string? nameOpt, int arity, LookupOptions options)
         {
             var assembly = this.ContainingAssembly;
 
@@ -350,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.DoGetExtensionMethods(methods, nameOpt, arity, options);
             }
         }
+#nullable disable
 
         internal string QualifiedName
         {

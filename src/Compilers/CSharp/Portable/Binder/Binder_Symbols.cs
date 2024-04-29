@@ -1478,6 +1478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Method:
                     return new BoundMethodGroup(
                         syntax,
+                        typeArgumentsSyntax,
                         typeArguments,
                         receiver,
                         plainName,

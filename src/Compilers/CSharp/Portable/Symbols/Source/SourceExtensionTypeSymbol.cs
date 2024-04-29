@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -61,22 +62,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!IsExplicitExtension)
                 {
-                    var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-                    underlyingType.VisitType(collectTypeParameters, arg: usedTypeParameters);
-
-                    foreach (var typeParameter in TypeParameters)
-                    {
-                        if (!usedTypeParameters.Contains(typeParameter))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_UnderspecifiedImplicitExtension, location, underlyingType, this, typeParameter);
-                        }
-                    }
-
-                    usedTypeParameters.Free();
+                    CheckUnderspecifiedGenericExtension(underlyingType, TypeParameters, diagnostics, location, this);
                 }
             }
 
             return;
+        }
+
+        internal static bool CheckUnderspecifiedGenericExtension(TypeSymbol underlyingType, ImmutableArray<TypeParameterSymbol> typeParameters,
+            BindingDiagnosticBag diagnostics, Location location, NamedTypeSymbol extension)
+        {
+            var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            underlyingType.VisitType(collectTypeParameters, arg: usedTypeParameters);
+            bool anyUnusedTypeParameter = false;
+            foreach (var typeParameter in typeParameters)
+            {
+                if (!usedTypeParameters.Contains(typeParameter))
+                {
+                    anyUnusedTypeParameter = true;
+                    diagnostics.Add(ErrorCode.ERR_UnderspecifiedImplicitExtension, location, underlyingType, extension, typeParameter);
+                }
+            }
+
+            usedTypeParameters.Free();
+            return anyUnusedTypeParameter;
 
             static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool b)
             {

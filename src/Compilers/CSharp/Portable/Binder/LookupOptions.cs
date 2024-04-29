@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         UseBaseReferenceAccessibility = 1 << 9,
 
         /// <summary>
-        /// Include extension methods.
+        /// Include extension methods and extension type members.
         /// </summary>
-        IncludeExtensionMethods = 1 << 10,
+        IncludeExtensionMembers = 1 << 10, // PROTOTYPE(instance) confirm we want to use a single flag for both extension methods and extension type members
 
         /// <summary>
         /// Consider only attribute types.

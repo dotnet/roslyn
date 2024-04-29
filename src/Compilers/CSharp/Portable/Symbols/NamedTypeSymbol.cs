@@ -344,7 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+#nullable enable
+        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string? nameOpt, int arity, LookupOptions options)
         {
             var members = nameOpt == null
                 ? this.GetMembersUnordered()
@@ -373,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+#nullable disable
 
         // TODO: Probably should provide similar accessors for static constructor, destructor, 
         // TODO: operators, conversions.

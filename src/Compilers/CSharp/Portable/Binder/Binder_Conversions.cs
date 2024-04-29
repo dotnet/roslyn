@@ -137,7 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (conversion.IsExtensionMemberConversion(out Symbol? extensionMember, out Conversion nestedConversion))
                 {
-                    source = GetExtensionMemberAccess(syntax, ((BoundMethodGroup)source).ReceiverOpt, extensionMember, diagnostics);
+                    var methodGroup = (BoundMethodGroup)source;
+                    source = GetExtensionMemberAccess(syntax, methodGroup.ReceiverOpt, extensionMember,
+                        methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
+
                     return CreateConversion(syntax, source, nestedConversion, isCast, conversionGroupOpt, destination, diagnostics);
                 }
 
@@ -503,7 +506,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
+        private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember,
+            SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(extensionMember.Kind != SymbolKind.Method);
             receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic || extensionMember.Kind == SymbolKind.NamedType, diagnostics);
@@ -527,8 +531,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case NamedTypeSymbol namedTypeSymbol:
                     bool wasError = false;
 
-                    return BindTypeMemberOfType(receiver, namedTypeSymbol.Name, namedTypeSymbol,
-                        syntax, right: syntax, diagnostics, ref wasError);
+                    if (!typeArgumentsOpt.IsDefault)
+                    {
+                        namedTypeSymbol = ConstructNamedTypeUnlessTypeArgumentOmitted(syntax, namedTypeSymbol, typeArgumentsSyntax, typeArgumentsOpt, diagnostics);
+                    }
+
+                    return BindTypeMemberOfType(receiver, namedTypeSymbol.Name, namedTypeSymbol, syntax, right: syntax, diagnostics, ref wasError);
 
                 case EventSymbol eventSymbol:
                     return BindEventAccess(syntax, receiver, eventSymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
@@ -2239,6 +2247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, useType: conversion.Method?.RequiresInstanceReceiver == false && !conversion.IsExtensionMethod, diagnostics);
             return group.Update(
+                group.TypeArgumentsSyntax,
                 group.TypeArgumentsOpt,
                 group.Name,
                 group.Methods,

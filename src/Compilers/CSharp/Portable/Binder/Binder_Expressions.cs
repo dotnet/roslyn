@@ -417,7 +417,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             if (resolution.IsExtensionMember(out Symbol? extensionMember))
             {
-                return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
+                    methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
             }
 
             // We have a method group so bind to an inferred delegate type
@@ -5043,8 +5044,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!conv.Exists)
                     {
                         var boundMethodGroup = new BoundMethodGroup(
-                            argument.Syntax, default, WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
+                            argument.Syntax, typeArgumentsSyntax: default, typeArgumentsOpt: default,
+                            WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
                             sourceDelegate.DelegateInvokeMethod, null, BoundMethodGroupFlags.None, functionType: null, argument, LookupResultKind.Viable);
+
                         if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
                         {
                             // If we could not produce a more specialized diagnostic, we report
@@ -7499,7 +7502,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (resolution.IsExtensionMember(out Symbol extensionMember))
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
-                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
+                                methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
                         }
 
                         if (!expr.HasAnyErrors)
@@ -7541,7 +7545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
                             resolution.Free();
-                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
+                                methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
                         }
 
                         resolution.Free();
@@ -7628,6 +7633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundMethodGroup = new BoundMethodGroup(
                 node,
+                typeArgumentsSyntax,
                 typeArgumentsWithAnnotations,
                 boundLeft,
                 rightName,
@@ -7785,7 +7791,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we've reported other errors.
                 return new BoundMethodGroup(
                     node,
-                    default(ImmutableArray<TypeWithAnnotations>),
+                    typeArgumentsSyntax: default,
+                    typeArgumentsOpt: default,
                     nameString,
                     methods,
                     methods.Length == 1 ? methods[0] : null,
@@ -10055,7 +10062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Arguments.Add(lengthArgumentPlaceholder);
 
                 var boundMethodGroup = new BoundMethodGroup(
-                    syntax, typeArgumentsOpt: default, method.Name, ImmutableArray.Create(method),
+                    syntax, typeArgumentsSyntax: default, typeArgumentsOpt: default, method.Name, ImmutableArray.Create(method),
                     method, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable)
                 { WasCompilerGenerated = true };
 

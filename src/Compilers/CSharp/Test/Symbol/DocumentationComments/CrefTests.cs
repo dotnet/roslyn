@@ -7107,9 +7107,17 @@ class C
             Assert.Equal(CandidateReason.None, info.CandidateReason);
             Assert.Equal(0, info.CandidateSymbols.Length);
 
-            // No lookup results.
             var derivedInterface = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("Derived");
-            Assert.Equal(0, model.LookupSymbols(syntax.SpanStart, derivedInterface).Length);
+            AssertEx.SetEqual([
+                "System.String? System.Object.ToString()",
+                "System.Boolean System.Object.Equals(System.Object? obj)",
+                "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+                "void System.Object.Finalize()",
+                "System.Int32 System.Object.GetHashCode()",
+                "System.Type System.Object.GetType()",
+                "System.Object System.Object.MemberwiseClone()",
+                "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"],
+                model.LookupSymbols(syntax.SpanStart, derivedInterface).ToTestDisplayStrings());
         }
 
         [Fact]

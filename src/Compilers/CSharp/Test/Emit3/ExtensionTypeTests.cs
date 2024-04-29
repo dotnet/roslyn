@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +16,32 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public class ExtensionTypeTests : CompilingTestBase
 {
+    private static readonly string[] objectStaticSymbols = [
+        "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+        "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+    private static readonly string[] objectSymbols = [
+        .. objectStaticSymbols,
+        "System.String? System.Object.ToString()",
+        "System.Boolean System.Object.Equals(System.Object? obj)",
+        "System.Int32 System.Object.GetHashCode()",
+        "System.Type System.Object.GetType()"];
+
     private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+
+    private static void AssertSetStrictlyEqual(string[] expected, string[] actual)
+    {
+        Assert.True(expected.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(expected)}'");
+        Assert.True(actual.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(actual)}'");
+        AssertEx.SetEqual(expected, actual);
+    }
 
     private static void VerifyNotExtension<T>(TypeSymbol type) where T : TypeSymbol
     {
@@ -195,13 +215,13 @@ explicit extension R2 for UnderlyingClass : R { }
 
             if (!inSource)
             {
-                AssertEx.SetEqual(
+                AssertSetStrictlyEqual(
                     [
                         """System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("ExtensionTypes")""",
                         """System.ObsoleteAttribute("Extension types are not supported in this version of your compiler.", true)""",
                         """System.Reflection.DefaultMemberAttribute("Item")"""
                     ],
-                    GetAttributeStrings(r.GetAttributes()));
+                    GetAttributeStrings(r.GetAttributes()).ToArray());
             }
 
             Assert.Equal(["R.NestedType", "R.StaticNestedType", "R.NestedR"],
@@ -256,8 +276,8 @@ explicit extension R for UnderlyingClass { }
         static void validateAttributes(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            AssertEx.SetEqual(["ObsoleteAttribute", "CompilerFeatureRequiredAttribute"],
-                GetAttributeNames(r.GetAttributes()));
+            AssertSetStrictlyEqual(["ObsoleteAttribute", "CompilerFeatureRequiredAttribute"],
+                GetAttributeNames(r.GetAttributes()).ToArray());
         }
     }
 
@@ -379,8 +399,8 @@ explicit extension R for C { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            AssertEx.SetEqual(["CompilerFeatureRequiredAttribute", "ObsoleteAttribute"],
-                GetAttributeNames(r.GetAttributes()));
+            AssertSetStrictlyEqual(["CompilerFeatureRequiredAttribute", "ObsoleteAttribute"],
+                GetAttributeNames(r.GetAttributes()).ToArray());
 
             Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName("System.Runtime.CompilerServices.IsByRefLikeAttribute"));
         }
@@ -3007,18 +3027,20 @@ implicit extension E<T, U> for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
+            // (1,14): error CS0117: 'C' does not contain a definition for 'f'
+            // string s = C.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "f").WithArguments("C", "f").WithLocation(1, 14),
             // (5,20): error CS9328: The underlying type 'C' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
             // implicit extension E<T, U> for C
             Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T, U>", "T").WithLocation(5, 20),
             // (5,20): error CS9328: The underlying type 'C' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
             // implicit extension E<T, U> for C
-            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T, U>", "U").WithLocation(5, 20)
-            );
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T, U>", "U").WithLocation(5, 20));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.f");
-        Assert.Equal("System.String E<T, U>.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [Fact]
@@ -8814,6 +8836,113 @@ public explicit extension E for object
         Assert.Equal("E.Property", property.ToString());
         Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
 
+        AssertSetStrictlyEqual(["E"], model.LookupSymbols(position: 0, name: "E").ToTestDisplayStrings());
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        AssertSetStrictlyEqual(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 E.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 E.Property { get; }"],
+            model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"],
+            model.LookupSymbols(position: 0, e, name: "ToString", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] objectSymbols = [
+            "System.String? System.Object.ToString()",
+            "System.Boolean System.Object.Equals(System.Object? obj)",
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Int32 System.Object.GetHashCode()",
+            "System.Type System.Object.GetType()",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        void validate(ModuleSymbol module)
+        {
+            bool inSource = module is SourceModuleSymbol;
+            var e = module.GlobalNamespace.GetTypeMember("E");
+            Assert.Empty(e.BaseExtensionsNoUseSiteDiagnostics);
+            Assert.Empty(e.AllBaseExtensionsNoUseSiteDiagnostics);
+        }
+    }
+
+    [Fact]
+    public void MemberLookup_Implicit_Instance()
+    {
+        var src = """
+E.M();
+_ = E.Property;
+
+public implicit extension E for object
+{
+    public static void M()
+    {
+        System.Console.Write("Method ");
+    }
+
+    public static int Property
+    {
+        get
+        {
+            System.Console.Write("Property");
+            return 0;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method Property"),
+            symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        Assert.Equal("E.M()", invocation.ToString());
+        Assert.Equal("void E.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
+        Assert.Equal("E.Property", property.ToString());
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        AssertSetStrictlyEqual(["E"], model.LookupSymbols(position: 0, name: "E").ToTestDisplayStrings());
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        AssertSetStrictlyEqual(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 E.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 E.Property { get; }"],
+            model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"],
+            model.LookupSymbols(position: 0, e, name: "ToString", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
         void validate(ModuleSymbol module)
         {
             bool inSource = module is SourceModuleSymbol;
@@ -9128,6 +9257,7 @@ public explicit extension E for object : Base1, Base2
 
         var e2 = comp.GlobalNamespace.GetTypeMember("E2");
         AssertEx.Equal(new[] { "Base1.Ambiguous" }, e2.BaseExtensionsNoUseSiteDiagnostics.ToTestDisplayStrings());
+        // PROTOTYPE(inheritance) test lookup APIs
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -9175,6 +9305,7 @@ public explicit extension E for object : Base
         var property = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Skip(1).First();
         Assert.Equal("E.Property", property.ToString());
         Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+        // PROTOTYPE(inheritance) test lookup APIs
 
         static void validate(ModuleSymbol module)
         {
@@ -11957,7 +12088,7 @@ implicit extension E<T> for C<T>
     }
 }
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
            .VerifyDiagnostics();
 
@@ -11965,6 +12096,353 @@ implicit extension E<T> for C<T>
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType");
         Assert.Equal("E<System.Int32>.StaticType", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        AssertSetStrictlyEqual(["E<T>.StaticType"], model.LookupSymbols(position: 0, e, name: "StaticType").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["E<T>.StaticType"], model.LookupSymbols(position: 0, e, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, c, name: "StaticType").ToTestDisplayStrings());
+        // PROTOTYPE(static) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([/*"E<T>.StaticType"*/], model.LookupSymbols(position: 0, c, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var cInt = model.GetTypeInfo(memberAccess.Expression).Type;
+        Assert.Equal("C<System.Int32>", cInt.ToTestDisplayString());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, cInt, name: "StaticType").ToTestDisplayStrings());
+        // PROTOTYPE(static) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([/*"E<System.Int32>.StaticType"*/], model.LookupSymbols(position: 0, cInt, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericType_GenericMember()
+    {
+        var src = """
+C<int>.StaticType<string>.M();
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static class StaticType<U>
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType<string>");
+        Assert.Equal("E<System.Int32>.StaticType<System.String>", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        AssertSetStrictlyEqual(["E<T>.StaticType<U>"], model.LookupSymbols(position: 0, e, name: "StaticType").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["E<T>.StaticType<U>"], model.LookupSymbols(position: 0, e, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        Assert.Equal("C<T>", c.ToTestDisplayString());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, c, name: "StaticType").ToTestDisplayStrings());
+
+        // PROTOTYPE(static) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([/*"E<T>.StaticType<U>"*/],
+            model.LookupSymbols(position: 0, c, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E<T>.StaticType<U>"], model.LookupStaticMembers(position: 0, c, name: "StaticType").ToTestDisplayStrings());
+
+        var cInt = model.GetTypeInfo(memberAccess.Expression).Type;
+        Assert.Equal("C<System.Int32>", cInt.ToTestDisplayString());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, cInt, name: "StaticType").ToTestDisplayStrings());
+
+        // PROTOTYPE(static) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([/*"E<System.Int32>.StaticType<U>"*/],
+            model.LookupSymbols(position: 0, cInt, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E<System.Int32>.StaticType<U>"], model.LookupStaticMembers(position: 0, cInt, name: "StaticType").ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext()
+    {
+        var src = """
+D<C.Nested<string>>.M();
+
+class D<T> where T : C.Nested<string>
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+
+class C { }
+
+implicit extension E for C
+{
+    public class Nested<U>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("E+Nested`1[System.String]"), verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "C.Nested<string>").ToArray();
+        Assert.Equal("E.Nested<System.String>", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
+        Assert.Equal("E.Nested<System.String>", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_UnderspecifiedGenericExtension()
+    {
+        var src = """
+D<C.Nested<string>>.M();
+
+class D<T> where T : C.Nested<string>
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+
+class C { }
+
+implicit extension E<T> for C
+{
+    public class Nested<U>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0426: The type name 'Nested<>' does not exist in the type 'C'
+            // D<C.Nested<string>>.M();
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "C").WithLocation(1, 5),
+            // (3,24): error CS0426: The type name 'Nested<>' does not exist in the type 'C'
+            // class D<T> where T : C.Nested<string>
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "C").WithLocation(3, 24),
+            // (13,20): error CS9328: The underlying type 'C' of implicit extension 'E<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // implicit extension E<T> for C
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("C", "E<T>", "T").WithLocation(13, 20));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "C.Nested<string>").ToArray();
+        Assert.Null(model.GetSymbolInfo(qualifiedName[0]).Symbol);
+        Assert.Null(model.GetSymbolInfo(qualifiedName[1]).Symbol);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_AmbiguousGenericExtension()
+    {
+        var src = """
+I.Nested<string>.M2();
+D<I.Nested<string>>.M();
+
+class D<T> where T : I.Nested<string>
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+
+interface I2<T> { }
+interface I : I2<long>, I2<byte> { }
+
+implicit extension E<T, U> for I2<T>
+{
+    public class Nested<V>
+    {
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,3): error CS0117: 'I' does not contain a definition for 'Nested'
+            // I.Nested<string>.M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Nested<string>").WithArguments("I", "Nested").WithLocation(1, 3),
+            // (2,5): error CS0426: The type name 'Nested<>' does not exist in the type 'I'
+            // D<I.Nested<string>>.M();
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "I").WithLocation(2, 5),
+            // (4,24): error CS0426: The type name 'Nested<>' does not exist in the type 'I'
+            // class D<T> where T : I.Nested<string>
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "I").WithLocation(4, 24),
+            // (15,20): error CS9328: The underlying type 'I2<T>' of implicit extension 'E<T, U>' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
+            // implicit extension E<T, U> for I2<T>
+            Diagnostic(ErrorCode.ERR_UnderspecifiedImplicitExtension, "E").WithArguments("I2<T>", "E<T, U>", "U").WithLocation(15, 20));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "I.Nested<string>").ToArray();
+        Assert.Null(model.GetSymbolInfo(qualifiedName[0]).Symbol);
+        Assert.Null(model.GetSymbolInfo(qualifiedName[1]).Symbol);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericMember_TypeOnlyContext_UnderspecifiedGenericExtension_Metadata()
+    {
+        //implicit extension E<T> for object
+        //{
+        //    public class Nested<U>
+        //    {
+        //    }
+        //}
+
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit E`1<T>
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+
+    .class nested public auto ansi beforefieldinit Nested`1<T, U>
+        extends [mscorlib]System.Object
+    {
+        .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+        {
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        }
+    }
+}
+""";
+
+        var src = """
+E<int> x = default;
+E<int>.Nested<string> y = default;
+D<System.Object.Nested<string>>.M();
+
+class D<T> where T : System.Object.Nested<string>
+{
+    public static void M()
+    {
+        System.Console.Write(typeof(T));
+    }
+}
+""";
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): warning CS0219: The variable 'x' is assigned but its value is never used
+            // E<int> x = default;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 8),
+            // (2,23): warning CS0219: The variable 'y' is assigned but its value is never used
+            // E<int>.Nested<string> y = default;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(2, 23),
+            // (3,17): error CS0426: The type name 'Nested<>' does not exist in the type 'object'
+            // D<System.Object.Nested<string>>.M();
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "object").WithLocation(3, 17),
+            // (5,36): error CS0426: The type name 'Nested<>' does not exist in the type 'object'
+            // class D<T> where T : System.Object.Nested<string>
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested<string>").WithArguments("Nested<>", "object").WithLocation(5, 36));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        VerifyExtension<PENamedTypeSymbol>(e, isExplicit: false);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "System.Object.Nested<string>").ToArray();
+        Assert.Null(model.GetSymbolInfo(qualifiedName[0]).Symbol);
+        Assert.Null(model.GetSymbolInfo(qualifiedName[1]).Symbol);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericType_GenericMember_OmittedTypeArgument()
+    {
+        var src = """
+C<int>.StaticType<,>.M();
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static class StaticType<U, V>
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8389: Omitting the type argument is not allowed in the current context
+            // C<int>.StaticType<,>.M();
+            Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "C<int>.StaticType<,>").WithLocation(1, 1),
+            // (1,1): error CS0305: Using the generic type 'E<int>.StaticType<U, V>' requires 2 type arguments
+            // C<int>.StaticType<,>.M();
+            Diagnostic(ErrorCode.ERR_BadArity, "C<int>.StaticType<,>").WithArguments("E<int>.StaticType<U, V>", "type", "2").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType<,>");
+        Assert.Equal("E<System.Int32>.StaticType<U, V>", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_MatchingExtendedType_GenericType_GenericMember_BrokenConstraint()
+    {
+        var src = """
+C<int>.StaticType<string>.M();
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static class StaticType<U> where U : struct
+    {
+        public static void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'E<int>.StaticType<U>'
+            // C<int>.StaticType<string>.M();
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("E<int>.StaticType<U>", "U", "string").WithLocation(1, 19));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType<string>");
+        Assert.Equal("E<System.Int32>.StaticType<System.String>", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        AssertSetStrictlyEqual(["E<T>.StaticType<U>"], model.LookupSymbols(position: 0, e, name: "StaticType").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["E<T>.StaticType<U>"], model.LookupSymbols(position: 0, e, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["E<T>.StaticType<U>"], model.LookupStaticMembers(position: 0, e, name: "StaticType").ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        Assert.Equal("C<T>", c.ToTestDisplayString());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, c, name: "StaticType").ToTestDisplayStrings());
+        // PROTOTYPE(static) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([/*"E<T>.StaticType<U>"*/], model.LookupSymbols(position: 0, c, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["E<T>.StaticType<U>"], model.LookupStaticMembers(position: 0, c, name: "StaticType").ToTestDisplayStrings());
+
+        var cInt = model.GetTypeInfo(memberAccess.Expression).Type;
+        Assert.Equal("C<System.Int32>", cInt.ToTestDisplayString());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, cInt, name: "StaticType").ToTestDisplayStrings());
+
+        // PROTOTYPE(static) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([/*"E<System.Int32>.StaticType<U>"*/],
+            model.LookupSymbols(position: 0, cInt, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E<System.Int32>.StaticType<U>"], model.LookupStaticMembers(position: 0, cInt, name: "StaticType").ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13473,6 +13951,7 @@ implicit extension E<U> for C<U> where U : C<U>.Nested
         var e = comp.GlobalNamespace.GetTypeMember("E");
         var u = e.TypeParameters.Single();
         Assert.Equal("E<U>.Nested", u.ConstraintTypes().Single().ToTestDisplayString());
+        Assert.False(u.ConstraintTypes().Single().IsErrorType());
     }
 
     [Fact]
@@ -14104,6 +14583,90 @@ namespace N
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
         Assert.Equal("void E1.Method(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void InferredVariable_TypeReceiver_GenericType()
+    {
+        var src = """
+var x = C<int>.StaticType<string>;
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static class StaticType<U> { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0723: Cannot declare a variable of static type 'E<int>.StaticType<string>'
+            // var x = C<int>.StaticType<string>;
+            Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "var").WithArguments("E<int>.StaticType<string>").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType<string>");
+        Assert.Equal("E<System.Int32>.StaticType<System.String>", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void InferredVariable_TypeReceiver_GenericType_BrokenConstraint()
+    {
+        var src = """
+var x = C<int>.StaticType<string>;
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static class StaticType<U> where U : struct { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0723: Cannot declare a variable of static type 'E<int>.StaticType<string>'
+            // var x = C<int>.StaticType<string>;
+            Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "var").WithArguments("E<int>.StaticType<string>").WithLocation(1, 1),
+            // (1,27): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'E<int>.StaticType<U>'
+            // var x = C<int>.StaticType<string>;
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("E<int>.StaticType<U>", "U", "string").WithLocation(1, 27));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType<string>");
+        Assert.Equal("E<System.Int32>.StaticType<System.String>", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void InferredVariable_TypeReceiver_GenericType_OmittedTypeArgument()
+    {
+        var src = """
+var x = C<int>.StaticType<>;
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static class StaticType<U> where U : struct { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0723: Cannot declare a variable of static type 'E<int>.StaticType<U>'
+            // var x = C<int>.StaticType<>;
+            Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "var").WithArguments("E<int>.StaticType<U>").WithLocation(1, 1),
+            // (1,9): error CS8389: Omitting the type argument is not allowed in the current context
+            // var x = C<int>.StaticType<>;
+            Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "C<int>.StaticType<>").WithLocation(1, 9),
+            // (1,9): error CS0305: Using the generic type 'E<int>.StaticType<U>' requires 1 type arguments
+            // var x = C<int>.StaticType<>;
+            Diagnostic(ErrorCode.ERR_BadArity, "C<int>.StaticType<>").WithArguments("E<int>.StaticType<U>", "type", "1").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType<>");
+        Assert.Equal("E<System.Int32>.StaticType<U>", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -18123,6 +18686,56 @@ public class C<T>
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.Method");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void ExtensionInvocation_GenericType()
+    {
+        var src = """
+C<int>.StaticType<string>();
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static class StaticType<U> { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,8): error CS0117: 'C<int>' does not contain a definition for 'StaticType'
+            // C<int>.StaticType<string>();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticType<string>").WithArguments("C<int>", "StaticType").WithLocation(1, 8));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.StaticType<string>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void ExtensionInvocation_InvokableField_WithTypeArguments()
+    {
+        var src = """
+C<int>.Field<string>();
+
+class C<T> { }
+
+implicit extension E<T> for C<T>
+{
+    public static System.Action Field = null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,8): error CS0117: 'C<int>' does not contain a definition for 'Field'
+            // C<int>.Field<string>();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Field<string>").WithArguments("C<int>", "Field").WithLocation(1, 8));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.Field<string>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
@@ -28270,6 +28883,27 @@ implicit extension E for C
     }
 
     [Fact]
+    public void Nameof_Static_GenericType()
+    {
+        var src = """
+_ = nameof(object.Nested<string>);
+_ = nameof(E.Nested<string>);
+
+implicit extension E for object
+{
+    public static class Nested<U> { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Nested<string>");
+        Assert.Equal("E.Nested<System.String>", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
     public void InferredVariable_Static_InnerExtensionField()
     {
         var src = """
@@ -29849,6 +30483,23 @@ implicit extension E<T> for I<T>
         // PROTOTYPE need to fix the semantic model
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        AssertSetStrictlyEqual(["System.String E<T>.M"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.String E<T>.M"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var eInt = e.Construct(((Compilation)comp).GetSpecialType(SpecialType.System_Int32));
+        AssertSetStrictlyEqual(["System.String E<System.Int32>.M"], model.LookupSymbols(position: 0, eInt, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.String E<System.Int32>.M"], model.LookupSymbols(position: 0, eInt, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, c, name: "M").ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, c, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -33285,5 +33936,2015 @@ implicit extension E for I
             // (7,7): error CS1061: 'T' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
             //     t.Property = 42; // PROTOTYPE(instance) should we produce ERR_AssgLvalueExpected here once we resolve extension members on type parameters?
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("T", "Property").WithLocation(7, 7));
+    }
+
+    [Fact]
+    public void Lookup_ExtensionNotInScope_Static()
+    {
+        var src = """
+// we'll lookup here
+N.E.M();
+_ = N.E.Property;
+
+namespace N
+{
+    public implicit extension E for object
+    {
+        public static void M()
+        {
+            System.Console.Write("Method ");
+        }
+
+        public static int Property
+        {
+            get
+            {
+                System.Console.Write("Property");
+                return 0;
+            }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("Method Property"), verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "N.E.M()");
+        Assert.Equal("void N.E.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "N.E.Property");
+        Assert.Equal("System.Int32 N.E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        var n = ((Compilation)comp).GlobalNamespace.GetNestedNamespace("N");
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, name: "N.E").ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, name: "E").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["N.E"], model.LookupSymbols(position: 0, n, name: "E").ToTestDisplayStrings());
+
+        var e = n.GetTypeMember("E");
+        AssertSetStrictlyEqual(["void N.E.M()"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["void N.E.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 N.E.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 N.E.Property { get; }"],
+            model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"], model.LookupSymbols(position: 0, e, name: "ToString").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.String? System.Object.ToString()"],
+            model.LookupSymbols(position: 0, e, name: "ToString", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Static()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C
+{
+    public static int StaticField = 0;
+    public static int StaticProperty => 0;
+    public static void StaticMethod() { }
+    public class Nested { }
+    public static event System.Action StaticEvent { add { } remove { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        string[] eSymbols = [
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.StaticField",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested"], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        string[] eStaticSymbols = [
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.StaticField",
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested"], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Instance()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C
+{
+    public int Property => 0;
+    public void Method() { }
+    public event System.Action Event { add { } remove { } }
+    public int this[int i] => throw null; // We'll look up base members here
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        string[] eSymbols = [
+            "System.Int32 E.Property { get; }",
+            "void E.Method()",
+            "event System.Action E.Event",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        // Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)
+        Assert.Throws<ArgumentException>(() => model.LookupBaseMembers(position: GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart));
+        Assert.Null(e.BaseType);
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        string[] objectStaticSymbols = [
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        AssertSetStrictlyEqual(objectStaticSymbols,
+            model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ExplicitExtension()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+explicit extension E for C
+{
+    public static int StaticField = 0;
+    public static int StaticProperty => 0;
+    public static void StaticMethod() { }
+    public class Nested { }
+    public static event System.Action StaticEvent { add { } remove { } }
+
+    public int Property => 0;
+    public void Method() { }
+    public event System.Action Event { add { } remove { } }
+    public int this[int i] => throw null; // We'll look up base members here
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        string[] eSymbols = [
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.Property { get; }",
+            "void E.Method()",
+            "event System.Action E.Event",
+            "System.Int32 E.StaticField",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested"], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        string[] objectStaticSymbols = [
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        string[] eStaticSymbols = [
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.StaticField",
+            .. objectStaticSymbols];
+
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_GenericNestedType()
+    {
+        var src = """
+// we'll lookup here
+int x = object.StaticType<string>;
+
+implicit extension E for object
+{
+    void M2() => throw null; // We'll look up base members here
+
+    public static class StaticType<U>
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,16): error CS0428: Cannot convert method group 'StaticType' to non-delegate type 'int'. Did you intend to invoke the method?
+            // int x = object.StaticType<string>;
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "StaticType<string>").WithArguments("StaticType", "int").WithLocation(2, 16));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.StaticType<string>");
+        Assert.Equal("E.StaticType<System.String>", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        AssertSetStrictlyEqual(["E.StaticType<U>"], model.LookupSymbols(position: 0, e, name: "StaticType").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.StaticType<U>"],
+            model.LookupSymbols(position: 0, e, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.StaticType<U>"], model.LookupStaticMembers(position: 0, e, name: "StaticType").ToTestDisplayStrings());
+
+        // Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)
+        Assert.Throws<ArgumentException>(() => model.LookupBaseMembers(position: GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart));
+        Assert.Null(e.BaseType);
+
+        AssertSetStrictlyEqual(["E.StaticType<U>"], model.LookupNamespacesAndTypes(position: 0, e, name: "StaticType").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["E.StaticType<U>"], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.StaticType<U>"], model.LookupStaticMembers(position: 0, e, name: "StaticType").ToTestDisplayStrings());
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "StaticType").ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([],
+            model.LookupSymbols(position: 0, o, name: "StaticType", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "StaticType").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.StaticType<U>"], model.LookupNamespacesAndTypes(position: 0, o, name: "StaticType").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["E.StaticType<U>"], model.LookupNamespacesAndTypes(position: 0, o).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.StaticType<U>"], model.LookupStaticMembers(position: 0, o, name: "StaticType").ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_FromAnotherExtension_Static()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C { }
+
+implicit extension E2 for C
+{
+    public static int StaticField = 0;
+    public static int StaticProperty => 0;
+    public static void StaticMethod() { }
+    public class Nested { }
+    public static event System.Action StaticEvent { add { } remove { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E2.Nested"], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        string[] e2StaticSymbols = [
+            .. objectStaticSymbols,
+            "System.Int32 E2.StaticProperty { get; }",
+            "void E2.StaticMethod()",
+            "E2.Nested",
+            "event System.Action E2.StaticEvent",
+            "System.Int32 E2.StaticField"];
+
+        AssertSetStrictlyEqual(e2StaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_FromAnotherExtension_Instance()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C { }
+
+implicit extension E2 for C
+{
+    public int Property => 0;
+    public void Method() { }
+    public event System.Action Event { add { } remove { } }
+    public int this[int i] => throw null; // We'll look up base members here
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        // Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)
+        Assert.Throws<ArgumentException>(() => model.LookupBaseMembers(position: GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart));
+        Assert.Null(e.BaseType);
+
+        // PROTOTYPE(static) should LookupNamespacesAndTypes and LookupStaticMembers include extension members?
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"],
+            model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_FromAnotherExtension_FromAnotherFile()
+    {
+        var src1 = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C { }
+""";
+        var src2 = """
+file implicit extension E2 for C
+{
+    public static int StaticField = 0;
+}
+""";
+        var comp = CreateCompilation([(src1, "src1"), (src2, "src2")], targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, e, name: "StaticField", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"],
+            model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_UnderlyingTypeMembers_Public()
+    {
+        var src = """
+// we'll lookup here
+class C
+{
+    public static int Field = 0;
+    public static int Property => 0;
+    public static void Method() { }
+    public class Nested { }
+    public static event System.Action Event { add { } remove { } }
+}
+
+implicit extension E for C
+{
+    private void M() => throw null; // We'll look up base members here
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        string[] cSymbols = [
+            "System.Int32 C.Property { get; }",
+            "void C.Method()",
+            "C.Nested",
+            "event System.Action C.Event",
+            "System.Int32 C.Field",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(cSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(cSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        // Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)
+        Assert.Throws<ArgumentException>(() => model.LookupBaseMembers(position: GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart));
+        Assert.Null(e.BaseType);
+
+        AssertSetStrictlyEqual(["C.Nested"], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        string[] staticSymbols = [
+            "System.Int32 C.Property { get; }",
+            "void C.Method()",
+            "C.Nested",
+            "event System.Action C.Event",
+            "System.Int32 C.Field",
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(cSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(cSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["C.Nested"], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_UnderlyingTypeMembers_Protected()
+    {
+        var src = """
+// we'll lookup here
+class C
+{
+    // we'll also lookup here
+    protected static int Field = 0;
+    protected static int Property => 0;
+    protected static void Method() { }
+    protected class Nested { }
+    protected static event System.Action Event { add { } remove { } }
+}
+
+implicit extension E for C
+{
+    // we'll also lookup here
+    private void M() => throw null; // We'll look up base members here
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        string[] objectPublicSymbols = [
+            "System.String? System.Object.ToString()",
+            "System.Boolean System.Object.Equals(System.Object? obj)",
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Int32 System.Object.GetHashCode()",
+            "System.Type System.Object.GetType()",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        AssertSetStrictlyEqual(objectPublicSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectPublicSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        // Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)
+        Assert.Throws<ArgumentException>(() => model.LookupBaseMembers(position: GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart));
+        Assert.Null(e.BaseType);
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        string[] staticSymbols = [
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+        AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectPublicSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectPublicSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] symbolsWithinCFromC = [
+            "System.Int32 C.Property { get; }",
+            "void C.Method()",
+            "C.Nested",
+            "event System.Action C.Event",
+            "System.Int32 C.Field",
+            "System.String? System.Object.ToString()",
+            "System.Boolean System.Object.Equals(System.Object? obj)",
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "void System.Object.Finalize()",
+            "System.Int32 System.Object.GetHashCode()",
+            "System.Type System.Object.GetType()",
+            "System.Object System.Object.MemberwiseClone()",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        int positionInC = src.IndexOf("protected");
+        AssertSetStrictlyEqual(symbolsWithinCFromC, model.LookupSymbols(position: positionInC, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(symbolsWithinCFromC, model.LookupSymbols(position: positionInC, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] symbolsWithinEFromC = [
+            "System.Int32 C.Property { get; }",
+            "void C.Method()",
+            "C.Nested",
+            "event System.Action C.Event",
+            "System.Int32 C.Field",
+            .. objectPublicSymbols];
+
+        AssertSetStrictlyEqual(symbolsWithinEFromC, model.LookupSymbols(position: positionInC, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(symbolsWithinEFromC, model.LookupSymbols(position: positionInC, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] symbolsWithinEFromE = [
+            "void E.M()",
+            .. objectPublicSymbols];
+
+        int positionInE = src.IndexOf("private");
+        AssertSetStrictlyEqual(symbolsWithinEFromE, model.LookupSymbols(position: positionInE, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(symbolsWithinEFromE, model.LookupSymbols(position: positionInE, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_UnderlyingTypeMembers_Private()
+    {
+        var src = """
+// we'll lookup here
+class C
+{
+    // we'll also lookup here
+    private static int Field = 0;
+    private static int Property => 0;
+    private static void Method() { }
+    private class Nested { }
+    private static event System.Action Event { add { } remove { } }
+}
+
+implicit extension E for C
+{
+    private void M() => throw null; // We'll look up base members here
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): warning CS0414: The field 'C.Field' is assigned but its value is never used
+            //     private static int Field = 0;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "Field").WithArguments("C.Field").WithLocation(5, 24));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        // Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)
+        int positionInE = GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart;
+        Assert.Throws<ArgumentException>(() => { return model.LookupBaseMembers(position: positionInE); });
+        Assert.Null(e.BaseType);
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        string[] staticSymbols = [
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+        AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] symbolsWithinCFromC = [
+            "System.Int32 C.Property { get; }",
+            "void C.Method()",
+            "C.Nested",
+            "event System.Action C.Event",
+            "System.Int32 C.Field",
+            "System.String? System.Object.ToString()",
+            "System.Boolean System.Object.Equals(System.Object? obj)",
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "void System.Object.Finalize()",
+            "System.Int32 System.Object.GetHashCode()",
+            "System.Type System.Object.GetType()",
+            "System.Object System.Object.MemberwiseClone()",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        int positionInC = src.IndexOf("private");
+        AssertSetStrictlyEqual(symbolsWithinCFromC, model.LookupSymbols(position: positionInC, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(symbolsWithinCFromC, model.LookupSymbols(position: positionInC, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] symbolsWithinEFromC = [
+            "System.Int32 C.Property { get; }",
+            "void C.Method()",
+            "C.Nested",
+            "event System.Action C.Event",
+            "System.Int32 C.Field",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(symbolsWithinEFromC, model.LookupSymbols(position: positionInC, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(symbolsWithinEFromC, model.LookupSymbols(position: positionInC, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] symbolsWithinEFromE = [
+            "void E.M()",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(symbolsWithinEFromE, model.LookupSymbols(position: positionInE, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(symbolsWithinEFromE, model.LookupSymbols(position: positionInE, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(staticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_TypeParameter()
+    {
+        var src = """
+class Container<T>
+{
+    void M() => throw null; // we'll lookup here
+
+    void M2()
+    {
+        _ = T.Field;
+        T.Nested x = default;
+    }
+
+    implicit extension E for T
+    {
+        public static int Field = 0;
+        public class Nested { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         _ = T.Field;
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(7, 13),
+            // (8,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         T.Nested x = default;
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.Nested").WithArguments("T").WithLocation(8, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var position = GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart;
+
+        var t = ((Compilation)comp).GlobalNamespace.GetTypeMember("Container").TypeParameters[0];
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position, t).ToTestDisplayStrings());
+        // PROTOTYPE(static) need to confirm what we want for extension members on type parameters or values of type parameters
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position, t, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position, t).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Interface_Static()
+    {
+        var src = """
+// we'll lookup here
+interface I { }
+
+implicit extension E for I
+{
+    public static int StaticField = 0;
+    public static int StaticProperty => 0;
+    public static void StaticMethod() { }
+    public class Nested { }
+    public static event System.Action StaticEvent { add { } remove { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var i = ((Compilation)comp).GlobalNamespace.GetTypeMember("I");
+
+        string[] objectStaticSymbols = [
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i).ToTestDisplayStrings());
+
+        string[] eStaticSymbols = [
+            .. objectStaticSymbols,
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.StaticField"];
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested"], model.LookupNamespacesAndTypes(position: 0, i).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, i).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Interface_Instance()
+    {
+        var src = """
+// we'll lookup here
+interface I { }
+
+implicit extension E for I
+{
+    public int Property => 0;
+    public void Method() { }
+    public event System.Action Event { add { } remove { } }
+    public int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var i = ((Compilation)comp).GlobalNamespace.GetTypeMember("I");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, i).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"],
+            model.LookupStaticMembers(position: 0, i).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Interface_FromBaseInterface_Static()
+    {
+        var src = """
+// we'll lookup here
+interface IBase { }
+interface I : IBase { }
+
+implicit extension E for IBase
+{
+    public static int StaticField = 0;
+    public static int StaticProperty => 0;
+    public static void StaticMethod() { }
+    public class Nested { }
+    public static event System.Action StaticEvent { add { } remove { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var i = ((Compilation)comp).GlobalNamespace.GetTypeMember("I");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i).ToTestDisplayStrings());
+
+        string[] eStaticSymbols = [
+            .. objectStaticSymbols,
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.StaticField"];
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested"], model.LookupNamespacesAndTypes(position: 0, i).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, i).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Interface_FromBaseInterface_Instance()
+    {
+        var src = """
+// we'll lookup here
+interface IBase { }
+interface I : IBase { }
+
+implicit extension E for IBase
+{
+    public int Property => 0;
+    public void Method() { }
+    public event System.Action Event { add { } remove { } }
+    public int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var i = ((Compilation)comp).GlobalNamespace.GetTypeMember("I");
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, i).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, i).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Interface_FromBaseInterface_Inaccessible_Static()
+    {
+        var src = """
+// we'll lookup here
+interface IBase { }
+
+/// <summary>
+/// <see cref=" we'll also lookup here "/>.
+/// </summary>
+interface I : IBase { }
+
+implicit extension E for IBase
+{
+    private static int StaticField = 0;
+    private static int StaticProperty => 0;
+    private static void StaticMethod() { }
+    private class Nested { }
+    private static event System.Action StaticEvent { add { } remove { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (11,24): warning CS0414: The field 'E.StaticField' is assigned but its value is never used
+            //     private static int StaticField = 0;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "StaticField").WithArguments("E.StaticField").WithLocation(11, 24));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var i = ((Compilation)comp).GlobalNamespace.GetTypeMember("I");
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] eStaticSymbols = [
+            .. objectStaticSymbols,
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.StaticField"];
+
+        int crefPosition = src.IndexOf("we'll also lookup here", StringComparison.Ordinal);
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: crefPosition, i, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, i).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, i).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Interface_FromBaseInterface_Inaccessible_Instance()
+    {
+        var src = """
+// we'll lookup here
+interface IBase { }
+
+/// <summary>
+/// <see cref=" we'll also lookup here "/>.
+/// </summary>
+interface I : IBase { }
+
+implicit extension E for IBase
+{
+    private int Property => 0;
+    private void Method() { }
+    private event System.Action Event { add { } remove { } }
+    private int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var i = ((Compilation)comp).GlobalNamespace.GetTypeMember("I");
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, i, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] eSymbols = [
+            "System.Int32 E.Property { get; }",
+            "void E.Method()",
+            "event System.Action E.Event"];
+
+        int crefPosition = src.IndexOf("we'll also lookup here", StringComparison.Ordinal);
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: crefPosition, i, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, i).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, i).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static()
+    {
+        var source = """
+// we'll lookup here
+public implicit extension E<T> for T where T : struct
+{
+    public static int StaticField = 0;
+    public static int StaticProperty => 0;
+    public static void StaticMethod() { }
+    public class Nested { }
+    public static event System.Action StaticEvent { add { } remove { } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o).ToTestDisplayStrings());
+
+        string[] eStaticSymbols = [
+            .. objectStaticSymbols,
+            "System.Int32 E<System.Object>.StaticProperty { get; }",
+            "void E<System.Object>.StaticMethod()",
+            "E<System.Object>.Nested",
+            "event System.Action E<System.Object>.StaticEvent",
+            "System.Int32 E<System.Object>.StaticField"];
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E<System.Object>.Nested"], model.LookupNamespacesAndTypes(position: 0, o).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
+
+        var n = ((Compilation)comp).GetSpecialType(SpecialType.System_Nullable_T);
+        string[] nullableInstanceSymbols = [
+            "readonly T System.Nullable<T>.Value { get; }",
+            "System.Boolean System.Nullable<T>.Equals(System.Object? other)",
+            "System.Boolean System.ValueType.Equals(System.Object? obj)",
+            "System.Boolean System.Object.Equals(System.Object? obj)",
+            "System.Int32 System.Nullable<T>.GetHashCode()",
+            "System.Int32 System.ValueType.GetHashCode()",
+            "System.Int32 System.Object.GetHashCode()",
+            "readonly T System.Nullable<T>.GetValueOrDefault()",
+            "readonly T System.Nullable<T>.GetValueOrDefault(T defaultValue)",
+            "System.String? System.Nullable<T>.ToString()",
+            "System.String? System.ValueType.ToString()",
+            "System.String? System.Object.ToString()",
+            "readonly System.Boolean System.Nullable<T>.HasValue { get; }",
+            "System.Type System.Object.GetType()"];
+
+        string[] nullableStaticSymbols = [
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        AssertSetStrictlyEqual([.. nullableInstanceSymbols, .. nullableStaticSymbols], model.LookupSymbols(position: 0, n).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual([.. nullableInstanceSymbols, .. nullableStaticSymbols],
+            model.LookupSymbols(position: 0, n, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([
+            .. nullableStaticSymbols,
+            "System.Int32 E<T?>.StaticProperty { get; }",
+            "void E<T?>.StaticMethod()",
+            "E<T?>.Nested",
+            "event System.Action E<T?>.StaticEvent",
+            "System.Int32 E<T?>.StaticField"],
+            model.LookupStaticMembers(position: 0, n).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E<T?>.Nested"], model.LookupNamespacesAndTypes(position: 0, n).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Instance()
+    {
+        var source = """
+// we'll lookup here
+public implicit extension E<T> for T where T : struct
+{
+    public int Property => 0;
+    public void Method() { }
+    public event System.Action Event { add { } remove { } }
+    public int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE should warn about hiding
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o).ToTestDisplayStrings());
+
+        string[] eSymbols = [
+            .. objectSymbols,
+            "System.Int32 E<System.Object>.Property { get; }",
+            "void E<System.Object>.Method()",
+            "event System.Action E<System.Object>.Event"];
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, o).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
+
+        var n = ((Compilation)comp).GetSpecialType(SpecialType.System_Nullable_T);
+        string[] nullableSymbols = [
+            "readonly T System.Nullable<T>.Value { get; }",
+            "System.Boolean System.Nullable<T>.Equals(System.Object? other)",
+            "System.Boolean System.ValueType.Equals(System.Object? obj)",
+            "System.Boolean System.Object.Equals(System.Object? obj)",
+            "System.Boolean System.Object.Equals(System.Object? objA, System.Object? objB)",
+            "System.Int32 System.Nullable<T>.GetHashCode()",
+            "System.Int32 System.ValueType.GetHashCode()",
+            "System.Int32 System.Object.GetHashCode()",
+            "readonly T System.Nullable<T>.GetValueOrDefault()",
+            "readonly T System.Nullable<T>.GetValueOrDefault(T defaultValue)",
+            "System.String? System.Nullable<T>.ToString()",
+            "System.String? System.ValueType.ToString()",
+            "System.String? System.Object.ToString()",
+            "readonly System.Boolean System.Nullable<T>.HasValue { get; }",
+            "System.Type System.Object.GetType()",
+            "System.Boolean System.Object.ReferenceEquals(System.Object? objA, System.Object? objB)"];
+
+        AssertSetStrictlyEqual(nullableSymbols, model.LookupSymbols(position: 0, n).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(nullableSymbols,
+            model.LookupSymbols(position: 0, n, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, n).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, n).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_MustCallMethodsDirectly()
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: false)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname newslot static int32 get_Item ( int32 x ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname newslot static void set_Item ( int32 x, int32 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property int32 Item( int32 x )
+    {
+        .get int32 R1::get_Item(int32)
+        .set void R1::set_Item(int32, int32)
+    }
+}
+""";
+        var src = """
+// We'll lookup here
+_ = new object().Item[42];
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,18): error CS1061: 'object' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // _ = new object().Item[42];
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("object", "Item").WithLocation(2, 18));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_HidingLessSpecific_Static_Field()
+    {
+        var src = """
+// we'll lookup here
+public class Base { }
+public class C : Base { }
+
+public implicit extension EBase for Base
+{
+    public static int StaticField = 0;
+}
+
+public implicit extension E for C
+{
+    public static int StaticField = 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([
+            .. objectStaticSymbols,
+            "System.Int32 E.StaticField"],
+            model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_HidingLessSpecific_Static_ExtensionNestedType()
+    {
+        var src = """
+// we'll lookup here
+public class Base { }
+public class C : Base { }
+
+public implicit extension EBase for Base
+{
+    public class Nested { }
+}
+
+public implicit extension E for C
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested"], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([
+            .. objectStaticSymbols,
+            "E.Nested"],
+            model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_HidingLessSpecific_Static_Property()
+    {
+        var src = """
+// we'll lookup here
+public class Base { }
+public class C : Base { }
+
+public implicit extension EBase for Base
+{
+    public static int Property { get => 0; }
+}
+
+public implicit extension E for C
+{
+    public static int Property { set { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([
+            .. objectStaticSymbols,
+            "System.Int32 E.Property { set; }"],
+            model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_HidingLessSpecific_Instance_Property()
+    {
+        var src = """
+// we'll lookup here
+public class Base { }
+public class C : Base { }
+
+public implicit extension EBase for Base
+{
+    public int Property { get => 0; }
+}
+
+public implicit extension E for C
+{
+    public int Property { set { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Ambiguous_Static()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C
+{
+    public static int StaticField = 0;
+    public static int StaticProperty => 0;
+    public static void StaticMethod() { }
+    public class Nested { }
+    public static event System.Action StaticEvent { add { } remove { } }
+}
+
+implicit extension E2 for C
+{
+    public static int StaticField = 0;
+    public static int StaticProperty => 0;
+    public static void StaticMethod() { }
+    public class Nested { }
+    public static event System.Action StaticEvent { add { } remove { } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        string[] eSymbols = [
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.StaticField",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] allStaticSymbols = [
+            "System.Int32 E.StaticProperty { get; }",
+            "void E.StaticMethod()",
+            "E.Nested",
+            "event System.Action E.StaticEvent",
+            "System.Int32 E.StaticField",
+            .. objectStaticSymbols,
+            "System.Int32 E2.StaticProperty { get; }",
+            "void E2.StaticMethod()",
+            "E2.Nested",
+            "event System.Action E2.StaticEvent",
+            "System.Int32 E2.StaticField"];
+
+        AssertSetStrictlyEqual(allStaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested", "E2.Nested"], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(allStaticSymbols,
+            model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested", "E2.Nested"], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(allStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Ambiguous_Instance()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C
+{
+    public int Property => 0;
+    public void Method() { }
+    public event System.Action Event { add { } remove { } }
+    public int this[int i] => throw null;
+}
+
+implicit extension E2 for C
+{
+    public int Property => 0;
+    public void Method() { }
+    public event System.Action Event { add { } remove { } }
+    public int this[int i] => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        string[] eSymbols = [
+            "System.Int32 E.Property { get; }",
+            "void E.Method()",
+            "event System.Action E.Event",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_MatchNonZeroArity_Static()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C
+{
+    public static void StaticMethod() { }
+    public static void StaticMethod<T>() { }
+    public class Nested { }
+    public class Nested<T> { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        string[] eSymbols = [
+            "void E.StaticMethod()",
+            "void E.StaticMethod<T>()",
+            "E.Nested",
+            "E.Nested<T>",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested", "E.Nested<T>"], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        string[] eStaticSymbols = [
+            "void E.StaticMethod()",
+            "void E.StaticMethod<T>()",
+            "E.Nested",
+            "E.Nested<T>",
+            .. objectStaticSymbols];
+        AssertSetStrictlyEqual(eStaticSymbols,
+            model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["E.Nested", "E.Nested<T>"], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_MatchNonZeroArity_Instance()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C
+{
+    public void Method() { }
+    public void Method<T>() { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        string[] eSymbols = [
+            "void E.Method()",
+            "void E.Method<T>()",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Private()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+
+implicit extension E for C
+{
+    private void StaticMethod() { }
+    private class Nested { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_FileAccess()
+    {
+        var src = """
+// we'll lookup here
+class C { }
+""";
+        var src2 = """
+file implicit extension E for C
+{
+    private void StaticMethod() { }
+    private class Nested { }
+}
+file implicit extension E2 for C
+{
+    private void StaticMethod2() { }
+    private class Nested2 { }
+}
+""";
+        var comp = CreateCompilation([(src, "src"), (src2, "src2")], targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, e).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, e).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_MultipleScopes_ExtensionNestedTypes()
+    {
+        var src = """
+class C { }
+
+namespace Outer
+{
+    namespace Inner
+    {
+        class D
+        {
+            void M() => throw null; // we'll lookup here
+        }
+
+        implicit extension E for C
+        {
+            public class Nested { }
+        }
+    }
+
+    implicit extension E2 for C
+    {
+        public class Nested { }
+        public class Nested2 { }
+    }
+}
+
+implicit extension E3 for C
+{
+    public class Nested { }
+    public class Nested2 { }
+    public class Nested3 { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var position = GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart;
+
+        var e = ((Compilation)comp).GlobalNamespace.GetNestedNamespace("Outer").GetNestedNamespace("Inner").GetTypeMember("E");
+
+        string[] eSymbols = ["Outer.Inner.E.Nested", .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position, e).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["Outer.Inner.E.Nested", "Outer.E2.Nested2", "E3.Nested3"],
+            model.LookupNamespacesAndTypes(position, e).ToTestDisplayStrings());
+
+        string[] cStaticSymbols = [
+            "Outer.Inner.E.Nested",
+            "Outer.E2.Nested2",
+            "E3.Nested3",
+            .. objectStaticSymbols];
+
+        AssertSetStrictlyEqual(cStaticSymbols, model.LookupStaticMembers(position, e).ToTestDisplayStrings());
+
+        var e2 = ((Compilation)comp).GlobalNamespace.GetNestedNamespace("Outer").GetTypeMember("E2");
+
+        string[] e2Symbols = [
+            "Outer.E2.Nested",
+            "Outer.E2.Nested2",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(e2Symbols, model.LookupSymbols(position, e2).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(e2Symbols, model.LookupSymbols(position, e2, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        // Note: we include extension member E.Nested despite having already found an instance member E2.Nested
+        string[] e2TypeSymbols = [
+            "Outer.E2.Nested",
+            "Outer.E2.Nested2",
+            "Outer.Inner.E.Nested",
+            "E3.Nested3"];
+
+        AssertSetStrictlyEqual(e2TypeSymbols, model.LookupNamespacesAndTypes(position, e2).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([.. e2TypeSymbols, .. objectStaticSymbols], model.LookupStaticMembers(position, e2).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        string[] cTypeSymbols = [
+            "Outer.Inner.E.Nested",
+            "Outer.E2.Nested2",
+            "E3.Nested3"];
+
+        AssertSetStrictlyEqual(cTypeSymbols, model.LookupNamespacesAndTypes(position, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([.. cTypeSymbols, .. objectStaticSymbols], model.LookupStaticMembers(position, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_MultipleScopes_Methods_Static()
+    {
+        var src = """
+class C { }
+
+namespace Outer
+{
+    namespace Inner
+    {
+        class D
+        {
+            void M() => throw null; // we'll lookup here
+        }
+
+        implicit extension E for C
+        {
+            public static void StaticMethod() { }
+        }
+    }
+
+    implicit extension E2 for C
+    {
+        public static void StaticMethod() { }
+        public static void StaticMethod2() { }
+    }
+}
+
+implicit extension E3 for C
+{
+    public static void StaticMethod() { }
+    public static void StaticMethod2() { }
+    public static void StaticMethod3() { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var position = GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart;
+
+        var e = ((Compilation)comp).GlobalNamespace.GetNestedNamespace("Outer").GetNestedNamespace("Inner").GetTypeMember("E");
+
+        string[] eSymbols = [
+            "void Outer.Inner.E.StaticMethod()",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position, e).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(eSymbols, model.LookupSymbols(position, e, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position, e).ToTestDisplayStrings());
+
+        string[] eStaticSymbols = [
+            "void Outer.Inner.E.StaticMethod()",
+            "void Outer.E2.StaticMethod2()",
+            "void E3.StaticMethod3()",
+            .. objectStaticSymbols];
+
+        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position, e).ToTestDisplayStrings());
+
+        var e2 = ((Compilation)comp).GlobalNamespace.GetNestedNamespace("Outer").GetTypeMember("E2");
+
+        string[] e2Symbols = [
+            "void Outer.E2.StaticMethod2()",
+            "void Outer.E2.StaticMethod()",
+            .. objectSymbols];
+        AssertSetStrictlyEqual(e2Symbols, model.LookupSymbols(position, e2).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(e2Symbols, model.LookupSymbols(position, e2, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position, e2).ToTestDisplayStrings());
+        string[] e2StaticSymbols = [
+            "void Outer.E2.StaticMethod2()",
+            "void Outer.E2.StaticMethod()",
+            "void Outer.Inner.E.StaticMethod()",
+            "void E3.StaticMethod3()",
+            .. objectStaticSymbols];
+
+        AssertSetStrictlyEqual(e2StaticSymbols, model.LookupStaticMembers(position, e2).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position, c).ToTestDisplayStrings());
+        string[] cStaticSymbols = [
+            "void Outer.Inner.E.StaticMethod()",
+            "void Outer.E2.StaticMethod2()",
+            "void E3.StaticMethod3()",
+            .. objectStaticSymbols];
+
+        AssertSetStrictlyEqual(cStaticSymbols, model.LookupStaticMembers(position, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_MultipleScopes_FieldsAndProperties_Static()
+    {
+        var src = """
+class C { }
+
+namespace Outer
+{
+    namespace Inner
+    {
+        class D
+        {
+            void M() => throw null; // we'll lookup here
+        }
+
+        implicit extension EInner1 for C
+        {
+            public static int M = 0;
+        }
+
+        implicit extension EInner2 for C
+        {
+            public static int M => 0;
+        }
+    }
+
+    implicit extension EOuter1 for C
+    {
+        public static int M = 0;
+        public static int M2 = 0;
+    }
+
+    implicit extension EOuter2 for C
+    {
+        public static int M => 0;
+        public static int M2 => 0;
+    }
+}
+
+implicit extension ETop1 for C
+{
+    public static int M = 0;
+    public static int M2 = 0;
+    public static int M3 = 0;
+}
+
+implicit extension ETop2 for C
+{
+    public static int M => 0;
+    public static int M2 => 0;
+    public static int M3 => 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var position = GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart;
+
+        var eInner1 = ((Compilation)comp).GlobalNamespace.GetNestedNamespace("Outer").GetNestedNamespace("Inner").GetTypeMember("EInner1");
+
+        string[] eInner1Symbols = [
+            "System.Int32 Outer.Inner.EInner1.M",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eInner1Symbols, model.LookupSymbols(position, eInner1).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(eInner1Symbols, model.LookupSymbols(position, eInner1, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position, eInner1).ToTestDisplayStrings());
+
+        string[] eInner1StaticSymbols = [
+            "System.Int32 Outer.Inner.EInner1.M",
+            "System.Int32 Outer.Inner.EInner2.M { get; }",
+            "System.Int32 Outer.EOuter2.M2 { get; }",
+            "System.Int32 Outer.EOuter1.M2",
+            "System.Int32 ETop2.M3 { get; }",
+            "System.Int32 ETop1.M3",
+            .. objectStaticSymbols];
+
+        AssertSetStrictlyEqual(eInner1StaticSymbols, model.LookupStaticMembers(position, eInner1).ToTestDisplayStrings());
+
+        var eOuter1 = ((Compilation)comp).GlobalNamespace.GetNestedNamespace("Outer").GetTypeMember("EOuter1");
+
+        string[] eOuter1Symbols = [
+            "System.Int32 Outer.EOuter1.M2",
+            "System.Int32 Outer.EOuter1.M",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(eOuter1Symbols, model.LookupSymbols(position, eOuter1).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(eOuter1Symbols, model.LookupSymbols(position, eOuter1, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position, eOuter1).ToTestDisplayStrings());
+
+        // Note: we include extension members EInner1.M and EInner2.M despite having already found an instance member EOuter1.M
+        string[] eOuter1StaticSymbols = [
+            "System.Int32 Outer.Inner.EInner1.M",
+            "System.Int32 Outer.Inner.EInner2.M { get; }",
+            "System.Int32 Outer.EOuter1.M",
+            "System.Int32 Outer.EOuter1.M2",
+            "System.Int32 Outer.EOuter2.M2 { get; }",
+            "System.Int32 ETop2.M3 { get; }",
+            "System.Int32 ETop1.M3",
+            .. objectStaticSymbols];
+
+        AssertSetStrictlyEqual(eOuter1StaticSymbols, model.LookupStaticMembers(position, eOuter1).ToTestDisplayStrings());
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position, c).ToTestDisplayStrings());
+        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position, c).ToTestDisplayStrings());
+
+        string[] cStaticSymbols = [
+            "System.Int32 Outer.Inner.EInner1.M",
+            "System.Int32 Outer.Inner.EInner2.M { get; }",
+            "System.Int32 Outer.EOuter1.M2",
+            "System.Int32 Outer.EOuter2.M2 { get; }",
+            "System.Int32 ETop1.M3",
+            "System.Int32 ETop2.M3 { get; }",
+            .. objectStaticSymbols];
+
+        AssertSetStrictlyEqual(cStaticSymbols, model.LookupStaticMembers(position, c).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_Protected()
+    {
+        var src = """
+// we'll lookup here
+_ = C.M;
+
+class C
+{
+    int P => throw null; // we'll also lookup here
+}
+
+implicit extension E for C
+{
+    protected static int M = 0;
+    protected class Nested { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS0117: 'C' does not contain a definition for 'M'
+            // _ = C.M;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("C", "M").WithLocation(2, 7));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, c).ToTestDisplayStrings());
+
+        int positionInC = GetSyntax<ThrowExpressionSyntax>(tree, "throw null").SpanStart;
+
+        string[] cSymbols = [
+            "System.Int32 C.P { get; }",
+            "System.Object System.Object.MemberwiseClone()",
+            "void System.Object.Finalize()",
+            .. objectSymbols];
+
+        AssertSetStrictlyEqual(cSymbols, model.LookupSymbols(positionInC, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(cSymbols, model.LookupSymbols(positionInC, c, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(positionInC, c).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(positionInC, c).ToTestDisplayStrings());
     }
 }
