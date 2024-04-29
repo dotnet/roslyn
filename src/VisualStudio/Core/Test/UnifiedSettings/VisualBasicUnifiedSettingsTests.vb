@@ -76,15 +76,21 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
 
         <Fact>
         Public Async Function IntelliSensePageTests() As Task
-            Dim registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
-            Using reader = New StreamReader(registrationFileStream)
-                Dim registrationFile = Await reader.ReadToEndAsync().ConfigureAwait(False)
-                Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings())
-                Dim categoriesTitle = registrationJsonObject.SelectToken("$.categories['textEditor.basic'].title")
-                Assert.Equal("Visual Basic", categoriesTitle)
-                Dim optionPageId = registrationJsonObject.SelectToken("$.categories['textEditor.basic.intellisense'].legacyOptionPageId")
-                Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, optionPageId.ToString())
-                TestUnifiedSettingsCategory(registrationJsonObject, categoryBasePath:="textEditor.basic.intellisense", languageName:=LanguageNames.VisualBasic)
+            Using registrationFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("visualBasicSettings.registration.json")
+                Using pkgDefFileStream = GetType(VisualBasicUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("PackageRegistration.pkgdef")
+                    Using pkgDefFileReader = New StreamReader(pkgDefFileStream)
+                        Using reader = New StreamReader(registrationFileStream)
+                            Dim registrationFile = Await reader.ReadToEndAsync().ConfigureAwait(False)
+                            Dim pkgDefFile = Await pkgDefFileReader.ReadToEndAsync().ConfigureAwait(False)
+                            Dim registrationJsonObject = JObject.Parse(registrationFile, New JsonLoadSettings())
+                            Dim categoriesTitle = registrationJsonObject.SelectToken("$.categories['textEditor.basic'].title")
+                            Assert.Equal("Visual Basic", categoriesTitle)
+                            Dim optionPageId = registrationJsonObject.SelectToken("$.categories['textEditor.basic.intellisense'].legacyOptionPageId")
+                            Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, optionPageId.ToString())
+                            TestUnifiedSettingsCategory(registrationJsonObject, categoryBasePath:="textEditor.basic.intellisense", languageName:=LanguageNames.VisualBasic, pkgDefFile)
+                        End Using
+                    End Using
+                End Using
             End Using
         End Function
     End Class
