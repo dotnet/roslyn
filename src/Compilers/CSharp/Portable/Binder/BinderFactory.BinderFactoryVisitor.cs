@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (usage == NodeUsage.MethodBody)
                     {
                         method = method ?? GetMethodSymbol(methodDecl, resultBinder);
+                        Debug.Assert(method is not null);
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
@@ -247,6 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultBinder = VisitCore(parent.Parent);
 
                     SourceMemberMethodSymbol method = GetMethodSymbol(parent, resultBinder);
+                    Debug.Assert(method is not null);
                     resultBinder = new InMethodBinder(method, resultBinder);
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(parent.Modifiers);
@@ -490,8 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+#nullable enable
             // Get the correct methods symbol within container that corresponds to the given method syntax.
-            private SourceMemberMethodSymbol GetMethodSymbol(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax, Binder outerBinder)
+            private SourceMemberMethodSymbol? GetMethodSymbol(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax, Binder outerBinder)
             {
                 if (baseMethodDeclarationSyntax == _memberDeclarationOpt)
                 {
@@ -507,6 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string methodName = GetMethodName(baseMethodDeclarationSyntax, outerBinder);
                 return (SourceMemberMethodSymbol)GetMemberSymbol(methodName, baseMethodDeclarationSyntax.FullSpan, container, SymbolKind.Method);
             }
+
+#nullable disable
 
             private SourcePropertySymbol GetPropertySymbol(BasePropertyDeclarationSyntax basePropertyDeclarationSyntax, Binder outerBinder)
             {
