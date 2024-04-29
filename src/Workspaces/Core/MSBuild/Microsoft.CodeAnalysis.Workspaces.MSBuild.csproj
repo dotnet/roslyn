@@ -112,8 +112,8 @@
            Similarly, we set CopyToOutputDirectory for the regular build and PackageCopyToPutput for the packaging process. -->
       <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
                Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               TargetPath="%(NetFrameworkBuildHostAssets.ContentFolderName)\%(NetFrameworkBuildHostAssets.TargetPath)"
-               PackagePath="contentFiles\any\any\%(NetFrameworkBuildHostAssets.ContentFolderName)\%(NetFrameworkBuildHostAssets.TargetPath)"
+               TargetPath="$([System.IO.Path]::Combine('%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
+               PackagePath="$([System.IO.Path]::Combine('contentFiles', 'any', 'any', '%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
                CopyToOutputDirectory="PreserveNewest"
                PackageCopyToOutput="true" />
     </ItemGroup>

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -42,20 +42,18 @@ internal partial class FindReferencesSearchEngine
         }
 
         public override ImmutableArray<ISymbol> GetAllSymbols()
-            => _allSymbols.ToImmutableArray();
+            => [.. _allSymbols];
 
         public override async Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)
         {
             // Start searching using the current set of symbols built up so far.
-            var workQueue = new Stack<ISymbol>();
-            workQueue.Push(_allSymbols);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var workQueue);
+            workQueue.AddRange(_allSymbols);
 
             var projects = ImmutableHashSet.Create(project);
 
-            while (workQueue.Count > 0)
+            while (workQueue.TryPop(out var current))
             {
-                var current = workQueue.Pop();
-
                 // For each symbol we're examining try to walk both up and down from it to see if we discover any
                 // new symbols in this project.  As long as we keep finding symbols, we'll keep searching from them
                 // in both directions.

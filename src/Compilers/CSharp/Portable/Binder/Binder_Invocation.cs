@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#nullable enable
         private BoundExpression BindDynamicInvocation(
             SyntaxNode node,
             BoundExpression expression,
@@ -391,10 +392,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckNamedArgumentsForDynamicInvocation(arguments, diagnostics);
 
             bool hasErrors = false;
+            BoundExpression? receiver;
             if (expression.Kind == BoundKind.MethodGroup)
             {
                 BoundMethodGroup methodGroup = (BoundMethodGroup)expression;
-                BoundExpression receiver = methodGroup.ReceiverOpt;
+                receiver = methodGroup.ReceiverOpt;
 
                 // receiver is null if we are calling a static method declared on an outer class via its simple name:
                 if (receiver != null)
@@ -414,6 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // the runtime binder would ignore the receiver, but in a ctor initializer we can't read "this" before 
                                 // the base constructor is called. We need to handle this as a type qualified static method call.
                                 // Also applicable to things like field initializers, which run before the ctor initializer.
+                                Debug.Assert(ContainingType is not null);
                                 expression = methodGroup.Update(
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,
@@ -456,12 +459,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 expression = BindToNaturalType(expression, diagnostics);
+
+                if (expression is BoundDynamicMemberAccess memberAccess)
+                {
+                    receiver = memberAccess.Receiver;
+                }
+                else
+                {
+                    receiver = expression;
+                }
             }
 
             ImmutableArray<BoundExpression> argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
             var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause);
+            hasErrors &= ReportBadDynamicArguments(node, receiver, argArray, refKindsArray, diagnostics, queryClause);
 
             return new BoundDynamicInvocation(
                 node,
@@ -473,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
         }
+#nullable disable
 
         private void CheckNamedArgumentsForDynamicInvocation(AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
         {
@@ -519,15 +532,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns true if there were errors.
+#nullable enable
         private static bool ReportBadDynamicArguments(
             SyntaxNode node,
+            BoundExpression? receiver,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKinds,
             BindingDiagnosticBag diagnostics,
-            CSharpSyntaxNode queryClause)
+            CSharpSyntaxNode? queryClause)
         {
             bool hasErrors = false;
             bool reportedBadQuery = false;
+
+            if (receiver != null && !IsLegalDynamicOperand(receiver))
+            {
+                // Cannot perform a dynamic invocation on an expression with type '{0}'.
+                Debug.Assert(receiver.Type is not null);
+                Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnExpression, receiver.Syntax, receiver.Type);
+                hasErrors = true;
+            }
 
             if (!refKinds.IsDefault)
             {
@@ -576,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Lambdas,anonymous methods and method groups are the typeless expressions that
                         // are not usable as dynamic arguments; if we get here then the expression must have a type.
-                        Debug.Assert((object)arg.Type != null);
+                        Debug.Assert((object?)arg.Type != null);
                         // error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation
 
                         Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, arg.Syntax, arg.Type);
@@ -586,6 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return hasErrors;
         }
+#nullable disable
 
         private BoundExpression BindDelegateInvocation(
             SyntaxNode node,
@@ -638,8 +662,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
                 }
-                // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for expanded non-array params cases.
-                else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 || IsMemberWithExpandedNonArrayParamsCollection(applicable))
+                // For C# 12 and earlier always bind at runtime.
+                else if (Compilation.LanguageVersion > LanguageVersion.CSharp12)
                 {
                     result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, hasDynamicArgument: true, boundExpression, diagnostics, queryClause);
                 }
@@ -854,6 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (finalApplicableCandidates.Length != 1 &&
+                Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
                 HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(resolution.AnalyzedArguments.Arguments, finalApplicableCandidates))
             {
                 Error(diagnostics,
@@ -987,10 +1012,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for local functions or expanded non-array params cases.
+            // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for local functions.
             if (Compilation.LanguageVersion > LanguageVersion.CSharp12 ||
-                singleCandidate.MethodKind == MethodKind.LocalFunction ||
-                IsMemberWithExpandedNonArrayParamsCollection(methodResolutionResult))
+                singleCandidate.MethodKind == MethodKind.LocalFunction)
             {
                 var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);

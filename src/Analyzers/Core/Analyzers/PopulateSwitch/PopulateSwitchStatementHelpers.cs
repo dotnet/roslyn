@@ -71,7 +71,7 @@ internal static class PopulateSwitchStatementHelpers
             if (!TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
                 !TryRemoveExistingEnumMembers(switchStatement, enumMembers))
             {
-                return SpecializedCollections.EmptyCollection<ISymbol>();
+                return [];
             }
         }
 

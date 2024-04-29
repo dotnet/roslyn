@@ -49,7 +49,7 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider
             else
             {
                 // If user click cancel button, options will be null and hit this branch
-                return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+                return [];
             }
         }
     }

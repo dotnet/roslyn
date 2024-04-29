@@ -98,6 +98,8 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
 
     #endregion
 
+    /// <param name="processBatchAsync">Callback to process queued work items.  The list of items passed in is
+    /// guaranteed to always be non-empty.</param>
     public AsyncBatchingWorkQueue(
         TimeSpan delay,
         Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,

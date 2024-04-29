@@ -54,7 +54,7 @@ internal static class InlineHintHelpers
                 }
             }
 
-            return parts.ToImmutableArray();
+            return [.. parts];
         }
 
         return default;

@@ -249,7 +249,7 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
                 results.Add((data, projectVersion));
         }
 
-        return results.ToImmutable();
+        return results.ToImmutableAndClear();
 
         async Task<DesignerAttributeData> ComputeDesignerAttributeDataAsync(
             Project project, DocumentId documentId, string filePath, bool hasDesignerCategoryType)

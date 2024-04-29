@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,9 +24,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer;
 /// Additionally, it performs all the option checks and Copilot service availability checks
 /// to determine if we should skip analysis or not.
 /// </summary>
-internal abstract class AbstractCopilotCodeAnalysisService(
-    Lazy<IExternalCopilotCodeAnalysisService> lazyExternalCopilotService,
-    IDiagnosticsRefresher diagnosticsRefresher) : ICopilotCodeAnalysisService
+internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher diagnosticsRefresher) : ICopilotCodeAnalysisService
 {
     // The _diagnosticsCache is a cache for computed diagnostics via `AnalyzeDocumentAsync`.
     // Each document maps to a dictionary, which in tern maps a prompt title to a list of existing Diagnostics and a boolean flag.
@@ -36,24 +33,32 @@ internal abstract class AbstractCopilotCodeAnalysisService(
     // This cache is used to avoid duplicate analysis calls by storing the computed diagnostics for each document and prompt title.
     private readonly ConditionalWeakTable<Document, ConcurrentDictionary<string, (ImmutableArray<Diagnostic> Diagnostics, bool IsCompleteResult)>> _diagnosticsCache = new();
 
-    public abstract Task<bool> IsRefineOptionEnabledAsync();
-
-    public abstract Task<bool> IsCodeAnalysisOptionEnabledAsync();
+    protected abstract Task<bool> IsAvailableCoreAsync(CancellationToken cancellationToken);
+    protected abstract Task<ImmutableArray<string>> GetAvailablePromptTitlesCoreAsync(Document document, CancellationToken cancellationToken);
+    protected abstract Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken);
+    protected abstract Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken);
+    protected abstract Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
-        => lazyExternalCopilotService.Value.IsAvailableAsync(cancellationToken);
+        => IsAvailableCoreAsync(cancellationToken);
 
     public async Task<ImmutableArray<string>> GetAvailablePromptTitlesAsync(Document document, CancellationToken cancellationToken)
     {
-        if (!await IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service)
             return [];
 
-        return await lazyExternalCopilotService.Value.GetAvailablePromptTitlesAsync(document, cancellationToken).ConfigureAwait(false);
+        if (!await service.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
+            return [];
+
+        return await GetAvailablePromptTitlesCoreAsync(document, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<bool> ShouldSkipAnalysisAsync(Document document, CancellationToken cancellationToken)
     {
-        if (!await IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service)
+            return true;
+
+        if (!await service.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
             return true;
 
         if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
@@ -74,7 +79,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(
             return;
 
         var isFullDocumentAnalysis = !span.HasValue;
-        var diagnostics = await lazyExternalCopilotService.Value.AnalyzeDocumentAsync(document, span, promptTitle, cancellationToken).ConfigureAwait(false);
+        var diagnostics = await AnalyzeDocumentCoreAsync(document, span, promptTitle, cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -139,7 +144,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(
             }
             else
             {
-                var cachedDiagnostics = await lazyExternalCopilotService.Value.GetCachedDiagnosticsAsync(document, promptTitle, cancellationToken).ConfigureAwait(false);
+                var cachedDiagnostics = await GetCachedDiagnosticsCoreAsync(document, promptTitle, cancellationToken).ConfigureAwait(false);
                 diagnostics.AddRange(cachedDiagnostics);
                 CacheAndRefreshDiagnosticsIfNeeded(document, promptTitle, cachedDiagnostics, isCompleteResult: false);
             }
@@ -158,7 +163,10 @@ internal abstract class AbstractCopilotCodeAnalysisService(
 
     public async Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
     {
-        if (await IsRefineOptionEnabledAsync().ConfigureAwait(false))
-            await lazyExternalCopilotService.Value.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken).ConfigureAwait(false);
+        if (oldDocument.GetLanguageService<ICopilotOptionsService>() is not { } service)
+            return;
+
+        if (await service.IsRefineOptionEnabledAsync().ConfigureAwait(false))
+            await StartRefinementSessionCoreAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken).ConfigureAwait(false);
     }
 }

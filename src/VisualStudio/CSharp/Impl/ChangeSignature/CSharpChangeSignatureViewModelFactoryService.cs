@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
                 parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, addedParameterViewModel.Default));
             }
 
-            return parts.ToArray();
+            return [.. parts];
         }
 
         // Use LangVersion Preview to ensure that all types parse correctly. If the user types in a type only available

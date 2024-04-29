@@ -244,9 +244,8 @@ internal static class SyntacticChangeRangeComputer
 
     private static bool TryGetStackTopNodeOrToken(Stack<ChildSyntaxList.Enumerator> stack, out SyntaxNodeOrToken syntaxNodeOrToken)
     {
-        while (stack.Count > 0)
+        while (stack.TryPop(out var topEnumerator))
         {
-            var topEnumerator = stack.Pop();
             if (topEnumerator.MoveNext())
             {
                 syntaxNodeOrToken = topEnumerator.Current;
@@ -262,9 +261,8 @@ internal static class SyntacticChangeRangeComputer
 
     private static bool TryGetStackTopNodeOrToken(Stack<ChildSyntaxList.Reversed.Enumerator> stack, out SyntaxNodeOrToken syntaxNodeOrToken)
     {
-        while (stack.Count > 0)
+        while (stack.TryPop(out var topEnumerator))
         {
-            var topEnumerator = stack.Pop();
             if (topEnumerator.MoveNext())
             {
                 syntaxNodeOrToken = topEnumerator.Current;

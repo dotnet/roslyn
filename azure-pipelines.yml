@@ -423,7 +423,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir)
+      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir) -ci
         displayName: Build Bootstrap Compiler
 
       - powershell: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir) -ci

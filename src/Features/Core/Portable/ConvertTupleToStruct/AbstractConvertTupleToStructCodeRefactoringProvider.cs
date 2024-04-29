@@ -463,7 +463,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
                 project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<ImmutableArray<DocumentToUpdate>> GetDocumentsToUpdateForContainingProjectAsync(
@@ -475,7 +475,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         await AddDocumentsToUpdateForProjectAsync(
             project, result, tupleFieldNames, cancellationToken).ConfigureAwait(false);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
@@ -528,7 +528,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             result.Add(new DocumentToUpdate(document, nodes));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static ImmutableArray<DocumentToUpdate> GetDocumentsToUpdateForContainingMember(

@@ -20,6 +20,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal partial class CSharpIntroduceVariableService
 {
     protected override async Task<Document> IntroduceLocalAsync(
@@ -34,20 +37,20 @@ internal partial class CSharpIntroduceVariableService
 
         var newLocalNameToken = GenerateUniqueLocalName(
             document, expression, isConstant, containerToGenerateInto, cancellationToken);
-        var newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken);
+        var newLocalName = IdentifierName(newLocalNameToken);
 
         var modifiers = isConstant
-            ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
+            ? TokenList(ConstKeyword)
             : default;
 
-        var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
+        var declarationStatement = LocalDeclarationStatement(
             modifiers,
-            SyntaxFactory.VariableDeclaration(
+            VariableDeclaration(
                 GetTypeSyntax(document, expression, cancellationToken),
-                [SyntaxFactory.VariableDeclarator(
+                [VariableDeclarator(
                     newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                     null,
-                    SyntaxFactory.EqualsValueClause(expression.WithoutTrivia()))]));
+                    EqualsValueClause(expression.WithoutTrivia()))]));
 
         // If we're inserting into a multi-line parent, then add a newline after the local-var
         // we're adding.  That way we don't end up having it and the starting statement be on
@@ -55,7 +58,7 @@ internal partial class CSharpIntroduceVariableService
         var text = await document.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         if (!text.AreOnSameLine(containerToGenerateInto.GetFirstToken(), containerToGenerateInto.GetLastToken()))
         {
-            declarationStatement = declarationStatement.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+            declarationStatement = declarationStatement.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
         }
 
         switch (containerToGenerateInto)
@@ -106,7 +109,7 @@ internal partial class CSharpIntroduceVariableService
             declarationStatement, isEntireLambdaBodySelected, rewrittenBody, shouldIncludeReturnStatement);
 
         // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
-        newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
+        newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
                          .WithAdditionalAnnotations(Formatter.Annotation);
 
         var newLambda = oldLambda.WithBody(newBody);
@@ -171,7 +174,7 @@ internal partial class CSharpIntroduceVariableService
             //         var v = x + 1;
             //         return v;
             //     };
-            return SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
+            return Block(declarationStatement, ReturnStatement(rewrittenBody));
         }
 
         // For lambdas with void return types, we don't need to include the rewritten body if the entire lambda body
@@ -188,7 +191,7 @@ internal partial class CSharpIntroduceVariableService
             //     {
             //         string v = x.ToString();
             //     };
-            return SyntaxFactory.Block(declarationStatement);
+            return Block(declarationStatement);
         }
 
         // Case 2b: The lambda has a void return type, and the user didn't select the entire lambda body.
@@ -201,9 +204,9 @@ internal partial class CSharpIntroduceVariableService
         //         string destFileName = Path.Combine("dir", "file");
         //         File.Copy("src", destFileName);
         //     });
-        return SyntaxFactory.Block(
+        return Block(
             declarationStatement,
-            SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+            ExpressionStatement(rewrittenBody, SemicolonToken));
     }
 
     private static TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
@@ -230,15 +233,15 @@ internal partial class CSharpIntroduceVariableService
         var newExpression = Rewrite(document, expression, newLocalName, document, oldBody.Expression, allOccurrences, cancellationToken);
 
         var convertedStatement = createReturnStatement
-            ? SyntaxFactory.ReturnStatement(newExpression)
-            : (StatementSyntax)SyntaxFactory.ExpressionStatement(newExpression);
+            ? ReturnStatement(newExpression)
+            : (StatementSyntax)ExpressionStatement(newExpression);
 
-        var newBody = SyntaxFactory.Block(declarationStatement, convertedStatement)
+        var newBody = Block(declarationStatement, convertedStatement)
                                    .WithLeadingTrivia(leadingTrivia)
                                    .WithTrailingTrivia(oldBody.GetTrailingTrivia());
 
         // Add an elastic newline so that the formatter will place this new block across multiple lines.
-        newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
+        newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
                          .WithAdditionalAnnotations(Formatter.Annotation);
 
         var newRoot = document.Root.ReplaceNode(oldParentingNode, WithBlockBody(oldParentingNode, newBody));
@@ -250,30 +253,30 @@ internal partial class CSharpIntroduceVariableService
         switch (node)
         {
             case BasePropertyDeclarationSyntax baseProperty:
-                var accessorList = SyntaxFactory.AccessorList(
-                    [SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]);
+                var accessorList = AccessorList(
+                    [AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)]);
                 return baseProperty
                     .TryWithExpressionBody(null)
                     .WithAccessorList(accessorList)
-                    .TryWithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                    .TryWithSemicolonToken(Token(SyntaxKind.None))
                     .WithTriviaFrom(baseProperty);
             case AccessorDeclarationSyntax accessor:
                 return accessor
                     .WithExpressionBody(null)
                     .WithBody(body)
-                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                    .WithSemicolonToken(Token(SyntaxKind.None))
                     .WithTriviaFrom(accessor);
             case BaseMethodDeclarationSyntax baseMethod:
                 return baseMethod
                     .WithExpressionBody(null)
                     .WithBody(body)
-                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                    .WithSemicolonToken(Token(SyntaxKind.None))
                     .WithTriviaFrom(baseMethod);
             case LocalFunctionStatementSyntax localFunction:
                 return localFunction
                     .WithExpressionBody(null)
                     .WithBody(body)
-                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
+                    .WithSemicolonToken(Token(SyntaxKind.None))
                     .WithTriviaFrom(localFunction);
             default:
                 throw ExceptionUtilities.UnexpectedValue(node);
@@ -326,7 +329,7 @@ internal partial class CSharpIntroduceVariableService
             {
                 root = root.TrackNodes(allAffectedStatements.Concat(new SyntaxNode[] { expression, statement }));
                 root = root.ReplaceNode(root.GetCurrentNode(statement),
-                    SyntaxFactory.Block(root.GetCurrentNode(statement)).WithAdditionalAnnotations(Formatter.Annotation));
+                    Block(root.GetCurrentNode(statement)).WithAdditionalAnnotations(Formatter.Annotation));
 
                 expression = root.GetCurrentNode(expression);
                 allAffectedStatements = allAffectedStatements.Select(root.GetCurrentNode).ToSet();
