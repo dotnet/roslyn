@@ -19,8 +19,11 @@ internal static class RoslynParallel
         CancellationToken cancellationToken,
         Func<TSource, CancellationToken, ValueTask> body)
     {
-        return ForEachAsync(source, new ParallelOptions() { CancellationToken = cancellationToken }, body);
+        return ForEachAsync(source, GetParallelOptions(cancellationToken), body);
     }
+
+    private static ParallelOptions GetParallelOptions(CancellationToken cancellationToken)
+        => new() { TaskScheduler = TaskScheduler.Default, CancellationToken = cancellationToken };
 
     public static async Task ForEachAsync<TSource>(
         IEnumerable<TSource> source,
@@ -53,7 +56,7 @@ internal static class RoslynParallel
         CancellationToken cancellationToken,
         Func<TSource, CancellationToken, ValueTask> body)
     {
-        return ForEachAsync(source, new ParallelOptions() { CancellationToken = cancellationToken }, body);
+        return ForEachAsync(source, GetParallelOptions(cancellationToken), body);
     }
 
     public static async Task ForEachAsync<TSource>(
