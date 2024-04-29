@@ -67,9 +67,8 @@ internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
 
         stack.Push(root);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
-            var current = stack.Pop();
             if (!current.ContainsDirectives)
                 continue;
 

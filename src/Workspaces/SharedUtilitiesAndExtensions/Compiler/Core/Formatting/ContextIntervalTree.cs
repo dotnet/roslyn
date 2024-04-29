@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -111,10 +112,8 @@ internal class ContextIntervalTree<T, TIntrospector> : SimpleIntervalTree<T, TIn
 
             // we reached the point, where we can't go down anymore.
             // now, go back up to find best answer
-            while (spineNodes.Count > 0)
+            while (spineNodes.TryPop(out currentNode))
             {
-                currentNode = spineNodes.Pop();
-
                 // check whether current node meets condition
                 if (predicate(currentNode.Value, start, length))
                 {

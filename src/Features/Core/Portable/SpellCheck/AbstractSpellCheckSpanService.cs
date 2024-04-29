@@ -68,10 +68,8 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
             stack.Push(root);
 
-            while (stack.Count > 0)
+            while (stack.TryPop(out var current))
             {
-                var current = stack.Pop();
-
                 if (current.IsToken)
                 {
                     ProcessToken(current.AsToken(), cancellationToken);
@@ -264,9 +262,8 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
             stack.Push(node);
 
-            while (stack.Count > 0)
+            while (stack.TryPop(out var current))
             {
-                var current = stack.Pop();
                 if (current.IsToken)
                 {
                     var token = current.AsToken();

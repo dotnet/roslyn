@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             {
                 await DidOpen(testLspServer, locationTyped.Uri);
 
-                await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => DidOpen(testLspServer, locationTyped.Uri));
+                await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidOpen(testLspServer, locationTyped.Uri));
+                await testLspServer.AssertServerShuttingDownAsync();
             }
         }
 
@@ -126,7 +127,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await using (testLspServer)
             {
-                await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => DidClose(testLspServer, locationTyped.Uri));
+                await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidClose(testLspServer, locationTyped.Uri));
+                await testLspServer.AssertServerShuttingDownAsync();
             }
         }
 
@@ -145,7 +147,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await using (testLspServer)
             {
-                await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(() => DidChange(testLspServer, locationTyped.Uri, (0, 0, "goo")));
+                await Assert.ThrowsAnyAsync<StreamJsonRpc.RemoteRpcException>(() => DidChange(testLspServer, locationTyped.Uri, (0, 0, "goo")));
+                await testLspServer.AssertServerShuttingDownAsync();
             }
         }
 

@@ -106,7 +106,7 @@ internal static class SourceMarkers
 
         Contract.ThrowIfTrue(result.Any(span => span == default));
 
-        return result.ToArray();
+        return [.. result];
     }
 
     public static ImmutableArray<ImmutableArray<TextSpan>> GetExceptionRegions(string markedSource)

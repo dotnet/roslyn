@@ -1084,6 +1084,28 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
         }
 
         [Fact]
+        public void FolderNamePrefixOfFileName()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suggestion", "/root/.editorconfig"));
+            configs.Add(Parse(@"
+root=true", "/root/test/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/root/testing.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Info)),
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
         public void InheritOuterConfig()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();

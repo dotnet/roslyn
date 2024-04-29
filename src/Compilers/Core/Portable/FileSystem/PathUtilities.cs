@@ -159,7 +159,7 @@ namespace Roslyn.Utilities
             return null;
         }
 
-        internal static bool IsSameDirectoryOrChildOf(string child, string parent)
+        internal static bool IsSameDirectoryOrChildOf(string child, string parent, StringComparison comparison = StringComparison.OrdinalIgnoreCase)
         {
             parent = RemoveTrailingDirectorySeparator(parent);
             string? currentChild = child;
@@ -167,7 +167,7 @@ namespace Roslyn.Utilities
             {
                 currentChild = RemoveTrailingDirectorySeparator(currentChild);
 
-                if (currentChild.Equals(parent, StringComparison.OrdinalIgnoreCase))
+                if (currentChild.Equals(parent, comparison))
                 {
                     return true;
                 }

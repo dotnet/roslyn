@@ -104,7 +104,7 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRe
     {
         var allDestinations = selectedMembers.All(m => m.IsKind(SymbolKind.Field))
             ? containingType.GetBaseTypes().ToImmutableArray()
-            : containingType.AllInterfaces.Concat(containingType.GetBaseTypes()).ToImmutableArray();
+            : [.. containingType.AllInterfaces, .. containingType.GetBaseTypes()];
 
         return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
     }

@@ -1039,11 +1039,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (referencedToken)
             {
                 case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: MemberBindingExpressionSyntax { Parent: InvocationExpressionSyntax } memberBinding } rhs1 } when memberBinding.Name == rhs1:
                 case { Parent: SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } simpleName } when invocation.Expression == simpleName:
                     // happy case
                     break;
-                case { Parent: SimpleNameSyntax { Parent: not MemberAccessExpressionSyntax } }:
+                case { Parent: SimpleNameSyntax { Parent: not (MemberAccessExpressionSyntax or MemberBindingExpressionSyntax) } }:
                 case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: MemberBindingExpressionSyntax memberBinding } rhs1 } when memberBinding.Name == rhs1:
                     // NB: there are all sorts of places "simple names" can appear in syntax. With these checks we are trying to
                     // minimize confusion about why the name being used is not *interceptable*, but it's done on a best-effort basis.
 
