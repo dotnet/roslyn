@@ -260,15 +260,7 @@ internal partial class FindReferencesSearchEngine
         }
 
         static MetadataUnifyingSymbolHashSet GetSymbolSet<T>(PooledDictionary<T, MetadataUnifyingSymbolHashSet> dictionary, T key) where T : notnull
-        {
-            if (!dictionary.TryGetValue(key, out var set))
-            {
-                set = s_metadataUnifyingSymbolHashSetPool.Allocate();
-                dictionary.Add(key, set);
-            }
-
-            return set;
-        }
+            => dictionary.GetOrAdd(key, static _ => s_metadataUnifyingSymbolHashSetPool.Allocate());
     }
 
     private static PooledHashSet<U>? TryGet<T, U>(Dictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
@@ -366,15 +358,7 @@ internal partial class FindReferencesSearchEngine
     }
 
     private static PooledHashSet<string> GetGlobalAliasesSet<T>(PooledDictionary<T, PooledHashSet<string>> dictionary, T key) where T : notnull
-    {
-        if (!dictionary.TryGetValue(key, out var set))
-        {
-            set = PooledHashSet<string>.GetInstance();
-            dictionary.Add(key, set);
-        }
-
-        return set;
-    }
+        => dictionary.GetOrAdd(key, static _ => PooledHashSet<string>.GetInstance());
 
     private static void FreeGlobalAliases(PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
     {
