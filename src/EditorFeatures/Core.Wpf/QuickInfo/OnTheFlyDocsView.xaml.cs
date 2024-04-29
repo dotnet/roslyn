@@ -137,7 +137,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
-            var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, cancellationToken).ConfigureAwait(false);
+            var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, _onTheFlyDocsElement.Language, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

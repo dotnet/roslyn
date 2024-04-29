@@ -65,8 +65,9 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// and the code for the symbols in <paramref name="declarationCode"/>.
     /// <para>
     /// <paramref name="symbolSignature"/> is a formatted string representation of an <see cref="ISymbol"/>.<br/>
-    /// <paramref name="declarationCode"/> is a list of a code definitions from an <see cref="ISymbol"/> and their associated language.
+    /// <paramref name="declarationCode"/> is a list of a code definitions from an <see cref="ISymbol"/>.
+    /// <paramref name="language"/> is the language of the originating <see cref="ISymbol"/>.
     /// </para>
     /// </summary>
-    Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<(string, string)> declarationCode, CancellationToken cancellationToken);
+    Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
 }

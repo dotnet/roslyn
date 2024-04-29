@@ -158,9 +158,9 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         {
             var node = reference.GetSyntax(cancellationToken);
             var fullString = node.ToFullString();
-            return (fullString.Length > maxLength ? fullString[..maxLength] : fullString, node.Language);
+            return fullString.Length > maxLength ? fullString[..maxLength] : fullString;
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings);
+        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language);
     }
 }

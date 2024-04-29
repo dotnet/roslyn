@@ -10,9 +10,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 /// Represents the data needed to provide on-the-fly documentation from an <see cref="ISymbol"/>.
 /// </summary>
 /// <param name="symbolSignature">formatted string representation of an <see cref="ISymbol"/></param>
-/// <param name="declarationCode">the symbol's declaration code and language</param>
-internal sealed class OnTheFlyDocsElement(string symbolSignature, ImmutableArray<(string code, string language)> declarationCode)
+/// <param name="declarationCode">the symbol's declaration code</param>
+/// <param name="language">the language of the symbol</param>
+internal sealed class OnTheFlyDocsElement(string symbolSignature, ImmutableArray<string> declarationCode, string language)
 {
     public string SymbolSignature { get; } = symbolSignature;
-    public ImmutableArray<(string, string)> DeclarationCode { get; } = declarationCode;
+    public ImmutableArray<string> DeclarationCode { get; } = declarationCode;
+    public string Language { get; } = language;
 }

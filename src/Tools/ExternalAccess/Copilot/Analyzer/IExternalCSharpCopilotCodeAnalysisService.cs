@@ -17,5 +17,5 @@ internal interface IExternalCSharpCopilotCodeAnalysisService
     Task<ImmutableArray<Diagnostic>> AnalyzeDocumentAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken);
     Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsAsync(Document document, string promptTitle, CancellationToken cancellationToken);
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
-    Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<(string, string)> declarationCode, CancellationToken cancellationTokenn);
+    Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
 }
