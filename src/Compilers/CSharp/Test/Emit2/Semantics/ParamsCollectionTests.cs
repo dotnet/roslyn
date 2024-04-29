@@ -381,7 +381,11 @@ class Test : System.Attribute
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: ExpectedOutput("1121"));
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput("1121"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
@@ -403,7 +407,11 @@ class Test : System.Attribute
                 }
                 """);
 
-            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe, expectedOutput: "1121");
+            verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net70,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput("1121"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
