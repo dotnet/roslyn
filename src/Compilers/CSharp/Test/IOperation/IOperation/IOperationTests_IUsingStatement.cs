@@ -7908,87 +7908,87 @@ Block[B6] - Exit
                 }
                 """;
             var expectedGraph = """
-                Block[B0] - Entry
-                    Statements (0)
-                    Next (Regular) Block[B1]
-                        Entering: {R1}
-                .locals {R1}
-                {
-                    Locals: [System.Action a]
-                    Block[B1] - Block
-                        Predecessors: [B0]
-                        Statements (1)
-                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'a = () => { ... }')
-                              Left:
-                                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'a = () => { ... }')
-                              Right:
-                                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '() => { ... }')
-                                  Target:
-                                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: '() => { ... }')
-                                    {
-                                        Block[B0#A0] - Entry
-                                            Statements (0)
-                                            Next (Regular) Block[B1#A0]
-                                                Entering: {R1#A0}
-                                        .locals {R1#A0}
-                                        {
-                                            Locals: [System.IDisposable d]
-                                            Block[B1#A0] - Block
-                                                Predecessors: [B0#A0]
-                                                Statements (1)
-                                                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.IDisposable, IsImplicit) (Syntax: 'd = null')
-                                                      Left:
-                                                        ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'd = null')
-                                                      Right:
-                                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
-                                                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                                            (ImplicitReference)
-                                                          Operand:
-                                                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-                                                Next (Regular) Block[B2#A0]
-                                                    Entering: {R2#A0} {R3#A0}
-                                            .try {R2#A0, R3#A0}
-                                            {
-                                                Block[B2#A0] - Block
-                                                    Predecessors: [B1#A0]
-                                                    Statements (0)
-                                                    Next (Error) Block[null]
-                                            }
-                                            .finally {R4#A0}
-                                            {
-                                                Block[B3#A0] - Block
-                                                    Predecessors (0)
-                                                    Statements (0)
-                                                    Jump if True (Regular) to Block[B5#A0]
-                                                        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'd = null')
-                                                          Operand:
-                                                            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'd = null')
-                                                    Next (Regular) Block[B4#A0]
-                                                Block[B4#A0] - Block
-                                                    Predecessors: [B3#A0]
-                                                    Statements (1)
-                                                        IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'd = null')
-                                                          Instance Receiver:
-                                                            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'd = null')
-                                                          Arguments(0)
-                                                    Next (Regular) Block[B5#A0]
-                                                Block[B5#A0] - Block
-                                                    Predecessors: [B3#A0] [B4#A0]
-                                                    Statements (0)
-                                                    Next (StructuredExceptionHandling) Block[null]
-                                            }
-                                        }
-                                        Block[B6#A0] - Exit [UnReachable]
-                                            Predecessors (0)
-                                            Statements (0)
-                                    }
-                        Next (Regular) Block[B2]
-                            Leaving: {R1}
-                }
-                Block[B2] - Exit
-                    Predecessors: [B1]
-                    Statements (0)
-                """;
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Action a]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'a = () => { ... }')
+                Left:
+                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'a = () => { ... }')
+                Right:
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '() => { ... }')
+                    Target:
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: '() => { ... }')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                                Entering: {R1#A0}
+                        .locals {R1#A0}
+                        {
+                            Locals: [System.IDisposable d]
+                            Block[B1#A0] - Block
+                                Predecessors: [B0#A0]
+                                Statements (1)
+                                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.IDisposable, IsImplicit) (Syntax: 'd = null')
+                                        Left:
+                                        ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'd = null')
+                                        Right:
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
+                                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            (ImplicitReference)
+                                            Operand:
+                                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                                Next (Regular) Block[B2#A0]
+                                    Entering: {R2#A0} {R3#A0}
+                            .try {R2#A0, R3#A0}
+                            {
+                                Block[B2#A0] - Block
+                                    Predecessors: [B1#A0]
+                                    Statements (0)
+                                    Next (Error) Block[null]
+                            }
+                            .finally {R4#A0}
+                            {
+                                Block[B3#A0] - Block
+                                    Predecessors (0)
+                                    Statements (0)
+                                    Jump if True (Regular) to Block[B5#A0]
+                                        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'd = null')
+                                            Operand:
+                                            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'd = null')
+                                    Next (Regular) Block[B4#A0]
+                                Block[B4#A0] - Block
+                                    Predecessors: [B3#A0]
+                                    Statements (1)
+                                        IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'd = null')
+                                            Instance Receiver:
+                                            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'd = null')
+                                            Arguments(0)
+                                    Next (Regular) Block[B5#A0]
+                                Block[B5#A0] - Block
+                                    Predecessors: [B3#A0] [B4#A0]
+                                    Statements (0)
+                                    Next (StructuredExceptionHandling) Block[null]
+                            }
+                        }
+                        Block[B6#A0] - Exit [UnReachable]
+                            Predecessors (0)
+                            Statements (0)
+                    }
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+""";
             var expectedDiagnostics = new[]
             {
                 // (5,9): warning CS0164: This label has not been referenced

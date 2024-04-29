@@ -561,7 +561,7 @@ class C
                     goto x;
                 };
                 """;
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyEmitDiagnostics(
                 // (1,1): warning CS0164: This label has not been referenced
                 // x:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "x").WithLocation(1, 1),
@@ -581,7 +581,7 @@ class C
                 };
                 x:;
                 """;
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyEmitDiagnostics(
                 // (4,5): error CS0159: No such label 'x' within the scope of the goto statement
                 //     goto x;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("x").WithLocation(4, 5),
@@ -600,7 +600,7 @@ class C
                     goto x;
                 };
                 """;
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyEmitDiagnostics(
                 // (4,10): error CS0159: No such label 'x' within the scope of the goto statement
                 //     goto x;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "x").WithArguments("x").WithLocation(4, 10));
