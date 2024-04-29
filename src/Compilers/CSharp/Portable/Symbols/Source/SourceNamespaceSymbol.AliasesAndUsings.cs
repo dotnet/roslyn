@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
-                            var flags = BinderFlags.SuppressConstraintChecks;
+                            var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.InUsingDirective;
                             if (usingDirective.UnsafeKeyword != default)
                             {
                                 var unsafeKeywordLocation = usingDirective.UnsafeKeyword.GetLocation();

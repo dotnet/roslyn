@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// A specific location for binding.
     /// </summary>
     [Flags]
-    internal enum BinderFlags : uint
+    internal enum BinderFlags : ulong
     {
         None, // No specific location
         SuppressConstraintChecks = 1 << 0,
@@ -116,7 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Indicates the binder is used during collection expression conversion
         /// to verify applicable methods are available.
         /// </summary>
-        CollectionExpressionConversionValidation = 1u << 31,
+        CollectionExpressionConversionValidation = 1ul << 31,
+
+        /// <summary>
+        /// PROTOTYPE(static) we currently disallow resolving extensions in using directives
+        /// </summary>
+        InUsingDirective = 1ul << 32,
 
         // Groups
 

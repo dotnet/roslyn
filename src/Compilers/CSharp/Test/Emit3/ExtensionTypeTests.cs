@@ -4172,13 +4172,12 @@ class C2 : C<UseSiteError> { }
 """;
         var comp = CreateCompilation(src, new[] { comp2.EmitToImageReference() }, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (2, 27): error CS0012: The type 'MissingBase' is defined in an assembly that is not referenced.You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // (2,27): error CS0012: The type 'MissingBase' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // explicit extension R1 for UseSiteError { }
             Diagnostic(ErrorCode.ERR_NoTypeDef, "UseSiteError").WithArguments("MissingBase", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 27),
             // (4,12): error CS0012: The type 'MissingBase' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // class C1 : UseSiteError { }
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "UseSiteError").WithArguments("MissingBase", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 12)
-            );
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "UseSiteError").WithArguments("MissingBase", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 12));
     }
 
     [Fact]
@@ -11632,7 +11631,7 @@ _ = object.Type.M();
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        if (e1BeforeE2)
+        if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
                 // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
@@ -14221,7 +14220,7 @@ class C { }
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        if (e1BeforeE2)
+        if (!e1BeforeE2)
         {
             comp.VerifyDiagnostics(
                 // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
@@ -28243,9 +28242,9 @@ implicit extension E2 for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
+            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
             // var x = C.Method;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E2.Method()", "E1.Method()").WithLocation(1, 9)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(1, 9)
             );
 
         var tree = comp.SyntaxTrees.Single();
@@ -30570,16 +30569,16 @@ implicit extension E2 for I2
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,25): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1Base.M()'
+            // (1,25): error CS0121: The call is ambiguous between the following methods or properties: 'E1Base.M()' and 'E2.M()'
             // System.Console.Write(I3.M());
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E2.M()", "E1Base.M()").WithLocation(1, 25));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1Base.M()", "E2.M()").WithLocation(1, 25));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I3.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        Assert.Equal(["System.String E2.M()", "System.String E1Base.M()"],
+        Assert.Equal(["System.String E1Base.M()", "System.String E2.M()"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
@@ -30814,15 +30813,15 @@ implicit extension E<T> for I<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,24): error CS0229: Ambiguity between 'E<string>.M' and 'E<int>.M'
+            // (1,24): error CS0229: Ambiguity between 'E<int>.M' and 'E<string>.M'
             // System.Console.Write(C.M);
-            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E<string>.M", "E<int>.M").WithLocation(1, 24));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E<int>.M", "E<string>.M").WithLocation(1, 24));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.String E<System.String>.M", "System.String E<System.Int32>.M"],
+        Assert.Equal(["System.String E<System.Int32>.M", "System.String E<System.String>.M"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
 
@@ -30860,9 +30859,9 @@ implicit extension E<T> for I<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M()' and 'E<int>.M()'
+            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M()' and 'E<string>.M()'
             // var x = C.M;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E<string>.M()", "E<int>.M()").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E<int>.M()", "E<string>.M()").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30889,16 +30888,16 @@ implicit extension E<T> for I<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M()' and 'E<int>.M()'
+            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M()' and 'E<string>.M()'
             // C.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E<string>.M()", "E<int>.M()").WithLocation(1, 3));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E<int>.M()", "E<string>.M()").WithLocation(1, 3));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        Assert.Equal(["void E<System.String>.M()", "void E<System.Int32>.M()"],
+        Assert.Equal(["void E<System.Int32>.M()", "void E<System.String>.M()"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
@@ -30920,16 +30919,16 @@ implicit extension E<T> for I<T>
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M<int>()' and 'E<int>.M<int>()'
+            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<int>.M<int>()' and 'E<string>.M<int>()'
             // C.M<int>();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("E<string>.M<int>()", "E<int>.M<int>()").WithLocation(1, 3));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("E<int>.M<int>()", "E<string>.M<int>()").WithLocation(1, 3));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        Assert.Equal(["void E<System.String>.M<System.Int32>()", "void E<System.Int32>.M<System.Int32>()"],
+        Assert.Equal(["void E<System.Int32>.M<System.Int32>()", "void E<System.String>.M<System.Int32>()"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
@@ -31129,7 +31128,7 @@ System.Console.Write(object.M());
 {{(e1BeforeE2 ? e2 : e1)}}
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        if (e1BeforeE2)
+        if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
                 // (1,29): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1.M()'
@@ -31335,9 +31334,8 @@ class C : I1, I2 { }
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE(static) the sorting mechanism for more specific extension members to hide less specific ones is insufficient and needs to be revised
-        //Assert.Equal(["System.String E1.M", "System.String E2.M"],
-        //    model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["System.String E1.M", "System.String E2.M"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
     }
 
@@ -31385,38 +31383,18 @@ class C : I1, I2 { }
 {{segments[third]}}
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        bool isE3beforeE4 = segmentIndex(2) < segmentIndex(1);
-        if (isE3beforeE4)
-        {
-            comp.VerifyEmitDiagnostics(
-                // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E3.M()' and 'E4.M()'
-                // System.Console.Write(C.M());
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E3.M()", "E4.M()").WithLocation(1, 24));
-        }
-        else
-        {
-            comp.VerifyEmitDiagnostics(
-                // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E4.M()' and 'E3.M()'
-                // System.Console.Write(C.M());
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E4.M()", "E3.M()").WithLocation(1, 24));
-        }
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E3.M()' and 'E4.M()'
+            // System.Console.Write(C.M());
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E3.M()", "E4.M()").WithLocation(1, 24));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        if (isE3beforeE4)
-        {
-            Assert.Equal(["System.String E3.M()", "System.String E4.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        }
-        else
-        {
-            Assert.Equal(["System.String E4.M()", "System.String E3.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        }
+        Assert.Equal(["System.String E3.M()", "System.String E4.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
-
-        int segmentIndex(int segment) => first == segment ? 0 : (second == segment ? 1 : 2);
     }
 
     [Theory, ClassData(typeof(ThreePermutationGenerator))]
@@ -31509,7 +31487,7 @@ class C { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         bool isE1beforeE2 = segmentIndex(0) < segmentIndex(1);
-        if (isE1beforeE2)
+        if (!isE1beforeE2)
         {
             comp.VerifyEmitDiagnostics(
                 // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1.M()'
@@ -31528,7 +31506,7 @@ class C { }
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        if (isE1beforeE2)
+        if (!isE1beforeE2)
         {
             Assert.Equal(["System.String E2.M()", "System.String E1.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         }
@@ -35273,40 +35251,29 @@ implicit extension E for IBase
     {
         var source = """
 // we'll lookup here
+int.StaticMethod();
+
 public implicit extension E<T> for T where T : struct
 {
     public static int StaticField = 0;
     public static int StaticProperty => 0;
-    public static void StaticMethod() { }
+    public static void StaticMethod() { System.Console.Write("ran"); }
     public class Nested { }
     public static event System.Action StaticEvent { add { } remove { } }
 }
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE should warn about hiding
-        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
         AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o).ToTestDisplayStrings());
-
-        string[] eStaticSymbols = [
-            .. objectStaticSymbols,
-            "System.Int32 E<System.Object>.StaticProperty { get; }",
-            "void E<System.Object>.StaticMethod()",
-            "E<System.Object>.Nested",
-            "event System.Action E<System.Object>.StaticEvent",
-            "System.Int32 E<System.Object>.StaticField"];
-
-        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
         AssertSetStrictlyEqual(objectSymbols, model.LookupSymbols(position: 0, o, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
-
-        AssertSetStrictlyEqual(["E<System.Object>.Nested"], model.LookupNamespacesAndTypes(position: 0, o).ToTestDisplayStrings());
-        AssertSetStrictlyEqual(eStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, o).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, o).ToTestDisplayStrings());
 
         var n = ((Compilation)comp).GetSpecialType(SpecialType.System_Nullable_T);
         string[] nullableInstanceSymbols = [
@@ -35331,20 +35298,21 @@ public implicit extension E<T> for T where T : struct
 
         AssertSetStrictlyEqual([.. nullableInstanceSymbols, .. nullableStaticSymbols], model.LookupSymbols(position: 0, n).ToTestDisplayStrings());
 
-        // PROTOTYPE(instance) We'll want LookupSymbols to return extension type members too
         AssertSetStrictlyEqual([.. nullableInstanceSymbols, .. nullableStaticSymbols],
             model.LookupSymbols(position: 0, n, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual([
-            .. nullableStaticSymbols,
-            "System.Int32 E<T?>.StaticProperty { get; }",
-            "void E<T?>.StaticMethod()",
-            "E<T?>.Nested",
-            "event System.Action E<T?>.StaticEvent",
-            "System.Int32 E<T?>.StaticField"],
-            model.LookupStaticMembers(position: 0, n).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(objectStaticSymbols, model.LookupStaticMembers(position: 0, n).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupNamespacesAndTypes(position: 0, n).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["E<T?>.Nested"], model.LookupNamespacesAndTypes(position: 0, n).ToTestDisplayStrings());
+        var int32 = ((Compilation)comp).GetSpecialType(SpecialType.System_Int32);
+        AssertSetStrictlyEqual([
+            .. objectStaticSymbols,
+            "System.Int32 E<System.Int32>.StaticProperty { get; }",
+            "void E<System.Int32>.StaticMethod()",
+            "E<System.Int32>.Nested",
+            "event System.Action E<System.Int32>.StaticEvent",
+            "System.Int32 E<System.Int32>.StaticField"],
+            model.LookupStaticMembers(position: 0, int32).Where(m => m.ContainingType.Name != "Int32").ToTestDisplayStrings());
     }
 
     [Fact]
@@ -38763,5 +38731,635 @@ implicit extension E for object
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void E.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_FieldAndLessSpecificFieldAndEmpty(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1 for I1
+            {
+                public static string M = "ran";
+            }
+            """,
+            """
+            implicit extension E2 for I2 { }
+            """,
+            """
+            implicit extension E3 for I1Base
+            {
+                public static string M = null;
+            }
+            implicit extension E4 for I2Base { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1Base { }
+interface I1 : I1Base { }
+interface I2Base { }
+interface I2 : I2Base { }
+
+class C : I1, I2 { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("System.String E1.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_InterfaceAppearsTwice(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1<T> for I1<T>
+            {
+                public static string M => null;
+            }
+            """,
+            """
+            implicit extension E2 for I2 { }
+            """,
+            """
+            implicit extension E3 for C { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1<T> { }
+interface I2 : I1<string> { }
+
+class C : I1<int>, I2 { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0229: Ambiguity between 'E1<int>.M' and 'E1<string>.M'
+            // System.Console.Write(C.M);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1<int>.M", "E1<string>.M").WithLocation(1, 24));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E1<System.Int32>.M { get; }", "System.String E1<System.String>.M { get; }"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_InterfaceAppearsTwice_02(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1<T> for I1<T>
+            {
+                public static string M => null;
+            }
+            """,
+            """
+            implicit extension E2 for Base { }
+            """,
+            """
+            implicit extension E3 for C { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1<T> { }
+class Base : I1<string> { }
+class C : Base, I1<int> { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0229: Ambiguity between 'E1<string>.M' and 'E1<int>.M'
+            // System.Console.Write(C.M);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1<string>.M", "E1<int>.M").WithLocation(1, 24));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E1<System.String>.M { get; }", "System.String E1<System.Int32>.M { get; }"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_InterfaceAppearsTwice_03(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1<T> for I1<T>
+            {
+                public static string M => null;
+            }
+            """,
+            """
+            implicit extension E2 for Base
+            {
+                public static string M => null;
+            }
+            """,
+            """
+            implicit extension E3 for C { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1<T> { }
+class Base : I1<string> { }
+class C : Base, I1<int> { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,24): error CS0229: Ambiguity between 'E1<int>.M' and 'E2.M'
+            // System.Console.Write(C.M);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1<int>.M", "E2.M").WithLocation(1, 24));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E1<System.Int32>.M { get; }", "System.String E2.M { get; }"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Theory, ClassData(typeof(ThreePermutationGenerator))]
+    public void PreferMoreSpecific_Static_InterfaceAppearsTwice_04(int first, int second, int third)
+    {
+        string[] segments = [
+            """
+            implicit extension E1<T> for I1<T>
+            {
+                public static string M => "ran";
+            }
+            """,
+            """
+            implicit extension E2 for I2 { }
+            """,
+            """
+            implicit extension E3 for C { }
+            """];
+
+        var src = $$"""
+System.Console.Write(C.M);
+
+interface I1<T> { }
+interface I2 : I1<int> { }
+
+class C : I1<int>, I2 { }
+
+{{segments[first]}}
+
+{{segments[second]}}
+
+{{segments[third]}}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("System.String E1<System.Int32>.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static_Unconstrained()
+    {
+        var source = """
+// we'll lookup here
+int.StaticMethod();
+
+public implicit extension E<T> for T
+{
+    public static void StaticMethod() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var int32 = ((Compilation)comp).GetSpecialType(SpecialType.System_Int32);
+        AssertSetStrictlyEqual([
+            .. objectStaticSymbols,
+            "void E<System.Int32>.StaticMethod()",
+            "void E<System.ValueType>.StaticMethod()",
+            "void E<System.Object>.StaticMethod()",
+            "void E<System.IConvertible>.StaticMethod()",
+            "void E<System.IComparable>.StaticMethod()",
+            "void E<System.IComparable<System.Int32>>.StaticMethod()",
+            "void E<System.IEquatable<System.Int32>>.StaticMethod()",
+            "void E<System.ISpanFormattable>.StaticMethod()",
+            "void E<System.IFormattable>.StaticMethod()"],
+            model.LookupStaticMembers(position: 0, int32).Where(m => m.ContainingType.Name != "Int32").ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static_BrokenConstraint()
+    {
+        var source = """
+object.StaticMethod();
+
+public implicit extension E<T> for T where T : struct
+{
+    public static void StaticMethod() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'StaticMethod'
+            // object.StaticMethod();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "StaticMethod").WithArguments("object", "StaticMethod").WithLocation(1, 8));
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Instance_BrokenConstraint_Nullability()
+    {
+        var source = """
+#nullable enable
+bool b = true;
+var o = b ? null : new object();
+o.Method();
+
+public implicit extension E<T> for T where T : notnull
+{
+    public void Method() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // o.Method();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(4, 1));
+        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Method");
+        // PROTOTYPE(static) Updated nullability information should be reflected in the symbol
+        Assert.Equal("void E<System.Object>.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact(Skip = "PROTOTYPE(static) hit assertion in NullableWalker")]
+    public void Lookup_ExtensionTypeMembers_Static_BrokenConstraint_Nullability()
+    {
+        var source = """
+#nullable enable
+C<object?>.StaticMethod();
+
+class C<T> { }
+
+public implicit extension E<T> for C<T> where T : notnull
+{
+    public static void StaticMethod() { System.Console.Write("ran"); }
+}
+""";
+        // PROTOTYPE(static) we should warn for nullability issues
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        //comp.VerifyDiagnostics();
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static_NullableReferenceType()
+    {
+        var source = """
+#nullable enable
+object?.StaticMethod();
+
+public implicit extension E<T> for T
+{
+    public static void StaticMethod() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,8): error CS1001: Identifier expected
+            // object?.StaticMethod();
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(2, 8),
+            // (2,8): error CS1003: Syntax error, ',' expected
+            // object?.StaticMethod();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(2, 8));
+    }
+
+    [Fact]
+    public void Lookup_ExtensionTypeMembers_ForT_Static_NullableReferenceTypeParenthesized()
+    {
+        var source = """
+#nullable enable
+(object?).StaticMethod();
+
+public implicit extension E<T> for T
+{
+    public static void StaticMethod() { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,10): error CS1525: Invalid expression term '.'
+            // (object?).StaticMethod();
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(2, 10));
+    }
+
+    [Fact]
+    public void UsingStatic_07()
+    {
+        var source = """
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal interface AnyEnum { }
+}
+""";
+        // In `GetInterfaceInfo` we call `SourceNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics` which forces resolution on `ContainingType.BaseTypeNoUseSiteDiagnostics`
+        // This means that any lookup on `AnyEnum` causes the `using` directives to be resolved
+        var comp = CreateCompilationWithMscorlib45(source);
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static MyNamespace.AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(1, 1),
+            // (1,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+            // using static MyNamespace.AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(1, 43),
+            // (5,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+            // internal class AnyClass : AnyBaseClass
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(5, 27) );
+    }
+
+    [Fact]
+    public void UsingStatic_WithExtension_NoNestedType()
+    {
+        var source = """
+using static MyNamespace.AnyClass.AnyEnum.Val;
+
+namespace MyNamespace;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal interface AnyEnum { }
+}
+
+implicit extension E for AnyClass.AnyEnum { }
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static MyNamespace.AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static MyNamespace.AnyClass.AnyEnum.Val;").WithLocation(1, 1),
+            // (1,43): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+            // using static MyNamespace.AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "MyNamespace.AnyClass.AnyEnum").WithLocation(1, 43),
+            // (5,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+            // internal class AnyClass : AnyBaseClass
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(5, 27) );
+    }
+
+    [Fact]
+    public void UsingStatic()
+    {
+        var source = """
+using static AnyClass.AnyEnum.Val;
+
+internal class AnyClass : AnyBaseClass
+{
+    internal interface AnyEnum { }
+}
+
+implicit extension E for AnyClass.AnyEnum
+{
+    public class Val { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static AnyClass.AnyEnum.Val;").WithLocation(1, 1),
+            // (1,31): error CS0426: The type name 'Val' does not exist in the type 'AnyClass.AnyEnum'
+            // using static AnyClass.AnyEnum.Val;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "AnyClass.AnyEnum").WithLocation(1, 31),
+            // (3,27): error CS0246: The type or namespace name 'AnyBaseClass' could not be found (are you missing a using directive or an assembly reference?)
+            // internal class AnyClass : AnyBaseClass
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AnyBaseClass").WithArguments("AnyBaseClass").WithLocation(3, 27));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "AnyClass.AnyEnum.Val");
+        Assert.Equal("E.Val", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UsingStatic_WithoutErrorBaseType()
+    {
+        var source = """
+using static C.Interface.Nested;
+
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for C.Interface
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static C.Interface.Nested;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C.Interface.Nested;").WithLocation(1, 1),
+            // (1,26): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
+            // using static C.Interface.Nested;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C.Interface").WithLocation(1, 26));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective()
+    {
+        var source = """
+using MyNested = C.Interface.Nested;
+
+MyNested.M();
+
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for C.Interface
+{
+    public class Nested { public static void M() { System.Console.Write("ran"); } }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UsingStatic_FromOuterScope()
+    {
+        var source = """
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for C.Interface
+{
+    public class Nested { }
+}
+
+namespace N
+{
+    using static C.Interface.Nested;
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+
+        comp.VerifyDiagnostics(
+            // (13,5): hidden CS8019: Unnecessary using directive.
+            //     using static C.Interface.Nested;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C.Interface.Nested;").WithLocation(13, 5),
+            // (13,30): error CS0426: The type name 'Nested' does not exist in the type 'C.Interface'
+            //     using static C.Interface.Nested;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C.Interface").WithLocation(13, 30));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AliasDirective_FromOuterScope()
+    {
+        var source = """
+internal class C
+{
+    internal interface Interface { }
+}
+
+implicit extension E for C.Interface
+{
+    public class Nested { public static void M() { System.Console.Write("ran"); } }
+}
+
+namespace N
+{
+    using MyNested = C.Interface.Nested;
+
+    class D
+    {
+        public static void Main()
+        {
+            MyNested.M();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "C.Interface.Nested");
+        Assert.Equal("E.Nested", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void UsingStatic_ExistingInterfacesScenario()
+    {
+        var source = """
+interface IBase
+{
+    class Val { }
+}
+
+namespace N
+{
+    using static Interface.INested.Val; // error
+
+    internal interface Interface : IBase
+    {
+        internal interface INested : Interface
+        {
+            void M(Interface.INested.Val x); // okay
+        }
+    }
+}
+""";
+        var comp = CreateCompilationWithMscorlib45(source);
+
+        comp.VerifyDiagnostics(
+            // (8,5): hidden CS8019: Unnecessary using directive.
+            //     using static Interface.INested.Val; // error
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Interface.INested.Val;").WithLocation(8, 5),
+            // (8,36): error CS0426: The type name 'Val' does not exist in the type 'Interface.INested'
+            //     using static Interface.INested.Val; // error
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Val").WithArguments("Val", "N.Interface.INested").WithLocation(8, 36));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntaxes<QualifiedNameSyntax>(tree, "Interface.INested.Val").ToArray();
+        Assert.Equal("IBase.Val", model.GetSymbolInfo(qualifiedName[0]).Symbol.ToTestDisplayString());
+        Assert.Equal("IBase.Val", model.GetSymbolInfo(qualifiedName[1]).Symbol.ToTestDisplayString());
     }
 }
