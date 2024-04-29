@@ -137,7 +137,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
 
     protected override async Task<OnTheFlyDocsElement?> GetOnTheFlyDocsElementAsync(QuickInfoContext context, CancellationToken cancellationToken)
     {
-
         var document = context.Document;
         var position = context.Position;
 
