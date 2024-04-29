@@ -292,6 +292,7 @@ extends:
 
     - stage: insert
       dependsOn:
+      - build
       - publish_using_darc
       displayName: Insert to VS
 

@@ -11,10 +11,13 @@
   <Target Name="_ResolvePublishRoslynNuGetPackages"
           DependsOnTargets="BeforePublish"
           BeforeTargets="PublishToAzureDevOpsArtifacts">
-    <ItemGroup>
-      <!-- During PR Validation we need to remove all Packages from being published as they are published separately to the CoreXT feed. -->
-      <ItemsToPushToBlobFeed Include="@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)" Exclude="@(ItemsToPushToBlobFeed)"
-                             Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' " />
+    <!--
+      During PR Validation we only need to publish symbols with Arcade,
+      since our packages are published separately to the CoreXT feed.
+    -->
+    <ItemGroup Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' ">
+      <_SymbolPackagesToPush Include="@(ItemsToPushToBlobFeed)" Condition="$([System.String]::Copy(%(FullPath)).EndsWith('.symbols.nupkg'))"
+      <ItemsToPushToBlobFeed Include="@(_SymbolPackagesToPush)" Exclude="@(ItemsToPushToBlobFeed)" />
     </ItemGroup>
   </Target>
 </Project>
