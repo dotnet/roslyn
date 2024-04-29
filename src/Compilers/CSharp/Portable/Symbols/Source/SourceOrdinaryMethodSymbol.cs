@@ -1000,11 +1000,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(definition.IsPartialDefinition);
                 Debug.Assert(implementation.IsPartialImplementation);
 
-                Debug.Assert(definition._otherPartOfPartial is null || definition._otherPartOfPartial == implementation);
-                Debug.Assert(implementation._otherPartOfPartial is null || implementation._otherPartOfPartial == definition);
+                Debug.Assert(definition._otherPartOfPartial is not { } alreadySetImplPart || alreadySetImplPart == implementation);
+                Debug.Assert(implementation._otherPartOfPartial is not { } alreadySetDefPart || alreadySetDefPart == definition);
 
                 definition._otherPartOfPartial = implementation;
                 implementation._otherPartOfPartial = definition;
+
+                Debug.Assert(definition._otherPartOfPartial == implementation);
+                Debug.Assert(implementation._otherPartOfPartial == definition);
             }
 
             protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
