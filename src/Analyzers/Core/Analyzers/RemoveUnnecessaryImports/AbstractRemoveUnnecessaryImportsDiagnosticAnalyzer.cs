@@ -28,7 +28,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
     // ruleset editor or solution explorer. Setting messageFormat to empty string ensures that we won't display
     // this diagnostic in the preview pane header.
     private static readonly DiagnosticDescriptor s_fixableIdDescriptor = CreateDescriptorWithId(
-        RemoveUnnecessaryImportsConstants.DiagnosticFixableId, EnforceOnBuild.Never, hasAnyCodeStyleOption: true, "", "", isConfigurable: false);
+        RemoveUnnecessaryImportsConstants.DiagnosticFixableId, EnforceOnBuild.Never, hasAnyCodeStyleOption: false, "", "", isConfigurable: false);
 
 #pragma warning disable RS0030 // Do not used banned APIs - Special diagnostic with 'Warning' default severity.
     private static readonly DiagnosticDescriptor s_enableGenerateDocumentationFileIdDescriptor = new(

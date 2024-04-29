@@ -21,7 +21,7 @@ internal abstract class AbstractFileHeaderDiagnosticAnalyzer : AbstractBuiltInCo
     private static readonly DiagnosticDescriptor s_missingHeaderDescriptor = CreateDescriptorForFileHeader(s_missingHeaderTitle, s_missingHeaderMessage);
 
     private static DiagnosticDescriptor CreateDescriptorForFileHeader(LocalizableString title, LocalizableString message)
-        => CreateDescriptorWithId(IDEDiagnosticIds.FileHeaderMismatch, EnforceOnBuildValues.FileHeaderMismatch, hasAnyCodeStyleOption: true, title, message);
+        => CreateDescriptorWithId(IDEDiagnosticIds.FileHeaderMismatch, EnforceOnBuildValues.FileHeaderMismatch, hasAnyCodeStyleOption: false, title, message);
 
     protected AbstractFileHeaderDiagnosticAnalyzer()
         : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
