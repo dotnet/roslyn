@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 {
                     switch (rule)
                     {
-                        case nameof(CompareSymbolsCorrectlyAnalyzer.EqualityRule):
+                        case CompareSymbolsCorrectlyAnalyzer.EqualityRuleName:
                             context.RegisterCodeFix(
                                 CodeAction.Create(
                                     CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                                     equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
                                 diagnostic);
                             break;
-                        case nameof(CompareSymbolsCorrectlyAnalyzer.CollectionRule):
+                        case CompareSymbolsCorrectlyAnalyzer.CollectionRuleName:
                             context.RegisterCodeFix(
                                 CodeAction.Create(
                                     CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
