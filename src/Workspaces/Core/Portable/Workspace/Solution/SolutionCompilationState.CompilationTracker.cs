@@ -100,23 +100,22 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+            public bool ContainsAssemblyOrModuleOrDynamic(
+                ISymbol symbol, bool primary,
+                [NotNullWhen(true)] out Compilation? compilation,
+                out MetadataReferenceInfo? referencedThrough)
             {
-                Debug.Assert(symbol.Kind is SymbolKind.Assembly or
-                             SymbolKind.NetModule or
-                             SymbolKind.DynamicType);
-                var state = this.ReadState();
-
-                var unrootedSymbolSet = (state as FinalCompilationTrackerState)?.UnrootedSymbolSet;
-                if (unrootedSymbolSet == null)
+                Debug.Assert(symbol.Kind is SymbolKind.Assembly or SymbolKind.NetModule or SymbolKind.DynamicType);
+                if (this.ReadState() is not FinalCompilationTrackerState finalState)
                 {
                     // this was not a tracker that has handed out a compilation (all compilations handed out must be
                     // owned by a 'FinalState').  So this symbol could not be from us.
+                    compilation = null;
                     referencedThrough = null;
                     return false;
                 }
 
-                return unrootedSymbolSet.Value.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
+                return finalState.RootedSymbolSet.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out compilation, out referencedThrough);
             }
 
             /// <summary>
@@ -529,18 +528,23 @@ namespace Microsoft.CodeAnalysis
 
                             if (creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.Create)
                             {
-                                // Client always wants an up to date metadata reference.  Produce one for this project reference.
-                                var metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                // Client always wants an up to date metadata reference.  Produce one for this project
+                                // reference.  Because the policy is to always 'Create' here, we include cross language
+                                // references, producing skeletons for them if necessary.
+                                var metadataReference = await compilationState.GetMetadataReferenceAsync(
+                                    projectReference, this.ProjectState, includeCrossLanguage: true, cancellationToken).ConfigureAwait(false);
                                 AddMetadataReference(projectReference, metadataReference);
                             }
                             else
                             {
                                 Contract.ThrowIfFalse(creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent or SkeletonReferenceCreationPolicy.DoNotCreate);
 
-                                // If not asked to explicit create an up to date skeleton, attempt to get a partial
-                                // reference, or fallback to the last successful reference for this project if we can
-                                // find one. 
-                                var metadataReference = compilationState.GetPartialMetadataReference(projectReference, this.ProjectState);
+                                // Client does not want to force a skeleton reference to be created.  Try to get a
+                                // metadata reference cheaply in the case where this is a reference to the same
+                                // language.  If that fails, also attempt to get a reference to a skeleton assembly
+                                // produced from one of our prior stale compilations.
+                                var metadataReference = await compilationState.GetMetadataReferenceAsync(
+                                    projectReference, this.ProjectState, includeCrossLanguage: false, cancellationToken).ConfigureAwait(false);
                                 if (metadataReference is null)
                                 {
                                     var inProgressCompilationNotRef = staleCompilationWithGeneratedDocuments ?? compilationWithoutGeneratedDocuments;
@@ -552,7 +556,8 @@ namespace Microsoft.CodeAnalysis
                                 // create a real skeleton here.
                                 if (metadataReference is null && creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent)
                                 {
-                                    metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                    metadataReference = await compilationState.GetMetadataReferenceAsync(
+                                        projectReference, this.ProjectState, includeCrossLanguage: true, cancellationToken).ConfigureAwait(false);
                                 }
 
                                 AddMetadataReference(projectReference, metadataReference);
@@ -645,32 +650,6 @@ namespace Microsoft.CodeAnalysis
                         this.ProjectState.AssemblyName,
                         this.ProjectState.CompilationOptions!);
                 }
-            }
-
-            /// <summary>
-            /// Attempts to get (without waiting) a metadata reference to a possibly in progress
-            /// compilation. Only actual compilation references are returned. Could potentially 
-            /// return null if nothing can be provided.
-            /// </summary>
-            public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
-            {
-                if (ProjectState.LanguageServices == fromProject.LanguageServices)
-                {
-                    // if we have a compilation and its the correct language, use a simple compilation reference in any
-                    // state it happens to be in right now
-                    if (ReadState() is CompilationTrackerState compilationState)
-                        return compilationState.CompilationWithoutGeneratedDocuments.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                }
-                else
-                {
-                    // Cross project reference.  We need a skeleton reference.  Skeletons are too expensive to
-                    // generate on demand.  So just try to see if we can grab the last generated skeleton for that
-                    // project.
-                    var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    return _skeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
-                }
-
-                return null;
             }
 
             public Task<bool> HasSuccessfullyLoadedAsync(
