@@ -965,6 +965,26 @@ unsafe class C
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
+        [Fact]
+        public void UnsafeContext_LocalFunctionInIterator_Unsafe_BreakingChangeWorkaround()
+        {
+            var code = """
+                unsafe class C
+                {
+                    System.Collections.Generic.IEnumerable<int> M()
+                    {
+                        yield return 1;
+                        local();
+                        unsafe void local() { int* p = null; }
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        }
+
         [Theory, CombinatorialData]
         public void UnsafeContext_Method_Signature_Unsafe(bool unsafeClass, bool unsafeMethod)
         {
