@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
+        // PROTOTYPE(partial-properties): Verify that the increase in memory consumption from this is acceptable
         private SourcePropertySymbol? _otherPartOfPartial;
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)

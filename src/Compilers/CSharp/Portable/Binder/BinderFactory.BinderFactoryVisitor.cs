@@ -598,11 +598,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // not the implementation (member.Locations includes both parts). If the
                         // span is in fact in the implementation, return that member instead.
                         if (sym switch
+#pragma warning disable format
                             {
                                 MethodSymbol method => (Symbol)method.PartialImplementationPart,
                                 SourcePropertySymbol property => property.PartialImplementationPart,
                                 _ => throw ExceptionUtilities.UnexpectedValue(sym)
                             }
+#pragma warning restore format
                             is { } implementation)
                         {
                             if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))

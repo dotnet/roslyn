@@ -3606,7 +3606,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break; // accessor symbols and their diagnostics are handled by processing the associated property
 
                         default:
-                            throw ExceptionUtilities.UnexpectedValue((symbol, prev));
+                            // This is an error scenario. We simply don't merge the symbols in this case and a duplicate name diagnostic is reported separately.
+                            // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int P_get();`.
+                            Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
+                            Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
+                            break;
                     }
                 }
 
