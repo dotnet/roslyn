@@ -7936,7 +7936,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Partial property '{0}' must have an definition part.</value>
   </data>
   <data name="ERR_PartialPropertyDuplicateDefinition" xml:space="preserve">
-    <value>A partial property may not have multiple defining declarations</value>
+    <value>A partial property may not have multiple defining declarations, and cannot be an auto-property.</value>
   </data>
   <data name="ERR_PartialPropertyDuplicateImplementation" xml:space="preserve">
     <value>A partial property may not have multiple implementing declarations</value>

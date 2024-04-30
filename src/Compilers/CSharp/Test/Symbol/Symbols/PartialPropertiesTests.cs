@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (3,17): error CS9300: Partial property 'C.P' must have an implementation part.
                 //     partial int P { get; set; }
                 Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P").WithArguments("C.P").WithLocation(3, 17),
-                // (4,17): error CS9302: A partial property may not have multiple defining declarations
+                // (4,17): error CS9302: A partial property may not have multiple defining declarations, and cannot be an auto-property.
                 //     partial int P { get; set; }
                 Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P").WithLocation(4, 17),
                 // (4,17): error CS0102: The type 'C' already contains a definition for 'P'
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,17): error CS9302: A partial property may not have multiple defining declarations
+                // (4,17): error CS9302: A partial property may not have multiple defining declarations, and cannot be an auto-property.
                 //     partial int P { get; set; }
                 Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P").WithLocation(4, 17),
                 // (4,17): error CS0102: The type 'C' already contains a definition for 'P'
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,17): error CS9302: A partial property may not have multiple defining declarations
+                // (4,17): error CS9302: A partial property may not have multiple defining declarations, and cannot be an auto-property.
                 //     partial int P { get; set; }
                 Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P").WithLocation(4, 17),
                 // (4,17): error CS0102: The type 'C' already contains a definition for 'P'

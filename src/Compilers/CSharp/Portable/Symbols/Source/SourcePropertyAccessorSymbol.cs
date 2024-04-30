@@ -820,12 +820,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsPartialDefinition => _property is SourcePropertySymbol { IsPartialDefinition: true };
         internal bool IsPartialImplementation => _property is SourcePropertySymbol { IsPartialImplementation: true };
 
-        public sealed override bool IsExtern
-        {
-            get
-            {
-                return PartialImplementationPart is { } implementation ? implementation.IsExtern : base.IsExtern;
-            }
-        }
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : base.IsExtern;
     }
 }

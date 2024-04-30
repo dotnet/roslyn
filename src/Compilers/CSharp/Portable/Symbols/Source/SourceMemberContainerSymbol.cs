@@ -3637,7 +3637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         case SourcePropertyAccessorSymbol:
-                            break; // handled by SourcePropertySymbol case
+                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'.
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(symbol);
@@ -3713,25 +3713,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
                 {
                     Debug.Assert(currentAccessor != null || prevAccessor != null);
-
-                    // When an accessor is present on definition but not on implementation, the accessor is said to be missing on the implementation.
-                    // When an accessor is present on implementation but not on definition, the accessor is said to be unexpected on the implementation.
-                    if (currentAccessor == null)
-                    {
-                        // Partial definition is the source of truth for which accessors should be present.
-                        var (errorCode, propertyToBlame) = prevProperty.IsPartialDefinition ? (ErrorCode.ERR_PartialPropertyMissingAccessor, currentProperty) : (ErrorCode.ERR_PartialPropertyUnexpectedAccessor, prevProperty);
-                        diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), prevAccessor!);
-                    }
-                    else if (prevAccessor == null)
-                    {
-                        // Partial definition is the source of truth for which accessors should be present.
-                        var (errorCode, propertyToBlame) = currentProperty.IsPartialDefinition ? (ErrorCode.ERR_PartialPropertyMissingAccessor, prevProperty) : (ErrorCode.ERR_PartialPropertyUnexpectedAccessor, currentProperty);
-                        diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), currentAccessor!);
-                    }
-                    else
+                    if (currentAccessor != null && prevAccessor != null)
                     {
                         var implementationAccessor = currentProperty.IsPartialDefinition ? prevAccessor : currentAccessor;
                         membersByName[name] = Remove(membersByName[name], implementationAccessor);
+                    }
+                    else
+                    {
+                        var (foundAccessor, containingProperty, otherProperty) = prevAccessor != null ? (prevAccessor, prevProperty, currentProperty) : (currentAccessor!, currentProperty, prevProperty);
+                        // When an accessor is present on definition but not on implementation, the accessor is said to be missing on the implementation.
+                        // When an accessor is present on implementation but not on definition, the accessor is said to be unexpected on the implementation.
+                        var (errorCode, propertyToBlame) = foundAccessor.IsPartialDefinition
+                            ? (ErrorCode.ERR_PartialPropertyMissingAccessor, otherProperty)
+                            : (ErrorCode.ERR_PartialPropertyUnexpectedAccessor, containingProperty);
+                        diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), foundAccessor);
                     }
                 }
             }

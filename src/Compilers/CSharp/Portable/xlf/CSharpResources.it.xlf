@@ -1653,8 +1653,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
-        <source>A partial property may not have multiple defining declarations</source>
-        <target state="new">A partial property may not have multiple defining declarations</target>
+        <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
+        <target state="new">A partial property may not have multiple defining declarations, and cannot be an auto-property.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">

@@ -587,38 +587,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (sym.Kind == SymbolKind.Method)
+                    if (kind is SymbolKind.Method or SymbolKind.Property)
                     {
                         if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
                             return true;
                         }
 
-                        // If this is a partial method, the method represents the defining part,
-                        // not the implementation (method.Locations includes both parts). If the
-                        // span is in fact in the implementation, return that method instead.
-                        var implementation = ((MethodSymbol)sym).PartialImplementationPart;
-                        if ((object)implementation != null)
-                        {
-                            if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
+                        // If this is a partial member, the member represents the defining part,
+                        // not the implementation (member.Locations includes both parts). If the
+                        // span is in fact in the implementation, return that member instead.
+                        if (sym switch
                             {
-                                result = implementation;
-                                return true;
+                                MethodSymbol method => (Symbol)method.PartialImplementationPart,
+                                SourcePropertySymbol property => property.PartialImplementationPart,
+                                _ => throw ExceptionUtilities.UnexpectedValue(sym)
                             }
-                        }
-                    }
-                    else if (sym.Kind == SymbolKind.Property)
-                    {
-                        if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
-                        {
-                            return true;
-                        }
-
-                        // If this is a partial property, the property represents the defining part,
-                        // not the implementation (property.Locations includes both parts). If the
-                        // span is in fact in the implementation, return that property instead.
-                        var implementation = ((SourcePropertySymbol)sym).PartialImplementationPart;
-                        if ((object)implementation != null)
+                            is { } implementation)
                         {
                             if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {
