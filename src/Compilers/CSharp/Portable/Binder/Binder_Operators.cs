@@ -3566,10 +3566,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * If either type is a restricted type, the type check isn't supported because
+                    // * If either type is a restricted type, the type check isn't supported for some scenarios because
                     //   a restricted type cannot be boxed or unboxed into.
-                    if (targetType.IsRestrictedType() || operandType.IsRestrictedType()) // PROTOTYPE(RefStructInterfaces): Is this doing the right thing for 'allows ref struct' type parameters? 
+                    if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
                     {
+                        if (targetType is TypeParameterSymbol { AllowByRefLike: true })
+                        {
+                            if (!operandType.IsRefLikeType && operandType is not TypeParameterSymbol)
+                            {
+                                return null;
+                            }
+                        }
+                        else if (operandType is not TypeParameterSymbol { AllowByRefLike: true })
+                        {
+                            if (targetType.IsRefLikeType)
+                            {
+                                if (operandType is TypeParameterSymbol)
+                                {
+                                    Debug.Assert(operandType is TypeParameterSymbol { AllowByRefLike: false });
+                                    return ConstantValue.False;
+                                }
+                            }
+                            else if (operandType.IsRefLikeType)
+                            {
+                                if (targetType is TypeParameterSymbol)
+                                {
+                                    Debug.Assert(targetType is TypeParameterSymbol { AllowByRefLike: false });
+                                    return ConstantValue.False;
+                                }
+                            }
+                        }
+
                         return ConstantValue.Bad;
                     }
 
@@ -3981,6 +4008,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isOperatorConstantResult.BooleanValue)
                 {
+                    if (operandType?.IsRefLikeType == true)
+                    {
+                        return ConstantValue.Bad;
+                    }
+
                     return ConstantValue.Null;
                 }
             }

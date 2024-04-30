@@ -752,7 +752,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(expr is object);
             Debug.Assert(expr.Type is object);
-            // PROTOTYPE(RefStructInterfaces): adjust?
             Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
             var result = PerformPatternMethodLookup(expr,
