@@ -31,9 +31,9 @@
   -->
 
   <ItemGroup Condition="'$(DotnetBuildFromSource)' == 'true'">
-    <PackageVersion Include="Microsoft.Build" Version="17.3.2" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.2" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.Build" Version="17.3.4" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.4" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotnetBuildFromSource)' != 'true' and '$(TargetFramework)' != 'net472'">
