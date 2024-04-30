@@ -985,6 +985,37 @@ unsafe class C
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73280")]
+        public void UnsafeContext_LangVersion()
+        {
+            var code = """
+                unsafe class C
+                {
+                    System.Collections.Generic.IEnumerable<int> M()
+                    {
+                        int* p = null;
+                        yield break;
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         int* p = null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // (5,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         int* p = null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 9)
+            };
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        }
+
         [Theory, CombinatorialData]
         public void UnsafeContext_Method_Signature_Unsafe(bool unsafeClass, bool unsafeMethod)
         {
@@ -1166,15 +1197,12 @@ unsafe class C
                 {
                     System.Collections.Generic.IEnumerable<int> M()
                     {
-                        yield return sizeof(nint);
+                        yield return local();
+                        int local() => sizeof(nint);
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         yield return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 22));
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData]
@@ -1388,15 +1416,12 @@ unsafe class C
                 {
                     public static System.Collections.Generic.IEnumerable<int> operator+(C c1, C c2)
                     {
-                        yield return sizeof(nint);
+                        yield return local();
+                        int local() => sizeof(nint);
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         yield return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 22));
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData]
@@ -1624,16 +1649,16 @@ unsafe class C
                 {
                     System.Collections.Generic.IEnumerable<int> this[int x]
                     {
-                        get { yield return sizeof(nint); }
+                        get
+                        {
+                            yield return local();
+                            int local() => sizeof(nint);
+                        }
                         set { int* p = null; }
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,28): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         get { yield return sizeof(nint); }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 28));
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData]
@@ -1895,16 +1920,16 @@ unsafe class C
                 {
                     System.Collections.Generic.IEnumerable<int> P
                     {
-                        get { yield return sizeof(nint); }
+                        get
+                        {
+                            yield return local();
+                            int local() => sizeof(nint);
+                        }
                         set { int* p = null; }
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,28): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         get { yield return sizeof(nint); }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 28));
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData]
@@ -2143,15 +2168,12 @@ unsafe class C
                 {
                     System.Collections.Generic.IEnumerable<int> M()
                     {
-                        yield return sizeof(nint);
+                        yield return local();
+                        int local() => sizeof(nint);
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         yield return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22));
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData]
