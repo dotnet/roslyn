@@ -988,7 +988,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Method_Signature_Unsafe(bool unsafeClass, bool unsafeMethod)
         {
-            if (!unsafeClass || !unsafeMethod)
+            if (!unsafeClass && !unsafeMethod)
             {
                 return;
             }
@@ -1020,7 +1020,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Method_Body_Unsafe(bool unsafeClass, bool unsafeMethod)
         {
-            if (!unsafeClass || !unsafeMethod)
+            if (!unsafeClass && !unsafeMethod)
             {
                 return;
             }
@@ -1184,7 +1184,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Operator_Signature_Unsafe(bool unsafeClass, bool unsafeOperator)
         {
-            if (!unsafeClass || !unsafeOperator)
+            if (!unsafeClass && !unsafeOperator)
             {
                 return;
             }
@@ -1222,7 +1222,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Operator_Body_Unsafe(bool unsafeClass, bool unsafeOperator)
         {
-            if (!unsafeClass || !unsafeOperator)
+            if (!unsafeClass && !unsafeOperator)
             {
                 return;
             }
@@ -1386,7 +1386,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Indexer_Signature_Unsafe(bool unsafeClass, bool unsafeIndexer)
         {
-            if (!unsafeClass || !unsafeIndexer)
+            if (!unsafeClass && !unsafeIndexer)
             {
                 return;
             }
@@ -1426,7 +1426,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Indexer_Body_Unsafe(bool unsafeClass, bool unsafeIndexer)
         {
-            if (!unsafeClass || !unsafeIndexer)
+            if (!unsafeClass && !unsafeIndexer)
             {
                 return;
             }
@@ -1579,7 +1579,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Indexer_Iterator_Body_CSharp13_Unsafe(bool unsafeClass, bool unsafeIndexer)
         {
-            if (!unsafeClass || !unsafeIndexer)
+            if (!unsafeClass && !unsafeIndexer)
             {
                 return;
             }
@@ -1637,7 +1637,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Property_Signature_Unsafe(bool unsafeClass, bool unsafeProperty)
         {
-            if (!unsafeClass || !unsafeProperty)
+            if (!unsafeClass && !unsafeProperty)
             {
                 return;
             }
@@ -1677,7 +1677,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Property_Body_Unsafe(bool unsafeClass, bool unsafeProperty)
         {
-            if (!unsafeClass || !unsafeProperty)
+            if (!unsafeClass && !unsafeProperty)
             {
                 return;
             }
@@ -1830,7 +1830,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_Property_Iterator_Body_CSharp13_Unsafe(bool unsafeClass, bool unsafeProperty)
         {
-            if (!unsafeClass || !unsafeProperty)
+            if (!unsafeClass && !unsafeProperty)
             {
                 return;
             }
@@ -1888,7 +1888,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_LocalFunction_Signature_Unsafe(bool unsafeBlock, bool unsafeFunction)
         {
-            if (!unsafeBlock || !unsafeFunction)
+            if (!unsafeBlock && !unsafeFunction)
             {
                 return;
             }
@@ -1919,7 +1919,7 @@ unsafe class C
         [Theory, CombinatorialData]
         public void UnsafeContext_LocalFunction_Body_Unsafe(bool unsafeBlock, bool unsafeFunction)
         {
-            if (!unsafeBlock || !unsafeFunction)
+            if (!unsafeBlock && !unsafeFunction)
             {
                 return;
             }
