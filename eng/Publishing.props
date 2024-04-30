@@ -16,11 +16,19 @@
       since our packages are published separately to the CoreXT feed.
     -->
     <ItemGroup Condition=" '$(PreReleaseVersionLabel)' == 'pr-validation' ">
-      <_SymbolPackagesToPush Include="@(ItemsToPushToBlobFeed)"
+      <!-- Determine all NuGet packages being published -->
+      <_NuGetPackagesToPush Include="@(ItemsToPushToBlobFeed)"
+                            Condition=" '%(Extension)' == '.nupkg' " />
+
+      <!-- Determine all symbol packages being published -->
+      <_SymbolPackagesToPush Include="@(_NuGetPackagesToPush)"
                              Condition="$([System.String]::Copy(%(FullPath)).EndsWith('.symbols.nupkg'))" />
 
-      <ItemsToPushToBlobFeed Include="@(_SymbolPackagesToPush)"
-                             Exclude="@(ItemsToPushToBlobFeed)" />
+      <!-- Remove all NuGet packages from being published -->
+      <ItemsToPushToBlobFeed Remove="@(_NuGetPackagesToPush)" />
+
+      <!-- Include symbol packages for publishing -->
+      <ItemsToPushToBlobFeed Include="@(_SymbolPackagesToPush)" />
     </ItemGroup>
   </Target>
 </Project>
