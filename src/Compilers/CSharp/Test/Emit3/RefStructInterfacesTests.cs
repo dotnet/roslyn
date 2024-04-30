@@ -21979,7 +21979,7 @@ class Program<S> where S : allows ref struct
         public S1 Field2 {get;set;}
     }
 ";
-            CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyDiagnostics(
+            CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyEmitDiagnostics(
                 // (18,20): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
                 //             return x1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(18, 20),
@@ -22048,7 +22048,7 @@ public interface IS2
     public S1 Field2 {get;set;}
 }
 ";
-            CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyDiagnostics(
+            CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyEmitDiagnostics(
                 // (18,16): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return x1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(18, 16),
