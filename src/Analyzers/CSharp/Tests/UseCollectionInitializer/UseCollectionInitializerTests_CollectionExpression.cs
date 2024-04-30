@@ -5346,4 +5346,324 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
+    public async Task TestInValueTuple1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, List<int>) M() {
+                        return (42, [|new|] List<int>());
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, List<int>) M() {
+                        return (42, []);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
+    public async Task TestInValueTuple2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, List<int>) M() {
+                        return (42, [|new|] List<int>() { });
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, List<int>) M() {
+                        return (42, []);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
+    public async Task TestInValueTuple3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, List<int>) M() {
+                        return (42, [|new|] List<int> { 1, 2, 3 });
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, List<int>) M() {
+                        return (42, [1, 2, 3]);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
+    public async Task TestInValueTuple4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, List<int>) M() {
+                        return (42, [|new|] List<int>
+                        {
+                            1,
+                            2,
+                            3
+                        });
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, List<int>) M() {
+                        return (42,
+                        [
+                            1,
+                            2,
+                            3
+                        ]);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
+    public async Task TestInValueTuple5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, Func<List<int>>) M() {
+                        return (42, () => [|new|] List<int>());
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, Func<List<int>>) M() {
+                        return (42, () => []);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
+    public async Task TestInValueTuple6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, Func<List<int>>) M() {
+                        return (42, () => [|new|] List<int>() { 1, 2, 3 });
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, Func<List<int>>) M() {
+                        return (42, () => [1, 2, 3]);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72169")]
+    public async Task TestInValueTuple7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, Func<List<int>>) M() {
+                        return (42, () => [|new|] List<int>
+                        {
+                            1,
+                            2,
+                            3
+                        });
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public (int, Func<List<int>>) M() {
+                        return (42, () =>
+                        [
+                            1,
+                            2,
+                            3
+                        ]);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72701")]
+    public async Task TestNotWithObservableCollection1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.ObjectModel;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<string> strings = new ObservableCollection<string>();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72701")]
+    public async Task TestNotWithObservableCollection2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.ObjectModel;
+
+                class C
+                {
+                    void M()
+                    {
+                        ObservableCollection<string> strings = [|new|] ObservableCollection<string>();
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.ObjectModel;
+
+                class C
+                {
+                    void M()
+                    {
+                        ObservableCollection<string> strings = [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

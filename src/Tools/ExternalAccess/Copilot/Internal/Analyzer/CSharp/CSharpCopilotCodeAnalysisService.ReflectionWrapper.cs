@@ -22,8 +22,8 @@ using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnos
 
 internal sealed partial class CSharpCopilotCodeAnalysisService
 {
-    // A temporary helper to get access to the implementation of IExternalCopilotCodeAnalysisService, until it can be MEF exported.
-    private sealed class ReflectionWrapper : IExternalCopilotCodeAnalysisService
+    // A temporary helper to get access to the implementation of IExternalCSharpCopilotCodeAnalysisService, until it can be MEF exported.
+    private sealed class ReflectionWrapper : IExternalCSharpCopilotCodeAnalysisService
     {
         private const string CopilotRoslynDllName = "Microsoft.VisualStudio.Copilot.Roslyn, Version=0.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
         private const string InternalCSharpCopilotAnalyzerTypeFullName = "Microsoft.VisualStudio.Copilot.Roslyn.Analyzer.InternalCSharpCopilotAnalyzer";

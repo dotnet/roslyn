@@ -478,15 +478,15 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                 }
                 else
                 {
-                    symbols = SpecializedCollections.SingletonEnumerable(symbolInfo.Symbol);
+                    symbols = [symbolInfo.Symbol];
                 }
 
                 var renameDeclarationLocations =
-                                                                            ConflictResolver.CreateDeclarationLocationAnnotationsAsync(
-                                                                                _solution,
-                                                                                symbols,
-                                                                                _cancellationToken)
-                                                                                    .WaitAndGetResult_CanCallOnBackground(_cancellationToken);
+                    ConflictResolver.CreateDeclarationLocationAnnotationsAsync(
+                        _solution,
+                        symbols,
+                        _cancellationToken)
+                            .WaitAndGetResult_CanCallOnBackground(_cancellationToken);
 
                 var renameAnnotation = new RenameActionAnnotation(
                                             identifierToken.Span,
@@ -810,7 +810,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
             if (renamedSymbol.ContainingSymbol is INamedTypeSymbol { TypeKind: not TypeKind.Enum } containingNamedType &&
                 containingNamedType.Name == renamedSymbol.Name)
             {
-                AddSymbolSourceSpans(conflicts, SpecializedCollections.SingletonEnumerable(containingNamedType), reverseMappedLocations);
+                AddSymbolSourceSpans(conflicts, [containingNamedType], reverseMappedLocations);
             }
 
             if (renamedSymbol.Kind is SymbolKind.Parameter or
@@ -927,7 +927,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                 }
             }
 
-            return conflicts.ToImmutable();
+            return conflicts.ToImmutableAndClear();
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {

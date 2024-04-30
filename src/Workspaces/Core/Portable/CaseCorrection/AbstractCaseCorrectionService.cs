@@ -52,7 +52,7 @@ internal abstract partial class AbstractCaseCorrectionService : ICaseCorrectionS
 
             using (Logger.LogBlock(FunctionId.CaseCorrection_AddReplacements, cancellationToken))
             {
-                AddReplacements(semanticModel, root, normalizedSpanCollection.ToImmutableArray(), replacements, cancellationToken);
+                AddReplacements(semanticModel, root, [.. normalizedSpanCollection], replacements, cancellationToken);
             }
 
             using (Logger.LogBlock(FunctionId.CaseCorrection_ReplaceTokens, cancellationToken))

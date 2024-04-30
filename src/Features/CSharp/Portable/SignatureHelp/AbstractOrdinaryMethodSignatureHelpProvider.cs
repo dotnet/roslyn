@@ -86,5 +86,5 @@ internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCS
     }
 
     private static IList<SymbolDisplayPart> GetMethodGroupPostambleParts()
-        => SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseParenToken));
+        => [Punctuation(SyntaxKind.CloseParenToken)];
 }

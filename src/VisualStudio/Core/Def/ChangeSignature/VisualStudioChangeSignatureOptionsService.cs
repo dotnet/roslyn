@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
@@ -13,21 +14,16 @@ using Microsoft.VisualStudio.Text.Classification;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 
 [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Host), Shared]
-internal class VisualStudioChangeSignatureOptionsService : ForegroundThreadAffinitizedObject, IChangeSignatureOptionsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioChangeSignatureOptionsService(
+    IClassificationFormatMapService classificationFormatMapService,
+    ClassificationTypeMap classificationTypeMap,
+    IThreadingContext threadingContext) : IChangeSignatureOptionsService
 {
-    private readonly IClassificationFormatMap _classificationFormatMap;
-    private readonly ClassificationTypeMap _classificationTypeMap;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioChangeSignatureOptionsService(
-        IClassificationFormatMapService classificationFormatMapService,
-        ClassificationTypeMap classificationTypeMap,
-        IThreadingContext threadingContext) : base(threadingContext)
-    {
-        _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
-        _classificationTypeMap = classificationTypeMap;
-    }
+    private readonly IClassificationFormatMap _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
+    private readonly ClassificationTypeMap _classificationTypeMap = classificationTypeMap;
+    private readonly IThreadingContext _threadingContext = threadingContext;
 
     public ChangeSignatureOptionsResult? GetChangeSignatureOptions(
         Document document,
@@ -35,7 +31,7 @@ internal class VisualStudioChangeSignatureOptionsService : ForegroundThreadAffin
         ISymbol symbol,
         ParameterConfiguration parameters)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var viewModel = new ChangeSignatureDialogViewModel(
             parameters,

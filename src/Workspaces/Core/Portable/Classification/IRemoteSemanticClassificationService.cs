@@ -79,7 +79,7 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
     private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
     {
         using var _1 = ArrayBuilder<string>.GetInstance(out var classificationTypes);
-        using var _2 = ArrayBuilder<int>.GetInstance(capacity: classifiedSpans.Length * 3, out var classificationTriples);
+        var classificationTriples = new FixedSizeArrayBuilder<int>(classifiedSpans.Length * 3);
 
         foreach (var classifiedSpan in classifiedSpans)
         {
@@ -99,7 +99,7 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
 
         return new SerializableClassifiedSpans(
             classificationTypes.ToImmutableAndClear(),
-            classificationTriples.ToImmutableAndClear());
+            classificationTriples.MoveToImmutable());
     }
 
     internal void Rehydrate(SegmentedList<ClassifiedSpan> classifiedSpans)

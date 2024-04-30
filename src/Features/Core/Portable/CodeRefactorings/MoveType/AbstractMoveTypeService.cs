@@ -160,7 +160,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
-        return actions.ToImmutable();
+        return actions.ToImmutableAndClear();
     }
 
     private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)

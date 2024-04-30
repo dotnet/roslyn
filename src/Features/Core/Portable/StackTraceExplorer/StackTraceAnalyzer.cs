@@ -67,7 +67,7 @@ internal static class StackTraceAnalyzer
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static IEnumerable<VirtualCharSequence> SplitLines(VirtualCharSequence callstack)

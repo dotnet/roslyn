@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -73,8 +74,6 @@ internal abstract partial class AbstractFindUsagesService
         // any of these.
         public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
-        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => default;
-        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => default;
 
         // More complicated forwarding functions.  These need to map from the symbols
         // used by the FAR engine to the INavigableItems used by the streaming FAR 
@@ -107,17 +106,21 @@ internal abstract partial class AbstractFindUsagesService
             await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location, CancellationToken cancellationToken)
+        public async ValueTask OnReferencesFoundAsync(
+            ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {
-            var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
-            var referenceItem = await location.TryCreateSourceReferenceItemAsync(
-                classificationOptions,
-                definitionItem,
-                includeHiddenLocations: false,
-                cancellationToken).ConfigureAwait(false);
+            foreach (var (group, _, location) in references)
+            {
+                var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
+                var referenceItem = await location.TryCreateSourceReferenceItemAsync(
+                    classificationOptions,
+                    definitionItem,
+                    includeHiddenLocations: false,
+                    cancellationToken).ConfigureAwait(false);
 
-            if (referenceItem != null)
-                await context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
+                if (referenceItem != null)
+                    await context.OnReferenceFoundAsync(referenceItem, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

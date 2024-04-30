@@ -18,7 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)HandlerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializedHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializeHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IHandlerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IInitializeManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILifeCycleManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILspLogger.cs" />
@@ -26,7 +25,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)IMethodHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)INotificationHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IQueueItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IRequestContextFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRequestExecutionQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRequestHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ITextDocumentIdentifierHandler.cs" />
@@ -36,7 +34,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)RequestExecutionQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestHandlerMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestShutdownEventArgs.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WrappedHandlerProvider.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>
 </Project>

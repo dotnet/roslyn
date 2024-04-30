@@ -67,7 +67,7 @@ internal static class UnitTestingSearchHelpers
             foreach (var location in locations.Value)
                 result.AddIfNotNull(await location.TryRehydrateAsync(project.Solution, cancellationToken).ConfigureAwait(false));
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         return await GetSourceLocationsInProcessAsync(project, query, cancellationToken).ConfigureAwait(false);
@@ -160,7 +160,7 @@ internal static class UnitTestingSearchHelpers
         await foreach (var item in GetSourceLocationsInProcessWorkerAsync(project, query, cancellationToken).ConfigureAwait(false))
             result.Add(item);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static IAsyncEnumerable<UnitTestingDocumentSpan> GetSourceLocationsInProcessWorkerAsync(

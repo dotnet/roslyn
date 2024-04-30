@@ -103,6 +103,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.Equal(filePath, uri.LocalPath);
         }
 
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData("C:\\a\\b", "file:///C:/a/b")]
+        [InlineData("C:\\a\\b\\", "file:///C:/a/b")]
+        [InlineData("C:\\a\\\\b", "file:///C:/a//b")]
+        [InlineData("C:\\%25\ue25b/a\\b", "file:///C:/%2525%EE%89%9B/a/b")]
+        [InlineData("C:\\%25\ue25b/a\\\\b", "file:///C:/%2525%EE%89%9B/a//b")]
+        [InlineData("C:\\\u0089\uC7BD", "file:///C:/%C2%89%EC%9E%BD")]
+        [InlineData("/\\server\ue25b\\%25\ue25b\\b", "file://server/%2525%EE%89%9B/b")]
+        [InlineData("\\\\server\ue25b\\%25\ue25b\\b", "file://server/%2525%EE%89%9B/b")]
+        [InlineData("\\\\server\ue25b\\%25\ue25b\\b\\", "file://server/%2525%EE%89%9B/b")]
+        [InlineData("C:\\ !$&'()+,-;=@[]_~#", "file:///C:/%20!$&'()+,-;=@[]_~%23")]
+        [InlineData("C:\\ !$&'()+,-;=@[]_~#\ue25b", "file:///C:/%20!$&'()+,-;=@[]_~%23%EE%89%9B")]
+        [InlineData("C:\\\u0073\u0323\u0307", "file:///C:/s%CC%A3%CC%87")] // combining marks
+        [InlineData("A:/\\\u200e//", "file:///A://%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
+        [InlineData("B:\\/\u200e", "file:///B://%E2%80%8E")]
+        [InlineData("C:/\\\\-Ā\r", "file:///C:///-%C4%80%0D")]
+        [InlineData("D:\\\\\\\\\\\u200e", "file:///D://///%E2%80%8E")]
+        public void CreateRelativePatternBaseUri_LocalPaths_Windows(string filePath, string expectedUri)
+        {
+            var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
+            Assert.Equal(expectedUri, uri.AbsoluteUri);
+        }
+
+        [ConditionalTheory(typeof(UnixLikeOnly))]
+        [InlineData("/", "file://")]
+        [InlineData("/u", "file:///u")]
+        [InlineData("/unix/", "file:///unix")]
+        [InlineData("/unix/path", "file:///unix/path")]
+        [InlineData("/%25\ue25b/\u0089\uC7BD", "file:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
+        [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23")]
+        [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23%EE%89%9B")]
+        [InlineData("/\\\u200e//", "file:////%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
+        [InlineData("\\/\u200e", "file:////%E2%80%8E")]
+        [InlineData("/\\\\-Ā\r", "file://///-%C4%80%0D")]
+        [InlineData("\\\\\\\\\\\u200e", "file:///////%E2%80%8E")]
+        public void CreateRelativePatternBaseUri_LocalPaths_Unix(string filePath, string expectedRelativeUri)
+        {
+            var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
+            Assert.Equal(expectedRelativeUri, uri.AbsoluteUri);
+        }
+
         [ConditionalTheory(typeof(UnixLikeOnly))]
         [InlineData("/a/./b", "file:///a/./b", "file:///a/b")]
         [InlineData("/a/../b", "file:///a/../b", "file:///b")]

@@ -58,8 +58,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
         // Exception 2: Similar behavior for do-while
         if (common.ContainsDiagnostics && !CloseBraceOfTryOrDoBlock(endToken))
         {
-            smartTokenformattingRules = ImmutableArray<AbstractFormattingRule>.Empty.Add(
-                new NoLineChangeFormattingRule()).AddRange(_formattingRules);
+            smartTokenformattingRules = [new NoLineChangeFormattingRule(), .. _formattingRules];
         }
 
         var formatter = CSharpSyntaxFormatting.Instance;
@@ -84,7 +83,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
         if (previousToken.Kind() == SyntaxKind.None)
         {
             // no previous token. nothing to format
-            return SpecializedCollections.EmptyList<TextChange>();
+            return [];
         }
 
         // This is a heuristic to prevent brace completion from breaking user expectation/muscle memory in common scenarios (see Devdiv:823958).

@@ -199,7 +199,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static string GetFixTitle(bool isAddSuppression)

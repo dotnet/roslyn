@@ -11990,7 +11990,7 @@ public class C
         }
 
         [Fact]
-        public void CS0762ERR_PartialMethodToDelegate()
+        public void CS0762ERR_PartialMethodToDelegate_01()
         {
             var text = @"
 public delegate void TestDel();
@@ -12010,6 +12010,52 @@ public delegate void TestDel();
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodToDelegate, Line = 11, Column = 38 } });
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72431")]
+        [Fact]
+        public void CS0762ERR_PartialMethodToDelegate_02()
+        {
+            var source = """
+                delegate void D();
+                partial class Program
+                {
+                    static void Main()
+                    {
+                        M1(M2<int>);
+                    }
+                    static void M1(D d) { }
+                    static partial void M2<T>();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS0762: Cannot create delegate from method 'Program.M2<int>()' because it is a partial method without an implementing declaration
+                //         M1(M2<int>);
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2<int>").WithArguments("Program.M2<int>()").WithLocation(6, 12));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72431")]
+        [Fact]
+        public void CS0762ERR_PartialMethodToDelegate_03()
+        {
+            var source = """
+                delegate void D();
+                partial class C<T>
+                {
+                    static void M1()
+                    {
+                        M2(C<int>.M3);
+                    }
+                    static void M2(D d) { }
+                    static partial void M3();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS0762: Cannot create delegate from method 'C<int>.M3()' because it is a partial method without an implementing declaration
+                //         M2(C<int>.M3);
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "C<int>.M3").WithArguments("C<int>.M3()").WithLocation(6, 12));
         }
 
         [Fact]

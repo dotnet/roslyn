@@ -41,6 +41,21 @@ internal static partial class DocumentExtensions
         return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
     }
 
+#if !CODE_STYLE
+
+    public static async ValueTask<SemanticModel> GetRequiredNullableDisabledSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+    {
+        if (document.TryGetNullableDisabledSemanticModel(out var semanticModel))
+            return semanticModel;
+
+#pragma warning disable RSEXPERIMENTAL001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        semanticModel = await document.GetSemanticModelAsync(SemanticModelOptions.DisableNullableAnalysis, cancellationToken).ConfigureAwait(false);
+#pragma warning restore RSEXPERIMENTAL001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+    }
+
+#endif
+
     public static async ValueTask<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
     {
         if (document.TryGetSyntaxTree(out var syntaxTree))

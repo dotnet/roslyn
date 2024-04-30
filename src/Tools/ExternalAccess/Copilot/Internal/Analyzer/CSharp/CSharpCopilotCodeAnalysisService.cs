@@ -5,10 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,33 +22,40 @@ using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 
-internal sealed partial class CSharpCopilotCodeAnalysisService(
-    Lazy<IExternalCopilotCodeAnalysisService> lazyExternalCopilotService,
-    IDiagnosticsRefresher diagnosticsRefresher,
-    VisualStudioCopilotOptionService copilotOptionService) : AbstractCopilotCodeAnalysisService(lazyExternalCopilotService, diagnosticsRefresher)
+[ExportLanguageService(typeof(ICopilotCodeAnalysisService), LanguageNames.CSharp), Shared]
+internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService
 {
-    private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
-    private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
+    private readonly Lazy<IExternalCSharpCopilotCodeAnalysisService> _lazyExternalCopilotService;
 
-    public static CSharpCopilotCodeAnalysisService Create(
-        HostLanguageServices languageServices,
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCopilotCodeAnalysisService(
+        [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
         IDiagnosticsRefresher diagnosticsRefresher,
-        VisualStudioCopilotOptionService copilotOptionService,
         SVsServiceProvider serviceProvider,
-        IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
+        IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer
+        ) : base(diagnosticsRefresher)
     {
-        var lazyExternalCopilotService = new Lazy<IExternalCopilotCodeAnalysisService>(GetExternalService, LazyThreadSafetyMode.PublicationOnly);
-        return new CSharpCopilotCodeAnalysisService(lazyExternalCopilotService, diagnosticsRefresher, copilotOptionService);
+        _lazyExternalCopilotService = new Lazy<IExternalCSharpCopilotCodeAnalysisService>(GetExternalService, LazyThreadSafetyMode.PublicationOnly);
 
-        IExternalCopilotCodeAnalysisService GetExternalService()
-            => languageServices.GetService<IExternalCopilotCodeAnalysisService>() ?? new ReflectionWrapper(serviceProvider, brokeredServiceContainer);
+        IExternalCSharpCopilotCodeAnalysisService GetExternalService()
+            => externalCopilotService ?? new ReflectionWrapper(serviceProvider, brokeredServiceContainer);
     }
 
-    public override Task<bool> IsRefineOptionEnabledAsync()
-        => copilotOptionService.IsCopilotOptionEnabledAsync(CopilotRefineOptionName);
+    protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.AnalyzeDocumentAsync(document, span, promptTitle, cancellationToken);
 
-    public override Task<bool> IsCodeAnalysisOptionEnabledAsync()
-        => copilotOptionService.IsCopilotOptionEnabledAsync(CopilotCodeAnalysisOptionName);
+    protected override Task<ImmutableArray<string>> GetAvailablePromptTitlesCoreAsync(Document document, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetAvailablePromptTitlesAsync(document, cancellationToken);
+
+    protected override Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetCachedDiagnosticsAsync(document, promptTitle, cancellationToken);
+
+    protected override Task<bool> IsAvailableCoreAsync(CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.IsAvailableAsync(cancellationToken);
+
+    protected override Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
 
     protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(
         Document document, IReadOnlyList<Diagnostic> diagnostics, TextSpan span, CancellationToken cancellationToken)
