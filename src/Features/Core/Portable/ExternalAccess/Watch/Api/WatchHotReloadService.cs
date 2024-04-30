@@ -54,8 +54,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     private DebuggingSessionId _sessionId;
 
     public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
-        : this(services.GetRequiredService<IEditAndContinueWorkspaceService>().Service,
-               () => ValueTaskFactory.FromResult(AddImplicitDotNetCapabilities(capabilities)))
+        : this(services.SolutionServices, () => ValueTaskFactory.FromResult(AddImplicitDotNetCapabilities(capabilities)))
     {
     }
 
