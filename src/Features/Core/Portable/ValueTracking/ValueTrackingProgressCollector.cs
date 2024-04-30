@@ -33,7 +33,7 @@ internal class ValueTrackingProgressCollector : IProgress<ValueTrackedItem>
     {
         lock (_lock)
         {
-            return _items.ToImmutableArray();
+            return [.. _items];
         }
     }
 

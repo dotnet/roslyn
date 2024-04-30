@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var fileName = Path.ChangeExtension(info.Name, extension);
 
             var relativePath = (info.Folders != null && info.Folders.Count > 0)
-                ? Path.Combine(Path.Combine(info.Folders.ToArray()), fileName)
+                ? Path.Combine(Path.Combine([.. info.Folders]), fileName)
                 : fileName;
 
             var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath)!);

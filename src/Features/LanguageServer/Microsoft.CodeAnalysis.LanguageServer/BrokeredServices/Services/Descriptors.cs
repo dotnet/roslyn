@@ -45,7 +45,9 @@ internal class Descriptors
         { BrokeredServiceDescriptors.DebuggerManagedHotReloadService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.HotReloadSessionNotificationService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.ManagedHotReloadAgentManagerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.MauiLaunchCustomizerServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { BrokeredServiceDescriptors.HotReloadOptionService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { BrokeredServiceDescriptors.HotReloadLoggerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { BrokeredServiceDescriptors.MauiLaunchCustomizerService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
     }.ToImmutableDictionary();
 
     public static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker serviceMoniker) => new(

@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var docText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var classifiedTextRuns = GetClassifiedTextRuns(_id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
 
-                return new ClassifiedTextElement(classifiedTextRuns.ToArray());
+                return new ClassifiedTextElement([.. classifiedTextRuns]);
             }
 
             // Certain definitions may not have a DocumentSpan, such as namespace and metadata definitions
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private ValueTask ReportReferencesAsync(ImmutableSegmentedList<SumType<VSInternalReferenceItem, LSP.Location>> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArray());
+            _progress.Report([.. referencesToReport]);
             return ValueTaskFactory.CompletedTask;
         }
     }

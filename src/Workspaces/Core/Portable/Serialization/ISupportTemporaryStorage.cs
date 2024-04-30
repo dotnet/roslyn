@@ -8,10 +8,11 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Serialization;
 
 /// <summary>
-/// This lets consumer to get to inner temporary storage that references use
-/// as its shadow copy storage
+/// Interface for services that support dumping their contents to memory-mapped-files (generally speaking, our assembly
+/// reference objects).  This allows those objects to expose the memory-mapped-file info needed to read that data back
+/// in in any process.
 /// </summary>
 internal interface ISupportTemporaryStorage
 {
-    IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages();
+    IReadOnlyList<ITemporaryStorageStreamHandle>? StorageHandles { get; }
 }

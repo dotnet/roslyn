@@ -86,30 +86,16 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         return (queueItem, queueItem._completionSource.Task);
     }
 
-#pragma warning disable CS0618 // Type or member is obsolete
     public async Task<TRequestContext> CreateRequestContextAsync(IMethodHandler handler, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         _requestTelemetryScope?.RecordExecutionStart();
 
-        var requestContextFactory = (AbstractRequestContextFactory<TRequestContext>?)LspServices.TryGetService(typeof(AbstractRequestContextFactory<TRequestContext>));
-        if (requestContextFactory is not null)
-        {
-            var context = await requestContextFactory.CreateRequestContextAsync(this, handler, _request, cancellationToken).ConfigureAwait(false);
-            return context;
-        }
-
-        var obsoleteContextFactory = (IRequestContextFactory<TRequestContext>?)LspServices.TryGetService(typeof(IRequestContextFactory<TRequestContext>));
-        if (obsoleteContextFactory is not null)
-        {
-            var context = await obsoleteContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
-            return context;
-        }
-
-        throw new InvalidOperationException($"No {nameof(AbstractRequestContextFactory<TRequestContext>)} or {nameof(IRequestContextFactory<TRequestContext>)} was registered with {nameof(ILspServices)}.");
+        var requestContextFactory = LspServices.GetRequiredService<AbstractRequestContextFactory<TRequestContext>>();
+        var context = await requestContextFactory.CreateRequestContextAsync(this, handler, _request, cancellationToken).ConfigureAwait(false);
+        return context;
     }
-#pragma warning restore CS0618 // Type or member is obsolete
 
     /// <summary>
     /// Processes the queued request. Exceptions will be sent to the task completion source

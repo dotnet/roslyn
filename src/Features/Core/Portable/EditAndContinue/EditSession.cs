@@ -726,7 +726,7 @@ internal sealed class EditSession
         if (edits.Count == mergedEditsBuilder.Count)
         {
             mergedEdits = mergedEditsBuilder.ToImmutable();
-            addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
+            addedSymbols = [.. addedSymbolsBuilder];
             return;
         }
 
@@ -780,7 +780,7 @@ internal sealed class EditSession
         }
 
         mergedEdits = mergedEditsBuilder.ToImmutable();
-        addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
+        addedSymbols = [.. addedSymbolsBuilder];
     }
 
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)

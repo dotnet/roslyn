@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -33,19 +33,22 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
-        Solution solution, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+    private static Func<ImmutableArray<RoslynNavigateToItem>, Task> GetOnItemsFoundCallback(
+        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
     {
-        return async item =>
+        return async items =>
         {
-            // This must succeed.  We should always be searching for items that correspond to documents/projects in
-            // the host side solution.  Note: this even includes 'cached' items.  While those may correspond to
-            // stale versions of a document, it should still be for documents that the host has asked about.
-            var project = solution.GetRequiredProject(item.DocumentId.ProjectId);
+            using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
 
-            var result = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
-            if (result != null)
-                await onResultFound(project, result).ConfigureAwait(false);
+            foreach (var item in items)
+            {
+                var result = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
+                if (result != null)
+                    results.Add(result);
+            }
+
+            if (results.Count > 0)
+                await onResultsFound(results.ToImmutableAndClear()).ConfigureAwait(false);
         };
     }
 
@@ -62,4 +65,38 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         instance.AddRange(items);
         return disposer;
     }
+
+    private static IEnumerable<T> Prioritize<T>(IEnumerable<T> items, Func<T, bool> isPriority)
+    {
+        using var _ = ArrayBuilder<T>.GetInstance(out var normalItems);
+
+        foreach (var item in items)
+        {
+            if (isPriority(item))
+                yield return item;
+            else
+                normalItems.Add(item);
+        }
+
+        foreach (var item in normalItems)
+            yield return item;
+    }
+
+    /// <summary>
+    /// Main utility for searching across items in a solution.  The actual code to search the item should be provided in
+    /// <paramref name="callback"/>.  Each item in <paramref name="items"/> will be processed using
+    /// <code>Parallel.ForEachAsync</code>, allowing for parallel processing of the items, with a preference towards
+    /// earlier items.
+    /// </summary>
+    private static Task PerformParallelSearchAsync<T>(
+        IEnumerable<T> items,
+        Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        CancellationToken cancellationToken)
+        => ProducerConsumer<RoslynNavigateToItem>.RunAsync(
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems: static (onItemFound, args) => RoslynParallel.ForEachAsync(args.items, args.cancellationToken, (item, cancellationToken) => args.callback(item, onItemFound)),
+            consumeItems: static (items, args) => args.onItemsFound(items),
+            args: (items, callback, onItemsFound, cancellationToken),
+            cancellationToken);
 }
