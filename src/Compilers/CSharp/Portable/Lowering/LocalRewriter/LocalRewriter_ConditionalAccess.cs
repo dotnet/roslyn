@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // (object)r != null ? access : default(T)
                         var condition = _factory.ObjectNotEqual(
                                 _factory.Convert(objectType, loweredReceiver),
-                                _factory.Null(objectType));
+                                _factory.Null(objectType)); // PROTOTYPE(RefStructInterfaces): adjust?
 
                         var consequence = loweredAccessExpression;
 

@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var baseType = typeEvaluation2.Type;
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, baseType, evaluation));
                     sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input));
-                    testExpression = _factory.ObjectNotEqual(output, _factory.Null(baseType));
+                    testExpression = _factory.ObjectNotEqual(output, _factory.Null(baseType)); // PROTOTYPE(RefStructInterfaces): adjust?
                     _localRewriter._diagnostics.Add(test.Syntax, useSiteInfo);
                     return true;
                 }

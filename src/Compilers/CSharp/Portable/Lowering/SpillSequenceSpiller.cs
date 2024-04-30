@@ -1266,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     condition = _F.ObjectNotEqual(
                         _F.Convert(_F.SpecialType(SpecialType.System_Object), receiver),
-                        _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                        _F.Null(_F.SpecialType(SpecialType.System_Object))); // PROTOTYPE(RefStructInterfaces): adjust?
                 }
                 else
                 {
@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //  (object)default(T) != null
                 var isNotClass = _F.ObjectNotEqual(
                                 _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Default(receiver.Type)),
-                                _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                                _F.Null(_F.SpecialType(SpecialType.System_Object))); // PROTOTYPE(RefStructInterfaces): adjust?
 
                 // isNotCalss || {clone = receiver; (object)clone != null}
                 condition = _F.LogicalOr(
@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         _F.AssignmentExpression(_F.Local(clone), receiver),
                                         _F.ObjectNotEqual(
                                             _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Local(clone)),
-                                            _F.Null(_F.SpecialType(SpecialType.System_Object))))
+                                            _F.Null(_F.SpecialType(SpecialType.System_Object)))) // PROTOTYPE(RefStructInterfaces): adjust?
                                     );
 
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));
