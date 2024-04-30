@@ -1662,7 +1662,7 @@ unsafe class C
         }
 
         [Theory, CombinatorialData]
-        public void UnsafeContext_Indexer_Iterator_Body_CSharp13_Unsafe(bool unsafeClass, bool unsafeIndexer)
+        public void UnsafeContext_Indexer_Iterator_Body_CSharp13_UnsafeSetter(bool unsafeClass, bool unsafeIndexer)
         {
             if (!unsafeClass && !unsafeIndexer)
             {
@@ -1692,7 +1692,7 @@ unsafe class C
         }
 
         [Fact]
-        public void UnsafeContext_Indexer_Iterator_Body_CSharp13_Safe()
+        public void UnsafeContext_Indexer_Iterator_Body_CSharp13_SafeSetter()
         {
             var code = """
                 class C
@@ -1933,7 +1933,7 @@ unsafe class C
         }
 
         [Theory, CombinatorialData]
-        public void UnsafeContext_Property_Iterator_Body_CSharp13_Unsafe(bool unsafeClass, bool unsafeProperty)
+        public void UnsafeContext_Property_Iterator_Body_CSharp13_UnsafeSetter(bool unsafeClass, bool unsafeProperty)
         {
             if (!unsafeClass && !unsafeProperty)
             {
@@ -1963,7 +1963,7 @@ unsafe class C
         }
 
         [Fact]
-        public void UnsafeContext_Property_Iterator_Body_CSharp13_Safe()
+        public void UnsafeContext_Property_Iterator_Body_CSharp13_SafeSetter()
         {
             var code = """
                 class C
