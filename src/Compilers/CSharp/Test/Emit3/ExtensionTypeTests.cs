@@ -15125,6 +15125,27 @@ implicit extension E for C
     }
 
     [Fact]
+    public void ExtensionMemberLookup_PatternBased_Dispose_Async_DelegateTypeProperty()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+await using var x = new C();
+
+class C { }
+
+implicit extension E for C
+{
+    public System.Func<Task> DisposeAsync => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE(instance) confirm when spec'ing pattern-based disposal
+        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_Dispose_Async_NoApplicableMethod()
     {
         var src = """
@@ -15206,6 +15227,65 @@ implicit extension E for Fixable
     {
         return ref (new int[] { 1, 2, 3 })[0];
     }
+}
+";
+        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
+        // PROTOTYPE confirm when spec'ing pattern-based fixed
+        comp.VerifyDiagnostics();
+
+        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        //        var compVerifier = CompileAndVerify(comp, expectedOutput: @"2", verify: Verification.Fails);
+
+        //        compVerifier.VerifyIL("C.Main", """
+        //{
+        //  // Code size       33 (0x21)
+        //  .maxstack  2
+        //  .locals init (pinned int& V_0)
+        //  IL_0000:  newobj     "Fixable..ctor()"
+        //  IL_0005:  dup
+        //  IL_0006:  brtrue.s   IL_000d
+        //  IL_0008:  pop
+        //  IL_0009:  ldc.i4.0
+        //  IL_000a:  conv.u
+        //  IL_000b:  br.s       IL_0015
+        //  IL_000d:  call       "ref int E.GetPinnableReference()"
+        //  IL_0012:  stloc.0
+        //  IL_0013:  ldloc.0
+        //  IL_0014:  conv.u
+        //  IL_0015:  ldc.i4.4
+        //  IL_0016:  add
+        //  IL_0017:  ldind.i4
+        //  IL_0018:  call       "void System.Console.WriteLine(int)"
+        //  IL_001d:  ldc.i4.0
+        //  IL_001e:  conv.u
+        //  IL_001f:  stloc.0
+        //  IL_0020:  ret
+        //}
+        //""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod_DelegateTypeProperty()
+    {
+        var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+class Fixable { }
+
+delegate ref int MyDelegate();
+
+implicit extension E for Fixable
+{
+    public MyDelegate GetPinnableReference => throw null;
 }
 ";
         var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70, options: TestOptions.UnsafeReleaseExe);
@@ -15395,6 +15475,105 @@ implicit extension E2 for D : INotifyCompletion
             // implicit extension E2 for D : INotifyCompletion
             Diagnostic(ErrorCode.ERR_OnlyBaseExtensionAllowed, "INotifyCompletion").WithLocation(19, 31)
             );
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionIsCompleted()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+}
+
+implicit extension E for D
+{
+    public bool IsCompleted => true;
+}
+";
+
+        // PROTOTYPE confirm when spec'ing pattern-based await
+        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetAwaiter()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+implicit extension E for C
+{
+    public D GetAwaiter() => new D();
+}
+";
+
+        // PROTOTYPE confirm when spec'ing pattern-based await
+        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+implicit extension E for D
+{
+    public int GetResult() => 42;
+}
+";
+
+        // PROTOTYPE confirm when spec'ing pattern-based await
+        var comp = CreateCompilation(text, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
     }
 
     [Fact]
@@ -15714,15 +15893,15 @@ implicit extension E for C
     }
 }
 """;
-        // PROTOTYPE need to decide whether extensions apply here
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (4,12): error CS0117: 'C' does not contain a definition for 'Property'
-            // _ = c is { Property: 42 };
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("C", "Property").WithLocation(4, 12)
-            );
+        comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var nameColon = GetSyntax<NameColonSyntax>(tree, "Property:");
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(nameColon.Name).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -15867,14 +16046,14 @@ implicit extension E for C
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // PROTOTYPE need to decide whether extensions apply here
-        comp.VerifyDiagnostics(
-            // (2,15): error CS0117: 'C' does not contain a definition for 'Property'
-            // _ = new C() { Property = 42 };
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("C", "Property").WithLocation(2, 15)
-            );
+        comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
+        Assert.Equal("System.Int32 E.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
@@ -15901,14 +16080,14 @@ implicit extension E for S
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         // PROTOTYPE need to decide whether extensions apply here
-        comp.VerifyDiagnostics(
-            // (2,20): error CS0117: 'S' does not contain a definition for 'Property'
-            // _ = new S() with { Property = 42 };
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("S", "Property").WithLocation(2, 20)
-            );
+        comp.VerifyDiagnostics();
         // PROTOTYPE(instance) Execute when adding support for emitting non-static members
         //CompileAndVerify(comp, expectedOutput: "property");
 
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
+        Assert.Equal("System.Int32 E.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -33255,13 +33434,14 @@ implicit extension E for object
     public int Property { init => throw null; }
 }
 """;
-        // PROTOTYPE(instance) need to decide whether extensions apply in object initializers
         // PROTOTYPE(instance) confirm whether init-only accessors should be allowed in extensions
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,20): error CS0117: 'object' does not contain a definition for 'Property'
-            // _ = new object() { Property = 1 };
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("object", "Property").WithLocation(1, 20));
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 1");
+        Assert.Equal("System.Int32 E.Property { init; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
@@ -37262,6 +37442,32 @@ public implicit extension E for object
     }
 
     [Fact]
+    public void ResolveAll_CollectionExpression_ExtensionAddMethod()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42];
+
+public implicit extension E for MyCollection
+{
+    public void Add(int i) { System.Console.Write("ran"); }
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        var comp = CreateCompilation([source, CollectionBuilderAttributeDefinition], targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ResolveAll_Initializer()
     {
         var source = """
@@ -39305,5 +39511,78 @@ implicit extension E for object
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.f");
         Assert.Equal("System.String E.f", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ResolveAll_Query_Static_InstanceMethodGroup()
+    {
+        var src = """
+string query = from x in object.ToString select x;
+
+implicit extension E for object
+{
+    public static string ToString() => null;
+}
+""";
+        // PROTOTYPE should warn about hiding
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,33): error CS0119: 'object.ToString()' is a method, which is not valid in the given context
+            // string query = from x in object.ToString select x;
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "ToString").WithArguments("object.ToString()", "method").WithLocation(1, 33));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.ToString");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String? System.Object.ToString()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ResolveAll_Query_Static_ExtensionMethodGroup()
+    {
+        var src = """
+string query = from x in object.M select x;
+
+implicit extension E for object
+{
+    public static string M() => null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,33): error CS0119: 'E.M()' is a method, which is not valid in the given context
+            // string query = from x in object.M select x;
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "M").WithArguments("E.M()", "method").WithLocation(1, 33));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void ResolveAll_Query_Static_ExtensionField()
+    {
+        var src = """
+string query = from x in object.M select x;
+
+implicit extension E for object
+{
+    public static string M = null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,26): error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?
+            // string query = from x in object.M select x;
+            Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "object.M").WithArguments("string", "Select").WithLocation(1, 26));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal("System.String E.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
     }
 }
