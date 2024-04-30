@@ -999,6 +999,9 @@ unsafe class C
                     {{(unsafeMethod ? "unsafe" : "")}} void M(int* p) { }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1011,10 +1014,17 @@ unsafe class C
                     void M(int* p) { }
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (3,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(int* p)
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 12)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1034,6 +1044,9 @@ unsafe class C
                     }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1049,10 +1062,17 @@ unsafe class C
                     }
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (5,16): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 16));
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 16)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1198,6 +1218,9 @@ unsafe class C
                     }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1213,10 +1236,17 @@ unsafe class C
                     }
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (3,36): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public static C operator+(C c, int* p)
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 36));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 36)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1236,6 +1266,9 @@ unsafe class C
                     }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1251,10 +1284,17 @@ unsafe class C
                     }
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (5,16): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 16));
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 16)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1401,6 +1441,9 @@ unsafe class C
                     }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1417,10 +1460,17 @@ unsafe class C
                     }
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (3,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     int this[int* p]
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 14));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 14)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1441,6 +1491,9 @@ unsafe class C
                     }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1457,13 +1510,20 @@ unsafe class C
                     }
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (5,22): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         get { return sizeof(nint); }
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 22),
                 // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         set { int* p = null; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1652,6 +1712,9 @@ unsafe class C
                     }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1668,10 +1731,17 @@ unsafe class C
                     }
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     int* P
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 5));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 5)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1692,6 +1762,9 @@ unsafe class C
                     }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1708,13 +1781,20 @@ unsafe class C
                     }
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (5,22): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         get { return sizeof(nint); }
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 22),
                 // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         set { int* p = null; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1900,6 +1980,9 @@ unsafe class C
                     {{(unsafeFunction ? "unsafe" : "")}} void M(int* p) { }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -1910,10 +1993,17 @@ unsafe class C
                 #pragma warning disable CS8321 // The local function 'M' is declared but never used
                 void M(int* p) { }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (2,8): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // void M(int* p) { }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 8));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 8)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Theory, CombinatorialData]
@@ -1934,6 +2024,9 @@ unsafe class C
                     }
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -1947,10 +2040,17 @@ unsafe class C
                     return sizeof(nint);
                 }
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (4,12): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //     return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(4, 12)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2088,6 +2188,9 @@ unsafe class C
                     var lam = (int* p) => { };
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -2097,13 +2200,20 @@ unsafe class C
             var code = """
                 var lam = (int* p) => { };
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (1,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // var lam = (int* p) => { };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 12),
                 // (1,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // var lam = (int* p) => { };
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(1, 17)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2118,6 +2228,9 @@ unsafe class C
                     };
                 }
                 """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -2130,10 +2243,17 @@ unsafe class C
                     return sizeof(nint);
                 };
                 """;
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+
+            var expectedDiagnostics = new[]
+            {
                 // (3,12): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //     return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(3, 12));
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(3, 12)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
