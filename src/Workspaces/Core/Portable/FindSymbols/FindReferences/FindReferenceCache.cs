@@ -24,15 +24,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// </summary>
 internal sealed class FindReferenceCache
 {
-    private static readonly ConditionalWeakTable<Document, AsyncLazy<FindReferenceCache>> s_cache = new();
+    private static readonly ConditionalWeakTable<Document, FindReferenceCache> s_cache = new();
 
     public static async ValueTask<FindReferenceCache> GetCacheAsync(
         Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
     {
-        var lazy = s_cache.GetValue(document, document => AsyncLazy.Create(ComputeCacheAsync, document));
-        return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        if (!s_cache.TryGetValue(document, out var cache))
+        {
+            // Extracted into local function to prevent captures.
+            cache = await GetOrAddCache(document, storage, cancellationToken).ConfigureAwait(false);
+        }
 
-        async Task<FindReferenceCache> ComputeCacheAsync(Document document, CancellationToken cancellationToken)
+        return cache;
+
+        static async ValueTask<FindReferenceCache> GetOrAddCache(Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        {
+            var cache = await ComputeCacheAsync(document, storage, cancellationToken).ConfigureAwait(false);
+            return s_cache.GetValue(document, _ => cache);
+        }
+
+        static async Task<FindReferenceCache> ComputeCacheAsync(Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
         {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
