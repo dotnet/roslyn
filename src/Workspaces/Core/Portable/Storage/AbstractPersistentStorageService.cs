@@ -67,10 +67,10 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         IChecksummedPersistentStorage persistentStorage;
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            // Do we already have storage for this?
             if (solutionKey != _currentPersistentStorage?.Target?.SolutionKey)
             {
-                // If we already had some previous cached service, grab it so we can dispose it outside the state lock.
+                // If we already had some previous cached storage, but it was for a different solution, then grab it so
+                // we can dispose it below outside the state lock.
                 storageToDispose = _currentPersistentStorage;
 
                 // Create and cache a new storage instance associated with this particular solution.
