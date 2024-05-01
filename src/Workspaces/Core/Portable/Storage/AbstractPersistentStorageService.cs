@@ -44,7 +44,7 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
     public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
     {
         return solutionKey.FilePath == null
-            ? new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure))
+            ? new(NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure))
             : GetStorageWorkerAsync(solutionKey, cancellationToken);
     }
 
@@ -53,7 +53,7 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         // Without taking the lock, see if we can use the last storage system we were asked to create.  Ensure we use a
         // using so that if we don't take it we still release this reference count.
         using var current = _currentPersistentStorage?.TryAddReference();
-        if (current != null && solutionKey.Id == current.Target.SolutionId)
+        if (current != null && solutionKey == current.Target.SolutionKey)
         {
             // Success, we can use the current storage system.  Increment the reference count and return it.  Ensure we
             // increment the reference count again, so that this stays alive for the caller when the above reference
@@ -63,12 +63,12 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
 
         var workingFolder = Configuration.TryGetStorageLocation(solutionKey);
         if (workingFolder == null)
-            return NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure);
+            return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
 
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // Do we already have storage for this?
-            if (solutionKey.Id != _currentPersistentStorage?.Target?.SolutionId)
+            if (solutionKey != _currentPersistentStorage?.Target?.SolutionKey)
             {
                 // If we already had some previous cached service, let's let it start cleaning up
                 if (_currentPersistentStorage != null)
@@ -96,7 +96,7 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
             // Now increment the reference count and return to our caller.  The current ref count for this instance will
             // be at least 2.  Until all the callers *and* us decrement the refcounts, this instance will not be
             // actually disposed.
-            Contract.ThrowIfTrue(solutionKey.Id != _currentPersistentStorage.Target.SolutionId);
+            Contract.ThrowIfTrue(solutionKey != _currentPersistentStorage.Target.SolutionKey);
             return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
         }
     }
@@ -114,7 +114,7 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         if (result != null)
             return result;
 
-        return NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure);
+        return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
     }
 
     private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(
@@ -162,7 +162,6 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
             // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
             storage = _currentPersistentStorage;
             _currentPersistentStorage = null;
-            _currentPersistentStorageSolutionId = null;
         }
 
         // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
@@ -203,8 +202,8 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         public ValueTask DisposeAsync()
             => _storage.DisposeAsync();
 
-        public SolutionId SolutionId
-            => _storage.Target.SolutionId;
+        public SolutionKey SolutionKey
+            => _storage.Target.SolutionKey;
 
         public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
             => _storage.Target.ChecksumMatchesAsync(name, checksum, cancellationToken);

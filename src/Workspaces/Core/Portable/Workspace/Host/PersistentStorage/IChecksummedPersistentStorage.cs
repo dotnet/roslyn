@@ -15,7 +15,7 @@ internal interface IChecksummedPersistentStorage : IPersistentStorage
     /// <summary>
     /// The solution this is a storage instance for.
     /// </summary>
-    SolutionId SolutionId { get; }
+    SolutionKey SolutionKey { get; }
 
     /// <summary>
     /// <see langword="true"/> if the data we have for the solution with the given <paramref name="name"/> has the
