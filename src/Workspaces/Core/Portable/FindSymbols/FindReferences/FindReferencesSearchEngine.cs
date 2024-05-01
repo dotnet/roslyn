@@ -72,8 +72,7 @@ internal partial class FindReferencesSearchEngine : IAsyncDisposable
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var storageService = solution.Services.GetPersistentStorageService();
-        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        var storage = await solution.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
         return new(solution, documents, finders, progress, options, storage);
     }
 

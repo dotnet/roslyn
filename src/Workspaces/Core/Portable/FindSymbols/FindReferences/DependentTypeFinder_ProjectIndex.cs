@@ -45,8 +45,7 @@ internal static partial class DependentTypeFinder
 
         private static async Task<ProjectIndex> CreateIndexAsync(Project project, CancellationToken cancellationToken)
         {
-            var storageService = project.Solution.Services.GetPersistentStorageService();
-            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(project.Solution), cancellationToken).ConfigureAwait(false);
+            var storage = await project.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
 
             var classesThatMayDeriveFromSystemObject = new MultiDictionary<DocumentId, DeclaredSymbolInfo>();

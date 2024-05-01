@@ -49,9 +49,7 @@ internal abstract partial class AbstractNavigateToSearchService
     public static async Task SearchDocumentInCurrentProcessAsync(
         Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
     {
-        var solution = document.Project.Solution;
-        var storageService = solution.Services.GetPersistentStorageService();
-        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        var storage = await document.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
         await using var _ = storage.ConfigureAwait(false);
 
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
@@ -128,11 +126,8 @@ internal abstract partial class AbstractNavigateToSearchService
 
         using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
 
-        var solution = projects.First().Solution;
-
-        var storageService = solution.Services.GetPersistentStorageService();
-        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
-        await using var _2 = storage.ConfigureAwait(false);
+        var storage = await projects[0].GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = storage.ConfigureAwait(false);
 
         // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
         // projects with priority documents ahead of those without so we can get results for those faster.

@@ -68,9 +68,7 @@ internal abstract partial class AbstractNavigateToSearchService
         if (projects.Length == 0)
             return;
 
-        var solution = projects[0].Solution;
-        var storageService = solution.Services.GetPersistentStorageService();
-        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        var storage = await projects[0].GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
         await using var _ = storage.ConfigureAwait(false);
 
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);

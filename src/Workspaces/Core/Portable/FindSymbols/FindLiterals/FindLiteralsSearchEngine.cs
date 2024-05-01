@@ -86,8 +86,7 @@ internal sealed class FindLiteralsSearchEngine : IAsyncDisposable
         object value,
         CancellationToken cancellationToken)
     {
-        var storageService = solution.Services.GetPersistentStorageService();
-        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        var storage = await solution.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
         return new(solution, progress, value, storage);
     }
 

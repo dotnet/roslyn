@@ -38,8 +38,11 @@ internal partial class SymbolTreeInfo
         {
             // Ok, we can use persistence.  First try to load from the persistence service. The data in the
             // persistence store must match the checksum passed in.
+            var storageService = services.GetPersistentStorageService();
+            var storage = await storageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
 
-            var read = await LoadAsync(services, solutionKey, checksum, checksumMustMatch: true, keySuffix, cancellationToken).ConfigureAwait(false);
+            var read = await LoadAsync(storage, checksum, checksumMustMatch: true, keySuffix, cancellationToken).ConfigureAwait(false);
             if (read != null)
             {
                 // If we were able to read something in, it's checksum better
@@ -57,11 +60,6 @@ internal partial class SymbolTreeInfo
                 result = await createAsync(checksum).ConfigureAwait(false);
                 Contract.ThrowIfNull(result);
             }
-
-            var persistentStorageService = services.GetPersistentStorageService();
-
-            var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             {
@@ -81,18 +79,12 @@ internal partial class SymbolTreeInfo
     }
 
     private static async Task<SymbolTreeInfo?> LoadAsync(
-        SolutionServices services,
-        SolutionKey solutionKey,
+        IChecksummedPersistentStorage storage,
         Checksum checksum,
         bool checksumMustMatch,
         string keySuffix,
         CancellationToken cancellationToken)
     {
-        var persistentStorageService = services.GetPersistentStorageService();
-
-        var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-        await using var _ = storage.ConfigureAwait(false);
-
         // Get the unique key to identify our data.
         var key = PrefixSymbolTreeInfo + keySuffix;
 

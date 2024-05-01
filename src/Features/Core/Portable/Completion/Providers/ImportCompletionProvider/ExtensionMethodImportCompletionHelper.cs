@@ -263,9 +263,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
             var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
             var builder = new ExtensionMethodImportCompletionCacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
 
-            var solution = project.Solution;
-            var storageService = solution.Services.GetPersistentStorageService();
-            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+            var storage = await project.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
 
             foreach (var document in project.Documents)

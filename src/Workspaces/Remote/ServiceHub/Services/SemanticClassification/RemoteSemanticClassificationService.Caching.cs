@@ -113,13 +113,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private static async Task CacheClassificationsAsync(
             Document document, ClassificationType type, ClassificationOptions options, CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
-            var persistenceService = solution.Services.GetPersistentStorageService();
-
-            var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
-            await using var _1 = storage.ConfigureAwait(false);
-            if (storage == null)
-                return;
+            var storage = await document.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
 
             var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)

@@ -481,9 +481,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
 
     private static async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
     {
-        var solution = project.Solution;
-        var storageService = solution.Services.GetPersistentStorageService();
-        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        var storage = await project.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
         await using var _ = storage.ConfigureAwait(false);
 
         foreach (var document in project.Documents)
