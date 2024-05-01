@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
-            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _), "A method group that resolves to a non-method extension member should have been resolved getting here");
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
 
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resolution = binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion);
             }
 
-            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _), "A method group that resolves to a non-method extension member should have been resolved getting here");
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
             return resolution;
         }
 

@@ -2403,7 +2403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check that the method group contains something applicable. Otherwise error.
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
-            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _), "A method group that resolves to a non-method extension member should have been resolved getting here");
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
 
             // PROTOTYPE we probably want this error for extension members too
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);

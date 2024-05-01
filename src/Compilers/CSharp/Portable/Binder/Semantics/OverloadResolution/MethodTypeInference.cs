@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType: null,
                 callingConventionInfo: in callingConventionInfo);
 
-            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _), "A method group that resolves to a non-method extension member should have been resolved getting here");
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
 
             TypeWithAnnotations type = default;
 
