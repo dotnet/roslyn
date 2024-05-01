@@ -4724,8 +4724,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.NewT:
                     {
                         var newT = (BoundNewT)expr;
-                        var constructorSymbol = newT.Constructor;
-
                         var escape = true;
 
                         var initializerExpr = newT.InitializerExpressionOpt;
