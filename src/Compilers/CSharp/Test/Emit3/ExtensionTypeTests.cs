@@ -37487,7 +37487,6 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
-        // PROTOTYPE(instance) We need to decide whether to allow this and adjust HasCollectionExpressionApplicableAddMethod and other downstream logic accordingly
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (4,18): error CS0118: 'Add' is a property but is used like a method
