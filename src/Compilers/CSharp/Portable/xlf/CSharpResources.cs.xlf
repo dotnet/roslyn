@@ -1652,6 +1652,36 @@
         <target state="translated">Částečná metoda {0} musí mít modifikátory přístupnosti, protože má parametry out.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
+        <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
+        <target state="new">A partial property may not have multiple defining declarations, and cannot be an auto-property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
+        <source>A partial property may not have multiple implementing declarations</source>
+        <target state="new">A partial property may not have multiple implementing declarations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingAccessor">
+        <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
+        <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingDefinition">
+        <source>Partial property '{0}' must have an definition part.</source>
+        <target state="new">Partial property '{0}' must have an definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingImplementation">
+        <source>Partial property '{0}' must have an implementation part.</source>
+        <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
+        <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
+        <target state="new">Property accessor '{0}' does not implement any accessor declared on the definition part</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
         <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
         <target state="translated">Konstanta řetězce null není podporována jako vzor pro {0}. Místo toho použijte prázdný řetězec.</target>
@@ -6449,8 +6479,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="translated">Modifikátor partial se může objevit jen bezprostředně před klíčovými slovy class, record, struct, interface nebo návratovým typem metody.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
+        <target state="needs-review-translation">Modifikátor partial se může objevit jen bezprostředně před klíčovými slovy class, record, struct, interface nebo návratovým typem metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

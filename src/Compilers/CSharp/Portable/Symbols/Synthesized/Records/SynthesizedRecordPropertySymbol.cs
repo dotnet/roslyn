@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isAutoProperty: true,
                 isExpressionBodied: false,
                 isInitOnly: ShouldUseInit(containingType),
+                accessorsHaveImplementation: true,
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
