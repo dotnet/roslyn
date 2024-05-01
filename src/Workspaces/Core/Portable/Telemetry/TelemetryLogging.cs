@@ -32,20 +32,15 @@ internal static class TelemetryLogging
     {
         s_logProvider = logProvider;
 
-        if (s_postTelemetryQueue is null)
-        {
-            var postTelemetryQueue = new AsyncBatchingWorkQueue(
+        InterlockedOperations.Initialize(ref s_postTelemetryQueue, () =>
+            new AsyncBatchingWorkQueue(
                 TimeSpan.FromMinutes(30),
                 PostCollectedTelemetryAsync,
                 asyncListener,
-                CancellationToken.None);
+                CancellationToken.None));
 
-            if (null == Interlocked.CompareExchange(ref s_postTelemetryQueue, postTelemetryQueue, null))
-            {
-                // We created the work queue in use. Add an item into it to kick things off.
-                s_postTelemetryQueue?.AddWork();
-            }
-        }
+        // Add the initial item to the queue to ensure later processing.
+        s_postTelemetryQueue?.AddWork();
     }
 
     /// <summary>
