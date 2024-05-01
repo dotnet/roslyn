@@ -29,6 +29,7 @@ internal partial class AbstractSyntaxIndex<TIndex>
     public readonly Checksum? Checksum;
 
     protected static async Task<TIndex?> LoadAsync(
+        IChecksummedPersistentStorage storage,
         SolutionKey solutionKey,
         ProjectState project,
         DocumentState document,
@@ -37,7 +38,6 @@ internal partial class AbstractSyntaxIndex<TIndex>
         IndexReader read,
         CancellationToken cancellationToken)
     {
-        var storageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
         var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(solutionKey, project), document);
         var stringTable = SyntaxTreeIndex.GetStringTable(project);
 
@@ -49,12 +49,12 @@ internal partial class AbstractSyntaxIndex<TIndex>
         //
         // This does mean we have to potentially do two reads here.  However, that is cheap, and still nicer than
         // trying to produce the index again in the common case where we don't have to.
-        return await LoadAsync(storageService, documentKey, textChecksum, stringTable, read, cancellationToken).ConfigureAwait(false) ??
-               await LoadAsync(storageService, documentKey, textAndDirectivesChecksum, stringTable, read, cancellationToken).ConfigureAwait(false);
+        return await LoadAsync(storage, documentKey, textChecksum, stringTable, read, cancellationToken).ConfigureAwait(false) ??
+               await LoadAsync(storage, documentKey, textAndDirectivesChecksum, stringTable, read, cancellationToken).ConfigureAwait(false);
     }
 
     protected static async Task<TIndex?> LoadAsync(
-        IChecksummedPersistentStorageService storageService,
+        IChecksummedPersistentStorage storage,
         DocumentKey documentKey,
         Checksum? checksum,
         StringTable stringTable,
@@ -63,9 +63,6 @@ internal partial class AbstractSyntaxIndex<TIndex>
     {
         try
         {
-            var storage = await storageService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
-
             // attempt to load from persisted state
             using var stream = await storage.ReadStreamAsync(documentKey, s_persistenceName, checksum, cancellationToken).ConfigureAwait(false);
             if (stream != null)
@@ -125,39 +122,15 @@ internal partial class AbstractSyntaxIndex<TIndex>
         return (textChecksum, textAndDirectivesChecksum);
     }
 
-    private Task<bool> SaveAsync(
-        SolutionKey solutionKey,
-        ProjectState project,
-        DocumentState document,
-        CancellationToken cancellationToken)
-    {
-        var persistentStorageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
-        return SaveAsync(solutionKey, project, document, persistentStorageService, cancellationToken);
-    }
-
-    public Task<bool> SaveAsync(
-        Document document, IChecksummedPersistentStorageService persistentStorageService)
-    {
-        return SaveAsync(
-            SolutionKey.ToSolutionKey(document.Project.Solution),
-            document.Project.State,
-            (DocumentState)document.State,
-            persistentStorageService,
-            CancellationToken.None);
-    }
-
     private async Task<bool> SaveAsync(
+        IChecksummedPersistentStorage storage,
         SolutionKey solutionKey,
         ProjectState project,
         DocumentState document,
-        IChecksummedPersistentStorageService persistentStorageService,
         CancellationToken cancellationToken)
     {
         try
         {
-            var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
-
             using (var stream = SerializableBytes.CreateWritableStream())
             {
                 using (var gzipStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true))
@@ -182,4 +155,26 @@ internal partial class AbstractSyntaxIndex<TIndex>
     }
 
     public abstract void WriteTo(ObjectWriter writer);
+
+    public TestAccessor GetTestAccessor()
+        => new(this);
+
+    public readonly struct TestAccessor(AbstractSyntaxIndex<TIndex> index)
+    {
+        public async Task<bool> SaveAsync(
+            Document document,
+            IChecksummedPersistentStorageService storageService)
+        {
+            var solutionKey = SolutionKey.ToSolutionKey(document.Project.Solution);
+            var storage = await storageService.GetStorageAsync(solutionKey, CancellationToken.None).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
+
+            return await index.SaveAsync(
+                storage,
+                SolutionKey.ToSolutionKey(document.Project.Solution),
+                document.Project.State,
+                (DocumentState)document.State,
+                CancellationToken.None).ConfigureAwait(false);
+        }
+    }
 }

@@ -20,38 +20,71 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
-using CachedIndexMap = ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<TopLevelSyntaxTreeIndex?>>;
+internal sealed class CachedIndexMap
+{
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
+
+    /// <summary>
+    /// Cached map from document key to the (potentially stale) syntax tree index for it we use prior to the full
+    /// solution becoming available.
+    /// </summary>
+    private readonly ConcurrentDictionary<DocumentKey, AsyncLazy<TopLevelSyntaxTreeIndex?>> _map = new();
+
+    /// <summary>
+    /// String table we use to dedupe common values while deserializing <see cref="SyntaxTreeIndex"/>s.
+    /// </summary>
+    private readonly StringTable _stringTable = new();
+
+    private IChecksummedPersistentStorage? _storage;
+
+    public async ValueTask InitializeAsync(
+        IChecksummedPersistentStorageService storageService, SolutionKey solutionKey, CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (_storage != null)
+                return;
+
+            _storage = await storageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    ~CachedIndexMap()
+    {
+        var storage = Interlocked.Exchange(ref _storage, null);
+        storage?.Dispose();
+    }
+
+    public Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(DocumentKey documentKey, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(_storage);
+
+        if (cancellationToken.IsCancellationRequested)
+            return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
+
+        // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
+        // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
+        // and avoid the cost of loading from the persistence service every time.
+        //
+        // Pass in null for the checksum as we want to search stale index values regardless if the documents don't
+        // match on disk anymore.
+        var asyncLazy = _map.GetOrAdd(
+            documentKey,
+            documentKey => AsyncLazy.Create(static (tuple, c) =>
+                TopLevelSyntaxTreeIndex.LoadAsync(tuple._storage, tuple.documentKey, checksum: null, tuple._stringTable, c),
+                arg: (_storage, _stringTable, documentKey)));
+        return asyncLazy.GetValueAsync(cancellationToken);
+    }
+}
 
 internal abstract partial class AbstractNavigateToSearchService
 {
-    /// <summary>
-    /// Cached map from document key to the (potentially stale) syntax tree index for it we use prior to the 
-    /// full solution becoming available.  Once the full solution is available, this will be dropped
-    /// (set to <see langword="null"/>) to release all cached data.
-    /// </summary>
-    private static CachedIndexMap? s_cachedIndexMap = [];
-
-    /// <summary>
-    /// String table we use to dedupe common values while deserializing <see cref="SyntaxTreeIndex"/>s.  Once the 
-    /// full solution is available, this will be dropped (set to <see langword="null"/>) to release all cached data.
-    /// </summary>
-    private static StringTable? s_stringTable = new();
+    private static CachedIndexMap? _cachedIndexMap_DoNotAccessDirectly = new();
 
     private static void ClearCachedData()
     {
-        // Volatiles are technically not necessary due to automatic fencing of reference-type writes.  However,
-        // i prefer the explicitness here as we are reading and writing these fields from different threads.
-        Volatile.Write(ref s_cachedIndexMap, null);
-        Volatile.Write(ref s_stringTable, null);
-    }
-
-    private static bool ShouldSearchCachedDocuments(
-        [NotNullWhen(true)] out CachedIndexMap? cachedIndexMap,
-        [NotNullWhen(true)] out StringTable? stringTable)
-    {
-        cachedIndexMap = Volatile.Read(ref s_cachedIndexMap);
-        stringTable = Volatile.Read(ref s_stringTable);
-        return cachedIndexMap != null && stringTable != null;
+        // Just drop the map entirely.  The GC will take care of the rest.
+        _cachedIndexMap_DoNotAccessDirectly = null;
     }
 
     public async Task SearchCachedDocumentsAsync(
@@ -106,15 +139,20 @@ internal abstract partial class AbstractNavigateToSearchService
         CancellationToken cancellationToken)
     {
         // Quick abort if OOP is now fully loaded.
-        if (!ShouldSearchCachedDocuments(out _, out _))
+        var cachedIndexMap = _cachedIndexMap_DoNotAccessDirectly;
+        if (cachedIndexMap is null)
             return;
-
-        var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
-        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         // Process the documents by project group.  That way, when each project is done, we can
         // report that back to the host for progress.
         var groups = documentKeys.GroupBy(d => d.Project).ToImmutableArray();
+        if (groups.Length == 0)
+            return;
+
+        await cachedIndexMap.InitializeAsync(storageService, groups[0].Key.Solution, cancellationToken).ConfigureAwait(false);
+
+        var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
+        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         using var _1 = GetPooledHashSet(priorityDocumentKeys, out var priorityDocumentKeysSet);
 
@@ -140,7 +178,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 cancellationToken,
                 async (documentKey, cancellationToken) =>
                 {
-                    var index = await GetIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
+                    var index = await cachedIndexMap.GetIndexAsync(documentKey, cancellationToken).ConfigureAwait(false);
                     if (index == null)
                         return;
 
@@ -152,32 +190,5 @@ internal abstract partial class AbstractNavigateToSearchService
             // done with project.  Let the host know.
             await onProjectCompleted().ConfigureAwait(false);
         }
-    }
-
-    private static Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(
-        IChecksummedPersistentStorageService storageService,
-        DocumentKey documentKey,
-        CancellationToken cancellationToken)
-    {
-        if (cancellationToken.IsCancellationRequested)
-            return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
-
-        // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
-        // fully loaded and we've switched over to normal navto lookup.
-        if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out var stringTable))
-            return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
-
-        // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
-        // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
-        // and avoid the cost of loading from the persistence service every time.
-        //
-        // Pass in null for the checksum as we want to search stale index values regardless if the documents don't
-        // match on disk anymore.
-        var asyncLazy = cachedIndexMap.GetOrAdd(
-            (storageService, documentKey, stringTable),
-            static t => AsyncLazy.Create(static (t, c) =>
-                TopLevelSyntaxTreeIndex.LoadAsync(t.service, t.documentKey, checksum: null, t.stringTable, c),
-                arg: t));
-        return asyncLazy.GetValueAsync(cancellationToken);
     }
 }

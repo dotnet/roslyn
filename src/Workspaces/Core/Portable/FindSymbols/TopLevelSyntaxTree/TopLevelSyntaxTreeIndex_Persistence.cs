@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal sealed partial class TopLevelSyntaxTreeIndex
 {
     public static Task<TopLevelSyntaxTreeIndex?> LoadAsync(
-        IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
+        IChecksummedPersistentStorage storage, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
     {
-        return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
+        return LoadAsync(storage, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
     }
 
     public override void WriteTo(ObjectWriter writer)
