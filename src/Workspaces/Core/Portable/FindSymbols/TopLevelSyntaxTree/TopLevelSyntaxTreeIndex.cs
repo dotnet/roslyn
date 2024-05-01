@@ -45,14 +45,8 @@ internal sealed partial class TopLevelSyntaxTreeIndex : AbstractSyntaxIndex<TopL
     public bool ContainsExtensionMethod
         => _extensionMethodInfo.ContainsExtensionMethod;
 
-    //public static ValueTask<TopLevelSyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
-    //    => GetRequiredIndexAsync(document, storage: null, cancellationToken);
-
     public static ValueTask<TopLevelSyntaxTreeIndex> GetRequiredIndexAsync(Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
         => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, storage, cancellationToken);
-
-    //public static ValueTask<TopLevelSyntaxTreeIndex> GetRequiredIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, CancellationToken cancellationToken)
-    //    => GetRequiredIndexAsync(solutionKey, project, document, storage: null, cancellationToken);
 
     public static ValueTask<TopLevelSyntaxTreeIndex> GetRequiredIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
         => GetRequiredIndexAsync(solutionKey, project, document, ReadIndex, CreateIndex, storage, cancellationToken);
