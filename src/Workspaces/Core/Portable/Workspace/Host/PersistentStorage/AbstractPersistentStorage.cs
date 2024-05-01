@@ -43,9 +43,6 @@ internal abstract class AbstractPersistentStorage : IChecksummedPersistentStorag
     protected void DisableStorage()
         => Volatile.Write(ref _isDisabled, true);
 
-    public abstract void Dispose();
-    public abstract ValueTask DisposeAsync();
-
     public abstract Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken);
     public abstract Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken);
     public abstract Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken);

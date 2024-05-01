@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
+                    using var _ = Storage._connectionPool.GetPooledConnection(out var connection);
 
                     // We're in the reading-only scheduler path, so we can't allow TryGetDatabaseId to write.  Note that
                     // this is ok, and actually provides the semantics we want.  Specifically, we can be trying to read
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
+                    using var _ = Storage._connectionPool.GetPooledConnection(out var connection);
 
                     // Determine the appropriate data-id to store this stream at.  We already are running
                     // with an exclusive write lock on the DB, so it's safe for us to write the data id to 

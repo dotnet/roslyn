@@ -17,9 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
-[Export]
-[Shared]
-internal sealed class SQLiteConnectionPoolService : IDisposable
+[Export, Shared]
+internal sealed class SQLiteConnectionPoolService
 {
     private const string LockFile = "db.lock";
 
@@ -31,7 +30,7 @@ internal sealed class SQLiteConnectionPoolService : IDisposable
     /// <remarks>
     /// Access to this field is synchronized through <see cref="_gate"/>.
     /// </remarks>
-    private readonly Dictionary<string, ReferenceCountedDisposable<SQLiteConnectionPool>> _connectionPools = [];
+    private readonly Dictionary<string, SQLiteConnectionPool> _connectionPools = [];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -63,18 +62,7 @@ internal sealed class SQLiteConnectionPoolService : IDisposable
     /// </summary>
     public ConcurrentExclusiveSchedulerPair Scheduler { get; } = new();
 
-    public void Dispose()
-    {
-        lock (_gate)
-        {
-            foreach (var (_, pool) in _connectionPools)
-                pool.Dispose();
-
-            _connectionPools.Clear();
-        }
-    }
-
-    public ReferenceCountedDisposable<SQLiteConnectionPool>? TryOpenDatabase(
+    public SQLiteConnectionPool? TryOpenDatabase(
         string databaseFilePath,
         IPersistentStorageFaultInjector? faultInjector,
         Action<SqlConnection, CancellationToken> initializer,
@@ -83,44 +71,20 @@ internal sealed class SQLiteConnectionPoolService : IDisposable
         lock (_gate)
         {
             if (_connectionPools.TryGetValue(databaseFilePath, out var pool))
-            {
-                return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
-            }
+                return pool;
 
             // try to get db ownership lock. if someone else already has the lock. it will throw
             var ownershipLock = TryGetDatabaseOwnership(databaseFilePath);
             if (ownershipLock == null)
-            {
                 return null;
-            }
 
-            try
-            {
-                pool = new ReferenceCountedDisposable<SQLiteConnectionPool>(
-                    new SQLiteConnectionPool(this, faultInjector, databaseFilePath, ownershipLock));
+            pool = new SQLiteConnectionPool(this, faultInjector, databaseFilePath, ownershipLock);
 
-                pool.Target.Initialize(initializer, cancellationToken);
+            pool.Initialize(initializer, cancellationToken);
 
-                // Place the initial ownership reference in _connectionPools, and return another
-                _connectionPools.Add(databaseFilePath, pool);
-                return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
-            {
-                if (pool is not null)
-                {
-                    // Dispose of the connection pool, releasing the ownership lock.
-                    pool.Dispose();
-                }
-                else
-                {
-                    // The storage was not created so nothing owns the lock.
-                    // Dispose the lock to allow reuse.
-                    ownershipLock.Dispose();
-                }
-
-                throw;
-            }
+            // Place the initial ownership reference in _connectionPools, and return another
+            _connectionPools.Add(databaseFilePath, pool);
+            return pool;
         }
     }
 

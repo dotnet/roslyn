@@ -12,7 +12,8 @@ using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
-internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService connectionPoolService, IPersistentStorageFaultInjector? faultInjector, string databasePath, IDisposable ownershipLock) : IDisposable
+internal sealed partial class SQLiteConnectionPool(
+    SQLiteConnectionPoolService connectionPoolService, IPersistentStorageFaultInjector? faultInjector, string databasePath, object ownershipLock)
 {
     // We pool connections to the DB so that we don't have to take the hit of 
     // reconnecting.  The connections also cache the prepared statements used
@@ -23,6 +24,8 @@ internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService c
 
     private readonly CancellationTokenSource _shutdownTokenSource = new();
 
+    private readonly object _ownershipLock = ownershipLock;
+
     internal void Initialize(
         Action<SqlConnection, CancellationToken> initializer,
         CancellationToken cancellationToken)
@@ -32,32 +35,6 @@ internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService c
         using var _ = GetPooledConnection(checkScheduler: false, out var connection);
 
         initializer(connection, cancellationToken);
-    }
-
-    public void Dispose()
-    {
-        // Flush all pending writes so that all data our features wanted written
-        // are definitely persisted to the DB.
-        try
-        {
-            _shutdownTokenSource.Cancel();
-            CloseWorker();
-        }
-        finally
-        {
-            // let the lock go
-            ownershipLock.Dispose();
-        }
-    }
-
-    private void CloseWorker()
-    {
-        lock (_connectionGate)
-        {
-            // Go through all our pooled connections and close them.
-            while (_connectionsPool.TryPop(out var connection))
-                connection.Close_OnlyForUseBySQLiteConnectionPool();
-        }
     }
 
     /// <summary>

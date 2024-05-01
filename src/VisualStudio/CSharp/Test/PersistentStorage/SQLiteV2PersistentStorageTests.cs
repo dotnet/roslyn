@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             // Because instantiating the connection will fail, we will not get back
             // a working persistent storage. We are testing a fault recovery code path.
-            await using (var storage = await GetStorageAsync(solution, faultInjector: faultInjector, throwOnFailure: false))
+            var storage = await GetStorageAsync(solution, faultInjector: faultInjector, throwOnFailure: false);
             using (var memStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memStream))
             {

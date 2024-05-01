@@ -28,7 +28,7 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
     private readonly string _solutionDirectory;
 
     private readonly SQLiteConnectionPoolService _connectionPoolService;
-    private readonly ReferenceCountedDisposable<SQLiteConnectionPool> _connectionPool;
+    private readonly SQLiteConnectionPool _connectionPool;
     private readonly Action _flushInMemoryDataToDisk;
 
     // Accessors that allow us to retrieve/store data into specific DB tables.  The
@@ -97,34 +97,6 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
         }
 
         return sqlStorage;
-    }
-
-    public override void Dispose()
-    {
-        var task = DisposeAsync().AsTask();
-        task.Wait();
-    }
-
-    public override async ValueTask DisposeAsync()
-    {
-        try
-        {
-            // Flush all pending writes so that all data our features wanted written are definitely
-            // persisted to the DB.
-            try
-            {
-                await FlushWritesOnCloseAsync().ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                // Flushing may fail.  We still have to close all our connections.
-                StorageDatabaseLogger.LogException(e);
-            }
-        }
-        finally
-        {
-            _connectionPool.Dispose();
-        }
     }
 
     private void DisableStorage(SqlException exception)
