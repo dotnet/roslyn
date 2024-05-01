@@ -33423,7 +33423,7 @@ implicit extension E for object
             Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "new object().Property").WithArguments("E.Property").WithLocation(1, 1));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE(instance) enable and execute once we can lower/emit for non-static scenarios
     public void PropertyAccess_InitOnlyProperty_Instance_ObjectInitializer()
     {
         var src = """
