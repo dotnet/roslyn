@@ -1467,46 +1467,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void UnsafeDifference_01()
         {
-            // Note that the diagnostic is on difference in unsafe modifiers on the property declarations, not on a difference in unsafe context.
+            // 'unsafe' modifiers are required to match across property declarations.
+            // Therefore an error is reported on implementation of 'P2' even though both parts are "effectively unsafe".
             var source = """
                 partial class C
                 {
                     public partial int P1 { get; set; }
-                    public unsafe partial int P1 { get => 1; set { } }
-
                     public unsafe partial int P2 { get; set; }
+                }
+
+                unsafe partial class C
+                {
+                    public unsafe partial int P1 { get => 1; set { } }
                     public partial int P2 { get => 1; set { } }
                 }
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (4,31): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
+                // (9,31): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
                 //     public unsafe partial int P1 { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "P1").WithLocation(4, 31),
-                // (7,24): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
+                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "P1").WithLocation(9, 31),
+                // (10,24): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
                 //     public partial int P2 { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "P2").WithLocation(7, 24));
+                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "P2").WithLocation(10, 24));
         }
 
         [Fact]
         public void UnsafeDifference_02()
         {
+            // A difference in unsafe context only matters when unsafe types are used in the signature
             var source = """
                 unsafe partial class C
                 {
                     public partial int* P1 { get; set; }
+                    public partial int P2 { get; set; }
                 }
 
                 partial class C
                 {
                     public partial int* P1 { get => null; set { } }
+                    public partial int P2 { get => 1; set { } }
                 }
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (8,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // (9,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public partial int* P1 { get => null; set { } }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 20));
         }
 
         [Fact]
