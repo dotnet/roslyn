@@ -56,6 +56,11 @@ internal abstract partial class AbstractNavigateToSearchService
             if (cancellationToken.IsCancellationRequested)
                 return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
 
+            // It's ok for the async lazy to capture '_storage' here.  The _storage is only disposed when this type is
+            // GC'ed.  So the lifetime of it is always longer than of the _map itself.  In other words, if we were alive
+            // in order to grab items from the map, we clearly could not be GCed, and thus the storage would still be
+            // not-disposed.
+
             // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
             // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
             // and avoid the cost of loading from the persistence service every time.
