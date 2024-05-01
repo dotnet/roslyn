@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -1022,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
             {
-                Assert.NotEqual(NoOpPersistentStorage.TestAccessor.StorageInstance, storage);
+                Assert.NotEqual(NoOpPersistentStorage.TestAccessor.GetStorageInstance(SolutionKey.ToSolutionKey(solution)), storage);
             }
 
             return storage;
@@ -1041,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
             {
-                Assert.NotEqual(NoOpPersistentStorage.TestAccessor.StorageInstance, storage);
+                Assert.NotEqual(NoOpPersistentStorage.TestAccessor.GetStorageInstance(solutionKey), storage);
             }
 
             return storage;
