@@ -1233,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void ModifierDifference_Readonly_Property()
         {
-            // readonly modifier mismatch on accessors
+            // readonly modifier mismatch on property
             var source = """
                 partial struct S
                 {
