@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
-using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.Storage;
 
