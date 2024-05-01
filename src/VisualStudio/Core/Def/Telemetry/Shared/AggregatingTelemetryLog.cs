@@ -104,8 +104,6 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
         {
             histogram.Record(value);
         }
-
-        _aggregatingTelemetryLogManager.EnsureTelemetryWorkQueued();
     }
 
     public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs)
