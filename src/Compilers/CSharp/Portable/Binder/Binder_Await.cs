@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
             var name = WellKnownMemberNames.IsCompleted;
-            var qualified = BindMemberAccessWithBoundLeftInternal(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), invoked: false, indexed: false, diagnostics);
+            var qualified = BindMemberAccessWithBoundLeftCore(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), invoked: false, indexed: false, diagnostics);
             if (qualified.HasAnyErrors)
             {
                 isCompletedProperty = null;

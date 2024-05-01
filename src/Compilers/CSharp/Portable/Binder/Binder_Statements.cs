@@ -4022,7 +4022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = null;
                 isExpanded = false;
 
-                var boundAccess = BindMemberAccessWithBoundLeftInternal(
+                var boundAccess = BindMemberAccessWithBoundLeftCore(
                        syntaxNode,
                        syntaxNode,
                        receiver,

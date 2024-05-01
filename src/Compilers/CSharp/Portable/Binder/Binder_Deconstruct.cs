@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 const string methodName = WellKnownMemberNames.DeconstructMethodName;
-                var memberAccess = BindMemberAccessWithBoundLeftInternal(
+                var memberAccess = BindMemberAccessWithBoundLeftCore(
                                         rightSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
                                         typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                                         typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),

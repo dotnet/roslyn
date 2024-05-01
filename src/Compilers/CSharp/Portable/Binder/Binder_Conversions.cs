@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindingDiagnosticBag diagnostics,
                 out ImmutableArray<MethodSymbol> addMethods)
             {
-                var boundExpression = addMethodBinder.BindMemberAccessWithBoundLeftInternal(
+                var boundExpression = addMethodBinder.BindMemberAccessWithBoundLeftCore(
                     node, node, receiver, WellKnownMemberNames.CollectionInitializerAddMethodName, rightArity: 0,
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),

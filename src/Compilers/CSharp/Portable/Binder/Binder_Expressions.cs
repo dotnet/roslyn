@@ -5353,7 +5353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // SPEC VIOLATION:  Native compiler also allows initialization of field-like events in object initializers, so we allow it as well.
 
-                    boundMember = BindMemberAccessWithBoundLeftInternal(
+                    boundMember = BindMemberAccessWithBoundLeftCore(
                         node: memberName,
                         right: memberName,
                         boundLeft: implicitReceiver,
@@ -7291,7 +7291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // CheckValue call will occur in ReplaceTypeOrValueReceiver.
                             // NOTE: This means that we won't get CheckValue diagnostics in error scenarios,
                             // but they would be cascading anyway.
-                            return BindMemberAccessWithBoundLeftInternal(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
+                            return BindMemberAccessWithBoundLeftCore(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                         }
                     default:
                         {
@@ -7312,7 +7312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These checks occur later.
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
                                 boundLeft = BindToNaturalType(boundLeft, diagnostics);
-                                return BindMemberAccessWithBoundLeftInternal(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
+                                return BindMemberAccessWithBoundLeftCore(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                             }
                             break;
                         }
@@ -7435,7 +7435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (this.EnclosingNameofArgument == node)
                 {
                     // Support selecting an extension method from a type name in nameof(.)
-                    return BindMemberAccessWithBoundLeftInternal(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
+                    return BindMemberAccessWithBoundLeftCore(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                 }
                 else
                 {
@@ -7543,7 +7543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindMemberAccessWithBoundLeftInternal(
+        private BoundExpression BindMemberAccessWithBoundLeftCore(
             SyntaxNode node,
             SyntaxNode right,
             BoundExpression boundLeft,
@@ -7602,11 +7602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!invoked)
                     {
-                        var extensionResult = ResolveToNonMethodExtensionMemberIfPossible(result, diagnostics);
-                        if (extensionResult is not BoundMethodGroup)
-                        {
-                            return extensionResult;
-                        }
+                        result = ResolveToNonMethodExtensionMemberIfPossible(result, diagnostics);
                     }
 
                     return result;
