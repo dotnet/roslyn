@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         public void Dispose()
         {
             // This should cause the service to release the cached connection it maintains for the primary workspace
+            _storageService?.GetTestAccessor().Shutdown();
             _persistentFolderRoot.Dispose();
         }
 
@@ -980,6 +981,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         protected Solution CreateOrOpenSolution(TempDirectory? persistentFolder = null, bool nullPaths = false)
         {
             persistentFolder ??= _persistentFolder;
+            _storageService?.GetTestAccessor().Shutdown();
             var solutionFile = persistentFolder.CreateOrOpenFile("Solution1.sln").WriteAllText("");
 
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(), solutionFile.Path);
@@ -1030,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             HostWorkspaceServices services, SolutionKey solutionKey, IPersistentStorageFaultInjector? faultInjector = null)
         {
             // If we handed out one for a previous test, we need to shut that down first
-            await (_storageService?.GetTestAccessor().ShutdownAsync() ?? Task.CompletedTask);
+            _storageService?.GetTestAccessor().Shutdown();
             var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
             _storageService = GetStorageService(services.SolutionServices.ExportProvider, configuration, faultInjector, _persistentFolder.Path);

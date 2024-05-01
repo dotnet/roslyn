@@ -115,4 +115,22 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
             return true;
         }
     }
+
+    private void Shutdown(CancellationToken cancellationToken)
+    {
+        using (_lock.DisposableWait(cancellationToken))
+        {
+            // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
+            _currentPersistentStorage = null;
+        }
+    }
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(AbstractPersistentStorageService service)
+    {
+        public void Shutdown()
+            => service.Shutdown(CancellationToken.None);
+    }
 }

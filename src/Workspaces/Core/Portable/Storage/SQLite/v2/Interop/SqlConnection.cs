@@ -21,10 +21,10 @@ using static SQLitePersistentStorageConstants;
 /// Encapsulates a connection to a sqlite database.  On construction an attempt will be made
 /// to open the DB if it exists, or create it if it does not.
 /// 
-/// Connections are considered relatively heavyweight and are pooled until the <see cref="SQLitePersistentStorage"/>
-/// is <see cref="SQLitePersistentStorage.Dispose"/>d.  Connections can be used by different threads,
-/// but only as long as they are used by one thread at a time.  They are not safe for concurrent
-/// use by several threads.
+/// Connections are considered relatively heavyweight and are pooled (see <see
+/// cref="SQLiteConnectionPool.GetPooledConnection(out SqlConnection)"/>).  Connections can be used by different
+/// threads, but only as long as they are used by one thread at a time.  They are not safe for concurrent use by several
+/// threads.
 /// 
 /// <see cref="SqlStatement"/>s can be created through the user of <see cref="GetResettableStatement"/>.
 /// These statements are cached for the lifetime of the connection and are only finalized
