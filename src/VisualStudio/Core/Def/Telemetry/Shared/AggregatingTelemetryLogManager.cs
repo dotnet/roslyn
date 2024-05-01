@@ -27,7 +27,7 @@ internal sealed class AggregatingTelemetryLogManager
         if (!_session.IsOptedIn)
             return null;
 
-        return ImmutableInterlocked.GetOrAdd(ref _aggregatingLogs, functionId, functionId => new AggregatingTelemetryLog(_session, functionId, bucketBoundaries, this));
+        return ImmutableInterlocked.GetOrAdd(ref _aggregatingLogs, functionId, functionId => new AggregatingTelemetryLog(_session, functionId, bucketBoundaries));
     }
 
     public void Flush()
