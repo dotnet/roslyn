@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 
 using Reference = (SymbolGroup group, ISymbol symbol, ReferenceLocation location);
 
-internal partial class FindReferencesSearchEngine
+internal partial class FindReferencesSearchEngine : IAsyncDisposable
 {
     private readonly Solution _solution;
     private readonly IImmutableSet<Document>? _documents;
@@ -61,10 +61,8 @@ internal partial class FindReferencesSearchEngine
         _progressTracker = progress.ProgressTracker;
     }
 
-    ~FindReferencesSearchEngine()
-    {
-        this.Storage.Dispose();
-    }
+    public ValueTask DisposeAsync()
+        => this.Storage.DisposeAsync();
 
     public static async Task<FindReferencesSearchEngine> CreateAsync(
         Solution solution,

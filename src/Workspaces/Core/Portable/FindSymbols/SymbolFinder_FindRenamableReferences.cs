@@ -28,6 +28,7 @@ public static partial class SymbolFinder
                 streamingProgress,
                 FindReferencesSearchOptions.Default,
                 cancellationToken).ConfigureAwait(false);
+            await using var _ = engine.ConfigureAwait(false);
 
             await engine.FindReferencesAsync(symbols, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();

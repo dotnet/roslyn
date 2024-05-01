@@ -80,6 +80,7 @@ public static partial class SymbolFinder
 
         var engine = await FindReferencesSearchEngine.CreateAsync(
             solution, documents, finders, progress, options, cancellationToken).ConfigureAwait(false);
+        await using var _ = engine.ConfigureAwait(false);
         await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
     }
 
@@ -99,6 +100,7 @@ public static partial class SymbolFinder
         var finders = ReferenceFinders.DefaultReferenceFinders;
         var engine = await FindReferencesSearchEngine.CreateAsync(
             solution, documents, finders, progress, options, cancellationToken).ConfigureAwait(false);
+        await using var _ = engine.ConfigureAwait(false);
         await engine.FindReferencesInDocumentsAsync(symbol, documents, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -239,6 +239,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                 streamingProgress,
                 FindReferencesSearchOptions.Default,
                 cancellationToken).ConfigureAwait(false);
+            await using var _ = engine.ConfigureAwait(false);
 
             await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();
