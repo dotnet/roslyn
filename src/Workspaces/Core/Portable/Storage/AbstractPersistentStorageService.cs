@@ -67,7 +67,7 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
         {
             // See if another thread set to the solution we care about while we were waiting on the lock.
             using var current = _currentPersistentStorage?.TryAddReference();
-            if (current is null || solutionKey != current.Target.SolutionKey)
+            if (solutionKey != current?.Target.SolutionKey)
             {
                 // We either don't have a current storage, or the current storage was pointing at some other solution. In
                 // either case, we want to create a new storage instance and point at that.  If the current storage was
@@ -88,10 +88,11 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
             return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
         }
 
-        async Task DisposeStorageAsync(ReferenceCountedDisposable<IChecksummedPersistentStorage>? storage)
+        static async Task DisposeStorageAsync(ReferenceCountedDisposable<IChecksummedPersistentStorage>? storage)
         {
             if (storage != null)
             {
+                // Intentionally yield, so we don't execute any of this code outside the outer lock.
                 await Task.Yield().ConfigureAwait(false);
                 await storage.DisposeAsync().ConfigureAwait(false);
             }
