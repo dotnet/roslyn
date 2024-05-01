@@ -168,11 +168,37 @@ namespace Roslyn.Test.Utilities
          * for a TypeLoadException are missing important information for resolving problems if/when they occur.
          * https://github.com/dotnet/roslyn/issues/25961
          */
-        public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
-        public static ImmutableArray<MetadataReference> MinimalReferences => ImmutableArray.Create(TestBase.MinCorlibRef);
-        public static ImmutableArray<MetadataReference> MinimalAsyncReferences => ImmutableArray.Create(TestBase.MinAsyncCorlibRef);
-        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.System, Net451.SystemCore, TestBase.ValueTupleRef, Net451.SystemRuntime);
-        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.References.mscorlib, Net461.References.System, Net461.References.SystemCore, TestBase.ValueTupleRef, Net461.References.SystemRuntime);
+        public static ImmutableArray<MetadataReference> WinRTReferences =>
+        [
+            .. TestBase.WinRtRefs
+        ];
+        public static ImmutableArray<MetadataReference> MinimalReferences =>
+        [
+            TestBase.MinCorlibRef
+        ];
+        public static ImmutableArray<MetadataReference> MinimalAsyncReferences =>
+        [
+            TestBase.MinAsyncCorlibRef
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences =>
+        [
+            Net451.mscorlib,
+            Net451.System,
+            Net451.SystemCore,
+            TestBase.ValueTupleRef,
+            Net451.SystemRuntime
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences =>
+        [
+            Net461.References.mscorlib,
+            Net461.References.System,
+            Net461.References.SystemCore,
+            TestBase.ValueTupleRef,
+            Net461.References.SystemRuntime
+        ];
+        /*
+         * ⚠ Dev note ⚠: TestBase properties end here.
+         */
 
         public static ImmutableArray<MetadataReference> Mscorlib40References { get; } =
         [
