@@ -10453,7 +10453,7 @@ class C
             // should not contain RUDE_EDIT_INSERT_AROUND
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -10484,7 +10484,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -10667,7 +10667,7 @@ class C
             // should not contain RUDE_EDIT_INSERT_AROUND
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -10758,7 +10758,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -10786,7 +10786,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
