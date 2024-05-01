@@ -139,10 +139,8 @@ internal static class TelemetryLogging
         Flushed?.Invoke(null, EventArgs.Empty);
     }
 
-    private static ValueTask PostCollectedTelemetryAsync(CancellationToken token)
+    private static ValueTask PostCollectedTelemetryAsync(CancellationToken cancellationToken)
     {
-        token.ThrowIfCancellationRequested();
-
         Flush();
 
         // Ensure PostCollectedTelemetryAsync will get fired again after the collection period.
