@@ -163,12 +163,8 @@ internal partial class AbstractSyntaxIndex<TIndex>
     {
         public async Task<bool> SaveAsync(
             Document document,
-            IChecksummedPersistentStorageService storageService)
+            IChecksummedPersistentStorage storage)
         {
-            var solutionKey = SolutionKey.ToSolutionKey(document.Project.Solution);
-            var storage = await storageService.GetStorageAsync(solutionKey, CancellationToken.None).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
-
             return await index.SaveAsync(
                 storage,
                 SolutionKey.ToSolutionKey(document.Project.Solution),
