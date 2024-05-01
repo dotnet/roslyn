@@ -45,7 +45,7 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
         // Without taking the lock, see if we can use the last storage system we were asked to create.  Ensure we use a
         // using so that if we don't take it we still release this reference count.
         using var current = _currentPersistentStorage?.TryAddReference();
-        if (current != null && solutionKey == current.Target.SolutionKey)
+        if (solutionKey == current?.Target.SolutionKey)
         {
             // Success, we can use the current storage system.  Ensure we increment the reference count again, so that
             // this stays alive for the caller when the above reference count drops.
