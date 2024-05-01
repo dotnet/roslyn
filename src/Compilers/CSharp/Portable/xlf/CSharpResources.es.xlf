@@ -1607,23 +1607,28 @@
         <target state="translated">El parámetro params debe tener un tipo de colección válido</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
-        <source>Both partial method declarations must have identical accessibility modifiers.</source>
-        <target state="translated">Ambas declaraciones de método parcial deben tener modificadores de accesibilidad idénticos.</target>
+      <trans-unit id="ERR_PartialMemberAccessibilityDifference">
+        <source>Both partial member declarations must have identical accessibility modifiers.</source>
+        <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodExtendedModDifference">
-        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+      <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
+        <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
+        <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberReadOnlyDifference">
+        <source>Both partial member declarations must be readonly or neither may be readonly</source>
+        <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberExtendedModDifference">
+        <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
         <target state="translated">Ambas declaraciones de método parcial deben tener combinaciones idénticas de los modificadores "virtual", "override", "sealed" y "new".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
-        <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="translated">Ambas declaraciones de métodos parciales deben ser de solo lectura o ninguna de ellas puede ser de solo lectura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodRefReturnDifference">
-        <source>Partial method declarations must have matching ref return values.</source>
+      <trans-unit id="ERR_PartialMemberRefReturnDifference">
+        <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">Las declaraciones de método parcial deben tener valores devueltos de referencia que coincidan.</target>
         <note />
       </trans-unit>
@@ -1662,6 +1667,11 @@
         <target state="new">A partial property may not have multiple implementing declarations</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyInitMismatch">
+        <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
+        <target state="new">Property accessor '{0}' must be '{1}' to match the definition part</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingAccessor">
         <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
         <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
@@ -1675,6 +1685,11 @@
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
         <source>Partial property '{0}' must have an implementation part.</source>
         <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyTypeDifference">
+        <source>Both partial property declarations must have the same type.</source>
+        <target state="new">Both partial property declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
@@ -8132,11 +8147,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <target state="translated">No se encontró ninguna declaración de definición para la declaración de implementación del método parcial '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodInconsistentTupleNames">
-        <source>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="translated">Ambas declaraciones de método parcial, '{0}' y '{1}', deben usar los mismos nombres de elementos de tupla.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
         <target state="translated">Las declaraciones de métodos parciales de "{0}" tienen restricciones incoherentes para el parámetro de tipo "{1}"</target>
@@ -8147,8 +8157,8 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <target state="translated">No se puede crear un delegado a partir del método '{0}' porque es un método parcial sin declaración de implementación</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodStaticDifference">
-        <source>Both partial method declarations must be static or neither may be static</source>
+      <trans-unit id="ERR_PartialMemberStaticDifference">
+        <source>Both partial member declarations must be static or neither may be static</source>
         <target state="translated">Ambas declaraciones de método parcial deben ser estáticas o ninguna de ellas puede ser estática</target>
         <note />
       </trans-unit>

@@ -1607,23 +1607,28 @@
         <target state="translated">params 매개 변수는 유효한 컬렉션 형식이어야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
-        <source>Both partial method declarations must have identical accessibility modifiers.</source>
-        <target state="translated">두 부분 메서드 선언에는 동일한 접근성 한정자가 있어야 합니다.</target>
+      <trans-unit id="ERR_PartialMemberAccessibilityDifference">
+        <source>Both partial member declarations must have identical accessibility modifiers.</source>
+        <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodExtendedModDifference">
-        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+      <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
+        <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
+        <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberReadOnlyDifference">
+        <source>Both partial member declarations must be readonly or neither may be readonly</source>
+        <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberExtendedModDifference">
+        <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
         <target state="translated">두 부분 메서드 선언에는 동일한 조합의 'virtual', 'override', 'sealed' 및 'new' 한정자가 있어야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
-        <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="translated">두 부분 메서드(Partial method) 선언 모두 readonly이거나 readonly가 아니어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodRefReturnDifference">
-        <source>Partial method declarations must have matching ref return values.</source>
+      <trans-unit id="ERR_PartialMemberRefReturnDifference">
+        <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">부분 메서드 선언에는 일치하는 참조 반환 값이 있어야 합니다.</target>
         <note />
       </trans-unit>
@@ -1662,6 +1667,11 @@
         <target state="new">A partial property may not have multiple implementing declarations</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyInitMismatch">
+        <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
+        <target state="new">Property accessor '{0}' must be '{1}' to match the definition part</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingAccessor">
         <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
         <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
@@ -1675,6 +1685,11 @@
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
         <source>Partial property '{0}' must have an implementation part.</source>
         <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyTypeDifference">
+        <source>Both partial property declarations must have the same type.</source>
+        <target state="new">Both partial property declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
@@ -8132,11 +8147,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">'{0}' 부분 메서드(Partial Method)의 구현 선언에 대한 정의 선언이 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodInconsistentTupleNames">
-        <source>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="translated">두 부분 메서드(Partial Method) 선언 '{0}' 및 '{1}' 모두에서 동일한 튜플 요소 이름을 사용해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
         <target state="translated">'{0}'의 부분 메서드(Partial method) 선언의 '{1}' 형식 매개 변수에 대한 제약 조건이 일관되지 않습니다.</target>
@@ -8147,8 +8157,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">'{0}'은(는) 구현 선언이 없는 부분 메서드(Partial Method)이므로 이 메서드로부터 대리자를 만들 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodStaticDifference">
-        <source>Both partial method declarations must be static or neither may be static</source>
+      <trans-unit id="ERR_PartialMemberStaticDifference">
+        <source>Both partial member declarations must be static or neither may be static</source>
         <target state="translated">두 부분 메서드(Partial Method) 선언 모두 static이거나 static이 아니어야 합니다.</target>
         <note />
       </trans-unit>

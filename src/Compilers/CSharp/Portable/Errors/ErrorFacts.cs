@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_PartialMethodMustHaveLatent:
                 case ErrorCode.ERR_PartialMethodInconsistentConstraints:
                 case ErrorCode.ERR_PartialMethodToDelegate:
-                case ErrorCode.ERR_PartialMethodStaticDifference:
+                case ErrorCode.ERR_PartialMemberStaticDifference:
                 case ErrorCode.ERR_PartialMethodUnsafeDifference:
                 case ErrorCode.ERR_PartialMethodInExpressionTree:
                 case ErrorCode.ERR_ExplicitImplCollisionOnRefOut:
@@ -1744,7 +1744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CantChangeTupleNamesOnOverride:
                 case ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList:
                 case ErrorCode.ERR_ImplBadTupleNames:
-                case ErrorCode.ERR_PartialMethodInconsistentTupleNames:
+                case ErrorCode.ERR_PartialMemberInconsistentTupleNames:
                 case ErrorCode.ERR_ExpressionTreeContainsTupleLiteral:
                 case ErrorCode.ERR_ExpressionTreeContainsTupleConversion:
                 case ErrorCode.ERR_AutoPropertyCannotBeRefReturning:
@@ -1983,7 +1983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidPropertyReadOnlyMods:
                 case ErrorCode.ERR_DuplicatePropertyReadOnlyMods:
                 case ErrorCode.ERR_FieldLikeEventCantBeReadOnly:
-                case ErrorCode.ERR_PartialMethodReadOnlyDifference:
+                case ErrorCode.ERR_PartialMemberReadOnlyDifference:
                 case ErrorCode.ERR_ReadOnlyModMissingAccessor:
                 case ErrorCode.ERR_OverrideRefConstraintNotSatisfied:
                 case ErrorCode.ERR_OverrideValConstraintNotSatisfied:
@@ -2053,8 +2053,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods:
                 case ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods:
                 case ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods:
-                case ErrorCode.ERR_PartialMethodAccessibilityDifference:
-                case ErrorCode.ERR_PartialMethodExtendedModDifference:
+                case ErrorCode.ERR_PartialMemberAccessibilityDifference:
+                case ErrorCode.ERR_PartialMemberExtendedModDifference:
                 case ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement:
                 case ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements:
                 case ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType:
@@ -2072,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid:
                 case ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric:
                 case ErrorCode.ERR_PartialMethodReturnTypeDifference:
-                case ErrorCode.ERR_PartialMethodRefReturnDifference:
+                case ErrorCode.ERR_PartialMemberRefReturnDifference:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable:
                 case ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis:
@@ -2445,6 +2445,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_PartialPropertyDuplicateImplementation:
                 case ErrorCode.ERR_PartialPropertyMissingAccessor:
                 case ErrorCode.ERR_PartialPropertyUnexpectedAccessor:
+                case ErrorCode.ERR_PartialPropertyInitMismatch:
+                case ErrorCode.ERR_PartialPropertyTypeDifference:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -14418,10 +14418,10 @@ namespace N
     partial void M2();
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,18): error CS07: Both partial method declarations must be static or neither may be static
-                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M1").WithLocation(4, 18),
-                // (5,25): error CS07: Both partial method declarations must be static or neither may be static
-                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M2").WithLocation(5, 25));
+                // (4,18): error CS07: Both partial member declarations must be static or neither may be static
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "M1").WithLocation(4, 18),
+                // (5,25): error CS07: Both partial member declarations must be static or neither may be static
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "M2").WithLocation(5, 25));
         }
 
         [Fact]

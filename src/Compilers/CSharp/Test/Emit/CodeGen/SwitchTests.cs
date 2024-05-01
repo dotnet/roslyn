@@ -5274,7 +5274,7 @@ namespace ConsoleApplication24
             ERR_PartialMethodMustHaveLatent = 759,
             ERR_PartialMethodInconsistentConstraints = 761,
             ERR_PartialMethodToDelegate = 762,
-            ERR_PartialMethodStaticDifference = 763,
+            ERR_PartialMemberStaticDifference = 763,
             ERR_PartialMethodUnsafeDifference = 764,
             ERR_PartialMethodInExpressionTree = 765,
             ERR_PartialMethodMustReturnVoid = 766,

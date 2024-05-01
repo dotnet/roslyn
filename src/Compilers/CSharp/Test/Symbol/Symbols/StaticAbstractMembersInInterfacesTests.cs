@@ -1427,12 +1427,12 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,25): error CS8799: Both partial method declarations must have identical accessibility modifiers.
+                // (8,25): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodAccessibilityDifference, "M01").WithLocation(8, 25),
-                // (8,25): error CS8800: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "M01").WithLocation(8, 25),
+                // (8,25): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M01").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M01").WithLocation(8, 25)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1485,9 +1485,9 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,32): error CS8800: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                // (8,32): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     public static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M01").WithLocation(8, 32)
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M01").WithLocation(8, 32)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");

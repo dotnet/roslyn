@@ -1607,23 +1607,28 @@
         <target state="translated">params 參數必須具有有效的集合型別</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
-        <source>Both partial method declarations must have identical accessibility modifiers.</source>
-        <target state="translated">兩個部分方法宣告都必須有完全相同的存取範圍修飾詞。</target>
+      <trans-unit id="ERR_PartialMemberAccessibilityDifference">
+        <source>Both partial member declarations must have identical accessibility modifiers.</source>
+        <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodExtendedModDifference">
-        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+      <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
+        <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
+        <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberReadOnlyDifference">
+        <source>Both partial member declarations must be readonly or neither may be readonly</source>
+        <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberExtendedModDifference">
+        <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
         <target state="translated">兩個部分方法宣告都必須有完全相同的 'virtual'、'override'、'sealed' 及 'new' 修飾元組合。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
-        <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="translated">兩個部份方法宣告必須都為唯讀，或者都不為唯讀</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodRefReturnDifference">
-        <source>Partial method declarations must have matching ref return values.</source>
+      <trans-unit id="ERR_PartialMemberRefReturnDifference">
+        <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">部分方法宣告必須有相符的參考傳回值。</target>
         <note />
       </trans-unit>
@@ -1662,6 +1667,11 @@
         <target state="new">A partial property may not have multiple implementing declarations</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyInitMismatch">
+        <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
+        <target state="new">Property accessor '{0}' must be '{1}' to match the definition part</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingAccessor">
         <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
         <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
@@ -1675,6 +1685,11 @@
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
         <source>Partial property '{0}' must have an implementation part.</source>
         <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyTypeDifference">
+        <source>Both partial property declarations must have the same type.</source>
+        <target state="new">Both partial property declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
@@ -8132,11 +8147,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">找不到用以實作部分方法 '{0}' 宣告的定義宣告</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodInconsistentTupleNames">
-        <source>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="translated">部份方法宣告 '{0}' 與 '{1}' 必須使用相同的元組元素名稱。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
         <target state="translated">'{0}' 的部分方法宣告對型別參數 '{1}' 有不一致的條件約束</target>
@@ -8147,8 +8157,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">無法從方法 '{0}' 建立委派，因為它是無實作宣告的部分方法</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodStaticDifference">
-        <source>Both partial method declarations must be static or neither may be static</source>
+      <trans-unit id="ERR_PartialMemberStaticDifference">
+        <source>Both partial member declarations must be static or neither may be static</source>
         <target state="translated">兩個部分方法宣告必須都是靜態，或者都不是靜態</target>
         <note />
       </trans-unit>

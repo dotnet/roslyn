@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsExplicitInterfaceImplementation = 1 << 2,
             HasInitializer = 1 << 3,
             AccessorsHaveImplementation = 1 << 4,
+            HasExplicitAccessModifier = 1 << 5,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
             bool hasInitializer,
+            bool hasExplicitAccessMod,
             bool isAutoProperty,
             bool isExpressionBodied,
             bool isInitOnly,
@@ -112,6 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isIndexer = IsIndexer;
             isAutoProperty = isAutoProperty && !(containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !isIndexer;
+
+            if (hasExplicitAccessMod)
+            {
+                _propertyFlags |= Flags.HasExplicitAccessModifier;
+            }
 
             if (isAutoProperty)
             {
@@ -620,6 +627,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsAutoPropertyWithGetAccessor
             => IsAutoProperty && _getMethod is object;
+
+        protected bool HasExplicitAccessModifier
+            => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
         protected bool IsAutoProperty
             => (_propertyFlags & Flags.IsAutoProperty) != 0;

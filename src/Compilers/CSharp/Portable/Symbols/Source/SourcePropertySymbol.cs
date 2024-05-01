@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
             SyntaxTokenList modifiersTokenList = GetModifierTokensSyntax(syntax);
             bool isExplicitInterfaceImplementation = explicitInterfaceSpecifier is object;
-            var modifiers = MakeModifiers(
+            var (modifiers, hasExplicitAccessMod) = MakeModifiers(
                 containingType,
                 modifiersTokenList,
                 isExplicitInterfaceImplementation,
@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 explicitInterfaceType,
                 aliasQualifierOpt,
                 modifiers,
+                hasExplicitAccessMod: hasExplicitAccessMod,
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol? explicitInterfaceType,
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
+            bool hasExplicitAccessMod,
             bool isAutoProperty,
             bool isExpressionBodied,
             bool isInitOnly,
@@ -111,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 aliasQualifierOpt,
                 modifiers,
                 hasInitializer: HasInitializer(syntax),
+                hasExplicitAccessMod: hasExplicitAccessMod,
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
@@ -267,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
-        private static DeclarationModifiers MakeModifiers(
+        private static (DeclarationModifiers modifiers, bool hasExplicitAccessMod) MakeModifiers(
             NamedTypeSymbol containingType,
             SyntaxTokenList modifiers,
             bool isExplicitInterfaceImplementation,
@@ -343,8 +346,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern;
 
+            // In order to detect whether explicit accessibility mods were provided, we pass the default value
+            // for 'defaultAccess' and manually add in the 'defaultAccess' flags after the call.
+            bool hasExplicitAccessMod;
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
-                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+                                                                        modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
+            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+            {
+                hasExplicitAccessMod = false;
+                mods |= defaultAccess;
+            }
+            else
+            {
+                hasExplicitAccessMod = true;
+            }
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 
@@ -373,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 mods &= ~DeclarationModifiers.Required;
             }
 
-            return mods;
+            return (mods, hasExplicitAccessMod);
         }
 
         protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
@@ -563,6 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <remarks>
+        /// This method is analogous to <see cref="SourceOrdinaryMethodSymbol.PartialMethodChecks(SourceOrdinaryMethodSymbol, SourceOrdinaryMethodSymbol, BindingDiagnosticBag)" />.
+        /// Whenever new checks are added to this method, the other method should also have those checks added, if applicable.
+        /// </remarks>
         private void PartialPropertyChecks(SourcePropertySymbol implementation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsPartialDefinition);
@@ -570,11 +589,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object?)this.OtherPartOfPartial == implementation);
 
             // PROTOTYPE(partial-properties): check and diagnose all disallowed differences between parts.
-            // PROTOTYPE(partial-properties): we should likely report a warning when only one of the parts has an explicit access modifier for consistency with methods.
-            if (DeclaredAccessibility != implementation.DeclaredAccessibility)
+            if (!TypeWithAnnotations.Equals(implementation.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
             {
-                // PROTOTYPE(partial-properties): we should either generalize the existing diagnostic or introduce new set of diagnostics.
-                diagnostics.Add(ErrorCode.ERR_PartialMethodAccessibilityDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialPropertyTypeDifference, implementation.GetFirstLocation());
+            }
+
+            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
+            }
+
+            if (RefKind != implementation.RefKind)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberRefReturnDifference, implementation.GetFirstLocation());
+            }
+
+            if (IsStatic != implementation.IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberStaticDifference, implementation.GetFirstLocation());
+            }
+
+            if (HasReadOnlyModifier != implementation.HasReadOnlyModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementation.GetFirstLocation());
+            }
+
+            if ((_modifiers & DeclarationModifiers.Unsafe) != (implementation._modifiers & DeclarationModifiers.Unsafe) && this.CompilationAllowsUnsafe()) // Don't cascade.
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            // PROTOTYPE(partial-properties): test 'params' indexers
+
+            if (DeclaredAccessibility != implementation.DeclaredAccessibility
+                || HasExplicitAccessModifier != implementation.HasExplicitAccessModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementation.GetFirstLocation());
+            }
+
+            if (IsVirtual != implementation.IsVirtual
+                || IsOverride != implementation.IsOverride
+                || IsSealed != implementation.IsSealed
+                || IsNew != implementation.IsNew)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
+            }
+
+            if (this.GetMethod is { } definitionGetAccessor && implementation.GetMethod is { } implementationGetAccessor)
+            {
+                ((SourcePropertyAccessorSymbol)definitionGetAccessor).PartialAccessorChecks((SourcePropertyAccessorSymbol)implementationGetAccessor, diagnostics);
+            }
+
+            if (this.SetMethod is { } definitionSetAccessor && implementation.SetMethod is { } implementationSetAccessor)
+            {
+                ((SourcePropertyAccessorSymbol)definitionSetAccessor).PartialAccessorChecks((SourcePropertyAccessorSymbol)implementationSetAccessor, diagnostics);
             }
         }
 

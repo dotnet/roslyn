@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
                 },
                 hasInitializer: false,
+                hasExplicitAccessMod: false,
                 isAutoProperty: false,
                 isExpressionBodied: false,
                 isInitOnly: false,

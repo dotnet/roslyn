@@ -2234,8 +2234,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodMustHaveLatent" xml:space="preserve">
     <value>No defining declaration found for implementing declaration of partial method '{0}'</value>
   </data>
-  <data name="ERR_PartialMethodInconsistentTupleNames" xml:space="preserve">
-    <value>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</value>
+  <data name="ERR_PartialMemberInconsistentTupleNames" xml:space="preserve">
+    <value>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</value>
   </data>
   <data name="ERR_PartialMethodInconsistentConstraints" xml:space="preserve">
     <value>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</value>
@@ -2243,8 +2243,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodToDelegate" xml:space="preserve">
     <value>Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration</value>
   </data>
-  <data name="ERR_PartialMethodStaticDifference" xml:space="preserve">
-    <value>Both partial method declarations must be static or neither may be static</value>
+  <data name="ERR_PartialMemberStaticDifference" xml:space="preserve">
+    <value>Both partial member declarations must be static or neither may be static</value>
   </data>
   <data name="ERR_PartialMethodUnsafeDifference" xml:space="preserve">
     <value>Both partial method declarations must be unsafe or neither may be unsafe</value>
@@ -5752,8 +5752,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
     <value>Field-like event '{0}' cannot be 'readonly'.</value>
   </data>
-  <data name="ERR_PartialMethodReadOnlyDifference" xml:space="preserve">
-    <value>Both partial method declarations must be readonly or neither may be readonly</value>
+  <data name="ERR_PartialMemberReadOnlyDifference" xml:space="preserve">
+    <value>Both partial member declarations must be readonly or neither may be readonly</value>
   </data>
   <data name="ERR_ReadOnlyModMissingAccessor" xml:space="preserve">
     <value>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</value>
@@ -6536,17 +6536,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodWithExtendedModMustHaveAccessMods" xml:space="preserve">
     <value>Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</value>
   </data>
-  <data name="ERR_PartialMethodAccessibilityDifference" xml:space="preserve">
-    <value>Both partial method declarations must have identical accessibility modifiers.</value>
+  <data name="ERR_PartialMemberAccessibilityDifference" xml:space="preserve">
+    <value>Both partial member declarations must have identical accessibility modifiers.</value>
   </data>
-  <data name="ERR_PartialMethodExtendedModDifference" xml:space="preserve">
-    <value>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</value>
+  <data name="ERR_PartialMemberExtendedModDifference" xml:space="preserve">
+    <value>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</value>
   </data>
   <data name="ERR_PartialMethodReturnTypeDifference" xml:space="preserve">
     <value>Both partial method declarations must have the same return type.</value>
   </data>
-  <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
-    <value>Partial method declarations must have matching ref return values.</value>
+  <data name="ERR_PartialMemberRefReturnDifference" xml:space="preserve">
+    <value>Partial member declarations must have matching ref return values.</value>
   </data>
   <data name="WRN_PartialMethodTypeDifference" xml:space="preserve">
     <value>Partial method declarations '{0}' and '{1}' have signature differences.</value>
@@ -7946,5 +7946,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialPropertyUnexpectedAccessor" xml:space="preserve">
     <value>Property accessor '{0}' does not implement any accessor declared on the definition part</value>
+  </data>
+  <data name="ERR_PartialPropertyInitMismatch" xml:space="preserve">
+    <value>Property accessor '{0}' must be '{1}' to match the definition part</value>
+  </data>
+  <data name="ERR_PartialPropertyTypeDifference" xml:space="preserve">
+    <value>Both partial property declarations must have the same type.</value>
   </data>
 </root>

@@ -11287,9 +11287,9 @@ interface I2
                 // (15,25): error CS8796: Partial method 'I1.M4()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed partial void M4() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M4").WithArguments("I1.M4()").WithLocation(15, 25),
-                // (15,25): error CS8798: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                // (15,25): error CS8798: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     sealed partial void M4() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M4").WithLocation(15, 25),
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M4").WithLocation(15, 25),
                 // (16,27): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M5").WithLocation(16, 27),
@@ -11302,9 +11302,9 @@ interface I2
                 // (17,26): error CS8796: Partial method 'I1.M6()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void M6() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M6").WithArguments("I1.M6()").WithLocation(17, 26),
-                // (17,26): error CS8798: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                // (17,26): error CS8798: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     virtual partial void M6() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M6").WithLocation(17, 26),
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M6").WithLocation(17, 26),
                 // (19,21): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I2.M7() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(19, 21),
@@ -11429,9 +11429,9 @@ public partial interface I1
                 // (8,25): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
                 //     static partial void M2(int[] x) {}
                 Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M2").WithLocation(8, 25),
-                // (11,18): error CS0763: Both partial method declarations must be static or neither may be static
+                // (11,18): error CS0763: Both partial member declarations must be static or neither may be static
                 //     partial void M3() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M3").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "M3").WithLocation(11, 18)
                 );
         }
 

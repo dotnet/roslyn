@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodMustHaveLatent = 759,
         ERR_PartialMethodInconsistentConstraints = 761,
         ERR_PartialMethodToDelegate = 762,
-        ERR_PartialMethodStaticDifference = 763,
+        ERR_PartialMemberStaticDifference = 763,
         ERR_PartialMethodUnsafeDifference = 764,
         ERR_PartialMethodInExpressionTree = 765,
         // ERR_PartialMethodMustReturnVoid = 766, Removed as part of 'extended partial methods' feature
@@ -1392,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantChangeTupleNamesOnOverride = 8139,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,
-        ERR_PartialMethodInconsistentTupleNames = 8142,
+        ERR_PartialMemberInconsistentTupleNames = 8142,
         ERR_ExpressionTreeContainsTupleLiteral = 8143,
         ERR_ExpressionTreeContainsTupleConversion = 8144,
         #endregion tuple diagnostics introduced in C# 7
@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidPropertyReadOnlyMods = 8660,
         ERR_DuplicatePropertyReadOnlyMods = 8661,
         ERR_FieldLikeEventCantBeReadOnly = 8662,
-        ERR_PartialMethodReadOnlyDifference = 8663,
+        ERR_PartialMemberReadOnlyDifference = 8663,
         ERR_ReadOnlyModMissingAccessor = 8664,
         ERR_OverrideRefConstraintNotSatisfied = 8665,
         ERR_OverrideValConstraintNotSatisfied = 8666,
@@ -1809,8 +1809,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8796,
         ERR_PartialMethodWithOutParamMustHaveAccessMods = 8797,
         ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8798,
-        ERR_PartialMethodAccessibilityDifference = 8799,
-        ERR_PartialMethodExtendedModDifference = 8800,
+        ERR_PartialMemberAccessibilityDifference = 8799,
+        ERR_PartialMemberExtendedModDifference = 8800,
 
         ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 8801,
         ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 8802,
@@ -1832,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
 
         ERR_PartialMethodReturnTypeDifference = 8817,
-        ERR_PartialMethodRefReturnDifference = 8818,
+        ERR_PartialMemberRefReturnDifference = 8818,
         WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
         ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
@@ -2317,6 +2317,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyDuplicateImplementation = 9303,
         ERR_PartialPropertyMissingAccessor = 9304,
         ERR_PartialPropertyUnexpectedAccessor = 9305,
+        ERR_PartialPropertyInitMismatch = 9306,
+        ERR_PartialPropertyTypeDifference = 9307,
 
         #endregion
 
