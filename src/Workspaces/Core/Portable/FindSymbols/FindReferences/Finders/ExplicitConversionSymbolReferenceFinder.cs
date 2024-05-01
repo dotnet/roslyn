@@ -51,7 +51,7 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         await FindDocumentsAsync(searchEngine, project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), StandardCallbacks<Document>.AddToHashSet, result, cancellationToken).ConfigureAwait(false);
 
         // Ignore any documents that don't also have an explicit cast in them.
-        await FindDocumentsWithPredicateAsync(searchEngine, project, documents, index => index.ContainsConversion, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsWithPredicateAsync(searchEngine, project, documents, static index => index.ContainsConversion, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
