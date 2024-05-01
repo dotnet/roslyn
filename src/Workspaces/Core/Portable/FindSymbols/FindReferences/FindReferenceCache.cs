@@ -32,12 +32,12 @@ internal sealed class FindReferenceCache
         if (!s_cache.TryGetValue(document, out var cache))
         {
             // Extracted into local function to prevent captures.
-            cache = await GetOrAddCache(document, storage, cancellationToken).ConfigureAwait(false);
+            cache = await GetOrAddCacheAsync(document, storage, cancellationToken).ConfigureAwait(false);
         }
 
         return cache;
 
-        static async ValueTask<FindReferenceCache> GetOrAddCache(Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        static async ValueTask<FindReferenceCache> GetOrAddCacheAsync(Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
         {
             var cache = await ComputeCacheAsync(document, storage, cancellationToken).ConfigureAwait(false);
             return s_cache.GetValue(document, _ => cache);
@@ -56,6 +56,8 @@ internal sealed class FindReferenceCache
             // any unicode escapes in it, then we do simple string matching to find the tokens.
             var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
 
+            // Do not capture 'storage' inside FindReferenceCache.  The cache entry lives longer than the lifetime of
+            // the storage itself.
             return new(document, text, model, root, index);
         }
     }
