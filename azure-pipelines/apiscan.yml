@@ -14,6 +14,7 @@ jobs:
       displayName: 📢 collect apiscan artifact
       targetPath: $(Pipeline.Workspace)/.gdn/.r/apiscan/001/Logs
       artifactName: apiscan-logs
+      condition: succeededOrFailed()
   variables:
   - name: SymbolsFeatureName
     value: $[ dependencies.Windows.outputs['SetPipelineVariables.SymbolsFeatureName'] ]
