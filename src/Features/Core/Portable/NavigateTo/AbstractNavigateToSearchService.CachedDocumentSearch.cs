@@ -20,65 +20,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
-internal sealed class CachedIndexMap
-{
-    private readonly SemaphoreSlim _gate = new(initialCount: 1);
-
-    /// <summary>
-    /// Cached map from document key to the (potentially stale) syntax tree index for it we use prior to the full
-    /// solution becoming available.
-    /// </summary>
-    private readonly ConcurrentDictionary<DocumentKey, AsyncLazy<TopLevelSyntaxTreeIndex?>> _map = new();
-
-    /// <summary>
-    /// String table we use to dedupe common values while deserializing <see cref="SyntaxTreeIndex"/>s.
-    /// </summary>
-    private readonly StringTable _stringTable = new();
-
-    private IChecksummedPersistentStorage? _storage;
-
-    public async ValueTask InitializeAsync(
-        IChecksummedPersistentStorageService storageService, SolutionKey solutionKey, CancellationToken cancellationToken)
-    {
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            if (_storage != null)
-                return;
-
-            _storage = await storageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    ~CachedIndexMap()
-    {
-        var storage = Interlocked.Exchange(ref _storage, null);
-        storage?.Dispose();
-    }
-
-    public Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(DocumentKey documentKey, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(_storage);
-
-        if (cancellationToken.IsCancellationRequested)
-            return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
-
-        // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already
-        // present.  This ensures that subsequent searches that are run while the solution is still loading are fast
-        // and avoid the cost of loading from the persistence service every time.
-        //
-        // Pass in null for the checksum as we want to search stale index values regardless if the documents don't
-        // match on disk anymore.
-        var asyncLazy = _map.GetOrAdd(
-            documentKey,
-            documentKey => AsyncLazy.Create(static (tuple, c) =>
-                TopLevelSyntaxTreeIndex.LoadAsync(tuple._storage, tuple.documentKey, checksum: null, tuple._stringTable, c),
-                arg: (_storage, _stringTable, documentKey)));
-        return asyncLazy.GetValueAsync(cancellationToken);
-    }
-}
-
 internal abstract partial class AbstractNavigateToSearchService
 {
+    /// <summary>
+    /// Index of data used when we're doing our search of cached data.  This is used up to the point that OOP is fully
+    /// loaded and we can transition to doing normal searches on up-to-date data.  The internal data for this is
+    /// initialized the first time we do a cached search, and the entire object itself is dropped when we're done with
+    /// it.
+    /// </summary>
     private static CachedIndexMap? _cachedIndexMap_DoNotAccessDirectly = new();
 
     private static void ClearCachedData()
