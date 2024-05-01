@@ -64,40 +64,37 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         if (workingFolder == null)
             return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
 
+        ReferenceCountedDisposable<IChecksummedPersistentStorage>? storageToDispose = null;
+        IChecksummedPersistentStorage persistentStorage;
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // Do we already have storage for this?
             if (solutionKey != _currentPersistentStorage?.Target?.SolutionKey)
             {
-                // If we already had some previous cached service, let's let it start cleaning up
-                if (_currentPersistentStorage != null)
-                {
-                    var storageToDispose = _currentPersistentStorage;
-
-                    // Kick off a task to actually go dispose the previous cached storage instance.
-                    // This will remove the single ref count we ourselves added when we cached the
-                    // instance.  Then once all other existing clients who are holding onto this
-                    // instance let go, it will finally get truly disposed.
-                    // This operation is not safe to cancel (as dispose must happen).
-                    _ = Task.Run(storageToDispose.Dispose, CancellationToken.None);
-
-                    _currentPersistentStorage = null;
-                }
-
-                var storage = await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(storage);
+                // If we already had some previous cached service, grab it so we can dispose it outside the state lock.
+                storageToDispose = _currentPersistentStorage;
 
                 // Create and cache a new storage instance associated with this particular solution.
                 // It will initially have a ref-count of 1 due to our reference to it.
-                _currentPersistentStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(storage);
+                _currentPersistentStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(
+                    await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false));
             }
 
             // Now increment the reference count and return to our caller.  The current ref count for this instance will
             // be at least 2.  Until all the callers *and* us decrement the refcounts, this instance will not be
             // actually disposed.
             Contract.ThrowIfTrue(solutionKey != _currentPersistentStorage.Target.SolutionKey);
-            return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
+            persistentStorage = PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
         }
+
+        // If we replaced the last storage instance with a new one, then clear our own ref count on that storage
+        // instance by disposing it.  Note: this is not actually disposing the underlying storage instance.  This is
+        // just dropping the ref count.  Only the dispose call which actually causes the ref count to hit zero will
+        // dispose the underlying storage.
+        if (storageToDispose != null)
+            await storageToDispose.DisposeAsync().ConfigureAwait(false);
+
+        return persistentStorage;
     }
 
     private async ValueTask<IChecksummedPersistentStorage> CreatePersistentStorageAsync(
