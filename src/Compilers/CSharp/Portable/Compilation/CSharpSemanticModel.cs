@@ -3847,10 +3847,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)increment.MethodOpt == null && increment.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
-                TypeSymbol opType = increment.Operand.Type.StrippedType();
-                symbols = OneOrMany.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(opType,
+                symbols = OneOrMany.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
                                                                                           OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: increment.OperatorKind.IsChecked()),
-                                                                                          opType));
+                                                                                          increment.Type.StrippedType()));
                 resultKind = increment.ResultKind;
             }
         }

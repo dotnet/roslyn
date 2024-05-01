@@ -1421,6 +1421,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             rewrittenOperand = MakeConversionNode(rewrittenOperand, method.GetParameterType(0), @checked);
 
+            var returnType = method.ReturnType;
+            Debug.Assert((object)returnType != null);
+
             if (_inExpressionLambda)
             {
                 return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, constantValueOpt, rewrittenType);
@@ -1430,7 +1433,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: syntax,
                     rewrittenReceiver: null,
                     method: method,
-                    rewrittenArguments: ImmutableArray.Create(rewrittenOperand));
+                    rewrittenArguments: ImmutableArray.Create(rewrittenOperand),
+                    type: returnType);
 
             return MakeConversionNode(rewrittenCall, rewrittenType, @checked, markAsChecked: true);
         }

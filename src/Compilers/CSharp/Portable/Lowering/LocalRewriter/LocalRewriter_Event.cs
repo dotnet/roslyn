@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? method = node.IsAddition ? node.Event.AddMethod : node.Event.RemoveMethod;
             Debug.Assert(method is { });
-            Debug.Assert(method.ReturnType.Equals(node.Type, TypeCompareKind.AllIgnoreOptions));
-            return MakeCall(node.Syntax, rewrittenReceiverOpt, method, rewrittenArguments);
+            return MakeCall(node.Syntax, rewrittenReceiverOpt, method, rewrittenArguments, node.Type);
         }
 
         private enum EventAssignmentKind
@@ -121,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax: syntax,
                         rewrittenReceiver: null,
                         method: clearMethod,
-                        rewrittenArguments: ImmutableArray.Create<BoundExpression>(removeDelegate));
+                        rewrittenArguments: ImmutableArray.Create<BoundExpression>(removeDelegate),
+                        type: clearMethod.ReturnType);
                 }
                 else
                 {
@@ -163,7 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: syntax,
                     rewrittenReceiver: null,
                     method: marshalMethod,
-                    rewrittenArguments: marshalArguments);
+                    rewrittenArguments: marshalArguments,
+                    type: marshalMethod.ReturnType);
             }
             else
             {
