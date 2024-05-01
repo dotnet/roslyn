@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_usesInit != implementationAccessor._usesInit)
             {
-                var accessorName = _usesInit ? "init" : "get";
+                var accessorName = _usesInit ? "init" : "set";
                 diagnostics.Add(ErrorCode.ERR_PartialPropertyInitMismatch, implementationAccessor.GetFirstLocation(), implementationAccessor, accessorName);
             }
         }

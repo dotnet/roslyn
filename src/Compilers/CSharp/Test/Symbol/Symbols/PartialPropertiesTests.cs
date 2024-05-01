@@ -609,9 +609,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
             var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (4,41): error CS9306: Property accessor 'C.P.init' must be 'get' to match the definition part
+                // (4,41): error CS9306: Property accessor 'C.P.init' must be 'set' to match the definition part       
                 //     partial int P { get => throw null!; init { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyInitMismatch, "init").WithArguments("C.P.init", "get").WithLocation(4, 41)
+                Diagnostic(ErrorCode.ERR_PartialPropertyInitMismatch, "init").WithArguments("C.P.init", "set").WithLocation(4, 41)
                 );
         }
 
