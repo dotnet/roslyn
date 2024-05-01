@@ -28,7 +28,7 @@ $result = @{
 }
 
 if ($env:IsOptProf) {
-    $CoreXTPackages = "$RepoRoot/bin/Packages/$BuildConfiguration/CoreXT"
+    $VSRepoPackages = "$RepoRoot/bin/Packages/$BuildConfiguration/VSRepo"
 
     $ArtifactBasePath = "$RepoRoot\obj\_artifacts"
     $ArtifactPath = "$ArtifactBasePath\VSInsertion"
@@ -47,12 +47,12 @@ if ($env:IsOptProf) {
         # ultimately resulting in a failure of the optprof run.
         $InsertionMetadataVersion += '.' + $env:BUILD_BUILDID
     }
-    & (& "$PSScriptRoot\..\Get-NuGetTool.ps1") pack "$PSScriptRoot\..\InsertionMetadataPackage.nuspec" -OutputDirectory $CoreXTPackages -BasePath $ArtifactPath -Version $InsertionMetadataVersion | Out-Null
+    & (& "$PSScriptRoot\..\Get-NuGetTool.ps1") pack "$PSScriptRoot\..\InsertionMetadataPackage.nuspec" -OutputDirectory $VSRepoPackages -BasePath $ArtifactPath -Version $InsertionMetadataVersion | Out-Null
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
 
-    $result["$CoreXTPackages"] = (Get-ChildItem "$CoreXTPackages\LibraryName.VSInsertionMetadata.$InsertionMetadataVersion.nupkg");
+    $result["$VSRepoPackages"] = (Get-ChildItem "$VSRepoPackages\LibraryName.VSInsertionMetadata.$InsertionMetadataVersion.nupkg");
 }
 
 $result

@@ -75,7 +75,7 @@ stages:
         targetType: filePath
         filePath: $(Agent.TempDirectory)/Variables-Windows/_pipelines.ps1
     - task: NuGetCommand@2
-      displayName: Push CoreXT packages to VS feed
+      displayName: Push VS-repo packages to VS feed
       inputs:
         command: push
         packagesToPush: $(Agent.TempDirectory)/VSInsertion-Windows/*.nupkg

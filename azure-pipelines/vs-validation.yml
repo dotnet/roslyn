@@ -62,7 +62,7 @@ extends:
           artifact: VSInsertion-Windows
           displayName: 🔻 Download VSInsertion-Windows artifact
         - task: 1ES.PublishNuget@1
-          displayName: 📦 Push CoreXT packages to VS feed
+          displayName: 📦 Push VS-repo packages to VS feed
           inputs:
             packagesToPush: '$(Pipeline.Workspace)/VSInsertion-Windows/*.nupkg'
             packageParentPath: $(Pipeline.Workspace)/VSInsertion-Windows
