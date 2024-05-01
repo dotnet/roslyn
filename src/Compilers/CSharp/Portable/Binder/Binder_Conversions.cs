@@ -1126,6 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
                 {
+                    ReportMakeInvocationExpressionBadMemberKind(syntax, WellKnownMemberNames.CollectionInitializerAddMethodName, methodGroup, diagnostics);
                     addMethods = [];
                     result = false;
                 }

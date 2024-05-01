@@ -37468,7 +37468,7 @@ public class MyCollection : IEnumerable<int>
     }
 
     [Fact]
-    public void ResolveAll_CollectionExpression_ExtensionAddDelegateTypeField()
+    public void ResolveAll_CollectionExpression_ExtensionAddDelegateTypeProperty()
     {
         var source = """
 using System.Collections;
@@ -37478,7 +37478,7 @@ MyCollection c = [42];
 
 public implicit extension E for MyCollection
 {
-    public System.Action<int> Add = (int i) => { System.Console.Write("ran"); };
+    public System.Action<int> Add => (int i) => { };
 }
 
 public class MyCollection : IEnumerable<int>
@@ -37490,9 +37490,9 @@ public class MyCollection : IEnumerable<int>
         // PROTOTYPE(instance) We need to decide whether to allow this and adjust HasCollectionExpressionApplicableAddMethod and other downstream logic accordingly
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (8,31): error CS9313: 'E.Add': cannot declare instance members with state in extension types.
-            //     public System.Action<int> Add = (int i) => { System.Console.Write("ran"); };
-            Diagnostic(ErrorCode.ERR_StateInExtension, "Add").WithArguments("E.Add").WithLocation(8, 31));
+            // (4,18): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = [42];
+            Diagnostic(ErrorCode.ERR_BadSKknown, "[42]").WithArguments("Add", "property", "method").WithLocation(4, 18));
     }
 
     [Fact]
