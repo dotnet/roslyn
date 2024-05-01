@@ -3017,6 +3017,16 @@
         <target state="translated">매개 변수에 람다의 매개 변수 한정자가 있지만 대상 대리자 형식에는 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference">
+        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
+        <source>Partial property declarations have signature differences.</source>
+        <target state="new">Partial property declarations have signature differences.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
         <target state="translated">기본의 멤버가 '{0}' 기본 생성자 매개 변수를 그림자처럼 따릅니다.</target>

@@ -1336,7 +1336,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void TypeDifference_02()
         {
-            // TODO2: nullable difference warning
             var source = """
                 #nullable enable
                 partial class C
@@ -1346,10 +1345,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
                     partial string P2 { get; set; }
                     partial string? P2 { get => ""; set { } }
+
+                    partial string?[] P3 { get; set; }
+                    partial string[] P3 { get => []; set { } }
+
+                    partial string[] P4 { get; set; }
+                    partial string?[] P4 { get => []; set { } }
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS9308: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                //     partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(5, 20),
+                // (8,21): error CS9308: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                //     partial string? P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(8, 21),
+                // (11,22): error CS9308: Partial property declarations 'string?[] C.P3' and 'string[] C.P3' have signature differences.
+                //     partial string[] P3 { get => []; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P3").WithArguments("string?[] C.P3", "string[] C.P3").WithLocation(11, 22),
+                // (14,23): error CS9308: Partial property declarations 'string[] C.P4' and 'string?[] C.P4' have signature differences.
+                //     partial string?[] P4 { get => []; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P4").WithArguments("string[] C.P4", "string?[] C.P4").WithLocation(14, 23));
         }
 
         [Fact]

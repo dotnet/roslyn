@@ -2319,6 +2319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyUnexpectedAccessor = 9305,
         ERR_PartialPropertyInitMismatch = 9306,
         ERR_PartialPropertyTypeDifference = 9307,
+        WRN_PartialPropertySignatureDifference = 9308,
 
         #endregion
 

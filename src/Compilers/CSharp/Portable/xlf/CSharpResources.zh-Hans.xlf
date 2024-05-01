@@ -3017,6 +3017,16 @@
         <target state="translated">参数在 lambda 中具有参数修饰符，但在目标委托类型中没有参数修饰符。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference">
+        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
+        <source>Partial property declarations have signature differences.</source>
+        <target state="new">Partial property declarations have signature differences.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
         <target state="translated">主要构造函数参数“{0}”由基成员隐藏。</target>

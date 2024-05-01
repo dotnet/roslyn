@@ -3017,6 +3017,16 @@
         <target state="translated">Le paramètre a un modificateur de paramètres dans l’expression lambda mais pas dans le type délégué cible.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference">
+        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
+        <source>Partial property declarations have signature differences.</source>
+        <target state="new">Partial property declarations have signature differences.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
         <target state="translated">Le paramètre de constructeur principal « {0} » est ombré par un membre de la base.</target>

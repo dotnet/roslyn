@@ -588,20 +588,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)this != implementation);
             Debug.Assert((object?)this.OtherPartOfPartial == implementation);
 
-            //!!// PROTOTYPE(partial-properties): check and diagnose all disallowed differences between parts.
             if (!TypeWithAnnotations.Equals(implementation.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialPropertyTypeDifference, implementation.GetFirstLocation());
             }
-
-            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
+            else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
             }
-
-            if (RefKind != implementation.RefKind)
+            else if (RefKind != implementation.RefKind)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberRefReturnDifference, implementation.GetFirstLocation());
+            }
+            else if (!MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation)
+                // PROTOTYPE(partial-properties): test indexers with parameter name differences
+                || !Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
+            {
+                diagnostics.Add(ErrorCode.WRN_PartialPropertySignatureDifference, implementation.GetFirstLocation(),
+                    new FormattedSymbol(this, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                    new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
 
             if (IsStatic != implementation.IsStatic)
@@ -619,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.GetFirstLocation());
             }
 
-            // PROTOTYPE(partial-properties): test 'params' indexers
+            // PROTOTYPE(partial-properties): test 'params' differences in indexers
 
             if (DeclaredAccessibility != implementation.DeclaredAccessibility
                 || HasExplicitAccessModifier != implementation.HasExplicitAccessModifier)
@@ -634,6 +639,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
             }
+
+            // PROTOTYPE(partial-properties): test 'scoped' differences in indexers
 
             if (this.GetMethod is { } definitionGetAccessor && implementation.GetMethod is { } implementationGetAccessor)
             {
