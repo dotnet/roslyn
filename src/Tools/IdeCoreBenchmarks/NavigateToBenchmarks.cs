@@ -144,8 +144,7 @@ namespace IdeCoreBenchmarks
             var start = DateTime.Now;
 
             var solution = _workspace.CurrentSolution;
-            var storageService = solution.Services.GetPersistentStorageService();
-            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None).ConfigureAwait(false);
+            var storage = await solution.GetPersistentStorageAsync(CancellationToken.None).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
 
             foreach (var project in solution.Projects)
@@ -170,8 +169,7 @@ namespace IdeCoreBenchmarks
             var start = DateTime.Now;
 
             var solution = _workspace.CurrentSolution;
-            var storageService = solution.Services.GetPersistentStorageService();
-            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None).ConfigureAwait(false);
+            var storage = await solution.GetPersistentStorageAsync(CancellationToken.None).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
 
             foreach (var project in _workspace.CurrentSolution.Projects)
