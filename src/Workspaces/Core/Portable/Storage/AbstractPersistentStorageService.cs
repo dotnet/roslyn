@@ -17,18 +17,15 @@ namespace Microsoft.CodeAnalysis.Storage;
 /// A service that enables storing and retrieving of information associated with solutions,
 /// projects or documents across runtime sessions.
 /// </summary>
-internal abstract partial class AbstractPersistentStorageService : IChecksummedPersistentStorageService
+internal abstract partial class AbstractPersistentStorageService(IPersistentStorageConfiguration configuration) : IChecksummedPersistentStorageService
 {
-    protected readonly IPersistentStorageConfiguration Configuration;
+    protected readonly IPersistentStorageConfiguration Configuration = configuration;
 
     /// <summary>
     /// This lock guards all mutable fields in this type.
     /// </summary>
     private readonly SemaphoreSlim _lock = new(initialCount: 1);
     private ReferenceCountedDisposable<IChecksummedPersistentStorage>? _currentPersistentStorage;
-
-    protected AbstractPersistentStorageService(IPersistentStorageConfiguration configuration)
-        => Configuration = configuration;
 
     protected abstract string GetDatabaseFilePath(string workingFolderPath);
 
