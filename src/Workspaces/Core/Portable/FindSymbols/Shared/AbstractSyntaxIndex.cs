@@ -92,15 +92,6 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
             return index;
         }
 
-        //var disposeStorage = storage is null;
-        //try
-        //{
-        //    if (storage is null)
-        //    {
-        //        var storageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
-        //        storage = await storageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-        //    }
-
         // What we have in memory isn't valid.  Try to load from the persistence service.
         index = await LoadAsync(storage, solutionKey, project, document, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
         if (index != null || loadOnly)
@@ -113,12 +104,6 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
         await index.SaveAsync(storage, solutionKey, project, document, cancellationToken).ConfigureAwait(false);
 
         return index;
-        //}
-        //finally
-        //{
-        //    if (disposeStorage)
-        //        storage?.Dispose();
-        //}
     }
 
     private static async Task<TIndex> CreateIndexAsync(
