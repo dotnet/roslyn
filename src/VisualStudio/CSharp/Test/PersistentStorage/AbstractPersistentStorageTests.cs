@@ -24,7 +24,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
     [UseExportProvider]
-    public abstract class AbstractPersistentStorageTests : IDisposable
+    public abstract class AbstractPersistentStorageTests : IAsyncDisposable
     {
         public enum Size
         {
@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             IPersistentStorageFaultInjector? faultInjector,
             string rootFolder);
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             // This should cause the service to release the cached connection it maintains for the primary workspace
-            _storageService?.GetTestAccessor().Shutdown();
+            await (_storageService?.GetTestAccessor().ShutdownAsync() ?? Task.CompletedTask);
             _persistentFolderRoot.Dispose();
         }
 
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             // If we handed out one for a previous test, we need to shut that down first
             persistentFolder ??= _persistentFolder;
-            _storageService?.GetTestAccessor().Shutdown();
+            await (_storageService?.GetTestAccessor().ShutdownAsync() ?? Task.CompletedTask);
             var configuration = new MockPersistentStorageConfiguration(solution.Id, persistentFolder.Path, throwOnFailure);
 
             _storageService = GetStorageService(solution.Workspace.Services.SolutionServices.ExportProvider, configuration, faultInjector, _persistentFolder.Path);
@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             HostWorkspaceServices services, SolutionKey solutionKey, IPersistentStorageFaultInjector? faultInjector = null)
         {
             // If we handed out one for a previous test, we need to shut that down first
-            _storageService?.GetTestAccessor().Shutdown();
+            await (_storageService?.GetTestAccessor().ShutdownAsync() ?? Task.CompletedTask);
             var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
             _storageService = GetStorageService(services.SolutionServices.ExportProvider, configuration, faultInjector, _persistentFolder.Path);
