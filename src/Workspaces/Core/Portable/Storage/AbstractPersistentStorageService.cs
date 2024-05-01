@@ -72,27 +72,24 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         {
             // See if another thread set to the solution we care about while we were waiting on the lock.
             using var current = _currentPersistentStorage?.TryAddReference();
-            if (current != null && solutionKey == current.Target.SolutionKey)
+            if (current is null || solutionKey != current.Target.SolutionKey)
             {
-                // Success, we can use the current storage system.  Ensure we increment the reference count again, so that
-                // this stays alive for the caller when the above reference count drops.
-                return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(current);
+                // We either don't have a current storage, or the current storage was pointing at some other solution. In
+                // either case, we want to create a new storage instance and point at that.  If the current storage was
+                // point at some other solution, then lower its ref count (by calling DisposeAsync, outside of the lock) to
+                // indicate that *we* are letting go of it.
+                storageToDispose = _currentPersistentStorage;
+
+                // Create and cache a new storage instance associated with this particular solution.
+                // It will initially have a ref-count of 1 due to our reference to it.
+                _currentPersistentStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(
+                    await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false));
             }
-
-            // We either don't have a current storage, or the current storage was pointing at some other solution. In
-            // either case, we want to create a new storage instance and point at that.  If the current storage was
-            // point at some other solution, then lower its ref count (by calling DisposeAsync, outside of the lock) to
-            // indicate that *we* are letting go of it.
-            storageToDispose = _currentPersistentStorage;
-
-            // Create and cache a new storage instance associated with this particular solution.
-            // It will initially have a ref-count of 1 due to our reference to it.
-            _currentPersistentStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(
-                await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false));
 
             // Now increment the reference count and return to our caller.  The current ref count for this instance will
             // be at least 2.  Until all the callers *and* us decrement the refcounts, this instance will not be
             // actually disposed.
+            Contract.ThrowIfNull(_currentPersistentStorage);
             persistentStorage = PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
         }
 
