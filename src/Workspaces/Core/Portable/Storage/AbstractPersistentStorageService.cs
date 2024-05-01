@@ -148,11 +148,11 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         }
     }
 
-    private void Shutdown()
+    private async Task ShutdownAsync(CancellationToken cancellationToken)
     {
         ReferenceCountedDisposable<IChecksummedPersistentStorage>? storage = null;
 
-        lock (_lock)
+        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
             storage = _currentPersistentStorage;
@@ -161,7 +161,8 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
 
         // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
         // using this will still be holding a reference count.
-        storage?.Dispose();
+        if (storage != null)
+            await storage.DisposeAsync().ConfigureAwait(false);
     }
 
     internal TestAccessor GetTestAccessor()
@@ -169,8 +170,8 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
 
     internal readonly struct TestAccessor(AbstractPersistentStorageService service)
     {
-        public void Shutdown()
-            => service.Shutdown();
+        public Task ShutdownAsync()
+            => service.ShutdownAsync(CancellationToken.None);
     }
 
     /// <summary>
