@@ -54,9 +54,8 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         using var current = _currentPersistentStorage?.TryAddReference();
         if (current != null && solutionKey == current.Target.SolutionKey)
         {
-            // Success, we can use the current storage system.  Increment the reference count and return it.  Ensure we
-            // increment the reference count again, so that this stays alive for the caller when the above reference
-            // count drops.
+            // Success, we can use the current storage system.  Ensure we increment the reference count again, so that
+            // this stays alive for the caller when the above reference count drops.
             return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(current);
         }
 
