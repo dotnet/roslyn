@@ -451,8 +451,7 @@ public partial class Project
         if (!this.SupportsCompilation)
             return false;
 
-        var storageService = this.Solution.Services.GetPersistentStorageService();
-        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(this.Solution), cancellationToken).ConfigureAwait(false);
+        var storage = await this.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
         await using var _ = storage.ConfigureAwait(false);
 
         var results = await Task.WhenAll(this.Documents.Select(d => predicateAsync(d, storage))).ConfigureAwait(false);

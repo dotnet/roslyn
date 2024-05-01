@@ -738,8 +738,7 @@ internal static partial class ConflictResolver
                 return;
 
             var solution = _renameLocationSet.Solution;
-            var storageService = _renameLocationSet.Solution.Services.GetPersistentStorageService();
-            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), _cancellationToken).ConfigureAwait(false);
+            var storage = await solution.GetPersistentStorageAsync(_cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
 
             try
