@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal class FindLiteralsSearchEngine
+internal sealed class FindLiteralsSearchEngine : IAsyncDisposable
 {
     private enum SearchKind
     {
@@ -77,10 +77,8 @@ internal class FindLiteralsSearchEngine
         }
     }
 
-    ~FindLiteralsSearchEngine()
-    {
-        _storage.Dispose();
-    }
+    public ValueTask DisposeAsync()
+        => _storage.DisposeAsync();
 
     public static async Task<FindLiteralsSearchEngine> CreateAsync(
         Solution solution,

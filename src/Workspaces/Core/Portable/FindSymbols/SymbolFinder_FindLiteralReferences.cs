@@ -48,6 +48,8 @@ public static partial class SymbolFinder
         CancellationToken cancellationToken)
     {
         var engine = await FindLiteralsSearchEngine.CreateAsync(solution, progress, value, cancellationToken).ConfigureAwait(false);
+        await using var _ = engine.ConfigureAwait(false);
+
         await engine.FindReferencesAsync(cancellationToken).ConfigureAwait(false);
     }
 }
