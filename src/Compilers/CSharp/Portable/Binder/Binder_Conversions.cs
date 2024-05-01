@@ -1124,7 +1124,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
 
-                if (resolution.HasAnyErrors) // PROTOTYPE(instance) should we do anything special about extensions in this path?
+                if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
+                {
+                    addMethods = [];
+                    result = false;
+                }
+                else if (resolution.HasAnyErrors)
                 {
                     addMethods = [];
                     result = false;

@@ -37461,10 +37461,38 @@ public class MyCollection : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }
 """;
-        var comp = CreateCompilation([source, CollectionBuilderAttributeDefinition], targetFramework: TargetFramework.Net70);
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
         // PROTOTYPE(instance) execute once we can lower/emit for non-static scenarios
         //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionExpression_ExtensionAddDelegateTypeField()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42];
+
+public implicit extension E for MyCollection
+{
+    public System.Action<int> Add = (int i) => { System.Console.Write("ran"); };
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        // PROTOTYPE(instance) We need to decide whether to allow this and adjust HasCollectionExpressionApplicableAddMethod and other downstream logic accordingly
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (8,31): error CS9313: 'E.Add': cannot declare instance members with state in extension types.
+            //     public System.Action<int> Add = (int i) => { System.Console.Write("ran"); };
+            Diagnostic(ErrorCode.ERR_StateInExtension, "Add").WithArguments("E.Add").WithLocation(8, 31));
     }
 
     [Fact]
