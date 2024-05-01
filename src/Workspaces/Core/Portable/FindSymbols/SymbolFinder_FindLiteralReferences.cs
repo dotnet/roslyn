@@ -42,12 +42,12 @@ public static partial class SymbolFinder
         }
     }
 
-    internal static Task FindLiteralReferencesInCurrentProcessAsync(
+    internal static async Task FindLiteralReferencesInCurrentProcessAsync(
         object value, Solution solution,
         IStreamingFindLiteralReferencesProgress progress,
         CancellationToken cancellationToken)
     {
-        var engine = new FindLiteralsSearchEngine(solution, progress, value);
-        return engine.FindReferencesAsync(cancellationToken);
+        var engine = await FindLiteralsSearchEngine.CreateAsync(solution, progress, value, cancellationToken).ConfigureAwait(false);
+        await engine.FindReferencesAsync(cancellationToken).ConfigureAwait(false);
     }
 }

@@ -28,17 +28,17 @@ internal sealed class FieldSymbolReferenceFinder : AbstractReferenceFinder<IFiel
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IFieldSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
-        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected override ValueTask FindReferencesInDocumentAsync<TData>(

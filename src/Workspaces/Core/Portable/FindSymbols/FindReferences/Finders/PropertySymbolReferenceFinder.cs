@@ -93,27 +93,27 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
     }
 
     protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IPropertySymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
 
         if (IsForEachProperty(symbol))
-            await FindDocumentsWithForEachStatementsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            await FindDocumentsWithForEachStatementsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (symbol.IsIndexer)
-            await FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            await FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (symbol.IsIndexer)
-            await FindDocumentWithIndexerMemberCrefAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            await FindDocumentWithIndexerMemberCrefAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     private static bool IsForEachProperty(IPropertySymbol symbol)
@@ -161,17 +161,17 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
     }
 
     private static Task FindDocumentWithExplicitOrImplicitElementAccessExpressionsAsync<TData>(
-        Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        FindReferencesSearchEngine searchEngine, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
-            project, documents, static index => index.ContainsExplicitOrImplicitElementAccessExpression, processResult, processResultData, cancellationToken);
+            searchEngine, project, documents, static index => index.ContainsExplicitOrImplicitElementAccessExpression, processResult, processResultData, cancellationToken);
     }
 
     private static Task FindDocumentWithIndexerMemberCrefAsync<TData>(
-        Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        FindReferencesSearchEngine searchEngine, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
-            project, documents, static index => index.ContainsIndexerMemberCref, processResult, processResultData, cancellationToken);
+            searchEngine, project, documents, static index => index.ContainsIndexerMemberCref, processResult, processResultData, cancellationToken);
     }
 
     private static void FindIndexerReferences<TData>(

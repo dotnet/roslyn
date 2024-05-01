@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -428,29 +429,33 @@ public partial class Project
     private Task<bool> ContainsSymbolsAsync(
         Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
     {
-        return ContainsAsync(async d =>
+        return ContainsAsync(async (document, storage) =>
         {
-            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
             return predicate(index, cancellationToken);
-        });
+        }, cancellationToken);
     }
 
     private Task<bool> ContainsDeclarationAsync(
         Func<TopLevelSyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
     {
-        return ContainsAsync(async d =>
+        return ContainsAsync(async (document, storage) =>
         {
-            var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+            var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
             return predicate(index, cancellationToken);
-        });
+        }, cancellationToken);
     }
 
-    private async Task<bool> ContainsAsync(Func<Document, Task<bool>> predicateAsync)
+    private async Task<bool> ContainsAsync(Func<Document, IChecksummedPersistentStorage, Task<bool>> predicateAsync, CancellationToken cancellationToken)
     {
         if (!this.SupportsCompilation)
             return false;
 
-        var results = await Task.WhenAll(this.Documents.Select(predicateAsync)).ConfigureAwait(false);
+        var storageService = this.Solution.Services.GetPersistentStorageService();
+        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(this.Solution), cancellationToken).ConfigureAwait(false);
+        await using var _ = storage.ConfigureAwait(false);
+
+        var results = await Task.WhenAll(this.Documents.Select(d => predicateAsync(d, storage))).ConfigureAwait(false);
         return results.Any(b => b);
     }
 

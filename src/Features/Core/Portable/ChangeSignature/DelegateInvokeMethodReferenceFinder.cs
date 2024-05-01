@@ -61,13 +61,13 @@ internal class DelegateInvokeMethodReferenceFinder : AbstractReferenceFinder<IMe
     }
 
     protected override Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         foreach (var document in project.Documents)

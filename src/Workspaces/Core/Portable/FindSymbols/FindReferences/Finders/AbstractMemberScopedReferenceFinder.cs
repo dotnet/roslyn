@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,13 +26,13 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
         => true;
 
     protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         TSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         var location = symbol.Locations.FirstOrDefault();

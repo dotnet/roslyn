@@ -11,10 +11,12 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -28,7 +30,9 @@ internal partial class FindReferencesSearchEngine
     private readonly ImmutableArray<IReferenceFinder> _finders;
     private readonly IStreamingProgressTracker _progressTracker;
     private readonly IStreamingFindReferencesProgress _progress;
-    private readonly FindReferencesSearchOptions _options;
+
+    public readonly FindReferencesSearchOptions Options;
+    public readonly IChecksummedPersistentStorage Storage;
 
     private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
@@ -39,20 +43,40 @@ internal partial class FindReferencesSearchEngine
     /// </summary>
     private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new(MetadataUnifyingEquivalenceComparer.Instance);
 
-    public FindReferencesSearchEngine(
+    private FindReferencesSearchEngine(
         Solution solution,
         IImmutableSet<Document>? documents,
         ImmutableArray<IReferenceFinder> finders,
         IStreamingFindReferencesProgress progress,
-        FindReferencesSearchOptions options)
+        FindReferencesSearchOptions options,
+        IChecksummedPersistentStorage storage)
     {
         _documents = documents;
         _solution = solution;
         _finders = finders;
         _progress = progress;
-        _options = options;
+        Storage = storage;
+        Options = options;
 
         _progressTracker = progress.ProgressTracker;
+    }
+
+    ~FindReferencesSearchEngine()
+    {
+        this.Storage.Dispose();
+    }
+
+    public static async Task<FindReferencesSearchEngine> CreateAsync(
+        Solution solution,
+        IImmutableSet<Document>? documents,
+        ImmutableArray<IReferenceFinder> finders,
+        IStreamingFindReferencesProgress progress,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        var storageService = solution.Services.GetPersistentStorageService();
+        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        return new(solution, documents, finders, progress, options, storage);
     }
 
     /// <summary>
@@ -67,7 +91,7 @@ internal partial class FindReferencesSearchEngine
             // If we're an explicit invocation, just defer to the threadpool to execute all our work in parallel to get
             // things done as quickly as possible.  If we're running implicitly, then use a exclusive scheduler as
             // that's the most built-in way in the TPL to get will run things serially.
-            TaskScheduler = _options.Explicit ? TaskScheduler.Default : s_exclusiveScheduler,
+            TaskScheduler = Options.Explicit ? TaskScheduler.Default : s_exclusiveScheduler,
         };
 
     public Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)
@@ -224,10 +248,9 @@ internal partial class FindReferencesSearchEngine
                 foreach (var finder in _finders)
                 {
                     await finder.DetermineDocumentsToSearchAsync(
-                        symbol, globalAliases, project, _documents,
+                        this, symbol, globalAliases, project, _documents,
                         StandardCallbacks<Document>.AddToHashSet,
-                        foundDocuments,
-                        _options, cancellationToken).ConfigureAwait(false);
+                        foundDocuments, cancellationToken).ConfigureAwait(false);
 
                     foreach (var document in foundDocuments)
                         GetSymbolSet(documentToSymbols, document).Add(symbol);
@@ -272,7 +295,7 @@ internal partial class FindReferencesSearchEngine
         // the symbol being searched for).  As such, we're almost certainly going to have to do semantic checks
         // to now see if the candidate actually matches the symbol.  This will require syntax and semantics.  So
         // just grab those once here and hold onto them for the lifetime of this call.
-        var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
+        var cache = await FindReferenceCache.GetCacheAsync(document, this.Storage, cancellationToken).ConfigureAwait(false);
 
         // This search almost always involves trying to find the tokens matching the name of the symbol we're looking
         // for.  Get the cache ready with those tokens so that kicking of N searches to search for each symbol in
@@ -322,7 +345,7 @@ internal partial class FindReferencesSearchEngine
                         symbol, state,
                         static (loc, tuple) => tuple.onReferenceFound((tuple.group, tuple.symbol, loc.Location)),
                         (group, symbol, onReferenceFound),
-                        _options,
+                        Options,
                         cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -340,7 +363,7 @@ internal partial class FindReferencesSearchEngine
             foreach (var finder in _finders)
             {
                 var aliases = await finder.DetermineGlobalAliasesAsync(
-                    symbol, project, cancellationToken).ConfigureAwait(false);
+                    this, symbol, project, cancellationToken).ConfigureAwait(false);
                 if (aliases.Length > 0)
                     GetGlobalAliasesSet(symbolToGlobalAliases, symbol).AddRange(aliases);
             }

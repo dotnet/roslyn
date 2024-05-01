@@ -5,6 +5,7 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -26,15 +27,15 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
     }
 
     protected static async ValueTask<TIndex> GetRequiredIndexAsync(
-        SolutionKey solutionKey, ProjectState project, DocumentState document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
+        SolutionKey solutionKey, ProjectState project, DocumentState document, IndexReader read, IndexCreator create, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
     {
-        var index = await GetIndexAsync(solutionKey, project, document, read, create, cancellationToken).ConfigureAwait(false);
+        var index = await GetIndexAsync(solutionKey, project, document, read, create, storage, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(index);
         return index;
     }
 
-    protected static ValueTask<TIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
-        => GetIndexAsync(solutionKey, project, document, loadOnly: false, read, create, cancellationToken);
+    protected static ValueTask<TIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, IndexReader read, IndexCreator create, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        => GetIndexAsync(solutionKey, project, document, loadOnly: false, read, create, storage, cancellationToken);
 
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
     protected static async ValueTask<TIndex?> GetIndexAsync(
@@ -44,6 +45,7 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
         bool loadOnly,
         IndexReader read,
         IndexCreator create,
+        IChecksummedPersistentStorage storage,
         CancellationToken cancellationToken)
     {
         if (!document.SupportsSyntaxTree)
@@ -53,7 +55,7 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
         // return it with no additional work.
         if (!s_documentToIndex.TryGetValue(document, out var index))
         {
-            index = await GetIndexWorkerAsync(solutionKey, project, document, loadOnly, read, create, cancellationToken).ConfigureAwait(false);
+            index = await GetIndexWorkerAsync(solutionKey, project, document, loadOnly, read, create, storage, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
 
             if (index == null)
@@ -75,6 +77,7 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
         bool loadOnly,
         IndexReader read,
         IndexCreator create,
+        IChecksummedPersistentStorage storage,
         CancellationToken cancellationToken)
     {
         var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(project, document, cancellationToken).ConfigureAwait(false);
@@ -89,10 +92,14 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
             return index;
         }
 
-        var storageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
-
-        var storage = await storageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-        await using var _ = storage.ConfigureAwait(false);
+        //var disposeStorage = storage is null;
+        //try
+        //{
+        //    if (storage is null)
+        //    {
+        //        var storageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
+        //        storage = await storageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
+        //    }
 
         // What we have in memory isn't valid.  Try to load from the persistence service.
         index = await LoadAsync(storage, solutionKey, project, document, textChecksum, textAndDirectivesChecksum, read, cancellationToken).ConfigureAwait(false);
@@ -106,6 +113,12 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
         await index.SaveAsync(storage, solutionKey, project, document, cancellationToken).ConfigureAwait(false);
 
         return index;
+        //}
+        //finally
+        //{
+        //    if (disposeStorage)
+        //        storage?.Dispose();
+        //}
     }
 
     private static async Task<TIndex> CreateIndexAsync(

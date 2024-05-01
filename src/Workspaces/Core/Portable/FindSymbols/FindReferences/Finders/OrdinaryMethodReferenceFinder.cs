@@ -45,13 +45,13 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IMethodSymbol methodSymbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // TODO(cyrusn): Handle searching for IDisposable.Dispose (or an implementation
@@ -69,32 +69,33 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
         // searches for these, then we should find usages of 'lock(goo)' or 'synclock(goo)'
         // since they implicitly call those methods.
 
-        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(
+            searchEngine, project, documents, processResult, processResultData, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
 
         if (IsForEachMethod(methodSymbol))
-            await FindDocumentsWithForEachStatementsAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            await FindDocumentsWithForEachStatementsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (IsDeconstructMethod(methodSymbol))
-            await FindDocumentsWithDeconstructionAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            await FindDocumentsWithDeconstructionAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (IsGetAwaiterMethod(methodSymbol))
-            await FindDocumentsWithAwaitExpressionAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            await FindDocumentsWithAwaitExpressionAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
-            project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (IsAddMethod(methodSymbol))
-            await FindDocumentsWithCollectionInitializersAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            await FindDocumentsWithCollectionInitializersAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    private static Task FindDocumentsWithDeconstructionAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
-        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsDeconstruction, processResult, processResultData, cancellationToken);
+    private static Task FindDocumentsWithDeconstructionAsync<TData>(FindReferencesSearchEngine searchEngine, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(searchEngine, project, documents, static index => index.ContainsDeconstruction, processResult, processResultData, cancellationToken);
 
-    private static Task FindDocumentsWithAwaitExpressionAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
-        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsAwait, processResult, processResultData, cancellationToken);
+    private static Task FindDocumentsWithAwaitExpressionAsync<TData>(FindReferencesSearchEngine searchEngine, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(searchEngine, project, documents, static index => index.ContainsAwait, processResult, processResultData, cancellationToken);
 
-    private static Task FindDocumentsWithCollectionInitializersAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
-        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsCollectionInitializer, processResult, processResultData, cancellationToken);
+    private static Task FindDocumentsWithCollectionInitializersAsync<TData>(FindReferencesSearchEngine searchEngine, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(searchEngine, project, documents, static index => index.ContainsCollectionInitializer, processResult, processResultData, cancellationToken);
 
     private static bool IsForEachMethod(IMethodSymbol methodSymbol)
         => methodSymbol.Name is WellKnownMemberNames.GetEnumeratorMethodName or

@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,12 +26,13 @@ internal sealed class FindReferenceCache
 {
     private static readonly ConditionalWeakTable<Document, AsyncLazy<FindReferenceCache>> s_cache = new();
 
-    public static async ValueTask<FindReferenceCache> GetCacheAsync(Document document, CancellationToken cancellationToken)
+    public static async ValueTask<FindReferenceCache> GetCacheAsync(
+        Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
     {
-        var lazy = s_cache.GetValue(document, static document => AsyncLazy.Create(ComputeCacheAsync, document));
+        var lazy = s_cache.GetValue(document, document => AsyncLazy.Create(ComputeCacheAsync, document));
         return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        static async Task<FindReferenceCache> ComputeCacheAsync(Document document, CancellationToken cancellationToken)
+        async Task<FindReferenceCache> ComputeCacheAsync(Document document, CancellationToken cancellationToken)
         {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -41,7 +43,7 @@ internal sealed class FindReferenceCache
 
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
-            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
 
             return new(document, text, model, root, index);
         }

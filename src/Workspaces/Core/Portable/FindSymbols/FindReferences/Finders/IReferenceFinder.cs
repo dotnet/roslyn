@@ -25,7 +25,7 @@ internal interface IReferenceFinder
     /// in a search for <c>A.X</c> because they both end in <c>X</c>.
     /// </summary>
     Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
-        ISymbol symbol, Project project, CancellationToken cancellationToken);
+        FindReferencesSearchEngine searchEngine, ISymbol symbol, Project project, CancellationToken cancellationToken);
 
     /// <summary>
     /// Called by the find references search engine when a new symbol definition is found.
@@ -51,10 +51,11 @@ internal interface IReferenceFinder
     /// Implementations of this method must be thread-safe.
     /// </summary>
     Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         ISymbol symbol, HashSet<string>? globalAliases,
         Project project, IImmutableSet<Document>? documents,
         Action<Document, TData> processResult, TData processResultData,
-        FindReferencesSearchOptions options, CancellationToken cancellationToken);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Called by the find references search engine to determine the set of reference locations

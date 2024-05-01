@@ -29,6 +29,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -480,9 +481,14 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
 
     private static async Task AddDocumentsToUpdateForProjectAsync(Project project, ArrayBuilder<DocumentToUpdate> result, ImmutableArray<string> tupleFieldNames, CancellationToken cancellationToken)
     {
+        var solution = project.Solution;
+        var storageService = solution.Services.GetPersistentStorageService();
+        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        await using var _ = storage.ConfigureAwait(false);
+
         foreach (var document in project.Documents)
         {
-            var info = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+            var info = await document.GetSyntaxTreeIndexAsync(storage, cancellationToken).ConfigureAwait(false);
             if (info != null &&
                 info.ContainsTupleExpressionOrTupleType &&
                 InfoProbablyContainsTupleFieldNames(info, tupleFieldNames))

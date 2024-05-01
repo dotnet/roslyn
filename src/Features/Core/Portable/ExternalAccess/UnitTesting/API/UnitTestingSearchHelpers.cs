@@ -11,10 +11,12 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
@@ -163,20 +165,28 @@ internal static class UnitTestingSearchHelpers
         return result.ToImmutableAndClear();
     }
 
-    private static IAsyncEnumerable<UnitTestingDocumentSpan> GetSourceLocationsInProcessWorkerAsync(
+    private static async IAsyncEnumerable<UnitTestingDocumentSpan> GetSourceLocationsInProcessWorkerAsync(
         Project project,
         UnitTestingSearchQuery query,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        var solution = project.Solution;
+        var storageService = solution.Services.GetPersistentStorageService();
+        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        await using var _ = storage.ConfigureAwait(false);
+
         var (container, symbolName, symbolArity) = ExtractQueryData(query);
         var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
         var comparer = syntaxFacts.StringComparer;
 
-        var streams = project.Documents.SelectAsArray(d => GetSourceLocationsInProcessAsync(d, comparer, container, symbolName, symbolArity, query, cancellationToken));
-        return streams.MergeAsync(cancellationToken);
+        var streams = project.Documents.SelectAsArray(d => GetSourceLocationsInProcessAsync(storage, d, comparer, container, symbolName, symbolArity, query, cancellationToken));
+
+        await foreach (var item in streams.MergeAsync(cancellationToken))
+            yield return item;
     }
 
     private static async IAsyncEnumerable<UnitTestingDocumentSpan> GetSourceLocationsInProcessAsync(
+        IChecksummedPersistentStorage storage,
         Document document,
         StringComparer comparer,
         string container,
@@ -187,7 +197,7 @@ internal static class UnitTestingSearchHelpers
     {
         // quick check that the symbol name is actually in the bloom-filter index for this document.  Can avoid
         // checking any of the items in it if so.
-        var syntaxTreeIndex = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        var syntaxTreeIndex = await SyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
         if (!syntaxTreeIndex.ProbablyContainsIdentifier(symbolName))
             yield break;
 
@@ -197,7 +207,7 @@ internal static class UnitTestingSearchHelpers
         SyntaxTree? tree = null;
 
         // Walk each of the top-level-index infos we've got for this tree.
-        var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
         foreach (var info in index.DeclaredSymbolInfos)
         {
             // Fast checks first to see if this looks like a candidate.

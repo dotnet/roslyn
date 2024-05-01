@@ -21,12 +21,13 @@ public static partial class SymbolFinder
         {
             var streamingProgress = new StreamingProgressCollector();
 
-            var engine = new FindReferencesSearchEngine(
+            var engine = await FindReferencesSearchEngine.CreateAsync(
                 solution,
                 documents: null,
                 ReferenceFinders.DefaultRenameReferenceFinders,
                 streamingProgress,
-                FindReferencesSearchOptions.Default);
+                FindReferencesSearchOptions.Default,
+                cancellationToken).ConfigureAwait(false);
 
             await engine.FindReferencesAsync(symbols, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();

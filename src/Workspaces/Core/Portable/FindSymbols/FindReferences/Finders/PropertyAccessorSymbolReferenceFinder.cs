@@ -30,34 +30,35 @@ internal sealed class PropertyAccessorSymbolReferenceFinder : AbstractMethodOrPr
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // First, find any documents with the full name of the accessor (i.e. get_Goo).
         // This will find explicit calls to the method (which can happen when C# references
         // a VB parameterized property).
-        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
 
         if (symbol.AssociatedSymbol is IPropertySymbol property &&
-            options.AssociatePropertyReferencesWithSpecificAccessor)
+            searchEngine.Options.AssociatePropertyReferencesWithSpecificAccessor)
         {
             // we want to associate normal property references with the specific accessor being
             // referenced.  So we also need to include documents with our property's name. Just
             // defer to the Property finder to find these docs and combine them with the result.
             await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
+                searchEngine,
                 property, globalAliases, project, documents,
                 processResult, processResultData,
-                options with { AssociatePropertyReferencesWithSpecificAccessor = false },
                 cancellationToken).ConfigureAwait(false);
         }
 
-        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
+            searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected override async ValueTask FindReferencesInDocumentAsync<TData>(

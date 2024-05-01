@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -19,18 +20,18 @@ internal sealed class ConstructorInitializerSymbolReferenceFinder : AbstractRefe
         => symbol.MethodKind == MethodKind.Constructor;
 
     protected override Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        return FindDocumentsAsync(project, documents, static async (document, name, cancellationToken) =>
+        return FindDocumentsAsync(searchEngine, project, documents, static async (document, name, storage, cancellationToken) =>
         {
-            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
             if (index.ContainsBaseConstructorInitializer)
                 return true;
 

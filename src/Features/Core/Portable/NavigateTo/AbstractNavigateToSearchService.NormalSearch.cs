@@ -8,9 +8,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -47,12 +49,17 @@ internal abstract partial class AbstractNavigateToSearchService
     public static async Task SearchDocumentInCurrentProcessAsync(
         Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
     {
+        var solution = document.Project.Solution;
+        var storageService = solution.Services.GetPersistentStorageService();
+        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        await using var _ = storage.ConfigureAwait(false);
+
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         var results = new ConcurrentSet<RoslynNavigateToItem>();
         await SearchSingleDocumentAsync(
-            document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
+            storage, document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
 
         if (results.Count > 0)
             await onItemsFound(results.ToImmutableArray()).ConfigureAwait(false);
@@ -113,10 +120,19 @@ internal abstract partial class AbstractNavigateToSearchService
         // of potentially stale indices.
         ClearCachedData();
 
+        if (projects.IsEmpty)
+            return;
+
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        using var _ = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
+        using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
+
+        var solution = projects.First().Solution;
+
+        var storageService = solution.Services.GetPersistentStorageService();
+        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        await using var _2 = storage.ConfigureAwait(false);
 
         // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
         // projects with priority documents ahead of those without so we can get results for those faster.
@@ -135,7 +151,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 Prioritize(project.Documents, highPriDocs.Contains),
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(
-                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+                    storage, document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
 
             await onProjectCompleted().ConfigureAwait(false);
         }

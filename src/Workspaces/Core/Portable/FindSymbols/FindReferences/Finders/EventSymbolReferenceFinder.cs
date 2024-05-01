@@ -36,17 +36,17 @@ internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbo
     }
 
     protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IEventSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
-        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(

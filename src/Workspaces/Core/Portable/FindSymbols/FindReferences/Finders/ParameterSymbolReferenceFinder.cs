@@ -22,13 +22,13 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         => true;
 
     protected override Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IParameterSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // TODO(cyrusn): We can be smarter with parameters.  They will either be found
@@ -36,7 +36,7 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         // elsewhere as "paramName:" or "paramName:=".  We can narrow the search by
         // filtering down to matches of that form.  For now we just return any document
         // that references something with this name.
-        return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name);
+        return FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, symbol.Name);
     }
 
     protected override ValueTask FindReferencesInDocumentAsync<TData>(

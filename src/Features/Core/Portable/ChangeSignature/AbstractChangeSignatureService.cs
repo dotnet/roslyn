@@ -232,12 +232,13 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         {
             var streamingProgress = new StreamingProgressCollector();
 
-            var engine = new FindReferencesSearchEngine(
+            var engine = await FindReferencesSearchEngine.CreateAsync(
                 solution,
                 documents: null,
                 ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
                 streamingProgress,
-                FindReferencesSearchOptions.Default);
+                FindReferencesSearchOptions.Default,
+                cancellationToken).ConfigureAwait(false);
 
             await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();

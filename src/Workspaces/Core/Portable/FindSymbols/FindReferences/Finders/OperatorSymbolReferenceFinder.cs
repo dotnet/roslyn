@@ -19,21 +19,22 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
         => symbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.BuiltinOperator;
 
     protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         var op = symbol.GetPredefinedOperator();
-        await FindDocumentsAsync(project, documents, op, processResult, processResultData, cancellationToken).ConfigureAwait(false);
-        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsAsync(searchEngine, project, documents, op, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     private static Task FindDocumentsAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         Project project,
         IImmutableSet<Document>? documents,
         PredefinedOperator op,
@@ -45,7 +46,7 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
             return Task.CompletedTask;
 
         return FindDocumentsWithPredicateAsync(
-            project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, processResult, processResultData, cancellationToken);
+            searchEngine, project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, processResult, processResultData, cancellationToken);
     }
 
     protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(

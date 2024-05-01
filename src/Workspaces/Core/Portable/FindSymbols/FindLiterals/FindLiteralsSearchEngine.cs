@@ -7,10 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -28,20 +30,24 @@ internal class FindLiteralsSearchEngine
     private readonly Solution _solution;
     private readonly IStreamingFindLiteralReferencesProgress _progress;
     private readonly IStreamingProgressTracker _progressTracker;
+    private readonly IChecksummedPersistentStorage _storage;
 
     private readonly object _value;
     private readonly string? _stringValue;
     private readonly long _longValue;
     private readonly SearchKind _searchKind;
 
-    public FindLiteralsSearchEngine(
+    private FindLiteralsSearchEngine(
         Solution solution,
-        IStreamingFindLiteralReferencesProgress progress, object value)
+        IStreamingFindLiteralReferencesProgress progress,
+        object value,
+        IChecksummedPersistentStorage storage)
     {
         _solution = solution;
         _progress = progress;
         _progressTracker = progress.ProgressTracker;
         _value = value;
+        _storage = storage;
 
         switch (value)
         {
@@ -69,6 +75,22 @@ internal class FindLiteralsSearchEngine
                 _searchKind = SearchKind.NumericLiterals;
                 break;
         }
+    }
+
+    ~FindLiteralsSearchEngine()
+    {
+        _storage.Dispose();
+    }
+
+    public static async Task<FindLiteralsSearchEngine> CreateAsync(
+        Solution solution,
+        IStreamingFindLiteralReferencesProgress progress,
+        object value,
+        CancellationToken cancellationToken)
+    {
+        var storageService = solution.Services.GetPersistentStorageService();
+        var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+        return new(solution, progress, value, storage);
     }
 
     public async Task FindReferencesAsync(CancellationToken cancellationToken)
@@ -115,8 +137,7 @@ internal class FindLiteralsSearchEngine
 
     private async Task ProcessDocumentWorkerAsync(Document document, CancellationToken cancellationToken)
     {
-        var index = await SyntaxTreeIndex.GetIndexAsync(
-            document, cancellationToken).ConfigureAwait(false);
+        var index = await SyntaxTreeIndex.GetIndexAsync(document, _storage, cancellationToken).ConfigureAwait(false);
 
         Contract.ThrowIfNull(index);
         if (_searchKind == SearchKind.StringLiterals)

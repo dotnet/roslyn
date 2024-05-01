@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -13,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class DocumentExtensions
 {
-    public static async ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
+    public static async ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
     {
-        var result = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);
+        var result = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, storage, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(result);
         return result;
     }
 
-    public static ValueTask<SyntaxTreeIndex?> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
-        => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
+    public static ValueTask<SyntaxTreeIndex?> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, storage, cancellationToken);
 
     /// <summary>
     /// Returns the semantic model for this document that may be produced from partial semantics. The semantic model

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -38,6 +39,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ];
 
     private static async ValueTask SearchSingleDocumentAsync(
+        IChecksummedPersistentStorage storage,
         Document document,
         string patternName,
         string? patternContainer,
@@ -50,13 +52,13 @@ internal abstract partial class AbstractNavigateToSearchService
 
         // Get the index for the file we're searching, as well as for its linked siblings.  We'll use the latter to add
         // the information to a symbol about all the project TFMs is can be found in.
-        var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+        var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
         using var _ = ArrayBuilder<(TopLevelSyntaxTreeIndex, ProjectId)>.GetInstance(out var linkedIndices);
 
         foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
         {
             var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-            var linkedIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, cancellationToken).ConfigureAwait(false);
+            var linkedIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(linkedDocument, storage, cancellationToken).ConfigureAwait(false);
             linkedIndices.Add((linkedIndex, linkedDocumentId.ProjectId));
         }
 

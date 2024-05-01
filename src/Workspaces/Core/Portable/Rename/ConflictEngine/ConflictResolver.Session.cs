@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -729,10 +730,18 @@ internal static partial class ConflictResolver
         }
 
         private async Task AddDocumentsWithPotentialConflictsAsync(
-            IEnumerable<Document> documents,
+            ImmutableArray<Document> documents,
             HashSet<DocumentId> documentIds,
             ImmutableArray<string> possibleNameConflicts)
         {
+            if (documents.Length == 0)
+                return;
+
+            var solution = _renameLocationSet.Solution;
+            var storageService = _renameLocationSet.Solution.Services.GetPersistentStorageService();
+            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), _cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
+
             try
             {
                 foreach (var document in documents)
@@ -743,7 +752,7 @@ internal static partial class ConflictResolver
                     if (!document.SupportsSyntaxTree)
                         continue;
 
-                    var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, _cancellationToken).ConfigureAwait(false);
+                    var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, storage, _cancellationToken).ConfigureAwait(false);
                     if (info.ProbablyContainsEscapedIdentifier(_originalText))
                     {
                         documentIds.Add(document.Id);

@@ -20,9 +20,10 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
     protected override bool CanFind(INamedTypeSymbol symbol)
         => symbol.TypeKind != TypeKind.Error;
 
-    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(INamedTypeSymbol symbol, Project project, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+        FindReferencesSearchEngine searchEngine, INamedTypeSymbol symbol, Project project, CancellationToken cancellationToken)
     {
-        return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, symbol.Arity, cancellationToken);
+        return GetAllMatchingGlobalAliasNamesAsync(searchEngine, project, symbol.Name, symbol.Arity, cancellationToken);
     }
 
     protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
@@ -51,27 +52,27 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         INamedTypeSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await AddDocumentsToSearchAsync(symbol.Name, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await AddDocumentsToSearchAsync(searchEngine, symbol.Name, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         if (globalAliases != null)
         {
             foreach (var alias in globalAliases)
-                await AddDocumentsToSearchAsync(alias, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+                await AddDocumentsToSearchAsync(searchEngine, alias, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
 
         await FindDocumentsAsync(
-            project, documents, symbol.SpecialType.ToPredefinedType(), processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            searchEngine, project, documents, symbol.SpecialType.ToPredefinedType(), processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
-            project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -79,6 +80,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
     /// name of the named type we're looking for, or it might be a global alias to it.
     /// </summary>
     private static async Task AddDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         string throughName,
         Project project,
         IImmutableSet<Document>? documents,
@@ -89,10 +91,10 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
 
         await FindDocumentsAsync(
-            project, documents, processResult, processResultData, cancellationToken, throughName).ConfigureAwait(false);
+            searchEngine, project, documents, processResult, processResultData, cancellationToken, throughName).ConfigureAwait(false);
 
         if (TryGetNameWithoutAttributeSuffix(throughName, syntaxFacts, out var simpleName))
-            await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, simpleName).ConfigureAwait(false);
+            await FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, simpleName).ConfigureAwait(false);
     }
 
     private static bool IsPotentialReference(

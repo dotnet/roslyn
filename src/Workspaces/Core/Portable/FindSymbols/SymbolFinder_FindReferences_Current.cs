@@ -67,7 +67,7 @@ public static partial class SymbolFinder
         }
     }
 
-    internal static Task FindReferencesInCurrentProcessAsync(
+    internal static async Task FindReferencesInCurrentProcessAsync(
         ISymbol symbol,
         Solution solution,
         IStreamingFindReferencesProgress progress,
@@ -77,12 +77,13 @@ public static partial class SymbolFinder
     {
         var finders = ReferenceFinders.DefaultReferenceFinders;
         progress ??= NoOpStreamingFindReferencesProgress.Instance;
-        var engine = new FindReferencesSearchEngine(
-            solution, documents, finders, progress, options);
-        return engine.FindReferencesAsync(symbol, cancellationToken);
+
+        var engine = await FindReferencesSearchEngine.CreateAsync(
+            solution, documents, finders, progress, options, cancellationToken).ConfigureAwait(false);
+        await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static Task FindReferencesInDocumentsInCurrentProcessAsync(
+    internal static async Task FindReferencesInDocumentsInCurrentProcessAsync(
         ISymbol symbol,
         Solution solution,
         IStreamingFindReferencesProgress progress,
@@ -96,8 +97,8 @@ public static partial class SymbolFinder
         options = options with { UnidirectionalHierarchyCascade = true };
 
         var finders = ReferenceFinders.DefaultReferenceFinders;
-        var engine = new FindReferencesSearchEngine(
-            solution, documents, finders, progress, options);
-        return engine.FindReferencesInDocumentsAsync(symbol, documents, cancellationToken);
+        var engine = await FindReferencesSearchEngine.CreateAsync(
+            solution, documents, finders, progress, options, cancellationToken).ConfigureAwait(false);
+        await engine.FindReferencesInDocumentsAsync(symbol, documents, cancellationToken).ConfigureAwait(false);
     }
 }

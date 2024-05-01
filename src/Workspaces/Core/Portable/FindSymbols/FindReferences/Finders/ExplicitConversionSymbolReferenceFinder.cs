@@ -24,13 +24,13 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         => UnderlyingNamedTypeVisitor.Instance.Visit(symbol);
 
     protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // Look for documents that both contain an explicit cast in them as well as a reference to the type in the
@@ -47,16 +47,11 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
         Contract.ThrowIfNull(underlyingNamedType);
 
         using var _ = PooledHashSet<Document>.GetInstance(out var result);
-        await FindDocumentsAsync(project, documents, StandardCallbacks<Document>.AddToHashSet, result, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
-        await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), StandardCallbacks<Document>.AddToHashSet, result, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsAsync(searchEngine, project, documents, StandardCallbacks<Document>.AddToHashSet, result, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
+        await FindDocumentsAsync(searchEngine, project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), StandardCallbacks<Document>.AddToHashSet, result, cancellationToken).ConfigureAwait(false);
 
         // Ignore any documents that don't also have an explicit cast in them.
-        foreach (var document in result)
-        {
-            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
-            if (index.ContainsConversion)
-                processResult(document, processResultData);
-        }
+        await FindDocumentsWithPredicateAsync(searchEngine, project, documents, index => index.ContainsConversion, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(

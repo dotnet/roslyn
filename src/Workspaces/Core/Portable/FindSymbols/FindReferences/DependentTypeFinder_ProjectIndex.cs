@@ -45,6 +45,10 @@ internal static partial class DependentTypeFinder
 
         private static async Task<ProjectIndex> CreateIndexAsync(Project project, CancellationToken cancellationToken)
         {
+            var storageService = project.Solution.Services.GetPersistentStorageService();
+            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(project.Solution), cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
+
             var classesThatMayDeriveFromSystemObject = new MultiDictionary<DocumentId, DeclaredSymbolInfo>();
             var valueTypes = new MultiDictionary<DocumentId, DeclaredSymbolInfo>();
             var enums = new MultiDictionary<DocumentId, DeclaredSymbolInfo>();
@@ -67,7 +71,7 @@ internal static partial class DependentTypeFinder
             foreach (var (documentId, document) in allStates)
             {
                 var syntaxTreeIndex = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(
-                    solutionKey, project.State, document, cancellationToken).ConfigureAwait(false);
+                    solutionKey, project.State, document, storage, cancellationToken).ConfigureAwait(false);
                 foreach (var info in syntaxTreeIndex.DeclaredSymbolInfos)
                 {
                     switch (info.Kind)

@@ -38,13 +38,13 @@ internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypePar
     }
 
     protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         ITypeParameterSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // Type parameters are only found in documents that have both their name, and the name
@@ -58,7 +58,7 @@ internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypePar
         // Also, we only look for files that have the name of the owning type.  This helps filter
         // down the set considerably.
         Contract.ThrowIfNull(symbol.DeclaringMethod);
-        return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name,
+        return FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, symbol.Name,
             GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
             symbol.DeclaringMethod.ContainingType.Name);
     }

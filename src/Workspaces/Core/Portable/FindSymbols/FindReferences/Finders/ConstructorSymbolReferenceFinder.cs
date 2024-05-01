@@ -25,54 +25,56 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
     protected override bool CanFind(IMethodSymbol symbol)
         => symbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor;
 
-    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(IMethodSymbol symbol, Project project, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+        FindReferencesSearchEngine searchEngine, IMethodSymbol symbol, Project project, CancellationToken cancellationToken)
     {
         var containingType = symbol.ContainingType;
-        return GetAllMatchingGlobalAliasNamesAsync(project, containingType.Name, containingType.Arity, cancellationToken);
+        return GetAllMatchingGlobalAliasNamesAsync(searchEngine, project, containingType.Name, containingType.Arity, cancellationToken);
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         IMethodSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         var containingType = symbol.ContainingType;
         var typeName = symbol.ContainingType.Name;
 
         await AddDocumentsAsync(
-            project, documents, typeName, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            searchEngine, project, documents, typeName, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (globalAliases != null)
         {
             foreach (var globalAlias in globalAliases)
             {
                 await AddDocumentsAsync(
-                    project, documents, globalAlias, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+                    searchEngine, project, documents, globalAlias, processResult, processResultData, cancellationToken).ConfigureAwait(false);
             }
         }
 
         await FindDocumentsAsync(
-            project, documents, containingType.SpecialType.ToPredefinedType(), processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            searchEngine, project, documents, containingType.SpecialType.ToPredefinedType(), processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
-            project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (symbol.MethodKind == MethodKind.Constructor)
         {
             await FindDocumentsWithImplicitObjectCreationExpressionAsync(
-                project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+                searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private static Task FindDocumentsWithImplicitObjectCreationExpressionAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
-        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsImplicitObjectCreation, processResult, processResultData, cancellationToken);
+    private static Task FindDocumentsWithImplicitObjectCreationExpressionAsync<TData>(FindReferencesSearchEngine searchEngine, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(searchEngine, project, documents, static index => index.ContainsImplicitObjectCreation, processResult, processResultData, cancellationToken);
 
     private static async Task AddDocumentsAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         Project project,
         IImmutableSet<Document>? documents,
         string typeName,
@@ -80,10 +82,10 @@ internal class ConstructorSymbolReferenceFinder : AbstractReferenceFinder<IMetho
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, typeName).ConfigureAwait(false);
+        await FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, typeName).ConfigureAwait(false);
 
         if (TryGetNameWithoutAttributeSuffix(typeName, project.Services.GetRequiredService<ISyntaxFactsService>(), out var simpleName))
-            await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, simpleName).ConfigureAwait(false);
+            await FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, simpleName).ConfigureAwait(false);
     }
 
     private static bool IsPotentialReference(PredefinedType predefinedType, ISyntaxFactsService syntaxFacts, SyntaxToken token)

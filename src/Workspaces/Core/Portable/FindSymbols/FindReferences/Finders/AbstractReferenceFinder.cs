@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,13 +26,13 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
     public abstract Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
-        ISymbol symbol, Project project, CancellationToken cancellationToken);
+        FindReferencesSearchEngine searchEngine, ISymbol symbol, Project project, CancellationToken cancellationToken);
 
     public abstract ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
     public abstract Task DetermineDocumentsToSearchAsync<TData>(
-        ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+        FindReferencesSearchEngine searchEngine, ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken);
 
     public abstract ValueTask FindReferencesInDocumentAsync<TData>(
         ISymbol symbol, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken);
@@ -81,9 +82,10 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     }
 
     protected static async Task FindDocumentsAsync<T, TData>(
+        FindReferencesSearchEngine searchEngine,
         Project project,
         IImmutableSet<Document>? scope,
-        Func<Document, T, CancellationToken, ValueTask<bool>> predicateAsync,
+        Func<Document, T, IChecksummedPersistentStorage, CancellationToken, ValueTask<bool>> predicateAsync,
         T value,
         Action<Document, TData> processResult,
         TData processResultData,
@@ -104,7 +106,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             if (scope != null && !scope.Contains(document))
                 continue;
 
-            if (await predicateAsync(document, value, cancellationToken).ConfigureAwait(false))
+            if (await predicateAsync(document, value, searchEngine.Storage, cancellationToken).ConfigureAwait(false))
                 processResult(document, processResultData);
         }
     }
@@ -114,6 +116,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     /// values
     /// </summary>
     protected static Task FindDocumentsAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
@@ -121,7 +124,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         CancellationToken cancellationToken,
         params string[] values)
     {
-        return FindDocumentsWithPredicateAsync(project, documents, static (index, values) =>
+        return FindDocumentsWithPredicateAsync(searchEngine, project, documents, static (index, values) =>
         {
             foreach (var value in values)
             {
@@ -137,13 +140,14 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     /// Finds all the documents in the provided project that contain a global attribute in them.
     /// </summary>
     protected static Task FindDocumentsWithGlobalSuppressMessageAttributeAsync<TData>(
-        Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        FindReferencesSearchEngine searchEngine, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
-            project, documents, static index => index.ContainsGlobalSuppressMessageAttribute, processResult, processResultData, cancellationToken);
+            searchEngine, project, documents, static index => index.ContainsGlobalSuppressMessageAttribute, processResult, processResultData, cancellationToken);
     }
 
     protected static Task FindDocumentsAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         Project project,
         IImmutableSet<Document>? documents,
         PredefinedType predefinedType,
@@ -155,7 +159,10 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             return Task.CompletedTask;
 
         return FindDocumentsWithPredicateAsync(
-            project, documents, static (index, predefinedType) => index.ContainsPredefinedType(predefinedType), predefinedType, processResult, processResultData, cancellationToken);
+            searchEngine,
+            project, documents,
+            static (index, predefinedType) => index.ContainsPredefinedType(predefinedType),
+            predefinedType, processResult, processResultData, cancellationToken);
     }
 
     protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
@@ -326,6 +333,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     }
 
     protected static Task FindDocumentsWithPredicateAsync<T, TData>(
+        FindReferencesSearchEngine searchEngine,
         Project project,
         IImmutableSet<Document>? documents,
         Func<SyntaxTreeIndex, T, bool> predicate,
@@ -334,14 +342,15 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        return FindDocumentsAsync(project, documents, static async (d, t, c) =>
+        return FindDocumentsAsync(searchEngine, project, documents, static async (d, t, s, c) =>
         {
-            var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
+            var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, s, c).ConfigureAwait(false);
             return t.predicate(info, t.value);
         }, (predicate, value), processResult, processResultData, cancellationToken);
     }
 
     protected static Task FindDocumentsWithPredicateAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         Project project,
         IImmutableSet<Document>? documents,
         Func<SyntaxTreeIndex, bool> predicate,
@@ -350,6 +359,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         CancellationToken cancellationToken)
     {
         return FindDocumentsWithPredicateAsync(
+            searchEngine,
             project, documents,
             static (info, predicate) => predicate(info),
             predicate,
@@ -358,8 +368,8 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             cancellationToken);
     }
 
-    protected static Task FindDocumentsWithForEachStatementsAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
-        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsForEachStatement, processResult, processResultData, cancellationToken);
+    protected static Task FindDocumentsWithForEachStatementsAsync<TData>(FindReferencesSearchEngine searchEngine, Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(searchEngine, project, documents, static index => index.ContainsForEachStatement, processResult, processResultData, cancellationToken);
 
     /// <summary>
     /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
@@ -844,9 +854,8 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
     protected abstract bool CanFind(TSymbol symbol);
 
     protected abstract Task DetermineDocumentsToSearchAsync<TData>(
-        TSymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents,
-        Action<Document, TData> processResult, TData processResultData,
-        FindReferencesSearchOptions options, CancellationToken cancellationToken);
+        FindReferencesSearchEngine searchEngine, TSymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken);
 
     protected abstract ValueTask FindReferencesInDocumentAsync<TData>(
         TSymbol symbol, FindReferencesDocumentState state,
@@ -854,26 +863,27 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
     protected virtual Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
-        TSymbol symbol, Project project, CancellationToken cancellationToken)
+        FindReferencesSearchEngine searchEngine, TSymbol symbol, Project project, CancellationToken cancellationToken)
     {
         return SpecializedTasks.EmptyImmutableArray<string>();
     }
 
     public sealed override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
-        ISymbol symbol, Project project, CancellationToken cancellationToken)
+        FindReferencesSearchEngine searchEngine, ISymbol symbol, Project project, CancellationToken cancellationToken)
     {
         return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-            ? DetermineGlobalAliasesAsync(typedSymbol, project, cancellationToken)
+            ? DetermineGlobalAliasesAsync(searchEngine, typedSymbol, project, cancellationToken)
             : SpecializedTasks.EmptyImmutableArray<string>();
     }
 
     public sealed override Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         ISymbol symbol, HashSet<string>? globalAliases, Project project,
         IImmutableSet<Document>? documents, Action<Document, TData> processResult,
-        TData processResultData, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        TData processResultData, CancellationToken cancellationToken)
     {
         if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
-            return DetermineDocumentsToSearchAsync(typedSymbol, globalAliases, project, documents, processResult, processResultData, options, cancellationToken);
+            return DetermineDocumentsToSearchAsync(searchEngine, typedSymbol, globalAliases, project, documents, processResult, processResultData, cancellationToken);
 
         return Task.CompletedTask;
     }
@@ -913,13 +923,13 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
     }
 
     protected static async Task<ImmutableArray<string>> GetAllMatchingGlobalAliasNamesAsync(
-        Project project, string name, int arity, CancellationToken cancellationToken)
+        FindReferencesSearchEngine searchEngine, Project project, string name, int arity, CancellationToken cancellationToken)
     {
         using var result = TemporaryArray<string>.Empty;
 
         foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
         {
-            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, searchEngine.Storage, cancellationToken).ConfigureAwait(false);
             foreach (var alias in index.GetGlobalAliases(name, arity))
                 result.Add(alias);
         }

@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -30,21 +31,21 @@ internal sealed partial class SyntaxTreeIndex : AbstractSyntaxIndex<SyntaxTreeIn
         _globalAliasInfo = globalAliasInfo;
     }
 
-    public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
-        => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
+    public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, storage, cancellationToken);
 
-    public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, CancellationToken cancellationToken)
-        => GetRequiredIndexAsync(solutionKey, project, document, ReadIndex, CreateIndex, cancellationToken);
+    public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        => GetRequiredIndexAsync(solutionKey, project, document, ReadIndex, CreateIndex, storage, cancellationToken);
 
-    public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, CancellationToken cancellationToken)
-        => GetIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
+    public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        => GetIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, storage, cancellationToken);
 
-    public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, CancellationToken cancellationToken)
-        => GetIndexAsync(solutionKey, project, document, loadOnly: false, cancellationToken);
+    public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        => GetIndexAsync(solutionKey, project, document, loadOnly: false, storage, cancellationToken);
 
-    public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, bool loadOnly, CancellationToken cancellationToken)
-        => GetIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, loadOnly, cancellationToken);
+    public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, bool loadOnly, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        => GetIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, loadOnly, storage, cancellationToken);
 
-    public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, bool loadOnly, CancellationToken cancellationToken)
-        => GetIndexAsync(solutionKey, project, document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
+    public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, bool loadOnly, IChecksummedPersistentStorage storage, CancellationToken cancellationToken)
+        => GetIndexAsync(solutionKey, project, document, loadOnly, ReadIndex, CreateIndex, storage, cancellationToken);
 }

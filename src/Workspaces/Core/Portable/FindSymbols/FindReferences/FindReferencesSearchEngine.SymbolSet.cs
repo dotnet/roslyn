@@ -64,7 +64,7 @@ internal partial class FindReferencesSearchEngine
             CancellationToken cancellationToken)
         {
             var solution = engine._solution;
-            var options = engine._options;
+            var options = engine.Options;
 
             // Start by mapping the initial symbol to the appropriate source symbol in originating project if possible.
             var searchSymbols = await MapToAppropriateSymbolsAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
@@ -202,7 +202,7 @@ internal partial class FindReferencesSearchEngine
 
             foreach (var finder in engine._finders)
             {
-                var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, solution, engine._options, cancellationToken).ConfigureAwait(false);
+                var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, solution, engine.Options, cancellationToken).ConfigureAwait(false);
                 foreach (var cascade in cascaded)
                     await TryMapAndAddLinkedSymbolsAsync(cascade).ConfigureAwait(false);
             }

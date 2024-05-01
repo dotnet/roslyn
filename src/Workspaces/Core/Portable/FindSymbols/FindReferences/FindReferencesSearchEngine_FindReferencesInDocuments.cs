@@ -23,7 +23,7 @@ internal partial class FindReferencesSearchEngine
         // Caller needs to pass unidirectional cascading to make this search efficient.  If we only have
         // unidirectional cascading, then we only need to check the potential matches we find in the file against
         // the starting symbol.
-        Debug.Assert(_options.UnidirectionalHierarchyCascade);
+        Debug.Assert(Options.UnidirectionalHierarchyCascade);
 
         var unifiedSymbols = new MetadataUnifyingSymbolHashSet
         {
@@ -87,7 +87,7 @@ internal partial class FindReferencesSearchEngine
             // appropriate finders checking this document for hits.  We're likely going to need to perform syntax
             // and semantics checks in this file.  So just grab those once here and hold onto them for the lifetime
             // of this call.
-            var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
+            var cache = await FindReferenceCache.GetCacheAsync(document, this.Storage, cancellationToken).ConfigureAwait(false);
 
             foreach (var symbol in symbols)
             {
@@ -114,7 +114,7 @@ internal partial class FindReferencesSearchEngine
             foreach (var finder in _finders)
             {
                 await finder.FindReferencesInDocumentAsync(
-                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken).ConfigureAwait(false);
+                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, Options, cancellationToken).ConfigureAwait(false);
             }
 
             if (referencesForFinder.Count > 0)

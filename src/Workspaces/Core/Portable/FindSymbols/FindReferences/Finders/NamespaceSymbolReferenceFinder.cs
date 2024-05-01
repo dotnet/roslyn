@@ -19,36 +19,38 @@ internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespa
     protected override bool CanFind(INamespaceSymbol symbol)
         => true;
 
-    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(INamespaceSymbol symbol, Project project, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+        FindReferencesSearchEngine searchEngine, INamespaceSymbol symbol, Project project, CancellationToken cancellationToken)
     {
-        return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, arity: 0, cancellationToken);
+        return GetAllMatchingGlobalAliasNamesAsync(searchEngine, project, symbol.Name, arity: 0, cancellationToken);
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         INamespaceSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         if (!symbol.IsGlobalNamespace)
-            await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+            await FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
         else
-            await FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsGlobalKeyword, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            await FindDocumentsWithPredicateAsync(searchEngine, project, documents, static index => index.ContainsGlobalKeyword, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
         if (globalAliases != null)
         {
             foreach (var globalAlias in globalAliases)
             {
                 await FindDocumentsAsync(
-                    project, documents, processResult, processResultData, cancellationToken, globalAlias).ConfigureAwait(false);
+                    searchEngine, project, documents, processResult, processResultData, cancellationToken, globalAlias).ConfigureAwait(false);
             }
         }
 
-        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(
+            searchEngine, project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected override ValueTask FindReferencesInDocumentAsync<TData>(

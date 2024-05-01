@@ -79,12 +79,12 @@ internal static class RenameUtilities
             SymbolKind.Parameter;
     }
 
-    internal static IEnumerable<Document> GetDocumentsAffectedByRename(ISymbol symbol, Solution solution, IEnumerable<RenameLocation> renameLocations)
+    internal static ImmutableArray<Document> GetDocumentsAffectedByRename(ISymbol symbol, Solution solution, IEnumerable<RenameLocation> renameLocations)
     {
         if (IsSymbolDefinedInsideMethod(symbol))
         {
             // if the symbol was declared inside of a method, don't check for conflicts in non-renamed documents.
-            return renameLocations.Select(l => solution.GetRequiredDocument(l.DocumentId));
+            return renameLocations.SelectAsArray(l => solution.GetRequiredDocument(l.DocumentId));
         }
         else
         {
@@ -99,7 +99,7 @@ internal static class RenameUtilities
             {
                 var isSubset = renameLocations.Select(l => l.DocumentId.ProjectId).Distinct().Except(projectIdsOfRenameSymbolDeclaration).IsEmpty();
                 Contract.ThrowIfFalse(isSubset);
-                return projectIdsOfRenameSymbolDeclaration.SelectMany(p => solution.GetRequiredProject(p).Documents);
+                return projectIdsOfRenameSymbolDeclaration.SelectManyAsArray(p => solution.GetRequiredProject(p).Documents);
             }
             else
             {
@@ -107,7 +107,7 @@ internal static class RenameUtilities
                 // the rename symbol.  Other projects should not be affected by the rename.
                 var relevantProjects = projectIdsOfRenameSymbolDeclaration.Concat(projectIdsOfRenameSymbolDeclaration.SelectMany(p =>
                    solution.GetProjectDependencyGraph().GetProjectsThatDirectlyDependOnThisProject(p))).Distinct();
-                return relevantProjects.SelectMany(p => solution.GetRequiredProject(p).Documents);
+                return relevantProjects.SelectManyAsArray(p => solution.GetRequiredProject(p).Documents);
             }
         }
     }

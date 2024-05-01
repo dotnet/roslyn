@@ -16,13 +16,13 @@ internal sealed class TypeParameterSymbolReferenceFinder : AbstractTypeParameter
         => symbol.TypeParameterKind != TypeParameterKind.Method;
 
     protected override Task DetermineDocumentsToSearchAsync<TData>(
+        FindReferencesSearchEngine searchEngine,
         ITypeParameterSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
         Action<Document, TData> processResult,
         TData processResultData,
-        FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         // Type parameters are only found in documents that have both their name, and the
@@ -32,6 +32,6 @@ internal sealed class TypeParameterSymbolReferenceFinder : AbstractTypeParameter
         // parameter has a different name in different parts that we won't find it.  However,
         // this only happens in error situations.  It is not legal in C# to use a different
         // name for a type parameter in different parts.
-        return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name, symbol.ContainingType.Name);
+        return FindDocumentsAsync(searchEngine, project, documents, processResult, processResultData, cancellationToken, symbol.Name, symbol.ContainingType.Name);
     }
 }

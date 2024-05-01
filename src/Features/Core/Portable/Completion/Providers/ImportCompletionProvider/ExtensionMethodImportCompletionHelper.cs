@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
@@ -262,6 +263,11 @@ internal static partial class ExtensionMethodImportCompletionHelper
             var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
             var builder = new ExtensionMethodImportCompletionCacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
 
+            var solution = project.Solution;
+            var storageService = solution.Services.GetPersistentStorageService();
+            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
+
             foreach (var document in project.Documents)
             {
                 // Don't look for extension methods in generated code.
@@ -270,7 +276,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
                     continue;
                 }
 
-                var info = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+                var info = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, storage, cancellationToken).ConfigureAwait(false);
                 if (info.ContainsExtensionMethod)
                 {
                     builder.AddItem(info);
