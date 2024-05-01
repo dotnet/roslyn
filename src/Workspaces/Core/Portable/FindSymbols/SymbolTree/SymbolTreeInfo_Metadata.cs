@@ -178,15 +178,20 @@ internal partial class SymbolTreeInfo
 
             var asyncLazy = s_metadataIdToSymbolTreeInfo.GetValue(
                 metadataId,
-                metadataId => AsyncLazy.Create(static (arg, cancellationToken) =>
-                        LoadOrCreateAsync(
-                        arg.services,
-                        arg.solutionKey,
+                metadataId => AsyncLazy.Create(async static (arg, cancellationToken) =>
+                {
+                    var storageService = arg.services.GetPersistentStorageService();
+                    var storage = await storageService.GetStorageAsync(arg.solutionKey, cancellationToken).ConfigureAwait(false);
+                    await using var _ = storage.ConfigureAwait(false);
+
+                    var index = await LoadOrCreateAsync(
+                        storage,
                         arg.checksum,
                         createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, GetMetadataNoThrow(arg.reference)).Create()),
                         keySuffix: GetMetadataKeySuffix(arg.reference),
-                        cancellationToken),
-                    arg: (services, solutionKey, checksum, reference)));
+                        cancellationToken).ConfigureAwait(false);
+                    return index;
+                }, arg: (services, solutionKey, checksum, reference)));
 
             var metadataIdSymbolTreeInfo = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
@@ -233,18 +238,20 @@ internal partial class SymbolTreeInfo
     /// checksum of the <paramref name="reference"/>.  Should only be used by clients that are ok with potentially
     /// stale data.
     /// </summary>
-    public static Task<SymbolTreeInfo?> LoadAnyInfoForMetadataReferenceAsync(
+    public static async Task<SymbolTreeInfo?> LoadAnyInfoForMetadataReferenceAsync(
         Solution solution,
         PortableExecutableReference reference,
         CancellationToken cancellationToken)
     {
-        return LoadAsync(
-            solution.Services,
-            SolutionKey.ToSolutionKey(solution),
+        var storage = await solution.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = storage.ConfigureAwait(false);
+
+        return await LoadAsync(
+            storage,
             checksum: GetMetadataChecksum(solution.Services, reference, cancellationToken),
             checksumMustMatch: false,
             keySuffix: GetMetadataKeySuffix(reference),
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
     }
 
     private struct MetadataInfoCreator(

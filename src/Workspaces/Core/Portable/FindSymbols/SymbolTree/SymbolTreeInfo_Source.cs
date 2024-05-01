@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Storage;
@@ -32,18 +30,19 @@ internal partial class SymbolTreeInfo
     private static string GetSourceKeySuffix(Project project)
         => "_Source_" + project.FilePath;
 
-    public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+    public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
         Project project, Checksum checksum, CancellationToken cancellationToken)
     {
+        var storage = await project.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = storage.ConfigureAwait(false);
         var solution = project.Solution;
 
-        return LoadOrCreateAsync(
-            solution.Services,
-            SolutionKey.ToSolutionKey(solution),
+        return await LoadOrCreateAsync(
+            storage,
             checksum,
             createAsync: checksum => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
             keySuffix: GetSourceKeySuffix(project),
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -54,9 +53,11 @@ internal partial class SymbolTreeInfo
     public static async Task<SymbolTreeInfo?> LoadAnyInfoForSourceAssemblyAsync(
         Project project, CancellationToken cancellationToken)
     {
+        var storage = await project.GetPersistentStorageAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = storage.ConfigureAwait(false);
+
         return await LoadAsync(
-            project.Solution.Services,
-            SolutionKey.ToSolutionKey(project.Solution),
+            storage,
             checksum: await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false),
             checksumMustMatch: false,
             GetSourceKeySuffix(project),

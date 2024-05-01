@@ -27,8 +27,7 @@ internal partial class SymbolTreeInfo
     /// of source and metadata SymbolTreeInfos.
     /// </summary>
     private static async Task<SymbolTreeInfo> LoadOrCreateAsync(
-        SolutionServices services,
-        SolutionKey solutionKey,
+        IChecksummedPersistentStorage storage,
         Checksum checksum,
         Func<Checksum, ValueTask<SymbolTreeInfo>> createAsync,
         string keySuffix,
@@ -36,12 +35,6 @@ internal partial class SymbolTreeInfo
     {
         using (Logger.LogBlock(FunctionId.SymbolTreeInfo_TryLoadOrCreate, cancellationToken))
         {
-            // Ok, we can use persistence.  First try to load from the persistence service. The data in the
-            // persistence store must match the checksum passed in.
-            var storageService = services.GetPersistentStorageService();
-            var storage = await storageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
-
             var read = await LoadAsync(storage, checksum, checksumMustMatch: true, keySuffix, cancellationToken).ConfigureAwait(false);
             if (read != null)
             {
