@@ -44,25 +44,18 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
 
         // Without taking the lock, see if we can use the last storage system we were asked to create.  Ensure we use a
         // using so that if we don't take it we still release this reference count.
-        using var current = _currentPersistentStorage?.TryAddReference();
-        if (solutionKey == current?.Target.SolutionKey)
+        using var existing = _currentPersistentStorage?.TryAddReference();
+        if (solutionKey == existing?.Target.SolutionKey)
         {
             // Success, we can use the current storage system.  Ensure we increment the reference count again, so that
             // this stays alive for the caller when the above reference count drops.
-            return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(current);
+            return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(existing);
         }
 
         var workingFolder = Configuration.TryGetStorageLocation(solutionKey);
         if (workingFolder == null)
             return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
 
-        // Now try again, this time taking the slow path involving the lock 
-        return await GetStorageSlowAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
-    }
-
-    private async ValueTask<IChecksummedPersistentStorage> GetStorageSlowAsync(
-        SolutionKey solutionKey, string workingFolder, CancellationToken cancellationToken)
-    {
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // See if another thread set to the solution we care about while we were waiting on the lock.
