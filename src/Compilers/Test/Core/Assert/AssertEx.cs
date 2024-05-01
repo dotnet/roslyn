@@ -656,7 +656,12 @@ namespace Roslyn.Test.Utilities
                 }
                 else
                 {
-                    itemInspector = new Func<T, string>(obj => (obj != null) ? obj.ToString() : "<null>");
+                    itemInspector = static obj => obj switch
+                    {
+                        null => "<null>",
+                        string s => $@"""{s}""",
+                        _ => obj.ToString()
+                    };
                 }
             }
 

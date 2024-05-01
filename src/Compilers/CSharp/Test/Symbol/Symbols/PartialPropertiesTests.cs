@@ -1121,6 +1121,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 ], members);
         }
 
+        [Fact]
+        public void Semantics_ExtendedModifier()
+        {
+            var source = """
+                using System;
+
+                C c = new C();
+                Console.Write(c.P);
+
+                c = new D1();
+                Console.Write(c.P);
+
+                c = new D2();
+                Console.Write(c.P);
+
+                c = new D3();
+                Console.Write(c.P);
+                Console.Write(new D3().P);
+
+                partial class C
+                {
+                    public virtual partial int P { get; }
+                    public virtual partial int P => 0;
+                }
+                
+                partial class D1 : C
+                {
+                    public override partial int P { get; }
+                    public override partial int P => 1;
+                }
+                
+                partial class D2 : C
+                {
+                    public sealed override partial int P { get; }
+                    public sealed override partial int P => 2;
+                }
+                
+                partial class D3 : C
+                {
+                    public new partial int P { get; }
+                    public new partial int P => 3;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "01203");
+            verifier.VerifyDiagnostics();
+        }
+
 
         [Fact]
         public void ModifierDifference_Accessibility_Property()
@@ -1444,10 +1492,115 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 20));
         }
 
-        // PROTOTYPE(partial-properties): virtual, sealed, override, new modifier differences
+        [Fact]
+        public void ExtendedDifference_01()
+        {
+            var source = """
+                partial class C
+                {
+                    public virtual partial int P1 { get; }
+                    public partial int P1 => 1; // 1
+                    
+                    public partial int P2 { get; }
+                    public virtual partial int P2 => 1; // 2
+                }
+
+                partial class D1 : C
+                {
+                    public partial int P1 { get; } // 3
+                    public override partial int P1 => 1; // 4
+                    
+                    public override partial int P2 { get; } // 5
+                    public partial int P2 => 1; // 6
+                }
+
+                partial class D2 : C
+                {
+                    public partial int P1 { get; } // 7 
+                    public sealed override partial int P1 => 1; // 8
+                    
+                    public sealed override partial int P2 { get; } // 9
+                    public partial int P2 => 1; // 10
+                }
+
+                partial class D3 : C
+                {
+                    public sealed partial int P1 { get; } // 11, 12
+                    public override partial int P1 => 1; // 13
+                    
+                    public override partial int P2 { get; } // 14
+                    public sealed partial int P2 => 1; // 15
+                }
+
+                partial class D4 : C
+                {
+                    public partial int P1 { get; } // 16
+                    public new partial int P1 => 1; // 17
+                    
+                    public new partial int P2 { get; }
+                    public partial int P2 => 1; // 18
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public partial int P1 => 1; // 1
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(4, 24),
+                // (7,32): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public virtual partial int P2 => 1; // 2
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(7, 32),
+                // (12,24): warning CS0114: 'D1.P1' hides inherited member 'C.P1'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public partial int P1 { get; } // 3
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P1").WithArguments("D1.P1", "C.P1").WithLocation(12, 24),
+                // (13,33): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public override partial int P1 => 1; // 4
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(13, 33),
+                // (15,33): error CS0506: 'D1.P2': cannot override inherited member 'C.P2' because it is not marked virtual, abstract, or override
+                //     public override partial int P2 { get; } // 5
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "P2").WithArguments("D1.P2", "C.P2").WithLocation(15, 33),
+                // (16,24): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public partial int P2 => 1; // 6
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(16, 24),
+                // (21,24): warning CS0114: 'D2.P1' hides inherited member 'C.P1'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public partial int P1 { get; } // 7
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P1").WithArguments("D2.P1", "C.P1").WithLocation(21, 24),
+                // (22,40): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public sealed override partial int P1 => 1; // 8
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(22, 40),
+                // (24,40): error CS0506: 'D2.P2': cannot override inherited member 'C.P2' because it is not marked virtual, abstract, or override
+                //     public sealed override partial int P2 { get; } // 9
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "P2").WithArguments("D2.P2", "C.P2").WithLocation(24, 40),
+                // (25,24): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public partial int P2 => 1; // 10
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(25, 24),
+                // (30,31): warning CS0114: 'D3.P1' hides inherited member 'C.P1'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public sealed partial int P1 { get; } // 11, 12
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P1").WithArguments("D3.P1", "C.P1").WithLocation(30, 31),
+                // (30,31): error CS0238: 'D3.P1' cannot be sealed because it is not an override
+                //     public sealed partial int P1 { get; } // 11, 12
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "P1").WithArguments("D3.P1").WithLocation(30, 31),
+                // (31,33): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public override partial int P1 => 1; // 13
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(31, 33),
+                // (33,33): error CS0506: 'D3.P2': cannot override inherited member 'C.P2' because it is not marked virtual, abstract, or override
+                //     public override partial int P2 { get; } // 14
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "P2").WithArguments("D3.P2", "C.P2").WithLocation(33, 33),
+                // (34,31): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public sealed partial int P2 => 1; // 15
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(34, 31),
+                // (39,24): warning CS0114: 'D4.P1' hides inherited member 'C.P1'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                //     public partial int P1 { get; } // 16
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "P1").WithArguments("D4.P1", "C.P1").WithLocation(39, 24),
+                // (40,28): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public new partial int P1 => 1; // 17
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P1").WithLocation(40, 28),
+                // (43,24): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                //     public partial int P2 => 1; // 18
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "P2").WithLocation(43, 24));
+        }
 
         // PROTOTYPE(partial-properties): override partial property where base has modopt
-        // PROTOTYPE(partial-properties): unsafe context differences between partial property declarations
         // PROTOTYPE(partial-properties): test indexers incl parameters with attributes
         // PROTOTYPE(partial-properties): test merging property attributes
     }

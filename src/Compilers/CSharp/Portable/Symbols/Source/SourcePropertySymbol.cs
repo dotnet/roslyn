@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)this != implementation);
             Debug.Assert((object?)this.OtherPartOfPartial == implementation);
 
-            // PROTOTYPE(partial-properties): check and diagnose all disallowed differences between parts.
+            //!!// PROTOTYPE(partial-properties): check and diagnose all disallowed differences between parts.
             if (!TypeWithAnnotations.Equals(implementation.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialPropertyTypeDifference, implementation.GetFirstLocation());
