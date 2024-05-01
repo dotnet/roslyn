@@ -1169,7 +1169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             verifier.VerifyDiagnostics();
         }
 
-
         [Fact]
         public void ModifierDifference_Accessibility_Property()
         {
