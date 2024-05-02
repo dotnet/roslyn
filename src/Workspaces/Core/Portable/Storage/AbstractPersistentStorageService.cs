@@ -113,20 +113,12 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
         }
     }
 
-    private void Shutdown(CancellationToken cancellationToken)
-    {
-        using (_lock.DisposableWait(cancellationToken))
-        {
-            _solutionKeyToStorage.Clear();
-        }
-    }
-
     internal TestAccessor GetTestAccessor()
         => new(this);
 
     internal readonly struct TestAccessor(AbstractPersistentStorageService service)
     {
         public void Shutdown()
-            => service.Shutdown(CancellationToken.None);
+            => service._solutionKeyToStorage.Clear();
     }
 }
