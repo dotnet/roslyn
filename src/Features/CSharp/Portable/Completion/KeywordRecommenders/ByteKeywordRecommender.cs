@@ -22,7 +22,6 @@ internal sealed class ByteKeywordRecommender() : AbstractSpecialTypePreselecting
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsPossibleTupleContext ||
             context.IsPrimaryFunctionExpressionContext ||
             context.IsStatementContext ||
             context.IsUsingAliasTypeContext ||
