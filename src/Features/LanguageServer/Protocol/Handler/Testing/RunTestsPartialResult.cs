@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text.Json.Serialization;
-using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
 internal record RunTestsPartialResult(
     [property: JsonPropertyName("stage")] string Stage,
     [property: JsonPropertyName("message")] string Message,
-    [property: JsonPropertyName("progress"), JsonProperty(NullValueHandling = NullValueHandling.Ignore)] TestProgress? Progress
+    [property: JsonPropertyName("progress"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] TestProgress? Progress
 );
