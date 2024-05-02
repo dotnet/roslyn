@@ -1244,15 +1244,30 @@ class Program
                 // (19,19): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         Test("2", 3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(19, 19),
-                // (20,14): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (20,14): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         Test(["2", 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, @"[""2"", 3]").WithArguments("1", "collection expressions", "string").WithLocation(20, 14),
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[""2"", 3]").WithArguments("string", "0").WithLocation(20, 14),
+                // (20,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""2"", 3]").WithArguments("string", "Add").WithLocation(20, 14),
+                // (20,15): error CS0029: Cannot implicitly convert type 'string' to 'char'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "char").WithLocation(20, 15),
+                // (20,20): error CS0029: Cannot implicitly convert type 'int' to 'char'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "char").WithLocation(20, 20),
                 // (23,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         Test(3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("1", "int", "string").WithLocation(23, 14),
-                // (24,14): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (24,14): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         Test([3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[3]").WithArguments("1", "collection expressions", "string").WithLocation(24, 14),
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[3]").WithArguments("string", "0").WithLocation(24, 14),
+                // (24,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         Test([3]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[3]").WithArguments("string", "Add").WithLocation(24, 14),
+                // (24,15): error CS0029: Cannot implicitly convert type 'int' to 'char'
+                //         Test([3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "char").WithLocation(24, 15),
                 // (27,28): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         MyCollection x2 = [3];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "string").WithLocation(27, 28)
@@ -2370,9 +2385,18 @@ class Program
                 // (16,19): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 //         Test("2", 3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "3").WithArguments("2", "int", "string").WithLocation(16, 19),
-                // (17,14): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (17,14): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         Test(["2", 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, @"[""2"", 3]").WithArguments("1", "collection expressions", "string").WithLocation(17, 14)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[""2"", 3]").WithArguments("string", "0").WithLocation(17, 14),
+                // (17,14): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""2"", 3]").WithArguments("string", "Add").WithLocation(17, 14),
+                // (17,15): error CS0029: Cannot implicitly convert type 'string' to 'char'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""2""").WithArguments("string", "char").WithLocation(17, 15),
+                // (17,20): error CS0029: Cannot implicitly convert type 'int' to 'char'
+                //         Test(["2", 3]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "char").WithLocation(17, 20)
                 );
         }
 
