@@ -22,7 +22,6 @@ internal sealed class SByteKeywordRecommender() : AbstractSpecialTypePreselectin
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsGlobalStatementContext ||
             context.IsImplicitOrExplicitOperatorTypeContext ||
             context.IsIsOrAsTypeContext ||
             context.IsLocalFunctionDeclarationContext ||
