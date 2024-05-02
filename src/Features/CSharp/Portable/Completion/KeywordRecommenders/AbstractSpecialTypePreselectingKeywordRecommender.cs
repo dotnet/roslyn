@@ -43,7 +43,8 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
             context.IsImplicitOrExplicitOperatorTypeContext ||
             context.IsIsOrAsTypeContext ||
             context.IsLocalFunctionDeclarationContext ||
-            context.IsLocalVariableDeclarationContext)
+            context.IsLocalVariableDeclarationContext ||
+            context.IsObjectCreationTypeContext)
         {
             return true;
         }
