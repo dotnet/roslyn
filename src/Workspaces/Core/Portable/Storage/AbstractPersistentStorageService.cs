@@ -17,19 +17,15 @@ namespace Microsoft.CodeAnalysis.Storage;
 /// A service that enables storing and retrieving of information associated with solutions,
 /// projects or documents across runtime sessions.
 /// </summary>
-internal abstract partial class AbstractPersistentStorageService : IChecksummedPersistentStorageService
+internal abstract partial class AbstractPersistentStorageService(IPersistentStorageConfiguration configuration) : IChecksummedPersistentStorageService
 {
-    protected readonly IPersistentStorageConfiguration Configuration;
+    protected readonly IPersistentStorageConfiguration Configuration = configuration;
 
     /// <summary>
     /// This lock guards all mutable fields in this type.
     /// </summary>
     private readonly SemaphoreSlim _lock = new(initialCount: 1);
     private ReferenceCountedDisposable<IChecksummedPersistentStorage>? _currentPersistentStorage;
-    private SolutionId? _currentPersistentStorageSolutionId;
-
-    protected AbstractPersistentStorageService(IPersistentStorageConfiguration configuration)
-        => Configuration = configuration;
 
     protected abstract string GetDatabaseFilePath(string workingFolderPath);
 
@@ -41,57 +37,58 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
     protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken);
     protected abstract bool ShouldDeleteDatabase(Exception exception);
 
-    public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
+    public async ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
     {
-        return solutionKey.FilePath == null
-            ? new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure))
-            : GetStorageWorkerAsync(solutionKey, cancellationToken);
-    }
+        if (solutionKey.FilePath == null)
+            return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
 
-    internal async ValueTask<IChecksummedPersistentStorage> GetStorageWorkerAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
-    {
+        // Without taking the lock, see if we can use the last storage system we were asked to create.  Ensure we use a
+        // using so that if we don't take it we still release this reference count.
+        using var existing = _currentPersistentStorage?.TryAddReference();
+        if (solutionKey == existing?.Target.SolutionKey)
+        {
+            // Success, we can use the current storage system.  Ensure we increment the reference count again, so that
+            // this stays alive for the caller when the above reference count drops.
+            return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(existing);
+        }
+
+        var workingFolder = Configuration.TryGetStorageLocation(solutionKey);
+        if (workingFolder == null)
+            return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
+
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            // Do we already have storage for this?
-            if (solutionKey.Id == _currentPersistentStorageSolutionId)
+            // See if another thread set to the solution we care about while we were waiting on the lock.
+            using var current = _currentPersistentStorage?.TryAddReference();
+            if (solutionKey != current?.Target.SolutionKey)
             {
-                // We do, great. Increment our ref count for our caller.  They'll decrement it
-                // when done with it.
-                return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage!);
+                // We either don't have a current storage, or the current storage was pointing at some other solution. In
+                // either case, we want to create a new storage instance and point at that.  If the current storage was
+                // point at some other solution, then lower its ref count (by calling DisposeAsync, outside of the lock) to
+                // indicate that *we* are letting go of it.
+                _ = DisposeStorageAsync(_currentPersistentStorage);
+
+                // Create and cache a new storage instance associated with this particular solution.
+                // It will initially have a ref-count of 1 due to our reference to it.
+                _currentPersistentStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(
+                    await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false));
             }
 
-            var workingFolder = Configuration.TryGetStorageLocation(solutionKey);
-            if (workingFolder == null)
-                return NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure);
-
-            // If we already had some previous cached service, let's let it start cleaning up
-            if (_currentPersistentStorage != null)
-            {
-                var storageToDispose = _currentPersistentStorage;
-
-                // Kick off a task to actually go dispose the previous cached storage instance.
-                // This will remove the single ref count we ourselves added when we cached the
-                // instance.  Then once all other existing clients who are holding onto this
-                // instance let go, it will finally get truly disposed.
-                // This operation is not safe to cancel (as dispose must happen).
-                _ = Task.Run(storageToDispose.Dispose, CancellationToken.None);
-
-                _currentPersistentStorage = null;
-                _currentPersistentStorageSolutionId = null;
-            }
-
-            var storage = await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(storage);
-
-            // Create and cache a new storage instance associated with this particular solution.
-            // It will initially have a ref-count of 1 due to our reference to it.
-            _currentPersistentStorage = new ReferenceCountedDisposable<IChecksummedPersistentStorage>(storage);
-            _currentPersistentStorageSolutionId = solutionKey.Id;
-
-            // Now increment the reference count and return to our caller.  The current ref
-            // count for this instance will be 2.  Until all the callers *and* us decrement
-            // the refcounts, this instance will not be actually disposed.
+            // Now increment the reference count and return to our caller.  The current ref count for this instance will
+            // be at least 2.  Until all the callers *and* us decrement the refcounts, this instance will not be
+            // actually disposed.
+            Contract.ThrowIfNull(_currentPersistentStorage);
             return PersistentStorageReferenceCountedDisposableWrapper.AddReferenceCountToAndCreateWrapper(_currentPersistentStorage);
+        }
+
+        static async Task DisposeStorageAsync(ReferenceCountedDisposable<IChecksummedPersistentStorage>? storage)
+        {
+            if (storage != null)
+            {
+                // Intentionally yield, so we don't execute any of this code outside the outer lock.
+                await Task.Yield().ConfigureAwait(false);
+                await storage.DisposeAsync().ConfigureAwait(false);
+            }
         }
     }
 
@@ -108,7 +105,7 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         if (result != null)
             return result;
 
-        return NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure);
+        return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
     }
 
     private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(
@@ -147,21 +144,21 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
         }
     }
 
-    private void Shutdown()
+    private async Task ShutdownAsync(CancellationToken cancellationToken)
     {
         ReferenceCountedDisposable<IChecksummedPersistentStorage>? storage = null;
 
-        lock (_lock)
+        using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
             storage = _currentPersistentStorage;
             _currentPersistentStorage = null;
-            _currentPersistentStorageSolutionId = null;
         }
 
         // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
         // using this will still be holding a reference count.
-        storage?.Dispose();
+        if (storage != null)
+            await storage.DisposeAsync().ConfigureAwait(false);
     }
 
     internal TestAccessor GetTestAccessor()
@@ -169,8 +166,8 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
 
     internal readonly struct TestAccessor(AbstractPersistentStorageService service)
     {
-        public void Shutdown()
-            => service.Shutdown();
+        public Task ShutdownAsync()
+            => service.ShutdownAsync(CancellationToken.None);
     }
 
     /// <summary>
@@ -196,6 +193,9 @@ internal abstract partial class AbstractPersistentStorageService : IChecksummedP
 
         public ValueTask DisposeAsync()
             => _storage.DisposeAsync();
+
+        public SolutionKey SolutionKey
+            => _storage.Target.SolutionKey;
 
         public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
             => _storage.Target.ChecksumMatchesAsync(name, checksum, cancellationToken);

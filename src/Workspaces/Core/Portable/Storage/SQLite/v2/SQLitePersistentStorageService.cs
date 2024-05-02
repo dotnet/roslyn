@@ -89,7 +89,7 @@ internal sealed class SQLitePersistentStorageService(
         }
 
         if (solutionKey.FilePath == null)
-            return new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure));
+            return new(NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure));
 
         return new(SQLitePersistentStorage.TryCreate(
             connectionPoolService,

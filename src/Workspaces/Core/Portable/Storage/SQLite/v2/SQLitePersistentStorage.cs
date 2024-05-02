@@ -25,7 +25,6 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
 {
     private readonly CancellationTokenSource _shutdownTokenSource = new();
 
-    private readonly SolutionKey _solutionKey;
     private readonly string _solutionDirectory;
 
     private readonly SQLiteConnectionPoolService _connectionPoolService;
@@ -54,10 +53,9 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
         string databaseFile,
         IAsynchronousOperationListener asyncListener,
         IPersistentStorageFaultInjector? faultInjector)
-        : base(workingFolderPath, solutionKey.FilePath!, databaseFile)
+        : base(solutionKey, workingFolderPath, databaseFile)
     {
         Contract.ThrowIfNull(solutionKey.FilePath);
-        _solutionKey = solutionKey;
         _solutionDirectory = PathUtilities.GetDirectoryName(solutionKey.FilePath);
         _connectionPoolService = connectionPoolService;
 
