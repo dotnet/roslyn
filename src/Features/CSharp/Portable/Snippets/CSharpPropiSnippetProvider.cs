@@ -13,19 +13,17 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal class CSharpPropiSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpPropiSnippetProvider()
-    {
-    }
+using static CSharpSyntaxTokens;
 
-    public override string Identifier => "propi";
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpPropiSnippetProvider() : AbstractCSharpAutoPropertySnippetProvider
+{
+    public override string Identifier => CSharpSnippetIdentifiers.InitOnlyProperty;
 
     public override string Description => CSharpFeaturesResources.init_only_property;
 
     protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
-        => SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        => SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SemicolonToken);
 }

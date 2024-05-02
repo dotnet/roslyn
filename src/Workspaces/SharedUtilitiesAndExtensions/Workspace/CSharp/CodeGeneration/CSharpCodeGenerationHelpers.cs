@@ -19,6 +19,9 @@ using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal static class CSharpCodeGenerationHelpers
 {
     public static TDeclarationSyntax ConditionallyAddFormattingAnnotationTo<TDeclarationSyntax>(
@@ -44,24 +47,24 @@ internal static class CSharpCodeGenerationHelpers
         switch (accessibility)
         {
             case Accessibility.Public:
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+                tokens.Add(PublicKeyword);
                 break;
             case Accessibility.Protected:
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                tokens.Add(ProtectedKeyword);
                 break;
             case Accessibility.Private:
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+                tokens.Add(PrivateKeyword);
                 break;
             case Accessibility.ProtectedAndInternal:
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                tokens.Add(PrivateKeyword);
+                tokens.Add(ProtectedKeyword);
                 break;
             case Accessibility.Internal:
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
+                tokens.Add(InternalKeyword);
                 break;
             case Accessibility.ProtectedOrInternal:
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword));
+                tokens.Add(ProtectedKeyword);
+                tokens.Add(InternalKeyword);
                 break;
         }
     }
@@ -94,7 +97,7 @@ internal static class CSharpCodeGenerationHelpers
                     var text = t1.ToString();
                     if (!text.EndsWith(MultiLineCommentTerminator, StringComparison.Ordinal))
                     {
-                        return SyntaxFactory.SyntaxTrivia(SyntaxKind.MultiLineCommentTrivia, text + MultiLineCommentTerminator);
+                        return SyntaxTrivia(SyntaxKind.MultiLineCommentTrivia, text + MultiLineCommentTerminator);
                     }
                 }
                 else if (t1.Kind() == SyntaxKind.SkippedTokensTrivia)
@@ -115,10 +118,10 @@ internal static class CSharpCodeGenerationHelpers
 
         var tokens = syntax.Tokens;
 
-        var updatedTokens = SyntaxFactory.TokenList(tokens.Select(ReplaceUnterminatedConstruct));
+        var updatedTokens = TokenList(tokens.Select(ReplaceUnterminatedConstruct));
         var updatedSyntax = syntax.WithTokens(updatedTokens);
 
-        return SyntaxFactory.Trivia(updatedSyntax);
+        return Trivia(updatedSyntax);
     }
 
     private static SyntaxToken ReplaceUnterminatedConstruct(SyntaxToken token)
@@ -129,7 +132,7 @@ internal static class CSharpCodeGenerationHelpers
             if (tokenText.Length <= 2 || tokenText.Last() != '"')
             {
                 tokenText += '"';
-                return SyntaxFactory.Literal(token.LeadingTrivia, tokenText, token.ValueText, token.TrailingTrivia);
+                return Literal(token.LeadingTrivia, tokenText, token.ValueText, token.TrailingTrivia);
             }
         }
         else if (token.IsRegularStringLiteral())
@@ -138,7 +141,7 @@ internal static class CSharpCodeGenerationHelpers
             if (tokenText.Length <= 1 || tokenText.Last() != '"')
             {
                 tokenText += '"';
-                return SyntaxFactory.Literal(token.LeadingTrivia, tokenText, token.ValueText, token.TrailingTrivia);
+                return Literal(token.LeadingTrivia, tokenText, token.ValueText, token.TrailingTrivia);
             }
         }
 
@@ -182,7 +185,7 @@ internal static class CSharpCodeGenerationHelpers
 
         if (index != 0 && declarationList[index - 1].ContainsDiagnostics && AreBracesMissing(declarationList[index - 1]))
         {
-            return declarationList.Insert(index, declaration.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+            return declarationList.Insert(index, declaration.WithLeadingTrivia(ElasticCarriageReturnLineFeed));
         }
 
         return declarationList.Insert(index, declaration);
@@ -217,7 +220,7 @@ internal static class CSharpCodeGenerationHelpers
             return null;
         }
 
-        return SyntaxFactory.ExplicitInterfaceSpecifier(name);
+        return ExplicitInterfaceSpecifier(name);
     }
 
     public static CodeGenerationDestination GetDestination(SyntaxNode destination)
@@ -253,8 +256,8 @@ internal static class CSharpCodeGenerationHelpers
         }
 
         var result = TryGetDocumentationComment(symbol, "///", out var comment, cancellationToken)
-            ? node.WithPrependedLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(comment))
-                  .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
+            ? node.WithPrependedLeadingTrivia(ParseLeadingTrivia(comment))
+                  .WithPrependedLeadingTrivia(ElasticMarker)
             : node;
         return result;
     }

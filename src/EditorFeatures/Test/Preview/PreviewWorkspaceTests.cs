@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
             var persistentService = previewWorkspace.Services.SolutionServices.GetPersistentStorageService();
 
-            await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
+            var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 

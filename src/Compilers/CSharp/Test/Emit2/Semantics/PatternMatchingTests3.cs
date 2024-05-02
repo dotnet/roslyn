@@ -1393,7 +1393,7 @@ public static class C {
     }
 }";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (4,19): warning CS8618: Non-nullable field 'o' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,19): warning CS8618: Non-nullable field 'o' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     static object o;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "o").WithArguments("field", "o").WithLocation(4, 19),
                 // (4,19): warning CS0649: Field 'C.o' is never assigned to, and will always have its default value null
@@ -6420,39 +6420,25 @@ class C
 {{
     static void Main()
     {{
-        M1(41);
-        M1(42);
-        M1(43);
-        WriteLine(M2(41));
-        WriteLine(M2(42));
-        WriteLine(M2(43));
+        object o = 42;
+        M(o);
     }}
-    static void M1(object o)
+    static void M(object o)
     {{
         if ({pattern}) return;
         WriteLine(o);
     }}
-    static bool M2(object o)
-    {{
-        return ({pattern});
-    }}
 }}";
-            string expectedOutput = """
-41
-42
-False
-False
-True
-""";
-            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            verifier.VerifyIL("C.M1",
+            var verifier = CompileAndVerify(source, expectedOutput: "42");
+            verifier.VerifyIL("C.M",
 @"{
-  // Code size       30 (0x1e)
+  // Code size       39 (0x27)
   .maxstack  2
-  .locals init (int V_0)
+  .locals init (int V_0,
+                bool V_1)
   IL_0000:  ldarg.0
   IL_0001:  isinst     ""int""
-  IL_0006:  brfalse.s  IL_0016
+  IL_0006:  brfalse.s  IL_001a
   IL_0008:  ldarg.0
   IL_0009:  unbox.any  ""int""
   IL_000e:  stloc.0
@@ -6460,32 +6446,18 @@ True
   IL_0010:  ldc.i4.s   41
   IL_0012:  sub
   IL_0013:  ldc.i4.1
-  IL_0014:  ble.un.s   IL_0017
-  IL_0016:  ret
-  IL_0017:  ldarg.0
-  IL_0018:  call       ""void System.Console.WriteLine(object)""
-  IL_001d:  ret
-}");
-            verifier.VerifyIL("C.M2",
-@"{
-  // Code size       26 (0x1a)
-  .maxstack  2
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""int""
-  IL_0006:  brfalse.s  IL_0018
-  IL_0008:  ldarg.0
-  IL_0009:  unbox.any  ""int""
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  ldc.i4.s   41
-  IL_0012:  sub
-  IL_0013:  ldc.i4.1
-  IL_0014:  bgt.un.s   IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldc.i4.1
-  IL_0019:  ret
+  IL_0014:  bgt.un.s   IL_001a
+  IL_0016:  ldc.i4.1
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_001c
+  IL_001a:  ldc.i4.0
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brtrue.s   IL_0020
+  IL_001f:  ret
+  IL_0020:  ldarg.0
+  IL_0021:  call       ""void System.Console.WriteLine(object)""
+  IL_0026:  ret
 }");
         }
 

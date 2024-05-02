@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -124,7 +125,7 @@ internal partial class StreamingFindUsagesPresenter
              bool includeKindColumn,
              IThreadingContext threadingContext)
         {
-            presenter.AssertIsForeground();
+            presenter.ThreadingContext.ThrowIfNotOnUIThread();
 
             Presenter = presenter;
             _findReferencesWindow = findReferencesWindow;
@@ -206,7 +207,7 @@ internal partial class StreamingFindUsagesPresenter
 
         private void OnFindReferencesWindowClosed(object sender, EventArgs e)
         {
-            Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
             CancelSearch();
 
             _findReferencesWindow.Closed -= OnFindReferencesWindowClosed;
@@ -215,13 +216,13 @@ internal partial class StreamingFindUsagesPresenter
 
         private void OnTableControlGroupingsChanged(object sender, EventArgs e)
         {
-            Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
             UpdateGroupingByDefinition();
         }
 
         private void UpdateGroupingByDefinition()
         {
-            Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
             var changed = DetermineCurrentGroupingByDefinitionState();
 
             if (changed)
@@ -241,7 +242,7 @@ internal partial class StreamingFindUsagesPresenter
 
         private bool DetermineCurrentGroupingByDefinitionState()
         {
-            Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
 
             var definitionColumn = _findReferencesWindow.GetDefinitionColumn();
 
@@ -256,7 +257,7 @@ internal partial class StreamingFindUsagesPresenter
 
         private void CancelSearch()
         {
-            Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
 
             // Cancel any in flight find work that is going on. Note: disposal happens in our own
             // implementation of IDisposable.Dispose.
@@ -265,7 +266,7 @@ internal partial class StreamingFindUsagesPresenter
 
         public void Clear()
         {
-            this.Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
 
             // Stop all existing work.
             this.CancelSearch();
@@ -301,7 +302,7 @@ internal partial class StreamingFindUsagesPresenter
 
         public IDisposable Subscribe(ITableDataSink sink)
         {
-            Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
 
             Debug.Assert(_tableDataSink == null);
             _tableDataSink = sink;
@@ -591,7 +592,7 @@ internal partial class StreamingFindUsagesPresenter
 
         void IDisposable.Dispose()
         {
-            this.Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
 
             // VS is letting go of us.  i.e. because a new FAR call is happening, or because
             // of some other event (like the solution being closed).  Remove us from the set

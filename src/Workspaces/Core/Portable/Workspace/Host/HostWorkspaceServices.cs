@@ -87,10 +87,7 @@ public abstract class HostWorkspaceServices
     /// <summary>
     /// A list of language names for supported language services.
     /// </summary>
-    public virtual IEnumerable<string> SupportedLanguages
-    {
-        get { return SpecializedCollections.EmptyEnumerable<string>(); }
-    }
+    public virtual IEnumerable<string> SupportedLanguages => [];
 
     /// <summary>
     /// Returns true if the language is supported.

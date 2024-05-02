@@ -27,7 +27,7 @@ internal static class MefHostServicesHelpers
             }
         }
 
-        return assemblies.ToImmutableArray();
+        return [.. assemblies];
     }
 
     private static Assembly TryLoadNearbyAssembly(string assemblySimpleName)

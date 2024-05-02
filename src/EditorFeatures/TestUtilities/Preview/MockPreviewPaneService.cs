@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
         public object GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContents)
         {
-            var contents = previewContents ?? SpecializedCollections.EmptyEnumerable<object>();
+            var contents = previewContents ?? [];
 
             foreach (var content in contents.OfType<IDisposable>())
             {

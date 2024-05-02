@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
         public virtual Task InitializeAsync()
         {
-            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MscorlibRef_v46, "mscorlib.v4_6_1038_0.dll", ImmutableArray.Create(Net461.References.mscorlib.ImageBytes));
-            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRef_v46, "System.v4_6_1038_0.dll", ImmutableArray.Create(Net461.References.System.ImageBytes));
-            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemCoreRef_v46, "System.Core.v4_6_1038_0.dll", ImmutableArray.Create(Net461.References.SystemCore.ImageBytes));
+            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MscorlibRef_v46, "mscorlib.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.mscorlib.ImageBytes));
+            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRef_v46, "System.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.System.ImageBytes));
+            AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemCoreRef_v46, "System.Core.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.SystemCore.ImageBytes));
             AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.ValueTupleRef, "System.ValueTuple.dll", ImmutableArray.Create(TestResources.NetFX.ValueTuple.tuplelib));
             AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRuntimeFacadeRef, "System.Runtime.dll", ImmutableArray.Create(TestMetadata.ResourcesNet451.SystemRuntime));
             AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MsvbRef, "Microsoft.VisualBasic.dll", ImmutableArray.Create(TestMetadata.ResourcesNet451.MicrosoftVisualBasic));
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
         internal static async Task GenerateAndVerifySourceAsync(
             string metadataSource, string symbolName, string projectLanguage, string expected, bool signaturesOnly = true, bool includeXmlDocComments = false, string languageVersion = null, string metadataLanguageVersion = null, string metadataCommonReferences = null)
         {
-            using var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion, metadataCommonReferences: metadataCommonReferences);
+            using var context = TestContext.Create(projectLanguage, [metadataSource], includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion, metadataCommonReferences: metadataCommonReferences);
             await context.GenerateAndVerifySourceAsync(symbolName, expected, signaturesOnly: signaturesOnly);
         }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             var metadataSource = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C { }";
             var symbolName = "C";
 
-            using var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource));
+            using var context = TestContext.Create(projectLanguage, [metadataSource]);
             var metadataSymbol = await context.ResolveSymbolAsync(symbolName);
             var metadataSymbolId = metadataSymbol.GetSymbolKey();
             var generatedFile = await context.GenerateSourceAsync(symbolName);

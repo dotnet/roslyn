@@ -147,7 +147,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             itemListBuilder.Add(item);
         }
 
-        return itemListBuilder.ToImmutable();
+        return itemListBuilder.ToImmutableAndClear();
     }
 
     protected static bool TryFindFirstSymbolMatchesTargetTypes(
@@ -277,7 +277,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
         return CreateItems(
-            completionContext, symbolToContextMap.Keys.ToImmutableArray(), symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects);
+            completionContext, [.. symbolToContextMap.Keys], symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects);
     }
 
     protected virtual bool IsExclusive()
@@ -337,7 +337,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
                 perContextSymbols.Add((relatedDocumentId, syntaxContext, symbols));
         }
 
-        return perContextSymbols.ToImmutable();
+        return perContextSymbols.ToImmutableAndClear();
     }
 
     /// <summary>

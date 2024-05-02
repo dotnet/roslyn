@@ -20,6 +20,6 @@ internal static class IntervalTree
     public static IntervalTree<T> Create<T, TIntrospector>(in TIntrospector introspector, IEnumerable<T> values = null)
         where TIntrospector : struct, IIntervalIntrospector<T>
     {
-        return IntervalTree<T>.Create(in introspector, values ?? SpecializedCollections.EmptyEnumerable<T>());
+        return IntervalTree<T>.Create(in introspector, values ?? []);
     }
 }

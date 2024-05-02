@@ -47,6 +47,9 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
         protected override SpanTrackingMode SpanTrackingMode
             => _callback.SpanTrackingMode;
 
+        protected override bool SupportsFrozenPartialSemantics
+            => _callback.SupportsFrozenPartialSemantics;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
             => _callback.CreateEventSource(textView, subjectBuffer);
 
@@ -70,14 +73,14 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
                 // above/below tagger should tag nothing.
                 return _viewPortToTag == ViewPortToTag.InView
                     ? base.GetSpansToTag(textView, subjectBuffer)
-                    : SpecializedCollections.EmptyEnumerable<SnapshotSpan>();
+                    : [];
             }
 
             var visibleSpan = visibleSpanOpt.Value;
 
             // If we're the 'InView' tagger, tag what was visible. 
             if (_viewPortToTag is ViewPortToTag.InView)
-                return SpecializedCollections.SingletonEnumerable(visibleSpan);
+                return [visibleSpan];
 
             // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
             // subtract out the visible range.

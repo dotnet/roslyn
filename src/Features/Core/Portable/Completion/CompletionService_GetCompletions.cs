@@ -137,13 +137,13 @@ public abstract partial class CompletionService
                         var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.Services, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
 
                         Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
-                        return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
+                        return triggeredProviders.IsEmpty ? [.. providers] : triggeredProviders;
                     }
 
                     return [];
 
                 default:
-                    return providers.ToImmutableArray();
+                    return [.. providers];
             }
         }
 

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 .Order()
                 .ToImmutableArray();
 
-            AllTokenTypes = SemanticTokenTypes.AllTypes.Concat(customTokenTypes).ToImmutableArray();
+            AllTokenTypes = [.. SemanticTokenTypes.AllTypes, .. customTokenTypes];
 
             var tokenTypeToIndex = new Dictionary<string, int>();
 

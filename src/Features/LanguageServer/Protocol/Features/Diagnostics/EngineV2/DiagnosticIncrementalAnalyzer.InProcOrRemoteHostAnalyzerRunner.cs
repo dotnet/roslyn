@@ -50,12 +50,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectAsync(
             Project project,
             CompilationWithAnalyzers compilationWithAnalyzers,
-            bool forceExecuteAllAnalyzers,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
             => AnalyzeAsync(documentAnalysisScope: null, project, compilationWithAnalyzers,
-                isExplicit: false, forceExecuteAllAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+                isExplicit: false, forceExecuteAllAnalyzers: true, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(
             DocumentAnalysisScope? documentAnalysisScope,
@@ -214,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 documentAnalysisScope?.Span,
                 documentAnalysisScope?.Kind,
                 project.Id,
-                analyzerMap.Keys.ToArray(),
+                [.. analyzerMap.Keys],
                 ideOptions,
                 isExplicit);
 

@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ServiceHub.Framework;
+using Nerdbank.Streams;
 using StreamJsonRpc;
 using static Microsoft.ServiceHub.Framework.ServiceJsonRpcDescriptor;
 
@@ -71,6 +72,10 @@ internal static class BrokeredServiceDescriptors
     public static readonly ServiceRpcDescriptor SolutionSnapshotProvider = CreateClientServiceDescriptor("SolutionSnapshotProvider", new Version(0, 1));
     public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadService = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor HotReloadSessionNotificationService = CreateDebuggerServiceDescriptor("HotReloadSessionNotificationService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor ManagedHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("ManagedHotReloadAgentManagerService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor HotReloadOptionService = CreateDebuggerClientServiceDescriptor("HotReloadOptionService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor MauiLaunchCustomizerService = CreateMauiServiceDescriptor("MauiLaunchCustomizerService", new Version(0, 1));
 
     public static ServiceMoniker CreateMoniker(string namespaceName, string componentName, string serviceName, Version? version)
         => new(namespaceName + "." + componentName + "." + serviceName, version);
@@ -93,6 +98,22 @@ internal static class BrokeredServiceDescriptors
     /// </summary>
     public static ServiceJsonRpcDescriptor CreateDebuggerServiceDescriptor(string serviceName, Version? version = null)
         => CreateDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version));
+
+    /// <summary>
+    /// Descriptor for services proferred by the debugger server (implemented in TypeScript).
+    /// </summary>
+    public static ServiceJsonRpcDescriptor CreateDebuggerClientServiceDescriptor(string serviceName, Version? version = null)
+        => new ClientServiceDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version), clientInterface: null)
+           .WithExceptionStrategy(ExceptionProcessing.ISerializable);
+
+    /// <summary>
+    /// Descriptor for services proferred by the MAUI extension (implemented in TypeScript).
+    /// </summary>
+    public static ServiceJsonRpcDescriptor CreateMauiServiceDescriptor(string serviceName, Version? version)
+        => new ServiceJsonRpcDescriptor(CreateMoniker(VisualStudioComponentNamespace, "Maui", serviceName, version), clientInterface: null,
+            Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader,
+            new MultiplexingStream.Options { ProtocolMajorVersion = 3 })
+           .WithExceptionStrategy(ExceptionProcessing.ISerializable);
 
     private static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker moniker)
         => new ServiceJsonRpcDescriptor(moniker, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader)

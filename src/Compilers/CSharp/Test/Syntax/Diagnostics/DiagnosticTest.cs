@@ -436,6 +436,7 @@ class X
                         case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
                         case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
                         case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+                        case ErrorCode.INF_TooManyBoundLambdas:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

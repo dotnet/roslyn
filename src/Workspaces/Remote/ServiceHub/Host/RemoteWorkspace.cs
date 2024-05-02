@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -24,12 +25,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Guards updates to all mutable state in this workspace.
         /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
-
-        /// <summary>
-        /// Used to make sure we never move remote workspace backward. this version is the WorkspaceVersion of primary
-        /// solution in client (VS) we are currently caching.
-        /// </summary>
-        private int _currentRemoteWorkspaceVersion = -1;
 
         // internal for testing purposes.
         internal RemoteWorkspace(HostServices hostServices)
@@ -52,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// them to be pre-populated for feature requests that come in soon after this call completes.
         /// </summary>
         public async Task UpdatePrimaryBranchSolutionAsync(
-            AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
+            AssetProvider assetProvider, Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             // See if the current snapshot we're pointing at is the same one the host wants us to sync to.  If so, we
             // don't need to do anything.
@@ -65,7 +60,6 @@ namespace Microsoft.CodeAnalysis.Remote
             await RunWithSolutionAsync(
                 assetProvider,
                 solutionChecksum,
-                workspaceVersion,
                 updatePrimaryBranch: true,
                 implementation: static _ => ValueTaskFactory.FromResult(false),
                 cancellationToken).ConfigureAwait(false);
@@ -90,13 +84,12 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
+            return RunWithSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, implementation, cancellationToken);
         }
 
         private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            int workspaceVersion,
             bool updatePrimaryBranch,
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
@@ -131,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     try
                     {
                         inFlightSolution = GetOrCreateSolutionAndAddInFlightCount_NoLock(
-                            assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch);
+                            assetProvider, solutionChecksum, updatePrimaryBranch);
                         solutionTask = inFlightSolution.PreferredSolutionTask_NoLock;
 
                         // We must have at least 1 for the in-flight-count (representing this current in-flight call).
@@ -262,40 +255,23 @@ namespace Microsoft.CodeAnalysis.Remote
         private Solution CreateSolutionFromInfo(SolutionInfo solutionInfo)
         {
             var solution = this.CreateSolution(solutionInfo);
-            foreach (var projectInfo in solutionInfo.Projects)
-                solution = solution.AddProject(projectInfo);
-            return solution;
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionInfo.Projects.Count, out var projectInfos);
+            projectInfos.AddRange(solutionInfo.Projects);
+
+            // Add in one operation, avoiding intermediary forking of the solution.
+            return solution.AddProjects(projectInfos);
         }
 
         /// <summary>
-        /// Attempts to update this workspace with the given <paramref name="newSolution"/>.  If this succeeds, <see
-        /// langword="true"/> will be returned in the tuple result as well as the actual solution that the workspace is
-        /// updated to point at.  If we cannot update this workspace, then <see langword="false"/> will be returned,
-        /// along with the solution passed in.  The only time the solution can not be updated is if it would move <see
-        /// cref="_currentRemoteWorkspaceVersion"/> backwards.
+        /// Updates this workspace with the given <paramref name="newSolution"/>.  The solution returned is the actual
+        /// one the workspace now points to.
         /// </summary>
-        private async Task<Solution> TryUpdateWorkspaceCurrentSolutionAsync(
-            int workspaceVersion,
-            Solution newSolution,
-            CancellationToken cancellationToken)
-        {
-            var (solution, _) = await TryUpdateWorkspaceCurrentSolutionWorkerAsync(workspaceVersion, newSolution, cancellationToken).ConfigureAwait(false);
-            return solution;
-        }
-
-        private async ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionWorkerAsync(
-            int workspaceVersion,
+        private async Task<Solution> UpdateWorkspaceCurrentSolutionAsync(
             Solution newSolution,
             CancellationToken cancellationToken)
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // Never move workspace backward
-                if (workspaceVersion <= _currentRemoteWorkspaceVersion)
-                    return (newSolution, updated: false);
-
-                _currentRemoteWorkspaceVersion = workspaceVersion;
-
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
@@ -316,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         }
                     });
 
-                return (newSolution, updated: true);
+                return newSolution;
             }
 
             static bool IsAddingSolution(Solution oldSolution, Solution newSolution)
@@ -338,18 +314,17 @@ namespace Microsoft.CodeAnalysis.Remote
             public Solution CreateSolutionFromInfo(SolutionInfo solutionInfo)
                 => _remoteWorkspace.CreateSolutionFromInfo(solutionInfo);
 
-            public ValueTask<(Solution solution, bool updated)> TryUpdateWorkspaceCurrentSolutionAsync(Solution newSolution, int workspaceVersion)
-                => _remoteWorkspace.TryUpdateWorkspaceCurrentSolutionWorkerAsync(workspaceVersion, newSolution, CancellationToken.None);
+            public Task<Solution> UpdateWorkspaceCurrentSolutionAsync(Solution newSolution)
+                => _remoteWorkspace.UpdateWorkspaceCurrentSolutionAsync(newSolution, CancellationToken.None);
 
             public async ValueTask<Solution> GetSolutionAsync(
                 AssetProvider assetProvider,
                 Checksum solutionChecksum,
                 bool updatePrimaryBranch,
-                int workspaceVersion,
                 CancellationToken cancellationToken)
             {
                 var (solution, _) = await _remoteWorkspace.RunWithSolutionAsync(
-                    assetProvider, solutionChecksum, workspaceVersion, updatePrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
+                    assetProvider, solutionChecksum, updatePrimaryBranch, _ => ValueTaskFactory.FromResult(false), cancellationToken).ConfigureAwait(false);
                 return solution;
             }
         }
