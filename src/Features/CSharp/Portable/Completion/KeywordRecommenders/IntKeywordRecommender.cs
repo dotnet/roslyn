@@ -22,7 +22,6 @@ internal sealed class IntKeywordRecommender() : AbstractSpecialTypePreselectingK
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsImplicitOrExplicitOperatorTypeContext ||
             context.IsIsOrAsTypeContext ||
             context.IsLocalFunctionDeclarationContext ||
             context.IsLocalVariableDeclarationContext ||
