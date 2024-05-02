@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         [Fact]
         public async Task TestAfterInternal()
-            => await VerifyAbsenceAsync(@"internal $$");
+            => await VerifyKeywordAsync(@"internal $$");
 
         [Fact]
         public async Task TestAfterPublic()
