@@ -11275,9 +11275,9 @@ interface I2
                 // (4,25): error CS8796: Partial method 'I1.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("I1.M1()").WithLocation(4, 25),
-                // (5,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (5,27): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract partial void M2();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 27),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M2").WithLocation(5, 27),
                 // (6,26): error CS8796: Partial method 'I1.M3()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void M3();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
@@ -11290,9 +11290,9 @@ interface I2
                 // (15,25): error CS8798: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     sealed partial void M4() {}
                 Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M4").WithLocation(15, 25),
-                // (16,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (16,27): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract partial void M5();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M5").WithLocation(16, 27),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M5").WithLocation(16, 27),
                 // (16,27): error CS0756: A partial method may not have multiple defining declarations
                 //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M5").WithLocation(16, 27),
@@ -51900,9 +51900,9 @@ class Test1 : I2
                 // (9,30): error CS0754: A partial method may not explicitly implement an interface method
                 //     abstract partial void I1.M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M1").WithLocation(9, 30 + implModifiers.Length),
-                // (9,30): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (9,30): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract partial void I1.M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(9, 30 + implModifiers.Length),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M1").WithLocation(9, 30 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)

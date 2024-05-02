@@ -616,6 +616,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
 
+            if (IsRequired != implementation.IsRequired)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialPropertyRequiredDifference, implementation.GetFirstLocation());
+            }
+
             if (IsStatic != implementation.IsStatic)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberStaticDifference, implementation.GetFirstLocation());
@@ -662,8 +667,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
-
-        internal bool IsPartial => (_modifiers & DeclarationModifiers.Partial) != 0;
 
         internal SourcePropertySymbol? OtherPartOfPartial => _otherPartOfPartial;
 

@@ -1612,6 +1612,11 @@
         <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberCannotBeAbstract">
+        <source>A partial member cannot have the 'abstract' modifier</source>
+        <target state="new">A partial member cannot have the 'abstract' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
@@ -1690,6 +1695,11 @@
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
         <source>Partial property '{0}' must have an implementation part.</source>
         <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyRequiredDifference">
+        <source>Both partial property declarations must be required or neither may be required</source>
+        <target state="new">Both partial property declarations must be required or neither may be required</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyTypeDifference">
@@ -8120,11 +8130,6 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       <trans-unit id="ERR_InconsistentLambdaParameterUsage">
         <source>Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit</source>
         <target state="translated">Niespójne użycie parametrów lambda. Wszystkie typy parametrów muszą być albo jawne, albo niejawne.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have the 'abstract' modifier</source>
-        <target state="translated">Metoda częściowa nie może mieć modyfikatora „abstract”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">

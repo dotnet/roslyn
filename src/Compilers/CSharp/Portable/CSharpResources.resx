@@ -2210,8 +2210,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_InconsistentLambdaParameterUsage" xml:space="preserve">
     <value>Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit</value>
   </data>
-  <data name="ERR_PartialMethodInvalidModifier" xml:space="preserve">
-    <value>A partial method cannot have the 'abstract' modifier</value>
+  <data name="ERR_PartialMemberCannotBeAbstract" xml:space="preserve">
+    <value>A partial member cannot have the 'abstract' modifier</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
     <value>A partial method must be declared within a partial type</value>
@@ -7958,5 +7958,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_PartialPropertySignatureDifference_Title" xml:space="preserve">
     <value>Partial property declarations have signature differences.</value>
+  </data>
+  <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
+    <value>Both partial property declarations must be required or neither may be required</value>
   </data>
 </root>

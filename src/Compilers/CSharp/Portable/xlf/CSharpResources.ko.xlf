@@ -1612,6 +1612,11 @@
         <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberCannotBeAbstract">
+        <source>A partial member cannot have the 'abstract' modifier</source>
+        <target state="new">A partial member cannot have the 'abstract' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
@@ -1690,6 +1695,11 @@
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
         <source>Partial property '{0}' must have an implementation part.</source>
         <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyRequiredDifference">
+        <source>Both partial property declarations must be required or neither may be required</source>
+        <target state="new">Both partial property declarations must be required or neither may be required</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyTypeDifference">
@@ -8120,11 +8130,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_InconsistentLambdaParameterUsage">
         <source>Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit</source>
         <target state="translated">람다 매개 변수가 일관성 없이 사용되었습니다. 매개 변수 형식은 모두 명시적이거나 암시적이어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have the 'abstract' modifier</source>
-        <target state="translated">부분 메서드에는 'abstract' 한정자가 있을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">

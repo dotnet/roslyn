@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsPartial && IsAbstract)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
+                diagnostics.Add(ErrorCode.ERR_PartialMemberCannotBeAbstract, location);
             }
             else if (IsPartial && !HasExplicitAccessModifier && !ReturnsVoid)
             {

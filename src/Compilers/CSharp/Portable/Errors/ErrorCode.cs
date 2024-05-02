@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidAnonymousTypeMemberDeclarator = 746,
         ERR_InvalidInitializerElementInitializer = 747,
         ERR_InconsistentLambdaParameterUsage = 748,
-        ERR_PartialMethodInvalidModifier = 750,
+        ERR_PartialMemberCannotBeAbstract = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
         // ERR_PartialMethodCannotHaveOutParameters = 752, Removed as part of 'extended partial methods' feature
         // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
@@ -2320,6 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyInitMismatch = 9306,
         ERR_PartialPropertyTypeDifference = 9307,
         WRN_PartialPropertySignatureDifference = 9308,
+        ERR_PartialPropertyRequiredDifference = 9309,
 
         #endregion
 

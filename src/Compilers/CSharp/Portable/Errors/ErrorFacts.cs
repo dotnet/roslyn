@@ -557,7 +557,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
-
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
 
                     return 1;
@@ -1071,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator:
                 case ErrorCode.ERR_InvalidInitializerElementInitializer:
                 case ErrorCode.ERR_InconsistentLambdaParameterUsage:
-                case ErrorCode.ERR_PartialMethodInvalidModifier:
+                case ErrorCode.ERR_PartialMemberCannotBeAbstract:
                 case ErrorCode.ERR_PartialMethodOnlyInPartialClass:
                 case ErrorCode.ERR_PartialMethodNotExplicit:
                 case ErrorCode.ERR_PartialMethodExtensionDifference:
@@ -2450,6 +2449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_PartialPropertyInitMismatch:
                 case ErrorCode.ERR_PartialPropertyTypeDifference:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
+                case ErrorCode.ERR_PartialPropertyRequiredDifference:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

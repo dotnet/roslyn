@@ -5262,7 +5262,7 @@ namespace ConsoleApplication24
             ERR_InvalidAnonymousTypeMemberDeclarator = 746,
             ERR_InvalidInitializerElementInitializer = 747,
             ERR_InconsistentLambdaParameterUsage = 748,
-            ERR_PartialMethodInvalidModifier = 750,
+            ERR_PartialMemberCannotBeAbstract = 750,
             ERR_PartialMethodOnlyInPartialClass = 751,
             ERR_PartialMethodCannotHaveOutParameters = 752,
             ERR_PartialMethodOnlyMethods = 753,
