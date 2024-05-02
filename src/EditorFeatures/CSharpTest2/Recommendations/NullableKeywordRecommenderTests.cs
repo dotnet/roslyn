@@ -126,5 +126,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact]
         public async Task TestNotAfterPragmaWarningDisableId()
             => await VerifyAbsenceAsync(@"#pragma warning disable 114, $$");
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
     }
 }

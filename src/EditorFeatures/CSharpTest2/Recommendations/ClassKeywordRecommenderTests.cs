@@ -543,5 +543,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyKeywordAsync(
 @"namespace NS; [Attr] $$");
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
     }
 }

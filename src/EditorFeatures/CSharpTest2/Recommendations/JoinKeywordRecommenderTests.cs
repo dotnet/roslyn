@@ -129,5 +129,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                           from z in w
                 """));
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
     }
 }

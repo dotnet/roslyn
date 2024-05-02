@@ -1215,5 +1215,14 @@ class C
                 }
                 """);
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
     }
 }

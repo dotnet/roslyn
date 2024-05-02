@@ -705,9 +705,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterUsingKeywordBeforeTopLevelStatement()
         {
             await VerifyKeywordAsync("""
-using $$
-var i = 1;
-""");
+                using $$
+                var i = 1;
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
         }
     }
 }

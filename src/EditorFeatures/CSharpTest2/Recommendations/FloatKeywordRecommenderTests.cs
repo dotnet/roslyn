@@ -967,5 +967,14 @@ $@"{type} N
     ref readonly $$
 }}");
         }
+
+        [Fact]
+        public async Task TestInExtensionForType()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
     }
 }

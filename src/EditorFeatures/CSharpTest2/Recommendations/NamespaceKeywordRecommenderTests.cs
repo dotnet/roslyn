@@ -518,30 +518,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterRegion()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
-        """
-        #region EDM Relationship Metadata
+                """
+                #region EDM Relationship Metadata
 
-        [assembly: EdmRelationshipAttribute("PerformanceResultsModel", "FK_Runs_Machines", "Machines", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(PerformanceViewerSL.Web.Machine), "Runs", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(PerformanceViewerSL.Web.Run), true)]
+                [assembly: EdmRelationshipAttribute("PerformanceResultsModel", "FK_Runs_Machines", "Machines", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(PerformanceViewerSL.Web.Machine), "Runs", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(PerformanceViewerSL.Web.Run), true)]
 
-        #endregion
+                #endregion
 
-        $$
-        """);
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRegion_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-        """
-        #region EDM Relationship Metadata
+                """
+                #region EDM Relationship Metadata
 
-        [assembly: EdmRelationshipAttribute("PerformanceResultsModel", "FK_Runs_Machines", "Machines", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(PerformanceViewerSL.Web.Machine), "Runs", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(PerformanceViewerSL.Web.Run), true)]
+                [assembly: EdmRelationshipAttribute("PerformanceResultsModel", "FK_Runs_Machines", "Machines", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(PerformanceViewerSL.Web.Machine), "Runs", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(PerformanceViewerSL.Web.Run), true)]
 
-        #endregion
+                #endregion
 
-        $$
-        """);
+                $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
         }
     }
 }

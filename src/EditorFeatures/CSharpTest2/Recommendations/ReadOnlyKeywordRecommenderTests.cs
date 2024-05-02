@@ -721,5 +721,14 @@ class C
 {{
     delegate*<{modifier} $$");
         }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
     }
 }
