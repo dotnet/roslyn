@@ -23,7 +23,6 @@ internal sealed class SByteKeywordRecommender() : AbstractSpecialTypePreselectin
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsNonAttributeExpressionContext ||
-            context.IsParameterTypeContext ||
             context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
             context.IsPossibleTupleContext ||
             context.IsPrimaryFunctionExpressionContext ||
