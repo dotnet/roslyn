@@ -47,7 +47,8 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
             context.IsObjectCreationTypeContext ||
             context.IsParameterTypeContext ||
             context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
-            context.IsPossibleTupleContext)
+            context.IsPossibleTupleContext ||
+            context.IsStatementContext)
         {
             return true;
         }

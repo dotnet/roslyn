@@ -23,7 +23,6 @@ internal sealed class ULongKeywordRecommender() : AbstractSpecialTypePreselectin
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.IsStatementContext ||
             context.IsUsingAliasTypeContext ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||

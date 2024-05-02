@@ -24,7 +24,6 @@ internal sealed class SByteKeywordRecommender() : AbstractSpecialTypePreselectin
             context.IsFixedVariableDeclarationContext ||
             context.IsNonAttributeExpressionContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.IsStatementContext ||
             context.IsUsingAliasTypeContext ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||

@@ -22,7 +22,6 @@ internal sealed class FloatKeywordRecommender() : AbstractSpecialTypePreselectin
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsFixedVariableDeclarationContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.IsStatementContext ||
             context.IsUsingAliasTypeContext ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
