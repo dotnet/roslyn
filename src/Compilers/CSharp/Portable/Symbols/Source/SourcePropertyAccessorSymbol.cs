@@ -827,8 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementationAccessor.GetFirstLocation());
             }
 
-            if (_property.HasReadOnlyModifier == implementationAccessor._property.HasReadOnlyModifier
-                && IsDeclaredReadOnly != implementationAccessor.IsDeclaredReadOnly)
+            if (LocalDeclaredReadOnly != implementationAccessor.LocalDeclaredReadOnly)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementationAccessor.GetFirstLocation());
             }
