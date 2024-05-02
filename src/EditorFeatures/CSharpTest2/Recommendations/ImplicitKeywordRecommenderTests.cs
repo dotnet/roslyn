@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterMethod()
+        public async Task TestAfterMethod()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 class C {
                   void Goo() {}
                   $$
@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterMethodInPartialType()
+        public async Task TestAfterMethodInPartialType()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                   void Goo() {}
@@ -150,9 +150,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterFieldInPartialClass()
+        public async Task TestAfterFieldInPartialClass()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                   int i;
@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterPropertyInPartialClass()
+        public async Task TestAfterPropertyInPartialClass()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                   int i { get; }
@@ -210,9 +210,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterNestedAttributeInPartialClass()
+        public async Task TestAfterNestedAttributeInPartialClass()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                   [goo]
@@ -220,21 +220,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        // This will be fixed once we have accessibility for members
         [Fact]
-        public async Task TestNotInsideStruct()
+        public async Task TestInsideStruct()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 struct S {
                    $$
                 """);
         }
 
-        // This will be fixed once we have accessibility for members
         [Fact]
-        public async Task TestNotInsidePartialStruct()
+        public async Task TestInsidePartialStruct()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial struct S {
                    $$
@@ -242,18 +240,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotInsideInterface()
+        public async Task TestInsideInterface()
         {
-            await VerifyAbsenceAsync("""
+            await VerifyKeywordAsync("""
                 interface I {
                    $$
                 """);
         }
 
         [Fact]
-        public async Task TestNotInsidePartialClass()
+        public async Task TestInsidePartialClass()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 partial class C {
                    $$
@@ -291,9 +289,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterNestedStaticPublicInInterface()
+        public async Task TestAfterNestedStaticPublicInInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 interface C {
                     static public $$
@@ -351,9 +349,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterNestedStaticInInterface()
+        public async Task TestAfterNestedStaticInInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 interface C {
                     static $$

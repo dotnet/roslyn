@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotInsideClassDeclaration()
+        public async Task TestInsideClassDeclaration()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 class C
                 {

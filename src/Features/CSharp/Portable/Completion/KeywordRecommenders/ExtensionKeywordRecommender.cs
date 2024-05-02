@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
@@ -32,8 +33,7 @@ internal sealed class ExtensionKeywordRecommender() : AbstractSyntacticSingleKey
             targetToken.SpanStart,
             context: null,
             validModifiers: s_validModifiers,
-            // Extensions can't appear in any other types.
-            validTypeDeclarations: null,
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
             canBePartial: true,
             cancellationToken);
     }

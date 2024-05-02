@@ -41,7 +41,7 @@ internal sealed class ExplicitKeywordRecommender() : AbstractSyntacticSingleKeyw
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         // 'implicit extension' is legal, so check if we're in an appropriate type declaration context
-        if (context.IsTypeDeclarationContext(s_validExtensionModifiers, validTypeDeclarations: null, canBePartial: true, cancellationToken))
+        if (context.IsTypeDeclarationContext(s_validExtensionModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken))
         {
             return true;
         }
