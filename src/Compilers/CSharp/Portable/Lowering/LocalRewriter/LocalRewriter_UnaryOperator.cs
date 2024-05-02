@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            BoundNode rewriteWithNotRefOperand(
+            BoundExpression rewriteWithNotRefOperand(
                 bool isPrefix,
                 bool isChecked,
                 ArrayBuilder<LocalSymbol> tempSymbols,
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: boundTemp.Type);
             }
 
-            BoundNode rewriteWithRefOperand(
+            BoundExpression rewriteWithRefOperand(
                 bool isPrefix,
                 bool isChecked,
                 ArrayBuilder<LocalSymbol> tempSymbols,
