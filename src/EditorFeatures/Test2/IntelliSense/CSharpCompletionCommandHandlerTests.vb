@@ -12627,6 +12627,20 @@ implicit extension E for List&lt;$$
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestCompletionInExtensionForType3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+implicit extension E for System.$$
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("Int32", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCompletionInExtensionBaseList1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
