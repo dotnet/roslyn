@@ -1842,7 +1842,7 @@ unsafe class C
         }
 
         [Theory, CombinatorialData]
-        public void UnsafeContext_Property_Iterator_Signature_UnsafeIndexer(bool unsafeClass)
+        public void UnsafeContext_Property_Iterator_Signature_UnsafeProperty(bool unsafeClass)
         {
             var code = $$"""
                 {{(unsafeClass ? "unsafe" : "")}} class C
