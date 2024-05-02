@@ -761,7 +761,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
         {
-            await VerifyAbsenceAsync(
+            // new ref struct S
+            await VerifyKeywordAsync(
 @"new $$");
         }
 
