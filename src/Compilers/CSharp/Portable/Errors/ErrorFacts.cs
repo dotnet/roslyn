@@ -623,8 +623,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterceptableMethodMustBeOrdinary
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYield
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
-                    => true, // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
-                             // whenever new values are added here.
+                    // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
+                    // whenever new values are added here.
+                    => true,
 
                 ErrorCode.Void
                 or ErrorCode.Unknown
