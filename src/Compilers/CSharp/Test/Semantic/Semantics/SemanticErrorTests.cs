@@ -15304,10 +15304,10 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (9,20): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                // (9,20): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
                 //          int *p = &i;
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "i").WithLocation(9, 20),
-                // (10,10): error CS9231: Cannot use 'yield return' in an 'unsafe' block
+                // (10,10): error CS9238: Cannot use 'yield return' in an 'unsafe' block
                 //          yield return *p;
                 Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(10, 10)
             };

@@ -3449,7 +3449,7 @@ public class LockTests : CSharpTestBase
             // (9,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
             //         lock (new Lock())
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15),
-            // (11,13): warning CS9230: 'yield return' should not be used in the body of a lock statement
+            // (11,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
             //             yield return 2;
             Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(11, 13));
     }
@@ -3561,7 +3561,7 @@ public class LockTests : CSharpTestBase
             // (10,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
             //         lock (new Lock())
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(10, 15),
-            // (12,13): warning CS9230: 'yield return' should not be used in the body of a lock statement
+            // (12,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
             //             yield return 2;
             Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(12, 13));
     }

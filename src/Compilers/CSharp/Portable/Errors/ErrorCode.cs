@@ -2304,9 +2304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        WRN_BadYieldInLock = 9230,
-        ERR_BadYieldInUnsafe = 9231,
-        ERR_AddressOfInIterator = 9232,
+        WRN_BadYieldInLock = 9237,
+        ERR_BadYieldInUnsafe = 9238,
+        ERR_AddressOfInIterator = 9239,
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).

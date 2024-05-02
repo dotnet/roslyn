@@ -149,7 +149,7 @@ class Test
 
             var expectedDiagnostics = new[]
             {
-                // (23,17): warning CS9230: 'yield return' should not be used in the body of a lock statement
+                // (23,17): warning CS9237: 'yield return' should not be used in the body of a lock statement
                 //                 yield return i;
                 Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(23, 17)
             };
@@ -213,7 +213,7 @@ class Test
 
             var expectedDiagnostics = new[]
             {
-                // (24,13): warning CS9230: 'yield return' should not be used in the body of a lock statement
+                // (24,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
                 //             yield return i;
                 Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(24, 13)
             };
@@ -260,10 +260,10 @@ class Test
                 """;
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,13): warning CS9230: 'yield return' should not be used in the body of a lock statement
+                // (10,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
                 //             yield return 2;
                 Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(10, 13),
-                // (20,21): warning CS9230: 'yield return' should not be used in the body of a lock statement
+                // (20,21): warning CS9237: 'yield return' should not be used in the body of a lock statement
                 //                     yield return 4;
                 Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(20, 21));
         }

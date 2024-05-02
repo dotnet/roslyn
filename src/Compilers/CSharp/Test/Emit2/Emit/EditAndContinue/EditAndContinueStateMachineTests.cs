@@ -5464,7 +5464,7 @@ class C
 
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyDiagnostics(
-                // (17,34): warning CS9230: 'yield return' should not be used in the body of a lock statement
+                // (17,34): warning CS9237: 'yield return' should not be used in the body of a lock statement
                 //                                  yield return 1;      
                 Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(17, 34));
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
