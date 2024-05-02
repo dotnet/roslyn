@@ -6055,7 +6055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitResult? extensionReceiverResult = null;
                 while (true)
                 {
-                    ReinferMethodAndVisitArguments(node, receiverType, firstArgumentResult: extensionReceiverResult);
+                    reinferMethodAndVisitArguments(node, receiverType, firstArgumentResult: extensionReceiverResult);
 
                     receiver = node;
                     if (!calls.TryPop(out node!))
@@ -6091,7 +6091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 TypeWithState receiverType = visitAndCheckReceiver(node);
-                ReinferMethodAndVisitArguments(node, receiverType);
+                reinferMethodAndVisitArguments(node, receiverType);
             }
 
             return null;
@@ -6130,35 +6130,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return receiverType;
             }
-        }
 
-        private void ReinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
-        {
-            var method = node.Method;
-            ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-            if (!receiverType.HasNullType)
+            void reinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
             {
-                // Update method based on inferred receiver type.
-                method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+                var method = node.Method;
+                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
+                if (!receiverType.HasNullType)
+                {
+                    // Update method based on inferred receiver type.
+                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+                }
+
+                ImmutableArray<VisitResult> results;
+                bool returnNotNull;
+                (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method!.Parameters, node.ArgsToParamsOpt, node.DefaultArguments,
+                    node.Expanded, node.InvokedAsExtensionMethod, method, firstArgumentResult: firstArgumentResult);
+
+                ApplyMemberPostConditions(node.ReceiverOpt, method);
+
+                LearnFromEqualsMethod(method, node, receiverType, results);
+
+                var returnState = GetReturnTypeWithState(method);
+                if (returnNotNull)
+                {
+                    returnState = returnState.WithNotNullState();
+                }
+
+                SetResult(node, returnState, method.ReturnTypeWithAnnotations);
+                SetUpdatedSymbol(node, node.Method, method);
             }
-
-            ImmutableArray<VisitResult> results;
-            bool returnNotNull;
-            (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method!.Parameters, node.ArgsToParamsOpt, node.DefaultArguments,
-                node.Expanded, node.InvokedAsExtensionMethod, method, firstArgumentResult: firstArgumentResult);
-
-            ApplyMemberPostConditions(node.ReceiverOpt, method);
-
-            LearnFromEqualsMethod(method, node, receiverType, results);
-
-            var returnState = GetReturnTypeWithState(method);
-            if (returnNotNull)
-            {
-                returnState = returnState.WithNotNullState();
-            }
-
-            SetResult(node, returnState, method.ReturnTypeWithAnnotations);
-            SetUpdatedSymbol(node, node.Method, method);
         }
 
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitResult> results)
