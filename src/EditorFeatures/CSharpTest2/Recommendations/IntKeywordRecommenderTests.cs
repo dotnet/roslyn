@@ -1099,6 +1099,30 @@ $@"{type} N
 }}");
         }
 
+        [Fact]
+        public async Task TestInExtensionPrimaryConstructorParameterList()
+        {
+            await VerifyKeywordAsync("""
+                implicit extension E($$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInExtensionForComponent()
+        {
+            await VerifyKeywordAsync("""
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInExtensionBaseList()
+        {
+            await VerifyKeywordAsync("""
+                implicit extension E for int : List<$$
+                """);
+        }
+
         #region Collection expressions
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]

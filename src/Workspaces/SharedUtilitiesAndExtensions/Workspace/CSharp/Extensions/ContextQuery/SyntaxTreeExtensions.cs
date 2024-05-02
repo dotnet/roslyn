@@ -736,6 +736,7 @@ internal static partial class SyntaxTreeExtensions
             syntaxTree.IsDefiniteCastTypeContext(position, tokenOnLeftOfPosition) ||
             syntaxTree.IsDelegateReturnTypeContext(position, tokenOnLeftOfPosition) ||
             syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel) ||
+            syntaxTree.IsExtensionForTypeContext(tokenOnLeftOfPosition, cancellationToken) ||
             syntaxTree.IsPrimaryFunctionExpressionContext(position, tokenOnLeftOfPosition) ||
             syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModel) ||
             syntaxTree.IsFunctionPointerTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken) ||
@@ -3042,6 +3043,11 @@ internal static partial class SyntaxTreeExtensions
         }
 
         return false;
+    }
+
+    public static bool IsExtensionForTypeContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+    {
+        return targetToken.IsKind(SyntaxKind.ForKeyword) && targetToken.Parent is ForTypeSyntax;
     }
 
     public static bool IsFunctionPointerCallingConventionContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)

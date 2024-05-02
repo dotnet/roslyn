@@ -26,27 +26,27 @@ internal sealed class StringKeywordRecommender : AbstractSpecialTypePreselecting
     {
         var syntaxTree = context.SyntaxTree;
         return
-            context.IsAnyExpressionContext ||
-            context.IsDefiniteCastTypeContext ||
-            context.IsStatementContext ||
-            context.IsGlobalStatementContext ||
-            context.IsObjectCreationTypeContext ||
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
+            context.IsAnyExpressionContext ||
+            context.IsCrefContext ||
+            context.IsDefiniteCastTypeContext ||
+            context.IsDelegateReturnTypeContext ||
             context.IsFunctionPointerTypeArgumentContext ||
+            context.IsGlobalStatementContext ||
+            context.IsImplicitOrExplicitOperatorTypeContext ||
             context.IsIsOrAsTypeContext ||
+            context.IsLocalFunctionDeclarationContext ||
             context.IsLocalVariableDeclarationContext ||
+            context.IsObjectCreationTypeContext ||
             context.IsParameterTypeContext ||
             context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
-            context.IsLocalFunctionDeclarationContext ||
-            context.IsImplicitOrExplicitOperatorTypeContext ||
+            context.IsPossibleTupleContext ||
+            context.IsStatementContext ||
             context.IsTypeOfExpressionContext ||
-            context.IsCrefContext ||
             context.IsUsingAliasTypeContext ||
             syntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
-            context.IsDelegateReturnTypeContext ||
             syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
                 validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,

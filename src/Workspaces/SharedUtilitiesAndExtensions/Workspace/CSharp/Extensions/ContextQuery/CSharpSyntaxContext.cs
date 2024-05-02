@@ -22,6 +22,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
     public readonly bool IsDefiniteCastTypeContext;
     public readonly bool IsDelegateReturnTypeContext;
     public readonly bool IsDestructorTypeContext;
+    public readonly bool IsExtensionForTypeContext;
     public readonly bool IsFixedVariableDeclarationContext;
     public readonly bool IsFunctionPointerTypeArgumentContext;
     public readonly bool IsGenericTypeArgumentContext;
@@ -67,6 +68,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         bool isDestructorTypeContext,
         bool isEnumBaseListContext,
         bool isEnumTypeMemberAccessContext,
+        bool isExtensionForTypeContext,
         bool isFixedVariableDeclarationContext,
         bool isFunctionPointerTypeArgumentContext,
         bool isGenericConstraintContext,
@@ -150,6 +152,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
         this.IsDelegateReturnTypeContext = isDelegateReturnTypeContext;
         this.IsDestructorTypeContext = isDestructorTypeContext;
+        this.IsExtensionForTypeContext = isExtensionForTypeContext;
         this.IsFixedVariableDeclarationContext = isFixedVariableDeclarationContext;
         this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
         this.IsGenericTypeArgumentContext = isGenericTypeArgumentContext;
@@ -226,8 +229,10 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
 
         var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
-                                        targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
-                                        targetToken.Parent.Parent is (kind: SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration);
+            targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
+            targetToken.Parent.Parent is (kind: SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration);
+
+        var isExtensionForTypeContext = syntaxTree.IsExtensionForTypeContext(targetToken);
 
         // Typing a dot after a numeric expression (numericExpression.) 
         // - maybe a start of MemberAccessExpression like numericExpression.Member.
@@ -263,6 +268,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
             isDestructorTypeContext: isDestructorTypeContext,
             isEnumBaseListContext: syntaxTree.IsEnumBaseListContext(targetToken),
             isEnumTypeMemberAccessContext: syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
+            isExtensionForTypeContext: isExtensionForTypeContext,
             isFixedVariableDeclarationContext: syntaxTree.IsFixedVariableDeclarationContext(position, leftToken),
             isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
             isGenericConstraintContext: syntaxTree.IsGenericConstraintContext(targetToken),

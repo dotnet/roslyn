@@ -22,29 +22,30 @@ internal class LongKeywordRecommender : AbstractSpecialTypePreselectingKeywordRe
     {
         var syntaxTree = context.SyntaxTree;
         return
-            context.IsAnyExpressionContext ||
-            context.IsDefiniteCastTypeContext ||
-            context.IsStatementContext ||
-            context.IsGlobalStatementContext ||
-            context.IsObjectCreationTypeContext ||
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsFunctionPointerTypeArgumentContext ||
+            context.IsAnyExpressionContext ||
+            context.IsCrefContext ||
+            context.IsDefiniteCastTypeContext ||
+            context.IsDelegateReturnTypeContext ||
             context.IsEnumBaseListContext ||
-            context.IsIsOrAsTypeContext ||
-            context.IsLocalVariableDeclarationContext ||
+            context.IsExtensionForTypeContext ||
             context.IsFixedVariableDeclarationContext ||
+            context.IsFunctionPointerTypeArgumentContext ||
+            context.IsGlobalStatementContext ||
+            context.IsImplicitOrExplicitOperatorTypeContext ||
+            context.IsIsOrAsTypeContext ||
+            context.IsLocalFunctionDeclarationContext ||
+            context.IsLocalVariableDeclarationContext ||
+            context.IsObjectCreationTypeContext ||
             context.IsParameterTypeContext ||
             context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
-            context.IsLocalFunctionDeclarationContext ||
-            context.IsImplicitOrExplicitOperatorTypeContext ||
+            context.IsPossibleTupleContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.IsCrefContext ||
+            context.IsStatementContext ||
             context.IsUsingAliasTypeContext ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
-            context.IsDelegateReturnTypeContext ||
             syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
                 validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
