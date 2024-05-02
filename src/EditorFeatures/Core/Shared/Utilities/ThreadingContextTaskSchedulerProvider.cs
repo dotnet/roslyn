@@ -29,7 +29,7 @@ internal sealed class ThreadingContextTaskSchedulerProvider(IThreadingContext th
         public override int MaximumConcurrencyLevel => 1;
 
         protected override IEnumerable<Task> GetScheduledTasks()
-            => SpecializedCollections.EmptyEnumerable<Task>();
+            => [];
 
         protected override void QueueTask(Task task)
         {

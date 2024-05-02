@@ -370,6 +370,7 @@
             switch (code)
             {
                 case ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer:
+                case ErrorCode.INF_TooManyBoundLambdas:
                     return true;
                 default:
                     return false;

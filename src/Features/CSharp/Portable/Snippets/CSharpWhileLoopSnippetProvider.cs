@@ -16,34 +16,27 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpWhileLoopSnippetProvider : AbstractWhileLoopSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippetProvider<WhileStatementSyntax, ExpressionSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpWhileLoopSnippetProvider()
-    {
-    }
+    public override string Identifier => CSharpSnippetIdentifiers.While;
 
-    protected override SyntaxNode GetCondition(SyntaxNode node)
-    {
-        var whileStatement = (WhileStatementSyntax)node;
-        return whileStatement.Condition;
-    }
+    public override string Description => FeaturesResources.while_loop;
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<WhileStatementSyntax>(
-            caretTarget,
+    protected override ExpressionSyntax GetCondition(WhileStatementSyntax node)
+        => node.Condition;
+
+    protected override int GetTargetCaretPosition(WhileStatementSyntax whileStatement, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            whileStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<WhileStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, WhileStatementSyntax whileStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            whileStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }

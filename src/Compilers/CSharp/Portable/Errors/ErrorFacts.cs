@@ -2431,6 +2431,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
                 case ErrorCode.ERR_ParamsCollectionMissingConstructor:
                 case ErrorCode.ERR_NoModifiersOnUsing:
+                case ErrorCode.ERR_CannotDynamicInvokeOnExpression:
+                case ErrorCode.ERR_InterceptsLocationDataInvalidFormat:
+                case ErrorCode.ERR_InterceptsLocationUnsupportedVersion:
+                case ErrorCode.ERR_InterceptsLocationDuplicateFile:
+                case ErrorCode.ERR_InterceptsLocationFileNotFound:
+                case ErrorCode.ERR_InterceptsLocationDataInvalidPosition:
+                case ErrorCode.INF_TooManyBoundLambdas:
                 case ErrorCode.WRN_BadYieldInLock:
                 case ErrorCode.ERR_BadYieldInUnsafe:
                 case ErrorCode.ERR_AddressOfInIterator:

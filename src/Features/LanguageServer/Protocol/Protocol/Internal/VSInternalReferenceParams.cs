@@ -10,6 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which represents extensions of <see cref="ReferenceParams"/> passed as parameter of find reference requests.
     /// </summary>
+    [DataContract]
     internal class VSInternalReferenceParams : ReferenceParams
     {
         /// <summary>

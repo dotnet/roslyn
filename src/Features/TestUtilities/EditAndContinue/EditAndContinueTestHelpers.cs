@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.AddInstanceFieldToExistingType |
             EditAndContinueCapabilities.AddStaticFieldToExistingType |
             EditAndContinueCapabilities.AddMethodToExistingType |
-            EditAndContinueCapabilities.NewTypeDefinition;
+            EditAndContinueCapabilities.NewTypeDefinition |
+            EditAndContinueCapabilities.AddExplicitInterfaceImplementation;
 
         public const EditAndContinueCapabilities Net6RuntimeCapabilities =
             Net5RuntimeCapabilities |
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ImmutableArray<ImmutableArray<SourceFileSpan>> actualNewExceptionRegions)
         {
             // check active statements:
-            AssertSpansEqual(description.NewMappedSpans, actualNewActiveStatements.OrderBy(x => x.Ordinal).Select(s => s.FileSpan), newTree);
+            AssertSpansEqual(description.NewMappedSpans, actualNewActiveStatements.OrderBy(x => x.Id.Ordinal).Select(s => s.FileSpan), newTree);
 
             var oldRoot = oldTree.GetRoot();
 
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 for (var i = 0; i < actualNewActiveStatements.Length; i++)
                 {
                     var activeStatement = actualNewActiveStatements[i];
-                    AssertSpansEqual(description.NewMappedRegions[activeStatement.Ordinal], actualNewExceptionRegions[i], newTree);
+                    AssertSpansEqual(description.NewMappedRegions[activeStatement.Id.Ordinal], actualNewExceptionRegions[i], newTree);
                 }
             }
         }

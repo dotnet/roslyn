@@ -8,3 +8,7 @@ root = true
 dotnet_analyzer_diagnostic.severity = none
 
 generated_code = true
+
+# The above configurations don't apply to compiler warnings.  Requiring all params to be documented
+# is not something we require for this project, so suppressing it directly here.
+dotnet_diagnostic.CS1573.severity = none

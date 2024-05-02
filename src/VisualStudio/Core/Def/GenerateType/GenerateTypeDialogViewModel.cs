@@ -781,7 +781,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
         else
         {
-            this.ProjectFolders = SpecializedCollections.EmptyList<string>();
+            this.ProjectFolders = [];
         }
     }
 

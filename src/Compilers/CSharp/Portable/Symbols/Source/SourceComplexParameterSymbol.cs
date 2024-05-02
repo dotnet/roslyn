@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, elementType, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
+                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                             {
                                 return;
                             }

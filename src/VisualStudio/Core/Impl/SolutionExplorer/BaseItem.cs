@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _name = name;
         }
 
-        public IEnumerable<string> Children => SpecializedCollections.EmptyEnumerable<string>();
+        public IEnumerable<string> Children => [];
 
         public bool IsExpandable => true;
 

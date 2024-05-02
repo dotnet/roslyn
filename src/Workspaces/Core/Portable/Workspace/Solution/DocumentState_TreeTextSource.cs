@@ -22,6 +22,12 @@ internal partial class DocumentState
         public bool CanReloadText
             => false;
 
+        /// <summary>
+        /// Not created from a text loader.
+        /// </summary>
+        public TextLoader? TextLoader
+            => null;
+
         public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             var text = await textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);

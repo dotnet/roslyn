@@ -511,7 +511,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         Project oldProject,
         AsyncLazy<ActiveStatementsMap> lazyOldActiveStatementMap,
         Document newDocument,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
         CancellationToken cancellationToken)
     {
@@ -778,13 +778,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         Match<SyntaxNode> topMatch,
         SourceText newText,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         [In, Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
         [In, Out] ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(!newActiveStatementSpans.IsDefault);
-        Debug.Assert(newActiveStatementSpans.IsEmpty || oldActiveStatements.Length == newActiveStatementSpans.Length);
         Debug.Assert(oldActiveStatements.Length == newActiveStatements.Count);
         Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Count);
 
@@ -824,7 +823,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                         // We seed the method body matching algorithm with tracking spans (unless they were deleted)
                         // to get precise matching.
-                        if (TryGetTrackedStatement(newActiveStatementSpans, i, newText, newBody, out var trackedStatement, out var trackedStatementPart))
+                        if (TryGetTrackedStatement(newActiveStatementSpans, oldActiveStatements[i].Statement.Id, newText, newBody, out var trackedStatement, out var trackedStatementPart))
                         {
                             // Adjust for active statements that cover more than the old member span.
                             // For example, C# variable declarators that represent field initializers:
@@ -833,7 +832,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                             // The tracking span might have been moved outside of lambda.
                             // It is not an error to move the statement - we just ignore it.
-                            var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody.EncompassingAncestor, oldMember.FindToken(adjustedOldStatementStart).Parent!);
+                            var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody.EncompassingAncestor, oldBody.EncompassingAncestor.FindToken(adjustedOldStatementStart).Parent!);
                             var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody.EncompassingAncestor, trackedStatement);
                             if (oldEnclosingLambdaBody == newEnclosingLambdaBody)
                             {
@@ -932,7 +931,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         bool isMemberReplaced,
         Match<SyntaxNode> topMatch,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         EditAndContinueCapabilitiesGrantor capabilities,
         [Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
         [Out] ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
@@ -948,7 +947,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         var diagnosticContext = CreateDiagnosticContext(diagnostics, oldMember, newMember, newDeclaration, newModel, topMatch);
 
-        var activeStatementIndices = oldMemberBody?.GetOverlappingActiveStatements(oldActiveStatements)?.ToArray() ?? [];
+        var activeStatementIndices = oldMemberBody?.GetOverlappingActiveStatementIndices(oldActiveStatements)?.ToArray() ?? [];
 
         if (isMemberReplaced && !activeStatementIndices.IsEmpty())
         {
@@ -1030,7 +1029,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                     SyntaxNode? trackedNode = null;
 
-                    if (TryGetTrackedStatement(newActiveStatementSpans, activeStatementIndex, newText, newMemberBody, out var newStatementSyntax, out var _))
+                    if (TryGetTrackedStatement(newActiveStatementSpans, oldActiveStatements[activeStatementIndex].Statement.Id, newText, newMemberBody, out var newStatementSyntax, out var _))
                     {
                         var newEnclosingLambdaBody = FindEnclosingLambdaBody(newMemberBody.EncompassingAncestor, newStatementSyntax);
 
@@ -1282,18 +1281,13 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
-    private static bool TryGetTrackedStatement(ImmutableArray<LinePositionSpan> activeStatementSpans, int index, SourceText text, MemberBody body, [NotNullWhen(true)] out SyntaxNode? trackedStatement, out int trackedStatementPart)
+    private static bool TryGetTrackedStatement(ImmutableArray<ActiveStatementLineSpan> activeStatementSpans, ActiveStatementId id, SourceText text, MemberBody body, [NotNullWhen(true)] out SyntaxNode? trackedStatement, out int trackedStatementPart)
     {
         trackedStatement = null;
         trackedStatementPart = -1;
 
-        // Active statements are not tracked in this document (e.g. the file is closed).
-        if (activeStatementSpans.IsEmpty)
-        {
-            return false;
-        }
-
-        var trackedLineSpan = activeStatementSpans[index];
+        // Active statement span not tracked or tracking span has been lost.
+        var trackedLineSpan = activeStatementSpans.FirstOrDefault(static (s, id) => s.Id == id, id).LineSpan;
         if (trackedLineSpan == default)
         {
             return false;
@@ -2432,7 +2426,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         EditScript<SyntaxNode> editScript,
         IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         IReadOnlyList<(SyntaxNode OldNode, SyntaxNode NewNode, TextSpan DiagnosticSpan)> triviaEdits,
         Project oldProject,
         Document? oldDocument,
@@ -2573,7 +2567,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             {
                                 if (processedSymbols.Add(newContainingType))
                                 {
-                                    if (capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                    if (capabilities.GrantNewTypeDefinition(containingType))
                                     {
                                         semanticEdits.Add(SemanticEditInfo.CreateReplace(containingTypeSymbolKey,
                                             IsPartialTypeEdit(oldContainingType, newContainingType, oldTree, newTree) ? containingTypeSymbolKey : null));
@@ -2607,7 +2601,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     // https://github.com/dotnet/roslyn/issues/54881
                                     diagnosticContext.Report(RudeEditKind.ChangingTypeParameters, cancellationToken);
                                 }
-                                else if (!capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                else if (!capabilities.GrantNewTypeDefinition(oldType))
                                 {
                                     diagnosticContext.Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
                                 }
@@ -2889,7 +2883,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     // therefore inserting the <Program>$ type
                                     Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol || IsGlobalMain(newSymbol));
 
-                                    if (!capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                    if (!capabilities.GrantNewTypeDefinition((newSymbol as INamedTypeSymbol) ?? newSymbol.ContainingType))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.InsertNotSupportedByRuntime,
@@ -3016,7 +3010,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             return;
                         }
 
-                        var activeStatementIndices = oldBody.GetOverlappingActiveStatements(oldActiveStatements);
+                        var activeStatementIndices = oldBody.GetOverlappingActiveStatementIndices(oldActiveStatements);
                         if (!activeStatementIndices.Any())
                         {
                             return;
@@ -3211,7 +3205,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     {
                         if (processedSymbols.Add(newContainingType))
                         {
-                            if (capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                            if (capabilities.GrantNewTypeDefinition(newContainingType))
                             {
                                 var oldContainingTypeKey = SymbolKey.Create(oldContainingType, cancellationToken);
                                 semanticEdits.Add(SemanticEditInfo.CreateReplace(oldContainingTypeKey,
@@ -3253,7 +3247,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                     // We need to provide syntax map to the compiler if the member is active (see member update above):
                     var isActiveMember =
-                        oldBody.GetOverlappingActiveStatements(oldActiveStatements).Any() ||
+                        oldBody.GetOverlappingActiveStatementIndices(oldActiveStatements).Any() ||
                         IsStateMachineMethod(oldDeclaration) ||
                         ContainsLambda(oldBody);
 
@@ -3815,7 +3809,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         foreach (var (_, indices) in deletedTypes)
             indices.Free();
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static bool IsReloadable(INamedTypeSymbol type)
@@ -3895,7 +3889,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         if (!oldStateMachineInfo.IsStateMachine &&
             newStateMachineInfo.IsStateMachine &&
-            !capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+            !capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
         {
             // Adding a state machine, either for async or iterator, will require creating a new helper class
             // so is a rude edit if the runtime doesn't support it
@@ -5690,9 +5684,11 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 }
             }
 
-            // If the old verison of the method had any lambdas the nwe know a closure type exists and a new one isn't needed.
+            // If the old version of the method had any lambdas then we know a closure type exists and a new one isn't needed.
             // We also know that adding a local function won't create a new closure type.
             // Otherwise, we assume a new type is needed.
+            // We also assume that the closure type does not implement an interface explicitly,
+            // so we do not need AddExplicitInterfaceImplementation capability.
 
             if (!oldHasLambdas && !isLocalFunction)
             {

@@ -204,7 +204,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             var optionality = DetermineParameterOptionality(cancellationToken);
             var names = DetermineParameterNames(cancellationToken);
 
-            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
+            var result = new FixedSizeArrayBuilder<IParameterSymbol>(modifiers.Length);
             for (var i = 0; i < modifiers.Length; i++)
             {
                 result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -216,7 +216,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                     name: names[i].BestNameForParameter));
             }
 
-            return result.ToImmutable();
+            return result.MoveToImmutable();
         }
 
         private Accessibility DetermineAccessibility(bool isAbstract)

@@ -79,15 +79,17 @@ public class UriTests : AbstractLanguageServerProtocolTests
     {
         var documentFilePath = @"C:\A.cs";
         var markup =
-@$"<Workspace>
-    <Project Language=""C#"" Name=""CSProj1"" CommonReferences=""true"" FilePath=""C:\CSProj1.csproj"">
-        <Document FilePath=""{documentFilePath}"">
-            public class A
-            {{
-            }}
-        </Document>
-    </Project>
-</Workspace>";
+            $$"""
+            <Workspace>
+                <Project Language="C#" Name="CSProj1" CommonReferences="true" FilePath="C:\CSProj1.csproj">
+                    <Document FilePath="{{documentFilePath}}">
+                        public class A
+                        {
+                        }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
         await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var workspaceDocument = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -95,12 +97,25 @@ public class UriTests : AbstractLanguageServerProtocolTests
 
         await testLspServer.OpenDocumentAsync(expectedDocumentUri).ConfigureAwait(false);
 
-        // Verify file is added to the misc file workspace.
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = expectedDocumentUri }, CancellationToken.None);
-        Assert.False(workspace is LspMiscellaneousFilesWorkspace);
-        AssertEx.NotNull(document);
-        Assert.Equal(expectedDocumentUri, document.GetURI());
-        Assert.Equal(documentFilePath, document.FilePath);
+        // Verify file is not added to the misc file workspace.
+        {
+            var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = expectedDocumentUri }, CancellationToken.None);
+            Assert.False(workspace is LspMiscellaneousFilesWorkspace);
+            AssertEx.NotNull(document);
+            Assert.Equal(expectedDocumentUri, document.GetURI());
+            Assert.Equal(documentFilePath, document.FilePath);
+        }
+
+        // Try again, this time with a uri with different case sensitivity.  This is supported, and is needed by Xaml.
+        {
+            var lowercaseUri = ProtocolConversions.CreateAbsoluteUri(documentFilePath.ToLowerInvariant());
+            Assert.NotEqual(expectedDocumentUri.AbsolutePath, lowercaseUri.AbsolutePath);
+            var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = lowercaseUri }, CancellationToken.None);
+            Assert.False(workspace is LspMiscellaneousFilesWorkspace);
+            AssertEx.NotNull(document);
+            Assert.Equal(expectedDocumentUri, document.GetURI());
+            Assert.Equal(documentFilePath, document.FilePath);
+        }
     }
 
     [Theory, CombinatorialData]

@@ -81,7 +81,7 @@ internal abstract partial class AbstractFindUsagesService
             result.AddIfNotNull(thirdParty);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task FindSymbolReferencesAsync(

@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? method = node.IsAddition ? node.Event.AddMethod : node.Event.RemoveMethod;
             Debug.Assert(method is { });
-            return MakeCall(node.Syntax, rewrittenReceiverOpt, method, rewrittenArguments, node.Type);
+            Debug.Assert(method.ReturnType.Equals(node.Type, TypeCompareKind.AllIgnoreOptions));
+            return MakeCall(node.Syntax, rewrittenReceiverOpt, method, rewrittenArguments);
         }
 
         private enum EventAssignmentKind
@@ -120,8 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax: syntax,
                         rewrittenReceiver: null,
                         method: clearMethod,
-                        rewrittenArguments: ImmutableArray.Create<BoundExpression>(removeDelegate),
-                        type: clearMethod.ReturnType);
+                        rewrittenArguments: ImmutableArray.Create<BoundExpression>(removeDelegate));
                 }
                 else
                 {
@@ -163,8 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: syntax,
                     rewrittenReceiver: null,
                     method: marshalMethod,
-                    rewrittenArguments: marshalArguments,
-                    type: marshalMethod.ReturnType);
+                    rewrittenArguments: marshalArguments);
             }
             else
             {
@@ -308,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)addRemove != null)
                 {
-                    BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType), _factory.Literal(node.Event.MetadataName));
+                    BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType, ctor.Parameters[0].Type), _factory.Literal(node.Event.MetadataName));
                     result = _factory.Call(eventInfo, addRemove,
                                           _factory.Convert(addRemove.Parameters[0].Type, rewrittenReceiver),
                                           _factory.Convert(addRemove.Parameters[1].Type, rewrittenArgument));

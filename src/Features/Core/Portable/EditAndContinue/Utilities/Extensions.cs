@@ -35,45 +35,6 @@ internal static partial class Extensions
     public static SourceSpan ToSourceSpan(this LinePositionSpan span)
         => new(span.Start.Line, span.Start.Character, span.End.Line, span.End.Character);
 
-    public static ActiveStatement GetStatement(this ImmutableArray<ActiveStatement> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
-
-    public static ActiveStatementSpan GetStatement(this ImmutableArray<ActiveStatementSpan> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
-
-    public static UnmappedActiveStatement GetStatement(this ImmutableArray<UnmappedActiveStatement> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Statement.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
-
     /// <summary>
     /// True if the project supports Edit and Continue.
     /// Only depends on the language of the project and never changes.
@@ -226,4 +187,10 @@ internal static partial class Extensions
 
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
         => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
+
+    /// <summary>
+    /// Returns true if any member of the type implements an interface member explicitly.
+    /// </summary>
+    public static bool HasExplicitlyImplementedInterfaceMember(this INamedTypeSymbol type)
+        => type.GetMembers().Any(static member => member.ExplicitInterfaceImplementations().Any());
 }

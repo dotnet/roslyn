@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp
         /// </summary>
         public IList<TaggedText> SelectedDisplayParts { get; }
 
-        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory =
-            _ => SpecializedCollections.EmptyEnumerable<TaggedText>();
+        private static readonly Func<CancellationToken, IEnumerable<TaggedText>> s_emptyDocumentationFactory = _ => [];
 
         public FSharpSignatureHelpParameter(
             string name,

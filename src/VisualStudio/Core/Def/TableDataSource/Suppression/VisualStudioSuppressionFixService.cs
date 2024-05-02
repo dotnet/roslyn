@@ -199,7 +199,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static string GetFixTitle(bool isAddSuppression)
@@ -413,11 +413,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                     cancellationToken).ConfigureAwait(false);
 
                 // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
-                _ = Task.Run(() =>
-                {
-                    var reanalyzeDocuments = diagnosticsToFix.Select(d => d.DocumentId).WhereNotNull().Distinct();
-                    _diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: reanalyzeDocuments, highPriority: true);
-                });
+                _diagnosticService.RequestDiagnosticRefresh();
             }
         }
         catch (OperationCanceledException)

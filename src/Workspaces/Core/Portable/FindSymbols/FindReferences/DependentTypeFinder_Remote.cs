@@ -91,6 +91,6 @@ internal static partial class DependentTypeFinder
                 builder.AddIfNotNull(namedType);
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

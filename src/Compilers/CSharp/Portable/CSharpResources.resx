@@ -5705,10 +5705,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</value>
   </data>
   <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</value>
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</value>
   </data>
   <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
-    <value>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</value>
+    <value>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</value>
   </data>
   <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
     <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>
@@ -6851,7 +6851,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Collection expression type must have an applicable constructor that can be called with no arguments.</value>
   </data>
   <data name="ERR_CollectionExpressionMissingAdd" xml:space="preserve">
-    <value>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</value>
+    <value>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</value>
   </data>
   <data name="ERR_CollectionBuilderAttributeInvalidType" xml:space="preserve">
     <value>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</value>
@@ -6861,6 +6861,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CollectionExpressionEscape" xml:space="preserve">
     <value>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</value>
+  </data>
+  <data name="INF_TooManyBoundLambdas" xml:space="preserve">
+    <value>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
+  </data>
+  <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
+    <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
@@ -7889,6 +7895,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NoModifiersOnUsing" xml:space="preserve">
     <value>Modifiers cannot be placed on using declarations</value>
+  </data>
+  <data name="ERR_CannotDynamicInvokeOnExpression" xml:space="preserve">
+    <value>Cannot perform a dynamic invocation on an expression with type '{0}'.</value>
+  </data>
+  <data name="ERR_InterceptsLocationDataInvalidFormat" xml:space="preserve">
+    <value>The data argument to InterceptsLocationAttribute is not in the correct format.</value>
+  </data>
+  <data name="ERR_InterceptsLocationUnsupportedVersion" xml:space="preserve">
+    <value>Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</value>
+  </data>
+  <data name="ERR_InterceptsLocationDuplicateFile" xml:space="preserve">
+    <value>Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</value>
+  </data>
+  <data name="ERR_InterceptsLocationFileNotFound" xml:space="preserve">
+    <value>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</value>
+  </data>
+  <data name="ERR_InterceptsLocationDataInvalidPosition" xml:space="preserve">
+    <value>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</value>
   </data>
   <data name="WRN_BadYieldInLock" xml:space="preserve">
     <value>'yield return' should not be used in the body of a lock statement</value>

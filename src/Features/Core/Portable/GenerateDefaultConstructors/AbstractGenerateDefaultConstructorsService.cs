@@ -50,7 +50,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
     }
 }

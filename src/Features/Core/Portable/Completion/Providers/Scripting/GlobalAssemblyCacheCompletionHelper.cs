@@ -59,12 +59,9 @@ internal sealed class GlobalAssemblyCacheCompletionHelper
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)
-    {
-        return IOUtilities.PerformIO(() => GlobalAssemblyCache.Instance.GetAssemblyIdentities(partialName),
-            SpecializedCollections.EmptyEnumerable<AssemblyIdentity>());
-    }
+        => IOUtilities.PerformIO(() => GlobalAssemblyCache.Instance.GetAssemblyIdentities(partialName), []);
 }

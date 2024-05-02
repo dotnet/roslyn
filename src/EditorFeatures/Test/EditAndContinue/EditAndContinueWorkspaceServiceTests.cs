@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
@@ -216,42 +215,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private void EnterBreakState(
             DebuggingSession session,
-            ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default,
-            ImmutableArray<DocumentId> documentsWithRudeEdits = default)
+            ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default)
         {
             _debuggerService.GetActiveStatementsImpl = () => activeStatements.NullToEmpty();
-            session.BreakStateOrCapabilitiesChanged(inBreakState: true, out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
+            session.BreakStateOrCapabilitiesChanged(inBreakState: true);
         }
 
         private void ExitBreakState(
-            DebuggingSession session,
-            ImmutableArray<DocumentId> documentsWithRudeEdits = default)
+            DebuggingSession session)
         {
             _debuggerService.GetActiveStatementsImpl = () => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
-            session.BreakStateOrCapabilitiesChanged(inBreakState: false, out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
+            session.BreakStateOrCapabilitiesChanged(inBreakState: false);
         }
 
-        private static void CapabilitiesChanged(
-            DebuggingSession session,
-            ImmutableArray<DocumentId> documentsWithRudeEdits = default)
-        {
-            session.BreakStateOrCapabilitiesChanged(inBreakState: null, out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
-        }
+        private static void CapabilitiesChanged(DebuggingSession session)
+            => session.BreakStateOrCapabilitiesChanged(inBreakState: null);
 
-        private static void CommitSolutionUpdate(DebuggingSession session, ImmutableArray<DocumentId> documentsWithRudeEdits = default)
-        {
-            session.CommitSolutionUpdate(out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
-        }
+        private static void CommitSolutionUpdate(DebuggingSession session)
+            => session.CommitSolutionUpdate();
 
-        private static void EndDebuggingSession(DebuggingSession session, ImmutableArray<DocumentId> documentsWithRudeEdits = default)
-        {
-            session.EndSession(out var documentsToReanalyze, out _);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
-        }
+        private static void EndDebuggingSession(DebuggingSession session)
+            => session.EndSession(out _);
 
         private static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(
             DebuggingSession session,
@@ -1419,12 +1403,12 @@ class C1
 
             if (breakMode)
             {
-                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                ExitBreakState(debuggingSession);
                 EndDebuggingSession(debuggingSession);
             }
             else
             {
-                EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                EndDebuggingSession(debuggingSession);
             }
 
             AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
@@ -1483,7 +1467,7 @@ class C1
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             // exit break state without applying the change:
-            ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            ExitBreakState(debuggingSession);
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
             AssertEx.Empty(diagnostics);
@@ -1497,7 +1481,7 @@ class C1
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             // exit break state without applying the change:
-            ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            ExitBreakState(debuggingSession);
 
             // apply the change:
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -1554,7 +1538,7 @@ class C { int Y => 2; }
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
-            EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(generatedDocument.Id));
+            EndDebuggingSession(debuggingSession);
         }
 
         [Theory]
@@ -1632,12 +1616,12 @@ class C { int Y => 2; }
 
             if (breakMode)
             {
-                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                ExitBreakState(debuggingSession);
                 EndDebuggingSession(debuggingSession);
             }
             else
             {
-                EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                EndDebuggingSession(debuggingSession);
             }
 
             AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
@@ -1703,7 +1687,7 @@ class C { int Y => 2; }
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
-            EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            EndDebuggingSession(debuggingSession);
         }
 
         [Fact]
@@ -1760,7 +1744,7 @@ class C { int Y => 2; }
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
-            EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            EndDebuggingSession(debuggingSession);
         }
 
         [Fact]
@@ -2087,8 +2071,13 @@ class C { int Y => 2; }
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
         public async Task Project_Add()
         {
+            // Project A:
             var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
+
+            // Project B (baseline, but not loaded into solution):
             var sourceB1 = "class B { int F() => 1; }";
+
+            // Additional documents added to B:
             var sourceB2 = "class B { int G() => 1; }";
             var sourceB3 = "class B { int F() => 2; }";
 
@@ -2141,7 +2130,7 @@ class C { int Y => 2; }
             }, baseSpans.Select(spans => spans.IsEmpty ? "<empty>" : string.Join(",", spans.Select(s => s.LineSpan.ToString()))));
 
             var trackedActiveSpans = ImmutableArray.Create(
-                new ActiveStatementSpan(1, activeLineSpanB1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null));
+                new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpanB1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame));
 
             var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(documentB2, (_, _, _) => new(trackedActiveSpans), CancellationToken.None);
             // TODO: https://github.com/dotnet/roslyn/issues/1204
@@ -2226,7 +2215,7 @@ class C { int Y => 2; }
 
             if (breakState)
             {
-                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+                ExitBreakState(debuggingSession);
             }
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
@@ -2238,11 +2227,11 @@ class C { int Y => 2; }
 
             if (breakState)
             {
-                EnterBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+                EnterBreakState(debuggingSession);
             }
             else
             {
-                CapabilitiesChanged(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+                CapabilitiesChanged(debuggingSession);
             }
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
@@ -2387,7 +2376,7 @@ class G
             // no pending update:
             Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
-            Assert.Throws<InvalidOperationException>(() => debuggingSession.CommitSolutionUpdate(out var _));
+            Assert.Throws<InvalidOperationException>(() => debuggingSession.CommitSolutionUpdate());
             Assert.Throws<InvalidOperationException>(() => debuggingSession.DiscardSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
@@ -3591,8 +3580,8 @@ class C { int Y => 1; }
 
             EnterBreakState(debuggingSession, activeStatements);
 
-            var activeStatementSpan11 = new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null);
-            var activeStatementSpan12 = new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan11 = new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame);
+            var activeStatementSpan12 = new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame);
 
             var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None);
             AssertEx.Equal(new[]
@@ -3611,8 +3600,8 @@ class C { int Y => 1; }
             var document2 = solution.GetDocument(documentId);
 
             // tracking span update triggered by the edit:
-            var activeStatementSpan21 = new ActiveStatementSpan(0, activeLineSpan21, ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null);
-            var activeStatementSpan22 = new ActiveStatementSpan(1, activeLineSpan22, ActiveStatementFlags.LeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan21 = new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan21, ActiveStatementFlags.NonLeafFrame);
+            var activeStatementSpan22 = new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan22, ActiveStatementFlags.LeafFrame);
             var trackedActiveSpans2 = ImmutableArray.Create(activeStatementSpan21, activeStatementSpan22);
 
             currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => new(trackedActiveSpans2), CancellationToken.None);
@@ -3671,8 +3660,8 @@ class C { int Y => 1; }
             var baseSpans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null),
-                new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null)
+                new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame),
+                new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame)
             }, baseSpans);
 
             // change the source (valid edit):
@@ -3801,7 +3790,7 @@ class C { int Y => 1; }
 
             Assert.Equal(3, baseActiveStatementsMap.InstructionMap.Count);
 
-            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
             var s = statements[0];
             Assert.Equal(0x06000001, s.InstructionId.Method.Token);
             Assert.Equal(module4, s.InstructionId.Method.Module);
@@ -4073,7 +4062,7 @@ class C
             solution = solution.WithDocumentText(document.Id, CreateText(source1));
             document = solution.GetDocument(document.Id);
 
-            ExitBreakState(debuggingSession, ImmutableArray.Create(document.Id));
+            ExitBreakState(debuggingSession);
 
             // change the source (now a valid edit since there is no active statement)
             solution = solution.WithDocumentText(document.Id, CreateText(source2));
@@ -4197,7 +4186,7 @@ class C
             var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, new LinePositionSpan(new(4,41), new(4,42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null),
+                new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new(4,41), new(4,42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame),
             }, spans);
 
             solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSourceV4)));
@@ -4299,8 +4288,8 @@ class C
             var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
-                new ActiveStatementSpan(1, expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
+                new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
+                new ActiveStatementSpan(new ActiveStatementId(1), expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
             }, spans);
 
             solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSource3)));
@@ -4312,8 +4301,8 @@ class C
             spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
-                new ActiveStatementSpan(1, expectedSpanF2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
+                new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
+                new ActiveStatementSpan(new ActiveStatementId(1), expectedSpanF2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
             }, spans);
 
             // no rude edits:
@@ -4408,7 +4397,7 @@ class C
             var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null)
+                new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame)
                 // active statement in F has been deleted
             }, spans);
 
@@ -4464,7 +4453,7 @@ class C
                 Assert.Equal("CS0103", result2.Diagnostics.Single().Diagnostics.Single().Id);
                 Assert.Empty(result2.ModuleUpdates.Updates);
 
-                encService.EndDebuggingSession(sessionId, out var _);
+                encService.EndDebuggingSession(sessionId);
             });
 
             await Task.WhenAll(tasks);
@@ -4484,10 +4473,10 @@ class C
 
             // The folling methods shall not be called after the debugging session ended.
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None));
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState: true, out _));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState: true));
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.DiscardSolutionUpdate());
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate(out _));
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.EndSession(out _, out _));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate());
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.EndSession(out _));
 
             // The following methods can be called at any point in time, so we must handle race with dispose gracefully.
             Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));

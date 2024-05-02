@@ -101,7 +101,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
         var isEmpty = filteredList.Count == 0;
         if (!selectedItem.HasValue || isEmpty)
-            return (isEmpty ? items.ToList() : filteredList, selectedItem);
+            return (isEmpty ? [.. items] : filteredList, selectedItem);
 
         // adjust the selected item
         var selection = items[selectedItem.Value];
@@ -313,7 +313,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData)
