@@ -44,7 +44,8 @@ internal class EventKeywordRecommender : AbstractSyntacticSingleKeywordRecommend
         return
             (context.IsGlobalStatementContext && syntaxTree.IsScript()) ||
             syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsMemberDeclarationContext(validModifiers: s_validClassModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken) ||
+            context.IsMemberDeclarationContext(validModifiers: s_validClassModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumNonStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken) ||
+            context.IsMemberDeclarationContext(validModifiers: s_validStructModifiers, validTypeDeclarations: SyntaxKindSet.StructOnlyTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken) ||
             context.IsMemberAttributeContext(SyntaxKindSet.NonEnumTypeDeclarations, cancellationToken);
     }
 }
