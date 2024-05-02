@@ -221,11 +221,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestInsideExtension()
+        public async Task TestNotInsideExtension()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
                 """
                 implicit extension E
+                {
+                    $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInsideUnsafeExtension()
+        {
+            await VerifyAbsenceAsync(
+                """
+                unsafe implicit extension E
                 {
                     $$
                 """);
