@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 node.DefaultArguments,
-                node.Type,
                 node,
                 isLeftOfAssignment);
         }
@@ -106,12 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
-            TypeSymbol type,
             BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
         {
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
+                TypeSymbol type = indexer.Type;
+                Debug.Assert(oldNodeOpt?.Type.Equals(type, TypeCompareKind.ConsiderEverything) != false);
+
                 // This is an indexer set access. We return a BoundIndexerAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
@@ -145,6 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentRefKindsOpt, getMethod);
 
+                Debug.Assert(call.Type is not null);
+
                 if (temps.Count == 0)
                 {
                     temps.Free();
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         temps.ToImmutableAndFree(),
                         ImmutableArray<BoundExpression>.Empty,
                         call,
-                        type);
+                        call.Type);
                 }
             }
         }

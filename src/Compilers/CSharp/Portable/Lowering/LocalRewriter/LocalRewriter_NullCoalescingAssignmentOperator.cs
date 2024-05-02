@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // isCompoundAssignment is only used for dynamic scenarios, and we want those scenarios to treat this like a standard assignment.
                 // See CodeGenNullCoalescingAssignmentTests.CoalescingAssignment_DynamicRuntimeCastFailure, which will fail if
                 // isCompoundAssignment is set to true. It will fail to throw a runtime binder cast exception.
-                BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, isChecked: false, isCompoundAssignment: false);
+                Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.LeftOperand.Type, TypeCompareKind.AllIgnoreOptions));
+                BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, isCompoundAssignment: false);
 
                 // lhsRead ?? (transformedLHS = loweredRight)
                 var leftPlaceholder = new BoundValuePlaceholder(lhsRead.Syntax, lhsRead.Type);
@@ -60,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewriteNullCoalescingAssignmentForValueType()
             {
                 Debug.Assert(node.LeftOperand.Type.IsNullableType());
-                Debug.Assert(node.Type.Equals(node.RightOperand.Type));
 
                 // We lower the expression to this form:
                 //
@@ -107,17 +107,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps.Add(tmp.LocalSymbol);
 
                 // tmp = loweredRight;
-                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, node.Type, used: true, isChecked: false, isCompoundAssignment: false);
+                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, used: true, isChecked: false, isCompoundAssignment: false);
 
                 Debug.Assert(transformedLHS.Type.GetNullableUnderlyingType().Equals(tmp.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions));
 
                 // transformedLhs = tmp;
+                Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.LeftOperand.Type, TypeCompareKind.AllIgnoreOptions));
                 var transformedLhsAssignment =
                     MakeAssignmentOperator(
                         node.Syntax,
                         transformedLHS,
                         MakeConversionNode(tmp, transformedLHS.Type, @checked: false, markAsChecked: true),
-                        node.LeftOperand.Type,
                         used: true,
                         isChecked: false,
                         isCompoundAssignment: false);
