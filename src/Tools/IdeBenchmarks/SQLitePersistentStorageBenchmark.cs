@@ -61,10 +61,9 @@ namespace IdeBenchmarks
     </Project>
 </Workspace>");
 
-            var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
             var asyncListener = _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.PersistentStorage);
 
-            _storageService = new SQLitePersistentStorageService(connectionPoolService, new StorageConfiguration(), asyncListener);
+            _storageService = new SQLitePersistentStorageService(new StorageConfiguration(), asyncListener);
 
             var solution = _workspace.CurrentSolution;
             _storage = _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None).AsTask().GetAwaiter().GetResult();
@@ -83,7 +82,6 @@ namespace IdeBenchmarks
             }
 
             _document = null!;
-            _storage.Dispose();
             _storage = null!;
             _storageService = null!;
             _workspace.Dispose();

@@ -61,7 +61,6 @@ internal partial class SymbolTreeInfo
             var persistentStorageService = services.GetPersistentStorageService();
 
             var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             {
@@ -91,7 +90,6 @@ internal partial class SymbolTreeInfo
         var persistentStorageService = services.GetPersistentStorageService();
 
         var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-        await using var _ = storage.ConfigureAwait(false);
 
         // Get the unique key to identify our data.
         var key = PrefixSymbolTreeInfo + keySuffix;
