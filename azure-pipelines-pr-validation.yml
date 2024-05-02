@@ -304,10 +304,6 @@ extends:
         pool:
           name: VSEngSS-MicroBuild2022-1ES
         steps:
-        # Arcade is done so we can set BuildNumber back
-        - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
-          displayName: Reset BuildNumber
-          condition: succeeded()
         - download: current
           artifact: VSSetup
         - powershell: |
@@ -329,6 +325,10 @@ extends:
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
+        # Arcade is done so we can set BuildNumber back
+        - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
+          displayName: Reset BuildNumber
+          condition: succeeded()
 
     # Use post-build to publish symbol packages.
     - template: /eng/common/templates-official/post-build/post-build.yml@self

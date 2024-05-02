@@ -260,8 +260,6 @@ function BuildSolution() {
 
   $restoreUseStaticGraphEvaluation = $true
 
-  $symbolPublishingExcludeFile = Join-Path $RepoRoot "eng\SymbolPublishingExclusionsFile.txt"
-
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -284,7 +282,6 @@ function BuildSolution() {
       /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      /p:SymbolPublishingExclusionsFile=$symbolPublishingExcludeFile `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
