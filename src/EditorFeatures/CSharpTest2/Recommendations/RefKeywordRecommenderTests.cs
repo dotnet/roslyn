@@ -870,26 +870,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/21889")]
-        [InlineData(SourceCodeKind.Regular, true)]
-        [InlineData(SourceCodeKind.Regular, false)]
-        [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
-        [InlineData(SourceCodeKind.Script, false)]
-        public async Task TestInConditionalExpressionTrueBranch(SourceCodeKind sourceCodeKind, bool topLevelStatement)
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestInConditionalExpressionTrueBranch_Regular(bool topLevelStatement)
         {
             await VerifyWorkerAsync(
                 AddInsideMethod("""
                     ref int x = ref true ? $$
                     """, topLevelStatement: topLevelStatement),
                 absent: false,
-                options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
+                options: CSharp9ParseOptions);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/21889")]
-        [InlineData(SourceCodeKind.Regular, true)]
-        [InlineData(SourceCodeKind.Regular, false)]
-        [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
-        [InlineData(SourceCodeKind.Script, false)]
-        public async Task TestInConditionalExpressionFalseBranch(SourceCodeKind sourceCodeKind, bool topLevelStatement)
+        [InlineData(true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
+        [InlineData(false)]
+        public async Task TestInConditionalExpressionTrueBranch_Script(bool topLevelStatement)
+        {
+            await VerifyWorkerAsync(
+                AddInsideMethod("""
+                    ref int x = ref true ? $$
+                    """, topLevelStatement: topLevelStatement),
+                absent: false,
+                options: Options.Script);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/21889")]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestInConditionalExpressionFalseBranch_Regular(bool topLevelStatement)
         {
             await VerifyWorkerAsync(
                 AddInsideMethod("""
@@ -897,7 +906,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     ref int y = ref true ? ref x : $$
                     """, topLevelStatement: topLevelStatement),
                 absent: false,
-                options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
+                options: CSharp9ParseOptions);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/21889")]
+        [InlineData(true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
+        [InlineData(false)]
+        public async Task TestInConditionalExpressionFalseBranch_Script(bool topLevelStatement)
+        {
+            await VerifyWorkerAsync(
+                AddInsideMethod("""
+                    int x = 0;
+                    ref int y = ref true ? ref x : $$
+                    """, topLevelStatement: topLevelStatement),
+                absent: false,
+                options: Options.Script);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/22253")]
