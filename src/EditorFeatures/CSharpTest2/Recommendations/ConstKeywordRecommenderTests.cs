@@ -148,12 +148,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [InlineData(SourceCodeKind.Regular)]
-        [InlineData(SourceCodeKind.Script, Skip = "https://github.com/dotnet/roslyn/issues/9880")]
-        public async Task TestNotBeforeUsing(SourceCodeKind sourceCodeKind)
+        [Fact]
+        public async Task TestNotBeforeUsing_Regular()
         {
-            await VerifyAbsenceAsync(sourceCodeKind,
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+                """
+                $$
+                using Goo;
+                """);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        public async Task TestNotBeforeUsing_Script()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
                 """
                 $$
                 using Goo;

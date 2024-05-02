@@ -1579,7 +1579,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // PROTOTYPE.  Parse this with extensions and give good error message for recovery purposes.
             var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword
-                ? ParseParenthesizedParameterList() : null;
+                ? ParseParenthesizedParameterList()
+                : null;
 
             // PROTOTYPE. Parse this for all type declarations and give good error message.
             var extensionForType = mainKeyword.Kind == SyntaxKind.ExtensionKeyword && CurrentToken.Kind == SyntaxKind.ForKeyword

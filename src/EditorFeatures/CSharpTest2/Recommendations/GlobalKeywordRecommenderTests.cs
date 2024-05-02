@@ -415,6 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestInExtensionForType()
         {
             await VerifyKeywordAsync(
+                SourceCodeKind.Regular,
                 """
                 implicit extension E for $$
                 """);

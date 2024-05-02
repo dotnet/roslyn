@@ -406,13 +406,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"a ? $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true, Skip = "https://github.com/dotnet/roslyn/issues/44443")]
-        public async Task TestAfterConditional2(bool topLevelStatement)
+        [Fact]
+        public async Task TestAfterConditional2_NotTopLevelStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"a ? expr | $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+@"a ? expr | $$", topLevelStatement: false), options: CSharp9ParseOptions);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44443")]
+        public async Task TestAfterConditional2_TopLevelStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"a ? expr | $$", topLevelStatement: true), options: CSharp9ParseOptions);
         }
 
         [Theory]
