@@ -235,22 +235,16 @@ internal sealed partial class SymbolicRenameLocations
             // We won't try to update references in source generated files; we'll assume the generator will rerun
             // and produce an updated document with the new name.
             if (location.Document is SourceGeneratedDocument)
-            {
-                return SpecializedCollections.EmptyEnumerable<RenameLocation>();
-            }
+                return [];
 
             var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, true, cancellationToken).ConfigureAwait(false);
             if (!shouldIncludeSymbol)
-            {
-                return SpecializedCollections.EmptyEnumerable<RenameLocation>();
-            }
+                return [];
 
             // Implicit references are things like a foreach referencing GetEnumerator. We don't
             // want to consider those as part of the set
             if (location.IsImplicit)
-            {
-                return SpecializedCollections.EmptyEnumerable<RenameLocation>();
-            }
+                return [];
 
             var results = new List<RenameLocation>();
 

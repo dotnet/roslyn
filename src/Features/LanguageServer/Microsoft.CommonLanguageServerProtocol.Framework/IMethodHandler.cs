@@ -10,11 +10,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// <summary>
 /// Top level type for LSP request handler.
 /// </summary>
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public interface IMethodHandler
-#else
 internal interface IMethodHandler
-#endif
 {
     /// <summary>
     /// Whether or not the solution state on the server is modified as a part of handling this request.

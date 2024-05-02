@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), Shared]
@@ -64,7 +64,7 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         {
             var expression = expressionStatement.Expression;
             localDeclaration = localDeclaration.ReplaceNode(value, expression.WithoutLeadingTrivia());
-            semicolonToken = Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
+            semicolonToken = SemicolonToken.WithTrailingTrivia(expression.GetTrailingTrivia());
         }
 
         return localDeclaration.WithSemicolonToken(semicolonToken);
@@ -80,7 +80,7 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         {
             var expression = expressionStatement.Expression;
             deconstruction = deconstruction.ReplaceNode(binary.Right, expression.WithoutLeadingTrivia());
-            semicolonToken = Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
+            semicolonToken = SemicolonToken.WithTrailingTrivia(expression.GetTrailingTrivia());
         }
 
         return deconstruction.WithSemicolonToken(semicolonToken);

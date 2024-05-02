@@ -19,7 +19,7 @@ The compiler shipped with .NET 9 (the C# 13 compiler) contains the following war
 
 | Warning ID | Description |
 |------------|-------------|
-| CS9230 | ['yield return' should not be used in the body of a lock statement](https://github.com/dotnet/roslyn/issues/72443) |
+| CS9237 | ['yield return' should not be used in the body of a lock statement](https://github.com/dotnet/roslyn/issues/72443) |
 
 ## Warning level 8
 

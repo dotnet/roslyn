@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // Following trick can reduce the range check by one
                 if ((uint)index >= (uint)ReadOnlyList.Count)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                    ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
                 }
 
                 return ref ReadOnlyList._items[index];
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Collections
             public readonly int LastIndexOf(T item, int startIndex, int count, IEqualityComparer<T>? equalityComparer)
             {
                 if (startIndex < 0)
-                    ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                    ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
                 if (count < 0 || count > Count)
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count);
                 if (startIndex - count + 1 < 0)

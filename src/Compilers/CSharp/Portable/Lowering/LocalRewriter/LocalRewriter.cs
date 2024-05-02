@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!nameofOperator.WasCompilerGenerated);
                 var nameofIdentiferSyntax = (IdentifierNameSyntax)((InvocationExpressionSyntax)nameofOperator.Syntax).Expression;
-                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax.Location) is not null)
+                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax) is not null)
                 {
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptNameof, nameofIdentiferSyntax.Location);
                 }
@@ -645,6 +645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
         {
+            Debug.Assert(node.Type.ExtendedSpecialType == InternalSpecialType.System_Type ||
+                         TypeSymbol.Equals(node.Type, _compilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(node.GetTypeFromHandle is null);
 
             var sourceType = (BoundTypeExpression?)this.Visit(node.SourceType);
@@ -653,11 +655,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Emit needs this helper
             MethodSymbol? getTypeFromHandle;
-            if (!TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Type__GetTypeFromHandle, out getTypeFromHandle))
+            bool tryGetResult;
+
+            if (node.Type.ExtendedSpecialType == InternalSpecialType.System_Type)
+            {
+                tryGetResult = TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_Type__GetTypeFromHandle, out getTypeFromHandle);
+            }
+            else
+            {
+                tryGetResult = TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Type__GetTypeFromHandle, out getTypeFromHandle);
+            }
+
+            if (!tryGetResult)
             {
                 return new BoundTypeOfOperator(node.Syntax, sourceType, null, type, hasErrors: true);
             }
 
+            Debug.Assert(getTypeFromHandle is not null);
+            Debug.Assert(TypeSymbol.Equals(type, getTypeFromHandle.ReturnType, TypeCompareKind.AllIgnoreOptions));
             return node.Update(sourceType, getTypeFromHandle, type);
         }
 

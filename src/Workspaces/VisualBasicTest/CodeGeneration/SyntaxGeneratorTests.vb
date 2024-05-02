@@ -1081,6 +1081,23 @@ End Operator")
         End Sub
 
         <Fact>
+        Public Sub TestOperatorDeclarationSymbolOverload()
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+"
+Public Class C
+    Shared Operator +(c1 As C, c2 As C) As C
+    End Operator
+End Class")
+            Dim compilation = VisualBasicCompilation.Create("AssemblyName", syntaxTrees:={tree})
+
+            Dim additionOperatorSymbol = DirectCast(compilation.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Single(), IMethodSymbol)
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.OperatorDeclaration(additionOperatorSymbol),
+"Public Shared Operator +(c1 As Global.C, c2 As Global.C) As Global.C
+End Operator")
+        End Sub
+
+        <Fact>
         Public Sub MethodDeclarationCanRoundTrip()
             Dim tree = VisualBasicSyntaxTree.ParseText(
 "

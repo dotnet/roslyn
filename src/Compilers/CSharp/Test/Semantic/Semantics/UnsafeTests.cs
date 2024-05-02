@@ -437,7 +437,7 @@ unsafe class C
 
             var expectedDiagnostics = new[]
             {
-                // (8,23): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                // (8,23): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
                 //             int *p = &x;
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(8, 23)
             };
@@ -484,7 +484,7 @@ unsafe class C
 
             var expectedDiagnostics = new[]
             {
-                // (7,23): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                // (7,23): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
                 //             int *p = &x;
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(7, 23)
             };
@@ -557,7 +557,7 @@ unsafe class C
                 }
                 """;
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (12,23): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                // (12,23): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
                 //             int* p = &s.F;
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "s.F").WithLocation(12, 23));
         }
@@ -668,7 +668,7 @@ unsafe class C
 
             var expectedDiagnostics = new[]
             {
-                // (7,13): error CS9231: Cannot use 'yield return' in an 'unsafe' block
+                // (7,13): error CS9238: Cannot use 'yield return' in an 'unsafe' block
                 //             yield return 1;
                 Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(7, 13)
             };
@@ -740,13 +740,13 @@ unsafe class C
 
             var expectedDiagnostics = new[]
             {
-                // (8,23): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                // (8,23): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
                 //             int *p = &x;
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(8, 23),
-                // (14,23): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                // (14,23): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
                 //             int *p = &x;
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(14, 23),
-                // (20,23): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                // (20,23): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
                 //             int *p = &x;
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(20, 23)
             };
@@ -2357,7 +2357,7 @@ unsafe class C
                 // (5,9): error CS1621: The yield statement cannot be used inside an anonymous method or lambda expression
                 //         yield return sizeof(nint);
                 Diagnostic(ErrorCode.ERR_YieldInAnonMeth, "yield").WithLocation(5, 9),
-                // (5,9): error CS9231: Cannot use 'yield return' in an 'unsafe' block
+                // (5,9): error CS9238: Cannot use 'yield return' in an 'unsafe' block
                 //         yield return sizeof(nint);
                 Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(5, 9)
             ];

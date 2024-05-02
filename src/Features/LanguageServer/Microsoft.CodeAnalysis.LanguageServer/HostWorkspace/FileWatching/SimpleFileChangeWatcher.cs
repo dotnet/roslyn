@@ -19,7 +19,7 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
 {
     public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
     {
-        return new FileChangeContext(watchedDirectories.ToImmutableArray());
+        return new FileChangeContext([.. watchedDirectories]);
     }
 
     private class FileChangeContext : IFileChangeContext

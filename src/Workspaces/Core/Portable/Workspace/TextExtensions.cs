@@ -22,18 +22,16 @@ internal static class TextExtensions
         {
             var documentId = workspace.GetDocumentIdInCurrentContext(text.Container);
             if (documentId == null)
-            {
                 return [];
-            }
 
             var solution = workspace.CurrentSolution;
 
-            if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(documentId, out var documentIdentity))
+            if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(documentId, out var identityAndDateTime))
             {
                 // For source generated documents, we won't count them as linked across multiple projects; this is because
                 // the generated documents in each target may have different source so other features might be surprised if we
                 // return the same documents but with different text. So in this case, we'll just return a single document.
-                return [solution.WithFrozenSourceGeneratedDocument(documentIdentity, text)];
+                return [solution.WithFrozenSourceGeneratedDocument(identityAndDateTime.identity, identityAndDateTime.generationDateTime, text)];
             }
 
             var relatedIds = solution.GetRelatedDocumentIds(documentId);
@@ -65,14 +63,10 @@ internal static class TextExtensions
             var solution = workspace.CurrentSolution;
             var id = workspace.GetDocumentIdInCurrentContext(text.Container);
             if (id == null)
-            {
                 return null;
-            }
 
-            if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
-            {
-                return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
-            }
+            if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var identityAndDateTime))
+                return solution.WithFrozenSourceGeneratedDocument(identityAndDateTime.identity, identityAndDateTime.generationDateTime, text);
 
             if (solution.ContainsDocument(id))
             {

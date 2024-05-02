@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -118,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            allDiagnostics = allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
+            allDiagnostics = allDiagnostics.AddRange(
+                await buildOnlyDiagnosticsService.GetBuildOnlyDiagnosticsAsync(document.Id, cancellationToken).ConfigureAwait(false));
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             diagnostics = diagnostics.AddRange(copilotDiagnostics);
 
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
+            var buildOnlyDiagnostics = await buildOnlyDiagnosticsService.GetBuildOnlyDiagnosticsAsync(document.Id, cancellationToken).ConfigureAwait(false);
 
             if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty)
                 yield break;
@@ -255,20 +255,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeActionRequestPriority? priority,
             CancellationToken cancellationToken)
         {
-            if (!(priority is null or CodeActionRequestPriority.Low)
-                || document is not Document sourceDocument)
-            {
-                return [];
-            }
+            if (priority is null or CodeActionRequestPriority.Low)
+                return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
 
-            // Expand the fixable range for Copilot diagnostics to containing method.
-            // TODO: Share the below code with other places we compute containing method for Copilot analysis.
-            var root = await sourceDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = sourceDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-            var containingMethod = syntaxFacts.GetContainingMethodDeclaration(root, range.Start, useFullSpan: false);
-            range = containingMethod?.Span ?? range;
-
-            return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
+            return [];
         }
 
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
@@ -669,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
             await task.ConfigureAwait(false);
-            return fixes.ToImmutable();
+            return fixes.ToImmutableAndClear();
 
             static ImmutableArray<Diagnostic> FilterApplicableDiagnostics(
                 ImmutableArray<Diagnostic> applicableDiagnostics,
@@ -941,14 +931,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             static ImmutableArray<IConfigurationFixProvider> GetConfigurationFixProviders(ImmutableArray<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
             {
-                using var builderDisposer = ArrayBuilder<IConfigurationFixProvider>.GetInstance(out var builder);
                 var orderedLanguageKindAndFixers = ExtensionOrderer.Order(languageKindAndFixers);
+                var builder = new FixedSizeArrayBuilder<IConfigurationFixProvider>(orderedLanguageKindAndFixers.Count);
                 foreach (var languageKindAndFixersValue in orderedLanguageKindAndFixers)
-                {
                     builder.Add(languageKindAndFixersValue.Value);
-                }
 
-                return builder.ToImmutable();
+                return builder.MoveToImmutable();
             }
         }
 

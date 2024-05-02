@@ -258,6 +258,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? Visit(BoundNode? node)
         {
 #if DEBUG
+            TrackVisit(node);
+#endif
+            return base.Visit(node);
+        }
+
+#if DEBUG
+        protected override void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
+        {
+            TrackVisit(node);
+        }
+
+        protected override void BeforeVisitingSkippedBoundCallChildren(BoundCall node)
+        {
+            TrackVisit(node);
+        }
+
+        private void TrackVisit(BoundNode? node)
+        {
             if (node is BoundValuePlaceholderBase placeholder)
             {
                 Debug.Assert(ContainsPlaceholderScope(placeholder));
@@ -267,14 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_visited is { } && _visited.Count <= MaxTrackVisited)
                 {
                     bool added = _visited.Add(expr);
-                    Debug.Assert(added);
+                    Debug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
                 }
             }
-#endif
-            return base.Visit(node);
         }
 
-#if DEBUG
         private void AssertVisited(BoundExpression expr)
         {
             if (expr is BoundValuePlaceholderBase placeholder)
@@ -283,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_visited is { } && _visited.Count <= MaxTrackVisited)
             {
-                Debug.Assert(_visited.Contains(expr));
+                Debug.Assert(_visited.Contains(expr), $"Expected {expr} `{expr.Syntax}` to be visited.");
             }
         }
 #endif
@@ -539,6 +554,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            base.VisitCompoundAssignmentOperator(node);
+            ValidateAssignment(node.Syntax, node.Left, node, isRef: false, _diagnostics);
+            return null;
+        }
+
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             this.Visit(node.Expression);
@@ -652,13 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _localScopeDepth,
                     _diagnostics);
             }
-
-#if DEBUG
-            if (_visited is { } && _visited.Count <= MaxTrackVisited)
-            {
-                _visited.Add(node);
-            }
-#endif
         }
 
         private void GetInterpolatedStringPlaceholders(

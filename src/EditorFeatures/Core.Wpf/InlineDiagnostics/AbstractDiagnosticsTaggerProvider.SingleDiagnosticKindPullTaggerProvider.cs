@@ -143,7 +143,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                 // and hence only report them for 'DiagnosticKind.AnalyzerSemantic'.
                 if (_diagnosticKind == DiagnosticKind.AnalyzerSemantic)
                 {
-                    var copilotDiagnostics = await document.GetCachedCopilotDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                    var copilotDiagnostics = await document.GetCachedCopilotDiagnosticsAsync(requestedSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
                     diagnostics = diagnostics.AddRange(copilotDiagnostics);
                 }
 

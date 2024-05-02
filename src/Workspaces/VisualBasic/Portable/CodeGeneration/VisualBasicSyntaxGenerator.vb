@@ -808,15 +808,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                       Optional modifiers As DeclarationModifiers = Nothing,
                                                       Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
+            Return OperatorDeclaration(GetOperatorName(kind), isImplicitConversion:=kind = OperatorKind.ImplicitConversion, parameters, returnType, accessibility, modifiers, statements)
+        End Function
+
+        Private Protected Overrides Function OperatorDeclaration(operatorName As String, isImplicitConversion As Boolean, Optional parameters As IEnumerable(Of SyntaxNode) = Nothing, Optional returnType As SyntaxNode = Nothing, Optional accessibility As Accessibility = Accessibility.NotApplicable, Optional modifiers As DeclarationModifiers = Nothing, Optional statements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
             Dim statement As OperatorStatementSyntax
             Dim asClause = If(returnType IsNot Nothing, SyntaxFactory.SimpleAsClause(DirectCast(returnType, TypeSyntax)), Nothing)
             Dim parameterList = GetParameterList(parameters)
-            Dim operatorToken = SyntaxFactory.Token(GetTokenKind(kind))
+            Dim vbSyntaxKind As SyntaxKind = VisualBasic.SyntaxFacts.GetOperatorKind(operatorName)
+            Dim operatorToken = SyntaxFactory.Token(vbSyntaxKind)
             Dim modifierList As SyntaxTokenList = GetModifierList(accessibility, modifiers And s_methodModifiers, declaration:=Nothing, DeclarationKind.Operator)
 
-            If kind = OperatorKind.ImplicitConversion OrElse kind = OperatorKind.ExplicitConversion Then
+            If vbSyntaxKind = SyntaxKind.CTypeKeyword Then
                 modifierList = modifierList.Add(SyntaxFactory.Token(
-                    If(kind = OperatorKind.ImplicitConversion, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword)))
+                    If(isImplicitConversion, SyntaxKind.WideningKeyword, SyntaxKind.NarrowingKeyword)))
                 statement = SyntaxFactory.OperatorStatement(
                     attributeLists:=Nothing, modifiers:=modifierList, operatorToken:=operatorToken,
                     parameterList:=parameterList, asClause:=asClause)
@@ -837,53 +842,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Shared Function GetTokenKind(kind As OperatorKind) As SyntaxKind
+        Private Shared Function GetOperatorName(kind As OperatorKind) As String
             Select Case kind
-                Case OperatorKind.ImplicitConversion,
-                     OperatorKind.ExplicitConversion
-                    Return SyntaxKind.CTypeKeyword
+                Case OperatorKind.ImplicitConversion
+                    Return WellKnownMemberNames.ImplicitConversionName
+                Case OperatorKind.ExplicitConversion
+                    Return WellKnownMemberNames.ExplicitConversionName
                 Case OperatorKind.Addition
-                    Return SyntaxKind.PlusToken
+                    Return WellKnownMemberNames.AdditionOperatorName
                 Case OperatorKind.BitwiseAnd
-                    Return SyntaxKind.AndKeyword
+                    Return WellKnownMemberNames.BitwiseAndOperatorName
                 Case OperatorKind.BitwiseOr
-                    Return SyntaxKind.OrKeyword
+                    Return WellKnownMemberNames.BitwiseOrOperatorName
                 Case OperatorKind.Division
-                    Return SyntaxKind.SlashToken
+                    Return WellKnownMemberNames.DivisionOperatorName
                 Case OperatorKind.Equality
-                    Return SyntaxKind.EqualsToken
+                    Return WellKnownMemberNames.EqualityOperatorName
                 Case OperatorKind.ExclusiveOr
-                    Return SyntaxKind.XorKeyword
+                    Return WellKnownMemberNames.ExclusiveOrOperatorName
                 Case OperatorKind.False
-                    Return SyntaxKind.IsFalseKeyword
+                    Return WellKnownMemberNames.FalseOperatorName
                 Case OperatorKind.GreaterThan
-                    Return SyntaxKind.GreaterThanToken
+                    Return WellKnownMemberNames.GreaterThanOperatorName
                 Case OperatorKind.GreaterThanOrEqual
-                    Return SyntaxKind.GreaterThanEqualsToken
+                    Return WellKnownMemberNames.GreaterThanOrEqualOperatorName
                 Case OperatorKind.Inequality
-                    Return SyntaxKind.LessThanGreaterThanToken
+                    Return WellKnownMemberNames.InequalityOperatorName
                 Case OperatorKind.LeftShift
-                    Return SyntaxKind.LessThanLessThanToken
+                    Return WellKnownMemberNames.LeftShiftOperatorName
                 Case OperatorKind.LessThan
-                    Return SyntaxKind.LessThanToken
+                    Return WellKnownMemberNames.LessThanOperatorName
                 Case OperatorKind.LessThanOrEqual
-                    Return SyntaxKind.LessThanEqualsToken
+                    Return WellKnownMemberNames.LessThanOrEqualOperatorName
                 Case OperatorKind.LogicalNot
-                    Return SyntaxKind.NotKeyword
+                    Return WellKnownMemberNames.LogicalNotOperatorName
                 Case OperatorKind.Modulus
-                    Return SyntaxKind.ModKeyword
+                    Return WellKnownMemberNames.ModulusOperatorName
                 Case OperatorKind.Multiply
-                    Return SyntaxKind.AsteriskToken
+                    Return WellKnownMemberNames.MultiplyOperatorName
                 Case OperatorKind.RightShift
-                    Return SyntaxKind.GreaterThanGreaterThanToken
+                    Return WellKnownMemberNames.RightShiftOperatorName
                 Case OperatorKind.Subtraction
-                    Return SyntaxKind.MinusToken
+                    Return WellKnownMemberNames.SubtractionOperatorName
                 Case OperatorKind.True
-                    Return SyntaxKind.IsTrueKeyword
+                    Return WellKnownMemberNames.TrueOperatorName
                 Case OperatorKind.UnaryNegation
-                    Return SyntaxKind.MinusToken
+                    Return WellKnownMemberNames.UnaryNegationOperatorName
                 Case OperatorKind.UnaryPlus
-                    Return SyntaxKind.PlusToken
+                    Return WellKnownMemberNames.UnaryPlusOperatorName
                 Case Else
                     Throw New ArgumentException($"Operator {kind} cannot be generated in Visual Basic.")
             End Select
@@ -1673,6 +1679,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function WithNoTarget(attr As AttributeSyntax) As AttributeSyntax
             Return attr.WithTarget(Nothing)
+        End Function
+
+        Friend Overrides Function GetPrimaryConstructorParameterList(declaration As SyntaxNode) As SyntaxNode
+            Return Nothing
         End Function
 
         Friend Overrides Function GetTypeInheritance(declaration As SyntaxNode) As ImmutableArray(Of SyntaxNode)

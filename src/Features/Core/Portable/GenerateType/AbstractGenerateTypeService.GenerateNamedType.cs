@@ -109,7 +109,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (_state.IsException)
                 AddExceptionConstructors(members);
 
-            return members.ToImmutable();
+            return members.ToImmutableAndClear();
         }
 
         private async Task AddMembersAsync(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
@@ -236,7 +236,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var exceptionType = _semanticDocument.SemanticModel.Compilation.ExceptionType();
             var constructors =
                exceptionType.InstanceConstructors
-                   .Where(c => c.DeclaredAccessibility is Accessibility.Public or Accessibility.Protected)
+                   .Where(c => c.DeclaredAccessibility is Accessibility.Public or Accessibility.Protected && !c.IsObsolete())
                    .Select(c => CodeGenerationSymbolFactory.CreateConstructorSymbol(
                        attributes: default,
                        accessibility: c.DeclaredAccessibility,
@@ -321,7 +321,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var availableInnerTypeParameters = _service.GetTypeParameters(_state, _semanticDocument.SemanticModel, _cancellationToken);
             var availableOuterTypeParameters = !_intoNamespace && _state.TypeToGenerateInOpt != null
                 ? _state.TypeToGenerateInOpt.GetAllTypeParameters()
-                : SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
+                : [];
 
             return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
         }

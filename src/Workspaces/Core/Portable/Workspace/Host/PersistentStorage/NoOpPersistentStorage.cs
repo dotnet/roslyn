@@ -11,27 +11,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-internal class NoOpPersistentStorage : IChecksummedPersistentStorage
+internal class NoOpPersistentStorage(SolutionKey solutionKey) : IChecksummedPersistentStorage
 {
-    private static readonly IChecksummedPersistentStorage Instance = new NoOpPersistentStorage();
+    public SolutionKey SolutionKey => solutionKey;
 
-    private NoOpPersistentStorage()
-    {
-    }
-
-    public static IChecksummedPersistentStorage GetOrThrow(bool throwOnFailure)
+    public static IChecksummedPersistentStorage GetOrThrow(SolutionKey solutionKey, bool throwOnFailure)
         => throwOnFailure
             ? throw new InvalidOperationException("Database was not supported")
-            : Instance;
-
-    public void Dispose()
-    {
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTaskFactory.CompletedTask;
-    }
+            : new NoOpPersistentStorage(solutionKey);
 
     public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
         => SpecializedTasks.False;
@@ -98,6 +85,6 @@ internal class NoOpPersistentStorage : IChecksummedPersistentStorage
 
     public readonly struct TestAccessor
     {
-        public static readonly IChecksummedPersistentStorage StorageInstance = Instance;
+        public static IChecksummedPersistentStorage GetStorageInstance(SolutionKey solutionKey) => new NoOpPersistentStorage(solutionKey);
     }
 }

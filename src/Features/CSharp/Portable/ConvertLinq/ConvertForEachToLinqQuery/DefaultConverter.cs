@@ -16,9 +16,11 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery;
 
+using static SyntaxFactory;
+
 internal sealed class DefaultConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo) : AbstractConverter(forEachInfo)
 {
-    private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
+    private static readonly TypeSyntax VarNameIdentifier = IdentifierName("var");
 
     public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
     {
@@ -48,11 +50,11 @@ internal sealed class DefaultConverter(ForEachInfo<ForEachStatementSyntax, State
         if (identifiersCount == 0)
         {
             // Generate foreach(var _ ... select new {})
-            return SyntaxFactory.ForEachStatement(
+            return ForEachStatement(
                 VarNameIdentifier,
-                SyntaxFactory.Identifier("_"),
+                Identifier("_"),
                 CreateQueryExpressionOrLinqInvocation(
-                    SyntaxFactory.AnonymousObjectCreationExpression(),
+                    AnonymousObjectCreationExpression(),
                     [],
                     [],
                     convertToQuery),
@@ -61,11 +63,11 @@ internal sealed class DefaultConverter(ForEachInfo<ForEachStatementSyntax, State
         else if (identifiersCount == 1)
         {
             // Generate foreach(var singleIdentifier from ... select singleIdentifier)
-            return SyntaxFactory.ForEachStatement(
+            return ForEachStatement(
                 VarNameIdentifier,
                 identifiers.Single(),
                 CreateQueryExpressionOrLinqInvocation(
-                    SyntaxFactory.IdentifierName(identifiers.Single()),
+                    IdentifierName(identifiers.Single()),
                     [],
                     [],
                     convertToQuery),
@@ -73,16 +75,16 @@ internal sealed class DefaultConverter(ForEachInfo<ForEachStatementSyntax, State
         }
         else
         {
-            var tupleForSelectExpression = SyntaxFactory.TupleExpression(
+            var tupleForSelectExpression = TupleExpression(
                 [.. identifiers.Select(
-                    identifier => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(identifier)))]);
-            var declaration = SyntaxFactory.DeclarationExpression(
+                    identifier => Argument(IdentifierName(identifier)))]);
+            var declaration = DeclarationExpression(
                 VarNameIdentifier,
-                SyntaxFactory.ParenthesizedVariableDesignation(
-                    [.. identifiers.Select(SyntaxFactory.SingleVariableDesignation)]));
+                ParenthesizedVariableDesignation(
+                    [.. identifiers.Select(SingleVariableDesignation)]));
 
             // Generate foreach(var (a,b) ... select (a, b))
-            return SyntaxFactory.ForEachVariableStatement(
+            return ForEachVariableStatement(
                 declaration,
                 CreateQueryExpressionOrLinqInvocation(
                     tupleForSelectExpression,
@@ -94,5 +96,5 @@ internal sealed class DefaultConverter(ForEachInfo<ForEachStatementSyntax, State
     }
 
     private static BlockSyntax WrapWithBlockIfNecessary(ImmutableArray<StatementSyntax> statements)
-        => statements is [BlockSyntax block] ? block : SyntaxFactory.Block(statements);
+        => statements is [BlockSyntax block] ? block : Block(statements);
 }

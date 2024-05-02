@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Dim baseActiveStatements = AsyncLazy.Create(If(activeStatementMap, ActiveStatementsMap.Empty))
             Dim capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities)
-            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of LinePositionSpan).Empty, capabilities, CancellationToken.None)
+            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of ActiveStatementLineSpan).Empty, capabilities, CancellationToken.None)
         End Function
 #End Region
 
@@ -485,7 +485,7 @@ End Class
                     {
                         KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                             New ActiveStatement(
-                                ordinal:=0,
+                                New ActiveStatementId(0),
                                 ActiveStatementFlags.LeafFrame,
                                 New SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                                 instructionId:=Nothing)))

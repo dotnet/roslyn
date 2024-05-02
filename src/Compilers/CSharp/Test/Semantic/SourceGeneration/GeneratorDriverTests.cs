@@ -4080,5 +4080,101 @@ class C { }
             var expectedDetails = $"System.{typeName}: {message}{Environment.NewLine}   ";
             Assert.StartsWith(expectedDetails, diagnostic.Arguments[3] as string);
         }
+
+        [Fact]
+        public void GetInterceptsLocationSpecifier_01()
+        {
+            var generator = new IncrementalGeneratorWrapper(new InterceptorGenerator1());
+
+            var parseOptions = TestOptions.RegularPreview.WithFeature("InterceptorsPreviewNamespaces", "global");
+
+            var source1 = ("""
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var program = new Program();
+                        program.M(1);
+                    }
+
+                    public void M(int param) => throw null!;
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public class InterceptsLocationAttribute : Attribute { public InterceptsLocationAttribute(int version, string data) { } }
+                }
+                """, PlatformInformation.IsWindows ? @"C:\project\src\Program.cs" : "/project/src/Program.cs");
+
+            Compilation compilation = CreateCompilation([source1], options: TestOptions.DebugExe, parseOptions: parseOptions);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions() { BaseDirectory = PlatformInformation.IsWindows ? @"C:\project\obj\" : "/project/obj" });
+            verify(ref driver, compilation);
+
+            void verify(ref GeneratorDriver driver, Compilation compilation)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+                outputCompilation.VerifyDiagnostics();
+                CompileAndVerify(outputCompilation, expectedOutput: "1");
+                generatorDiagnostics.Verify();
+            }
+        }
+
+        [Generator(LanguageNames.CSharp)]
+        private class InterceptorGenerator1 : IIncrementalGenerator
+        {
+#pragma warning disable RSEXPERIMENTAL002 // test
+            record InterceptorInfo(InterceptableLocation locationSpecifier, object data);
+
+            private static bool IsInterceptableCall(SyntaxNode node, CancellationToken token) => node is InvocationExpressionSyntax;
+
+            private static object GetData(GeneratorSyntaxContext context) => 1;
+
+            public void Initialize(IncrementalGeneratorInitializationContext context)
+            {
+                var interceptorInfos = context.SyntaxProvider.CreateSyntaxProvider(
+                    predicate: IsInterceptableCall,
+                    transform: (GeneratorSyntaxContext context, CancellationToken token) =>
+                    {
+                        var model = context.SemanticModel;
+                        var locationSpecifier = model.GetInterceptableLocation((InvocationExpressionSyntax)context.Node, token);
+                        if (locationSpecifier is null)
+                        {
+                            return null; // generator wants to intercept call, but host thinks call is not interceptable. bug.
+                        }
+
+                        // generator is careful to propagate only equatable data (i.e., not syntax nodes or symbols).
+                        return new InterceptorInfo(locationSpecifier, GetData(context));
+                    })
+                    .Where(info => info != null)
+                    .Collect();
+
+                context.RegisterSourceOutput(interceptorInfos, (context, interceptorInfos) =>
+                {
+                    var builder = new StringBuilder();
+                    builder.AppendLine("using System.Runtime.CompilerServices;");
+                    builder.AppendLine("using System;");
+                    builder.AppendLine("public static class Interceptors");
+                    builder.AppendLine("{");
+                    // builder boilerplate..
+                    foreach (var interceptorInfo in interceptorInfos)
+                    {
+                        var (locationSpecifier, data) = interceptorInfo!;
+                        builder.AppendLine($$"""
+                                // {{locationSpecifier.GetDisplayLocation()}}
+                                [InterceptsLocation({{locationSpecifier.Version}}, "{{locationSpecifier.Data}}")]
+                                public static void Interceptor(this Program program, int param)
+                                {
+                                    Console.Write(1);
+                                }
+                            """);
+                    }
+                    // builder boilerplate..
+                    builder.AppendLine("}");
+
+                    context.AddSource("MyInterceptors.cs", builder.ToString());
+                });
+            }
+        }
     }
 }

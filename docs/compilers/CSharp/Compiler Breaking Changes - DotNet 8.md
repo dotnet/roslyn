@@ -28,6 +28,34 @@ public class C
 }
 ```
 
+## Collection expression for type implementing `IEnumerable` must have elements implicitly convertible to `object`
+
+***Introduced in Visual Studio 2022 version 17.10***
+
+*Conversion* of a collection expression to a `struct` or `class` that implements `System.Collections.IEnumerable` and *does not* have a strongly-typed `GetEnumerator()`
+requires the elements in the collection expression are implicitly convertible to the `object`.
+Previously, the elements of a collection expression targeting an `IEnumerable` implementation were assumed to be convertible to `object`, and converted only when binding to the applicable `Add` method.
+
+This additional requirement means that collection expression conversions to `IEnumerable` implementations are treated consistently with other target types where the elements in the collection expression must be implicitly convertible to the *iteration type* of the target type.
+
+This change affects collection expressions targeting `IEnumerable` implementations where the elements rely on target-typing to a strongly-typed `Add` method parameter type.
+In the example below, an error is reported that `_ => { }` cannot be implicitly converted to `object`.
+```csharp
+class Actions : IEnumerable
+{
+    public void Add(Action<int> action);
+    // ...
+}
+
+Actions a = [_ => { }]; // error CS8917: The delegate type could not be inferred.
+```
+
+To resolve the error, the element expression could be explicitly typed.
+```csharp
+a = [(int _) => { }];          // ok
+a = [(Action<int>)(_ => { })]; // ok
+```
+
 ## Collection expression target type must have constructor and `Add` method
 
 ***Introduced in Visual Studio 2022 version 17.10***
@@ -35,7 +63,7 @@ public class C
 *Conversion* of a collection expression to a `struct` or `class` that implements `System.Collections.IEnumerable` and *does not* have a `CollectionBuilderAttribute`
 requires the target type to have an accessible constructor that can be called with no arguments and,
 if the collection expression is not empty, the target type must have an accessible `Add` method
-that can be called with a single argument of [*iteration type*](https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/statements.md#1395-the-foreach-statement) of the target type.
+that can be called with a single argument.
 
 Previously, the constructor and `Add` methods were required for *construction* of the collection instance but not for *conversion*.
 That meant the following call was ambiguous since both `char[]` and `string` were valid target types for the collection expression.
@@ -45,24 +73,6 @@ Print(['a', 'b', 'c']); // calls Print(char[])
 
 static void Print(char[] arg) { }
 static void Print(string arg) { }
-```
-
-Previously, the collection expression in `y = [1, 2, 3]` was allowed since construction only requires an applicable `Add` method for each element expression.
-The collection expression is now an error because of the conversion requirement for an `Add` method than be called with an argument of the iteration type `object`.
-```csharp
-// ok: Add is not required for empty collection
-MyCollection x = [];
-
-// error CS9215: Collection expression type must have an applicable instance or extension method 'Add'
-//               that can be called with an argument of iteration type 'object'.
-//               The best overloaded method is 'MyCollection.Add(int)'.
-MyCollection y = [1, 2, 3];
-
-class MyCollection : IEnumerable
-{
-    public void Add(int i) { ... }
-    IEnumerator IEnumerable.GetEnumerator() { ... }
-}
 ```
 
 ## `ref` arguments can be passed to `in` parameters
