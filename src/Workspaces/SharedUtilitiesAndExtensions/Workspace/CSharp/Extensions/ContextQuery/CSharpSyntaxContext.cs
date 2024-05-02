@@ -232,7 +232,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
             targetToken.Parent.Parent is (kind: SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration);
 
-        var isExtensionForTypeContext = syntaxTree.IsExtensionForTypeContext(targetToken);
+        var isExtensionForTypeContext = syntaxTree.IsExtensionForTypeContext(position, leftToken);
 
         // Typing a dot after a numeric expression (numericExpression.) 
         // - maybe a start of MemberAccessExpression like numericExpression.Member.
