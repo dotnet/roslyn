@@ -18116,7 +18116,7 @@ ref struct S : IEnumerable<int>
         }
 
         [Fact]
-        public void SystemActivatorCreateInstance()
+        public void SystemActivatorCreateInstance_01()
         {
             var sourceA =
 @"
@@ -18140,11 +18140,6 @@ ref struct S
 ";
             var comp = CreateCompilation(sourceA, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            // PROTOTYPE(RefStructInterfaces): 'System.Activator.CreateInstance<T>' will be changed to include 'allows ref struct' constraint,
-            //                                 see https://github.com/dotnet/runtime/issues/65112.
-            //                                 We rely on this API for 'new T()' when there is a 'new()' constraint. It feels like we need to add 
-            //                                 an explicit constraint check for the API before we use it, none is done at the moment.
-            //                                 Need to add tests for 'new T()' and cover both scenarios (the 'allows ref struct' constraint is present and absent).
             comp.VerifyDiagnostics(
                 // (7,30): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
                 //         _ = System.Activator.CreateInstance<T>();
@@ -18153,6 +18148,105 @@ ref struct S
                 //         _ = System.Activator.CreateInstance<S>();
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "CreateInstance<S>").WithArguments("System.Activator.CreateInstance<T>()", "T", "S").WithLocation(12, 30)
                 );
+        }
+
+        [Fact]
+        public void SystemActivatorCreateInstance_02()
+        {
+            var sourceA =
+@"
+public class Helper
+{
+    static void Test1<T>()
+        where T : new(), allows ref struct
+    {
+        _ = new T();
+    }
+}
+
+ref struct S
+{
+}
+
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() => default;
+    }
+}
+";
+            var comp = CreateCompilation(sourceA, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
+                //         _ = new T();
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "new T()").WithArguments("System.Activator.CreateInstance<T>()", "T", "T").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void SystemActivatorCreateInstance_03()
+        {
+            // 'System.Activator.CreateInstance<T>' will be changed to include 'allows ref struct' constraint,
+            // see https://github.com/dotnet/runtime/issues/65112.
+
+            var src = @"
+public class Helper
+{
+    public static T Test1<T>()
+        where T : new(), allows ref struct
+    {
+        return new T();
+    }
+}
+
+ref struct S
+{
+}
+
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Print(Helper.Test1<S>());
+        System.Console.Write(' ');
+        Print(Helper.Test1<Program>());
+    }
+
+    static void Print<T>(T value) where T : allows ref struct
+    {
+        System.Console.Write(typeof(T));
+        System.Console.Write(' ');
+        System.Console.Write(value == null);
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "S False Program True" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper.Test1<T>()",
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0005:  ret
+}
+");
         }
 
         [Fact]
@@ -19371,6 +19465,160 @@ class Program
   IL_0004:  call       ""T Helper1<T>.M1()""
   IL_0009:  pop
   IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalAccess_03()
+        {
+            var src = @"
+class Helper1<T>
+    where T : I1, allows ref struct
+{
+    public static void Test1(T h1)
+    {
+        System.Console.Write(h1?.M());
+    }
+}
+
+interface I1
+{
+    int M();
+}
+
+ref struct S : I1
+{
+    public int M() => 123;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_0013
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  initobj    ""int?""
+  IL_0010:  ldloc.0
+  IL_0011:  br.s       IL_0025
+  IL_0013:  ldarga.s   V_0
+  IL_0015:  constrained. ""T""
+  IL_001b:  callvirt   ""int I1.M()""
+  IL_0020:  newobj     ""int?..ctor(int)""
+  IL_0025:  box        ""int?""
+  IL_002a:  call       ""void System.Console.Write(object)""
+  IL_002f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConditionalAccess_04()
+        {
+            var src = @"
+class Helper1<T>
+    where T : I1, allows ref struct
+{
+    public static void Test1(T h1)
+    {
+        System.Console.Write(h1?.M());
+    }
+}
+
+interface I1
+{
+    dynamic M();
+}
+
+ref struct S : I1
+{
+    public dynamic M() => 123;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Helper1<S>.Test1(new S());
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper1<T>.Test1(T)",
+@"
+{
+  // Code size      129 (0x81)
+  .maxstack  9
+  .locals init (T V_0,
+                T V_1)
+  IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Helper1<T>.<>o__0.<>p__0""
+  IL_0005:  brtrue.s   IL_0046
+  IL_0007:  ldc.i4     0x100
+  IL_000c:  ldstr      ""Write""
+  IL_0011:  ldnull
+  IL_0012:  ldtoken    ""Helper1<T>""
+  IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001c:  ldc.i4.2
+  IL_001d:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0022:  dup
+  IL_0023:  ldc.i4.0
+  IL_0024:  ldc.i4.s   33
+  IL_0026:  ldnull
+  IL_0027:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_002c:  stelem.ref
+  IL_002d:  dup
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldc.i4.0
+  IL_0030:  ldnull
+  IL_0031:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0036:  stelem.ref
+  IL_0037:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_003c:  call       ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0041:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Helper1<T>.<>o__0.<>p__0""
+  IL_0046:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Helper1<T>.<>o__0.<>p__0""
+  IL_004b:  ldfld      ""System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target""
+  IL_0050:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Helper1<T>.<>o__0.<>p__0""
+  IL_0055:  ldtoken    ""System.Console""
+  IL_005a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005f:  ldarg.0
+  IL_0060:  stloc.0
+  IL_0061:  ldloc.0
+  IL_0062:  box        ""T""
+  IL_0067:  brtrue.s   IL_006c
+  IL_0069:  ldnull
+  IL_006a:  br.s       IL_007b
+  IL_006c:  ldloc.0
+  IL_006d:  stloc.1
+  IL_006e:  ldloca.s   V_1
+  IL_0070:  constrained. ""T""
+  IL_0076:  callvirt   ""dynamic I1.M()""
+  IL_007b:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
+  IL_0080:  ret
 }
 ");
         }
@@ -21978,6 +22226,14 @@ class Program<S> where S : allows ref struct
         public S1 Field1 {get;set;}
         public S1 Field2 {get;set;}
     }
+
+    namespace System
+    {
+        public class Activator
+        {
+             public static T CreateInstance<T>() where T : allows ref struct => default;
+        }
+    }
 ";
             CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyEmitDiagnostics(
                 // (18,20): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
@@ -22047,6 +22303,14 @@ public interface IS2
     public S1 this[S1 i] {get;set;}
     public S1 Field2 {get;set;}
 }
+
+namespace System
+{
+    public class Activator
+    {
+         public static T CreateInstance<T>() where T : allows ref struct => default;
+    }
+}
 ";
             CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyEmitDiagnostics(
                 // (18,16): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
@@ -22056,6 +22320,911 @@ public interface IS2
                 //         result = new S2() { [outer] = inner, Field2 = outer };
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "[outer] = inner").WithArguments("inner").WithLocation(29, 29)
                 );
+        }
+
+        [Fact]
+        public void NullCheck_01()
+        {
+            var src = @"
+public class Helper
+{
+    public static bool Test1<T>(T value)
+        where T : allows ref struct
+    {
+        return value == null;
+    }
+
+    public static bool Test2<T>(T value)
+        where T : allows ref struct
+    {
+        return null == value;
+    }
+
+    public static bool Test3<T>(T value)
+        where T : allows ref struct
+    {
+        return value != null;
+    }
+
+    public static bool Test4<T>(T value)
+        where T : allows ref struct
+    {
+        return null != value;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Helper.Test1<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<Program>(new Program()));
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "False False True True True True False False False False True True" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper.Test1<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test2<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test3<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test4<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NullCheck_02()
+        {
+            var src = @"
+public class Helper
+{
+    public static bool Test1<T>(T value)
+        where T : allows ref struct
+    {
+        return value is null;
+    }
+
+    public static bool Test3<T>(T value)
+        where T : allows ref struct
+    {
+        return value is not null;
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Helper.Test1<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(new Program()));
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "False True True False False True" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper.Test1<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test3<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NullCheck_03()
+        {
+            var src = @"
+public class Helper
+{
+    public static bool Test1<T>(T value, object o)
+        where T : allows ref struct
+    {
+        return value == o;
+    }
+
+    public static bool Test2<T>(T value, object o)
+        where T : allows ref struct
+    {
+        return o == value;
+    }
+
+    public static bool Test3<T>(T value, object o)
+        where T : allows ref struct
+    {
+        return value != o;
+    }
+
+    public static bool Test4<T>(T value, object o)
+        where T : allows ref struct
+    {
+        return o != value;
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'object'
+                //         return value == o;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "value == o").WithArguments("==", "T", "object").WithLocation(7, 16),
+                // (13,16): error CS0019: Operator '==' cannot be applied to operands of type 'object' and 'T'
+                //         return o == value;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "o == value").WithArguments("==", "object", "T").WithLocation(13, 16),
+                // (19,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'object'
+                //         return value != o;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "value != o").WithArguments("!=", "T", "object").WithLocation(19, 16),
+                // (25,16): error CS0019: Operator '!=' cannot be applied to operands of type 'object' and 'T'
+                //         return o != value;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "o != value").WithArguments("!=", "object", "T").WithLocation(25, 16)
+                );
+        }
+
+        [Fact]
+        public void NullCheck_04()
+        {
+            var src = @"
+public class Helper
+{
+    const object o = null;
+
+    public static bool Test1<T>(T value)
+        where T : allows ref struct
+    {
+        return value == o;
+    }
+
+    public static bool Test2<T>(T value)
+        where T : allows ref struct
+    {
+        return o == value;
+    }
+
+    public static bool Test3<T>(T value)
+        where T : allows ref struct
+    {
+        return value != o;
+    }
+
+    public static bool Test4<T>(T value)
+        where T : allows ref struct
+    {
+        return o != value;
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'object'
+                //         return value == o;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "value == o").WithArguments("==", "T", "object").WithLocation(9, 16),
+                // (15,16): error CS0019: Operator '==' cannot be applied to operands of type 'object' and 'T'
+                //         return o == value;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "o == value").WithArguments("==", "object", "T").WithLocation(15, 16),
+                // (21,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'object'
+                //         return value != o;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "value != o").WithArguments("!=", "T", "object").WithLocation(21, 16),
+                // (27,16): error CS0019: Operator '!=' cannot be applied to operands of type 'object' and 'T'
+                //         return o != value;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "o != value").WithArguments("!=", "object", "T").WithLocation(27, 16)
+                );
+        }
+
+        [Fact]
+        public void NullCheck_05()
+        {
+            var src = @"
+public class Helper
+{
+    public static bool Test1<T>(T value)
+        where T : allows ref struct
+    {
+        if (value == null)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static bool Test2<T>(T value)
+        where T : allows ref struct
+    {
+        if (null == value)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static bool Test3<T>(T value)
+        where T : allows ref struct
+    {
+        if (value != null)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static bool Test4<T>(T value)
+        where T : allows ref struct
+    {
+        if (null != value)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Helper.Test1<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<Program>(new Program()));
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "False False True True True True False False False False True True" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper.Test1<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test2<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test3<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test4<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NullCheck_06()
+        {
+            var src = @"
+public class Helper
+{
+    public static bool Test1<T>(T value)
+        where T : struct, allows ref struct
+    {
+        return value == null;
+    }
+
+    public static bool Test2<T>(T value)
+        where T : struct, allows ref struct
+    {
+        return null == value;
+    }
+
+    public static bool Test3<T>(T value)
+        where T : struct, allows ref struct
+    {
+        return value != null;
+    }
+
+    public static bool Test4<T>(T value)
+        where T : struct, allows ref struct
+    {
+        return null != value;
+    }
+}
+
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
+                //         return value == null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "value == null").WithArguments("==", "T", "<null>").WithLocation(7, 16),
+                // (13,16): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'T'
+                //         return null == value;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null == value").WithArguments("==", "<null>", "T").WithLocation(13, 16),
+                // (19,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and '<null>'
+                //         return value != null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "value != null").WithArguments("!=", "T", "<null>").WithLocation(19, 16),
+                // (25,16): error CS0019: Operator '!=' cannot be applied to operands of type '<null>' and 'T'
+                //         return null != value;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null != value").WithArguments("!=", "<null>", "T").WithLocation(25, 16)
+                );
+        }
+
+        [Fact]
+        public void NullCheck_07()
+        {
+            var src = @"
+public class Helper
+{
+    public static bool Test1<T>(T value)
+        where T : allows ref struct
+    {
+        return !(value != null);
+    }
+
+    public static bool Test2<T>(T value)
+        where T : allows ref struct
+    {
+        return !(null != value);
+    }
+
+    public static bool Test3<T>(T value)
+        where T : allows ref struct
+    {
+        return !(value == null);
+    }
+
+    public static bool Test4<T>(T value)
+        where T : allows ref struct
+    {
+        return !(null == value);
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Helper.Test1<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<Program>(new Program()));
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "False False True True True True False False False False True True" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper.Test1<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test2<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test3<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test4<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NullCheck_08()
+        {
+            var src = @"
+public class Helper
+{
+    public static bool Test1<T>(T value)
+        where T : allows ref struct
+    {
+        return !(value is not null);
+    }
+
+    public static bool Test3<T>(T value)
+        where T : allows ref struct
+    {
+        return !(value is null);
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Helper.Test1<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(new Program()));
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "False True True False False True" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper.Test1<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test3<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NullCheck_09()
+        {
+            var src = @"
+public class Helper
+{
+    public static bool Test1<T>(T value)
+        where T : allows ref struct
+    {
+        if (!(value != null))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static bool Test2<T>(T value)
+        where T : allows ref struct
+    {
+        if (!(null != value))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static bool Test3<T>(T value)
+        where T : allows ref struct
+    {
+        if (!(value == null))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static bool Test4<T>(T value)
+        where T : allows ref struct
+    {
+        if (!(null == value))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
+
+ref struct S
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Helper.Test1<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<S>(new S()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<Program>(null));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test1<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test2<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test3<Program>(new Program()));
+        System.Console.Write(' ');
+        System.Console.Write(Helper.Test4<Program>(new Program()));
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "False False True True True True False False False False True True" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Helper.Test1<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test2<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test3<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("Helper.Test4<T>(T)",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brfalse.s  IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
         }
     }
 }

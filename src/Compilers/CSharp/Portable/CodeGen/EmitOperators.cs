@@ -372,6 +372,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         {
                             if (!constant.IsFloating)
                             {
+                                if (comparand is BoundConversion { Type.SpecialType: SpecialType.System_Object, ConversionKind: ConversionKind.Boxing, Operand.Type: TypeParameterSymbol { AllowByRefLike: true } } &&
+                                    constant.IsNull)
+                                {
+                                    EmitExpression(comparand, true);
+
+                                    object falseLabel = new object();
+                                    var endLabel = new object();
+                                    _builder.EmitBranch(sense ? ILOpCode.Brtrue_s : ILOpCode.Brfalse_s, falseLabel);
+                                    _builder.EmitBoolConstant(true);
+                                    _builder.EmitBranch(ILOpCode.Br, endLabel);
+
+                                    _builder.AdjustStack(-1);
+                                    _builder.MarkLabel(falseLabel);
+                                    _builder.EmitBoolConstant(false);
+                                    _builder.MarkLabel(endLabel);
+                                    return;
+                                }
+
                                 if (sense)
                                 {
                                     EmitIsNullOrZero(comparand, constant);
