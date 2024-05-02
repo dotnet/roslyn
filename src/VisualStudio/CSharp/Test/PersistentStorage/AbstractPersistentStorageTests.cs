@@ -1008,6 +1008,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             // If we handed out one for a previous test, we need to shut that down first
             persistentFolder ??= _persistentFolder;
+            _storageService?.GetTestAccessor().Shutdown();
             var configuration = new MockPersistentStorageConfiguration(solution.Id, persistentFolder.Path, throwOnFailure);
 
             _storageService = (AbstractPersistentStorageService)solution.Workspace.Services.SolutionServices.GetPersistentStorageService();
