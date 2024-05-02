@@ -28,7 +28,6 @@ internal sealed class IntKeywordRecommender : AbstractSpecialTypePreselectingKey
             context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
             context.IsEnumBaseListContext ||
-            context.IsExtensionForTypeContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||

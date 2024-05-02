@@ -31,7 +31,6 @@ internal sealed class StringKeywordRecommender : AbstractSpecialTypePreselecting
             context.IsCrefContext ||
             context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
-            context.IsExtensionForTypeContext ||
             context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||
             context.IsImplicitOrExplicitOperatorTypeContext ||

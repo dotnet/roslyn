@@ -35,7 +35,6 @@ internal sealed class UShortKeywordRecommender : AbstractSpecialTypePreselecting
             context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
             context.IsEnumBaseListContext ||
-            context.IsExtensionForTypeContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||

@@ -33,6 +33,9 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
         if (context.IsTaskLikeTypeContext)
             return false;
 
+        if (context.IsExtensionForTypeContext)
+            return true;
+
         return IsValidContextWorker(position, context, cancellationToken) ||
             IsAfterRefOrReadonlyInTopLevelOrMemberDeclaration(context, position, cancellationToken);
     }

@@ -1582,7 +1582,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : null;
 
             if (paramList != null && mainKeyword.Kind == SyntaxKind.ExtensionKeyword)
+            {
                 paramList = AddError(paramList, ErrorCode.ERR_ExtensionPrimaryConstructor);
+            }
 
             // PROTOTYPE. Parse this for all type declarations and give good error message.
             var extensionForType = mainKeyword.Kind == SyntaxKind.ExtensionKeyword && CurrentToken.Kind == SyntaxKind.ForKeyword

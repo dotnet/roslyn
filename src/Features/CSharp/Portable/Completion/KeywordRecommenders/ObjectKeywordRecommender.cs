@@ -26,7 +26,6 @@ internal sealed class ObjectKeywordRecommender : AbstractSpecialTypePreselecting
             context.IsCrefContext ||
             context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
-            context.IsExtensionForTypeContext ||
             context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||
             context.IsImplicitOrExplicitOperatorTypeContext ||

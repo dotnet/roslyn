@@ -27,7 +27,6 @@ internal sealed class DoubleKeywordRecommender : AbstractSpecialTypePreselecting
             context.IsCrefContext ||
             context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
-            context.IsExtensionForTypeContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||

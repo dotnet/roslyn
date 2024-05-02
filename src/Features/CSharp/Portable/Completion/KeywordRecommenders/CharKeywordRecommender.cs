@@ -27,7 +27,6 @@ internal sealed class CharKeywordRecommender : AbstractSpecialTypePreselectingKe
             context.IsCrefContext ||
             context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
-            context.IsExtensionForTypeContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||
