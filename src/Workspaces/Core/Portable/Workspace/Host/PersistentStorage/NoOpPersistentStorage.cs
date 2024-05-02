@@ -20,13 +20,6 @@ internal class NoOpPersistentStorage(SolutionKey solutionKey) : IChecksummedPers
             ? throw new InvalidOperationException("Database was not supported")
             : new NoOpPersistentStorage(solutionKey);
 
-    public void Dispose()
-    {
-    }
-
-    public ValueTask DisposeAsync()
-        => ValueTaskFactory.CompletedTask;
-
     public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
         => SpecializedTasks.False;
 
