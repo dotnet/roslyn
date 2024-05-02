@@ -15272,35 +15272,48 @@ class C
 {
    IEnumerator<int> IteratorMeth() {
       int i;
-      unsafe  // CS1629
+      unsafe
       {
          int *p = &i;
          yield return *p;
       }
    }
 
-    unsafe IEnumerator<int> IteratorMeth2() {   // CS1629
+    unsafe IEnumerator<int> IteratorMeth2() {
         yield break;
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,7): error CS1629: Unsafe code may not appear in iterators
-                //       unsafe  // CS1629
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "unsafe"),
-                // (9,10): error CS1629: Unsafe code may not appear in iterators
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,7): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //       unsafe
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 7),
+                // (9,10): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //          int *p = &i;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int *"),
-                // (9,19): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 10),
+                // (9,19): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //          int *p = &i;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&i"),
-                // (10,24): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&i").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 19),
+                // (10,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //          yield return *p;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "p"),
-                // (14,29): error CS1629: Unsafe code may not appear in iterators
-                //     unsafe IEnumerator<int> IteratorMeth2() {   // CS1629
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "IteratorMeth2")
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 24),
+                // (14,29): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     unsafe IEnumerator<int> IteratorMeth2() {
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IteratorMeth2").WithArguments("ref and unsafe in async and iterator methods").WithLocation(14, 29)
                 );
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,20): error CS9232: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                //          int *p = &i;
+                Diagnostic(ErrorCode.ERR_AddressOfInIterator, "i").WithLocation(9, 20),
+                // (10,10): error CS9231: Cannot use 'yield return' in an 'unsafe' block
+                //          yield return *p;
+                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(10, 10)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

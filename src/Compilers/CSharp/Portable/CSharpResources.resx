@@ -2950,9 +2950,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_AnonDelegateCantUse" xml:space="preserve">
     <value>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</value>
   </data>
-  <data name="ERR_IllegalInnerUnsafe" xml:space="preserve">
-    <value>Unsafe code may not appear in iterators</value>
-  </data>
   <data name="ERR_BadYieldInCatch" xml:space="preserve">
     <value>Cannot yield a value in the body of a catch clause</value>
   </data>
@@ -7904,5 +7901,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefLocalAcrossAwait" xml:space="preserve">
     <value>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</value>
+  </data>
+  <data name="ERR_BadYieldInUnsafe" xml:space="preserve">
+    <value>Cannot use 'yield return' in an 'unsafe' block</value>
+  </data>
+  <data name="ERR_AddressOfInIterator" xml:space="preserve">
+    <value>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</value>
   </data>
 </root>

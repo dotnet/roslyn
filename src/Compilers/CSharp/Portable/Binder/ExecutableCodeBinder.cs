@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
                 && compilation.Options.AllowUnsafe) // Don't cascade
             {
-                diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, errorLocation);
+                MessageID.IDS_FeatureRefUnsafeInIteratorAsync.CheckFeatureAvailability(diagnostics, compilation, errorLocation);
             }
 
             var returnType = iterator.ReturnType;
