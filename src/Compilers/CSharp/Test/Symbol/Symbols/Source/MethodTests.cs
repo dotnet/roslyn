@@ -2551,5 +2551,38 @@ public partial class C
             Assert.Null(partialDef.PartialDefinitionPart);
             Assert.Null(partialImpl.PartialImplementationPart);
         }
+
+        [Fact]
+        public void IsPartialDefinition_Constructed()
+        {
+            var source = @"
+public partial class C
+{
+    public partial void M<T>();
+    public partial void M<T>() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+
+            var type = syntax.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            var classC = model.GetDeclaredSymbol(type);
+            var partialDef = model.GetDeclaredSymbol(methods[0]);
+            var partialDefConstructed = partialDef.Construct(classC); // M<C>()
+
+            Assert.True(partialDef.IsPartialDefinition);
+            Assert.False(partialDefConstructed.IsPartialDefinition);
+
+            var partialImpl = model.GetDeclaredSymbol(methods[1]);
+            var partialImplConstructed = partialImpl.Construct(classC); // M<C>()
+
+            Assert.False(partialImpl.IsPartialDefinition);
+            Assert.False(partialImplConstructed.IsPartialDefinition);
+        }
     }
 }
