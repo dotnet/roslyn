@@ -21,7 +21,6 @@ internal sealed class CharKeywordRecommender() : AbstractSpecialTypePreselecting
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsLocalVariableDeclarationContext ||
             context.IsObjectCreationTypeContext ||
             context.IsParameterTypeContext ||
             context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
