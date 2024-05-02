@@ -15875,9 +15875,7 @@ implicit extension E for C
         var src = """
 var c = new C();
 
-/*<bind>*/
 _ = c is { Property: 42 };
-/*</bind>*/
 
 class C { }
 
@@ -15902,6 +15900,37 @@ implicit extension E for C
         var model = comp.GetSemanticModel(tree);
         var nameColon = GetSyntax<NameColonSyntax>(tree, "Property:");
         Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(nameColon.Name).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_ExtendedPropertyPattern()
+    {
+        var src = """
+var c = new C();
+
+_ = c is { Property.Property2: 43 };
+
+class C { }
+
+implicit extension E1 for C
+{
+    public int Property { get { System.Console.Write("property "); return 42; } }
+}
+
+implicit extension E2 for int
+{
+    public int Property2 { get { System.Console.Write("property2"); return 43; } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+        // PROTOTYPE(instance) Execute when adding support for emitting non-static members
+        //CompileAndVerify(comp, expectedOutput: "property property2");
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var expressionColon = GetSyntax<ExpressionColonSyntax>(tree, "Property.Property2:");
+        Assert.Equal("System.Int32 E2.Property2 { get; }", model.GetSymbolInfo(expressionColon.Expression).Symbol.ToTestDisplayString());
     }
 
     [Fact]
