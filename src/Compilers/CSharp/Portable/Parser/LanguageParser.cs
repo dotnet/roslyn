@@ -1577,16 +1577,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword // PROTOTYPE
+            // PROTOTYPE.  Parse this with extensions and give good error message for recovery purposes.
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword
                 ? ParseParenthesizedParameterList() : null;
 
-            ForTypeSyntax? extensionForType = null;
-            if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
-                && CurrentToken.Kind == SyntaxKind.ForKeyword)
-            {
-                // PROTOTYPE consider error recovery for `class X for type`
-                extensionForType = _syntaxFactory.ForType(EatToken(SyntaxKind.ForKeyword), ParseType());
-            }
+            // PROTOTYPE. Parse this for all type declarations and give good error message.
+            var extensionForType = mainKeyword.Kind == SyntaxKind.ExtensionKeyword && CurrentToken.Kind == SyntaxKind.ForKeyword
+                ? _syntaxFactory.ForType(EatToken(SyntaxKind.ForKeyword), ParseType())
+                : null;
 
             // PROTOTYPE decide whether to keep parsing base extensions or not
             var baseList = this.ParseBaseList();
