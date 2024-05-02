@@ -1032,8 +1032,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         internal async Task<IChecksummedPersistentStorage> GetStorageFromKeyAsync(
             HostWorkspaceServices services, SolutionKey solutionKey, IPersistentStorageFaultInjector? faultInjector = null)
         {
-            // If we handed out one for a previous test, we need to shut that down first
-            _storageService?.GetTestAccessor().Shutdown();
             var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
             _storageService = (AbstractPersistentStorageService)services.SolutionServices.GetPersistentStorageService();
