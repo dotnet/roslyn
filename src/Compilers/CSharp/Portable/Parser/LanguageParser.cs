@@ -3495,14 +3495,37 @@ parse_member_name:;
                     ? this.EatToken()
                     : this.EatToken(SyntaxKind.ExplicitKeyword);
 
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
+                var possiblyExtension = this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword;
+                if (possiblyExtension)
                 {
-                    this.Reset(ref point);
-                    return null;
+                    // If we have `implicit extension E` then this is definitely an extension type as it could not be parsed
+                    // as anything else.
+                    if (IsTrueIdentifier(this.PeekToken(1)))
+                    {
+                        this.Reset(ref point);
+                        return null;
+                    }
+
+                    // we have `implicit extension ...` technically this could be something like `implicit
+                    // extension.operator X(` (an implicit conversion with a explicit interface impl name). For compat,
+                    // determine the parsing strategy based on the lang version.
+                    if (IsFeatureEnabled(MessageID.IDS_FeatureExtensions))
+                    {
+                        this.Reset(ref point);
+                        return null;
+                    }
                 }
 
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
                 Debug.Assert(!style.IsMissing || haveExplicitInterfaceName == explicitInterfaceOpt is not null);
+
+                if (explicitInterfaceOpt is null && possiblyExtension)
+                {
+                    // we didn't get something like `implicit extension.` but we did have `implicit extension`
+                    // treat this as an extension type.
+                    this.Reset(ref point);
+                    return null;
+                }
 
                 SyntaxToken opKeyword;
                 TypeSyntax type;
