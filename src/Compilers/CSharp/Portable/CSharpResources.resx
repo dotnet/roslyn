@@ -288,6 +288,9 @@
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
   </data>
+  <data name="IDS_FeatureExtensions" xml:space="preserve">
+    <value>extension types</value>
+  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>

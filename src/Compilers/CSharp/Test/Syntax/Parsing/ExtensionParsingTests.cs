@@ -73,55 +73,12 @@ public sealed class ExtensionParsingTests : ParsingTests
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (1,1): error CS1031: Type expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, keyword).WithLocation(1, 1),
-            // (1,1): error CS1003: Syntax error, 'operator' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, keyword).WithArguments("operator").WithLocation(1, 1),
-            // (1,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, keyword).WithArguments("+").WithLocation(1, 1),
-            // (1,1): error CS1037: Overloadable operator expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_OvlOperatorExpected, keyword).WithLocation(1, 1),
-            // (1,10): error CS1003: Syntax error, '(' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(1, 10),
-            // (1,22): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 22),
-            // (1,26): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments(",").WithLocation(1, 26),
-            // (1,41): error CS1001: Identifier expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 41),
-            // (1,41): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 41),
-            // (1,43): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "BaseExtension1").WithArguments(",").WithLocation(1, 43),
-            // (1,57): error CS1001: Identifier expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 57),
-            // (1,74): error CS1001: Identifier expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 74),
-            // (1,74): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 74),
-            // (1,76): error CS1026: ) expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 76),
-            // (1,76): error CS1002: ; expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 76),
-            // (1,76): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 76)
-            );
+            // (1,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // implicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 10),
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // implicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": BaseExtension1, BaseExtension2").WithArguments("base extensions").WithLocation(1, 41));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -360,40 +317,9 @@ public sealed class ExtensionParsingTests : ParsingTests
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (1,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("+").WithLocation(1, 1),
-            // (1,9): error CS1003: Syntax error, 'operator' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, keyword).WithArguments("operator").WithLocation(1, 9),
-            // (1,9): error CS1020: Overloadable binary operator expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, keyword).WithLocation(1, 9),
-            // (1,18): error CS1003: Syntax error, '(' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(1, 18),
-            // (1,30): error CS1003: Syntax error, ',' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 30),
-            // (1,34): error CS1003: Syntax error, ',' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments(",").WithLocation(1, 34),
-            // (1,49): error CS1001: Identifier expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 49),
-            // (1,49): error CS1003: Syntax error, ',' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 49),
-            // (1,51): error CS1026: ) expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 51),
-            // (1,51): error CS1002: ; expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 51),
-            // (1,51): error CS1022: Type or namespace definition, or end-of-file expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 51)
-            );
+            // (1,18): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // partial implicit extension C for UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 18));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -555,40 +481,9 @@ public sealed class ExtensionParsingTests : ParsingTests
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (1,10): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("+").WithLocation(1, 10),
-            // (1,18): error CS1003: Syntax error, 'operator' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, keyword).WithArguments("operator").WithLocation(1, 18),
-            // (1,18): error CS1020: Overloadable binary operator expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, keyword).WithLocation(1, 18),
-            // (1,27): error CS1003: Syntax error, '(' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(1, 27),
-            // (1,39): error CS1003: Syntax error, ',' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 39),
-            // (1,43): error CS1003: Syntax error, ',' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(1, 43),
-            // (1,45): error CS1001: Identifier expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 45),
-            // (1,45): error CS1003: Syntax error, ',' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 45),
-            // (1,47): error CS1026: ) expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 47),
-            // (1,47): error CS1002: ; expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 47),
-            // (1,47): error CS1022: Type or namespace definition, or end-of-file expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 47)
-            );
+            // (1,27): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // readonly partial implicit extension S for U { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 27));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -934,37 +829,9 @@ public sealed class ExtensionParsingTests : ParsingTests
         var text = $$"""{{keyword}} extension C() for UnderlyingType { }""";
 
         UsingTreeWithCSharpNext(text,
-            // (1,21): error CS1514: { expected
+            // (1,21): error CS9329: Extension cannot have a primary constructor.
             // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS1513: } expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS8803: Top-level statements must precede namespace and type declarations.
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "() ").WithLocation(1, 21),
-            // (1,22): error CS1525: Invalid expression term ')'
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
-            // (1,24): error CS1002: ; expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "for").WithLocation(1, 24),
-            // (1,28): error CS1003: Syntax error, '(' expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments("(").WithLocation(1, 28),
-            // (1,43): error CS1002: ; expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 43),
-            // (1,43): error CS1525: Invalid expression term '{'
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 43),
-            // (1,43): error CS1002: ; expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 43),
-            // (1,43): error CS1026: ) expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(1, 43)
-            );
+            Diagnostic(ErrorCode.ERR_ExtensionPrimaryConstructor, "()").WithLocation(1, 21));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1150,40 +1017,15 @@ public sealed class ExtensionParsingTests : ParsingTests
         var text = $$"""{{keyword}} extension C() for UnderlyingType;""";
 
         UsingTreeWithCSharpNext(text,
-            // (1,21): error CS1514: { expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS1513: } expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS8803: Top-level statements must precede namespace and type declarations.
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "() ").WithLocation(1, 21),
-            // (1,22): error CS1525: Invalid expression term ')'
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
-            // (1,24): error CS1002: ; expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "for").WithLocation(1, 24),
-            // (1,28): error CS1003: Syntax error, '(' expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments("(").WithLocation(1, 28),
-            // (1,43): error CS1733: Expected expression
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 43),
-            // (1,43): error CS1002: ; expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 43),
-            // (1,43): error CS1026: ) expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 43),
-            // (1,43): error CS1733: Expected expression
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 43),
-            // (1,43): error CS1002: ; expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 43)
-            );
+            // (1,21): error CS9329: Extension cannot have a primary constructor.
+            // implicit extension C() for UnderlyingType;
+            Diagnostic(ErrorCode.ERR_ExtensionPrimaryConstructor, "()").WithLocation(1, 21),
+            // (1,42): error CS1514: { expected
+            // implicit extension C() for UnderlyingType;
+            Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 42),
+            // (1,42): error CS1513: } expected
+            // implicit extension C() for UnderlyingType;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 42));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1250,37 +1092,9 @@ public sealed class ExtensionParsingTests : ParsingTests
         var text = $$"""{{keyword}} extension C(int i) for UnderlyingType { }""";
 
         UsingTreeWithCSharpNext(text,
-            // (1,21): error CS1514: { expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS1513: } expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS8803: Top-level statements must precede namespace and type declarations.
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int ").WithLocation(1, 21),
-            // (1,22): error CS1525: Invalid expression term 'int'
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 22),
-            // (1,26): error CS1026: ) expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "i").WithLocation(1, 26),
-            // (1,26): error CS1002: ; expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "i").WithLocation(1, 26),
-            // (1,27): error CS1001: Identifier expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 27),
-            // (1,27): error CS1003: Syntax error, ',' expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 27),
-            // (1,50): error CS1002: ; expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 50),
-            // (1,50): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 50)
-            );
+            // (1,21): error CS9329: Extension cannot have a primary constructor.
+            // implicit extension C(int i) for UnderlyingType { }
+            Diagnostic(ErrorCode.ERR_ExtensionPrimaryConstructor, "(int i)").WithLocation(1, 21));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1670,46 +1484,12 @@ using
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (1,6): error CS1041: Identifier expected; 'explicit' is a keyword
+            // (1,6): error CS1041: Identifier expected; 'implicit' is a keyword
             // using
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", keyword).WithLocation(1, 6),
-            // (1,6): error CS1031: Type expected
-            // using
-            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 6),
-            // (1,6): error CS1003: Syntax error, 'operator' expected
-            // using
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("operator").WithLocation(1, 6),
-            // (1,6): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // using
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "").WithArguments("+").WithLocation(1, 6),
-            // (1,6): error CS1020: Overloadable binary operator expected
-            // using
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "").WithLocation(1, 6),
-            // (2,10): error CS1003: Syntax error, '(' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(2, 10),
-            // (2,22): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(2, 22),
-            // (2,26): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(2, 26),
-            // (2,28): error CS1001: Identifier expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 28),
-            // (2,28): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 28),
-            // (2,30): error CS1026: ) expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(2, 30),
-            // (2,30): error CS1002: ; expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 30),
-            // (2,30): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 30)
-            );
+            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "implicit").WithLocation(1, 6),
+            // (2,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // implicit extension R for U { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(2, 10));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1809,43 +1589,9 @@ using Type
             // (1,11): error CS1002: ; expected
             // using Type
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11),
-            // (1,11): error CS1031: Type expected
-            // using Type
-            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 11),
-            // (1,11): error CS1003: Syntax error, 'operator' expected
-            // using Type
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("operator").WithLocation(1, 11),
-            // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // using Type
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "").WithArguments("+").WithLocation(1, 11),
-            // (1,11): error CS1020: Overloadable binary operator expected
-            // using Type
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "").WithLocation(1, 11),
-            // (2,10): error CS1003: Syntax error, '(' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(2, 10),
-            // (2,22): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(2, 22),
-            // (2,26): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(2, 26),
-            // (2,28): error CS1001: Identifier expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 28),
-            // (2,28): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 28),
-            // (2,30): error CS1026: ) expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(2, 30),
-            // (2,30): error CS1002: ; expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 30),
-            // (2,30): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 30)
-            );
+            // (2,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // implicit extension R for U { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(2, 10));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1956,46 +1702,15 @@ partial {{keyword}} extension R for U { }
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (2,9): error CS1002: ; expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, keyword).WithLocation(2, 9),
-            // (2,9): error CS1031: Type expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, keyword).WithLocation(2, 9),
-            // (2,9): error CS1003: Syntax error, 'operator' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, keyword).WithArguments("operator").WithLocation(2, 9),
-            // (2,9): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, keyword).WithArguments("+").WithLocation(2, 9),
-            // (2,9): error CS1020: Overloadable binary operator expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, keyword).WithLocation(2, 9),
-            // (2,18): error CS1003: Syntax error, '(' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(2, 18),
-            // (2,30): error CS1003: Syntax error, ',' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(2, 30),
-            // (2,34): error CS1003: Syntax error, ',' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(2, 34),
-            // (2,36): error CS1001: Identifier expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 36),
-            // (2,36): error CS1003: Syntax error, ',' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 36),
-            // (2,38): error CS1026: ) expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(2, 38),
-            // (2,38): error CS1002: ; expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 38),
-            // (2,38): error CS1022: Type or namespace definition, or end-of-file expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 38)
-            );
+            // (1,11): error CS1525: Invalid expression term 'partial'
+            // using Type
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 11),
+            // (1,11): error CS1002: ; expected
+            // using Type
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11),
+            // (2,18): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // partial implicit extension R for U { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(2, 18));
 
         N(SyntaxKind.CompilationUnit);
         {

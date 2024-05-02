@@ -2322,6 +2322,11 @@
         <target state="translated">wzorce właściwości rozszerzonych</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extension types</source>
+        <target state="new">extension types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="translated">przestrzeń nazw z określonym zakresem plików</target>
