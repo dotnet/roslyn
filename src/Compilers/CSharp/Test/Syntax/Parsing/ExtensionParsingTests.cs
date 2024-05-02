@@ -82,55 +82,40 @@ public sealed class ExtensionParsingTests : ParsingTests
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.ForType);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "UnderlyingType");
+                    }
                 }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
+                N(SyntaxKind.BaseList);
                 {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "C");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "UnderlyingType");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "BaseExtension1");
                         }
-                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.SimpleBaseType);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "BaseExtension2");
                         }
-                        M(SyntaxKind.IdentifierToken);
                     }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -323,37 +308,22 @@ public sealed class ExtensionParsingTests : ParsingTests
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.PartialKeyword);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.ForType);
                 {
-                    N(SyntaxKind.IdentifierToken, "partial");
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.IdentifierToken, "UnderlyingType");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "UnderlyingType");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -487,38 +457,23 @@ public sealed class ExtensionParsingTests : ParsingTests
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
                 N(SyntaxKind.ReadOnlyKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.PartialKeyword);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.ForType);
                 {
-                    N(SyntaxKind.IdentifierToken, "partial");
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.IdentifierToken, "U");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "U");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -840,48 +795,21 @@ public sealed class ExtensionParsingTests : ParsingTests
                 N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
                 N(SyntaxKind.ExtensionKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
-                M(SyntaxKind.OpenBraceToken);
-                M(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParenthesizedExpression);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ForStatement);
+                N(SyntaxKind.ForType);
                 {
                     N(SyntaxKind.ForKeyword);
-                    M(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "UnderlyingType");
                     }
-                    M(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.CloseParenToken);
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
                 }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1034,51 +962,22 @@ public sealed class ExtensionParsingTests : ParsingTests
                 N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
                 N(SyntaxKind.ExtensionKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
-                M(SyntaxKind.OpenBraceToken);
-                M(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParenthesizedExpression);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ForStatement);
+                N(SyntaxKind.ForType);
                 {
                     N(SyntaxKind.ForKeyword);
-                    M(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "UnderlyingType");
                     }
-                    N(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.CloseParenToken);
-                    M(SyntaxKind.ExpressionStatement);
-                    {
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
                 }
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1103,42 +1002,29 @@ public sealed class ExtensionParsingTests : ParsingTests
                 N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
                 N(SyntaxKind.ExtensionKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
-                M(SyntaxKind.OpenBraceToken);
-                M(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParenthesizedExpression);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.IdentifierToken, "i");
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
+                N(SyntaxKind.ForType);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "i");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "UnderlyingType");
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1486,7 +1372,7 @@ using
         UsingTree(text, options: TestOptions.Regular11,
             // (1,6): error CS1041: Identifier expected; 'implicit' is a keyword
             // using
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "implicit").WithLocation(1, 6),
+            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", isExplicit ? "explicit" : "implicit").WithLocation(1, 6),
             // (2,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // implicit extension R for U { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(2, 10));
@@ -1502,37 +1388,21 @@ using
                 }
                 M(SyntaxKind.SemicolonToken);
             }
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.ForType);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.IdentifierToken, "U");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "U");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1604,37 +1474,21 @@ using Type
                 }
                 M(SyntaxKind.SemicolonToken);
             }
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.ForType);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.IdentifierToken, "U");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "U");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1725,45 +1579,30 @@ partial {{keyword}} extension R for U { }
                         {
                             N(SyntaxKind.IdentifierToken, "Type");
                         }
-                        N(SyntaxKind.VariableDeclarator);
+                        M(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
             }
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.PartialKeyword);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.ForType);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.IdentifierToken, "U");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "U");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }

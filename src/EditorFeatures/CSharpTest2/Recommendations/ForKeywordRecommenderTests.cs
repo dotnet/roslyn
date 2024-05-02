@@ -250,5 +250,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 implicit extension E : $$
                 """);
         }
+
+        [Fact]
+        public async Task TestNotAfterClassName()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class E $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterGenericClassName()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class E<T> $$
+                """);
+        }
     }
 }
