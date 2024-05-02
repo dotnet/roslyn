@@ -52,6 +52,9 @@ internal sealed class DelegateKeywordRecommender : AbstractSyntacticSingleKeywor
             if (context.IsAttributeNameContext)
                 return false;
 
+            if (context.IsExtensionForTypeContext)
+                return false;
+
             return true;
         }
 
