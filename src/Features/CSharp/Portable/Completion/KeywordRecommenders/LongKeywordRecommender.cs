@@ -22,7 +22,6 @@ internal sealed class LongKeywordRecommender() : AbstractSpecialTypePreselecting
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsLocalFunctionDeclarationContext ||
             context.IsLocalVariableDeclarationContext ||
             context.IsObjectCreationTypeContext ||
             context.IsParameterTypeContext ||

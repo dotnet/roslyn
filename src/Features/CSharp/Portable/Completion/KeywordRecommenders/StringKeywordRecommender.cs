@@ -20,7 +20,6 @@ internal sealed class StringKeywordRecommender() : AbstractSpecialTypePreselecti
         var syntaxTree = context.SyntaxTree;
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsLocalFunctionDeclarationContext ||
             context.IsLocalVariableDeclarationContext ||
             context.IsObjectCreationTypeContext ||
             context.IsParameterTypeContext ||

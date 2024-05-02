@@ -41,7 +41,8 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
             context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||
             context.IsImplicitOrExplicitOperatorTypeContext ||
-            context.IsIsOrAsTypeContext)
+            context.IsIsOrAsTypeContext ||
+            context.IsLocalFunctionDeclarationContext)
         {
             return true;
         }

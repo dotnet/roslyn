@@ -29,7 +29,6 @@ internal sealed class UShortKeywordRecommender() : AbstractSpecialTypePreselecti
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsLocalFunctionDeclarationContext ||
             context.IsLocalVariableDeclarationContext ||
             context.IsObjectCreationTypeContext ||
             context.IsParameterTypeContext ||
