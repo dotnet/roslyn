@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, default);
                 await index.SaveAsync(document, _storageService!);
 
-                var index2 = await SyntaxTreeIndex.LoadAsync(_storageService!, DocumentKey.ToDocumentKey(document), checksum: null, new StringTable(), default);
+                var index2 = await SyntaxTreeIndex.LoadAsync(_storageService!, DocumentKey.ToDocumentKey(document), checksum: null, new Lazy<StringTable>(() => new StringTable()), default);
                 Assert.NotNull(index2);
             }
         }
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, default);
                 await index.SaveAsync(document, _storageService!);
 
-                var index2 = await TopLevelSyntaxTreeIndex.LoadAsync(_storageService!, DocumentKey.ToDocumentKey(document), checksum: null, new StringTable(), default);
+                var index2 = await TopLevelSyntaxTreeIndex.LoadAsync(_storageService!, DocumentKey.ToDocumentKey(document), checksum: null, new Lazy<StringTable>(() => new StringTable()), default);
                 Assert.NotNull(index2);
             }
         }
