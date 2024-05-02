@@ -5310,7 +5310,7 @@ public class UseCollectionExpressionForArrayTests
                 {
                     public void Test(dynamic obj)
                     {
-                        Test1(obj, new int?[] { 3 });
+                        Test1(obj, [|[|new|] int?[]|] { 3 });
                     }
 
                     private void Test1(dynamic obj, params int?[][] args)
@@ -5338,24 +5338,6 @@ public class UseCollectionExpressionForArrayTests
                     public void Test(dynamic obj)
                     {
                         Test1(obj, [|[|new|] int?[]|] { 3 });
-                    }
-
-                    private void Test1(dynamic obj, int?[] args)
-                    {
-                    }
-                }
-                """,
-            FixedCode =
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq.Expressions;
-
-                class C
-                {
-                    public void Test(dynamic obj)
-                    {
-                        Test1(obj, [3]);
                     }
 
                     private void Test1(dynamic obj, int?[] args)

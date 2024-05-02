@@ -5919,7 +5919,6 @@ class Program
         Test(d, 2, 3);
         Test(2, d, 3);
         Test(2, 3, d);
-        Test(d, [3, 4]);
 
         Test2(d, d);
         Test2(d, 1);
@@ -5933,7 +5932,6 @@ class Program
         Test2<int>(d, 2, 3);
         Test2<int>(2, d, 3);
         Test2<int>(2, 3, d);
-        Test2<int>(d, [3, 4]);
     }
 
     static void Test(int a, params IEnumerable<int> b)
@@ -5951,7 +5949,7 @@ class Program
 
             CompileAndVerify(
                 comp,
-                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+                expectedOutput: @"CalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -6871,7 +6869,6 @@ class Program
         test2(d, 2, 3);
         test2(2, d, 3);
         test2(2, 3, d);
-        test2(d, [3, 4]);
 
         void Test(int a, IEnumerable<int> b)
         {
@@ -6891,7 +6888,7 @@ delegate void D2(int a, params int[] b);
 
             CompileAndVerify(
                 comp,
-                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -6960,7 +6957,6 @@ class Program
         _ = c1[d, 2, 3];
         _ = c1[2, d, 3];
         _ = c1[2, 3, d];
-        _ = c1[d, [3, 4]];
 
         var c2 = new C2();
 
@@ -6970,7 +6966,6 @@ class Program
         _ = c2[d, 2, 3];
         _ = c2[2, d, 3];
         _ = c2[2, 3, d];
-        _ = c2[d, [3, 4]];
     }
 }
 
@@ -7001,7 +6996,7 @@ class C2
 
             CompileAndVerify(
                 comp,
-                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+                expectedOutput: @"CalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2").VerifyDiagnostics();
         }
 
         [Fact]
