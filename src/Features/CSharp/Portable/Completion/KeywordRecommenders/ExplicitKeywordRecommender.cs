@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ExplicitKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ExplicitKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ExplicitKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validNonInterfaceMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -26,15 +26,28 @@ internal class ExplicitKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
             SyntaxKind.AbstractKeyword,
             SyntaxKind.UnsafeKeyword,
         };
-
-    public ExplicitKeywordRecommender()
-        : base(SyntaxKind.ExplicitKeyword)
-    {
-    }
+    private static readonly ISet<SyntaxKind> s_validExtensionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.NewKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.AbstractKeyword,
+            SyntaxKind.SealedKeyword,
+            SyntaxKind.StaticKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.FileKeyword,
+        };
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        if (context.IsMemberDeclarationContext(validModifiers: s_validNonInterfaceMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+        // 'implicit extension' is legal, so check if we're in an appropriate type declaration context
+        if (context.IsTypeDeclarationContext(s_validExtensionModifiers, validTypeDeclarations: null, canBePartial: true, cancellationToken))
+        {
+            return true;
+        }
+        else if (context.IsMemberDeclarationContext(validModifiers: s_validNonInterfaceMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
         {
             // operators must be both public and static
             var modifiers = context.PrecedingModifiers;

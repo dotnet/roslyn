@@ -117,7 +117,7 @@ internal class RefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
             syntaxTree.IsGlobalMemberDeclarationContext(position, syntaxTree.IsScript() ? RefGlobalMemberScriptModifiers : RefGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: RefMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: true,
                 cancellationToken: cancellationToken);
     }
@@ -192,6 +192,6 @@ internal class RefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers,
-            validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken);
     }
 }

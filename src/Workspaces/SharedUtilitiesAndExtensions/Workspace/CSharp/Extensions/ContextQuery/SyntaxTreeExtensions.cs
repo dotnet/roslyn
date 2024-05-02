@@ -541,13 +541,8 @@ internal static partial class SyntaxTreeExtensions
 
         validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
-        if (typeDecl != null)
-        {
-            if (!validTypeDeclarations.Contains(typeDecl.Kind()))
-            {
-                return false;
-            }
-        }
+        if (typeDecl != null && !validTypeDeclarations.Contains(typeDecl.Kind()))
+            return false;
 
         // Check many of the simple cases first.
         var leftToken = context != null
@@ -561,14 +556,10 @@ internal static partial class SyntaxTreeExtensions
             : leftToken.GetPreviousTokenIfTouchingWord(position);
 
         if (token.IsAnyAccessorDeclarationContext(position))
-        {
             return false;
-        }
 
         if (syntaxTree.IsTypeDeclarationContext(position, leftToken, cancellationToken))
-        {
             return true;
-        }
 
         // A type can also show up after certain types of modifiers
         if (canBePartial &&
@@ -579,9 +570,7 @@ internal static partial class SyntaxTreeExtensions
 
         // using directive is never a type declaration context
         if (token.GetAncestor<UsingDirectiveSyntax>() is not null)
-        {
             return false;
-        }
 
         var modifierTokens = context?.PrecedingModifiers ?? syntaxTree.GetPrecedingModifiers(position, cancellationToken);
         if (modifierTokens.IsEmpty())
@@ -759,7 +748,7 @@ internal static partial class SyntaxTreeExtensions
                 position,
                 context: null,
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken) ||
             syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);

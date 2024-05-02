@@ -20,7 +20,7 @@ internal abstract class AbstractCSharpMainMethodSnippetProvider : AbstractMainMe
 
         if (!syntaxContext.IsMemberDeclarationContext(
             validModifiers: SyntaxKindSet.AccessibilityModifiers,
-            validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
             canBePartial: true,
             cancellationToken: cancellationToken))
         {

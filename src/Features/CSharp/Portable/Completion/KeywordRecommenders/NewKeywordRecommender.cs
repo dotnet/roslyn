@@ -61,7 +61,7 @@ internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 
     private static bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        if (context.IsTypeDeclarationContext(validModifiers: ValidTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+        if (context.IsTypeDeclarationContext(validModifiers: ValidTypeModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
         {
             // we must be on a nested type.
             var token = context.LeftToken;
@@ -79,7 +79,7 @@ internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
             context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: s_validMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
     }

@@ -36,7 +36,7 @@ internal class PartialKeywordRecommender : AbstractSyntacticSingleKeywordRecomme
 
     private static bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        if (context.IsMemberDeclarationContext(validModifiers: s_validMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+        if (context.IsMemberDeclarationContext(validModifiers: s_validMemberModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
         {
             var token = context.LeftToken;
             var decl = token.GetRequiredAncestor<TypeDeclarationSyntax>();
@@ -57,7 +57,7 @@ internal class PartialKeywordRecommender : AbstractSyntacticSingleKeywordRecomme
     {
         return context.IsTypeDeclarationContext(
             validModifiers: SyntaxKindSet.AllTypeModifiers,
-            validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
             canBePartial: false,
             cancellationToken: cancellationToken);
     }

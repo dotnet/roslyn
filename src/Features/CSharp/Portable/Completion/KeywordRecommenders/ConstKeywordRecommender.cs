@@ -46,7 +46,7 @@ internal class ConstKeywordRecommender : AbstractSyntacticSingleKeywordRecommend
             context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, s_validGlobalModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: s_validModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
     }

@@ -16,5 +16,5 @@ internal class PropertyKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
     }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        => context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, cancellationToken);
+        => context.IsMemberAttributeContext(SyntaxKindSet.NonEnumTypeDeclarations, cancellationToken);
 }

@@ -29,7 +29,7 @@ internal class ReturnKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
     private static bool IsAttributeContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
-            context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, cancellationToken) ||
+            context.IsMemberAttributeContext(SyntaxKindSet.NonEnumTypeDeclarations, cancellationToken) ||
             (context.SyntaxTree.IsScript() && context.IsTypeAttributeContext(cancellationToken)) ||
             context.IsStatementAttributeContext() ||
             IsAccessorAttributeContext();

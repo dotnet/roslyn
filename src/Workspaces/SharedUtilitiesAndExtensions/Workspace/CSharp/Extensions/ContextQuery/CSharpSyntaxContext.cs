@@ -326,7 +326,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         if (token.Kind() == SyntaxKind.OpenBracketToken &&
             token.Parent.IsKind(SyntaxKind.AttributeList) &&
             this.SyntaxTree.IsTypeDeclarationContext(
-                token.SpanStart, context: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                token.SpanStart, context: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
         {
             return true;
         }

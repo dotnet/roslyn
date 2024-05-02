@@ -33,7 +33,7 @@ internal sealed class DelegateKeywordRecommender : AbstractSyntacticSingleKeywor
             IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
             context.IsTypeDeclarationContext(
                 validModifiers: s_validModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken))
         {
