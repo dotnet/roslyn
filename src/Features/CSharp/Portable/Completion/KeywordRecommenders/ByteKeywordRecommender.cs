@@ -23,7 +23,6 @@ internal sealed class ByteKeywordRecommender() : AbstractSpecialTypePreselecting
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.IsUsingAliasTypeContext ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
             syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||

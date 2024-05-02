@@ -21,7 +21,6 @@ internal sealed class StringKeywordRecommender() : AbstractSpecialTypePreselecti
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsTypeOfExpressionContext ||
-            context.IsUsingAliasTypeContext ||
             syntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||

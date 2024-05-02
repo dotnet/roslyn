@@ -22,7 +22,6 @@ internal sealed class ObjectKeywordRecommender() : AbstractSpecialTypePreselecti
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsNonAttributeExpressionContext ||
             context.IsTypeOfExpressionContext ||
-            context.IsUsingAliasTypeContext ||
             syntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
