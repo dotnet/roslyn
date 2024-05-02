@@ -577,6 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression result = bindExpressionInternal(node, diagnostics, invoked, indexed);
+
             if (IsEarlyAttributeBinder && result.Kind == BoundKind.MethodGroup && (!IsInsideNameof || EnclosingNameofArgument != node))
             {
                 return BadExpression(node, LookupResultKind.NotAValue);
@@ -7456,10 +7457,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    BoundExpression result = MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
+                    return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
                         flags: BoundMethodGroupFlags.SearchExtensionMethods, node, typeArgumentsSyntax, diagnostics);
-
-                    return result;
                 }
 
                 return null;
@@ -7628,10 +7627,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    BoundExpression result = MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArgumentsWithAnnotations, lookupResult,
+                    return MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArgumentsWithAnnotations, lookupResult,
                         flags, node, typeArgumentsSyntax, diagnostics);
-
-                    return result;
                 }
 
                 this.BindMemberAccessReportError(node, right, rightName, boundLeft, lookupResult.Error, diagnostics);
