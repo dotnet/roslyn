@@ -1580,14 +1580,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword // PROTOTYPE
                 ? ParseParenthesizedParameterList() : null;
 
-            SyntaxToken? forKeyword = null;
-            TypeSyntax? forType = null;
+            ForTypeSyntax? extensionForType = null;
             if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
                 && CurrentToken.Kind == SyntaxKind.ForKeyword)
             {
                 // PROTOTYPE consider error recovery for `class X for type`
-                forKeyword = EatToken(SyntaxKind.ForKeyword);
-                forType = ParseType();
+                extensionForType = _syntaxFactory.ForType(EatToken(SyntaxKind.ForKeyword), ParseType());
             }
 
             // PROTOTYPE decide whether to keep parsing base extensions or not
@@ -1690,7 +1688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 return constructTypeDeclaration(_syntaxFactory, attributes, modifiers, firstKeyword, secondKeyword, mainKeyword, name, typeParameters, paramList,
-                    forKeyword, forType, baseList, constraints, openBrace, members, closeBrace, semicolon);
+                    extensionForType, baseList, constraints, openBrace, members, closeBrace, semicolon);
             }
             finally
             {
@@ -1757,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers,
                 SyntaxToken? firstKeyword, SyntaxToken? secondKeyword, SyntaxToken mainKeyword,
-                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, SyntaxToken? forKeyword, TypeSyntax? forType,
+                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, ForTypeSyntax? forType,
                 BaseListSyntax? baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
                 SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
             {
@@ -1769,7 +1767,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.ClassKeyword:
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
-                        RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
                         return syntaxFactory.ClassDeclaration(
                             attributes,
@@ -1788,7 +1785,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.StructKeyword:
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
-                        RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
                         return syntaxFactory.StructDeclaration(
                             attributes,
@@ -1807,7 +1803,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.InterfaceKeyword:
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
-                        RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
@@ -1829,7 +1824,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // record class ...
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null or { Kind: SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword });
-                        RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
                         SyntaxKind declarationKind = secondKeyword?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
                         return syntaxFactory.RecordDeclaration(
@@ -1854,9 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         RoslynDebug.Assert(firstKeyword!.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword);
                         RoslynDebug.Assert(secondKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword!.Kind == SyntaxKind.ExtensionKeyword);
-                        RoslynDebug.Assert(forKeyword is null == forType is null);
 
-                        ForTypeSyntax? forUnderlyingType = forKeyword == null ? null : syntaxFactory.ForType(forKeyword, forType!);
                         return syntaxFactory.ExtensionDeclaration(
                             attributes,
                             modifiers.ToList(),
@@ -1865,7 +1857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             name,
                             typeParameters,
                             paramList,
-                            forUnderlyingType,
+                            forType,
                             baseList,
                             constraints,
                             openBrace,
