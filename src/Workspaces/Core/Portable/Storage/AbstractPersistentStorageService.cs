@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SQLite.v2;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Storage;
@@ -110,18 +109,6 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
             IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath)!, recursive: true));
 
             return true;
-        }
-    }
-
-    internal TestAccessor GetTestAccessor()
-        => new(this);
-
-    internal readonly struct TestAccessor(AbstractPersistentStorageService service)
-    {
-        public void Shutdown()
-        {
-            (service._currentPersistentStorage as SQLitePersistentStorage)?.DatabaseOwnership.Dispose();
-            service._currentPersistentStorage = null;
         }
     }
 }
