@@ -12667,5 +12667,19 @@ implicit extension E : List&lt;$$
                 Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestCompletionInExtensionWhereClause1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+implicit extension E&lt;T&gt; where $$
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("T", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace
