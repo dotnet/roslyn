@@ -20,7 +20,6 @@ internal sealed class UIntKeywordRecommender() : AbstractSpecialTypePreselecting
         var syntaxTree = context.SyntaxTree;
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsCrefContext ||
             context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
             context.IsEnumBaseListContext ||
