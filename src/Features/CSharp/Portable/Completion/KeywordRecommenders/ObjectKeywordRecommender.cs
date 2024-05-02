@@ -17,17 +17,10 @@ internal sealed class ObjectKeywordRecommender() : AbstractSpecialTypePreselecti
 
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        var syntaxTree = context.SyntaxTree;
         return
             context.IsNonAttributeExpressionContext ||
             context.IsTypeOfExpressionContext ||
-            syntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
-            syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
-            syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsMemberDeclarationContext(
-                validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
-                canBePartial: false,
-                cancellationToken: cancellationToken);
+            context.SyntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
+            context.SyntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken);
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
@@ -56,6 +57,16 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
 
         if (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>())
             return true;
+
+        if (context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+            context.IsMemberDeclarationContext(
+                validModifiers: SyntaxKindSet.AllMemberModifiers,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: false,
+                cancellationToken: cancellationToken))
+        {
+            return true;
+        }
 
         return IsValidContextWorker(position, context, cancellationToken) ||
             IsAfterRefOrReadonlyInTopLevelOrMemberDeclaration(context, position, cancellationToken);
