@@ -18556,7 +18556,11 @@ static public class Extension
 }";
 
             var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+                //         b.Goo(d);
+                Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Goo(d)").WithArguments("B", "Goo").WithLocation(8, 9)
+                );
         }
 
         [Fact]

@@ -382,11 +382,6 @@
         <target state="translated">반환 형식이 대리자 반환 형식과 일치하지 않기 때문에 {0}을(를) '{1}' 형식으로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
-        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="translated">동적 형식을 가진 인수가 사용되고 메서드에 배열 매개 변수가 아닌 params 컬렉션 매개 변수가 있으므로 메서드 '{0}' 형식 인수를 사용법에서 유추할 수 없습니다. 형식 인수를 명시적으로 지정해 보세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist는 'in' 또는 'out'으로 전달되는 인수를 가질 수 없습니다.</target>
@@ -585,6 +580,11 @@
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
         <target state="translated">'{0}' 속성 또는 인덱서의 두 접근자에 'readonly' 한정자를 지정할 수 없습니다. 대신 속성 자체에 'readonly' 한정자를 지정하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">

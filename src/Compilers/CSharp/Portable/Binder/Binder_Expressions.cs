@@ -6560,70 +6560,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (finalApplicableCandidates.Length == 1)
                     {
                         Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-
-                        if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
-                        {
-                            MethodSymbol singleCandidate = finalApplicableCandidates[0].Member;
-
-                            // We're only in trouble if a dynamic argument is passed to the
-                            // params parameter and is ambiguous at compile time between normal
-                            // and expanded form i.e., there is exactly one dynamic argument to
-                            // a params parameter, and we know that runtime binder might not be
-                            // able to handle the disambiguation
-                            if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                            {
-                                Error(diagnostics,
-                                    ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                                    argumentSyntax, singleCandidate);
-                            }
-                        }
-                        else
-                        {
-                            if (!type.IsAbstract)
-                            {
-                                result = BindClassCreationExpressionContinued(node, typeNode, type, analyzedArguments, initializerSyntaxOpt,
-                                    initializerTypeOpt, wasTargetTyped, finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
-                            }
-                            else
-                            {
-                                result = CreateBadClassCreationExpression(node, typeNode, type, analyzedArguments,
-                                    initializerSyntaxOpt, initializerTypeOpt, finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
-                            }
-                        }
+                        ReportMemberNotSupportedByDynamicDispatch(node, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
                     }
 
-                    if (result == null)
+                    if (finalApplicableCandidates.Length != 1 &&
+                        Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
+                        HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
                     {
-                        if (finalApplicableCandidates.Length != 1 &&
-                            Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                            HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
-                        {
-                            Error(diagnostics,
-                                ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor,
-                                node);
-                        }
-
-                        var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
-                        var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
-
-                        hasErrors &= ReportBadDynamicArguments(node, receiver: null, argArray, refKindsArray, diagnostics, queryClause: null);
-
-                        BoundObjectInitializerExpressionBase boundInitializerOpt;
-                        boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
-                        result = new BoundDynamicObjectCreationExpression(
-                            node,
-                            typeName,
-                            argArray,
-                            analyzedArguments.GetNames(),
-                            refKindsArray,
-                            boundInitializerOpt,
-                            overloadResolutionResult.GetAllApplicableMembers(),
-                            wasTargetTyped,
-                            type,
-                            hasErrors);
-
-                        diagnostics.Add(node, useSiteInfo);
+                        Error(diagnostics,
+                            ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor,
+                            node);
                     }
+
+                    var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
+                    var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
+
+                    hasErrors &= ReportBadDynamicArguments(node, receiver: null, argArray, refKindsArray, diagnostics, queryClause: null);
+
+                    BoundObjectInitializerExpressionBase boundInitializerOpt;
+                    boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
+                    result = new BoundDynamicObjectCreationExpression(
+                        node,
+                        typeName,
+                        argArray,
+                        analyzedArguments.GetNames(),
+                        refKindsArray,
+                        boundInitializerOpt,
+                        overloadResolutionResult.GetAllApplicableMembers(),
+                        wasTargetTyped,
+                        type,
+                        hasErrors);
+
+                    diagnostics.Add(node, useSiteInfo);
                 }
 
                 overloadResolutionResult.Free();
@@ -9703,31 +9671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (finalApplicableCandidates.Length == 1)
                 {
                     Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-
-                    if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
-                    {
-                        PropertySymbol singleCandidate = finalApplicableCandidates[0].LeastOverriddenMember;
-
-                        // We're only in trouble if a dynamic argument is passed to the
-                        // params parameter and is ambiguous at compile time between normal
-                        // and expanded form i.e., there is exactly one dynamic argument to
-                        // a params parameter, and we know that runtime binder might not be
-                        // able to handle the disambiguation
-                        if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                        {
-                            Error(diagnostics,
-                                ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                                argumentSyntax, singleCandidate);
-                        }
-                    }
-                    else
-                    {
-                        var resultWithSingleCandidate = OverloadResolutionResult<PropertySymbol>.GetInstance();
-                        resultWithSingleCandidate.ResultsBuilder.Add(finalApplicableCandidates[0]);
-                        overloadResolutionResult.Free();
-
-                        return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, resultWithSingleCandidate, diagnostics);
-                    }
+                    ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
                 }
 
                 if (finalApplicableCandidates.Length != 1 &&

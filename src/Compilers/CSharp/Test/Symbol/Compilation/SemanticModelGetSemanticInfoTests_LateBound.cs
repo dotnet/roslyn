@@ -85,7 +85,7 @@ class C
             Assert.Equal("C", semanticInfo.Type.Name);
             Assert.Equal("C..ctor(out dynamic x, dynamic y)", semanticInfo.Symbol.ToTestDisplayString());
 
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);

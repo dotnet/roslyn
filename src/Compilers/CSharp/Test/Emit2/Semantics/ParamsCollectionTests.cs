@@ -5947,9 +5947,23 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"CalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'Program.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test(d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d)").WithArguments("Program.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9),
+                // (9,9): error CS9218: 'Program.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test(d, 1);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 1)").WithArguments("Program.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(9, 9),
+                // (10,9): error CS9218: 'Program.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(10, 9),
+                // (11,9): error CS9218: 'Program.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test(2, d, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(2, d, 3)").WithArguments("Program.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(11, 9),
+                // (12,9): error CS9218: 'Program.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test(2, 3, d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(2, 3, d)").WithArguments("Program.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(12, 9)
+                );
         }
 
         [Fact]
@@ -6060,7 +6074,7 @@ class Program
             var comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             var expected = new[] {
-                // (8,9): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                    // (8,9): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test1(d1);                  // Called2
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d1)").WithArguments("Test1").WithLocation(8, 9),
                 // (11,9): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
@@ -6075,6 +6089,9 @@ class Program
                 // (20,9): warning CS9220: One or more overloads of method 'Test3' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test3(d3, 1, 2);            // Called7
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test3(d3, 1, 2)").WithArguments("Test3").WithLocation(20, 9),
+                // (21,9): error CS9218: 'Helpers.Test3(byte, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test3(d3, x, x);            // Called6
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test3(d3, x, x)").WithArguments("Helpers.Test3(byte, params System.Collections.Generic.IEnumerable<int>)").WithLocation(21, 9),
                 // (25,9): warning CS9220: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test4(d3, x, x);            // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test4(d3, x, x)").WithArguments("Test4").WithLocation(25, 9),
@@ -6083,16 +6100,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test4(d3, d4, d4)").WithArguments("Test4").WithLocation(26, 9)
                 };
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
-            VerifyDiagnostics(expected);
+            comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
-            VerifyDiagnostics(expected);
+            comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
@@ -6165,9 +6176,11 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called True").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'Program.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test(d, 2);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2)").WithArguments("Program.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6192,9 +6205,11 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'Program.Test(params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6228,23 +6243,23 @@ class P
             var comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9218: The type arguments for method 'Program.Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS9218: 'Program.Test<T>(params IEnumerable<T>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test(d, 2, 3);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9),
-                // (9,9): error CS9218: The type arguments for method 'Program.Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9),
+                // (9,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test<T>(params IEnumerable<T>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         Test(d);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(9, 14)
                 );
 
             comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9218: The type arguments for method 'Program.Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS9218: 'Program.Test<T>(params IEnumerable<T>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test(d, 2, 3);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9),
-                // (9,9): error CS9218: The type arguments for method 'Program.Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9),
+                // (9,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test<T>(params IEnumerable<T>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         Test(d);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(9, 14)
                 );
 
             comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
@@ -6274,9 +6289,11 @@ class Program
 """;
             var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp2,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (8,9): error CS9218: 'Program.Test<int>(params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test<int>(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test<int>(d, 2, 3)").WithArguments("Program.Test<int>(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6310,23 +6327,23 @@ class P
             var comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9218: The type arguments for method 'Program.Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS9218: 'Program.Test<T>(T, params IEnumerable<long>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test(0, d, 2, 3);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9),
-                // (9,9): error CS9218: The type arguments for method 'Program.Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9),
+                // (9,17): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test<T>(T, params IEnumerable<long>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         Test(0, d);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(9, 17)
                 );
 
             comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9218: The type arguments for method 'Program.Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS9218: 'Program.Test<T>(T, params IEnumerable<long>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
                 //         Test(0, d, 2, 3);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9),
-                // (9,9): error CS9218: The type arguments for method 'Program.Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9),
+                // (9,17): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test<T>(T, params IEnumerable<long>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         Test(0, d);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(9, 17)
                 );
 
             comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
@@ -6356,9 +6373,11 @@ class Program
 """;
             var comp2 = CreateCompilation(src2, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp2,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (8,9): error CS9218: 'Program.Test<int>(int, params IEnumerable<long>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         Test<int>(0, d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test<int>(0, d, 2, 3)").WithArguments("Program.Test<int>(int, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6391,9 +6410,11 @@ class C2 : C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'C1.Test(params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new C2().Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new C2().Test(d, 2, 3)").WithArguments("C1.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6426,9 +6447,11 @@ class C2 : C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'C2.Test<int>(params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new C2().Test<int>(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new C2().Test<int>(d, 2, 3)").WithArguments("C2.Test<int>(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6466,9 +6489,11 @@ class C2 : C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'C2.Test(params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new C2().Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new C2().Test(d, 2, 3)").WithArguments("C2.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6506,9 +6531,11 @@ class C3 : C2
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'C2.Test(params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new C3().Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new C3().Test(d, 2, 3)").WithArguments("C2.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6733,9 +6760,9 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
+                // (8,14): error CS8108: Cannot pass argument with dynamic type to params parameter 'b' of local function 'Test'.
                 //         Test(d);
-                Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "d").WithArguments("b", "Test").WithLocation(8, 14)
                 );
         }
 
@@ -6762,9 +6789,9 @@ class Program
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9218: The type arguments for method 'Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'Test' with inferred type arguments.
                 //         Test(d, 2, 3);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d, 2, 3)").WithArguments("Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "Test(d, 2, 3)").WithArguments("Test").WithLocation(8, 9)
                 );
 
             var src2 = """
@@ -6814,9 +6841,9 @@ class Program
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9218: The type arguments for method 'Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'Test' with inferred type arguments.
                 //         Test(0, d, 2, 3);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d, 2, 3)").WithArguments("Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "Test(0, d, 2, 3)").WithArguments("Test").WithLocation(8, 9)
                 );
 
             var src2 = """
@@ -6886,9 +6913,23 @@ delegate void D2(int a, params int[] b);
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,9): error CS9218: 'D.Invoke(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         test(d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "test(d)").WithArguments("D.Invoke(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(9, 9),
+                // (10,9): error CS9218: 'D.Invoke(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         test(d, 1);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "test(d, 1)").WithArguments("D.Invoke(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(10, 9),
+                // (11,9): error CS9218: 'D.Invoke(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "test(d, 2, 3)").WithArguments("D.Invoke(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(11, 9),
+                // (12,9): error CS9218: 'D.Invoke(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         test(2, d, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "test(2, d, 3)").WithArguments("D.Invoke(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(12, 9),
+                // (13,9): error CS9218: 'D.Invoke(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         test(2, 3, d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "test(2, 3, d)").WithArguments("D.Invoke(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(13, 9)
+                );
         }
 
         [Fact]
@@ -6994,9 +7035,23 @@ class C2
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"CalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,13): error CS9218: 'C1.this[int, params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = c1[d];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "c1[d]").WithArguments("C1.this[int, params System.Collections.Generic.IEnumerable<int>]").WithLocation(9, 13),
+                // (10,13): error CS9218: 'C1.this[int, params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = c1[d, 1];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "c1[d, 1]").WithArguments("C1.this[int, params System.Collections.Generic.IEnumerable<int>]").WithLocation(10, 13),
+                // (11,13): error CS9218: 'C1.this[int, params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = c1[d, 2, 3];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "c1[d, 2, 3]").WithArguments("C1.this[int, params System.Collections.Generic.IEnumerable<int>]").WithLocation(11, 13),
+                // (12,13): error CS9218: 'C1.this[int, params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = c1[2, d, 3];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "c1[2, d, 3]").WithArguments("C1.this[int, params System.Collections.Generic.IEnumerable<int>]").WithLocation(12, 13),
+                // (13,13): error CS9218: 'C1.this[int, params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = c1[2, 3, d];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "c1[2, 3, d]").WithArguments("C1.this[int, params System.Collections.Generic.IEnumerable<int>]").WithLocation(13, 13)
+                );
         }
 
         [Fact]
@@ -7126,6 +7181,9 @@ class Program
                 // (18,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test3()[d3, 1, 2];            // Called7
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test3()[d3, 1, 2]").WithLocation(18, 13),
+                // (19,13): error CS9218: 'Test3.this[byte, params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = new Test3()[d3, x, x];            // Called6
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test3()[d3, x, x]").WithArguments("Test3.this[byte, params System.Collections.Generic.IEnumerable<int>]").WithLocation(19, 13),
                 // (23,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test4()[d3, x, x];            // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, x, x]").WithLocation(23, 13),
@@ -7134,16 +7192,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, d4, d4]").WithLocation(24, 13)
                 };
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
-            VerifyDiagnostics(expected);
+            comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
-            VerifyDiagnostics(expected);
+            comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
@@ -7216,9 +7268,11 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called True").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,13): error CS9218: 'Program.this[int, params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = new Program()[d, 2];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Program()[d, 2]").WithArguments("Program.this[int, params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -7247,9 +7301,11 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,13): error CS9218: 'Program.this[params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = new Program()[d, 2, 3];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Program()[d, 2, 3]").WithArguments("Program.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -7286,9 +7342,11 @@ class C2<T> : C1<T>
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,13): error CS9218: 'C1<int>.this[params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = new C2<int>()[d, 2, 3];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new C2<int>()[d, 2, 3]").WithArguments("C1<int>.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -7325,9 +7383,11 @@ class C2<T> : C1<T>
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,13): error CS9218: 'C2<int>.this[params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = new C2<int>()[d, 2, 3];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new C2<int>()[d, 2, 3]").WithArguments("C2<int>.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -7369,9 +7429,11 @@ class C2<T> : C1<T>
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,13): error CS9218: 'C2<int>.this[params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = new C2<int>()[d, 2, 3];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new C2<int>()[d, 2, 3]").WithArguments("C2<int>.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -7413,9 +7475,11 @@ class C3<T> : C2<T>
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,13): error CS9218: 'C2<int>.this[params IEnumerable<int>]' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         _ = new C3<int>()[d, 2, 3];
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new C3<int>()[d, 2, 3]").WithArguments("C2<int>.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -7600,9 +7664,29 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"CalledCalledCalledCalledCalledCalledCalled2Called2Called2Called2Called2Called2Called2").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'Program.Test.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test(d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test(d)").WithArguments("Program.Test.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9),
+                // (9,9): error CS9218: 'Program.Test.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test(d, 1);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test(d, 1)").WithArguments("Program.Test.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(9, 9),
+                // (10,9): error CS9218: 'Program.Test.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test(d, 2, 3)").WithArguments("Program.Test.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(10, 9),
+                // (11,9): error CS9218: 'Program.Test.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test(2, d, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test(2, d, 3)").WithArguments("Program.Test.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(11, 9),
+                // (12,9): error CS9218: 'Program.Test.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test(2, 3, d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test(2, 3, d)").WithArguments("Program.Test.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(12, 9),
+                // (13,21): error CS9176: There is no target type for the collection expression.
+                //         new Test(d, [3, 4]);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[3, 4]").WithLocation(13, 21),
+                // (21,22): error CS9176: There is no target type for the collection expression.
+                //         new Test2(d, [3, 4]);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[3, 4]").WithLocation(21, 22)
+                );
         }
 
         [Fact]
@@ -7734,6 +7818,9 @@ class Program
                 // (18,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test3(d3, 1, 2);            // Called7
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test3(d3, 1, 2)").WithLocation(18, 9),
+                // (19,9): error CS9218: 'Test3.Test3(byte, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test3(d3, x, x);            // Called6
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test3(d3, x, x)").WithArguments("Test3.Test3(byte, params System.Collections.Generic.IEnumerable<int>)").WithLocation(19, 9),
                 // (23,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test4(d3, x, x);            // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, x, x)").WithLocation(23, 9),
@@ -7742,16 +7829,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, d4, d4)").WithLocation(24, 9)
                 };
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
-            VerifyDiagnostics(expected);
+            comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
-            VerifyDiagnostics(expected);
+            comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
@@ -7826,9 +7907,11 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called True").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'Program.Test.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test(d, 2);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test(d, 2)").WithArguments("Program.Test.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -7856,9 +7939,11 @@ class Program
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(
-                comp,
-                expectedOutput: @"Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9218: 'Program.Test.Test(params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test(d, 2, 3);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test(d, 2, 3)").WithArguments("Program.Test.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -7926,7 +8011,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (8,9): error CS0144: Cannot create an instance of the abstract type or interface 'Program.Test'
                 //         new Test(d);
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Test(d)").WithArguments("Program.Test").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Test(d)").WithArguments("Program.Test").WithLocation(8, 9),
+                // (8,9): error CS9218: 'Program.Test.Test(int, params IEnumerable<int>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
+                //         new Test(d);
+                Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "new Test(d)").WithArguments("Program.Test.Test(int, params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 9)
                 );
         }
 

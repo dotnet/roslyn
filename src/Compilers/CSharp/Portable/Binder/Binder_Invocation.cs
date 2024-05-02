@@ -641,31 +641,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
                 var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
+                ReportMemberNotSupportedByDynamicDispatch(node, applicable, analyzedArguments.Arguments, diagnostics);
 
-                // We have to do a dynamic dispatch only when a dynamic argument is
-                // passed to the params parameter and is ambiguous at compile time between normal
-                // and expanded form i.e., there is exactly one dynamic argument to
-                // a params parameter.
-
-                if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, applicable, out SyntaxNode argumentSyntax))
-                {
-                    MethodSymbol singleCandidate = applicable.Member;
-
-                    // We know that runtime binder might not be
-                    // able to handle the disambiguation
-                    if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                    {
-                        Error(diagnostics,
-                            ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                            argumentSyntax, singleCandidate);
-                    }
-
-                    result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
-                }
-                else
-                {
-                    result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
-                }
+                result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
             }
             else
             {
@@ -704,6 +682,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, ArrayBuilder<BoundExpression> arguments, BindingDiagnosticBag diagnostics)
+            where TMember : Symbol
+        {
+            if (candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
+                !candidate.Member.GetParameters().Last().Type.IsSZArray())
+            {
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicDispatchToParamsCollection,
+                    syntax, candidate.LeastOverriddenMember);
+            }
+            else if (IsAmbiguousDynamicParamsArgument(arguments, candidate, out SyntaxNode argumentSyntax) &&
+                     !candidate.LeastOverriddenMember.GetParameters().Last().Type.IsSZArray())
+            {
+                // We know that runtime binder might not be
+                // able to handle the disambiguation
+                Error(diagnostics,
+                    ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
+                    argumentSyntax, candidate.LeastOverriddenMember);
+            }
         }
 
         private BoundExpression BindMethodGroupInvocation(
@@ -812,6 +811,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(finalApplicableCandidates[0].IsApplicable);
 
                             result = TryEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, expression, methodName, methodGroup, diagnostics, queryClause, resolution, finalApplicableCandidates[0]);
+
+                            if (result is null && finalApplicableCandidates[0].LeastOverriddenMember.MethodKind != MethodKind.LocalFunction)
+                            {
+                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], resolution.AnalyzedArguments.Arguments, diagnostics);
+                            }
                         }
 
                         if (result is null)
@@ -908,13 +912,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<MethodSymbol> methodResolutionResult,
             MethodSymbol singleCandidate)
         {
-            //
-            // !!! ATTENTION !!!
-            //
-            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
-            // this function should be kept in sync with local function
-            // HasCollectionExpressionApplicableAddMethod.canEarlyBindSingleCandidateInvocationWithDynamicArgument
-            //
+            if (singleCandidate.MethodKind != MethodKind.LocalFunction)
+            {
+                return false;
+            }
 
             if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && singleCandidate.IsGenericMethod)
             {
@@ -931,19 +932,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // seem to worth the complexity. So, just disallow any mixing of dynamic and
                 // inferred generics. (Explicit generic arguments are fine)
 
-                if (OverloadResolution.IsValidParams(this, singleCandidate) &&
-                    !singleCandidate.Parameters.Last().Type.IsSZArray())
-                {
-                    Error(diagnostics,
-                        ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections,
-                        syntax, singleCandidate);
-                }
-                else if (singleCandidate.MethodKind == MethodKind.LocalFunction)
-                {
-                    Error(diagnostics,
-                        ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
-                        syntax, singleCandidate.Name);
-                }
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
+                    syntax, singleCandidate.Name);
 
                 return false;
             }
@@ -956,18 +947,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // a params parameter, and we know that runtime binder might not be
                 // able to handle the disambiguation
                 // See https://github.com/dotnet/roslyn/issues/10708
-                if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                {
-                    Error(diagnostics,
-                        ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                        argumentSyntax, singleCandidate);
-                }
-                else if (singleCandidate.MethodKind == MethodKind.LocalFunction)
-                {
-                    Error(diagnostics,
-                        ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
-                        argumentSyntax, singleCandidate.Parameters.Last().Name, singleCandidate.Name);
-                }
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
+                    argumentSyntax, singleCandidate.Parameters.Last().Name, singleCandidate.Name);
 
                 return false;
             }
@@ -985,14 +967,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodGroupResolution resolution,
             MemberResolutionResult<MethodSymbol> methodResolutionResult)
         {
-            //
-            // !!! ATTENTION !!!
-            //
-            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
-            // this function should be kept in sync with local function
-            // HasCollectionExpressionApplicableAddMethod.tryEarlyBindSingleCandidateInvocationWithDynamicArgument
-            //
-
             MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
 
             if (!CanEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
