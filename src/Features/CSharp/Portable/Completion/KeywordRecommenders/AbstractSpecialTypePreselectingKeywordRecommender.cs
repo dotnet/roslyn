@@ -36,6 +36,7 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
         if (context.IsAnyExpressionContext ||
             context.IsCrefContext ||
             context.IsDefiniteCastTypeContext ||
+            context.IsDelegateReturnTypeContext ||
             context.IsExtensionForTypeContext)
         {
             return true;

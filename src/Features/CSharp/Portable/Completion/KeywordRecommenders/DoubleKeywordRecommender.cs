@@ -20,7 +20,6 @@ internal sealed class DoubleKeywordRecommender() : AbstractSpecialTypePreselecti
         var syntaxTree = context.SyntaxTree;
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsDelegateReturnTypeContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||

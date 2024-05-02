@@ -20,7 +20,6 @@ internal sealed class ByteKeywordRecommender() : AbstractSpecialTypePreselecting
         var syntaxTree = context.SyntaxTree;
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsDelegateReturnTypeContext ||
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsFunctionPointerTypeArgumentContext ||
