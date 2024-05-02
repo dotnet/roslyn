@@ -17,7 +17,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
 internal sealed class SQLitePersistentStorageService(
-    SQLiteConnectionPoolService connectionPoolService,
     IPersistentStorageConfiguration configuration,
     IAsynchronousOperationListener asyncListener) : AbstractPersistentStorageService(configuration), IWorkspaceService
 {
@@ -25,13 +24,12 @@ internal sealed class SQLitePersistentStorageService(
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class ServiceFactory(
-        SQLiteConnectionPoolService connectionPoolService,
         IAsynchronousOperationListenerProvider asyncOperationListenerProvider) : IWorkspaceServiceFactory
     {
         private readonly IAsynchronousOperationListener _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new SQLitePersistentStorageService(connectionPoolService, workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
+            => new SQLitePersistentStorageService(workspaceServices.GetRequiredService<IPersistentStorageConfiguration>(), _asyncListener);
     }
 
     private const string StorageExtension = "sqlite3";
@@ -64,11 +62,10 @@ internal sealed class SQLitePersistentStorageService(
     private readonly IPersistentStorageFaultInjector? _faultInjector;
 
     public SQLitePersistentStorageService(
-        SQLiteConnectionPoolService connectionPoolService,
         IPersistentStorageConfiguration configuration,
         IAsynchronousOperationListener asyncListener,
         IPersistentStorageFaultInjector? faultInjector)
-        : this(connectionPoolService, configuration, asyncListener)
+        : this(configuration, asyncListener)
     {
         _faultInjector = faultInjector;
     }
@@ -92,7 +89,6 @@ internal sealed class SQLitePersistentStorageService(
             return new(NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure));
 
         return new(SQLitePersistentStorage.TryCreate(
-            connectionPoolService,
             solutionKey,
             workingFolderPath,
             databaseFilePath,

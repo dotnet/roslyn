@@ -32,14 +32,14 @@ internal partial class SQLitePersistentStorage
     private void FlushInMemoryDataToDisk()
     {
         // We're writing.  This better always be under the exclusive scheduler.
-        Contract.ThrowIfFalse(TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler);
+        Contract.ThrowIfFalse(TaskScheduler.Current == this.Scheduler.ExclusiveScheduler);
 
         // Don't flush from a bg task if we've been asked to shutdown.  The shutdown logic in the storage service
         // will take care of the final writes to the main db.
         if (_shutdownTokenSource.IsCancellationRequested)
             return;
 
-        using var _ = _connectionPool.GetPooledConnection(out var connection);
+        using var _ = this.GetPooledConnection(out var connection);
 
         var exception = connection.RunInTransaction(static state =>
         {

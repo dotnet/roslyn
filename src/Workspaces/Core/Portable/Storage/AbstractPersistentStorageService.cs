@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,11 +22,8 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
 {
     protected readonly IPersistentStorageConfiguration Configuration = configuration;
 
-    /// <summary>
-    /// This lock guards all mutable fields in this type.
-    /// </summary>
     private readonly SemaphoreSlim _lock = new(initialCount: 1);
-    private IChecksummedPersistentStorage? _currentPersistentStorage;
+    private readonly ConcurrentDictionary<SolutionKey, IChecksummedPersistentStorage> _solutionKeyToStorage = new();
 
     protected abstract string GetDatabaseFilePath(string workingFolderPath);
 
@@ -42,11 +40,9 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
         if (solutionKey.FilePath == null)
             return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
 
-        // Without taking the lock, see if we can use the last storage system we were asked to create.  Ensure we use a
-        // using so that if we don't take it we still release this reference count.
-        var existing = _currentPersistentStorage;
-        if (solutionKey == existing?.SolutionKey)
-            return existing;
+        // Without taking the lock, see if we can lookup a storage for this key.
+        if (_solutionKeyToStorage.TryGetValue(solutionKey, out var storage))
+            return storage;
 
         var workingFolder = Configuration.TryGetStorageLocation(solutionKey);
         if (workingFolder == null)
@@ -55,12 +51,13 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
             // See if another thread set to the solution we care about while we were waiting on the lock.
-            if (solutionKey != _currentPersistentStorage?.SolutionKey)
+            if (!_solutionKeyToStorage.TryGetValue(solutionKey, out storage))
             {
-                _currentPersistentStorage = await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
+                storage = await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
+                _solutionKeyToStorage.Add(solutionKey, storage);
             }
 
-            return _currentPersistentStorage;
+            return storage;
         }
     }
 
@@ -120,8 +117,7 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
     {
         using (_lock.DisposableWait(cancellationToken))
         {
-            // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
-            _currentPersistentStorage = null;
+            _solutionKeyToStorage.Clear();
         }
     }
 

@@ -22,7 +22,7 @@ using static SQLitePersistentStorageConstants;
 /// to open the DB if it exists, or create it if it does not.
 /// 
 /// Connections are considered relatively heavyweight and are pooled (see <see
-/// cref="SQLiteConnectionPool.GetPooledConnection(out SqlConnection)"/>).  Connections can be used by different
+/// cref="SQLitePersistentStorage.GetPooledConnection(out SqlConnection)"/>).  Connections can be used by different
 /// threads, but only as long as they are used by one thread at a time.  They are not safe for concurrent use by several
 /// threads.
 /// 
@@ -30,7 +30,7 @@ using static SQLitePersistentStorageConstants;
 /// These statements are cached for the lifetime of the connection and are only finalized
 /// (i.e. destroyed) when the connection is closed.
 /// </summary>
-internal class SqlConnection
+internal sealed class SqlConnection
 {
     // Cached UTF-8 (and null terminated) versions of the common strings we need to pass to sqlite.  Used to prevent
     // having to convert these names to/from utf16 to UTF-8 on every call.  Sqlite requires these be null terminated.
