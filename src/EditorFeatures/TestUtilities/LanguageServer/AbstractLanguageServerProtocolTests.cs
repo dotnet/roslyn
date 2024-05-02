@@ -531,7 +531,8 @@ namespace Roslyn.Test.Utilities
                 LSP.ClientCapabilities clientCapabilities,
                 RoslynLanguageServer target,
                 Stream clientStream,
-                object? clientTarget = null)
+                object? clientTarget = null,
+                IJsonRpcMessageFormatter? clientMessageFormatter = null)
             {
                 TestWorkspace = testWorkspace;
                 ClientCapabilities = clientCapabilities;
@@ -540,7 +541,9 @@ namespace Roslyn.Test.Utilities
 
                 LanguageServer = target;
 
-                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, RoslynLanguageServer.CreateJsonMessageFormatter()), clientTarget)
+                clientMessageFormatter ??= RoslynLanguageServer.CreateJsonMessageFormatter();
+
+                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, clientMessageFormatter), clientTarget)
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
@@ -566,13 +569,16 @@ namespace Roslyn.Test.Utilities
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
                 var languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace, initializationOptions.ServerKind, logger);
 
-                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, languageServer, clientStream, initializationOptions.ClientTarget);
+                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, languageServer, clientStream, initializationOptions.ClientTarget, initializationOptions.ClientMessageFormatter);
 
-                await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
+                if (initializationOptions.CallInitialize)
                 {
-                    Capabilities = initializationOptions.ClientCapabilities,
-                    Locale = initializationOptions.Locale,
-                }, CancellationToken.None);
+                    await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
+                    {
+                        Capabilities = initializationOptions.ClientCapabilities,
+                        Locale = initializationOptions.Locale,
+                    }, CancellationToken.None);
+                }
 
                 if (initializationOptions.CallInitialized)
                 {
