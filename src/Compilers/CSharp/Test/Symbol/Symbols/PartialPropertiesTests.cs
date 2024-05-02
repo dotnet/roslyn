@@ -1349,6 +1349,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
+        public void NullableDifference_NullableWarningsDisabled()
+        {
+            // 'safe' nullable differences for partial methods are still reported even when nullable warnings are disabled.
+            // For simplicity we replicate this behavior for partial properties.
+            var source = """
+                partial class C
+                {
+                    public partial string? P1 { get; set; }
+                    public partial string P1 { get => ""; set { } }
+
+                    public partial string P2 { get; set; }
+                    public partial string? P2 { get => ""; set { } }
+                    
+                    public partial string? M1();
+                    public partial string M1() => "";
+
+                    public partial string M2();
+                    public partial string? M2() => "";
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable));
+            comp.VerifyEmitDiagnostics(
+                // (4,27): warning CS9308: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                //     public partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(4, 27),
+                // (7,28): warning CS9308: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                //     public partial string? P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(7, 28),
+                // (10,27): warning CS8826: Partial method declarations 'string? C.M1()' and 'string C.M1()' have signature differences.
+                //     public partial string M1() => "";
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(10, 27),
+                // (13,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
+                //     public partial string? M2() => "";
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M2").WithLocation(13, 28));
+
+            comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Annotations));
+            comp.VerifyEmitDiagnostics(
+                // (4,27): warning CS9308: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                //     public partial string P1 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(4, 27),
+                // (7,28): warning CS9308: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                //     public partial string? P2 { get => ""; set { } }
+                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(7, 28),
+                // (10,27): warning CS8826: Partial method declarations 'string? C.M1()' and 'string C.M1()' have signature differences.
+                //     public partial string M1() => "";
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(10, 27));
+        }
+
+        [Fact]
         public void TypeDifference_03()
         {
             // tuple element name difference
