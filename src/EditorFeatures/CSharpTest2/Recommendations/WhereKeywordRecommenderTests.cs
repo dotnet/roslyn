@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact]
         public async Task TestExtensionConstraints1()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
                 """
                 implicit extension E $$
                 """);
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact]
         public async Task TestExtensionConstraints3()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
                 """
                 implicit extension E(int i) $$
                 """);
@@ -671,18 +671,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact]
         public async Task TestExtensionConstraints4()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
                 """
-                implicit extension E : X $$
+                implicit extension E<T>(int i) $$
                 """);
         }
 
         [Fact]
         public async Task TestExtensionConstraints5()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
                 """
-                implicit extension E : X, Y $$
+                implicit extension E : X $$
                 """);
         }
 
@@ -691,7 +691,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyKeywordAsync(
                 """
+                implicit extension E<T> : X $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints7()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E : X, Y $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints8()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E<T> : X, Y $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints9()
+        {
+            await VerifyAbsenceAsync(
+                """
                 implicit extension E : X<int> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints10()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E<T> : X<int> $$
                 """);
         }
     }
