@@ -2241,7 +2241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // we have `implicit extension ...` technically this could be something like `implicit
                     // extension.operator X(` (an implicit conversion with a explicit interface impl name). For compat,
                     // determine the parsing strategy based on the lang version.
-                    return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                    return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureExtensions);
 
                 case SyntaxKind.IdentifierToken:
                     if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
@@ -3511,7 +3511,7 @@ parse_member_name:;
                     // we have `implicit extension ...` technically this could be something like `implicit
                     // extension.operator X(` (an implicit conversion with a explicit interface impl name). For compat,
                     // determine the parsing strategy based on the lang version.
-                    if (IsFeatureEnabled(MessageID.IDS_FeatureExtensions))
+                    if (IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureExtensions))
                     {
                         this.Reset(ref point);
                         return null;
