@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             var options = _optionsService.GetInlineHintsOptions(document.Project.Language);
             var hints = await inlineHintService.GetInlineHintsAsync(document, textSpan, options, displayAllOverride: false, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<LSP.InlayHint>.GetInstance(hints.Length, out var inlayHints);
             var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var inlayHintCache = context.GetRequiredLspService<InlayHintCache>();
 
@@ -58,6 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             // member we can re-use the inline hint.
             var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints, syntaxVersion));
 
+            var inlayHints = new LSP.InlayHint[hints.Length];
             for (var i = 0; i < hints.Length; i++)
             {
                 var hint = hints[i];
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                     Data = new InlayHintResolveData(resultId, i, request.TextDocument)
                 };
 
-                inlayHints.Add(inlayHint);
+                inlayHints[i] = inlayHint;
             }
 
-            return inlayHints.ToArray();
+            return inlayHints;
         }
 
         /// <summary>

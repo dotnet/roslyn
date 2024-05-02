@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             _batchBuildLogger?.SetProjectAndLog(projectInstance.FullPath, log);
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets.ToArray());
+            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, [.. targets]);
 
             var result = await BuildAsync(buildRequestData, cancellationToken).ConfigureAwait(false);
 

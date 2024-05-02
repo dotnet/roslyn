@@ -49,19 +49,19 @@ public partial class UseCollectionExpressionForBuilderTests
         }
         """;
 
-    public static readonly IEnumerable<object[]> FailureCreationPatterns = new[]
-    {
-        new[] {"var builder = ImmutableArray.CreateBuilder<int>();" },
-        new[] {"var builder = ArrayBuilder<int>.GetInstance();" },
-        new[] {"using var _ = ArrayBuilder<int>.GetInstance(out var builder);" },
-    };
+    public static readonly IEnumerable<object[]> FailureCreationPatterns =
+    [
+        ["var builder = ImmutableArray.CreateBuilder<int>();"],
+        ["var builder = ArrayBuilder<int>.GetInstance();"],
+        ["using var _ = ArrayBuilder<int>.GetInstance(out var builder);"],
+    ];
 
-    public static readonly IEnumerable<object[]> SuccessCreationPatterns = new[]
-    {
-        new[] {"[|var builder = ImmutableArray.[|CreateBuilder|]<int>();|]" },
-        new[] {"[|var builder = ArrayBuilder<int>.[|GetInstance|]();|]" },
-        new[] {"[|using var _ = ArrayBuilder<int>.[|GetInstance|](out var builder);|]" },
-    };
+    public static readonly IEnumerable<object[]> SuccessCreationPatterns =
+    [
+        ["[|var builder = ImmutableArray.[|CreateBuilder|]<int>();|]"],
+        ["[|var builder = ArrayBuilder<int>.[|GetInstance|]();|]"],
+        ["[|using var _ = ArrayBuilder<int>.[|GetInstance|](out var builder);|]"],
+    ];
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
     public async Task TestNotInCSharp11(string pattern)

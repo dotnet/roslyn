@@ -60,6 +60,6 @@ internal sealed class CallsGraphQuery : IGraphQuery
             }
         }
 
-        return symbols.ToImmutable();
+        return symbols.ToImmutableAndClear();
     }
 }

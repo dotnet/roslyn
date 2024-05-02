@@ -207,7 +207,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
                 after2));
         }
 
-        return list.ToImmutable();
+        return list.ToImmutableAndClear();
     }
 
     private static (string text, int start, int length) GetReferenceInfo(ExcerptResult? reference, ReferenceLocationDescriptor descriptor)

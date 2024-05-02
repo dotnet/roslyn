@@ -6569,7 +6569,7 @@ class Test
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         #endregion
@@ -9615,7 +9615,7 @@ class Test
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -9649,7 +9649,7 @@ class Test
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -11484,7 +11484,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: [TargetFramework.Mscorlib40AndSystemCore],
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         #endregion
@@ -12079,7 +12079,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -12431,7 +12431,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: [TargetFramework.MinimalAsync],
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]

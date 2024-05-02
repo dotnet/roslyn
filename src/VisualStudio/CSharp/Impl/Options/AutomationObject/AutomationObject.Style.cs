@@ -345,6 +345,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, value); }
         }
 
+        public string Style_PreferStaticAnonymousFunction
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferStaticAnonymousFunction); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, value); }
+        }
+
         public string Style_PreferSimpleUsingStatement
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement); }

@@ -50,18 +50,21 @@ internal partial class SolutionCompilationState
             _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
         }
 
-        public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
+        public bool ContainsAssemblyOrModuleOrDynamic(
+            ISymbol symbol, bool primary,
+            [NotNullWhen(true)] out Compilation? compilation,
+            out MetadataReferenceInfo? referencedThrough)
         {
             if (_compilationWithReplacements == null)
             {
                 // We don't have a compilation yet, so this couldn't have came from us
+                compilation = null;
                 referencedThrough = null;
                 return false;
             }
-            else
-            {
-                return UnrootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(symbol, primary, out referencedThrough);
-            }
+
+            return RootedSymbolSet.Create(_compilationWithReplacements).ContainsAssemblyOrModuleOrDynamic(
+                symbol, primary, out compilation, out referencedThrough);
         }
 
         public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
@@ -145,19 +148,7 @@ internal partial class SolutionCompilationState
         private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             => Checksum.Create(
                 await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
-                (await _replacementDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
-
-        public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
-        {
-            // This method is used if you're forking a solution with partial semantics, and used to quickly produce references.
-            // So this method should only be called if:
-            //
-            // 1. Project A has a open source generated document, and this CompilationTracker represents A
-            // 2. Project B references that A, and is being frozen for partial semantics.
-            //
-            // We generally don't use partial semantics in a different project than the open file, so this isn't a scenario we need to support.
-            throw new NotImplementedException();
-        }
+                (await _replacementDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
         public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
             SolutionCompilationState compilationState, CancellationToken cancellationToken)

@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
         internal EnvDTE80.CodeAttributeArgument AddAttributeArgument(SyntaxNode containerNode, string name, string value, object position)

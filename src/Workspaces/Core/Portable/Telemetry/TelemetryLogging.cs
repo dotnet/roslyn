@@ -3,26 +3,44 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
 
 /// <summary>
 /// Provides access to posting telemetry events or adding information
-/// to aggregated telemetry events.
+/// to aggregated telemetry events. Posts pending telemetry at 30
+/// minute intervals.
 /// </summary>
 internal static class TelemetryLogging
 {
     private static ITelemetryLogProvider? s_logProvider;
+    private static AsyncBatchingWorkQueue? s_postTelemetryQueue;
 
     public const string KeyName = "Name";
     public const string KeyValue = "Value";
     public const string KeyLanguageName = "LanguageName";
     public const string KeyMetricName = "MetricName";
 
-    public static void SetLogProvider(ITelemetryLogProvider logProvider)
+    public static event EventHandler<EventArgs>? Flushed;
+
+    public static void SetLogProvider(ITelemetryLogProvider logProvider, IAsynchronousOperationListener asyncListener)
     {
         s_logProvider = logProvider;
+
+        InterlockedOperations.Initialize(ref s_postTelemetryQueue, () =>
+            new AsyncBatchingWorkQueue(
+                TimeSpan.FromMinutes(30),
+                PostCollectedTelemetryAsync,
+                asyncListener,
+                CancellationToken.None));
+
+        // Add the initial item to the queue to ensure later processing.
+        s_postTelemetryQueue?.AddWork();
     }
 
     /// <summary>
@@ -112,5 +130,17 @@ internal static class TelemetryLogging
     public static void Flush()
     {
         s_logProvider?.Flush();
+
+        Flushed?.Invoke(null, EventArgs.Empty);
+    }
+
+    private static ValueTask PostCollectedTelemetryAsync(CancellationToken cancellationToken)
+    {
+        Flush();
+
+        // Ensure PostCollectedTelemetryAsync will get fired again after the collection period.
+        s_postTelemetryQueue?.AddWork();
+
+        return ValueTaskFactory.CompletedTask;
     }
 }

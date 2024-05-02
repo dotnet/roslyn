@@ -66,11 +66,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var compileTimeDocument = await CompileTimeSolutionProvider.TryGetCompileTimeDocumentAsync(designTimeDocument, compileTimeSolution, CancellationToken.None, sourceGeneratedPathPrefix);
             Assert.Same(sourceGeneratedDoc, compileTimeDocument);
-
-            var actualDesignTimeDocumentIds = await CompileTimeSolutionProvider.GetDesignTimeDocumentsAsync(
-                compileTimeSolution, ImmutableArray.Create(documentId, sourceGeneratedDoc.Id), designTimeSolution, CancellationToken.None, sourceGeneratedPathPrefix);
-
-            AssertEx.Equal(new[] { documentId, designTimeDocumentId }, actualDesignTimeDocumentIds);
         }
 
         [Fact]

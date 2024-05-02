@@ -8,11 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -175,352 +172,355 @@ Actual: {editorConfigString}
         [Fact]
         public void CSharp_VerifyIDEDiagnosticSeveritiesAreConfigurable()
         {
-            var expected = @"
-# IDE0001
-dotnet_diagnostic.IDE0001.severity = %value%
+            var expected = """
+                # IDE0001
+                dotnet_diagnostic.IDE0001.severity = %value%
 
-# IDE0002
-dotnet_diagnostic.IDE0002.severity = %value%
+                # IDE0002
+                dotnet_diagnostic.IDE0002.severity = %value%
 
-# IDE0003
-dotnet_diagnostic.IDE0003.severity = %value%
+                # IDE0003
+                dotnet_diagnostic.IDE0003.severity = %value%
 
-# IDE0004
-dotnet_diagnostic.IDE0004.severity = %value%
+                # IDE0004
+                dotnet_diagnostic.IDE0004.severity = %value%
 
-# IDE0005
-dotnet_diagnostic.IDE0005.severity = %value%
+                # IDE0005
+                dotnet_diagnostic.IDE0005.severity = %value%
 
-# IDE0007
-dotnet_diagnostic.IDE0007.severity = %value%
+                # IDE0007
+                dotnet_diagnostic.IDE0007.severity = %value%
 
-# IDE0008
-dotnet_diagnostic.IDE0008.severity = %value%
+                # IDE0008
+                dotnet_diagnostic.IDE0008.severity = %value%
 
-# IDE0009
-dotnet_diagnostic.IDE0009.severity = %value%
+                # IDE0009
+                dotnet_diagnostic.IDE0009.severity = %value%
 
-# IDE0010
-dotnet_diagnostic.IDE0010.severity = %value%
+                # IDE0010
+                dotnet_diagnostic.IDE0010.severity = %value%
 
-# IDE0011
-dotnet_diagnostic.IDE0011.severity = %value%
+                # IDE0011
+                dotnet_diagnostic.IDE0011.severity = %value%
 
-# IDE0016
-dotnet_diagnostic.IDE0016.severity = %value%
+                # IDE0016
+                dotnet_diagnostic.IDE0016.severity = %value%
 
-# IDE0017
-dotnet_diagnostic.IDE0017.severity = %value%
+                # IDE0017
+                dotnet_diagnostic.IDE0017.severity = %value%
 
-# IDE0018
-dotnet_diagnostic.IDE0018.severity = %value%
+                # IDE0018
+                dotnet_diagnostic.IDE0018.severity = %value%
 
-# IDE0019
-dotnet_diagnostic.IDE0019.severity = %value%
+                # IDE0019
+                dotnet_diagnostic.IDE0019.severity = %value%
 
-# IDE0020
-dotnet_diagnostic.IDE0020.severity = %value%
+                # IDE0020
+                dotnet_diagnostic.IDE0020.severity = %value%
 
-# IDE0021
-dotnet_diagnostic.IDE0021.severity = %value%
+                # IDE0021
+                dotnet_diagnostic.IDE0021.severity = %value%
 
-# IDE0022
-dotnet_diagnostic.IDE0022.severity = %value%
+                # IDE0022
+                dotnet_diagnostic.IDE0022.severity = %value%
 
-# IDE0023
-dotnet_diagnostic.IDE0023.severity = %value%
+                # IDE0023
+                dotnet_diagnostic.IDE0023.severity = %value%
 
-# IDE0024
-dotnet_diagnostic.IDE0024.severity = %value%
+                # IDE0024
+                dotnet_diagnostic.IDE0024.severity = %value%
 
-# IDE0025
-dotnet_diagnostic.IDE0025.severity = %value%
+                # IDE0025
+                dotnet_diagnostic.IDE0025.severity = %value%
 
-# IDE0026
-dotnet_diagnostic.IDE0026.severity = %value%
+                # IDE0026
+                dotnet_diagnostic.IDE0026.severity = %value%
 
-# IDE0027
-dotnet_diagnostic.IDE0027.severity = %value%
+                # IDE0027
+                dotnet_diagnostic.IDE0027.severity = %value%
 
-# IDE0028
-dotnet_diagnostic.IDE0028.severity = %value%
+                # IDE0028
+                dotnet_diagnostic.IDE0028.severity = %value%
 
-# IDE0029
-dotnet_diagnostic.IDE0029.severity = %value%
+                # IDE0029
+                dotnet_diagnostic.IDE0029.severity = %value%
 
-# IDE0030
-dotnet_diagnostic.IDE0030.severity = %value%
+                # IDE0030
+                dotnet_diagnostic.IDE0030.severity = %value%
 
-# IDE0031
-dotnet_diagnostic.IDE0031.severity = %value%
+                # IDE0031
+                dotnet_diagnostic.IDE0031.severity = %value%
 
-# IDE0032
-dotnet_diagnostic.IDE0032.severity = %value%
+                # IDE0032
+                dotnet_diagnostic.IDE0032.severity = %value%
 
-# IDE0033
-dotnet_diagnostic.IDE0033.severity = %value%
+                # IDE0033
+                dotnet_diagnostic.IDE0033.severity = %value%
 
-# IDE0034
-dotnet_diagnostic.IDE0034.severity = %value%
+                # IDE0034
+                dotnet_diagnostic.IDE0034.severity = %value%
 
-# IDE0035
-dotnet_diagnostic.IDE0035.severity = %value%
+                # IDE0035
+                dotnet_diagnostic.IDE0035.severity = %value%
 
-# IDE0036
-dotnet_diagnostic.IDE0036.severity = %value%
+                # IDE0036
+                dotnet_diagnostic.IDE0036.severity = %value%
 
-# IDE0037
-dotnet_diagnostic.IDE0037.severity = %value%
+                # IDE0037
+                dotnet_diagnostic.IDE0037.severity = %value%
 
-# IDE0038
-dotnet_diagnostic.IDE0038.severity = %value%
+                # IDE0038
+                dotnet_diagnostic.IDE0038.severity = %value%
 
-# IDE0039
-dotnet_diagnostic.IDE0039.severity = %value%
+                # IDE0039
+                dotnet_diagnostic.IDE0039.severity = %value%
 
-# IDE0040
-dotnet_diagnostic.IDE0040.severity = %value%
+                # IDE0040
+                dotnet_diagnostic.IDE0040.severity = %value%
 
-# IDE0041
-dotnet_diagnostic.IDE0041.severity = %value%
+                # IDE0041
+                dotnet_diagnostic.IDE0041.severity = %value%
 
-# IDE0042
-dotnet_diagnostic.IDE0042.severity = %value%
+                # IDE0042
+                dotnet_diagnostic.IDE0042.severity = %value%
 
-# IDE0043
-dotnet_diagnostic.IDE0043.severity = %value%
+                # IDE0043
+                dotnet_diagnostic.IDE0043.severity = %value%
 
-# IDE0044
-dotnet_diagnostic.IDE0044.severity = %value%
+                # IDE0044
+                dotnet_diagnostic.IDE0044.severity = %value%
 
-# IDE0045
-dotnet_diagnostic.IDE0045.severity = %value%
+                # IDE0045
+                dotnet_diagnostic.IDE0045.severity = %value%
 
-# IDE0046
-dotnet_diagnostic.IDE0046.severity = %value%
+                # IDE0046
+                dotnet_diagnostic.IDE0046.severity = %value%
 
-# IDE0047
-dotnet_diagnostic.IDE0047.severity = %value%
+                # IDE0047
+                dotnet_diagnostic.IDE0047.severity = %value%
 
-# IDE0048
-dotnet_diagnostic.IDE0048.severity = %value%
+                # IDE0048
+                dotnet_diagnostic.IDE0048.severity = %value%
 
-# IDE0049
-dotnet_diagnostic.IDE0049.severity = %value%
+                # IDE0049
+                dotnet_diagnostic.IDE0049.severity = %value%
 
-# IDE0051
-dotnet_diagnostic.IDE0051.severity = %value%
+                # IDE0051
+                dotnet_diagnostic.IDE0051.severity = %value%
 
-# IDE0052
-dotnet_diagnostic.IDE0052.severity = %value%
+                # IDE0052
+                dotnet_diagnostic.IDE0052.severity = %value%
 
-# IDE0053
-dotnet_diagnostic.IDE0053.severity = %value%
+                # IDE0053
+                dotnet_diagnostic.IDE0053.severity = %value%
 
-# IDE0054
-dotnet_diagnostic.IDE0054.severity = %value%
+                # IDE0054
+                dotnet_diagnostic.IDE0054.severity = %value%
 
-# IDE0055
-dotnet_diagnostic.IDE0055.severity = %value%
+                # IDE0055
+                dotnet_diagnostic.IDE0055.severity = %value%
 
-# IDE0056
-dotnet_diagnostic.IDE0056.severity = %value%
+                # IDE0056
+                dotnet_diagnostic.IDE0056.severity = %value%
 
-# IDE0057
-dotnet_diagnostic.IDE0057.severity = %value%
+                # IDE0057
+                dotnet_diagnostic.IDE0057.severity = %value%
 
-# IDE0058
-dotnet_diagnostic.IDE0058.severity = %value%
+                # IDE0058
+                dotnet_diagnostic.IDE0058.severity = %value%
 
-# IDE0059
-dotnet_diagnostic.IDE0059.severity = %value%
+                # IDE0059
+                dotnet_diagnostic.IDE0059.severity = %value%
 
-# IDE0060
-dotnet_diagnostic.IDE0060.severity = %value%
+                # IDE0060
+                dotnet_diagnostic.IDE0060.severity = %value%
 
-# IDE0061
-dotnet_diagnostic.IDE0061.severity = %value%
+                # IDE0061
+                dotnet_diagnostic.IDE0061.severity = %value%
 
-# IDE0062
-dotnet_diagnostic.IDE0062.severity = %value%
+                # IDE0062
+                dotnet_diagnostic.IDE0062.severity = %value%
 
-# IDE0063
-dotnet_diagnostic.IDE0063.severity = %value%
+                # IDE0063
+                dotnet_diagnostic.IDE0063.severity = %value%
 
-# IDE0064
-dotnet_diagnostic.IDE0064.severity = %value%
+                # IDE0064
+                dotnet_diagnostic.IDE0064.severity = %value%
 
-# IDE0065
-dotnet_diagnostic.IDE0065.severity = %value%
+                # IDE0065
+                dotnet_diagnostic.IDE0065.severity = %value%
 
-# IDE0066
-dotnet_diagnostic.IDE0066.severity = %value%
+                # IDE0066
+                dotnet_diagnostic.IDE0066.severity = %value%
 
-# IDE0070
-dotnet_diagnostic.IDE0070.severity = %value%
+                # IDE0070
+                dotnet_diagnostic.IDE0070.severity = %value%
 
-# IDE0071
-dotnet_diagnostic.IDE0071.severity = %value%
+                # IDE0071
+                dotnet_diagnostic.IDE0071.severity = %value%
 
-# IDE0072
-dotnet_diagnostic.IDE0072.severity = %value%
+                # IDE0072
+                dotnet_diagnostic.IDE0072.severity = %value%
 
-# IDE0073
-dotnet_diagnostic.IDE0073.severity = %value%
+                # IDE0073
+                dotnet_diagnostic.IDE0073.severity = %value%
 
-# IDE0074
-dotnet_diagnostic.IDE0074.severity = %value%
+                # IDE0074
+                dotnet_diagnostic.IDE0074.severity = %value%
 
-# IDE0075
-dotnet_diagnostic.IDE0075.severity = %value%
+                # IDE0075
+                dotnet_diagnostic.IDE0075.severity = %value%
 
-# IDE0076
-dotnet_diagnostic.IDE0076.severity = %value%
+                # IDE0076
+                dotnet_diagnostic.IDE0076.severity = %value%
 
-# IDE0077
-dotnet_diagnostic.IDE0077.severity = %value%
+                # IDE0077
+                dotnet_diagnostic.IDE0077.severity = %value%
 
-# IDE0078
-dotnet_diagnostic.IDE0078.severity = %value%
+                # IDE0078
+                dotnet_diagnostic.IDE0078.severity = %value%
 
-# IDE0079
-dotnet_diagnostic.IDE0079.severity = %value%
+                # IDE0079
+                dotnet_diagnostic.IDE0079.severity = %value%
 
-# IDE0080
-dotnet_diagnostic.IDE0080.severity = %value%
+                # IDE0080
+                dotnet_diagnostic.IDE0080.severity = %value%
 
-# IDE0082
-dotnet_diagnostic.IDE0082.severity = %value%
+                # IDE0082
+                dotnet_diagnostic.IDE0082.severity = %value%
 
-# IDE0083
-dotnet_diagnostic.IDE0083.severity = %value%
+                # IDE0083
+                dotnet_diagnostic.IDE0083.severity = %value%
 
-# IDE0090
-dotnet_diagnostic.IDE0090.severity = %value%
+                # IDE0090
+                dotnet_diagnostic.IDE0090.severity = %value%
 
-# IDE0100
-dotnet_diagnostic.IDE0100.severity = %value%
+                # IDE0100
+                dotnet_diagnostic.IDE0100.severity = %value%
 
-# IDE0110
-dotnet_diagnostic.IDE0110.severity = %value%
+                # IDE0110
+                dotnet_diagnostic.IDE0110.severity = %value%
 
-# IDE0120
-dotnet_diagnostic.IDE0120.severity = %value%
+                # IDE0120
+                dotnet_diagnostic.IDE0120.severity = %value%
 
-# IDE0130
-dotnet_diagnostic.IDE0130.severity = %value%
+                # IDE0130
+                dotnet_diagnostic.IDE0130.severity = %value%
 
-# IDE0150
-dotnet_diagnostic.IDE0150.severity = %value%
+                # IDE0150
+                dotnet_diagnostic.IDE0150.severity = %value%
 
-# IDE0160
-dotnet_diagnostic.IDE0160.severity = %value%
+                # IDE0160
+                dotnet_diagnostic.IDE0160.severity = %value%
 
-# IDE0161
-dotnet_diagnostic.IDE0161.severity = %value%
+                # IDE0161
+                dotnet_diagnostic.IDE0161.severity = %value%
 
-# IDE0170
-dotnet_diagnostic.IDE0170.severity = %value%
+                # IDE0170
+                dotnet_diagnostic.IDE0170.severity = %value%
 
-# IDE0180
-dotnet_diagnostic.IDE0180.severity = %value%
+                # IDE0180
+                dotnet_diagnostic.IDE0180.severity = %value%
 
-# IDE0200
-dotnet_diagnostic.IDE0200.severity = %value%
+                # IDE0200
+                dotnet_diagnostic.IDE0200.severity = %value%
 
-# IDE0210
-dotnet_diagnostic.IDE0210.severity = %value%
+                # IDE0210
+                dotnet_diagnostic.IDE0210.severity = %value%
 
-# IDE0211
-dotnet_diagnostic.IDE0211.severity = %value%
+                # IDE0211
+                dotnet_diagnostic.IDE0211.severity = %value%
 
-# IDE0220
-dotnet_diagnostic.IDE0220.severity = %value%
+                # IDE0220
+                dotnet_diagnostic.IDE0220.severity = %value%
 
-# IDE0230
-dotnet_diagnostic.IDE0230.severity = %value%
+                # IDE0230
+                dotnet_diagnostic.IDE0230.severity = %value%
 
-# IDE0240
-dotnet_diagnostic.IDE0240.severity = %value%
+                # IDE0240
+                dotnet_diagnostic.IDE0240.severity = %value%
 
-# IDE0241
-dotnet_diagnostic.IDE0241.severity = %value%
+                # IDE0241
+                dotnet_diagnostic.IDE0241.severity = %value%
 
-# IDE0250
-dotnet_diagnostic.IDE0250.severity = %value%
+                # IDE0250
+                dotnet_diagnostic.IDE0250.severity = %value%
 
-# IDE0251
-dotnet_diagnostic.IDE0251.severity = %value%
+                # IDE0251
+                dotnet_diagnostic.IDE0251.severity = %value%
 
-# IDE0260
-dotnet_diagnostic.IDE0260.severity = %value%
+                # IDE0260
+                dotnet_diagnostic.IDE0260.severity = %value%
 
-# IDE0270
-dotnet_diagnostic.IDE0270.severity = %value%
+                # IDE0270
+                dotnet_diagnostic.IDE0270.severity = %value%
 
-# IDE0280
-dotnet_diagnostic.IDE0280.severity = %value%
+                # IDE0280
+                dotnet_diagnostic.IDE0280.severity = %value%
 
-# IDE0290
-dotnet_diagnostic.IDE0290.severity = %value%
+                # IDE0290
+                dotnet_diagnostic.IDE0290.severity = %value%
 
-# IDE0300
-dotnet_diagnostic.IDE0300.severity = %value%
+                # IDE0300
+                dotnet_diagnostic.IDE0300.severity = %value%
 
-# IDE0301
-dotnet_diagnostic.IDE0301.severity = %value%
+                # IDE0301
+                dotnet_diagnostic.IDE0301.severity = %value%
 
-# IDE0302
-dotnet_diagnostic.IDE0302.severity = %value%
+                # IDE0302
+                dotnet_diagnostic.IDE0302.severity = %value%
 
-# IDE0303
-dotnet_diagnostic.IDE0303.severity = %value%
+                # IDE0303
+                dotnet_diagnostic.IDE0303.severity = %value%
 
-# IDE0304
-dotnet_diagnostic.IDE0304.severity = %value%
+                # IDE0304
+                dotnet_diagnostic.IDE0304.severity = %value%
 
-# IDE0305
-dotnet_diagnostic.IDE0305.severity = %value%
+                # IDE0305
+                dotnet_diagnostic.IDE0305.severity = %value%
 
-# IDE1005
-dotnet_diagnostic.IDE1005.severity = %value%
+                # IDE0320
+                dotnet_diagnostic.IDE0320.severity = %value%
 
-# IDE1006
-dotnet_diagnostic.IDE1006.severity = %value%
+                # IDE1005
+                dotnet_diagnostic.IDE1005.severity = %value%
 
-# IDE1007
-dotnet_diagnostic.IDE1007.severity = %value%
+                # IDE1006
+                dotnet_diagnostic.IDE1006.severity = %value%
 
-# IDE2000
-dotnet_diagnostic.IDE2000.severity = %value%
+                # IDE1007
+                dotnet_diagnostic.IDE1007.severity = %value%
 
-# IDE2001
-dotnet_diagnostic.IDE2001.severity = %value%
+                # IDE2000
+                dotnet_diagnostic.IDE2000.severity = %value%
 
-# IDE2002
-dotnet_diagnostic.IDE2002.severity = %value%
+                # IDE2001
+                dotnet_diagnostic.IDE2001.severity = %value%
 
-# IDE2003
-dotnet_diagnostic.IDE2003.severity = %value%
+                # IDE2002
+                dotnet_diagnostic.IDE2002.severity = %value%
 
-# IDE2004
-dotnet_diagnostic.IDE2004.severity = %value%
+                # IDE2003
+                dotnet_diagnostic.IDE2003.severity = %value%
 
-# IDE2005
-dotnet_diagnostic.IDE2005.severity = %value%
+                # IDE2004
+                dotnet_diagnostic.IDE2004.severity = %value%
 
-# IDE2006
-dotnet_diagnostic.IDE2006.severity = %value%
+                # IDE2005
+                dotnet_diagnostic.IDE2005.severity = %value%
 
-# RE0001
-dotnet_diagnostic.RE0001.severity = %value%
+                # IDE2006
+                dotnet_diagnostic.IDE2006.severity = %value%
 
-# JSON001
-dotnet_diagnostic.JSON001.severity = %value%
+                # RE0001
+                dotnet_diagnostic.RE0001.severity = %value%
 
-# JSON002
-dotnet_diagnostic.JSON002.severity = %value%
-";
+                # JSON001
+                dotnet_diagnostic.JSON001.severity = %value%
+
+                # JSON002
+                dotnet_diagnostic.JSON002.severity = %value%
+                """;
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
         }
@@ -895,6 +895,7 @@ dotnet_diagnostic.JSON002.severity = %value%
                 ("IDE0303", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
                 ("IDE0304", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
                 ("IDE0305", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
+                ("IDE0320", "csharp_prefer_static_anonymous_function", "true"),
                 ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
                 ("IDE1006", null, null),
                 ("IDE1007", null, null),

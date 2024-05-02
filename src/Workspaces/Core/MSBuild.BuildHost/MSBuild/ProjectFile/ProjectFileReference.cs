@@ -27,12 +27,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
         [DataMember(Order = 1)]
         public ImmutableArray<string> Aliases { get; }
 
-        public ProjectFileReference(string path, ImmutableArray<string> aliases)
+        /// <summary>
+        /// The value of <see cref="MetadataNames.ReferenceOutputAssembly"/>.
+        /// </summary>
+        [DataMember(Order = 2)]
+        public bool ReferenceOutputAssembly { get; }
+
+        public ProjectFileReference(string path, ImmutableArray<string> aliases, bool referenceOutputAssembly)
         {
             Debug.Assert(!aliases.IsDefault);
 
-            this.Path = path;
-            this.Aliases = aliases;
+            Path = path;
+            Aliases = aliases;
+            ReferenceOutputAssembly = referenceOutputAssembly;
         }
     }
 }

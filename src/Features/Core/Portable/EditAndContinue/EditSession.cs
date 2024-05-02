@@ -85,14 +85,6 @@ internal sealed class EditSession
     /// </summary>
     internal readonly bool InBreakState;
 
-    /// <summary>
-    /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports
-    /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze
-    /// the documents to clean up the diagnostics.
-    /// </summary>
-    private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = [];
-    private readonly object _documentsWithReportedDiagnosticsGuard = new();
-
     internal EditSession(
         DebuggingSession debuggingSession,
         ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions,
@@ -181,7 +173,7 @@ internal sealed class EditSession
             diagnostics.Add(Diagnostic.Create(descriptor, location, messageArgs));
         }
 
-        return diagnostics.ToImmutable();
+        return diagnostics.ToImmutableAndClear();
     }
 
     private static async IAsyncEnumerable<Location> CreateChangedLocationsAsync(Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -558,22 +550,6 @@ internal sealed class EditSession
         return (analyses, documentDiagnostics.ToImmutable());
     }
 
-    internal ImmutableArray<DocumentId> GetDocumentsWithReportedDiagnostics()
-    {
-        lock (_documentsWithReportedDiagnosticsGuard)
-        {
-            return ImmutableArray.CreateRange(_documentsWithReportedDiagnostics);
-        }
-    }
-
-    internal void TrackDocumentWithReportedDiagnostics(DocumentId documentId)
-    {
-        lock (_documentsWithReportedDiagnosticsGuard)
-        {
-            _documentsWithReportedDiagnostics.Add(documentId);
-        }
-    }
-
     private static ProjectAnalysisSummary GetProjectAnalysisSummary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
     {
         var hasChanges = false;
@@ -750,7 +726,7 @@ internal sealed class EditSession
         if (edits.Count == mergedEditsBuilder.Count)
         {
             mergedEdits = mergedEditsBuilder.ToImmutable();
-            addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
+            addedSymbols = [.. addedSymbolsBuilder];
             return;
         }
 
@@ -804,7 +780,7 @@ internal sealed class EditSession
         }
 
         mergedEdits = mergedEditsBuilder.ToImmutable();
-        addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
+        addedSymbols = [.. addedSymbolsBuilder];
     }
 
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)

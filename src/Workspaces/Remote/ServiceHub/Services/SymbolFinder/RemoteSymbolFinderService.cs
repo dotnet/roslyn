@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static ImmutableArray<SerializableSymbolAndProjectId> Convert(ImmutableArray<ISymbol> items, Solution solution, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<SerializableSymbolAndProjectId>.GetInstance(out var result);
+            var result = new FixedSizeArrayBuilder<SerializableSymbolAndProjectId>(items.Length);
 
             foreach (var item in items)
                 result.Add(SerializableSymbolAndProjectId.Dehydrate(solution, item, cancellationToken));
 
-            return result.ToImmutable();
+            return result.MoveToImmutable();
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
@@ -218,12 +218,6 @@ namespace Microsoft.CodeAnalysis.Remote
             public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.OnCompletedAsync(_callbackId, cancellationToken), cancellationToken);
 
-            public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentStartedAsync(_callbackId, document.Id, cancellationToken), cancellationToken);
-
-            public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.OnFindInDocumentCompletedAsync(_callbackId, document.Id, cancellationToken), cancellationToken);
-
             public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
             {
                 var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, cancellationToken);
@@ -231,15 +225,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     (callback, cancellationToken) => callback.OnDefinitionFoundAsync(_callbackId, dehydratedGroup, cancellationToken), cancellationToken);
             }
 
-            public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation reference, CancellationToken cancellationToken)
+            public ValueTask OnReferencesFoundAsync(
+                ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
+                CancellationToken cancellationToken)
             {
-                var dehydratedGroup = SerializableSymbolGroup.Dehydrate(_solution, group, cancellationToken);
-                var dehydratedDefinition = SerializableSymbolAndProjectId.Dehydrate(_solution, definition, cancellationToken);
-                var dehydratedReference = SerializableReferenceLocation.Dehydrate(reference, cancellationToken);
+                var dehydrated = references.SelectAsArray(t =>
+                    (SerializableSymbolGroup.Dehydrate(_solution, t.group, cancellationToken),
+                     SerializableSymbolAndProjectId.Dehydrate(_solution, t.symbol, cancellationToken),
+                     SerializableReferenceLocation.Dehydrate(t.location, cancellationToken)));
 
                 return _callback.InvokeAsync(
-                    (callback, cancellationToken) => callback.OnReferenceFoundAsync(
-                        _callbackId, dehydratedGroup, dehydratedDefinition, dehydratedReference, cancellationToken), cancellationToken);
+                    (callback, cancellationToken) => callback.OnReferencesFoundAsync(
+                        _callbackId, dehydrated, cancellationToken), cancellationToken);
             }
 
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)

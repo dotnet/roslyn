@@ -192,11 +192,7 @@ End Class";
                 analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                 new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
 
-            // no result for open file only analyzer unless forced
-            var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
-            Assert.Empty(result.AnalysisResult);
-
-            result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: true, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
+            var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
             // check result
@@ -234,7 +230,7 @@ End Class";
             var compilationWithAnalyzers = (await project.GetCompilationAsync())
                 .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
 
-            var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false,
+            var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
 
             var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
@@ -258,8 +254,8 @@ End Class";
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                     new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideOptions));
 
-            var result = await executor.AnalyzeProjectAsync(project, analyzerDriver, forceExecuteAllAnalyzers: true, logPerformanceInfo: false,
-                getTelemetryInfo: false, cancellationToken);
+            var result = await executor.AnalyzeProjectAsync(
+                project, analyzerDriver, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }

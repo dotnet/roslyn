@@ -194,6 +194,14 @@ public partial class Solution
     internal Project? GetOriginatingProject(ISymbol symbol)
         => GetProject(GetOriginatingProjectId(symbol));
 
+    /// <inheritdoc cref="GetOriginatingProjectId"/>
+    /// <remarks>
+    /// Returns the <see cref="Compilation"/> that produced the symbol.  In the case of a symbol that was retargetted
+    /// this will be the compilation it was retargtted into, not the original compilation that it was retargetted from.
+    /// </remarks>
+    internal Compilation? GetOriginatingCompilation(ISymbol symbol)
+        => _compilationState.GetOriginatingProjectInfo(symbol)?.Compilation;
+
     /// <summary>
     /// True if the solution contains the document in one of its projects
     /// </summary>
