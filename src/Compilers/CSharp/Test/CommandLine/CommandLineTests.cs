@@ -211,7 +211,7 @@ dotnet_diagnostic.cs0169.severity = none");
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/72657")]
-        public void AnalyzerConfig_DoubleSlash(bool doubleSlash1, bool doubleSlash2)
+        public void AnalyzerConfig_DoubleSlash(bool doubleSlashAnalyzerConfig, bool doubleSlashSource)
         {
             var dir = Temp.CreateDirectory();
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
@@ -240,8 +240,8 @@ dotnet_diagnostic.cs0169.severity = none");
                     "/nologo",
                     "/preferreduilang:en",
                     "/t:library",
-                    "/analyzerconfig:" + modifyPath(editorconfig.Path, doubleSlash1),
-                    modifyPath(src.Path, doubleSlash2),
+                    "/analyzerconfig:" + modifyPath(editorconfig.Path, doubleSlashAnalyzerConfig),
+                    modifyPath(src.Path, doubleSlashSource),
                 ],
                 [analyzer]);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);

@@ -942,16 +942,16 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
         [InlineData("/a/b/c/", "/a/b/c//")]
         [InlineData("/a/b/c//", "/a/b/c//")]
         [InlineData("/a/b//c/", "/a/b///c/")]
-        public void EditorConfigToDiagnostics_DoubleSlash(string prefix1, string prefix2)
+        public void EditorConfigToDiagnostics_DoubleSlash(string prefixEditorConfig, string prefixSource)
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse("""
                 [*.cs]
                 dotnet_diagnostic.cs000.severity = none
                 """,
-                prefix1 + ".editorconfig"));
+                prefixEditorConfig + ".editorconfig"));
 
-            var options = GetAnalyzerConfigOptions([prefix2 + "test.cs"], configs);
+            var options = GetAnalyzerConfigOptions([prefixSource + "test.cs"], configs);
             configs.Free();
 
             Assert.Equal([
