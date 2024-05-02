@@ -197,33 +197,13 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
 
         var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-        var isPreProcessorKeywordContext = isPreProcessorDirectiveContext
-            ? syntaxTree.IsPreProcessorKeywordContext(position, leftToken)
-            : false;
-
-        var isPreProcessorExpressionContext = isPreProcessorDirectiveContext
-            ? targetToken.IsPreProcessorExpressionContext()
-            : false;
-
-        var isStatementContext = !isPreProcessorDirectiveContext
-            ? targetToken.IsBeginningOfStatementContext()
-            : false;
-
-        var isGlobalStatementContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsGlobalStatementContext(position, cancellationToken)
-            : false;
-
-        var isAnyExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel)
-            : false;
-
-        var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel)
-            : false;
-
-        var isConstantExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsConstantExpressionContext(position, leftToken)
-            : false;
+        var isPreProcessorKeywordContext = isPreProcessorDirectiveContext && syntaxTree.IsPreProcessorKeywordContext(position, leftToken);
+        var isPreProcessorExpressionContext = isPreProcessorDirectiveContext && targetToken.IsPreProcessorExpressionContext();
+        var isStatementContext = !isPreProcessorDirectiveContext && targetToken.IsBeginningOfStatementContext();
+        var isGlobalStatementContext = !isPreProcessorDirectiveContext && syntaxTree.IsGlobalStatementContext(position, cancellationToken)
+        var isAnyExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel)
+        var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel)
+        var isConstantExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsConstantExpressionContext(position, leftToken)
 
         var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
         var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
