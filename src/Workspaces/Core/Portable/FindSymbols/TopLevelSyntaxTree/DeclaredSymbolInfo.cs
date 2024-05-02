@@ -189,8 +189,9 @@ internal readonly struct DeclaredSymbolInfo(
         writer.WriteArray(InheritanceNames, static (w, n) => w.WriteString(n));
     }
 
-    internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
+    internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(Lazy<StringTable> lazy, ObjectReader reader)
     {
+        var stringTable = lazy.Value;
         var name = reader.ReadRequiredString();
         var nameSuffix = reader.ReadString();
         var containerDisplayName = reader.ReadString();

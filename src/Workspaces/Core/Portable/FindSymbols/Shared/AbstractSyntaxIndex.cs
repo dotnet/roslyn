@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal abstract partial class AbstractSyntaxIndex<TIndex>
     where TIndex : AbstractSyntaxIndex<TIndex>
 {
-    protected delegate TIndex? IndexReader(StringTable stringTable, ObjectReader reader, Checksum? checksum);
+    protected delegate TIndex? IndexReader(Lazy<StringTable> stringTable, ObjectReader reader, Checksum? checksum);
     protected delegate TIndex IndexCreator(ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
 
     private static readonly ConditionalWeakTable<DocumentState, TIndex?> s_documentToIndex = new();

@@ -39,7 +39,7 @@ internal partial class AbstractSyntaxIndex<TIndex>
     {
         var storageService = project.LanguageServices.SolutionServices.GetPersistentStorageService();
         var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(solutionKey, project), document);
-        var stringTable = SyntaxTreeIndex.GetStringTable(project);
+        var stringTable = new Lazy<StringTable>(() => SyntaxTreeIndex.GetStringTable(project));
 
         // Try to read from the DB using either checksum.  If the writer determined there were no pp-directives,
         // then we may match it using textChecksum.  If there were pp directives, then we may match is using
@@ -57,7 +57,7 @@ internal partial class AbstractSyntaxIndex<TIndex>
         IChecksummedPersistentStorageService storageService,
         DocumentKey documentKey,
         Checksum? checksum,
-        StringTable stringTable,
+        Lazy<StringTable> stringTable,
         IndexReader read,
         CancellationToken cancellationToken)
     {

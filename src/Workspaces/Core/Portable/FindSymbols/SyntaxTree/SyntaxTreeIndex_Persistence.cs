@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal sealed partial class SyntaxTreeIndex
 {
     public static Task<SyntaxTreeIndex?> LoadAsync(
-        IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
+        IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, Lazy<StringTable> stringTable, CancellationToken cancellationToken)
     {
         return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
     }
@@ -42,7 +43,7 @@ internal sealed partial class SyntaxTreeIndex
     }
 
     private static SyntaxTreeIndex? ReadIndex(
-        StringTable stringTable, ObjectReader reader, Checksum? checksum)
+        Lazy<StringTable> stringTable, ObjectReader reader, Checksum? checksum)
     {
         var literalInfo = LiteralInfo.TryReadFrom(reader);
         var identifierInfo = IdentifierInfo.TryReadFrom(reader);

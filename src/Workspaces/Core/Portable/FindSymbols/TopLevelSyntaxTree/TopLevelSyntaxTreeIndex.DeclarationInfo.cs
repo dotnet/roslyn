@@ -19,7 +19,8 @@ internal sealed partial class TopLevelSyntaxTreeIndex
         public void WriteTo(ObjectWriter writer)
             => writer.WriteArray(DeclaredSymbolInfos, static (w, d) => d.WriteTo(w));
 
-        public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
+        public static DeclarationInfo? TryReadFrom(
+            Lazy<StringTable> stringTable, ObjectReader reader)
         {
             try
             {
