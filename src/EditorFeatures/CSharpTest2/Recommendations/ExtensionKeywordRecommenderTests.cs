@@ -169,4 +169,15 @@ public sealed class ExtensionKeywordRecommenderTests : KeywordRecommenderTests
             implicit extension E for $$
             """);
     }
+
+    [Fact]
+    public async Task TestNotInsideExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+                implicit extension E
+                {
+                    $$
+                """);
+    }
 }

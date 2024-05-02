@@ -417,5 +417,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 implicit extension E for $$
                 """);
         }
+
+        [Fact]
+        public async Task TestNotInsideExtension()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
+        }
     }
 }

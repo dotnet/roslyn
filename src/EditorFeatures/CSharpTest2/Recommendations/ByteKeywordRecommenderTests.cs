@@ -1024,6 +1024,17 @@ $@"{type} N
                 """);
         }
 
+        [Fact]
+        public async Task TestInsideExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
+        }
+
         #region Collection expressions
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
