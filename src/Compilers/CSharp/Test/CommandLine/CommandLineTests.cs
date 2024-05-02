@@ -11986,7 +11986,7 @@ namespace Microsoft.CodeAnalysis
             var minSystemCollectionsImmutableImage = CSharpCompilation.Create(
                 "System.Collections.Immutable",
                 new[] { SyntaxFactory.ParseSyntaxTree(minSystemCollectionsImmutableSource) },
-                new MetadataReference[] { NetStandard13.SystemRuntime },
+                new MetadataReference[] { NetStandard13.References.SystemRuntime },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a)).EmitToArray();
 
             var minSystemCollectionsImmutableRef = MetadataReference.CreateFromImage(minSystemCollectionsImmutableImage);
@@ -11996,7 +11996,7 @@ namespace Microsoft.CodeAnalysis
                 new[] { SyntaxFactory.ParseSyntaxTree(minCodeAnalysisSource) },
                 new MetadataReference[]
                 {
-                    NetStandard13.SystemRuntime,
+                    NetStandard13.References.SystemRuntime,
                     minSystemCollectionsImmutableRef
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_31bf3856ad364e35)).EmitToArray();
@@ -12087,7 +12087,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     minCodeAnalysisRef,
                     minSystemCollectionsImmutableRef
                 };
-            references = references.Concat(NetStandard13.All).ToArray();
+            references = references.Concat(NetStandard13.References.All).ToArray();
 
             var analyzerImage = CSharpCompilation.Create(
                 analyzerAssemblyName,
