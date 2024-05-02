@@ -27,7 +27,6 @@ internal sealed class UShortKeywordRecommender() : AbstractSpecialTypePreselecti
         var syntaxTree = context.SyntaxTree;
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||

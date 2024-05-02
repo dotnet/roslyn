@@ -20,7 +20,6 @@ internal sealed class FloatKeywordRecommender() : AbstractSpecialTypePreselectin
         var syntaxTree = context.SyntaxTree;
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsDefiniteCastTypeContext ||
             context.IsDelegateReturnTypeContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsFunctionPointerTypeArgumentContext ||
