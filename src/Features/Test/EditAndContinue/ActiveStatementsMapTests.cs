@@ -262,8 +262,7 @@ class C
                 => new("a.cs", new(new(startLine, startColumn), new(endLine, endColumn)));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void NonRemappableRegionOrdering(bool reverse)
         {
             var source1 =
@@ -312,8 +311,7 @@ class C
             Assert.Equal(unmappedActiveStatements[0].Statement.Span, activeStatement.FileSpan.Span);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void SubSpan(bool reverse)
         {
             var source1 =

@@ -284,8 +284,7 @@ class C2
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task FixAllDoesNotFixDifferentSymbolKinds(bool forMethods)
         {
             var fixAllAnnotationForMethods = forMethods ? "{|FixAllInDocument:|}" : string.Empty;
