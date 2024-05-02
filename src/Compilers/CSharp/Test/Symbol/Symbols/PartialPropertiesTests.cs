@@ -1767,6 +1767,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (10,24): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
                 //     public partial int P2 { get => 1; set { } }
                 Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "P2").WithLocation(10, 24));
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,15): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // partial class C
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 15),
+                // (4,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     public unsafe partial int P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P2").WithLocation(4, 31),
+                // (9,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     public unsafe partial int P1 { get => 1; set { } }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P1").WithLocation(9, 31));
         }
 
         [Fact]
