@@ -1585,7 +1585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftEscape = GetValEscape(op1, _localScopeDepth);
                         rightEscape = GetValEscape(op2, _localScopeDepth);
 
-                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
+                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeTypeOrAllowsByRefLike());
 
                         // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
                         // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
@@ -1604,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!hasErrors && op1.Type.IsRefLikeType) // PROTOTYPE(RefStructInterfaces): adjust?
+                if (!hasErrors && op1.Type.IsRefLikeTypeOrAllowsByRefLike())
                 {
                     var leftEscape = GetValEscape(op1, _localScopeDepth);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);

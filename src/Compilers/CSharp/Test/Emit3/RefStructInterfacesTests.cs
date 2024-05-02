@@ -2218,7 +2218,7 @@ public struct C : I
         }
 
         // This is a clone of MethodArgumentsMustMatch_16 from RefFieldTests.cs
-        [Fact(Skip = "'allow' is not supported yet")] // PROTOTYPE(RefStructInterfaces): Enable once new constraints are supported
+        [Fact]
         public void MethodArgumentsMustMatch_16_ConstrainedTypeParameter()
         {
             var source = """
@@ -2228,7 +2228,7 @@ public struct C : I
                     public ref int FA();
                     [UnscopedRef] public ref int FB();
                 }
-                class Program<T> where T : allows ref struct, R
+                class Program<T> where T : R, allows ref struct
                 {
                     static void F1(ref T r1, ref int i1) { }
                     static void F2(ref T r2, [UnscopedRef] ref int i2) { }
@@ -2242,11 +2242,11 @@ public struct C : I
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyDiagnostics(
-                // (17,9): error CS8350: This combination of arguments to 'Program.F2(ref R, ref int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
+                // (17,9): error CS8350: This combination of arguments to 'Program<T>.F2(ref T, ref int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
                 //         F2(ref x, ref y.FB()); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y.FB())").WithArguments("Program.F2(ref R, ref int)", "i2").WithLocation(17, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y.FB())").WithArguments("Program<T>.F2(ref T, ref int)", "i2").WithLocation(17, 9),
                 // (17,23): error CS8168: Cannot return local 'y' by reference because it is not a ref local
                 //         F2(ref x, ref y.FB()); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(17, 23));
@@ -2281,16 +2281,427 @@ public struct C : I
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(RefStructInterfaces): Clone from RefFieldTests.cs once new constraints are supported:
-        //  - MethodArgumentsMustMatch_17
-        //  - MethodArgumentsMustMatch_18
-        //  - ReturnOnlyScope_01
-        //  - ReturnRefToRefStruct_ValEscape_01
-        //  - ReturnRefToRefStruct_ValEscape_02
-        //  - ReturnRefToRefStruct_ValEscape_03
-        //  - ReturnRefToRefStruct_ValEscape_04
-        //
-        //  Also LocalScope_DeclarationExpression_06 from RefEscapingTests.cs
+        // This is a clone of MethodArgumentsMustMatch_17 from RefFieldTests.cs
+        [Fact]
+        public void MethodArgumentsMustMatch_17()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                interface IR
+                {
+                    public ref int FA();
+                    [UnscopedRef] public ref int FB();
+                }
+                class Program<R> where R : IR, allows ref struct
+                {
+                    static void F1(ref R r1, in int i1) { }
+                    static void F2(ref R r2, [UnscopedRef] in int i2) { }
+                    static void F(ref R x)
+                    {
+                        R y = default;
+                        F1(ref x, y.FA());
+                        F1(ref x, y.FB());
+                        F2(ref x, y.FA());
+                        F2(ref x, y.FB()); // 1
+                        F1(ref x, in y.FA());
+                        F1(ref x, in y.FB());
+                        F2(ref x, in y.FA());
+                        F2(ref x, in y.FB()); // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'Program<R>.F2(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
+                //         F2(ref x, y.FB()); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, y.FB())").WithArguments("Program<R>.F2(ref R, in int)", "i2").WithLocation(17, 9),
+                // (17,19): error CS8168: Cannot return local 'y' by reference because it is not a ref local
+                //         F2(ref x, y.FB()); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(17, 19),
+                // (21,9): error CS8350: This combination of arguments to 'Program<R>.F2(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
+                //         F2(ref x, in y.FB()); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, in y.FB())").WithArguments("Program<R>.F2(ref R, in int)", "i2").WithLocation(21, 9),
+                // (21,22): error CS8168: Cannot return local 'y' by reference because it is not a ref local
+                //         F2(ref x, in y.FB()); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(21, 22));
+        }
+
+        // This is a clone of MethodArgumentsMustMatch_18 from RefFieldTests.cs
+        [Fact]
+        public void MethodArgumentsMustMatch_18()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                interface IR
+                {
+                    public ref readonly int FA();
+                    [UnscopedRef] public ref readonly int FB();
+                }
+                class Program<R> where R : IR, allows ref struct
+                {
+                    static void F1(ref R r1, in int i1) { }
+                    static void F2(ref R r2, [UnscopedRef] in int i2) { }
+                    static void F(ref R x)
+                    {
+                        R y = default;
+                        F1(ref x, y.FA());
+                        F1(ref x, y.FB());
+                        F2(ref x, y.FA());
+                        F2(ref x, y.FB()); // 1
+                        F1(ref x, in y.FA());
+                        F1(ref x, in y.FB());
+                        F2(ref x, in y.FA());
+                        F2(ref x, in y.FB()); // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'Program<R>.F2(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
+                //         F2(ref x, y.FB()); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, y.FB())").WithArguments("Program<R>.F2(ref R, in int)", "i2").WithLocation(17, 9),
+                // (17,19): error CS8168: Cannot return local 'y' by reference because it is not a ref local
+                //         F2(ref x, y.FB()); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(17, 19),
+                // (21,9): error CS8350: This combination of arguments to 'Program<R>.F2(ref R, in int)' is disallowed because it may expose variables referenced by parameter 'i2' outside of their declaration scope
+                //         F2(ref x, in y.FB()); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, in y.FB())").WithArguments("Program<R>.F2(ref R, in int)", "i2").WithLocation(21, 9),
+                // (21,22): error CS8168: Cannot return local 'y' by reference because it is not a ref local
+                //         F2(ref x, in y.FB()); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "y").WithArguments("y").WithLocation(21, 22));
+        }
+
+        // This is a clone of ReturnOnlyScope_01 from RefFieldTests.cs
+        [Fact]
+        public void ReturnOnlyScope_01()
+        {
+            // test that return scope is used in all return-ey locations.
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                interface IRS<RSOut> where RSOut : IRSOut, allows ref struct
+                {
+                    [UnscopedRef]
+                    public RSOut ToRSOut();
+                }
+
+                interface IRSOut
+                {
+                }
+
+                class Program<RS, RSOut> where RS : IRS<RSOut>, allows ref struct where RSOut : IRSOut, allows ref struct
+                {
+                    RS M1(ref RS rs) => rs;
+                    void M2(ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut();
+
+                    RS M3(ref RS rs)
+                    {
+                        return rs;
+                    }
+                    void M4(ref RS rs, out RSOut rs1)
+                    {
+                        rs1 = rs.ToRSOut();
+                    }
+
+                    void localContainer()
+                    {
+                #pragma warning disable 8321
+                        RS M1(ref RS rs) => rs;
+                        void M2(ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut();
+
+                        RS M3(ref RS rs)
+                        {
+                            return rs;
+                        }
+                        void M4(ref RS rs, out RSOut rs1)
+                        {
+                            rs1 = rs.ToRSOut(); // 4
+                        }
+                    }
+
+                    delegate RS ReturnsRefStruct(ref RS rs);
+                    delegate void RefStructOut(ref RS rs, out RSOut rs1);
+
+                    void lambdaContainer()
+                    {
+                        ReturnsRefStruct d1 = (ref RS rs) => rs;
+                        RefStructOut d2 = (ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut();
+
+                        ReturnsRefStruct d3 = (ref RS rs) =>
+                        {
+                            return rs;
+                        };
+                        RefStructOut d4 = (ref RS rs, out RSOut rs1) =>
+                        {
+                            rs1 = rs.ToRSOut();
+                        };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics();
+        }
+
+        // This is a clone of ReturnRefToRefStruct_ValEscape_01 from RefFieldTests.cs
+        [Fact]
+        public void ReturnRefToRefStruct_ValEscape_01()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class Repro<TRefStruct> where TRefStruct : IRefStruct, new() , allows ref struct
+                {
+                    private static void Bad2(int value)
+                    {
+                        TRefStruct s1 = new TRefStruct();
+                        s1.RefProperty.RefField = ref value; // 2
+                    }
+
+                    private static void Bad3(int value)
+                    {
+                        TRefStruct s1 = new TRefStruct();
+                        s1.RefMethod().RefField = ref value; // 3
+                    }
+                }
+                
+                ref struct RefStruct
+                {
+                    public ref int RefField;
+                }
+                
+                interface IRefStruct
+                {
+                    [UnscopedRef] public ref RefStruct RefProperty {get;}
+                    [UnscopedRef] public ref RefStruct RefMethod();
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(8, 9),
+                // (14,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(14, 9));
+        }
+
+        // This is a clone of ReturnRefToRefStruct_ValEscape_02 from RefFieldTests.cs
+        [Fact]
+        public void ReturnRefToRefStruct_ValEscape_02()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class Repro<TRefStruct> where TRefStruct : IRefStruct, allows ref struct
+                {
+                    private static void Bad2(scoped ref TRefStruct s1, int value)
+                    {
+                        s1.RefProperty.RefField = ref value; // 2
+                    }
+
+                    private static void Bad3(scoped ref TRefStruct s1, int value)
+                    {
+                        s1.RefMethod().RefField = ref value; // 3
+                    }
+
+                    private static void Bad5(scoped in TRefStruct s1, int value)
+                    {
+                        s1.RefProperty.RefField = ref value; // 5
+                    }
+
+                    private static void Bad6(scoped in TRefStruct s1, int value)
+                    {
+                        s1.RefMethod().RefField = ref value; // 6
+                    }
+
+                    private static void Bad8(in TRefStruct s1, int value)
+                    {
+                        s1.RefProperty.RefField = ref value; // 8
+                    }
+
+                    private static void Bad9(in TRefStruct s1, int value)
+                    {
+                        s1.RefMethod().RefField = ref value; // 9
+                    }
+                }
+                
+                ref struct RefStruct
+                {
+                    public ref int RefField;
+                }
+                
+                interface IRefStruct
+                {
+                    [UnscopedRef] public ref RefStruct RefProperty {get;}
+                    [UnscopedRef] public ref RefStruct RefMethod();
+                }
+                """;
+
+            // NB: 8 and 9 are not strictly necessary here because they are assigning to an implicit copy of a readonly variable, not to the original variable.
+            // However, it is not deeply problematic that an error is given here.
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(7, 9),
+                // (12,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(12, 9),
+                // (17,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 5
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(17, 9),
+                // (22,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 6
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(22, 9),
+                // (27,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefProperty.RefField = ref value; // 8
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefProperty.RefField = ref value").WithArguments("RefField", "value").WithLocation(27, 9),
+                // (32,9): error CS8374: Cannot ref-assign 'value' to 'RefField' because 'value' has a narrower escape scope than 'RefField'.
+                //         s1.RefMethod().RefField = ref value; // 9
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s1.RefMethod().RefField = ref value").WithArguments("RefField", "value").WithLocation(32, 9)
+                );
+        }
+
+        // This is a clone of ReturnRefToRefStruct_ValEscape_03 from RefFieldTests.cs
+        [Fact]
+        public void ReturnRefToRefStruct_ValEscape_03()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class Repro<TRefStruct> where TRefStruct : IRefStruct<TRefStruct>, allows ref struct
+                {
+                    private static void Bad1(ref TRefStruct s1, int value)
+                    {
+                        s1 = TRefStruct.New(ref value); // 1
+                    }
+
+                    private static void Bad2(scoped ref TRefStruct s1, int value)
+                    {
+                        s1.RefProperty = TRefStruct.New(ref value); // 2
+                    }
+
+                    private static void Bad3(scoped ref TRefStruct s1, int value)
+                    {
+                        s1.RefMethod() = TRefStruct.New(ref value); // 3
+                    }
+
+                    private static void Bad4(scoped ref TRefStruct s1, int value)
+                    {
+                        GetRef(ref s1) = TRefStruct.New(ref value); // 4
+                    }
+
+                    private static ref TRefStruct GetRef(ref TRefStruct s) => ref s;
+                }
+                
+                interface IRefStruct<TRefStruct> where TRefStruct : IRefStruct<TRefStruct>, allows ref struct
+                {
+                    abstract static TRefStruct New(ref int i);
+                    [UnscopedRef] public ref TRefStruct RefProperty {get;}
+                    [UnscopedRef] public ref TRefStruct RefMethod();
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8347: Cannot use a result of 'IRefStruct<TRefStruct>.New(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1 = TRefStruct.New(ref value); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "TRefStruct.New(ref value)").WithArguments("IRefStruct<TRefStruct>.New(ref int)", "i").WithLocation(7, 14),
+                // (7,33): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1 = TRefStruct.New(ref value); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(7, 33),
+                // (12,26): error CS8347: Cannot use a result of 'IRefStruct<TRefStruct>.New(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1.RefProperty = TRefStruct.New(ref value); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "TRefStruct.New(ref value)").WithArguments("IRefStruct<TRefStruct>.New(ref int)", "i").WithLocation(12, 26),
+                // (12,45): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1.RefProperty = TRefStruct.New(ref value); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(12, 45),
+                // (17,26): error CS8347: Cannot use a result of 'IRefStruct<TRefStruct>.New(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         s1.RefMethod() = TRefStruct.New(ref value); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "TRefStruct.New(ref value)").WithArguments("IRefStruct<TRefStruct>.New(ref int)", "i").WithLocation(17, 26),
+                // (17,45): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         s1.RefMethod() = TRefStruct.New(ref value); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(17, 45),
+                // (22,26): error CS8347: Cannot use a result of 'IRefStruct<TRefStruct>.New(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         GetRef(ref s1) = TRefStruct.New(ref value); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "TRefStruct.New(ref value)").WithArguments("IRefStruct<TRefStruct>.New(ref int)", "i").WithLocation(22, 26),
+                // (22,45): error CS8166: Cannot return a parameter by reference 'value' because it is not a ref parameter
+                //         GetRef(ref s1) = TRefStruct.New(ref value); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "value").WithArguments("value").WithLocation(22, 45)
+                );
+        }
+
+        // This is a clone of ReturnRefToRefStruct_ValEscape_04 from RefFieldTests.cs
+        [Fact]
+        public void ReturnRefToRefStruct_ValEscape_04()
+        {
+            // test that the appropriate filtering of escape-values is occurring when the RTRS expression is on the RHS of an an assignment.
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class Repro<TRefStruct> where TRefStruct : IRefStruct<TRefStruct>, allows ref struct
+                {
+                    private static void M1(ref TRefStruct s1, int value)
+                    {
+                        // 's2' only contributes STE, not RSTE, to the STE of 'RefMethod()' invocation.
+                        // STE is equal to RSTE for 's2', so it doesn't matter.
+                        var s2 = TRefStruct.New(ref value);
+                        s1 = s2.RefMethod(); // 1
+                    }
+                    
+                    private static void M2(ref TRefStruct s1, ref TRefStruct s2)
+                    {
+                        // 's2' only contributes STE, not RSTE, to the STE of 'RefMethod()' invocation.
+                        // RSTE of `s2` is narrower than STE of 's1', but STE of 's2' equals STE of 's1', so we expect no error here.
+                        s1 = s2.RefMethod();
+                    }
+                }
+                
+                interface IRefStruct<TRefStruct> where TRefStruct : IRefStruct<TRefStruct>, allows ref struct
+                {
+                    abstract static TRefStruct New(ref int i);
+                    [UnscopedRef] public ref TRefStruct RefMethod();
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         s1 = s2.RefMethod(); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(10, 14));
+        }
+
+        // This is a clone of LocalScope_DeclarationExpression_06 from RefEscapingTests.cs
+        [Fact]
+        public void LocalScope_DeclarationExpression_06()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                interface IRS<RS> where RS : IRS<RS>, allows ref struct
+                {
+                    [UnscopedRef]
+                    void M0(out RS rs2);
+
+                    RS M1()
+                    {
+                        // RSTE of `this` is CurrentMethod
+                        // STE of rs4 (local variable) is also CurrentMethod
+                        M0(out var rs4);
+                        return rs4; // 1
+                    }
+
+                    [UnscopedRef]
+                    RS M2()
+                    {
+                        M0(out var rs4);
+                        return rs4;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics();
+        }
 
         // This is a clone of UnscopedRefAttribute_Method_03 from RefFieldTests.cs
         [CombinatorialData]
@@ -2928,7 +3339,93 @@ interface S2
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(RefStructInterfaces): Add flavor of UnscopedRef_ArgumentsMustMatch_01 tests with RefByteContainer as an interface 
+        // This is a clone of UnscopedRef_ArgumentsMustMatch_01 from RefFieldTests.cs
+        [Fact]
+        public void UnscopedRef_ArgumentsMustMatch_01()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                interface IRefByteContainer
+                {
+
+
+                    //public RefByteContainer(ref byte rb)
+                    //{
+                    //    RB = ref rb;
+                    //}
+                }
+
+                interface IByteContainer<RefByteContainer> where RefByteContainer : IRefByteContainer, allows ref struct
+                {
+                    //public byte B;
+
+                    [UnscopedRef]
+                    public RefByteContainer ByteRef {get;}
+
+                    [UnscopedRef]
+                    public RefByteContainer GetByteRef();
+                }
+
+                class Program<RefByteContainer, ByteContainer> where RefByteContainer : IRefByteContainer, allows ref struct where ByteContainer : IByteContainer<RefByteContainer>, allows ref struct
+                {
+                    static void M11(ref ByteContainer bc)
+                    {
+                        // ok. because ref-safe-to-escape of 'this' in 'ByteContainer.ByteRef.get' is 'ReturnOnly',
+                        // we know that 'ref bc' will not end up written to a ref field within 'bc'.
+                        _ = bc.ByteRef;
+                    }
+                    static void M12(ref ByteContainer bc)
+                    {
+                        // ok. because ref-safe-to-escape of 'this' in 'ByteContainer.GetByteRef()' is 'ReturnOnly',
+                        // we know that 'ref bc' will not end up written to a ref field within 'bc'.
+                        _ = bc.GetByteRef();
+                    }
+
+                    static void M21(ref ByteContainer bc, ref RefByteContainer rbc)
+                    {
+                        // error. ref-safe-to-escape of 'bc' is 'ReturnOnly', therefore 'bc.ByteRef' can't be assigned to a ref parameter.
+                        rbc = bc.ByteRef; // 1
+                    }
+                    static void M22(ref ByteContainer bc, ref RefByteContainer rbc)
+                    {
+                        // error. ref-safe-to-escape of 'bc' is 'ReturnOnly', therefore 'bc.ByteRef' can't be assigned to a ref parameter.
+                        rbc = bc.GetByteRef(); // 2
+                    }
+
+                    static RefByteContainer M31(ref ByteContainer bc)
+                        // ok. ref-safe-to-escape of 'bc' is 'ReturnOnly'.
+                        => bc.ByteRef;
+
+                    static RefByteContainer M32(ref ByteContainer bc)
+                        // ok. ref-safe-to-escape of 'bc' is 'ReturnOnly'.
+                        => bc.GetByteRef();
+
+                    static RefByteContainer M41(scoped ref ByteContainer bc)
+                        // error: `bc.ByteRef` may contain a reference to `bc`, whose ref-safe-to-escape is CurrentMethod.
+                        => bc.ByteRef; // 3
+
+                    static RefByteContainer M42(scoped ref ByteContainer bc)
+                        // error: `bc.GetByteRef()` may contain a reference to `bc`, whose ref-safe-to-escape is CurrentMethod.
+                        => bc.GetByteRef(); // 4
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (42,15): error CS9077: Cannot return a parameter by reference 'bc' through a ref parameter; it can only be returned in a return statement
+                //         rbc = bc.ByteRef; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "bc").WithArguments("bc").WithLocation(42, 15),
+                // (47,15): error CS9077: Cannot return a parameter by reference 'bc' through a ref parameter; it can only be returned in a return statement
+                //         rbc = bc.GetByteRef(); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "bc").WithArguments("bc").WithLocation(47, 15),
+                // (60,12): error CS9075: Cannot return a parameter by reference 'bc' because it is scoped to the current method
+                //         => bc.ByteRef; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(60, 12),
+                // (64,12): error CS9075: Cannot return a parameter by reference 'bc' because it is scoped to the current method
+                //         => bc.GetByteRef(); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(64, 12));
+        }
 
         // This is a clone of PatternIndex_01 from RefFieldTests.cs
         [Fact]
@@ -19621,6 +20118,40 @@ class Program
         }
 
         [Fact]
+        public void IsOperator_10()
+        {
+            var src = @"
+class Helper1<T, U>
+    where T : allows ref struct
+    where U : T, allows ref struct
+{
+    public static void Test1(T h1)
+    {
+        if (h1 is U)
+        {
+        }
+    }
+    public static void Test2(U h2)
+    {
+        if (h2 is T)
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0019: Operator 'is' cannot be applied to operands of type 'T' and 'U'
+                //         if (h1 is U)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "h1 is U").WithArguments("is", "T", "U").WithLocation(8, 13),
+                // (14,13): error CS0019: Operator 'is' cannot be applied to operands of type 'U' and 'T'
+                //         if (h2 is T)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "h2 is T").WithArguments("is", "U", "T").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
         public void IsPattern_01()
         {
             var src1 = @"
@@ -20136,6 +20667,40 @@ ref struct S2
         }
 
         [Fact]
+        public void IsPattern_10()
+        {
+            var src = @"
+class Helper1<T, U>
+    where T : allows ref struct
+    where U : T, allows ref struct
+{
+    public static void Test1(T h1)
+    {
+        if (h1 is U u)
+        {
+        }
+    }
+    public static void Test2(U h2)
+    {
+        if (h2 is T t)
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'U'.
+                //         if (h1 is U u)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "U").WithArguments("T", "U").WithLocation(8, 19),
+                // (14,19): error CS8121: An expression of type 'U' cannot be handled by a pattern of type 'T'.
+                //         if (h2 is T t)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("U", "T").WithLocation(14, 19)
+                );
+        }
+
+        [Fact]
         public void AsOperator_01()
         {
             var src = @"
@@ -20501,6 +21066,36 @@ ref struct S2
         }
 
         [Fact]
+        public void AsOperator_10()
+        {
+            var src = @"
+class Helper1<T, U>
+    where T : allows ref struct
+    where U : T, allows ref struct
+{
+    public static void Test1(T h1)
+    {
+        _ = h1 as U;
+    }
+    public static void Test2(U h2)
+    {
+        _ = h2 as T;
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0413: The type parameter 'U' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                //         _ = h1 as U;
+                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h1 as U").WithArguments("U").WithLocation(8, 13),
+                // (12,13): error CS0413: The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                //         _ = h2 as T;
+                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h2 as T").WithArguments("T").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
         public void IllegalCapturing_01()
         {
             var source = @"
@@ -20554,6 +21149,912 @@ class C
                 // (12,24): error CS9108: Cannot use parameter 't' that has ref-like type inside an anonymous method, lambda expression, query expression, or local function
                 //         var d2 = () => t;
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseRefLike, "t").WithArguments("t").WithLocation(12, 24)
+                );
+        }
+
+        [Fact]
+        public void IllegalCapturing_03()
+        {
+            var source = @"
+ref struct R1
+{
+}
+
+class C
+{
+    void M<T>(R1 r1, T t)
+        where T : allows ref struct
+    {
+        R1 r2 = r1;
+        T t2 = t;
+
+        var d1 = () => r2;
+        var d2 = () => t2;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyEmitDiagnostics(
+                // (14,24): error CS8175: Cannot use ref local 'r2' inside an anonymous method, lambda expression, or query expression
+                //         var d1 = () => r2;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r2").WithArguments("r2").WithLocation(14, 24),
+                // (15,24): error CS8175: Cannot use ref local 't2' inside an anonymous method, lambda expression, or query expression
+                //         var d2 = () => t2;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "t2").WithArguments("t2").WithLocation(15, 24)
+                );
+        }
+
+        [Fact]
+        public void PassingSpansToParameters_Errors()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s1 = stackalloc int[1];
+        M1(s1);
+    }
+    
+    static void M1<T>(T s1) where T : allows ref struct 
+    {
+        var obj = new C();
+        T s2 = M3<T>(stackalloc int[2]);
+
+        M2(ref s1, out s2);         // one
+        M2(ref s2, out s1);         // two
+
+        M2(ref s1, out s2);         // three
+        M2(ref s2, out s1);         // four
+
+        M2(y: out s2, x: ref s1);   // five
+        M2(y: out s1, x: ref s2);   // six
+
+        M2(ref s1, out s1);         // okay
+        M2(ref s2, out s2);         // okay
+    }
+
+    static void M2<T>(scoped ref T x, out T y)
+        where T : allows ref struct
+    {
+        y = default;
+    }
+
+    static T M3<T>(Span<int> x) where T : allows ref struct => default;
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'C.M2<T>(scoped ref T, out T)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         M2(ref s2, out s1);         // two
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2<T>(scoped ref T, out T)", "x").WithLocation(17, 9),
+                // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s2, out s1);         // two
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
+                // (20,9): error CS8350: This combination of arguments to 'C.M2<T>(scoped ref T, out T)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         M2(ref s2, out s1);         // four
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2<T>(scoped ref T, out T)", "x").WithLocation(20, 9),
+                // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s2, out s1);         // four
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
+                // (23,9): error CS8350: This combination of arguments to 'C.M2<T>(scoped ref T, out T)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         M2(y: out s1, x: ref s2);   // six
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2<T>(scoped ref T, out T)", "x").WithLocation(23, 9),
+                // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(y: out s1, x: ref s2);   // six
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30)
+                );
+        }
+
+        [Fact]
+        public void RefLikeReturnEscape1()
+        {
+            var text = @"
+    using System;
+
+    class Program<T> where T : allows ref struct
+    {
+        static void Main()
+        {
+        }
+
+        static ref int Test1(T arg)
+        {
+            throw null;
+        }
+
+        static T MayWrap(Span<int> arg)
+        {
+            return default;
+        }
+
+        static ref int Test3()
+        {
+            Span<int> local = stackalloc int[1];
+            var sp = MayWrap(local);
+            return ref Test1(sp);
+        }
+    }
+";
+            CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyDiagnostics(
+                // (24,30): error CS8352: Cannot use variable 'sp' in this context because it may expose referenced variables outside of their declaration scope
+                //             return ref Test1(sp);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "sp").WithArguments("sp").WithLocation(24, 30),
+                // (24,24): error CS8347: Cannot use a result of 'Program<T>.Test1(T)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             return ref Test1(sp);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(sp)").WithArguments("Program<T>.Test1(T)", "arg").WithLocation(24, 24)
+            );
+        }
+
+        [Fact]
+        public void RefLikeEscapeMixingCall()
+        {
+            var text = @"
+    using System;
+    class Program<T> where T : allows ref struct
+    {
+        static void Main()
+        {
+        }
+
+        void Test1()
+        {
+            T rOuter = default;
+
+            Span<int> inner = stackalloc int[1];
+            T rInner = MayWrap(ref inner);
+
+            // valid
+            MayAssign(ref rOuter, ref rOuter);
+
+            // error
+            MayAssign(ref rOuter, ref rInner);
+
+            // error
+            MayAssign(ref inner, ref rOuter);
+        }
+
+        static void MayAssign(ref Span<int> arg1, ref T arg2)
+        {
+            arg2 = MayWrap(ref arg1);
+        }
+
+        static void MayAssign(ref T arg1, ref T arg2)
+        {
+            arg1 = arg2;
+        }
+
+        static T MayWrap(ref Span<int> arg)
+        {
+            return default;
+        }
+    }
+";
+            var comp = CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (20,39): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
+                //             MayAssign(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(20, 39),
+                // (20,13): error CS8350: This combination of arguments to 'Program<T>.MayAssign(ref T, ref T)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
+                //             MayAssign(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter, ref rInner)").WithArguments("Program<T>.MayAssign(ref T, ref T)", "arg2").WithLocation(20, 13),
+                // (23,27): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             MayAssign(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(23, 27),
+                // (23,13): error CS8350: This combination of arguments to 'Program<T>.MayAssign(ref Span<int>, ref T)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                //             MayAssign(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref inner, ref rOuter)").WithArguments("Program<T>.MayAssign(ref System.Span<int>, ref T)", "arg1").WithLocation(23, 13),
+                // (28,32): error CS9077: Cannot return a parameter by reference 'arg1' through a ref parameter; it can only be returned in a return statement
+                //             arg2 = MayWrap(ref arg1);
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "arg1").WithArguments("arg1").WithLocation(28, 32),
+                // (28,20): error CS8347: Cannot use a result of 'Program<T>.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             arg2 = MayWrap(ref arg1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref arg1)").WithArguments("Program<T>.MayWrap(ref System.Span<int>)", "arg").WithLocation(28, 20)
+            );
+
+            comp = CreateCompilation(text, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,39): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     class Program<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(3, 39),
+                // (3,39): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //     class Program<T> where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 39),
+                // (20,39): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
+                //             MayAssign(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(20, 39),
+                // (20,13): error CS8350: This combination of arguments to 'Program<T>.MayAssign(ref T, ref T)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
+                //             MayAssign(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter, ref rInner)").WithArguments("Program<T>.MayAssign(ref T, ref T)", "arg2").WithLocation(20, 13),
+                // (23,27): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             MayAssign(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(23, 27),
+                // (23,13): error CS8350: This combination of arguments to 'Program<T>.MayAssign(ref Span<int>, ref T)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                //             MayAssign(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref inner, ref rOuter)").WithArguments("Program<T>.MayAssign(ref System.Span<int>, ref T)", "arg1").WithLocation(23, 13)
+                );
+        }
+
+        [Fact]
+        public void RefSafeToEscape_05()
+        {
+            var source =
+@"
+class Program<T> where T : allows ref struct
+{
+    static ref T F0(T r0)
+    {
+        scoped ref T l0 = ref r0;
+        return ref l0; // 1
+    }
+    static ref T F1(scoped T r1)
+    {
+        scoped ref T l1 = ref r1; // 2
+        return ref l1; // 3
+    }
+    static ref T F2(ref T r2)
+    {
+        scoped ref T l2 = ref r2;
+        return ref l2; // 4
+    }
+    static ref T F3(scoped ref T r3)
+    {
+        scoped ref T l3 = ref r3;
+        return ref l3; // 5
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8157: Cannot return 'l0' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref l0; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l0").WithArguments("l0").WithLocation(7, 20),
+                // (11,31): error CS8352: Cannot use variable 'scoped T r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         scoped ref T l1 = ref r1; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("scoped T r1").WithLocation(11, 31),
+                // (12,20): error CS8157: Cannot return 'l1' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref l1; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l1").WithArguments("l1").WithLocation(12, 20),
+                // (17,20): error CS8157: Cannot return 'l2' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref l2; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l2").WithArguments("l2").WithLocation(17, 20),
+                // (22,20): error CS8157: Cannot return 'l3' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref l3; // 5
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l3").WithArguments("l3").WithLocation(22, 20)
+                );
+        }
+
+        [Fact]
+        public void RefToRefStructParameter_02()
+        {
+            var source =
+@"
+class Program<R> where R : allows ref struct 
+{
+    static ref R F1()
+    {
+        int i = 42;
+        var r1 = GetR(ref i);
+        return ref ReturnRef(ref r1);
+    }
+    static ref R F2(ref int i)
+    {
+        var r2 = GetR(ref i);
+        return ref ReturnRef(ref r2);
+    }
+    
+    static ref R ReturnRef(scoped ref R r) => throw null;
+
+    static R GetR(ref int x) => throw null;
+}";
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReturnRefToByValueParameter_01()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program<S> where S : allows ref struct
+{
+    static ref S F1([UnscopedRef] ref S x1)
+    {
+        return ref x1;
+    }
+    static ref S F2(S x2)
+    {
+        ref var y2 = ref F1(ref x2);
+        return ref y2; // 1
+    }
+}";
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
+                // (13,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y2; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(13, 20)
+                );
+        }
+
+        [Fact]
+        public void ReturnRefToRefStruct_RefEscape_01()
+        {
+            var source = """
+                public class Repro<RefStruct> where RefStruct : allows ref struct
+                {
+                    private static ref RefStruct M1(ref RefStruct s1, ref RefStruct s2)
+                    {
+                        bool b = false;
+                        return ref b ? ref s1 : ref s2;
+                    }
+
+                    private static ref RefStruct M2(ref RefStruct s1)
+                    {
+                        RefStruct s2 = default;
+                        // RSTE of s1 is ReturnOnly
+                        // RSTE of s2 is CurrentMethod
+                        return ref M1(ref s1, ref s2); // 1
+                    }
+                    
+                    private static ref RefStruct M3(ref RefStruct s1)
+                    {
+                        return ref M1(ref s1, ref s1);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (14,20): error CS8347: Cannot use a result of 'Repro<RefStruct>.M1(ref RefStruct, ref RefStruct)' in this context because it may expose variables referenced by parameter 's2' outside of their declaration scope
+                //         return ref M1(ref s1, ref s2); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M1(ref s1, ref s2)").WithArguments("Repro<RefStruct>.M1(ref RefStruct, ref RefStruct)", "s2").WithLocation(14, 20),
+                // (14,35): error CS8168: Cannot return local 's2' by reference because it is not a ref local
+                //         return ref M1(ref s1, ref s2); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s2").WithArguments("s2").WithLocation(14, 35)
+                );
+        }
+
+        [Fact]
+        public void RefStructProperty_01()
+        {
+            var source =
+@"
+class C<Rint, Robject>
+    where Rint : allows ref struct
+    where Robject : allows ref struct
+{
+    Robject this[Rint r] => default;
+    static Robject F1(C<Rint, Robject> c)
+    {
+        int i = 1;
+        var r1 = GetRint(ref i);
+        return c[r1]; // 1
+    }
+    static Robject F2(C<Rint, Robject> c)
+    {
+        var r2 = GetRint();
+        return c[r2];
+    }
+    static Rint GetRint(ref int x) => throw null;
+    static Rint GetRint() => throw null;
+}";
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS8347: Cannot use a result of 'C<Rint, Robject>.this[Rint]' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         return c[r1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c[r1]").WithArguments("C<Rint, Robject>.this[Rint]", "r").WithLocation(11, 16),
+                // (11,18): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c[r1]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(11, 18)
+                );
+        }
+
+        [Fact]
+        public void MethodArgumentsMustMatch_08()
+        {
+            var source =
+@"
+using static Helper;
+class Helper
+{
+    public static void F0(__arglist) { }
+}
+
+class Program<R>
+    where R : allows ref struct
+{
+    static void F1()
+    {
+        var x = GetR();
+        int i = 1;
+        var y = GetR(ref i);
+        F0(__arglist(ref x)); // 1
+        F0(__arglist(ref y));
+        F0(__arglist(ref x, ref x)); // 2
+        F0(__arglist(ref x, ref y)); // 3
+        F0(__arglist(ref y, ref x)); // 4
+        F0(__arglist(ref y, ref y));
+    }
+    static R GetR(ref int x) => throw null;
+    static R GetR() => throw null;
+}";
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
+                // (19,9): error CS8350: This combination of arguments to 'Helper.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         F0(__arglist(ref x, ref y)); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Helper.F0(__arglist)", "__arglist").WithLocation(19, 9),
+                // (19,33): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         F0(__arglist(ref x, ref y)); // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(19, 33),
+                // (20,9): error CS8350: This combination of arguments to 'Helper.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         F0(__arglist(ref y, ref x)); // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y, ref x))").WithArguments("Helper.F0(__arglist)", "__arglist").WithLocation(20, 9),
+                // (20,26): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         F0(__arglist(ref y, ref x)); // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(20, 26)
+                );
+        }
+
+        [Fact]
+        public void IsPatternMatchingDoesNotCopyEscapeScopes_05()
+        {
+            CreateCompilation(@"
+using System;
+public interface IR<R> where R : IR<R>, allows ref struct
+{
+    public R RProp {get;}
+    public S<R> SProp {get;}
+    public abstract static implicit operator R(Span<int> span);
+}
+public struct S<R> where R : IR<R>, allows ref struct
+{
+    public R RProp => throw null;
+    public S<R> SProp => throw null;
+}
+public class C<R> where R : IR<R>, allows ref struct
+{
+    public void M1(ref R r, ref S<R> s)
+    {
+        R outer = stackalloc int[100];
+        if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+        if (outer is { SProp.RProp: var sr0 }) r = sr0; // OK
+        if (outer is { SProp.SProp: var ss0 }) s = ss0; // OK
+        if (outer is { RProp.SProp: var rs0 }) s = rs0; // OK
+        if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+        if (outer is { SProp: { RProp: var sr1 }}) r = sr1; // OK
+        if (outer is { SProp: { SProp: var ss1 }}) s = ss1; // OK
+        if (outer is { RProp: { SProp: var rs1 }}) s = rs1; // OK
+    }
+}", targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyDiagnostics(
+                // (19,52): error CS8352: Cannot use variable 'rr0' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp.RProp: var rr0 }) r = rr0; // error
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rr0").WithArguments("rr0").WithLocation(19, 52),
+                // (23,56): error CS8352: Cannot use variable 'rr1' in this context because it may expose referenced variables outside of their declaration scope
+                //         if (outer is { RProp: { RProp: var rr1 }}) r = rr1; // error
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rr1").WithArguments("rr1").WithLocation(23, 56)
+                );
+        }
+
+        [Fact]
+        public void CasePatternMatchingDoesNotCopyEscapeScopes_02()
+        {
+            CreateCompilation(@"
+using System;
+public interface IR<R> where R : IR<R>, allows ref struct
+{
+    public R Prop {get;}
+    public void Deconstruct(out R X, out R Y);
+    public abstract static implicit operator R(Span<int> span);
+}
+public class C<R> where R : struct, IR<R>, allows ref struct
+{
+    public R M1()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: var x }: return x; // error 1
+        }
+    }
+    public R M2()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { Prop: R x }: return x; // error 2
+        }
+    }
+    public R M3()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (var x, var y): return x; // error 3
+        }
+    }
+    public R M4()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (R x, R y): return x; // error 4
+        }
+    }
+    public R M5()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case var (x, y): return x; // error 5
+        }
+    }
+    public R M6()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case { } x: return x; // error 6
+        }
+    }
+    public R M7()
+    {
+        R outer = stackalloc int[100];
+        switch (outer)
+        {
+            case (_, _) x: return x; // error 7
+        }
+    }
+}
+", targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyDiagnostics(
+                // (16,42): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: var x }: return x; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(16, 42),
+                // (24,40): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { Prop: R x }: return x; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(24, 40),
+                // (32,41): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (var x, var y): return x; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(32, 41),
+                // (40,37): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (R x, R y): return x; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(40, 37),
+                // (48,37): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case var (x, y): return x; // error 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(48, 37),
+                // (56,32): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case { } x: return x; // error 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(56, 32),
+                // (64,35): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             case (_, _) x: return x; // error 7
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(64, 35)
+                );
+        }
+
+        [Fact]
+        public void RefLikeScopeEscapeThis()
+        {
+            var text = @"
+    using System;
+    class Program<S1> where S1 : IS1<S1>, allows ref struct
+    {
+        static void Main()
+        {
+            Span<int> outer = default;
+
+            S1 x = MayWrap(ref outer);
+
+            {
+                Span<int> inner = stackalloc int[1];
+
+                // valid
+                x = S1.NotSlice(1);
+
+                // valid
+                x = MayWrap(ref outer).Slice(1);
+    
+                // error
+                x = MayWrap(ref inner).Slice(1);
+            }
+        }
+
+        static S1 MayWrap(ref Span<int> arg)
+        {
+            return default;
+        }
+    }
+
+    interface IS1<S1> where S1 : IS1<S1>, allows ref struct
+    {
+        public abstract static S1 NotSlice(int x);
+
+        public S1 Slice(int x);
+    }
+";
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,50): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     class Program<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(3, 50),
+                // (3,50): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //     class Program<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 50),
+                // (31,50): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     interface IS1<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(31, 50),
+                // (31,50): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //     interface IS1<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(31, 50),
+                // (33,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //         public abstract static S1 NotSlice(int x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "NotSlice").WithArguments("abstract", "10.0", "11.0").WithLocation(33, 35),
+                // (15,21): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //                 x = S1.NotSlice(1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "S1").WithArguments("static abstract members in interfaces", "11.0").WithLocation(15, 21),
+                // (21,33): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //                 x = MayWrap(ref inner).Slice(1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(21, 33),
+                // (21,21): error CS8347: Cannot use a result of 'Program<S1>.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //                 x = MayWrap(ref inner).Slice(1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program<S1>.MayWrap(ref System.Span<int>)", "arg").WithLocation(21, 21)
+            );
+        }
+
+        [Fact]
+        public void RefLikeScopeEscapeThisRef()
+        {
+            var text = @"
+using System;
+class Program<S1> where S1 : IS1<S1>, allows ref struct
+{
+    static void Main()
+    {
+        Span<int> outer = default;
+
+        ref S1 x = ref MayWrap(ref outer)[0];
+
+        {
+            Span<int> inner = stackalloc int[1];
+
+            // valid
+            x[0] = MayWrap(ref outer).Slice(1)[0];
+
+            // error, technically rules for this case can be relaxed, 
+            // but ref-like typed ref-returning properties are nearly impossible to implement in a useful way
+            //
+            x[0] = MayWrap(ref inner).Slice(1)[0];
+
+            // error, technically rules for this case can be relaxed, 
+            // but ref-like typed ref-returning properties are nearly impossible to implement in a useful way
+            //
+            x[x] = MayWrap(ref inner).Slice(1)[0];
+
+            // error
+            x.ReturnsRefArg(ref x) = MayWrap(ref inner).Slice(1)[0];
+        }
+    }
+
+    static S1 MayWrap(ref Span<int> arg)
+    {
+        return default;
+    }
+}
+
+interface IS1<S1> where S1 : IS1<S1>, allows ref struct
+{
+    public ref S1 this[int i] {get;}
+
+    public ref S1 this[S1 i] {get;}
+
+    public ref S1 ReturnsRefArg(ref S1 arg);
+
+    public S1 Slice(int x);
+}
+";
+            var comp = CreateCompilation(new[] { text, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // 0.cs(38,46): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // interface IS1<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(38, 46),
+                // 0.cs(38,46): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // interface IS1<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(38, 46),
+                // 0.cs(3,46): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class Program<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(3, 46),
+                // 0.cs(3,46): error CS9500: Target runtime doesn't support by-ref-like generics.
+                // class Program<S1> where S1 : IS1<S1>, allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 46),
+                // 0.cs(20,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             x[0] = MayWrap(ref inner).Slice(1)[0];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(20, 32),
+                // 0.cs(20,20): error CS8347: Cannot use a result of 'Program<S1>.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             x[0] = MayWrap(ref inner).Slice(1)[0];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program<S1>.MayWrap(ref System.Span<int>)", "arg").WithLocation(20, 20),
+                // 0.cs(25,32): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             x[x] = MayWrap(ref inner).Slice(1)[0];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(25, 32),
+                // 0.cs(25,20): error CS8347: Cannot use a result of 'Program<S1>.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             x[x] = MayWrap(ref inner).Slice(1)[0];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program<S1>.MayWrap(ref System.Span<int>)", "arg").WithLocation(25, 20),
+                // 0.cs(28,50): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             x.ReturnsRefArg(ref x) = MayWrap(ref inner).Slice(1)[0];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(28, 50),
+                // 0.cs(28,38): error CS8347: Cannot use a result of 'Program<S1>.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             x.ReturnsRefArg(ref x) = MayWrap(ref inner).Slice(1)[0];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program<S1>.MayWrap(ref System.Span<int>)", "arg").WithLocation(28, 38)
+                );
+        }
+
+        [Fact]
+        public void RefAssignValueScopeMismatch_05()
+        {
+            var source =
+@"
+class Program<S> where S : allows ref struct
+{
+    static S F()
+    {
+        S s1 = default;
+        scoped ref S r1 = ref s1;
+        int i = 0;
+        S s2 = GetS(ref i);
+        ref S r2 = ref s2;
+        r2 = ref r1; // 1
+        r2 = s2;
+        return s1;
+    }
+
+    static S GetS(ref int i) => throw null;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
+                // (11,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                //         r2 = ref r1; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void RefLikeObjInitializers1()
+        {
+            var text = @"
+    using System;
+
+    class Program<S2> where S2 : IS2, new(), allows ref struct
+    {
+        static void Main()
+        {
+        }
+
+        static S2 Test1()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x1 = new S2() { Field1 = outer, Field2 = inner };
+
+            // error
+            return x1;
+        }
+
+        static S2 Test2()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x2 = new S2() { Field1 = inner, Field2 = outer };
+
+            // error
+            return x2;
+        }
+
+        static S2 Test3()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x3 = new S2() { Field1 = outer, Field2 = outer };
+
+            // ok
+            return x3;
+        }
+    }
+
+    public ref struct S1
+    {
+        public static implicit operator S1(Span<int> o) => default;
+    }
+
+    public interface IS2
+    {
+        public S1 Field1 {get;set;}
+        public S1 Field2 {get;set;}
+    }
+";
+            CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyEmitDiagnostics(
+                // (18,20): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(18, 20),
+                // (29,20): error CS8352: Cannot use variable 'x2' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x2;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x2").WithArguments("x2").WithLocation(29, 20)
+            );
+        }
+
+        [Fact]
+        public void RefLikeObjInitializersIndexer1()
+        {
+            var text = @"
+using System;
+
+class Program<S2> where S2 : IS2, new(), allows ref struct
+{
+    static void Main()
+    {
+    }
+
+    static S2 Test1()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x1 =  new S2() { [inner] = outer, Field2 = outer };
+
+        // error
+        return x1;
+    }
+
+    static S2 Test2()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        S2 result;
+
+        // error
+        result = new S2() { [outer] = inner, Field2 = outer };
+
+        return result;
+    }
+
+    static S2 Test3()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x3 = new S2() { [outer] = outer, Field2 = outer };
+
+        // ok
+        return x3;
+    }
+}
+
+public ref struct S1
+{
+    public static implicit operator S1(Span<int> o) => default;
+}
+
+public interface IS2
+{
+    public S1 this[S1 i] {get;set;}
+    public S1 Field2 {get;set;}
+}
+";
+            CreateCompilation(text, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).VerifyEmitDiagnostics(
+                // (18,16): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(18, 16),
+                // (29,29): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         result = new S2() { [outer] = inner, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "[outer] = inner").WithArguments("inner").WithLocation(29, 29)
                 );
         }
     }

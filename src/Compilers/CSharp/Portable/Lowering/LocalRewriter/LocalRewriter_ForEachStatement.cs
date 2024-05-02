@@ -402,8 +402,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
                     alwaysOrMaybeDisposeStmt = RewriteIfStatement(
                         syntax: forEachSyntax,
-                        // PROTOTYPE(RefStructInterfaces): Audit SyntheticBoundNodeFactory.Convert calls for similar usage (ObjectNotEqual/ObjectEqual with null)
-                        //                                 and allowBoxingByRefLikeTypeParametersToObject for them.
                         rewrittenCondition: _factory.ObjectNotEqual(_factory.Convert(objectType, boundEnumeratorVar, allowBoxingByRefLikeTypeParametersToObject: true), _factory.Null(objectType)),
                         rewrittenConsequence: disposeCallStatement,
                         rewrittenAlternativeOpt: null,

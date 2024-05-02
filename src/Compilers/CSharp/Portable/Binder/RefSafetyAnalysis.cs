@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
                         refEscapeScope >= GetRefEscape(initializer, _localScopeDepth));
 
-                    if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true) // PROTOTYPE(RefStructInterfaces): adjust?
+                    if (node.DeclaredTypeOpt?.Type.IsRefLikeTypeOrAllowsByRefLike() == true)
                     {
                         ValidateEscape(initializer, valEscapeScope, isByRef: false, _diagnostics);
                     }
@@ -578,7 +578,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
             {
-                return typeExpression.Type.IsRefLikeType ? valEscape : CallingMethodScope; // PROTOTYPE(RefStructInterfaces): adjust?
+                // PROTOTYPE(RefStructInterfaces): We do not have a test that demonstrates the statement below makes a difference
+                //                                 for ref like types. If 'CallingMethodScope' is always returned, not a single test fails.
+                return typeExpression.Type.IsRefLikeTypeOrAllowsByRefLike() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -603,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol is null
                     ? valEscape
-                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : CallingMethodScope; // PROTOTYPE(RefStructInterfaces): adjust?
+                    : symbol.GetTypeOrReturnType().IsRefLikeTypeOrAllowsByRefLike() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -616,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member is null) return valEscape;
                 valEscape = getMemberValEscape(member.Receiver, valEscape);
-                return member.Type.IsRefLikeType ? valEscape : CallingMethodScope; // PROTOTYPE(RefStructInterfaces): adjust?
+                return member.Type.IsRefLikeTypeOrAllowsByRefLike() ? valEscape : CallingMethodScope;
             }
         }
 
