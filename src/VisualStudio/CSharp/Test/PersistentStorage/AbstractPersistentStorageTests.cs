@@ -85,12 +85,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
         }
 
-        //internal abstract AbstractPersistentStorageService GetStorageService(
-        //    IMefHostExportProvider exportProvider,
-        //    IPersistentStorageConfiguration configuration,
-        //    IPersistentStorageFaultInjector? faultInjector,
-        //    string rootFolder);
-
         public void Dispose()
         {
             // This should cause the service to release the cached connection it maintains for the primary workspace
