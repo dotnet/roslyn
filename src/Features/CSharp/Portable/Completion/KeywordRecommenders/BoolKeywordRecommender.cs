@@ -21,7 +21,6 @@ internal sealed class BoolKeywordRecommender() : AbstractSpecialTypePreselecting
         return
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||
             context.IsImplicitOrExplicitOperatorTypeContext ||
             context.IsIsOrAsTypeContext ||
