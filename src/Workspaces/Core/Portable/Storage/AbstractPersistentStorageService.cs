@@ -24,7 +24,7 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
     protected readonly IPersistentStorageConfiguration Configuration = configuration;
 
     private readonly SemaphoreSlim _lock = new(initialCount: 1);
-    private readonly ConcurrentDictionary<SolutionKey, IChecksummedPersistentStorage> _solutionKeyToStorage = new();
+    private IChecksummedPersistentStorage? _currentPersistentStorage;
 
     protected abstract string GetDatabaseFilePath(string workingFolderPath);
 
@@ -49,8 +49,9 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
             return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
 
         // Without taking the lock, see if we can lookup a storage for this key.
-        if (_solutionKeyToStorage.TryGetValue(solutionKey, out var storage))
-            return storage;
+        var existing = _currentPersistentStorage;
+        if (existing?.SolutionKey == solutionKey)
+            return existing;
 
         var workingFolder = configuration.TryGetStorageLocation(solutionKey);
         if (workingFolder == null)
@@ -58,14 +59,11 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
 
         using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            // See if another thread set to the solution we care about while we were waiting on the lock.
-            if (!_solutionKeyToStorage.TryGetValue(solutionKey, out storage))
-            {
-                storage = await CreatePersistentStorageAsync(solutionKey, workingFolder, faultInjector, cancellationToken).ConfigureAwait(false);
-                _solutionKeyToStorage.Add(solutionKey, storage);
-            }
+            // Recheck if we have a storage for this key after taking the lock.
+            if (_currentPersistentStorage?.SolutionKey != solutionKey)
+                _currentPersistentStorage = await CreatePersistentStorageAsync(solutionKey, workingFolder, faultInjector, cancellationToken).ConfigureAwait(false);
 
-            return storage;
+            return _currentPersistentStorage;
         }
     }
 
@@ -129,10 +127,8 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
     {
         public void Shutdown()
         {
-            foreach (var (_, storage) in service._solutionKeyToStorage)
-                (storage as SQLitePersistentStorage)?.DatabaseOwnership.Dispose();
-
-            service._solutionKeyToStorage.Clear();
+            (service._currentPersistentStorage as SQLitePersistentStorage)?.DatabaseOwnership.Dispose();
+            service._currentPersistentStorage = null;
         }
     }
 }
