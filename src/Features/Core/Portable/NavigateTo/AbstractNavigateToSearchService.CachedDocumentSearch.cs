@@ -176,7 +176,7 @@ internal abstract partial class AbstractNavigateToSearchService
         var asyncLazy = cachedIndexMap.GetOrAdd(
             (storageService, documentKey, stringTable),
             static t => AsyncLazy.Create(static (t, c) =>
-                TopLevelSyntaxTreeIndex.LoadAsync(t.service, t.documentKey, checksum: null, t.stringTable, c),
+                TopLevelSyntaxTreeIndex.LoadAsync(t.service, t.documentKey, checksum: null, new Lazy<StringTable>(() => t.stringTable), c),
                 arg: t));
         return asyncLazy.GetValueAsync(cancellationToken);
     }
