@@ -316,8 +316,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/31768")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31768")>
         Public Async Function AddMissingImports_AddMultipleImports_NoPreviousImports() As Task
             Dim code = "
 Class C
@@ -359,8 +358,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=False)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         Public Async Function AddMissingImports_Extension() As Task
             Dim code = "
 Imports System.Runtime.CompilerServices
@@ -401,8 +399,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         Public Async Function AddMissingImports_Extension_Overload() As Task
             Dim code = "
 Imports System.Runtime.CompilerServices
@@ -601,8 +598,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         Public Async Function AddMissingImports_Extension_Select() As Task
             Dim code = "
 Imports System.Collections.Generic
@@ -647,8 +643,7 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39155")>
         Public Async Function AddMissingImports_Extension_Select_Overload() As Task
             Dim code = "
 Imports System.Collections.Generic
