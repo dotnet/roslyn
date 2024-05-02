@@ -64,7 +64,6 @@ internal partial class AbstractSyntaxIndex<TIndex>
         try
         {
             var storage = await storageService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             // attempt to load from persisted state
             using var stream = await storage.ReadStreamAsync(documentKey, s_persistenceName, checksum, cancellationToken).ConfigureAwait(false);
@@ -156,7 +155,6 @@ internal partial class AbstractSyntaxIndex<TIndex>
         try
         {
             var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             {

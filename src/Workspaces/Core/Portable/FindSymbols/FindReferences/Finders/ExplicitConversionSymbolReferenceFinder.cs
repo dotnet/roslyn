@@ -73,7 +73,8 @@ internal sealed partial class ExplicitConversionSymbolReferenceFinder : Abstract
                 static (token, state) => IsPotentialReference(state.SyntaxFacts, token),
                 state);
 
-        return FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken);
+        FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
+        return ValueTaskFactory.CompletedTask;
     }
 
     private static bool IsPotentialReference(

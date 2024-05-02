@@ -105,7 +105,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
             predefinedType == actualType;
     }
 
-    protected override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override ValueTask FindReferencesInDocumentAsync<TData>(
         INamedTypeSymbol namedType,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -117,8 +117,8 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
 
         // First find all references to this type, either with it's actual name, or through potential
         // global alises to it.
-        await AddReferencesToTypeOrGlobalAliasToItAsync(
-            namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken).ConfigureAwait(false);
+        AddReferencesToTypeOrGlobalAliasToIt(
+            namedType, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
 
         // The items in initialReferences need to be both reported and used later to calculate additional results.
         foreach (var location in initialReferences)
@@ -127,25 +127,27 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         // This named type may end up being locally aliased as well.  If so, now find all the references
         // to the local alias.
 
-        await FindLocalAliasReferencesAsync(
-            initialReferences, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindLocalAliasReferences(
+            initialReferences, state, processResult, processResultData, cancellationToken);
 
-        await FindPredefinedTypeReferencesAsync(
-            namedType, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindPredefinedTypeReferences(
+            namedType, state, processResult, processResultData, cancellationToken);
 
-        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            namedType, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            namedType, state, processResult, processResultData, cancellationToken);
+
+        return ValueTaskFactory.CompletedTask;
     }
 
-    internal static async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync<TData>(
+    internal static void AddReferencesToTypeOrGlobalAliasToIt<TData>(
         INamedTypeSymbol namedType,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        await AddNonAliasReferencesAsync(
-            namedType, namedType.Name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        AddNonAliasReferences(
+            namedType, namedType.Name, state, processResult, processResultData, cancellationToken);
 
         foreach (var globalAlias in state.GlobalAliases)
         {
@@ -155,8 +157,8 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
             if (state.SyntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
                 continue;
 
-            await AddNonAliasReferencesAsync(
-                namedType, globalAlias, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+            AddNonAliasReferences(
+                namedType, globalAlias, state, processResult, processResultData, cancellationToken);
         }
     }
 
@@ -165,7 +167,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
     /// only if it referenced though <paramref name="name"/> (which might be the actual name
     /// of the type, or a global alias to it).
     /// </summary>
-    private static async ValueTask AddNonAliasReferencesAsync<TData>(
+    private static void AddNonAliasReferences<TData>(
         INamedTypeSymbol symbol,
         string name,
         FindReferencesDocumentState state,
@@ -173,14 +175,14 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        await FindOrdinaryReferencesAsync(
-            symbol, name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindOrdinaryReferences(
+            symbol, name, state, processResult, processResultData, cancellationToken);
 
-        await FindAttributeReferencesAsync(
-            symbol, name, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindAttributeReferences(
+            symbol, name, state, processResult, processResultData, cancellationToken);
     }
 
-    private static ValueTask FindOrdinaryReferencesAsync<TData>(
+    private static void FindOrdinaryReferences<TData>(
         INamedTypeSymbol namedType,
         string name,
         FindReferencesDocumentState state,
@@ -193,11 +195,11 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         // to the constructor not the type.  That's a good thing as we don't want these object-creations to
         // associate with the type, but rather with the constructor itself.
 
-        return FindReferencesInDocumentUsingIdentifierAsync(
+        FindReferencesInDocumentUsingIdentifier(
             namedType, name, state, processResult, processResultData, cancellationToken);
     }
 
-    private static ValueTask FindPredefinedTypeReferencesAsync<TData>(
+    private static void FindPredefinedTypeReferences<TData>(
         INamedTypeSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -206,7 +208,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
     {
         var predefinedType = symbol.SpecialType.ToPredefinedType();
         if (predefinedType == PredefinedType.None)
-            return ValueTaskFactory.CompletedTask;
+            return;
 
         var tokens = state.Root
             .DescendantTokens(descendIntoTrivia: true)
@@ -214,10 +216,10 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
                 static (token, tuple) => IsPotentialReference(tuple.predefinedType, tuple.state.SyntaxFacts, token),
                 (state, predefinedType));
 
-        return FindReferencesInTokensAsync(symbol, state, tokens, processResult, processResultData, cancellationToken);
+        FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 
-    private static ValueTask FindAttributeReferencesAsync<TData>(
+    private static void FindAttributeReferences<TData>(
         INamedTypeSymbol namedType,
         string name,
         FindReferencesDocumentState state,
@@ -225,8 +227,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        return TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var nameWithoutSuffix)
-            ? FindReferencesInDocumentUsingIdentifierAsync(namedType, nameWithoutSuffix, state, processResult, processResultData, cancellationToken)
-            : ValueTaskFactory.CompletedTask;
+        if (TryGetNameWithoutAttributeSuffix(name, state.SyntaxFacts, out var nameWithoutSuffix))
+            FindReferencesInDocumentUsingIdentifier(namedType, nameWithoutSuffix, state, processResult, processResultData, cancellationToken);
     }
 }

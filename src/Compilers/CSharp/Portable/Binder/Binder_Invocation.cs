@@ -662,8 +662,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
                 }
-                // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for expanded non-array params cases.
-                else if (Compilation.LanguageVersion > LanguageVersion.CSharp12 || IsMemberWithExpandedNonArrayParamsCollection(applicable))
+                // For C# 12 and earlier always bind at runtime.
+                else if (Compilation.LanguageVersion > LanguageVersion.CSharp12)
                 {
                     result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, hasDynamicArgument: true, boundExpression, diagnostics, queryClause);
                 }
@@ -878,6 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (finalApplicableCandidates.Length != 1 &&
+                Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
                 HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(resolution.AnalyzedArguments.Arguments, finalApplicableCandidates))
             {
                 Error(diagnostics,
@@ -1011,10 +1012,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for local functions or expanded non-array params cases.
+            // For C# 12 and earlier statically bind invocations in presence of dynamic arguments only for local functions.
             if (Compilation.LanguageVersion > LanguageVersion.CSharp12 ||
-                singleCandidate.MethodKind == MethodKind.LocalFunction ||
-                IsMemberWithExpandedNonArrayParamsCollection(methodResolutionResult))
+                singleCandidate.MethodKind == MethodKind.LocalFunction)
             {
                 var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);

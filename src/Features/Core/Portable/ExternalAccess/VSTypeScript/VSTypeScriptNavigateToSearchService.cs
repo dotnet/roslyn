@@ -35,14 +35,14 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         Document document,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         CancellationToken cancellationToken)
     {
         if (_searchService != null)
         {
             var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            foreach (var result in results)
-                await onResultFound(Convert(result)).ConfigureAwait(false);
+            if (results.Length > 0)
+                await onResultsFound(results.SelectAsArray(Convert)).ConfigureAwait(false);
         }
     }
 
@@ -53,7 +53,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -78,8 +78,9 @@ internal sealed class VSTypeScriptNavigateToSearchService(
                 {
                     var results = await _searchService.SearchProjectAsync(
                         project, priorityDocuments.WhereAsArray(d => d.Project == project), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-                    foreach (var result in results)
-                        await onResultFound(project, Convert(result)).ConfigureAwait(false);
+
+                    if (results.Length > 0)
+                        await onResultsFound(results.SelectAsArray(Convert)).ConfigureAwait(false);
                 }
 
                 await onProjectCompleted().ConfigureAwait(false);

@@ -19,7 +19,7 @@ internal partial class SolutionCompilationState
     /// </param>
     private sealed class SkeletonReferenceSet(
         AssemblyMetadata metadata,
-        ITemporaryStorageHandle storageHandle,
+        ITemporaryStorageStreamHandle storageHandle,
         string? assemblyName,
         DeferredDocumentationProvider documentationProvider)
     {
@@ -31,7 +31,7 @@ internal partial class SolutionCompilationState
         /// </summary>
         private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = [];
 
-        public ITemporaryStorageHandle StorageHandle => storageHandle;
+        public ITemporaryStorageStreamHandle StorageHandle => storageHandle;
 
         public PortableExecutableReference GetOrCreateMetadataReference(MetadataReferenceProperties properties)
         {

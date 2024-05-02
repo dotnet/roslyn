@@ -647,7 +647,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var project = this.CurrentSolution.GetProject(projectReference.ProjectId);
             if (project?.FilePath is not null)
             {
-                _applyChangesProjectFile.AddProjectReferenceAsync(project.Name, new ProjectFileReference(project.FilePath, projectReference.Aliases), CancellationToken.None).Wait();
+                // Only "ReferenceOutputAssembly=true" project references are represented in the workspace:
+                var reference = new ProjectFileReference(project.FilePath, projectReference.Aliases, referenceOutputAssembly: true);
+                _applyChangesProjectFile.AddProjectReferenceAsync(project.Name, reference, CancellationToken.None).Wait();
             }
 
             this.OnProjectReferenceAdded(projectId, projectReference);

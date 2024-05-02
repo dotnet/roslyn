@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -21,16 +21,16 @@ internal abstract partial class AbstractNavigateToSearchService
         Document document,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
-        var onItemFound = GetOnItemFoundCallback(solution, activeDocument: null, (_, i) => onResultFound(i), cancellationToken);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument: null, onResultsFound, cancellationToken);
 
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted: null);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted: null);
             // Don't need to sync the full solution when searching a single document.  Just sync the project that doc is in.
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 document.Project,
@@ -41,14 +41,21 @@ internal abstract partial class AbstractNavigateToSearchService
             return;
         }
 
-        await SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+        await SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
     }
 
-    public static Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onItemFound, CancellationToken cancellationToken)
+    public static async Task SearchDocumentInCurrentProcessAsync(
+        Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, CancellationToken cancellationToken)
     {
-        return SearchProjectInCurrentProcessAsync(
-            document.Project, priorityDocuments: [], document, searchPattern, kinds,
-            onItemFound, () => Task.CompletedTask, cancellationToken);
+        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
+        var results = new ConcurrentSet<RoslynNavigateToItem>();
+        await SearchSingleDocumentAsync(
+            document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
+
+        if (results.Count > 0)
+            await onItemsFound(results.ToImmutableArray()).ConfigureAwait(false);
     }
 
     public async Task SearchProjectsAsync(
@@ -58,22 +65,24 @@ internal abstract partial class AbstractNavigateToSearchService
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
-        Func<Project, INavigateToSearchResult, Task> onResultFound,
+        Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
         Contract.ThrowIfTrue(projects.IsEmpty);
         Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
 
         Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
-        var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
+        var onItemsFound = GetOnItemsFoundCallback(solution, activeDocument, onResultsFound, cancellationToken);
 
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
             var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
-            var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted);
+            var callback = new NavigateToSearchServiceCallback(onItemsFound, onProjectCompleted);
 
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 // Intentionally sync the full solution.   When SearchProjectAsync is called, we're searching all
@@ -88,7 +97,7 @@ internal abstract partial class AbstractNavigateToSearchService
         }
 
         await SearchProjectsInCurrentProcessAsync(
-            projects, priorityDocuments, searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+            projects, priorityDocuments, searchPattern, kinds, onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task SearchProjectsInCurrentProcessAsync(
@@ -96,34 +105,39 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<RoslynNavigateToItem, Task> onItemFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
-        using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
+        // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
+        // of potentially stale indices.
+        ClearCachedData();
 
-        Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
+        var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
+        var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        await ProcessProjectsAsync(highPriProjects).ConfigureAwait(false);
-        await ProcessProjectsAsync(lowPriProjects).ConfigureAwait(false);
+        using var _ = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
 
+        // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
+        // projects with priority documents ahead of those without so we can get results for those faster.
+        await PerformParallelSearchAsync(
+            Prioritize(projects, highPriProjects.Contains),
+            SearchSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
         return;
 
-        async Task ProcessProjectsAsync(HashSet<Project> projects)
+        async ValueTask SearchSingleProjectAsync(
+            Project project,
+            Action<RoslynNavigateToItem> onItemFound)
         {
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+            using var _ = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
 
-            foreach (var project in projects)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
-                    searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));
-            }
+            await RoslynParallel.ForEachAsync(
+                Prioritize(project.Documents, highPriDocs.Contains),
+                cancellationToken,
+                (document, cancellationToken) => SearchSingleDocumentAsync(
+                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await onProjectCompleted().ConfigureAwait(false);
         }
     }
 }

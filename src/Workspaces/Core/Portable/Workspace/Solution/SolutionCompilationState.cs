@@ -1010,31 +1010,13 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Attempt to get the best readily available compilation for the project. It may be a
-    /// partially built compilation.
-    /// </summary>
-    private MetadataReference? GetPartialMetadataReference(
-        ProjectReference projectReference,
-        ProjectState fromProject)
-    {
-        // Try to get the compilation state for this project.  If it doesn't exist, don't do any
-        // more work.
-        if (!_projectIdToTrackerMap.TryGetValue(projectReference.ProjectId, out var state))
-        {
-            return null;
-        }
-
-        return state.GetPartialMetadataReference(fromProject, projectReference);
-    }
-
-    /// <summary>
     /// Get a metadata reference to this compilation info's compilation with respect to
     /// another project. For cross language references produce a skeletal assembly. If the
     /// compilation is not available, it is built. If a skeletal assembly reference is
     /// needed and does not exist, it is also built.
     /// </summary>
     private async Task<MetadataReference?> GetMetadataReferenceAsync(
-        ICompilationTracker tracker, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
+        ICompilationTracker tracker, ProjectState fromProject, ProjectReference projectReference, bool includeCrossLanguage, CancellationToken cancellationToken)
     {
         try
         {
@@ -1045,6 +1027,9 @@ internal sealed partial class SolutionCompilationState
                 var compilation = await tracker.GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
                 return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
             }
+
+            if (!includeCrossLanguage)
+                return null;
 
             // otherwise get a metadata only image reference that is built by emitting the metadata from the
             // referenced project's compilation and re-importing it.
@@ -1065,14 +1050,14 @@ internal sealed partial class SolutionCompilationState
     /// can happen when trying to build a skeleton reference that fails to build.
     /// </summary>
     public Task<MetadataReference?> GetMetadataReferenceAsync(
-        ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
+        ProjectReference projectReference, ProjectState fromProject, bool includeCrossLanguage, CancellationToken cancellationToken)
     {
         try
         {
             // Get the compilation state for this project.  If it's not already created, then this
             // will create it.  Then force that state to completion and get a metadata reference to it.
             var tracker = this.GetCompilationTracker(projectReference.ProjectId);
-            return GetMetadataReferenceAsync(tracker, fromProject, projectReference, cancellationToken);
+            return GetMetadataReferenceAsync(tracker, fromProject, projectReference, includeCrossLanguage, cancellationToken);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
         {

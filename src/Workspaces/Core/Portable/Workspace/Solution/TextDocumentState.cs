@@ -82,8 +82,8 @@ internal partial class TextDocumentState
             : new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
     }
 
-    public ITemporaryTextStorageInternal? Storage
-        => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
+    public ITemporaryStorageTextHandle? StorageHandle
+        => (TextAndVersionSource as RecoverableTextAndVersion)?.StorageHandle;
 
     public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
     {

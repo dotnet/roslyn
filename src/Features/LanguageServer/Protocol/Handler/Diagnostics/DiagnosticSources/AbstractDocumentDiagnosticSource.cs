@@ -18,7 +18,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument>(TDocument do
     public abstract bool IsLiveSource();
 
     public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
+        RequestContext context, CancellationToken cancellationToken);
 
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;
