@@ -7521,14 +7521,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         //   or than any method from an extension type), then that's the member being accessed.
         //
         // - if the extension member lookup finds a method (classic extension method compatible with the receiver or method in extension type;
-        //   closer than any non-method extension member), we don't need to touch the result for the member access (it's a method group already).
-        //   This method group will be resolved specially in scenarios that can handle method group
-        //   (such as inferred local `var x = A.B;`, conversion to a delegate type `System.Action a = A.B;`).
-        //   It will be an error in other scenarios.
+        //   closer than any non-method extension member), then we return nothing and let the caller represent the failed member lookup with a BoundMethodGroup.
+        //   Note: Such method group will be resolved specially in scenarios that can handle method groups
+        //     (such as inferred local `var x = A.B;`, conversion to a delegate type `System.Action a = A.B;`).
+        //     It will be an error in other scenarios.
         //
         // - if the extension member lookup is ambiguous, then we'll use an error symbol as the result of the member access.
         //
-        // - if the extension member lookup finds nothing, then we don't need to touch the result for the member access.
+        // - if the extension member lookup finds nothing, then we return nothing and let the caller represent the failed member lookup with a BoundMethodGroup.
         internal BoundExpression? ResolveExtensionMemberAccessIfResultIsNonMethod(SyntaxNode syntax, BoundExpression receiver, string name,
           SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
             BindingDiagnosticBag diagnostics)
