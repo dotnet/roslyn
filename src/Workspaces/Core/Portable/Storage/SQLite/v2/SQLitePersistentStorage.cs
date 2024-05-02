@@ -42,7 +42,7 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
     /// <summary>
     /// Lock file that ensures only one database is made per process per solution.
     /// </summary>
-    private readonly object _databaseOwnership;
+    public readonly IDisposable DatabaseOwnership;
 
     /// <summary>
     /// For testing purposes.  Allows us to test what happens when we fail to acquire the db lock file.
@@ -94,7 +94,7 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
         string databaseFile,
         IAsynchronousOperationListener asyncListener,
         IPersistentStorageFaultInjector? faultInjector,
-        object databaseOwnership)
+        IDisposable databaseOwnership)
         : base(solutionKey, workingFolderPath, databaseFile)
     {
         Contract.ThrowIfNull(solutionKey.FilePath);
@@ -105,7 +105,7 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
         _documentAccessor = new DocumentAccessor(this);
 
         _faultInjector = faultInjector;
-        _databaseOwnership = databaseOwnership;
+        DatabaseOwnership = databaseOwnership;
 
         // Create a delay to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS.
         _flushInMemoryDataToDisk = FlushInMemoryDataToDisk;

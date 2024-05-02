@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SQLite.v2;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Storage;
@@ -127,6 +128,11 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
     internal readonly struct TestAccessor(AbstractPersistentStorageService service)
     {
         public void Shutdown()
-            => service._solutionKeyToStorage.Clear();
+        {
+            foreach (var (_, storage) in service._solutionKeyToStorage)
+                ((SQLitePersistentStorage)storage).DatabaseOwnership.Dispose();
+
+            service._solutionKeyToStorage.Clear();
+        }
     }
 }
