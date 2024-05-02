@@ -8,20 +8,18 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class ExtensionKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ClassKeyword)
+internal sealed class ExtensionKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ExtensionKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
-            SyntaxKind.NewKeyword,
             SyntaxKind.PublicKeyword,
             SyntaxKind.ProtectedKeyword,
             SyntaxKind.InternalKeyword,
             SyntaxKind.PrivateKeyword,
-            SyntaxKind.AbstractKeyword,
-            SyntaxKind.SealedKeyword,
-            SyntaxKind.StaticKeyword,
             SyntaxKind.UnsafeKeyword,
             SyntaxKind.FileKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.StaticKeyword,
         };
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)

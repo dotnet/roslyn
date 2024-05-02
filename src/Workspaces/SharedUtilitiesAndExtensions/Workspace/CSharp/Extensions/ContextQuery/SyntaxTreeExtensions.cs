@@ -594,6 +594,15 @@ internal static partial class SyntaxTreeExtensions
 
             if (container is VariableDeclarationSyntax && modifierTokens.Contains(SyntaxKind.FileKeyword))
                 return true;
+
+            // `new` can be parsed by compiler as an object creation expression.  If our construct allows for 'new',
+            // then this is an ok start for this type declaration.
+            if (container is ExpressionStatementSyntax { Expression: ObjectCreationExpressionSyntax objectCreation } &&
+                objectCreation.NewKeyword == token &&
+                modifierTokens.Contains(SyntaxKind.NewKeyword))
+            {
+                return true;
+            }
         }
 
         return false;

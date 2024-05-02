@@ -1447,7 +1447,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (nextToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
                 this.PeekToken(2).ContextualKind is SyntaxKind.ExtensionKeyword)
             {
-                return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                // There are no partial conversion operators.  So if we see `partial implicit extension` we can assume
+                // this is a extension.
+                return true;
             }
 
             return false;
@@ -1744,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword)
                 {
                     implicitOrExplicitKeyword = EatToken();
-                    extensionKeyword = ConvertToKeyword(EatToken());
+                    extensionKeyword = CheckFeatureAvailability(ConvertToKeyword(EatToken()), MessageID.IDS_FeatureExtensions);
                     return true;
                 }
 
@@ -2236,6 +2238,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword
                     when this.PeekToken(1).ContextualKind is SyntaxKind.ExtensionKeyword:
 
+                    // If we have `implicit extension E` then this is definitely an extension as it could not be parsed
+                    // as anything else.
+                    if (IsTrueIdentifier(this.PeekToken(2)))
+                        return true;
+
+                    // we have `implicit extension ...` technically this could be something like `implicit
+                    // extension.operator X(` (an implicit conversion with a explicit interface impl name). For compat,
+                    // determine the parsing strategy based on the lang version.
                     return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
 
                 case SyntaxKind.IdentifierToken:
