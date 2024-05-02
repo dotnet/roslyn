@@ -600,13 +600,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasTypeDifferences = true;
                 diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
             }
-            
+
             if (RefKind != implementation.RefKind)
             {
                 hasTypeDifferences = true;
                 diagnostics.Add(ErrorCode.ERR_PartialMemberRefReturnDifference, implementation.GetFirstLocation());
             }
-            
+
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation))
                 // PROTOTYPE(partial-properties): test indexers with parameter name differences
                 || !Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
