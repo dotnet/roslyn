@@ -281,9 +281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression BindToNaturalType(BoundExpression expression, BindingDiagnosticBag diagnostics, bool reportNoTargetType = true)
         {
-            Debug.Assert(object.ReferenceEquals(ResolveToNonMethodExtensionMemberIfPossible(expression, BindingDiagnosticBag.Discarded), expression),
-                "An empty method group that resolves to a non-method extension member should have been resolved by now");
-
             if (!expression.NeedsToBeConverted())
                 return expression;
 
@@ -7448,13 +7445,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensionMethods, diagnostics: diagnostics);
                     }
 
-                    BoundExpression result = MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
-                        flags: BoundMethodGroupFlags.SearchExtensionMethods, node, typeArgumentsSyntax, diagnostics);
-
                     if (!invoked)
                     {
-                        result = ResolveToNonMethodExtensionMemberIfPossible(result, diagnostics);
+                        var nonMethodExtensionMember = ResolveExtensionMemberAccessIfResultIsNonMethod(node, boundLeft, rightName,
+                            typeArgumentsSyntax, typeArguments, diagnostics);
+
+                        if (nonMethodExtensionMember is not null)
+                        {
+                            return nonMethodExtensionMember;
+                        }
                     }
+
+                    BoundExpression result = MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArguments, lookupResult,
+                        flags: BoundMethodGroupFlags.SearchExtensionMethods, node, typeArgumentsSyntax, diagnostics);
 
                     return result;
                 }
@@ -7513,35 +7516,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundExpression ResolveToNonMethodExtensionMemberIfPossible(BoundExpression expr, BindingDiagnosticBag diagnostics)
+#nullable enable
+        // When we're binding a member access that is not invoked and the member lookup yielded no result:
+        // - if an extension member lookup finds a non-method extension member (closer than any classic extension method compatible with the receiver
+        //   or than any method from an extension type), then that's the member being accessed.
+        //
+        // - if the extension member lookup finds a method (classic extension method compatible with the receiver or method in extension type;
+        //   closer than any non-method extension member), we don't need to touch the result for the member access (it's a method group already).
+        //   This method group will be resolved specially in scenarios that can handle method group
+        //   (such as inferred local `var x = A.B;`, conversion to a delegate type `System.Action a = A.B;`).
+        //   It will be an error in other scenarios.
+        //
+        // - if the extension member lookup is ambiguous, then we'll use an error symbol as the result of the member access.
+        //
+        // - if the extension member lookup finds nothing, then we don't need to touch the result for the member access.
+        internal BoundExpression? ResolveExtensionMemberAccessIfResultIsNonMethod(SyntaxNode syntax, BoundExpression receiver, string name,
+          SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
+            BindingDiagnosticBag diagnostics)
         {
-            switch (expr.Kind)
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            // Note: we're resolving without arguments, which means we're not treating the member access as invoked
+            var resolution = this.ResolveExtension(
+                syntax, name, analyzedArguments: null, receiver, typeArgumentsOpt, options: OverloadResolution.Options.None,
+                returnRefKind: default, returnType: null, withDependencies: useSiteInfo.AccumulatesDependencies);
+
+            diagnostics.Add(syntax, useSiteInfo);
+
+            if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
             {
-                case BoundKind.MethodGroup:
-                    if (expr is BoundMethodGroup { Methods: [], SearchExtensionMethods: true } methodGroup)
-                    {
-                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                        var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
-                        diagnostics.Add(expr.Syntax, useSiteInfo);
+                diagnostics.AddRange(resolution.Diagnostics);
+                resolution.Free();
 
-                        if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
-                        {
-                            diagnostics.AddRange(resolution.Diagnostics);
-                            resolution.Free();
-                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
-                                methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
-                        }
+                var memberAccess = GetExtensionMemberAccess(syntax, receiver, extensionMember,
+                    typeArgumentsSyntax, typeArgumentsOpt, diagnostics);
 
-                        resolution.Free();
-                    }
+                if (!memberAccess.HasErrors && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+                {
+                    Error(diagnostics, ErrorCode.ERR_OmittedTypeArgument, syntax);
+                }
 
-                    return expr;
-                // PROTOTYPE need to handle PropertyGroup as well
-
-                default:
-                    return expr;
+                return memberAccess;
             }
+
+            resolution.Free();
+            return null;
         }
+#nullable disable
 
         private BoundExpression BindMemberAccessWithBoundLeftCore(
             SyntaxNode node,
@@ -7597,13 +7617,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundLeft = ReplaceTypeOrValueReceiver(boundLeft, useType: false, diagnostics);
                     }
 
+                    if (searchExtensionsIfNecessary && !invoked)
+                    {
+                        var nonMethodExtensionMember = ResolveExtensionMemberAccessIfResultIsNonMethod(node, boundLeft, rightName,
+                            typeArgumentsSyntax, typeArgumentsWithAnnotations, diagnostics);
+
+                        if (nonMethodExtensionMember is not null)
+                        {
+                            return nonMethodExtensionMember;
+                        }
+                    }
+
                     BoundExpression result = MakeBoundMethodGroupAndCheckOmittedTypeArguments(boundLeft, rightName, typeArgumentsWithAnnotations, lookupResult,
                         flags, node, typeArgumentsSyntax, diagnostics);
-
-                    if (!invoked)
-                    {
-                        result = ResolveToNonMethodExtensionMemberIfPossible(result, diagnostics);
-                    }
 
                     return result;
                 }
@@ -7991,7 +8017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             OverloadResolution.Options options,
             RefKind returnRefKind,
-            TypeSymbol returnType,
+            TypeSymbol? returnType,
             bool withDependencies,
             in CallingConventionInfo callingConvention = default)
         {
@@ -8070,7 +8096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool tryResolveExtensionTypeMember(Binder binder, SyntaxNode expression, string memberName, AnalyzedArguments? analyzedArguments, BoundExpression left,
                 ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, OverloadResolution.Options options, RefKind returnRefKind,
-                TypeSymbol returnType, bool withDependencies, ExtensionScope scope, in CallingConventionInfo callingConvention, out MethodGroupResolution extensionResult)
+                TypeSymbol? returnType, bool withDependencies, ExtensionScope scope, in CallingConventionInfo callingConvention, out MethodGroupResolution extensionResult)
             {
                 var lookupResult = LookupResult.GetInstance();
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
@@ -8142,7 +8168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
                 OverloadResolution.Options options,
                 RefKind returnRefKind,
-                TypeSymbol returnType,
+                TypeSymbol? returnType,
                 bool withDependencies,
                 ExtensionScope scope,
                 ref AnalyzedArguments? actualArguments,
@@ -8192,7 +8218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodGroupResolution resolveOverloads(Binder binder, MethodGroup methodGroup, AnalyzedArguments actualArguments, OverloadResolution.Options options,
-                TypeSymbol returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics, in CallingConventionInfo callingConvention)
+                TypeSymbol? returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics, in CallingConventionInfo callingConvention)
             {
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 if (binder.AllowRefOmittedArguments(methodGroup.Receiver))
