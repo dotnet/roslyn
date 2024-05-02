@@ -28,16 +28,14 @@ internal sealed class ExplicitKeywordRecommender() : AbstractSyntacticSingleKeyw
         };
     private static readonly ISet<SyntaxKind> s_validExtensionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
-            SyntaxKind.NewKeyword,
             SyntaxKind.PublicKeyword,
             SyntaxKind.ProtectedKeyword,
             SyntaxKind.InternalKeyword,
             SyntaxKind.PrivateKeyword,
-            SyntaxKind.AbstractKeyword,
-            SyntaxKind.SealedKeyword,
-            SyntaxKind.StaticKeyword,
             SyntaxKind.UnsafeKeyword,
             SyntaxKind.FileKeyword,
+            SyntaxKind.NewKeyword,
+            SyntaxKind.StaticKeyword,
         };
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
