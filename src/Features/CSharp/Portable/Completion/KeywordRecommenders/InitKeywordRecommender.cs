@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class InitKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class InitKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public InitKeywordRecommender()
         : base(SyntaxKind.InitKeyword)

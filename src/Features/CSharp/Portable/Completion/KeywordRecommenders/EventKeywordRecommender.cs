@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class EventKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class EventKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     private static readonly ISet<SyntaxKind> s_validClassModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {

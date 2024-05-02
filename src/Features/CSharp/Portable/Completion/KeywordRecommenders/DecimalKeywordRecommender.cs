@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class DecimalKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class DecimalKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public DecimalKeywordRecommender()
         : base(SyntaxKind.DecimalKeyword)

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ByKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ByKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public ByKeywordRecommender()
         : base(SyntaxKind.ByKeyword)

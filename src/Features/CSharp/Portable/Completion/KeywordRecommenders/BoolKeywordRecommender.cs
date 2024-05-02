@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class BoolKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class BoolKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public BoolKeywordRecommender()
         : base(SyntaxKind.BoolKeyword)

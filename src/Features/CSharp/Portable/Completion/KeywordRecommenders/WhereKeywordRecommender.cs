@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public WhereKeywordRecommender()
         : base(SyntaxKind.WhereKeyword)

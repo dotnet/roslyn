@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class SByteKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class SByteKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public SByteKeywordRecommender()
         : base(SyntaxKind.SByteKeyword)

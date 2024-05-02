@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ForKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ForKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public ForKeywordRecommender()
         : base(SyntaxKind.ForKeyword)

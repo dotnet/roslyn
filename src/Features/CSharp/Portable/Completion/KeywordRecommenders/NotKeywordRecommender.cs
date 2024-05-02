@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class NotKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class NotKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public NotKeywordRecommender()
         : base(SyntaxKind.NotKeyword)

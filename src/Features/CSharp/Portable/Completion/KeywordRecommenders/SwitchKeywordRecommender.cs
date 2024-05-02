@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class SwitchKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class SwitchKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public SwitchKeywordRecommender()
         : base(SyntaxKind.SwitchKeyword)

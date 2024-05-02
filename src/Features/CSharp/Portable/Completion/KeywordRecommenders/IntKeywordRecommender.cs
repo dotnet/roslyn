@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class IntKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class IntKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public IntKeywordRecommender()
         : base(SyntaxKind.IntKeyword)

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class UShortKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class UShortKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public UShortKeywordRecommender()
         : base(SyntaxKind.UShortKeyword)
