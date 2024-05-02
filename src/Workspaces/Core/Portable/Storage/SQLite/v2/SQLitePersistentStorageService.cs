@@ -84,7 +84,4 @@ internal sealed class SQLitePersistentStorageService(
             asyncListener,
             faultInjector));
     }
-
-    // Error occurred when trying to open this DB.  Try to remove it so we can create a good DB.
-    protected override bool ShouldDeleteDatabase(Exception exception) => true;
 }

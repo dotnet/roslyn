@@ -34,7 +34,6 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
     /// cref="NoOpPersistentStorage"/> instance will be used.
     /// </summary>
     protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, IPersistentStorageFaultInjector? faultInjector, CancellationToken cancellationToken);
-    protected abstract bool ShouldDeleteDatabase(Exception exception);
 
     public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
         => GetStorageAsync(solutionKey, this.Configuration, faultInjector: null, cancellationToken);
@@ -104,17 +103,12 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
             StorageDatabaseLogger.LogException(ex);
 
             if (Configuration.ThrowOnFailure)
-            {
                 return false;
-            }
 
-            if (ShouldDeleteDatabase(ex))
-            {
-                // this was not a normal exception that we expected during DB open.
-                // Report this so we can try to address whatever is causing this.
-                FatalError.ReportAndCatch(ex);
-                IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath)!, recursive: true));
-            }
+            // this was not a normal exception that we expected during DB open.
+            // Report this so we can try to address whatever is causing this.
+            FatalError.ReportAndCatch(ex);
+            IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath)!, recursive: true));
 
             return true;
         }
