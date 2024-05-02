@@ -11,12 +11,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class FloatKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class FloatKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.FloatKeyword)
 {
-    public FloatKeywordRecommender()
-        : base(SyntaxKind.FloatKeyword)
-    {
-    }
+    protected override SpecialType SpecialType => SpecialType.System_Single;
 
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
@@ -50,6 +47,4 @@ internal sealed class FloatKeywordRecommender : AbstractSpecialTypePreselectingK
                 canBePartial: false,
                 cancellationToken: cancellationToken);
     }
-
-    protected override SpecialType SpecialType => SpecialType.System_Single;
 }

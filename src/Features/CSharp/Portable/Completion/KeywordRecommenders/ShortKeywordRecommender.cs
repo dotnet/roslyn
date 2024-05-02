@@ -11,12 +11,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class ShortKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class ShortKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.ShortKeyword)
 {
-    public ShortKeywordRecommender()
-        : base(SyntaxKind.ShortKeyword)
-    {
-    }
+    protected override SpecialType SpecialType => SpecialType.System_Int16;
 
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
@@ -51,6 +48,4 @@ internal sealed class ShortKeywordRecommender : AbstractSpecialTypePreselectingK
                 canBePartial: false,
                 cancellationToken: cancellationToken);
     }
-
-    protected override SpecialType SpecialType => SpecialType.System_Int16;
 }

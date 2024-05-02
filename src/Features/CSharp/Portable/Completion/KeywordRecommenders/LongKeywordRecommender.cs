@@ -11,12 +11,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class LongKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class LongKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.LongKeyword)
 {
-    public LongKeywordRecommender()
-        : base(SyntaxKind.LongKeyword)
-    {
-    }
+    protected override SpecialType SpecialType => SpecialType.System_Int64;
 
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
@@ -51,6 +48,4 @@ internal sealed class LongKeywordRecommender : AbstractSpecialTypePreselectingKe
                 canBePartial: false,
                 cancellationToken: cancellationToken);
     }
-
-    protected override SpecialType SpecialType => SpecialType.System_Int64;
 }
