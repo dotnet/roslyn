@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(result is BoundConversion
                 || (conversion.IsIdentity && ((object)result == source)
-                || (conversion.IsExtensionMemberConversion(out _, out var nestedConversion) && nestedConversion.IsIdentity)
                 || source.NeedsToBeConverted())
                 || hasErrors);
 
@@ -133,15 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (conversion.IsMethodGroup)
                 {
                     return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
-                }
-
-                if (conversion.IsExtensionMemberConversion(out Symbol? extensionMember, out Conversion nestedConversion))
-                {
-                    var methodGroup = (BoundMethodGroup)source;
-                    source = GetExtensionMemberAccess(syntax, methodGroup.ReceiverOpt, extensionMember,
-                        methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
-
-                    return CreateConversion(syntax, source, nestedConversion, isCast, conversionGroupOpt, destination, diagnostics);
                 }
 
                 // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
@@ -529,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindFieldAccess(syntax, receiver, fieldSymbol, diagnostics, LookupResultKind.Viable, indexed: false, hasErrors: false);
 
                 case NamedTypeSymbol namedTypeSymbol:
-                    bool wasError = false;
+                    bool wasError = namedTypeSymbol.IsErrorType();
 
                     if (!typeArgumentsOpt.IsDefault)
                     {
@@ -1054,11 +1044,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindingDiagnosticBag diagnostics,
                 out ImmutableArray<MethodSymbol> addMethods)
             {
-                var boundExpression = addMethodBinder.BindInstanceMemberAccess(
+                var boundExpression = addMethodBinder.BindMemberAccessWithBoundLeftCore(
                     node, node, receiver, WellKnownMemberNames.CollectionInitializerAddMethodName, rightArity: 0,
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                    invoked: true, indexed: false, diagnostics, searchExtensionMethodsIfNecessary: true);
+                    invoked: true, indexed: false, diagnostics, searchExtensionsIfNecessary: true);
 
                 // require the target member to be a method.
                 if (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess)
@@ -1134,7 +1124,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
 
-                if (resolution.HasAnyErrors)
+                if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
+                {
+                    ReportMakeInvocationExpressionBadMemberKind(syntax, WellKnownMemberNames.CollectionInitializerAddMethodName, methodGroup, diagnostics);
+                    addMethods = [];
+                    result = false;
+                }
+                else if (resolution.HasAnyErrors)
                 {
                     addMethods = [];
                     result = false;

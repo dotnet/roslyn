@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = value.Kind switch
             {
                 BoundKind.UnboundLambda => BindToInferredDelegateType(value, diagnostics),
-                BoundKind.MethodGroup => BindToExtensionMemberOrInferredDelegateType((BoundMethodGroup)value, diagnostics),
+                BoundKind.MethodGroup => BindToInferredDelegateType(value, diagnostics),
                 _ => BindToNaturalType(value, diagnostics)
             };
 
@@ -4022,7 +4022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = null;
                 isExpanded = false;
 
-                var boundAccess = BindInstanceMemberAccess(
+                var boundAccess = BindMemberAccessWithBoundLeftCore(
                        syntaxNode,
                        syntaxNode,
                        receiver,
@@ -4046,8 +4046,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //       containing method can be invoked in normal form which allows
                 //       us to skip some work during the lookup.
 
+                // PROTOTYPE(instance) We may have a delegate type value here instead of a method group.
+                //                     We need to decide whether to handle or block.
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                // PROTOTYPE we'll likely want extension types to contribute
                 var patternMethodCall = BindMethodGroupInvocation(
                     syntaxNode,
                     syntaxNode,
