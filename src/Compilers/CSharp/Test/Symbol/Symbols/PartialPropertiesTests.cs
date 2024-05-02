@@ -1013,163 +1013,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
-        public void Semantics_RefKind()
-        {
-            var source = """
-                using System;
-
-                var c = new C();
-                ref int i = ref c.P1;
-                c.P1++;
-                Console.Write(i);
-                Console.Write(c.P2);
-                
-                partial class C
-                {
-                    public partial ref int P1 { get; }
-                    public partial ref readonly int P2 { get; }
-
-                    private int _p;
-                    public partial ref int P1 => ref _p;
-                    public partial ref readonly int P2 { get => ref _p; }
-                }
-                """;
-
-            var verifier = CompileAndVerify(source, expectedOutput: "11");
-            verifier.VerifyDiagnostics();
-            var comp = (CSharpCompilation)verifier.Compilation;
-
-            var members = comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
-            AssertEx.Equal([
-                "ref System.Int32 C.P1 { get; }",
-                "ref System.Int32 C.P1.get",
-                "ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 C.P2 { get; }",
-                "ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 C.P2.get",
-                "System.Int32 C._p",
-                "C..ctor()"
-                ], members);
-        }
-
-        [Fact]
-        public void Semantics_Static()
-        {
-            var source = """
-                using System;
-
-                C.P++;
-                Console.Write(C.P);
-                
-                partial class C
-                {
-                    public static partial int P { get; set; }
-
-                    public static partial int P { get => _p; set => _p = value; }
-                    private static int _p;
-                }
-                """;
-
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
-            verifier.VerifyDiagnostics();
-            var comp = (CSharpCompilation)verifier.Compilation;
-
-            var members = comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
-            AssertEx.Equal([
-                "System.Int32 C.P { get; set; }",
-                "System.Int32 C.P.get",
-                "void C.P.set",
-                "System.Int32 C._p",
-                "C..ctor()"
-                ], members);
-        }
-
-        [Fact]
-        public void Semantics_Unsafe()
-        {
-            var source = """
-                using System;
-
-                class Program
-                {
-                    static unsafe void Main()
-                    {
-                        int i = 1;
-                        S s = new S() { P = &i };
-                        Console.Write(*s.P);
-                    }
-                }
-
-                partial struct S
-                {
-                    public unsafe partial int* P { get; set; }
-
-                    public unsafe partial int* P { get => _p; set => _p = value; }
-                    private unsafe int* _p;
-                }
-                """;
-
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "1");
-            verifier.VerifyDiagnostics();
-            var comp = (CSharpCompilation)verifier.Compilation;
-
-            var members = comp.GetMember<NamedTypeSymbol>("S").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
-            AssertEx.Equal([
-                "System.Int32* S.P { get; set; }",
-                "System.Int32* S.P.get",
-                "void S.P.set",
-                "System.Int32* S._p",
-                "S..ctor()"
-                ], members);
-        }
-
-        [Fact]
-        public void Semantics_ExtendedModifier()
-        {
-            var source = """
-                using System;
-
-                C c = new C();
-                Console.Write(c.P);
-
-                c = new D1();
-                Console.Write(c.P);
-
-                c = new D2();
-                Console.Write(c.P);
-
-                c = new D3();
-                Console.Write(c.P);
-                Console.Write(new D3().P);
-
-                partial class C
-                {
-                    public virtual partial int P { get; }
-                    public virtual partial int P => 0;
-                }
-                
-                partial class D1 : C
-                {
-                    public override partial int P { get; }
-                    public override partial int P => 1;
-                }
-                
-                partial class D2 : C
-                {
-                    public sealed override partial int P { get; }
-                    public sealed override partial int P => 2;
-                }
-                
-                partial class D3 : C
-                {
-                    public new partial int P { get; }
-                    public new partial int P => 3;
-                }
-                """;
-
-            var verifier = CompileAndVerify(source, expectedOutput: "01203");
-            verifier.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void ModifierDifference_Accessibility_Property()
         {
             var source = """
@@ -1230,6 +1073,83 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
+        public void Semantics_Readonly_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(new S());
+                    }
+
+                    static void M(in S s)
+                    {
+                        Console.Write(s.P1);
+                        Console.Write(s.P2);
+                        // We can't exercise S.P2.set here because non-readonly setters will error instead of implicitly copying the receiver.
+                        s.P3 = 3;
+                        Console.Write(s.P3);
+                        Console.Write(s.P4);
+                    }
+                }
+
+                partial struct S
+                {
+                    public readonly partial int P1 { get; }
+                    public readonly partial int P1 { get => 1; }
+
+                    public partial int P2 { readonly get; set; }
+                    public partial int P2 { readonly get => 2; set { } }
+
+                    public partial int P3 { get; readonly set; }
+                    public partial int P3 { get => 3; readonly set { } }
+                    
+                    public partial int P4 { get; }
+                    public partial int P4 { get => 4; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1234");
+            verifier.VerifyDiagnostics();
+
+            // non-readonly accessors need to copy the value to temp before invoking.
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       68 (0x44)
+                  .maxstack  2
+                  .locals init (S V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "readonly int S.P1.get"
+                  IL_0006:  call       "void System.Console.Write(int)"
+                  IL_000b:  ldarg.0
+                  IL_000c:  call       "readonly int S.P2.get"
+                  IL_0011:  call       "void System.Console.Write(int)"
+                  IL_0016:  ldarg.0
+                  IL_0017:  ldc.i4.3
+                  IL_0018:  call       "readonly void S.P3.set"
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldobj      "S"
+                  IL_0023:  stloc.0
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  call       "int S.P3.get"
+                  IL_002b:  call       "void System.Console.Write(int)"
+                  IL_0030:  ldarg.0
+                  IL_0031:  ldobj      "S"
+                  IL_0036:  stloc.0
+                  IL_0037:  ldloca.s   V_0
+                  IL_0039:  call       "int S.P4.get"
+                  IL_003e:  call       "void System.Console.Write(int)"
+                  IL_0043:  ret
+                }
+                """);
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+        }
+
+        [Fact]
         public void ModifierDifference_Readonly_Property()
         {
             // readonly modifier mismatch on property
@@ -1285,6 +1205,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (8,57): error CS8663: Both partial member declarations must be readonly or neither may be readonly
                 //     public partial int P { get => throw null!; readonly set { } }
                 Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(8, 57));
+        }
+
+        [Fact]
+        public void Accessibility_ExplicitDefault()
+        {
+            // properties can explicitly specify the default accessibility
+            var source = """
+                using System;
+
+                partial class C
+                {
+                    private partial int P1 { get; }
+
+                    static void Main()
+                    {
+                        Console.Write(new C().P1);
+                    }
+                }
+
+                partial class C
+                {
+                    private partial int P1 { get => 1; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Accessibility_ExplicitDefault_IsRespected()
+        {
+            var source = """
+                using System;
+                
+                class Program
+                {
+                    static void Main()
+                    {
+                        Console.Write(new C().P1); // 1
+                    }
+
+                }
+
+                partial class C
+                {
+                    private partial int P1 { get; }
+                }
+
+                partial class C
+                {
+                    private partial int P1 { get => 1; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS0122: 'C.P1' is inaccessible due to its protection level
+                //         Console.Write(new C().P1); // 1
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("C.P1").WithLocation(7, 31));
         }
 
         [Fact]
@@ -1394,6 +1374,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
+        public void Semantics_RefKind()
+        {
+            var source = """
+                using System;
+
+                var c = new C();
+                ref int i = ref c.P1;
+                c.P1++;
+                Console.Write(i);
+                Console.Write(c.P2);
+                
+                partial class C
+                {
+                    public partial ref int P1 { get; }
+                    public partial ref readonly int P2 { get; }
+
+                    private int _p;
+                    public partial ref int P1 => ref _p;
+                    public partial ref readonly int P2 { get => ref _p; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "11");
+            verifier.VerifyDiagnostics();
+            var comp = (CSharpCompilation)verifier.Compilation;
+
+            var members = comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.Equal([
+                "ref System.Int32 C.P1 { get; }",
+                "ref System.Int32 C.P1.get",
+                "ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 C.P2 { get; }",
+                "ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 C.P2.get",
+                "System.Int32 C._p",
+                "C..ctor()"
+                ], members);
+        }
+
+        [Fact]
         public void RefKindDifference_01()
         {
             var source = """
@@ -1443,6 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void AllTypeDifferences()
         {
+            // Verify which diagnostics are reported when multiple kinds of type differences are present
             var source = """
                 #nullable enable
 
@@ -1461,6 +1480,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (6,52): error CS8818: Partial member declarations must have matching ref return values.
                 //     public partial ref readonly (long x, string y) Prop => throw null!;
                 Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "Prop").WithLocation(6, 52));
+        }
+
+        [Fact]
+        public void Semantics_Static()
+        {
+            var source = """
+                using System;
+
+                C.P++;
+                Console.Write(C.P);
+                
+                partial class C
+                {
+                    public static partial int P { get; set; }
+
+                    public static partial int P { get => _p; set => _p = value; }
+                    private static int _p;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+            var comp = (CSharpCompilation)verifier.Compilation;
+
+            var members = comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.Equal([
+                "System.Int32 C.P { get; set; }",
+                "System.Int32 C.P.get",
+                "void C.P.set",
+                "System.Int32 C._p",
+                "C..ctor()"
+                ], members);
         }
 
         [Fact]
@@ -1484,6 +1535,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (7,31): error CS0763: Both partial member declarations must be static or neither may be static
                 //     public static partial int P2 { get => 1; set { } }
                 Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "P2").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void Semantics_Unsafe()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static unsafe void Main()
+                    {
+                        int i = 1;
+                        S s = new S() { P = &i };
+                        Console.Write(*s.P);
+                    }
+                }
+
+                partial struct S
+                {
+                    public unsafe partial int* P { get; set; }
+
+                    public unsafe partial int* P { get => _p; set => _p = value; }
+                    private unsafe int* _p;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+            var comp = (CSharpCompilation)verifier.Compilation;
+
+            var members = comp.GetMember<NamedTypeSymbol>("S").GetMembers().SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.Equal([
+                "System.Int32* S.P { get; set; }",
+                "System.Int32* S.P.get",
+                "void S.P.set",
+                "System.Int32* S._p",
+                "S..ctor()"
+                ], members);
         }
 
         [Fact]
@@ -1536,6 +1626,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 // (9,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public partial int* P1 { get => null; set { } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 20));
+        }
+
+        [Fact]
+        public void Semantics_ExtendedModifier()
+        {
+            var source = """
+                using System;
+
+                C c = new C();
+                Console.Write(c.P);
+
+                c = new D1();
+                Console.Write(c.P);
+
+                c = new D2();
+                Console.Write(c.P);
+
+                c = new D3();
+                Console.Write(c.P);
+                Console.Write(new D3().P);
+
+                partial class C
+                {
+                    public virtual partial int P { get; }
+                    public virtual partial int P => 0;
+                }
+                
+                partial class D1 : C
+                {
+                    public override partial int P { get; }
+                    public override partial int P => 1;
+                }
+                
+                partial class D2 : C
+                {
+                    public sealed override partial int P { get; }
+                    public sealed override partial int P => 2;
+                }
+                
+                partial class D3 : C
+                {
+                    public new partial int P { get; }
+                    public new partial int P => 3;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "01203");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]

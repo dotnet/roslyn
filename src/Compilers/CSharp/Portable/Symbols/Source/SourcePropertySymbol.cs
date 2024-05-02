@@ -588,7 +588,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)this != implementation);
             Debug.Assert((object?)this.OtherPartOfPartial == implementation);
 
+            // The purpose of this flag is to avoid cascading a type difference error with an additional redundant warning.
             bool hasTypeDifferences = !TypeWithAnnotations.Equals(implementation.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
+
             if (hasTypeDifferences)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialPropertyTypeDifference, implementation.GetFirstLocation());
@@ -599,6 +601,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
             }
             
+            if (RefKind != implementation.RefKind)
+            {
+                hasTypeDifferences = true;
+                diagnostics.Add(ErrorCode.ERR_PartialMemberRefReturnDifference, implementation.GetFirstLocation());
+            }
+            
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation))
                 // PROTOTYPE(partial-properties): test indexers with parameter name differences
                 || !Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
@@ -606,11 +614,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_PartialPropertySignatureDifference, implementation.GetFirstLocation(),
                     new FormattedSymbol(this, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
-            }
-            
-            if (RefKind != implementation.RefKind)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMemberRefReturnDifference, implementation.GetFirstLocation());
             }
 
             if (IsStatic != implementation.IsStatic)
