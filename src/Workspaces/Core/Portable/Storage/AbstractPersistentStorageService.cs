@@ -130,7 +130,7 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
         public void Shutdown()
         {
             foreach (var (_, storage) in service._solutionKeyToStorage)
-                ((SQLitePersistentStorage)storage).DatabaseOwnership.Dispose();
+                (storage as SQLitePersistentStorage)?.DatabaseOwnership.Dispose();
 
             service._solutionKeyToStorage.Clear();
         }
