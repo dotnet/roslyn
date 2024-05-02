@@ -1441,6 +1441,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
+        public void AllTypeDifferences()
+        {
+            var source = """
+                #nullable enable
+
+                partial class C
+                {
+                    public partial ref (int x, string? y) Prop { get; }
+                    public partial ref readonly (long x, string y) Prop => throw null!;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,52): error CS9307: Both partial property declarations must have the same type.
+                //     public partial ref readonly (long x, string y) Prop => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "Prop").WithLocation(6, 52),
+                // (6,52): error CS8818: Partial member declarations must have matching ref return values.
+                //     public partial ref readonly (long x, string y) Prop => throw null!;
+                Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "Prop").WithLocation(6, 52));
+        }
+
+        [Fact]
         public void StaticDifference()
         {
             var source = """
@@ -1483,12 +1506,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 """;
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyEmitDiagnostics(
-                // (9,31): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
+                // (9,31): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
                 //     public unsafe partial int P1 { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "P1").WithLocation(9, 31),
-                // (10,24): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "P1").WithLocation(9, 31),
+                // (10,24): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
                 //     public partial int P2 { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "P2").WithLocation(10, 24));
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "P2").WithLocation(10, 24));
         }
 
         [Fact]

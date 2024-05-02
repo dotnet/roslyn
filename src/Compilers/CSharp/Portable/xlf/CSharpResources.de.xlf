@@ -1632,6 +1632,11 @@
         <target state="translated">Deklarationen partieller Methoden müssen übereinstimmende Ref-Rückgabewerte aufweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberUnsafeDifference">
+        <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
+        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
         <source>Both partial method declarations must have the same return type.</source>
         <target state="translated">Beide Deklarationen der partiellen Methode müssen den gleichen Rückgabetyp aufweisen.</target>
@@ -8170,11 +8175,6 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
         <target state="translated">Beide partiellen Methodendeklarationen müssen statisch sein, oder keine von beiden darf statisch sein.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodUnsafeDifference">
-        <source>Both partial method declarations must be unsafe or neither may be unsafe</source>
-        <target state="translated">Beide partiellen Methodendeklarationen müssen unsicher sein, oder keine von beiden darf unsicher sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

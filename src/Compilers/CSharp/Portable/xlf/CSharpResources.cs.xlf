@@ -1632,6 +1632,11 @@
         <target state="translated">Deklarace částečných metod musí mít odpovídající referenční návratové hodnoty.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberUnsafeDifference">
+        <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
+        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
         <source>Both partial method declarations must have the same return type.</source>
         <target state="translated">Obě deklarace částečných metod musí mít stejný návratový typ.</target>
@@ -8170,11 +8175,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
         <target state="translated">Obě deklarace částečné metody musí být statické, nebo nesmí být statická žádná z nich.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodUnsafeDifference">
-        <source>Both partial method declarations must be unsafe or neither may be unsafe</source>
-        <target state="translated">Obě deklarace částečné metody musí být nezabezpečené, nebo nesmí být nezabezpečená žádná z nich.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

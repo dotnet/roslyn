@@ -14425,7 +14425,7 @@ namespace N
         }
 
         [Fact]
-        public void CS0764ERR_PartialMethodUnsafeDifference()
+        public void CS0764ERR_PartialMemberUnsafeDifference()
         {
             var text =
 @"partial class C
@@ -14436,10 +14436,10 @@ namespace N
     partial void M2();
 }";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,18): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M1").WithLocation(4, 18),
-                // (5,25): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M2").WithLocation(5, 25));
+                // (4,18): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M1").WithLocation(4, 18),
+                // (5,25): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M2").WithLocation(5, 25));
         }
 
         [Fact]

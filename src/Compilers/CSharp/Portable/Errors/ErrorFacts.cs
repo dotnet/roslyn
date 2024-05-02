@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_PartialMethodInconsistentConstraints:
                 case ErrorCode.ERR_PartialMethodToDelegate:
                 case ErrorCode.ERR_PartialMemberStaticDifference:
-                case ErrorCode.ERR_PartialMethodUnsafeDifference:
+                case ErrorCode.ERR_PartialMemberUnsafeDifference:
                 case ErrorCode.ERR_PartialMethodInExpressionTree:
                 case ErrorCode.ERR_ExplicitImplCollisionOnRefOut:
                 case ErrorCode.ERR_IndirectRecursiveConstructorCall:

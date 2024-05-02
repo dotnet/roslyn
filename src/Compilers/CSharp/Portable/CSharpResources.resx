@@ -2246,8 +2246,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMemberStaticDifference" xml:space="preserve">
     <value>Both partial member declarations must be static or neither may be static</value>
   </data>
-  <data name="ERR_PartialMethodUnsafeDifference" xml:space="preserve">
-    <value>Both partial method declarations must be unsafe or neither may be unsafe</value>
+  <data name="ERR_PartialMemberUnsafeDifference" xml:space="preserve">
+    <value>Both partial member declarations must be unsafe or neither may be unsafe</value>
   </data>
   <data name="ERR_PartialMethodInExpressionTree" xml:space="preserve">
     <value>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</value>

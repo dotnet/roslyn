@@ -1632,6 +1632,11 @@
         <target state="translated">Kısmi yöntem bildirimlerinin eşleşen başvuru dönüş değerleri olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberUnsafeDifference">
+        <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
+        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
         <source>Both partial method declarations must have the same return type.</source>
         <target state="translated">Her iki kısmi yöntem bildirimi aynı dönüş türüne sahip olmalıdır.</target>
@@ -8170,11 +8175,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
         <target state="translated">İki kısmi yöntem bildiriminin de statik olması ya da hiçbirinin statik olmaması gerekir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodUnsafeDifference">
-        <source>Both partial method declarations must be unsafe or neither may be unsafe</source>
-        <target state="translated">İki kısmi yöntem bildiriminin de güvensiz olması ya da hiçbirinin güvensiz olmaması gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">

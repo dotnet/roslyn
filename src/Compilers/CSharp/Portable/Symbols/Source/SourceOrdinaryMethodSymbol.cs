@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (definition.IsUnsafe != implementation.IsUnsafe && definition.CompilationAllowsUnsafe()) // Don't cascade.
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsParams() != implementation.IsParams())

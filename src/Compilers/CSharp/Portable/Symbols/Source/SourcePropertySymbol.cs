@@ -588,25 +588,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)this != implementation);
             Debug.Assert((object?)this.OtherPartOfPartial == implementation);
 
-            if (!TypeWithAnnotations.Equals(implementation.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+            bool hasTypeDifferences = !TypeWithAnnotations.Equals(implementation.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
+            if (hasTypeDifferences)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialPropertyTypeDifference, implementation.GetFirstLocation());
             }
             else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
             {
+                hasTypeDifferences = true;
                 diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
             }
-            else if (RefKind != implementation.RefKind)
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMemberRefReturnDifference, implementation.GetFirstLocation());
-            }
-            else if (!MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation)
+            
+            if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation))
                 // PROTOTYPE(partial-properties): test indexers with parameter name differences
                 || !Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
             {
                 diagnostics.Add(ErrorCode.WRN_PartialPropertySignatureDifference, implementation.GetFirstLocation(),
                     new FormattedSymbol(this, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+            
+            if (RefKind != implementation.RefKind)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberRefReturnDifference, implementation.GetFirstLocation());
             }
 
             if (IsStatic != implementation.IsStatic)
@@ -621,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((_modifiers & DeclarationModifiers.Unsafe) != (implementation._modifiers & DeclarationModifiers.Unsafe) && this.CompilationAllowsUnsafe()) // Don't cascade.
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodUnsafeDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
             }
 
             // PROTOTYPE(partial-properties): test 'params' differences in indexers

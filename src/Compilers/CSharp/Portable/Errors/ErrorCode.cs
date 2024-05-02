@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInconsistentConstraints = 761,
         ERR_PartialMethodToDelegate = 762,
         ERR_PartialMemberStaticDifference = 763,
-        ERR_PartialMethodUnsafeDifference = 764,
+        ERR_PartialMemberUnsafeDifference = 764,
         ERR_PartialMethodInExpressionTree = 765,
         // ERR_PartialMethodMustReturnVoid = 766, Removed as part of 'extended partial methods' feature
         ERR_ExplicitImplCollisionOnRefOut = 767,

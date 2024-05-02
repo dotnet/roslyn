@@ -1632,6 +1632,11 @@
         <target state="translated">部分方法宣告必須有相符的參考傳回值。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberUnsafeDifference">
+        <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
+        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
         <source>Both partial method declarations must have the same return type.</source>
         <target state="translated">兩個部分方法宣告都必須有相同的傳回型別。</target>
@@ -8170,11 +8175,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
         <target state="translated">兩個部分方法宣告必須都是靜態，或者都不是靜態</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodUnsafeDifference">
-        <source>Both partial method declarations must be unsafe or neither may be unsafe</source>
-        <target state="translated">兩個部分方法宣告必須都是 unsafe，或者都不是 unsafe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">
