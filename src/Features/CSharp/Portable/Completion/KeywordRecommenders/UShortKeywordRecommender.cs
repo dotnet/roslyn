@@ -6,9 +6,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
@@ -28,7 +25,6 @@ internal sealed class UShortKeywordRecommender() : AbstractSpecialTypePreselecti
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.SyntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             context.SyntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken);
     }
 }

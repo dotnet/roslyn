@@ -58,6 +58,9 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
         if (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>())
             return true;
 
+        if (context.SyntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken))
+            return true;
+
         if (context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
