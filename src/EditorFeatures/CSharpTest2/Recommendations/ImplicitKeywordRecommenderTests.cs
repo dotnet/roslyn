@@ -373,9 +373,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestNotAfterNestedPublicStaticInInterface()
+        public async Task TestAfterNestedPublicStaticInInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 interface C {
                     public static $$
