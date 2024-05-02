@@ -19,7 +19,6 @@ internal sealed class LongKeywordRecommender() : AbstractSpecialTypePreselecting
     {
         var syntaxTree = context.SyntaxTree;
         return
-            (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
             context.IsEnumBaseListContext ||
             context.IsFixedVariableDeclarationContext ||
             context.IsPrimaryFunctionExpressionContext ||

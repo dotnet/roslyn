@@ -54,6 +54,9 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
             return true;
         }
 
+        if (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>())
+            return true;
+
         return IsValidContextWorker(position, context, cancellationToken) ||
             IsAfterRefOrReadonlyInTopLevelOrMemberDeclaration(context, position, cancellationToken);
     }
