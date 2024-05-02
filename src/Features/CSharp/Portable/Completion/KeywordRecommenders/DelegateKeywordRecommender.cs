@@ -52,6 +52,7 @@ internal sealed class DelegateKeywordRecommender : AbstractSyntacticSingleKeywor
             if (context.IsAttributeNameContext)
                 return false;
 
+            // An extension *currently* cannot be for a function pointer type.
             if (context.IsExtensionForTypeContext)
                 return false;
 
