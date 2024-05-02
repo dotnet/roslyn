@@ -200,10 +200,10 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         var isPreProcessorKeywordContext = isPreProcessorDirectiveContext && syntaxTree.IsPreProcessorKeywordContext(position, leftToken);
         var isPreProcessorExpressionContext = isPreProcessorDirectiveContext && targetToken.IsPreProcessorExpressionContext();
         var isStatementContext = !isPreProcessorDirectiveContext && targetToken.IsBeginningOfStatementContext();
-        var isGlobalStatementContext = !isPreProcessorDirectiveContext && syntaxTree.IsGlobalStatementContext(position, cancellationToken)
-        var isAnyExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel)
-        var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel)
-        var isConstantExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsConstantExpressionContext(position, leftToken)
+        var isGlobalStatementContext = !isPreProcessorDirectiveContext && syntaxTree.IsGlobalStatementContext(position, cancellationToken);
+        var isAnyExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
+        var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel);
+        var isConstantExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsConstantExpressionContext(position, leftToken);
 
         var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
         var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
