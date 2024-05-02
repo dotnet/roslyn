@@ -640,5 +640,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 implicit extension E for $$
                 """);
         }
+
+        [Fact]
+        public async Task TestExtensionConstraints1()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints2()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E<T> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints3()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E(int i) $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints4()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E : X $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints5()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E : X, Y $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestExtensionConstraints6()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E : X<int> $$
+                """);
+        }
     }
 }
