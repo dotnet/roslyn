@@ -32,10 +32,17 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
     /// to delete the database and retry opening one more time.  If that fails again, the <see
     /// cref="NoOpPersistentStorage"/> instance will be used.
     /// </summary>
-    protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken);
+    protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, IPersistentStorageFaultInjector? faultInjector, CancellationToken cancellationToken);
     protected abstract bool ShouldDeleteDatabase(Exception exception);
 
-    public async ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
+    public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
+        => GetStorageAsync(solutionKey, this.Configuration, faultInjector: null, cancellationToken);
+
+    public async ValueTask<IChecksummedPersistentStorage> GetStorageAsync(
+        SolutionKey solutionKey,
+        IPersistentStorageConfiguration configuration,
+        IPersistentStorageFaultInjector? faultInjector,
+        CancellationToken cancellationToken)
     {
         if (solutionKey.FilePath == null)
             return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
@@ -44,7 +51,7 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
         if (_solutionKeyToStorage.TryGetValue(solutionKey, out var storage))
             return storage;
 
-        var workingFolder = Configuration.TryGetStorageLocation(solutionKey);
+        var workingFolder = configuration.TryGetStorageLocation(solutionKey);
         if (workingFolder == null)
             return NoOpPersistentStorage.GetOrThrow(solutionKey, Configuration.ThrowOnFailure);
 
@@ -53,7 +60,7 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
             // See if another thread set to the solution we care about while we were waiting on the lock.
             if (!_solutionKeyToStorage.TryGetValue(solutionKey, out storage))
             {
-                storage = await CreatePersistentStorageAsync(solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
+                storage = await CreatePersistentStorageAsync(solutionKey, workingFolder, faultInjector, cancellationToken).ConfigureAwait(false);
                 _solutionKeyToStorage.Add(solutionKey, storage);
             }
 
@@ -62,14 +69,14 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
     }
 
     private async ValueTask<IChecksummedPersistentStorage> CreatePersistentStorageAsync(
-        SolutionKey solutionKey, string workingFolderPath, CancellationToken cancellationToken)
+        SolutionKey solutionKey, string workingFolderPath, IPersistentStorageFaultInjector? faultInjector, CancellationToken cancellationToken)
     {
         // Attempt to create the database up to two times.  The first time we may encounter
         // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
         // try to create it again.  If we can't create it the second time, then there's nothing
         // we can do and we have to store things in memory.
-        var result = await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath, cancellationToken).ConfigureAwait(false) ??
-                     await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath, cancellationToken).ConfigureAwait(false);
+        var result = await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath, faultInjector, cancellationToken).ConfigureAwait(false) ??
+                     await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath, faultInjector, cancellationToken).ConfigureAwait(false);
 
         if (result != null)
             return result;
@@ -80,12 +87,13 @@ internal abstract partial class AbstractPersistentStorageService(IPersistentStor
     private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(
         SolutionKey solutionKey,
         string workingFolderPath,
+        IPersistentStorageFaultInjector? faultInjector,
         CancellationToken cancellationToken)
     {
         var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
         try
         {
-            return await TryOpenDatabaseAsync(solutionKey, workingFolderPath, databaseFilePath, cancellationToken).ConfigureAwait(false);
+            return await TryOpenDatabaseAsync(solutionKey, workingFolderPath, databaseFilePath, faultInjector, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (Recover(e))
         {

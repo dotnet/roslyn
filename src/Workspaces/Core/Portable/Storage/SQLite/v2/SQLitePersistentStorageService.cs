@@ -59,17 +59,6 @@ internal sealed class SQLitePersistentStorageService(
         return true;
     }
 
-    private readonly IPersistentStorageFaultInjector? _faultInjector;
-
-    public SQLitePersistentStorageService(
-        IPersistentStorageConfiguration configuration,
-        IAsynchronousOperationListener asyncListener,
-        IPersistentStorageFaultInjector? faultInjector)
-        : this(configuration, asyncListener)
-    {
-        _faultInjector = faultInjector;
-    }
-
     protected override string GetDatabaseFilePath(string workingFolderPath)
     {
         Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
@@ -77,7 +66,7 @@ internal sealed class SQLitePersistentStorageService(
     }
 
     protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
-        SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
+        SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, IPersistentStorageFaultInjector? faultInjector, CancellationToken cancellationToken)
     {
         if (!TryInitializeLibraries())
         {
@@ -93,7 +82,7 @@ internal sealed class SQLitePersistentStorageService(
             workingFolderPath,
             databaseFilePath,
             asyncListener,
-            _faultInjector));
+            faultInjector));
     }
 
     // Error occurred when trying to open this DB.  Try to remove it so we can create a good DB.

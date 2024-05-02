@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
         }
 
-        internal abstract AbstractPersistentStorageService GetStorageService(
-            IMefHostExportProvider exportProvider,
-            IPersistentStorageConfiguration configuration,
-            IPersistentStorageFaultInjector? faultInjector,
-            string rootFolder);
+        //internal abstract AbstractPersistentStorageService GetStorageService(
+        //    IMefHostExportProvider exportProvider,
+        //    IPersistentStorageConfiguration configuration,
+        //    IPersistentStorageFaultInjector? faultInjector,
+        //    string rootFolder);
 
         public void Dispose()
         {
@@ -1016,8 +1016,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             persistentFolder ??= _persistentFolder;
             var configuration = new MockPersistentStorageConfiguration(solution.Id, persistentFolder.Path, throwOnFailure);
 
-            _storageService = GetStorageService(solution.Workspace.Services.SolutionServices.ExportProvider, configuration, faultInjector, _persistentFolder.Path);
-            var storage = await _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None);
+            _storageService = (AbstractPersistentStorageService)solution.Workspace.Services.SolutionServices.GetPersistentStorageService();
+            var storage = await _storageService.GetStorageAsync(
+                SolutionKey.ToSolutionKey(solution), configuration, faultInjector, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
@@ -1035,8 +1036,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
-            _storageService = GetStorageService(services.SolutionServices.ExportProvider, configuration, faultInjector, _persistentFolder.Path);
-            var storage = await _storageService.GetStorageAsync(solutionKey, CancellationToken.None);
+            _storageService = (AbstractPersistentStorageService)services.SolutionServices.GetPersistentStorageService();
+            var storage = await _storageService.GetStorageAsync(
+                solutionKey, configuration, faultInjector, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
