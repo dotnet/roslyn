@@ -331,28 +331,21 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         CancellationTokenSource linkedTokenSource)
     {
         await foreach (var symbolReferences in reader)
-            ProcessReferences(allSymbolReferences, maxResults, symbolReferences, linkedTokenSource);
-    }
-
-    private static void ProcessReferences(
-        ConcurrentQueue<Reference> allSymbolReferences,
-        int maxResults,
-        ImmutableArray<SymbolReference> foundReferences,
-        CancellationTokenSource linkedTokenSource)
-    {
-        linkedTokenSource.Token.ThrowIfCancellationRequested();
-        AddRange(allSymbolReferences, foundReferences);
-
-        // If we've gone over the max amount of items we're looking for, attempt to cancel all existing work that is
-        // still searching.
-        if (allSymbolReferences.Count >= maxResults)
         {
-            try
+            linkedTokenSource.Token.ThrowIfCancellationRequested();
+            AddRange(allSymbolReferences, symbolReferences);
+
+            // If we've gone over the max amount of items we're looking for, attempt to cancel all existing work that is
+            // still searching.
+            if (allSymbolReferences.Count >= maxResults)
             {
-                linkedTokenSource.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
+                try
+                {
+                    linkedTokenSource.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
             }
         }
     }
