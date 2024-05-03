@@ -101,7 +101,7 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
 
         await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
             source: documentsAndSpansToFix,
-            produceItems: static async (tuple, callback, args) =>
+            produceItems: static async (tuple, callback, args, cancellationToken) =>
             {
                 var (document, spans) = tuple;
                 var newDocument = await args.@this.FixAllAsync(args.fixAllContext, document, spans).ConfigureAwait(false);
@@ -110,17 +110,17 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
 
                 // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
                 // language that doesn't support that, then just grab the text.
-                var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(args.cancellationToken).ConfigureAwait(false) : null;
-                var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(args.cancellationToken).ConfigureAwait(false);
+                var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
+                var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 callback((document.Id, (node, text)));
             },
-            consumeItems: static async (results, args) =>
+            consumeItems: static async (results, args, cancellationToken) =>
             {
                 await foreach (var (docId, nodeOrText) in results)
                     args.docIdToNewRootOrText[docId] = nodeOrText;
             },
-            args: (@this: this, fixAllContext, docIdToNewRootOrText, cancellationToken),
+            args: (@this: this, fixAllContext, docIdToNewRootOrText),
             cancellationToken).ConfigureAwait(false);
 
         return docIdToNewRootOrText;

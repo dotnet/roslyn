@@ -117,7 +117,7 @@ public abstract class DocumentBasedFixAllProvider : FixAllProvider
             // Then, process all documents in parallel to get the change for each doc.
             await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
                 source: diagnostics.Where(kvp => !kvp.Value.IsDefaultOrEmpty),
-                produceItems: static async (kvp, callback, args) =>
+                produceItems: static async (kvp, callback, args, cancellationToken) =>
                 {
                     var (document, documentDiagnostics) = kvp;
 
@@ -127,17 +127,17 @@ public abstract class DocumentBasedFixAllProvider : FixAllProvider
 
                     // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
                     // language that doesn't support that, then just grab the text.
-                    var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(args.cancellationToken).ConfigureAwait(false) : null;
-                    var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(args.cancellationToken).ConfigureAwait(false);
+                    var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
+                    var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     callback((document.Id, (node, text)));
                 },
-                consumeItems: static async (results, args) =>
+                consumeItems: static async (results, args, cancellationToken) =>
                 {
                     await foreach (var (docId, nodeOrText) in results)
                         args.docIdToNewRootOrText[docId] = nodeOrText;
                 },
-                args: (@this: this, fixAllContext, docIdToNewRootOrText, cancellationToken),
+                args: (@this: this, fixAllContext, docIdToNewRootOrText),
                 cancellationToken).ConfigureAwait(false);
         }
 

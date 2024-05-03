@@ -86,12 +86,12 @@ public partial class FixAllContext
 
                             await ProducerConsumer<(Project project, ImmutableArray<Diagnostic> diagnostics)>.RunParallelAsync(
                                 source: project.Solution.Projects,
-                                produceItems: static async (project, callback, args) =>
+                                produceItems: static async (project, callback, args, cancellationToken) =>
                                 {
                                     var diagnostics = await args.fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
                                     callback((project, diagnostics));
                                 },
-                                consumeItems: static async (results, args) =>
+                                consumeItems: static async (results, args, cancellationToken) =>
                                 {
                                     await foreach (var (project, diagnostics) in results)
                                     {

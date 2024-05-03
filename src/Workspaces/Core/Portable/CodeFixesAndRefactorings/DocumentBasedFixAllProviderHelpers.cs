@@ -122,23 +122,23 @@ internal static class DocumentBasedFixAllProviderHelpers
         var finalSolution = currentSolution;
         await ProducerConsumer<(DocumentId docId, SourceText sourceText)>.RunParallelAsync(
             source: docIdToNewRootOrText,
-            produceItems: static async (tuple, callback, args) =>
+            produceItems: static async (tuple, callback, currentSolution, cancellationToken) =>
             {
                 var (docId, (newRoot, _)) = tuple;
                 if (newRoot != null)
                 {
                     var cleaned = await GetCleanedDocumentAsync(
-                        args.currentSolution.GetRequiredDocument(docId), args.cancellationToken).ConfigureAwait(false);
+                        currentSolution.GetRequiredDocument(docId), cancellationToken).ConfigureAwait(false);
                     callback(cleaned);
                 }
             },
-            consumeItems: async (results, _) =>
+            consumeItems: async (results, _, _) =>
             {
                 // Finally, apply the cleaned documents to the solution.
                 await foreach (var (docId, cleanedText) in results)
                     finalSolution = finalSolution.WithDocumentText(docId, cleanedText);
             },
-            args: (currentSolution, cancellationToken),
+            args: currentSolution,
             cancellationToken).ConfigureAwait(false);
 
         return finalSolution;
