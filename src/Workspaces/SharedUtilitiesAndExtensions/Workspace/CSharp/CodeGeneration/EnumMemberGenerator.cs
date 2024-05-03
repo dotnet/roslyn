@@ -12,10 +12,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
-
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static CodeGenerationHelpers;
+using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 internal static class EnumMemberGenerator
 {
@@ -33,19 +35,19 @@ internal static class EnumMemberGenerator
         else if (members.LastOrDefault().Kind() == SyntaxKind.CommaToken)
         {
             members.Add(member);
-            members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
+            members.Add(CommaToken);
         }
         else
         {
             var lastMember = members.Last();
             var trailingTrivia = lastMember.GetTrailingTrivia();
-            members[members.Count - 1] = lastMember.WithTrailingTrivia();
-            members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
+            members[^1] = lastMember.WithTrailingTrivia();
+            members.Add(CommaToken.WithTrailingTrivia(trailingTrivia));
             members.Add(member);
         }
 
         return destination.EnsureOpenAndCloseBraceTokens()
-            .WithMembers(SyntaxFactory.SeparatedList<EnumMemberDeclarationSyntax>(members));
+            .WithMembers(SeparatedList<EnumMemberDeclarationSyntax>(members));
     }
 
     public static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration(
@@ -61,8 +63,8 @@ internal static class EnumMemberGenerator
         }
 
         var value = CreateEnumMemberValue(info.Generator, destination, enumMember);
-        var member = SyntaxFactory.EnumMemberDeclaration(enumMember.Name.ToIdentifierToken())
-            .WithEqualsValue(value == null ? null : SyntaxFactory.EqualsValueClause(value: value));
+        var member = EnumMemberDeclaration(enumMember.Name.ToIdentifierToken())
+            .WithEqualsValue(value == null ? null : EqualsValueClause(value: value));
 
         return AddFormatterAndCodeGeneratorAnnotationsTo(
             ConditionallyAddDocumentationCommentTo(member, enumMember, info, cancellationToken));
@@ -127,10 +129,10 @@ internal static class EnumMemberGenerator
                                 var shiftValue = IntegerUtilities.LogBase2(value);
 
                                 // Re-use the numericLiteral text so type suffixes match too
-                                return SyntaxFactory.BinaryExpression(
+                                return BinaryExpression(
                                     SyntaxKind.LeftShiftExpression,
-                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(numericLiteral.Token.Text, 1)),
-                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(shiftValue.ToString(), shiftValue)));
+                                    LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(numericLiteral.Token.Text, 1)),
+                                    LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(shiftValue.ToString(), shiftValue)));
                             }
                         }
                     }
@@ -142,13 +144,13 @@ internal static class EnumMemberGenerator
                         if (numericText.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                         {
                             // Hex
-                            return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(numericText[..2] + value.ToString("X"), value));
+                            return LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                Literal(numericText[..2] + value.ToString("X"), value));
                         }
                         else if (numericText.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
                         {
-                            return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(numericText[..2] + Convert.ToString(value, 2), value));
+                            return LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                Literal(numericText[..2] + Convert.ToString(value, 2), value));
                         }
                     }
                 }

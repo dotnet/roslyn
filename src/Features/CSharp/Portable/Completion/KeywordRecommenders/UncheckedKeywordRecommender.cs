@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class UncheckedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class UncheckedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public UncheckedKeywordRecommender()
         : base(SyntaxKind.UncheckedKeyword)

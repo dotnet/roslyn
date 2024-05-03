@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
@@ -62,9 +61,10 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
     protected abstract TAnalyzer GetAnalyzer();
 
     protected AbstractUseObjectInitializerDiagnosticAnalyzer()
-        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                .Add(s_descriptor, CodeStyleOptions2.PreferObjectInitializer)
-                .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferObjectInitializer))
+        : base(
+            [
+                (s_descriptor, CodeStyleOptions2.PreferObjectInitializer)
+            ])
     {
     }
 

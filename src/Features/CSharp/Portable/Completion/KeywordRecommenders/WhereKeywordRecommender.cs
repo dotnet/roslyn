@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public WhereKeywordRecommender()
         : base(SyntaxKind.WhereKeyword)
@@ -68,11 +68,17 @@ internal class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommend
         // void Goo<T>() |
 
         if (token.Kind() == SyntaxKind.CloseParenToken &&
-            token.Parent.IsKind(SyntaxKind.ParameterList) &&
-            token.Parent.IsParentKind(SyntaxKind.MethodDeclaration))
+            token.Parent.IsKind(SyntaxKind.ParameterList))
         {
-            var decl = token.GetAncestor<MethodDeclarationSyntax>();
-            if (decl != null && decl.Arity > 0)
+            var tokenParent = token.Parent;
+            if (tokenParent.IsParentKind<MethodDeclarationSyntax>(SyntaxKind.MethodDeclaration, out var methodDeclaration))
+            {
+                if (methodDeclaration.Arity > 0)
+                {
+                    return true;
+                }
+            }
+            else if (tokenParent.Parent is LocalFunctionStatementSyntax { TypeParameterList.Parameters.Count: > 0 })
             {
                 return true;
             }

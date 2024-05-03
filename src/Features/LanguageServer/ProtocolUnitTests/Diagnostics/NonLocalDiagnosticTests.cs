@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // and not reported here.
             await OpenDocumentAsync(testLspServer, document);
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, testNonLocalDiagnostics: true);
+            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
             if (fsaEnabled)
             {
                 Assert.Equal(1, results.Length);
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 Assert.Equal(document.GetURI(), results[0].Uri);
 
                 // Asking again should give us back unchanged diagnostics.
-                var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, previousResultId: results.Single().ResultId, testNonLocalDiagnostics: true);
+                var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, previousResultId: results.Single().ResultId, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
                 Assert.Null(results2[0].Diagnostics);
                 Assert.Equal(results[0].ResultId, results2[0].ResultId);
             }
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 Assert.Empty(results);
 
                 // Asking again should give us back unchanged diagnostics.
-                var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, testNonLocalDiagnostics: true);
+                var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
                 Assert.Empty(results2);
             }
         }

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -67,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw new ArgumentException("Type parameters are not suppported", nameof(typeSymbol));
             }
 
-            var parts = new Stack<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var parts);
 
             ISymbol symbol = typeSymbol;
             while (symbol != null)
@@ -78,10 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             var builder = new StringBuilder();
 
-            while (parts.Count > 0)
+            while (parts.TryPop(out symbol))
             {
-                symbol = parts.Pop();
-
                 if (builder.Length > 0)
                 {
                     if (symbol.ContainingSymbol is ITypeSymbol)

@@ -36,6 +36,8 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
         _requestCounters = new();
         _findDocumentResults = new();
         _usedForkedSolutionCounter = new();
+
+        TelemetryLogging.Flushed += OnFlushed;
     }
 
     public void UpdateFindDocumentTelemetryData(bool success, string? workspaceKind)
@@ -66,6 +68,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             m[TelemetryLogging.KeyValue] = queuedDuration.Milliseconds;
             m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
             m["server"] = _serverTypeName;
+            m["method"] = methodName;
         }));
 
         TelemetryLogging.LogAggregated(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
@@ -91,6 +94,14 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             return;
         }
 
+        // Flush all telemetry logged through TelemetryLogging
+        TelemetryLogging.Flush();
+
+        TelemetryLogging.Flushed -= OnFlushed;
+    }
+
+    private void OnFlushed(object? sender, EventArgs e)
+    {
         foreach (var kvp in _requestCounters)
         {
             TelemetryLogging.Log(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(LogType.Trace, m =>
@@ -122,9 +133,6 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
                 m[info] = kvp.Value.GetCount();
             }
         }));
-
-        // Flush all telemetry logged through TelemetryLogging
-        TelemetryLogging.Flush();
 
         _requestCounters.Clear();
     }

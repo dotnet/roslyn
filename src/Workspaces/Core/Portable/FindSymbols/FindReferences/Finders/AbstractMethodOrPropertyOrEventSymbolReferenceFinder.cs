@@ -4,10 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -41,7 +39,7 @@ internal abstract class AbstractMethodOrPropertyOrEventSymbolReferenceFinder<TSy
             if (!semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
                 result.AddIfNotNull(property.GetMethod);
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
         else
         {

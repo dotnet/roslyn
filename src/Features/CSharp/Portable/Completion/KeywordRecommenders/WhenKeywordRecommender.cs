@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class WhenKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class WhenKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public WhenKeywordRecommender()
         : base(SyntaxKind.WhenKeyword, isValidInPreprocessorContext: true)

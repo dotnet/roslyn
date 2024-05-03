@@ -51,8 +51,5 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider
     }
 
     private static IList<SymbolDisplayPart> GetNormalTypePostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.CloseParenToken));
-    }
+        => [Punctuation(SyntaxKind.CloseParenToken)];
 }

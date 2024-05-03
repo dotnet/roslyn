@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class PropertyKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class PropertyKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public PropertyKeywordRecommender()
         : base(SyntaxKind.PropertyKeyword)

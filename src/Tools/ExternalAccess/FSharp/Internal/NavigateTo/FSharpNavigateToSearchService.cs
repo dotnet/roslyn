@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,12 +36,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
-            Func<INavigateToSearchResult, Task> onResultFound,
+            Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
             CancellationToken cancellationToken)
         {
             var results = await _service.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            foreach (var result in results)
-                await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
+            if (results.Length > 0)
+                await onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))).ConfigureAwait(false);
         }
 
         public async Task SearchProjectsAsync(
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            Func<Project, INavigateToSearchResult, Task> onResultFound,
+            Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
@@ -62,8 +61,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             foreach (var project in projects)
             {
                 var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-                foreach (var result in results)
-                    await onResultFound(project, new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
+                if (results.Length > 0)
+                    await onResultsFound(results.SelectAsArray(result => (INavigateToSearchResult)new InternalFSharpNavigateToSearchResult(result))).ConfigureAwait(false);
 
                 await onProjectCompleted().ConfigureAwait(false);
             }

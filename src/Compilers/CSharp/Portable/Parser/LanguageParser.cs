@@ -1581,9 +1581,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? ParseParenthesizedParameterList()
                 : null;
 
-            if (paramList != null && mainKeyword.Kind == SyntaxKind.ExtensionKeyword)
-                paramList = AddError(paramList, ErrorCode.ERR_ExtensionPrimaryConstructor);
-
             // PROTOTYPE. Parse this for all type declarations and give good error message.
             var extensionForType = mainKeyword.Kind == SyntaxKind.ExtensionKeyword && CurrentToken.Kind == SyntaxKind.ForKeyword
                 ? _syntaxFactory.ForType(EatToken(SyntaxKind.ForKeyword), ParseType())
@@ -1745,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword)
                 {
                     implicitOrExplicitKeyword = EatToken();
-                    extensionKeyword = CheckFeatureAvailability(ConvertToKeyword(EatToken()), MessageID.IDS_FeatureExtensions);
+                    extensionKeyword = ConvertToKeyword(EatToken());
                     return true;
                 }
 
@@ -2231,15 +2228,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword
                     when this.PeekToken(1).ContextualKind is SyntaxKind.ExtensionKeyword:
 
-                    // If we have `implicit extension E` then this is definitely an extension as it could not be parsed
-                    // as anything else.
-                    if (IsTrueIdentifier(this.PeekToken(2)))
-                        return true;
+                    // See if this is actually the start of an implicit/explicit conversion.
+                    if (ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(nextTokenKind: this.PeekToken(2).Kind))
+                        return false;
 
-                    // we have `implicit extension ...` technically this could be something like `implicit
-                    // extension.operator X(` (an implicit conversion with a explicit interface impl name). For compat,
-                    // determine the parsing strategy based on the lang version.
-                    return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                    // Otherwise, treat it as an extension type.
+                    return true;
 
                 case SyntaxKind.IdentifierToken:
                     if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
@@ -2252,6 +2246,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
+        }
+
+        private static bool ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(SyntaxKind nextTokenKind)
+        {
+            // implicit extension.operator x
+            // implicit extension::X.operator x
+            // implicit extension<X>.operator x
+            //
+            // All of these should be treated as a conversion operator, with `extension` as part of an explicit
+            // interface name.
+            return nextTokenKind is SyntaxKind.ColonColonToken or SyntaxKind.DotToken or SyntaxKind.LessThanToken;
         }
 
         private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)
@@ -3495,37 +3500,17 @@ parse_member_name:;
                     ? this.EatToken()
                     : this.EatToken(SyntaxKind.ExplicitKeyword);
 
-                var possiblyExtension = this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword;
-                if (possiblyExtension)
+                // `implicit extension` and `explicit extension` could be the start of an extension type, or an
+                // explicitly implemented conversion operator.  Check for this, and bail out in the former case.
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword &&
+                    !ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(nextTokenKind: this.PeekToken(1).Kind))
                 {
-                    // If we have `implicit extension E` then this is definitely an extension type as it could not be parsed
-                    // as anything else.
-                    if (IsTrueIdentifier(this.PeekToken(1)))
-                    {
-                        this.Reset(ref point);
-                        return null;
-                    }
-
-                    // we have `implicit extension ...` technically this could be something like `implicit
-                    // extension.operator X(` (an implicit conversion with a explicit interface impl name). For compat,
-                    // determine the parsing strategy based on the lang version.
-                    if (IsFeatureEnabled(MessageID.IDS_FeatureExtensions))
-                    {
-                        this.Reset(ref point);
-                        return null;
-                    }
+                    this.Reset(ref point);
+                    return null;
                 }
 
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
                 Debug.Assert(!style.IsMissing || haveExplicitInterfaceName == explicitInterfaceOpt is not null);
-
-                if (explicitInterfaceOpt is null && possiblyExtension)
-                {
-                    // we didn't get something like `implicit extension.` but we did have `implicit extension`
-                    // treat this as an extension type.
-                    this.Reset(ref point);
-                    return null;
-                }
 
                 SyntaxToken opKeyword;
                 TypeSyntax type;
@@ -5926,6 +5911,7 @@ parse_member_name:;
             }
 
             ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
+            ScanTypeFlags lastScannedType;
 
             do
             {
@@ -5944,7 +5930,8 @@ parse_member_name:;
                     return result;
                 }
 
-                switch (this.ScanType(out _))
+                lastScannedType = this.ScanType(out _);
+                switch (lastScannedType)
                 {
                     case ScanTypeFlags.NotType:
                         greaterThanToken = null;
@@ -6043,6 +6030,25 @@ parse_member_name:;
 
             if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
+                // Error recovery after missing > token:
+
+                // In the case of an identifier, we assume that there could be a missing > token
+                // For example, we have reached C in X<A, B C
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken)
+                {
+                    greaterThanToken = this.EatToken(SyntaxKind.GreaterThanToken);
+                    return result;
+                }
+
+                // As for tuples, we do not expect direct invocation right after the parenthesis
+                // EXAMPLE: X<(string, string)(), where we imply a missing > token between )(
+                // as the user probably wants to invoke X by X<(string, string)>()
+                if (lastScannedType is ScanTypeFlags.TupleType && this.CurrentToken.Kind is SyntaxKind.OpenParenToken)
+                {
+                    greaterThanToken = this.EatToken(SyntaxKind.GreaterThanToken);
+                    return result;
+                }
+
                 greaterThanToken = null;
                 return ScanTypeFlags.NotType;
             }
@@ -6093,7 +6099,34 @@ parse_member_name:;
                 {
                     break;
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+
+                // We prefer early terminating the argument list over parsing until exhaustion
+                // for better error recovery
+                if (tokenBreaksTypeArgumentList(this.CurrentToken))
+                {
+                    break;
+                }
+
+                // We are currently past parsing a type and we encounter an unexpected identifier token
+                // followed by tokens that are not part of a type argument list
+                // Example: List<(string a, string b) Method() { }
+                //                 current token:     ^^^^^^
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenBreaksTypeArgumentList(this.PeekToken(1)))
+                {
+                    break;
+                }
+
+                // This is for the case where we are in a this[] accessor, and the last one of the parameters in the parameter list
+                // is missing a > on its type
+                // Example: X this[IEnumerable<string parameter] => 
+                //                 current token:     ^^^^^^^^^
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken
+                    && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
+                {
+                    break;
+                }
+
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     types.Add(this.ParseTypeArgument());
@@ -6105,6 +6138,57 @@ parse_member_name:;
             }
 
             close = this.EatToken(SyntaxKind.GreaterThanToken);
+
+            static bool tokenBreaksTypeArgumentList(SyntaxToken token)
+            {
+                var contextualKind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
+                switch (contextualKind)
+                {
+                    // Example: x is IEnumerable<string or IList<int>
+                    case SyntaxKind.OrKeyword:
+                    // Example: x is IEnumerable<string and IDisposable
+                    case SyntaxKind.AndKeyword:
+                        return true;
+                }
+
+                switch (token.Kind)
+                {
+                    // Example: Method<string(argument)
+                    // Note: We would do a bad job handling a tuple argument with a missing comma,
+                    //       like: Method<string (int x, int y)>
+                    //       but since we do not look as far as possible to determine whether it is
+                    //       a tuple type or an argument list, we resort to considering it as an
+                    //       argument list
+                    case SyntaxKind.OpenParenToken:
+
+                    // Example: IEnumerable<string Method<T>() --- (< in <T>)
+                    case SyntaxKind.LessThanToken:
+                    // Example: Method(IEnumerable<string parameter)
+                    case SyntaxKind.CloseParenToken:
+                    // Example: IEnumerable<string field;
+                    case SyntaxKind.SemicolonToken:
+                    // Example: IEnumerable<string Property { get; set; }
+                    case SyntaxKind.OpenBraceToken:
+                    // Example:
+                    // {
+                    //     IEnumerable<string field
+                    // }
+                    case SyntaxKind.CloseBraceToken:
+                    // Examples:
+                    // - IEnumerable<string field = null;
+                    // - Method(IEnumerable<string parameter = null)
+                    case SyntaxKind.EqualsToken:
+                    // Example: IEnumerable<string Property => null;
+                    case SyntaxKind.EqualsGreaterThanToken:
+                    // Example: IEnumerable<string this[string key] { get; set; }
+                    case SyntaxKind.ThisKeyword:
+                    // Example: static IEnumerable<string operator +(A left, A right);
+                    case SyntaxKind.OperatorKeyword:
+                        return true;
+                }
+
+                return false;
+            }
         }
 
         private PostSkipAction SkipBadTypeArgumentListTokens(SeparatedSyntaxListBuilder<TypeSyntax> list, SyntaxKind expected)

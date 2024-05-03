@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = value.Kind switch
             {
                 BoundKind.UnboundLambda => BindToInferredDelegateType(value, diagnostics),
-                BoundKind.MethodGroup => BindToExtensionMemberOrInferredDelegateType((BoundMethodGroup)value, diagnostics),
+                BoundKind.MethodGroup => BindToInferredDelegateType(value, diagnostics),
                 _ => BindToNaturalType(value, diagnostics)
             };
 
@@ -1432,8 +1432,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isRef)
                 MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, node.Right.GetFirstToken());
 
-            var op1 = BindValue(node.Left, diagnostics, lhsKind);
+            var op1 = BindValue(node.Left, diagnostics, lhsKind, dynamificationOfAssignmentResultIsHandled: true);
             ReportSuppressionIfNeeded(op1, diagnostics);
+
+            op1 = AdjustAssignmentTargetForDynamic(op1, out bool forceDynamicResult);
 
             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(op1) : BindValueKind.RValue;
             var op2 = BindValue(rhsExpr, diagnostics, rhsKind);
@@ -1445,7 +1447,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            return BindAssignment(node, op1, op2, isRef, diagnostics);
+            BoundAssignmentOperator result = BindAssignment(node, op1, op2, isRef, diagnostics);
+            result = result.Update(result.Left, result.Right, result.IsRef, AdjustAssignmentTypeToDynamicIfNecessary(result.Type, forceDynamicResult));
+
+            return result;
         }
 
         private static BindValueKind GetRequiredRHSValueKindForRefAssignment(BoundExpression boundLeft)
@@ -4022,7 +4027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = null;
                 isExpanded = false;
 
-                var boundAccess = BindInstanceMemberAccess(
+                var boundAccess = BindMemberAccessWithBoundLeftCore(
                        syntaxNode,
                        syntaxNode,
                        receiver,
@@ -4046,8 +4051,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //       containing method can be invoked in normal form which allows
                 //       us to skip some work during the lookup.
 
+                // PROTOTYPE(instance) We may have a delegate type value here instead of a method group.
+                //                     We need to decide whether to handle or block.
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                // PROTOTYPE we'll likely want extension types to contribute
                 var patternMethodCall = BindMethodGroupInvocation(
                     syntaxNode,
                     syntaxNode,

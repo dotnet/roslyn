@@ -12,10 +12,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static CodeGenerationHelpers;
+using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 internal static class NamedTypeGenerator
 {
@@ -124,11 +127,11 @@ internal static class NamedTypeGenerator
 
         // If there are no members, just make a simple record with no body
         if (members.Length == 0)
-            return recordDeclaration.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            return recordDeclaration.WithSemicolonToken(SemicolonToken);
 
         // Otherwise, give the record a body and add the members to it.
-        recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
-                                             .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+        recordDeclaration = recordDeclaration.WithOpenBraceToken(OpenBraceToken)
+                                             .WithCloseBraceToken(CloseBraceToken)
                                              .WithSemicolonToken(default);
         return service.AddMembers(recordDeclaration, members, info, cancellationToken);
     }
@@ -194,19 +197,19 @@ internal static class NamedTypeGenerator
         {
             var isRecordClass = namedType.TypeKind is TypeKind.Class;
             var declarationKind = isRecordClass ? SyntaxKind.RecordDeclaration : SyntaxKind.RecordStructDeclaration;
-            var classOrStructKeyword = SyntaxFactory.Token(isRecordClass ? default : SyntaxKind.StructKeyword);
+            var classOrStructKeyword = Token(isRecordClass ? default : SyntaxKind.StructKeyword);
 
-            typeDeclaration = SyntaxFactory.RecordDeclaration(kind: declarationKind, attributeLists: default, modifiers: default,
-                SyntaxFactory.Token(SyntaxKind.RecordKeyword), classOrStructKeyword, namedType.Name.ToIdentifierToken(),
+            typeDeclaration = RecordDeclaration(kind: declarationKind, attributeLists: default, modifiers: default,
+                RecordKeyword, classOrStructKeyword, namedType.Name.ToIdentifierToken(),
                 typeParameterList: null, parameterList: null, baseList: null, constraintClauses: default, openBraceToken: default, members: default, closeBraceToken: default,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                SemicolonToken);
         }
         else
         {
             var kind = namedType.TypeKind == TypeKind.Struct ? SyntaxKind.StructDeclaration :
                        namedType.TypeKind == TypeKind.Interface ? SyntaxKind.InterfaceDeclaration : SyntaxKind.ClassDeclaration;
 
-            typeDeclaration = SyntaxFactory.TypeDeclaration(kind, namedType.Name.ToIdentifierToken());
+            typeDeclaration = TypeDeclaration(kind, namedType.Name.ToIdentifierToken());
         }
 
         var result = typeDeclaration
@@ -227,7 +230,7 @@ internal static class NamedTypeGenerator
         var invokeMethod = namedType.DelegateInvokeMethod;
         Contract.ThrowIfNull(invokeMethod);
 
-        return SyntaxFactory.DelegateDeclaration(
+        return DelegateDeclaration(
             GenerateAttributeDeclarations(namedType, info),
             GenerateModifiers(namedType, destination, info),
             invokeMethod.ReturnType.GenerateTypeSyntax(),
@@ -243,10 +246,10 @@ internal static class NamedTypeGenerator
         CSharpCodeGenerationContextInfo info)
     {
         var baseList = namedType.EnumUnderlyingType != null && namedType.EnumUnderlyingType.SpecialType != SpecialType.System_Int32
-            ? SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())])
+            ? BaseList([SimpleBaseType(namedType.EnumUnderlyingType.GenerateTypeSyntax())])
             : null;
 
-        return SyntaxFactory.EnumDeclaration(
+        return EnumDeclaration(
             GenerateAttributeDeclarations(namedType, info),
             GenerateModifiers(namedType, destination, info),
             namedType.Name.ToIdentifierToken(),
@@ -265,51 +268,43 @@ internal static class NamedTypeGenerator
         CodeGenerationDestination destination,
         CSharpCodeGenerationContextInfo info)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (!namedType.IsFileLocal)
         {
             var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
                 ? Accessibility.Internal
                 : Accessibility.Private;
-            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+            AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
         }
         else
         {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.FileKeyword));
+            tokens.Add(FileKeyword);
         }
 
         if (namedType.IsStatic)
         {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            tokens.Add(StaticKeyword);
         }
         else
         {
             if (namedType.TypeKind == TypeKind.Class)
             {
                 if (namedType.IsAbstract)
-                {
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
-                }
+                    tokens.Add(AbstractKeyword);
 
                 if (namedType.IsSealed)
-                {
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
-                }
+                    tokens.Add(SealedKeyword);
             }
         }
 
         if (namedType.IsReadOnly)
-        {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
-        }
+            tokens.Add(ReadOnlyKeyword);
 
         if (namedType.IsRefLikeType)
-        {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
-        }
+            tokens.Add(RefKeyword);
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return [.. tokens];
     }
 
     private static TypeParameterListSyntax? GenerateTypeParameterList(
@@ -322,15 +317,15 @@ internal static class NamedTypeGenerator
     {
         var types = new List<BaseTypeSyntax>();
         if (namedType.TypeKind == TypeKind.Class && namedType.BaseType != null && namedType.BaseType.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_Object)
-            types.Add(SyntaxFactory.SimpleBaseType(namedType.BaseType.GenerateTypeSyntax()));
+            types.Add(SimpleBaseType(namedType.BaseType.GenerateTypeSyntax()));
 
         foreach (var type in namedType.Interfaces)
-            types.Add(SyntaxFactory.SimpleBaseType(type.GenerateTypeSyntax()));
+            types.Add(SimpleBaseType(type.GenerateTypeSyntax()));
 
         if (types.Count == 0)
             return null;
 
-        return SyntaxFactory.BaseList([.. types]);
+        return BaseList([.. types]);
     }
 
     private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(INamedTypeSymbol namedType)

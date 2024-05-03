@@ -469,20 +469,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public BoundExpression AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
         {
-            Debug.Assert(left.Type is { } && right.Type is { } &&
-                (left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
-                 StackOptimizerPass1.IsFixedBufferAssignmentToRefLocal(left, right, isRef) ||
-                 right.Type.IsErrorType() || left.Type.IsErrorType()));
-
-            return AssignmentExpression(Syntax, left, right, left.Type, isRef: isRef, wasCompilerGenerated: true);
+            return AssignmentExpression(Syntax, left, right, isRef: isRef, wasCompilerGenerated: true);
         }
 
         /// <summary>
         /// Creates a general assignment that might be instrumented.
         /// </summary>
-        public BoundExpression AssignmentExpression(SyntaxNode syntax, BoundExpression left, BoundExpression right, TypeSymbol type, bool isRef = false, bool hasErrors = false, bool wasCompilerGenerated = false)
+        public BoundExpression AssignmentExpression(SyntaxNode syntax, BoundExpression left, BoundExpression right, bool isRef = false, bool hasErrors = false, bool wasCompilerGenerated = false)
         {
-            var assignment = new BoundAssignmentOperator(syntax, left, right, isRef, type, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
+            Debug.Assert(left.Type is { } && right.Type is { } &&
+                (left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
+                 StackOptimizerPass1.IsFixedBufferAssignmentToRefLocal(left, right, isRef) ||
+                 right.Type.IsErrorType() || left.Type.IsErrorType()));
+
+            var assignment = new BoundAssignmentOperator(syntax, left, right, isRef, left.Type, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
 
             return (InstrumentationState?.IsSuppressed == false && left is BoundLocal { LocalSymbol.SynthesizedKind: SynthesizedLocalKind.UserDefined } or BoundParameter) ?
                 InstrumentationState.Instrumenter.InstrumentUserDefinedLocalAssignment(assignment) :

@@ -54,9 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 SyntaxKind.CollectionExpression,
                 SyntaxKind.ExpressionElement,
                 SyntaxKind.SpreadElement,
-                // PROTOTYPE
-                SyntaxKind.ExtensionDeclaration,
-                SyntaxKind.ForType,
             };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

@@ -5,53 +5,19 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class IntKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class IntKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.IntKeyword)
 {
-    public IntKeywordRecommender()
-        : base(SyntaxKind.IntKeyword)
-    {
-    }
+    protected override SpecialType SpecialType => SpecialType.System_Int32;
 
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        var syntaxTree = context.SyntaxTree;
         return
-            (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsAnyExpressionContext ||
-            context.IsCrefContext ||
-            context.IsDefiniteCastTypeContext ||
-            context.IsDelegateReturnTypeContext ||
             context.IsEnumBaseListContext ||
-            context.IsExtensionForTypeContext ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsFunctionPointerTypeArgumentContext ||
-            context.IsGlobalStatementContext ||
-            context.IsImplicitOrExplicitOperatorTypeContext ||
-            context.IsIsOrAsTypeContext ||
-            context.IsLocalFunctionDeclarationContext ||
-            context.IsLocalVariableDeclarationContext ||
-            context.IsObjectCreationTypeContext ||
-            context.IsParameterTypeContext ||
-            context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
-            context.IsPossibleTupleContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.IsStatementContext ||
-            context.IsUsingAliasTypeContext ||
-            syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
-            syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
-            syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsMemberDeclarationContext(
-                validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
-                canBePartial: false,
-                cancellationToken: cancellationToken);
+            context.SyntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken);
     }
-
-    protected override SpecialType SpecialType => SpecialType.System_Int32;
 }

@@ -434,9 +434,7 @@ internal static partial class ITypeSymbolExtensions
     public static IEnumerable<T> GetAccessibleMembersInBaseTypes<T>(this ITypeSymbol containingType, ISymbol within) where T : class, ISymbol
     {
         if (containingType == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<T>();
-        }
+            return [];
 
         var types = containingType.GetBaseTypes();
         return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));

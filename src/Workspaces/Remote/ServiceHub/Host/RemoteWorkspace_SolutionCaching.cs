@@ -4,12 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Internal.Log;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-
     internal sealed partial class RemoteWorkspace
     {
         /// <summary>
@@ -40,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            int workspaceVersion,
             bool updatePrimaryBranch)
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (updatePrimaryBranch)
             {
                 solution.TryKickOffPrimaryBranchWork_NoLock((disconnectedSolution, cancellationToken) =>
-                    this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, disconnectedSolution, cancellationToken));
+                    this.UpdateWorkspaceCurrentSolutionAsync(disconnectedSolution, cancellationToken));
             }
 
             CheckCacheInvariants_NoLock();
@@ -112,6 +112,29 @@ namespace Microsoft.CodeAnalysis.Remote
                 // _lastPrimaryBranchSolution
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
                 Contract.ThrowIfTrue(solutionChecksum != solution.SolutionChecksum);
+            }
+        }
+
+        /// <summary>
+        /// Gets all the solution instances this remote workspace knows about because of the primary solution or any
+        /// in-flight operations.
+        /// </summary>
+        public async ValueTask AddPinnedSolutionsAsync(HashSet<Solution> solutions, CancellationToken cancellationToken)
+        {
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                // Ensure everything in the workspace's current solution is pinned.  We def don't want any of its data
+                // dropped from the checksum->asset cache.
+                solutions.Add(this.CurrentSolution);
+
+                // Also the data for the last 'current solution' this workspace had that we actually got an OOP request
+                // for. this is commonly the same as CurrentSolution, but technically could be slightly behind if the
+                // primary solution just got updated.
+                solutions.AddIfNotNull(_lastRequestedPrimaryBranchSolution.solution);
+
+                // Also add the last few forked solutions we were asked about.  As with the above solutions, there's a
+                // reasonable chance it will refer to data needed by future oop calls.
+                _lastRequestedAnyBranchSolutions.AddAllTo(solutions);
             }
         }
     }

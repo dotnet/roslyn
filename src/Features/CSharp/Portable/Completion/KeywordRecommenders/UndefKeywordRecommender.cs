@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class UndefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class UndefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public UndefKeywordRecommender()
         : base(SyntaxKind.UndefKeyword, isValidInPreprocessorContext: true)

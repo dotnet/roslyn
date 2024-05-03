@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             {
                 _codeRefactoringProvider = new RenameTrackingCodeRefactoringProvider(
                     _historyRegistry,
-                    SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService));
+                    [_mockRefactorNotifyService]);
             }
             else
             {

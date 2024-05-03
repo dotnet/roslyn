@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class WhileKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class WhileKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public WhileKeywordRecommender()
         : base(SyntaxKind.WhileKeyword)

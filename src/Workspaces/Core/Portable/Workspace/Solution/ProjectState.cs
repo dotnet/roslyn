@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,11 +15,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -59,11 +60,6 @@ internal partial class ProjectState
     private readonly AsyncLazy<AnalyzerConfigOptionsCache> _lazyAnalyzerConfigOptions;
 
     private AnalyzerOptions? _lazyAnalyzerOptions;
-
-    /// <summary>
-    /// The list of source generators and the analyzer reference they came from.
-    /// </summary>
-    private ImmutableDictionary<ISourceGenerator, AnalyzerReference>? _lazySourceGenerators;
 
     private ProjectState(
         ProjectInfo projectInfo,
@@ -736,38 +732,6 @@ internal partial class ProjectState
         return With(projectInfo: ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(Version.GetNewerVersion()));
     }
 
-    [MemberNotNull(nameof(_lazySourceGenerators))]
-    private void EnsureSourceGeneratorsInitialized()
-    {
-        if (_lazySourceGenerators == null)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<ISourceGenerator, AnalyzerReference>();
-
-            foreach (var analyzerReference in AnalyzerReferences)
-            {
-                foreach (var generator in analyzerReference.GetGenerators(Language))
-                    builder.Add(generator, analyzerReference);
-            }
-
-            Interlocked.CompareExchange(ref _lazySourceGenerators, builder.ToImmutable(), comparand: null);
-        }
-    }
-
-    public IEnumerable<ISourceGenerator> SourceGenerators
-    {
-        get
-        {
-            EnsureSourceGeneratorsInitialized();
-            return _lazySourceGenerators.Keys;
-        }
-    }
-
-    public AnalyzerReference GetAnalyzerReferenceForGenerator(ISourceGenerator generator)
-    {
-        EnsureSourceGeneratorsInitialized();
-        return _lazySourceGenerators[generator];
-    }
-
     public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)
     {
         if (documents.IsEmpty)
@@ -975,5 +939,19 @@ internal partial class ProjectState
             : contentChanged
                 ? CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates)
                 : _lazyLatestDocumentTopLevelChangeVersion;
+    }
+
+    public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
+    {
+        this.DocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
+        this.AdditionalDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
+        this.AnalyzerConfigDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
+    }
+
+    public DocumentId? GetFirstDocumentIdWithFilePath(string filePath)
+    {
+        return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
+            this.AdditionalDocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
+            this.AnalyzerConfigDocumentStates.GetFirstDocumentIdWithFilePath(filePath);
     }
 }

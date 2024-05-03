@@ -412,4 +412,10 @@
   <data name="Use_primary_constructor" xml:space="preserve">
     <value>Use primary constructor</value>
   </data>
+  <data name="Anonymous_function_can_be_made_static" xml:space="preserve">
+    <value>Anonymous function can be made static</value>
+  </data>
+  <data name="Make_anonymous_function_static" xml:space="preserve">
+    <value>Make anonymous function static</value>
+  </data>
 </root>

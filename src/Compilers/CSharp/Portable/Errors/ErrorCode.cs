@@ -2324,10 +2324,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionPrimaryConstructor = 9329,
 
         ERR_NoModifiersOnUsing = 9229,
+        ERR_CannotDynamicInvokeOnExpression = 9230,
+
+        ERR_InterceptsLocationDataInvalidFormat = 9231,
+        ERR_InterceptsLocationUnsupportedVersion = 9232,
+        ERR_InterceptsLocationDuplicateFile = 9233,
+        ERR_InterceptsLocationFileNotFound = 9234,
+        ERR_InterceptsLocationDataInvalidPosition = 9235,
+        INF_TooManyBoundLambdas = 9236,
 
         #endregion
 
+        // Note: you will need to do the following after adding errors:
+        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
+        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
     }
 }

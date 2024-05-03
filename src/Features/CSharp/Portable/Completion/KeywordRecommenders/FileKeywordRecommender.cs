@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class FileKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class FileKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = SyntaxKindSet.AllMemberModifiers
         .Where(s => s != SyntaxKind.FileKeyword && !SyntaxFacts.IsAccessibilityModifier(s))

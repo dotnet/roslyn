@@ -19,24 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class IWpfDifferenceViewerExtensions
     {
-        private class SizeToFitHelper : ForegroundThreadAffinitizedObject
+        private sealed class SizeToFitHelper(IThreadingContext threadingContext, IWpfDifferenceViewer diffViewer, double minWidth)
         {
-            private readonly IWpfDifferenceViewer _diffViewer;
-            private readonly double _minWidth;
+            private readonly IThreadingContext _threadingContext = threadingContext;
+            private readonly IWpfDifferenceViewer _diffViewer = diffViewer;
+            private readonly double _minWidth = minWidth;
 
             private double _width;
             private double _height;
 
-            public SizeToFitHelper(IThreadingContext threadingContext, IWpfDifferenceViewer diffViewer, double minWidth)
-                : base(threadingContext)
-            {
-                _diffViewer = diffViewer;
-                _minWidth = minWidth;
-            }
-
             public async Task SizeToFitAsync(CancellationToken cancellationToken)
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
                 await CalculateSizeAsync(cancellationToken);
@@ -85,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             private async Task CalculateSizeAsync(CancellationToken cancellationToken)
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 IWpfTextView textView;
                 ITextSnapshot snapshot;

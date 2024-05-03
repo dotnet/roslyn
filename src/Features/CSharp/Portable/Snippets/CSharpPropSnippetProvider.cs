@@ -14,15 +14,11 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpPropSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpPropSnippetProvider() : AbstractCSharpAutoPropertySnippetProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpPropSnippetProvider()
-    {
-    }
-
-    public override string Identifier => "prop";
+    public override string Identifier => CommonSnippetIdentifiers.Property;
 
     public override string Description => FeaturesResources.property_;
 

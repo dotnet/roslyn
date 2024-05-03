@@ -34,11 +34,11 @@ namespace Roslyn.Utilities
 
         public static ImmutableArray<T> TakeAsArray<T>(this ImmutableArray<T> array, int count)
         {
-            using var _ = ArrayBuilder<T>.GetInstance(count, out var result);
+            var result = new FixedSizeArrayBuilder<T>(count);
             for (var i = 0; i < count; i++)
                 result.Add(array[i]);
 
-            return result.ToImmutableAndClear();
+            return result.MoveToImmutable();
         }
 
         public static ImmutableArray<T> ToImmutableAndClear<T>(this ImmutableArray<T>.Builder builder)

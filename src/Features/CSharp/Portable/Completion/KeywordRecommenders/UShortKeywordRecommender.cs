@@ -6,59 +6,25 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class UShortKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class UShortKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.UShortKeyword)
 {
-    public UShortKeywordRecommender()
-        : base(SyntaxKind.UShortKeyword)
-    {
-    }
-
     /// <summary>
     /// We set the <see cref="MatchPriority"/> of this item less than the default value so that
     /// completion selects the <see langword="using"/> keyword over it as the user starts typing.
     /// </summary>
     protected override int DefaultMatchPriority => MatchPriority.Default - 1;
 
+    protected override SpecialType SpecialType => SpecialType.System_UInt16;
+
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        var syntaxTree = context.SyntaxTree;
         return
-            (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsAnyExpressionContext ||
-            context.IsCrefContext ||
-            context.IsDefiniteCastTypeContext ||
-            context.IsDelegateReturnTypeContext ||
             context.IsEnumBaseListContext ||
-            context.IsExtensionForTypeContext ||
             context.IsFixedVariableDeclarationContext ||
-            context.IsFunctionPointerTypeArgumentContext ||
-            context.IsGlobalStatementContext ||
-            context.IsImplicitOrExplicitOperatorTypeContext ||
-            context.IsIsOrAsTypeContext ||
-            context.IsLocalFunctionDeclarationContext ||
-            context.IsLocalVariableDeclarationContext ||
-            context.IsObjectCreationTypeContext ||
-            context.IsParameterTypeContext ||
-            context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
-            context.IsPossibleTupleContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.IsStatementContext ||
-            context.IsUsingAliasTypeContext ||
-            syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
-            syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
-            syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsMemberDeclarationContext(
-                validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
-                canBePartial: false,
-                cancellationToken: cancellationToken);
+            context.SyntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken);
     }
-
-    protected override SpecialType SpecialType => SpecialType.System_UInt16;
 }

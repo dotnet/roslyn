@@ -737,16 +737,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Expression Visitors
 
-#if DEBUG
-        public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
-        {
-            // Ensure this node won't trigger spilling
-            var result = base.VisitLoweredIsPatternExpression(node);
-            Debug.Assert(result == node);
-            return result;
-        }
-#endif
-
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             // An await expression has already been wrapped in a BoundSpillSequence if not at the top level, so

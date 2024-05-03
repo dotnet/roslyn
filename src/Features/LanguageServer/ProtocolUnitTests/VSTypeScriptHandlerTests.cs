@@ -111,7 +111,8 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
         var servicesProvider = workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
-        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream))
+        var messageFormatter = CreateJsonMessageFormatter();
+        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter))
         {
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
@@ -119,7 +120,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         var logger = NoOpLspLogger.Instance;
 
         var languageServer = new RoslynLanguageServer(
-            servicesProvider, jsonRpc,
+            servicesProvider, jsonRpc, messageFormatter.JsonSerializer,
             capabilitiesProvider,
             logger,
             workspace.Services.HostServices,

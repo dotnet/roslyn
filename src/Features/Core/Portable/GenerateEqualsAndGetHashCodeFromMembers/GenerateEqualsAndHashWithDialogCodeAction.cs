@@ -56,7 +56,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         {
             var result = (PickMembersResult)options;
             if (result.IsCanceled)
-                return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+                return [];
 
             var solution = _document.Project.Solution;
 

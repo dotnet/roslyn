@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ElseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ElseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public ElseKeywordRecommender()
         : base(SyntaxKind.ElseKeyword, isValidInPreprocessorContext: true)

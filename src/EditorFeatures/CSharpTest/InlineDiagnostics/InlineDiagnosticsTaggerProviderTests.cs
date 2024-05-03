@@ -39,8 +39,6 @@ public class InlineDiagnosticsTaggerProviderTests
     private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(string content)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
-        Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-            workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
         return await GetTagSpansAsync(workspace);
     }
 
@@ -50,8 +48,6 @@ public class InlineDiagnosticsTaggerProviderTests
             files: [],
             sourceGeneratedFiles: new[] { content },
             composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
-        Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-            workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
         return await GetTagSpansAsync(workspace);
     }
@@ -59,6 +55,6 @@ public class InlineDiagnosticsTaggerProviderTests
     private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(EditorTestWorkspace workspace)
     {
         workspace.GlobalOptions.SetGlobalOption(InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, LanguageNames.CSharp, true);
-        return (await TestDiagnosticTagProducer<InlineDiagnosticsTaggerProvider, InlineDiagnosticsTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+        return await TestDiagnosticTagProducer<InlineDiagnosticsTaggerProvider, InlineDiagnosticsTag>.GetTagSpansAsync(workspace);
     }
 }

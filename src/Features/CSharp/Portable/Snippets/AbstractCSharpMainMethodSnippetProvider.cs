@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
@@ -11,7 +12,8 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-internal abstract class AbstractCSharpMainMethodSnippetProvider : AbstractMainMethodSnippetProvider
+internal abstract class AbstractCSharpMainMethodSnippetProvider
+    : AbstractMainMethodSnippetProvider<MethodDeclarationSyntax, StatementSyntax, TypeSyntax>
 {
     protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {
