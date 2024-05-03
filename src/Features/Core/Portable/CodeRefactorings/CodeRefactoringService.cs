@@ -144,13 +144,13 @@ internal sealed class CodeRefactoringService(
                     });
 
                     using (args.addOperationScope(providerName))
-                    using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
+                    using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, args.cancellationToken))
                     using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                     {
                         var extensionManager = args.document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
                         var refactoring = await args.@this.GetRefactoringFromProviderAsync(
-                            args.document, args.state, provider, providerMetadata, extensionManager, args.options, cancellationToken).ConfigureAwait(false);
+                            args.document, args.state, provider, providerMetadata, extensionManager, args.options, args.cancellationToken).ConfigureAwait(false);
                         if (refactoring != null)
                             callback(refactoring);
                     }
