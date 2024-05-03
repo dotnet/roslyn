@@ -758,6 +758,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node, node.SemicolonToken.GetLocation());
                 }
             }
+            else if (node.Kind() is SyntaxKind.ExtensionDeclaration)
+            {
+                if (node.ParameterList != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedParameterList, node.ParameterList.GetLocation());
+                }
+                else
+                {
+                    MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
+                }
+            }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
             var quickAttributes = GetQuickAttributes(node.AttributeLists);

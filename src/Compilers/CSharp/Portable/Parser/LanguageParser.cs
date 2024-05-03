@@ -1581,11 +1581,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? ParseParenthesizedParameterList()
                 : null;
 
-            if (paramList != null && mainKeyword.Kind == SyntaxKind.ExtensionKeyword)
-            {
-                paramList = AddError(paramList, ErrorCode.ERR_ExtensionPrimaryConstructor);
-            }
-
             // PROTOTYPE. Parse this for all type declarations and give good error message.
             var extensionForType = mainKeyword.Kind == SyntaxKind.ExtensionKeyword && CurrentToken.Kind == SyntaxKind.ForKeyword
                 ? _syntaxFactory.ForType(EatToken(SyntaxKind.ForKeyword), ParseType())
@@ -1747,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword)
                 {
                     implicitOrExplicitKeyword = EatToken();
-                    extensionKeyword = CheckFeatureAvailability(ConvertToKeyword(EatToken()), MessageID.IDS_FeatureExtensions);
+                    extensionKeyword = ConvertToKeyword(EatToken());
                     return true;
                 }
 

@@ -7923,9 +7923,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnderspecifiedImplicitExtension" xml:space="preserve">
     <value>The underlying type '{0}' of implicit extension '{1}' must reference all the type parameters declared by the extension, but type parameter '{2}' is missing.</value>
   </data>
-  <data name="ERR_ExtensionPrimaryConstructor" xml:space="preserve">
-    <value>Extension cannot have a primary constructor.</value>
-  </data>
   <data name="IDS_FeatureParamsCollections" xml:space="preserve">
     <value>params collections</value>
   </data>
