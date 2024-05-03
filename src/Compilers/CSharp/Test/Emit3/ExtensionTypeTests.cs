@@ -2355,9 +2355,9 @@ explicit extension R(int i) for UnderlyingClass { }
         // PROTOTYPE should parse but remain error
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (3,21): error CS9329: Extension cannot have a primary constructor.
+            // (3,21): error CS9122: Unexpected parameter list.
             // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_ExtensionPrimaryConstructor, "(int i)").WithLocation(3, 21));
+            Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "(int i)").WithLocation(3, 21));
     }
 
     [Fact]
