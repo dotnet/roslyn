@@ -93,10 +93,9 @@ internal sealed class CodeRefactoringService(
         foreach (var provider in GetProviders(document))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
             var refactoring = await GetRefactoringFromProviderAsync(
-                document, state, provider, providerMetadata, options, cancellationToken).ConfigureAwait(false);
+                document, state, provider, options, cancellationToken).ConfigureAwait(false);
 
             if (refactoring != null)
                 return true;
@@ -139,7 +138,6 @@ internal sealed class CodeRefactoringService(
                             const int CodeRefactoringTelemetryDelay = 500;
 
                             var providerName = provider.GetType().Name;
-                            args.@this.RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                             var logMessage = KeyValueLogMessage.Create(m =>
                             {
@@ -152,7 +150,7 @@ internal sealed class CodeRefactoringService(
                             using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                             {
                                 var refactoring = await args.@this.GetRefactoringFromProviderAsync(
-                                    args.document, args.state, provider, providerMetadata, args.options, cancellationToken).ConfigureAwait(false);
+                                    args.document, args.state, provider, args.options, cancellationToken).ConfigureAwait(false);
                                 if (refactoring != null)
                                     callback((provider, refactoring));
                             }
@@ -175,10 +173,11 @@ internal sealed class CodeRefactoringService(
         TextDocument textDocument,
         TextSpan state,
         CodeRefactoringProvider provider,
-        CodeChangeProviderMetadata? providerMetadata,
         CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
+        RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
+
         var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
         return extensionManager.PerformFunctionAsync(
