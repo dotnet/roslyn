@@ -492,8 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestIsExpression(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {

@@ -10809,8 +10809,7 @@ class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Parameter_Update_TypeOrRefKind_RuntimeTypeChanged(
             [CombinatorialValues("int", "in byte", "ref byte", "out byte", "ref readonly byte")] string type,
             bool direction)
@@ -12915,8 +12914,7 @@ partial class C
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_UpdatingImplicit(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "protected")] string accessibility)
@@ -12935,8 +12933,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_UpdatingImplicit_Partial(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "protected")] string accessibility)
@@ -12961,8 +12958,7 @@ partial class C
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_AddingParameterless(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "internal", "private", "protected", "private protected", "internal protected")] string accessibility)
@@ -12978,8 +12974,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_AddingParameterless_Primary(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "internal", "private", "protected", "private protected", "internal protected")] string accessibility)
@@ -12995,8 +12990,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_AddingParameterless_Partial(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "internal", "private", "protected", "private protected", "internal protected")] string accessibility)
@@ -13022,8 +13016,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_AddingParameterless_Partial_Primary(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "internal", "private", "protected", "private protected", "internal protected")] string accessibility)
@@ -13049,8 +13042,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_ReplacingSynthesizedWithCustom_ChangingAccessibilty(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "protected", "internal", "private protected", "internal protected")] string accessibility)
@@ -13067,8 +13059,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_ReplacingSynthesizedWithCustom_ChangingAccessibilty_AbstractType(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "public", "internal", "private protected", "internal protected")] string accessibility)
@@ -13240,8 +13231,7 @@ partial class C
                 Diagnostic(RudeEditKind.ChangingAccessibility, "class C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_UpdatingImplicit(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "protected")] string accessibility)
@@ -13292,8 +13282,7 @@ class C
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_WithParameters([CombinatorialValues("record", "class")] string keyword)
         {
             var src1 = keyword + " C { public C(int x) { } }";
@@ -13306,8 +13295,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_Primary_WithParameters([CombinatorialValues("record", "class")] string keyword)
         {
             var src1 = keyword + " C(int a) { public C(bool b) { } }";
@@ -13387,8 +13375,7 @@ class C
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized(
             [CombinatorialValues("record", "class")] string keyword)
         {
@@ -13401,8 +13388,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is []), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized_ChangingAccessibility(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "protected", "internal", "private protected", "internal protected")] string accessibility)
@@ -13419,8 +13405,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized_AbstractType(
             [CombinatorialValues("record", "class")] string keyword)
         {
@@ -13433,8 +13418,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized_AbstractType_ChangingAccessibility(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "public", "internal", "private protected", "internal protected")] string accessibility)
@@ -13499,8 +13483,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_Primary_ReplacingWithRegular(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "protected", "internal", "private protected", "internal protected")] string accessibility)
@@ -13517,8 +13500,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_Primary_ReplacingWithRegular_AbstractType(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "public", "internal", "private protected", "internal protected")] string accessibility)
@@ -16134,8 +16116,7 @@ class C : B
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void MemberInitializer_Update_Lambda_ConstructorWithMemberInitializers_ReplacingCustomWithSynthesized_Primary(
             [CombinatorialValues("", "()")] string initializer, bool isInsert)
         {

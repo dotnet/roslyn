@@ -16,13 +16,13 @@ using static SQLitePersistentStorageConstants;
 internal partial class SQLitePersistentStorage
 {
     public override Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
-        => _solutionAccessor.ChecksumMatchesAsync(_solutionKey, name, checksum, cancellationToken);
+        => _solutionAccessor.ChecksumMatchesAsync(this.SolutionKey, name, checksum, cancellationToken);
 
     public override Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
-        => _solutionAccessor.ReadStreamAsync(_solutionKey, name, checksum, cancellationToken);
+        => _solutionAccessor.ReadStreamAsync(this.SolutionKey, name, checksum, cancellationToken);
 
     public override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-        => _solutionAccessor.WriteStreamAsync(_solutionKey, name, stream, checksum, cancellationToken);
+        => _solutionAccessor.WriteStreamAsync(this.SolutionKey, name, stream, checksum, cancellationToken);
 
     private readonly record struct SolutionPrimaryKey();
 

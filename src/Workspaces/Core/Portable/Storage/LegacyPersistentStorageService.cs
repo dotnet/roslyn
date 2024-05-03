@@ -36,5 +36,5 @@ internal sealed class LegacyPersistentStorageService : IPersistentStorageService
     }
 
     public IPersistentStorage GetStorage(Solution solution)
-        => NoOpPersistentStorage.GetOrThrow(throwOnFailure: false);
+        => NoOpPersistentStorage.GetOrThrow(SolutionKey.ToSolutionKey(solution), throwOnFailure: false);
 }

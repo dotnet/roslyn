@@ -6374,8 +6374,7 @@ class Program
         /// Note that this test verifies the current end of line sequence in using directives is preserved regardless of
         /// whether this matches the end_of_line value in .editorconfig or not.
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
         public async Task TestAddUsingPreservesNewlines1(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
         {
@@ -6418,8 +6417,7 @@ class Program
         /// Note that this test verifies the current end of line sequence in using directives is preserved regardless of
         /// whether this matches the end_of_line value in .editorconfig or not.
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
         public async Task TestAddUsingPreservesNewlines2(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
         {
@@ -6473,8 +6471,7 @@ class Program
                 parameters: new TestParameters(options: Option(FormattingOptions2.NewLine, configuredNewLine), testHost: testHost));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/62976")]
         public async Task TestAddUsingPreservesNewlines3(TestHost testHost, [CombinatorialValues("\n", "\r\n")] string sourceNewLine, [CombinatorialValues("\n", "\r\n")] string configuredNewLine)
         {
@@ -6528,8 +6525,7 @@ class Program
                 parameters: new TestParameters(options: Option(FormattingOptions2.NewLine, configuredNewLine), testHost: testHost));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/24642")]
         public async Task TestAddUsingWithMalformedGeneric(TestHost testHost)
         {
@@ -6552,8 +6548,7 @@ class Program
                 parameters: new TestParameters(testHost: testHost));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestOutsideOfMethodWithMalformedGenericParameters(TestHost testHost)
         {
             await TestInRegularAndScript1Async(

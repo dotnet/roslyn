@@ -473,8 +473,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return null;
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StartDebuggingSession_CapturingDocuments(bool captureAllDocuments)
         {
             var encodingA = Encoding.BigEndianUnicode;
@@ -664,8 +663,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, _telemetryLog);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ProjectThatDoesNotSupportEnC(bool breakMode)
         {
             using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
@@ -770,8 +768,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Empty(emitDiagnostics);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open, bool designTimeOnlyAddedAfterSessionStarts)
         {
             var source = "class A { }";
@@ -874,8 +871,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ErrorReadingModuleFile(bool breakMode)
         {
             // module file is empty, which will cause a read error:
@@ -1067,8 +1063,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, _telemetryLog);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task FileAdded(bool breakMode)
         {
             var sourceA = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -1153,8 +1148,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         /// solution
         /// </code>
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ModuleDisallowsEditAndContinue_NoChanges(bool breakMode)
         {
             var source0 = "class C1 { void M() { System.Console.WriteLine(0); } }";
@@ -1365,8 +1359,7 @@ class C1
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task RudeEdits(bool breakMode)
         {
             var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -1541,8 +1534,7 @@ class C { int Y => 2; }
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task RudeEdits_DocumentOutOfSync(bool breakMode)
         {
             var source0 = "class C1 { void M() { System.Console.WriteLine(0); } }";
@@ -1908,8 +1900,7 @@ class C { int Y => 2; }
             AnalyzerConfig,
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task HasChanges_Documents(DocumentKind documentKind)
         {
             using var _ = CreateWorkspace(out var solution, out var service);
@@ -2159,8 +2150,7 @@ class C { int Y => 2; }
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Capabilities(bool breakState)
         {
             var source1 = "class C { void M() { } }";
@@ -2629,8 +2619,7 @@ class G
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValidSignificantChange_DocumentOutOfSync(bool delayLoad)
         {
             var sourceOnDisk = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -2683,8 +2672,7 @@ class G
             Assert.Empty(debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValidSignificantChange_EmitSuccessful(bool breakMode, bool commitUpdate)
         {
             var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -3608,8 +3596,7 @@ class C { int Y => 1; }
             AssertEx.Equal(new[] { adjustedActiveLineSpan1, adjustedActiveLineSpan2 }, currentSpans.Select(s => s.LineSpan));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ActiveStatements_SyntaxErrorOrOutOfSyncDocument(bool isOutOfSync)
         {
             var sourceV1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
@@ -3673,8 +3660,7 @@ class C { int Y => 1; }
             AssertEx.Equal(new[] { activeLineSpan11, activeLineSpan12 }, currentSpans.Select(s => s.LineSpan));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ActiveStatements_ForeignDocument(bool withPath, bool designTimeOnly)
         {
             using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
