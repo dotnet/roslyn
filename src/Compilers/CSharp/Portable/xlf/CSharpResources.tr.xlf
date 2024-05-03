@@ -757,11 +757,6 @@
         <target state="new">No part of a partial extension '{0}' includes an underlying type specification.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExtensionPrimaryConstructor">
-        <source>Extension cannot have a primary constructor.</source>
-        <target state="new">Extension cannot have a primary constructor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': dış etkinliğin başlatıcısı olamaz</target>
