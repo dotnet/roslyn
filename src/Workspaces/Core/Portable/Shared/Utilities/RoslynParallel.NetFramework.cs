@@ -4,15 +4,6 @@
 
 #if !NET
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
-
-namespace Microsoft.CodeAnalysis.Shared.Utilities;
-
 #pragma warning disable CA1068 // CancellationToken parameters must come last
 #pragma warning disable IDE0007 // Use implicit type
 #pragma warning disable IDE2003 // Blank line required between block and subsequent statement
@@ -23,6 +14,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 // https://github.com/dotnet/runtime/blob/main/src/libraries/System.Threading.Tasks.Parallel/src/System/Threading/Tasks/Parallel.ForEachAsync.cs
 // With only changes to make the code work on NetFx.  Where changes have been made, the original code is kept around in
 // an ifdef'ed block to see what it was doing.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal static partial class RoslynParallel
 {
