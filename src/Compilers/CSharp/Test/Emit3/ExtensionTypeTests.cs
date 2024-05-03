@@ -2355,46 +2355,9 @@ explicit extension R(int i) for UnderlyingClass { }
         // PROTOTYPE should parse but remain error
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
-            // (3,20): error CS9314: No part of a partial extension 'R' includes an underlying type specification.
+            // (3,21): error CS9329: Extension cannot have a primary constructor.
             // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_ExtensionMissingUnderlyingType, "R").WithArguments("R").WithLocation(3, 20),
-            // (3,21): error CS1514: { expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 21),
-            // (3,21): error CS1513: } expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 21),
-            // (3,21): error CS8803: Top-level statements must precede namespace and type declarations.
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int ").WithLocation(3, 21),
-            // (3,22): error CS1525: Invalid expression term 'int'
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(3, 22),
-            // (3,22): error CS0119: 'int' is a type, which is not valid in the given context
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "int").WithArguments("int", "type").WithLocation(3, 22),
-            // (3,26): error CS1026: ) expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "i").WithLocation(3, 26),
-            // (3,26): error CS1002: ; expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "i").WithLocation(3, 26),
-            // (3,26): error CS0246: The type or namespace name 'i' could not be found (are you missing a using directive or an assembly reference?)
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "i").WithArguments("i").WithLocation(3, 26),
-            // (3,27): error CS1001: Identifier expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 27),
-            // (3,27): error CS1003: Syntax error, ',' expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(3, 27),
-            // (3,51): error CS1002: ; expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 51),
-            // (3,51): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension R(int i) for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(3, 51)
-            );
+            Diagnostic(ErrorCode.ERR_ExtensionPrimaryConstructor, "(int i)").WithLocation(3, 21));
     }
 
     [Fact]
