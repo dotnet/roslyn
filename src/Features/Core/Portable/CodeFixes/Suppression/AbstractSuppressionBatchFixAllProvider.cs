@@ -89,7 +89,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
             // Determine the set of documents to actually fix.  We can also use this to update the progress bar with
             // the amount of remaining work to perform.  We'll update the progress bar as we compute each fix in
             // AddDocumentFixesAsync.
-            var source = documentsAndDiagnosticsToFixMap.WhereAsArray((kvp, _) => !kvp.Value.IsDefaultOrEmpty, state: false);
+            var source = documentsAndDiagnosticsToFixMap.WhereAsArray(static (kvp, _) => !kvp.Value.IsDefaultOrEmpty, state: false);
             progressTracker.AddItems(source.Length);
 
             using var _ = ArrayBuilder<(Diagnostic diagnostic, CodeAction action)>.GetInstance(out var results);
