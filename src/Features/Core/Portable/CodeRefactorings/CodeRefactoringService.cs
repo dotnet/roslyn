@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.EditAndContinue.TraceLog;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
