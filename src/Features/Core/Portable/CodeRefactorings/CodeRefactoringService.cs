@@ -123,7 +123,7 @@ internal sealed class CodeRefactoringService(
 
             await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
                 source: orderedProviders,
-                produceItems: static async (provider, callback, args) =>
+                produceItems: static async (provider, callback, args, cancellationToken) =>
                 {
                     // Run all providers in parallel to get the set of refactorings for this document.
                     // Log an individual telemetry event for slow code refactoring computations to
@@ -141,21 +141,21 @@ internal sealed class CodeRefactoringService(
                     });
 
                     using (args.addOperationScope(providerName))
-                    using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, args.cancellationToken))
+                    using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                     using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                     {
                         var refactoring = await args.@this.GetRefactoringFromProviderAsync(
-                            args.document, args.state, provider, args.options, args.cancellationToken).ConfigureAwait(false);
+                            args.document, args.state, provider, args.options, cancellationToken).ConfigureAwait(false);
                         if (refactoring != null)
                             callback((provider, refactoring));
                     }
                 },
-                consumeItems: static async (reader, args) =>
+                consumeItems: static async (reader, args, cancellationToken) =>
                 {
                     await foreach (var pair in reader)
                         args.pairs.Add(pair);
                 },
-                args: (@this: this, document, state, options, addOperationScope, pairs, cancellationToken),
+                args: (@this: this, document, state, options, addOperationScope, pairs),
                 cancellationToken).ConfigureAwait(false);
 
             return pairs

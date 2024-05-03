@@ -81,9 +81,9 @@ internal partial class FindReferencesSearchEngine
         {
             await ProducerConsumer<Reference>.RunAsync(
                 ProducerConsumerOptions.SingleReaderOptions,
-                produceItems: static (onItemFound, args) => args.@this.PerformSearchAsync(args.symbols, onItemFound, args.cancellationToken),
-                consumeItems: static async (references, args) => await args.@this._progress.OnReferencesFoundAsync(references, @args.cancellationToken).ConfigureAwait(false),
-                (@this: this, symbols, cancellationToken),
+                produceItems: static (onItemFound, args, cancellationToken) => args.@this.PerformSearchAsync(args.symbols, onItemFound, cancellationToken),
+                consumeItems: static async (references, args, cancellationToken) => await args.@this._progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false),
+                (@this: this, symbols),
                 cancellationToken).ConfigureAwait(false);
         }
         finally

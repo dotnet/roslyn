@@ -95,8 +95,8 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         CancellationToken cancellationToken)
         => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
             source: items,
-            produceItems: static async (item, onItemFound, args) => await args.callback(item, onItemFound).ConfigureAwait(false),
-            consumeItems: static (items, args) => args.onItemsFound(items),
-            args: (items, callback, onItemsFound, cancellationToken),
+            produceItems: static async (item, onItemFound, args, cancellationToken) => await args.callback(item, onItemFound).ConfigureAwait(false),
+            consumeItems: static (items, args, cancellationToken) => args.onItemsFound(items),
+            args: (items, callback, onItemsFound),
             cancellationToken);
 }
