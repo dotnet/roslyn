@@ -116,16 +116,19 @@ internal sealed class CodeRefactoringService(
         using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
         using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
         {
-            using var _ = ArrayBuilder<CodeRefactoring>.GetInstance(out var codeRefactorings);
+            using var _1 = ArrayBuilder<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.GetInstance(out var pairs);
+            using var _2 = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
 
-            var providers = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority);
+            var orderedProviders = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority).ToImmutableArray();
+            foreach (var provider in orderedProviders)
+                providerToIndex.Add(provider, providerToIndex.Count);
 
-            await ProducerConsumer<CodeRefactoring>.RunAsync(
+            await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunAsync(
                 ProducerConsumerOptions.SingleReaderOptions,
                 produceItems: static (callback, args) =>
                     // Run all providers in parallel to get the set of refactorings for this document.
                     RoslynParallel.ForEachAsync(
-                        args.providers,
+                        args.orderedProviders,
                         args.cancellationToken,
                         async (provider, cancellationToken) =>
                         {
@@ -151,18 +154,20 @@ internal sealed class CodeRefactoringService(
                                 var refactoring = await args.@this.GetRefactoringFromProviderAsync(
                                     args.document, args.state, provider, providerMetadata, args.options, cancellationToken).ConfigureAwait(false);
                                 if (refactoring != null)
-                                    callback(refactoring);
+                                    callback((provider, refactoring));
                             }
                         }),
                 consumeItems: static async (reader, args) =>
                 {
-                    await foreach (var refactoring in reader)
-                        args.codeRefactorings.Add(refactoring);
+                    await foreach (var pair in reader)
+                        args.pairs.Add(pair);
                 },
-                args: (@this: this, document, state, providers, options, addOperationScope, codeRefactorings, cancellationToken),
+                args: (@this: this, document, state, orderedProviders, options, addOperationScope, pairs, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            return codeRefactorings.ToImmutableAndClear();
+            return pairs
+                .OrderBy((tuple1, tuple2) => providerToIndex[tuple1.provider] - providerToIndex[tuple2.provider])
+                .SelectAsArray(t => t.codeRefactoring);
         }
     }
 
