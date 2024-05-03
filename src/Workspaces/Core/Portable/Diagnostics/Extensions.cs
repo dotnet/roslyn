@@ -390,8 +390,7 @@ internal static partial class Extensions
         {
             if (compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis)
             {
-                using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
-                await ProducerConsumer<Diagnostic>.RunParallelAsync(
+                return await Producer<Diagnostic>.RunParallelAsync(
                     source: project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken),
                     produceItems: static async (document, callback, args, cancellationToken) =>
                     {
@@ -399,15 +398,8 @@ internal static partial class Extensions
                             args.compilationWithAnalyzers, args.analyzerInfoCache, args.suppressionAnalyzer,
                             document, span: null, callback, cancellationToken).ConfigureAwait(false);
                     },
-                    consumeItems: static async (results, args, cancellationToken) =>
-                    {
-                        await foreach (var diagnostic in results)
-                            args.diagnostics.Add(diagnostic);
-                    },
-                    args: (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer, diagnostics),
+                    args: (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer),
                     cancellationToken).ConfigureAwait(false);
-
-                return diagnostics.ToImmutableAndClear();
             }
             else
             {
