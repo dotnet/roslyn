@@ -3309,7 +3309,9 @@ class C : extension<C>
     }
 
     [Theory, CombinatorialData]
-    public void ImplicitExtensionOperator1(bool isExplicit)
+    public void ImplicitExtensionOperator1(
+        bool isExplicit,
+        [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         var text = $$"""
             class C
@@ -3318,63 +3320,7 @@ class C : extension<C>
             }
             """;
 
-        UsingTreeWithCSharpNext(text);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ConversionOperatorDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.StaticKeyword);
-                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
-                    N(SyntaxKind.ExplicitInterfaceSpecifier);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.DotToken);
-                    }
-                    N(SyntaxKind.OperatorKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "C");
-                            }
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.ArrowExpressionClause);
-                    {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.DefaultLiteralExpression);
-                        {
-                            N(SyntaxKind.DefaultKeyword);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        UsingTree(text, options: TestOptions.Regular12);
+        UsingTree(text, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3432,7 +3378,9 @@ class C : extension<C>
     }
 
     [Theory, CombinatorialData]
-    public void ImplicitExtensionOperator2(bool isExplicit)
+    public void ImplicitExtensionOperator2(
+        bool isExplicit,
+        [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         var text = $$"""
             class C
@@ -3441,71 +3389,7 @@ class C : extension<C>
             }
             """;
 
-        UsingTreeWithCSharpNext(text);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ConversionOperatorDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.StaticKeyword);
-                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
-                    N(SyntaxKind.ExplicitInterfaceSpecifier);
-                    {
-                        N(SyntaxKind.QualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "extension");
-                            }
-                            N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                    }
-                    N(SyntaxKind.OperatorKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "C");
-                            }
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.ArrowExpressionClause);
-                    {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.DefaultLiteralExpression);
-                        {
-                            N(SyntaxKind.DefaultKeyword);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        UsingTree(text, options: TestOptions.Regular12);
+        UsingTree(text, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3571,7 +3455,9 @@ class C : extension<C>
     }
 
     [Theory, CombinatorialData]
-    public void ImplicitExtensionOperator3(bool isExplicit)
+    public void ImplicitExtensionOperator3(
+        bool isExplicit,
+        [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         var text = $$"""
             class C
@@ -3580,72 +3466,7 @@ class C : extension<C>
             }
             """;
 
-        UsingTreeWithCSharpNext(text);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ConversionOperatorDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.StaticKeyword);
-                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
-                    N(SyntaxKind.ExplicitInterfaceSpecifier);
-                    {
-                        N(SyntaxKind.GenericName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                            N(SyntaxKind.TypeArgumentList);
-                            {
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "X");
-                                }
-                                N(SyntaxKind.GreaterThanToken);
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                    }
-                    N(SyntaxKind.OperatorKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "C");
-                            }
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.ArrowExpressionClause);
-                    {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.DefaultLiteralExpression);
-                        {
-                            N(SyntaxKind.DefaultKeyword);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        UsingTree(text, options: TestOptions.Regular12);
+        UsingTree(text, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3712,7 +3533,9 @@ class C : extension<C>
     }
 
     [Theory, CombinatorialData]
-    public void ImplicitExtensionOperator4(bool isExplicit)
+    public void ImplicitExtensionOperator4(
+        bool isExplicit,
+        [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
     {
         var text = $$"""
             class C
@@ -3721,71 +3544,7 @@ class C : extension<C>
             }
             """;
 
-        UsingTreeWithCSharpNext(text);
-
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.ClassDeclaration);
-            {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ConversionOperatorDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.StaticKeyword);
-                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
-                    N(SyntaxKind.ExplicitInterfaceSpecifier);
-                    {
-                        N(SyntaxKind.AliasQualifiedName);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "extension");
-                            }
-                            N(SyntaxKind.ColonColonToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                        }
-                        N(SyntaxKind.DotToken);
-                    }
-                    N(SyntaxKind.OperatorKeyword);
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "C");
-                            }
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.ArrowExpressionClause);
-                    {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.DefaultLiteralExpression);
-                        {
-                            N(SyntaxKind.DefaultKeyword);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-
-        UsingTree(text, options: TestOptions.Regular12);
+        UsingTree(text, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
