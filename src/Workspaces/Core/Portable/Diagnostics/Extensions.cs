@@ -390,7 +390,7 @@ internal static partial class Extensions
         {
             if (compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis)
             {
-                return await Producer<Diagnostic>.RunParallelAsync(
+                return await ProducerConsumer<Diagnostic>.RunParallelAsync(
                     source: project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken),
                     produceItems: static async (document, callback, args, cancellationToken) =>
                     {

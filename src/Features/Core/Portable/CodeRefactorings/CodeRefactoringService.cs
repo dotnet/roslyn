@@ -118,7 +118,7 @@ internal sealed class CodeRefactoringService(
 
             var orderedProviders = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority).ToImmutableArray();
 
-            var pairs = await Producer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
+            var pairs = await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
                 source: orderedProviders,
                 produceItems: static async (provider, callback, args, cancellationToken) =>
                 {

@@ -236,7 +236,7 @@ public abstract partial class CompletionService
         SharedSyntaxContextsWithSpeculativeModel sharedContext,
         CancellationToken cancellationToken)
     {
-        return await Producer<CompletionContext>.RunParallelAsync(
+        return await ProducerConsumer<CompletionContext>.RunParallelAsync(
             source: providers,
             produceItems: static async (provider, callback, args, cancellationToken) =>
             {

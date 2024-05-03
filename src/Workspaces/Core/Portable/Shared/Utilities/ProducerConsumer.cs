@@ -35,53 +35,6 @@ internal readonly record struct ProducerConsumerOptions
     public bool SingleReader { get; init; }
 }
 
-internal static class Producer<TItem>
-{
-    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
-        ImmutableArray<TSource> source,
-        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<TItem>.GetInstance(out var results);
-
-        await ProducerConsumer<TItem>.RunParallelAsync(
-            source,
-            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
-            consumeItems: static async (stream, args, cancellationToken) =>
-            {
-                await foreach (var item in stream)
-                    args.results.Add(item);
-            },
-            args: (produceItems, args, results),
-            cancellationToken).ConfigureAwait(false);
-
-        return results.ToImmutableAndClear();
-    }
-
-    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
-        IAsyncEnumerable<TSource> source,
-        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<TItem>.GetInstance(out var results);
-
-        await ProducerConsumer<TItem>.RunParallelAsync(
-            source,
-            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
-            consumeItems: static async (stream, args, cancellationToken) =>
-            {
-                await foreach (var item in stream)
-                    args.results.Add(item);
-            },
-            args: (produceItems, args, results),
-            cancellationToken).ConfigureAwait(false);
-
-        return results.ToImmutableAndClear();
-    }
-}
-
 internal static class ProducerConsumer<TItem>
 {
     /// <summary>
@@ -209,6 +162,56 @@ internal static class ProducerConsumer<TItem>
             consumeItems: static (enumerable, args, cancellationToken) => args.consumeItems(enumerable, args.args, cancellationToken),
             args: (source, produceItems, consumeItems, args),
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Version of RunParallelAsync that returns the produced items as an array.
+    /// </summary>
+    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<TItem>.GetInstance(out var results);
+
+        await RunParallelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static async (stream, args, cancellationToken) =>
+            {
+                await foreach (var item in stream)
+                    args.results.Add(item);
+            },
+            args: (produceItems, args, results),
+            cancellationToken).ConfigureAwait(false);
+
+        return results.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// Version of RunParallelAsync that returns the produced items as an array.
+    /// </summary>
+    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<TItem>.GetInstance(out var results);
+
+        await RunParallelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static async (stream, args, cancellationToken) =>
+            {
+                await foreach (var item in stream)
+                    args.results.Add(item);
+            },
+            args: (produceItems, args, results),
+            cancellationToken).ConfigureAwait(false);
+
+        return results.ToImmutableAndClear();
     }
 
     /// <summary>

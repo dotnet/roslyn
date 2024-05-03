@@ -325,7 +325,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     {
         var solution = document.Project.Solution;
 
-        return await Producer<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.RunParallelAsync(
+        return await ProducerConsumer<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.RunParallelAsync(
             source: relatedDocuments,
             produceItems: static async (relatedDocumentId, callback, args, cancellationToken) =>
             {
