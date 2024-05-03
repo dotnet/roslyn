@@ -12681,5 +12681,34 @@ implicit extension E&lt;T&gt; where $$
                 Await state.AssertCompletionItemsContain("T", displayTextSuffix:="")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestCompletionForExtensionUsage(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                using System;
+
+                implicit extension E for Console
+                {
+                    public static void M()
+                    {
+                    }
+                }
+
+                class C
+                {
+                    void X()
+                    {
+                        Console.$$
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("M", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace
