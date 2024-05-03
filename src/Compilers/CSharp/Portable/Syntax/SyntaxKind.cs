@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Utf8StringLiteralToken = 8520,
         Utf8SingleLineRawStringLiteralToken = 8521,
         Utf8MultiLineRawStringLiteralToken = 8522,
-        BadRazorContentToken = 8523,
+        RazorContentToken = 8523,
 
         // trivia
         EndOfLineTrivia = 8539,

@@ -277,6 +277,11 @@ public class SyntaxTokenParserTests
         Assert.Empty(result.Token.LeadingTrivia);
         Assert.Empty(result.Token.TrailingTrivia);
 
+        result = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 0), "", result);
+        Assert.Empty(result.Token.LeadingTrivia);
+        Assert.Empty(result.Token.TrailingTrivia);
+
         AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 6), "class ", parser.ParseNextToken());
     }
 
@@ -292,6 +297,16 @@ public class SyntaxTokenParserTests
             (SyntaxKind.MultiLineCommentTrivia, "/* test */"),
             (SyntaxKind.WhitespaceTrivia, " "));
         Assert.Empty(result.Token.TrailingTrivia);
+
+        var intermediateResult = parser.ParseLeadingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(11, 0), "", intermediateResult);
+        Assert.Empty(intermediateResult.Token.LeadingTrivia);
+        Assert.Empty(intermediateResult.Token.TrailingTrivia);
+
+        intermediateResult = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(11, 0), "", intermediateResult);
+        Assert.Empty(intermediateResult.Token.LeadingTrivia);
+        Assert.Empty(intermediateResult.Token.TrailingTrivia);
 
         AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(11, 6), "class ", parser.ParseNextToken());
 
@@ -316,6 +331,16 @@ public class SyntaxTokenParserTests
             (SyntaxKind.EndOfLineTrivia, "\r\n"),
             (SyntaxKind.EndOfLineTrivia, "\r\n"));
         Assert.Empty(result.Token.TrailingTrivia);
+
+        var intermediateResult = parser.ParseLeadingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(14, 0), "", intermediateResult);
+        Assert.Empty(intermediateResult.Token.LeadingTrivia);
+        Assert.Empty(intermediateResult.Token.TrailingTrivia);
+
+        intermediateResult = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(14, 0), "", intermediateResult);
+        Assert.Empty(intermediateResult.Token.LeadingTrivia);
+        Assert.Empty(intermediateResult.Token.TrailingTrivia);
 
         AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(14, 6), "class ", parser.ParseNextToken());
 

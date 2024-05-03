@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotEqual(default, token);
-            Assert.Equal(SyntaxKind.BadRazorContentToken, token.Kind());
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             errors.Verify(
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             token = tokens[1];
             Assert.NotEqual(default, token);
-            Assert.Equal(SyntaxKind.BadRazorContentToken, token.Kind());
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
             var errors = token.Errors();
             errors.Verify(
                 // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = tokens[0];
 
             Assert.NotEqual(default, token);
-            Assert.Equal(SyntaxKind.BadRazorContentToken, token.Kind());
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
             Assert.Equal("@: /*", token.ToString());
             var errors = token.Errors();
             errors.Verify(
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = tokens[0];
 
             Assert.NotEqual(default, token);
-            Assert.Equal(SyntaxKind.BadRazorContentToken, token.Kind());
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
             Assert.Equal("""
                 #if true
                 @:

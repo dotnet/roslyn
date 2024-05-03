@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.EndOfFileToken:
                         token = SyntaxFactory.Token(leadingNode, info.Kind, trailingNode);
                         break;
-                    case SyntaxKind.BadRazorContentToken:
+                    case SyntaxKind.RazorContentToken:
                         token = SyntaxFactory.Token(leadingNode, info.Kind, info.Text, trailingNode);
                         break;
                     case SyntaxKind.None:
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             // Razor HTML transition. For best consumption by razor, we want to simply pretend it's a token and
                             // consume all the way to the end of the line.
-                            info.Kind = SyntaxKind.BadRazorContentToken;
+                            info.Kind = SyntaxKind.RazorContentToken;
                             this.AddError(TextWindow.Position + 1, width: 1, ErrorCode.ERR_ExpectedVerbatimLiteral);
 
                             this.ScanToEndOfLine();
