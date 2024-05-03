@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -263,15 +264,27 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         CompletionOptions options,
         CancellationToken cancellationToken)
     {
-        var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id);
+        var relatedDocumentIds = document.GetLinkedDocumentIds();
 
-        if (relatedDocumentIds.Length == 1)
+        if (relatedDocumentIds.IsEmpty)
         {
             var itemsForCurrentDocument = await GetSymbolsAsync(completionContext, syntaxContext, position, options, cancellationToken).ConfigureAwait(false);
             return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null);
         }
 
-        var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, options, relatedDocumentIds, cancellationToken).ConfigureAwait(false);
+        using var _ = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
+        documentIdToIndex.Add(document.Id, 0);
+        foreach (var documentId in relatedDocumentIds)
+            documentIdToIndex.Add(documentId, documentIdToIndex.Count);
+
+        var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, options, documentIdToIndex.Keys, cancellationToken).ConfigureAwait(false);
+
+        // We want the resultant contexts ordered in the same order the related documents came in.  Importantly, the
+        // context for *our* starting document should be placed first.
+        contextAndSymbolLists = contextAndSymbolLists
+            .OrderBy((tuple1, tuple2) => documentIdToIndex[tuple1.documentId] - documentIdToIndex[tuple2.documentId])
+            .ToImmutableArray();
+
         var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
         var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
         var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
@@ -304,11 +317,11 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     }
 
     private async Task<ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>> GetPerContextSymbolsAsync(
-        CompletionContext completionContext, Document document, CompletionOptions options, ImmutableArray<DocumentId> relatedDocuments, CancellationToken cancellationToken)
+        CompletionContext completionContext, Document document, CompletionOptions options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
 
-        using var _ = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.GetInstance(out var perContextSymbols);
+        using var _1 = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.GetInstance(out var perContextSymbols);
 
         await ProducerConsumer<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.RunParallelAsync(
             source: relatedDocuments,
