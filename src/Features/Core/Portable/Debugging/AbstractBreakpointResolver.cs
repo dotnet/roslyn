@@ -130,7 +130,7 @@ internal abstract partial class AbstractBreakpointResolver
                 case 0:
                     // If there were no name parts, then we don't have any members to return.
                     // We only expect to hit this condition when the name provided does not parse.
-                    return SpecializedCollections.EmptyList<ISymbol>();
+                    return [];
 
                 case 1:
                     // They're just searching for a method name.  Have to look through every type to find
@@ -147,7 +147,7 @@ internal abstract partial class AbstractBreakpointResolver
                 default:
                     // They have a namespace or nested type qualified name.  Walk up to the root namespace trying to match.
                     var containers = await _solution.GetGlobalNamespacesAsync(cancellationToken).ConfigureAwait(false);
-                    return FindMembers(containers, nameParts.ToArray());
+                    return FindMembers(containers, [.. nameParts]);
             }
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

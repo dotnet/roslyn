@@ -771,10 +771,13 @@ internal partial class AbstractSymbolDisplayService
 
         private static IEnumerable<SymbolDisplayPart> Description(string description)
         {
-            return Punctuation("(")
-                .Concat(PlainText(description))
-                .Concat(Punctuation(")"))
-                .Concat(Space());
+            return
+            [
+                .. Punctuation("("),
+                .. PlainText(description),
+                .. Punctuation(")"),
+                .. Space(),
+            ];
         }
 
         protected static IEnumerable<SymbolDisplayPart> Keyword(string text)

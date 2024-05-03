@@ -8,9 +8,6 @@ parameters:
     # So in order to pass a parameter that comes from a variable these must be typed as string.
     type: string
     default: true
-  - name: oopCoreClr
-    type: string
-    default: false
   - name: lspEditor
     type: string
     default: false
@@ -27,7 +24,7 @@ steps:
     displayName: Build and Test
     inputs:
       filePath: eng/build.ps1
-      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
+      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
@@ -35,7 +32,7 @@ steps:
       testRunner: XUnit
       testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml
       mergeTestResults: true
-      testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }}'
+      testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }}'
     condition: always()
 
   # Dumps from test timeouts or crashes get published to the test results directory by dotnet test, so make sure to publish any here.
@@ -43,7 +40,7 @@ steps:
     displayName: Publish Test Results Directory
     inputs:
       PathtoPublish: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}'
-      ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+      ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
     condition: not(succeeded())
@@ -52,7 +49,7 @@ steps:
     displayName: Publish Logs
     inputs:
       PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
-      ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+      ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
     condition: not(succeeded())
@@ -61,7 +58,7 @@ steps:
     displayName: Publish Screenshots and Test Attachments (Old Tests)
     inputs:
       PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults'
-      ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+      ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
     condition: not(succeeded())

@@ -155,7 +155,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
             }
         }
 
-        return allActions.ToImmutable();
+        return allActions.ToImmutableAndClear();
     }
 
     private (CodeAction? fieldAction, CodeAction? propertyAction) AddAllParameterInitializationActions(
@@ -239,7 +239,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
             result.Add(parameter);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(

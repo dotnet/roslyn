@@ -941,9 +941,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     return default;
                 }
 
-                using var listDisposer = ArrayBuilder<SyntaxNode>.GetInstance(out var list);
                 var delimiter = IsVisualBasic ? "\r\n" : ";";
                 var parts = statements.Split(new[] { delimiter }, StringSplitOptions.RemoveEmptyEntries);
+                var list = new FixedSizeArrayBuilder<SyntaxNode>(parts.Length);
                 foreach (var p in parts)
                 {
                     if (IsVisualBasic)
@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     }
                 }
 
-                return list.ToImmutable();
+                return list.MoveToImmutable();
             }
 
             public void Dispose()

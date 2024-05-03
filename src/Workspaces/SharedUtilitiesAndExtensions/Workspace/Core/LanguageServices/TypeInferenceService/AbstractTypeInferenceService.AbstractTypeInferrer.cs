@@ -70,7 +70,7 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            return [];
         }
 
         private ImmutableArray<TypeInferenceInfo> Filter(IEnumerable<TypeInferenceInfo> types, bool filterUnusable = true)
@@ -84,9 +84,7 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
             => CreateResult(Compilation.GetSpecialType(type).WithNullableAnnotation(nullableAnnotation));
 
         protected static IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
-            => type == null
-                ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
-                : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
+            => type == null ? [] : [new TypeInferenceInfo(type)];
 
         protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
         {
@@ -114,12 +112,10 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
 
                 var elementType = parameters.ElementAtOrDefault(0);
                 if (elementType != null)
-                {
-                    return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
-                }
+                    return [new TypeInferenceInfo(elementType)];
             }
 
-            return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            return [];
         }
 
         protected static bool IsEnumHasFlag(ISymbol symbol)

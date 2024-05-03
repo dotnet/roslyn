@@ -3,18 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.OrderModifiers;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase;
+
+using static CSharpSyntaxTokens;
 
 internal partial class HideBaseCodeFixProvider
 {
@@ -41,7 +41,7 @@ internal partial class HideBaseCodeFixProvider
         {
             var syntaxFacts = CSharpSyntaxFacts.Instance;
             var modifiers = syntaxFacts.GetModifiers(node);
-            var newModifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
+            var newModifiers = modifiers.Add(NewKeyword);
 
             if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(preferredModifierOrder, out var preferredOrder) ||
                 !AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))

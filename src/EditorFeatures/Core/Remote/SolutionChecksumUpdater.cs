@@ -28,17 +28,24 @@ internal sealed class SolutionChecksumUpdater
     /// </summary>
     private readonly IGlobalOperationNotificationService? _globalOperationService;
 
+    private readonly IDocumentTrackingService _documentTrackingService;
+
     /// <summary>
     /// Queue to push out text changes in a batched fashion when we hear about them.  Because these should be short
     /// operations (only syncing text changes) we don't cancel this when we enter the paused state.  We simply don't
     /// start queuing more requests into this until we become unpaused.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<(Document? oldDocument, Document? newDocument)> _textChangeQueue;
+    private readonly AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)> _textChangeQueue;
 
     /// <summary>
     /// Queue for kicking off the work to synchronize the primary workspace's solution.
     /// </summary>
     private readonly AsyncBatchingWorkQueue _synchronizeWorkspaceQueue;
+
+    /// <summary>
+    /// Queue for kicking off the work to synchronize the active document to the remote process.
+    /// </summary>
+    private readonly AsyncBatchingWorkQueue _synchronizeActiveDocumentQueue;
 
     private readonly object _gate = new();
     private bool _isPaused;
@@ -53,24 +60,29 @@ internal sealed class SolutionChecksumUpdater
         _globalOperationService = workspace.Services.SolutionServices.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
         _workspace = workspace;
+        _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-        _textChangeQueue = new AsyncBatchingWorkQueue<(Document? oldDocument, Document? newDocument)>(
+        _textChangeQueue = new AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)>(
             DelayTimeSpan.NearImmediate,
             SynchronizeTextChangesAsync,
             listener,
             shutdownToken);
 
-        // Use an equality comparer here as we will commonly get lots of change notifications that will all be
-        // associated with the same cancellation token controlling that batch of work.  No need to enqueue the same
-        // token a huge number of times when we only need the single value of it when doing the work.
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.NearImmediate,
             SynchronizePrimaryWorkspaceAsync,
             listener,
             shutdownToken);
 
+        _synchronizeActiveDocumentQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.NearImmediate,
+            SynchronizeActiveDocumentAsync,
+            listener,
+            shutdownToken);
+
         // start listening workspace change event
         _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
         if (_globalOperationService != null)
         {
@@ -87,6 +99,7 @@ internal sealed class SolutionChecksumUpdater
         // Try to stop any work that is in progress.
         PauseWork();
 
+        _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
         _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
         if (_globalOperationService != null)
@@ -109,6 +122,7 @@ internal sealed class SolutionChecksumUpdater
         lock (_gate)
         {
             _synchronizeWorkspaceQueue.CancelExistingWork();
+            _synchronizeActiveDocumentQueue.CancelExistingWork();
             _isPaused = true;
         }
     }
@@ -118,6 +132,7 @@ internal sealed class SolutionChecksumUpdater
         lock (_gate)
         {
             _isPaused = false;
+            _synchronizeActiveDocumentQueue.AddWork();
             _synchronizeWorkspaceQueue.AddWork();
         }
     }
@@ -134,11 +149,17 @@ internal sealed class SolutionChecksumUpdater
 
         if (e.Kind == WorkspaceChangeKind.DocumentChanged)
         {
-            _textChangeQueue.AddWork((e.OldSolution.GetDocument(e.DocumentId), e.NewSolution.GetDocument(e.DocumentId)));
+            var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
+            var newDocument = e.NewSolution.GetDocument(e.DocumentId);
+            if (oldDocument != null && newDocument != null)
+                _textChangeQueue.AddWork((oldDocument, newDocument));
         }
 
         _synchronizeWorkspaceQueue.AddWork();
     }
+
+    private void OnActiveDocumentChanged(object? sender, DocumentId? e)
+        => _synchronizeActiveDocumentQueue.AddWork();
 
     private async ValueTask SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
     {
@@ -149,23 +170,33 @@ internal sealed class SolutionChecksumUpdater
 
         using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
         {
-            var workspaceVersion = solution.WorkspaceVersion;
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
-                (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, workspaceVersion, cancellationToken),
+                (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
     }
 
+    private async ValueTask SynchronizeActiveDocumentAsync(CancellationToken cancellationToken)
+    {
+        var activeDocument = _documentTrackingService.TryGetActiveDocument();
+
+        var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+            return;
+
+        var solution = _workspace.CurrentSolution;
+        await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+            (service, cancellationToken) => service.SynchronizeActiveDocumentAsync(activeDocument, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+    }
+
     private async ValueTask SynchronizeTextChangesAsync(
-        ImmutableSegmentedList<(Document? oldDocument, Document? newDocument)> values,
+        ImmutableSegmentedList<(Document oldDocument, Document newDocument)> values,
         CancellationToken cancellationToken)
     {
         foreach (var (oldDocument, newDocument) in values)
         {
-            if (oldDocument is null || newDocument is null)
-                continue;
-
             cancellationToken.ThrowIfCancellationRequested();
             await SynchronizeTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
         }
@@ -198,15 +229,15 @@ internal sealed class SolutionChecksumUpdater
             }
 
             // get text changes
-            var textChanges = newText.GetTextChanges(oldText);
-            if (textChanges.Count == 0)
+            var textChanges = newText.GetTextChanges(oldText).AsImmutable();
+            if (textChanges.Length == 0)
             {
                 // no changes
                 return;
             }
 
             // whole document case
-            if (textChanges.Count == 1 && textChanges[0].Span.Length == oldText.Length)
+            if (textChanges.Length == 1 && textChanges[0].Span.Length == oldText.Length)
             {
                 // no benefit here. pulling from remote host is more efficient
                 return;

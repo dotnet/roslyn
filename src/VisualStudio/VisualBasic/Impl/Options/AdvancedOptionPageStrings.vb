@@ -76,9 +76,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 
-        Public ReadOnly Property Option_run_code_analysis_on_dotnet As String =
-            ServicesVSResources.Run_code_analysis_on_latest_dotnet_requires_restart
-
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
 
@@ -261,6 +258,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_guides_for_code_level_constructs As String =
             ServicesVSResources.Show_guides_for_code_level_constructs
 
+        Public ReadOnly Property Option_Show_guides_for_comments_and_preprocessor_regions As String =
+            ServicesVSResources.Show_guides_for_comments_and_preprocessor_regions
+
         Public ReadOnly Property Option_Fading As String =
             ServicesVSResources.Fading
 
@@ -389,5 +389,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
             ServicesVSResources.Enable_document_outline_experimental_requires_restart
+
+        Public ReadOnly Property Option_Source_Generators As String =
+            ServicesVSResources.Source_Generators
+
+        Public ReadOnly Property Option_Source_generator_execution_requires_restart As String =
+            ServicesVSResources.Source_generator_execution_requires_restart
+
+        Public ReadOnly Property Option_Automatic_Run_generators_after_any_change As String =
+            ServicesVSResources.Automatic_Run_generators_after_any_change
+
+        Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
+            ServicesVSResources.Balanced_Run_generators_after_saving_or_building
+
     End Module
 End Namespace

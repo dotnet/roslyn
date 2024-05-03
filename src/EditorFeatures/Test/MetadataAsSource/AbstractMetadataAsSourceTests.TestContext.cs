@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 string? metadataCommonReferences = null)
             {
                 projectLanguage ??= LanguageNames.CSharp;
-                metadataSources ??= SpecializedCollections.EmptyEnumerable<string>();
+                metadataSources ??= [];
                 metadataSources = !metadataSources.Any()
                     ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
                     : metadataSources;

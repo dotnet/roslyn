@@ -14,6 +14,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal static class UseExpressionBodyForLambdaCodeActionHelpers
 {
     internal static LambdaExpressionSyntax Update(SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration, CancellationToken cancellationToken)
@@ -43,7 +46,7 @@ internal static class UseExpressionBodyForLambdaCodeActionHelpers
         if (declaration.ArrowToken.TrailingTrivia.All(t => t.IsWhitespaceOrEndOfLine()) &&
             expressionBody.GetLeadingTrivia().All(t => t.IsWhitespaceOrEndOfLine()))
         {
-            updatedDecl = updatedDecl.WithArrowToken(updatedDecl.ArrowToken.WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+            updatedDecl = updatedDecl.WithArrowToken(updatedDecl.ArrowToken.WithTrailingTrivia(ElasticSpace));
         }
 
         return updatedDecl;
@@ -66,10 +69,10 @@ internal static class UseExpressionBodyForLambdaCodeActionHelpers
         // If the user is converting to a block, it's likely they intend to add multiple
         // statements to it.  So make a multi-line block so that things are formatted properly
         // for them to do so.
-        return currentDeclaration.WithBody(SyntaxFactory.Block(
-            SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
+        return currentDeclaration.WithBody(Block(
+            OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed),
             [statement],
-            SyntaxFactory.Token(SyntaxKind.CloseBraceToken)));
+            CloseBraceToken));
     }
 
     private static bool CreateReturnStatementForExpression(

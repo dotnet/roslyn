@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvertIf;
 
+using static SyntaxFactory;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
 internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<
     SyntaxKind, StatementSyntax, IfStatementSyntax, StatementSyntax>
@@ -59,7 +61,7 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCo
         => ifNode.Statement;
 
     protected override StatementSyntax GetEmptyEmbeddedStatement()
-        => SyntaxFactory.Block();
+        => Block();
 
     protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
         => ifNode.Else?.Statement ?? throw new InvalidOperationException();
@@ -108,10 +110,10 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCo
     protected override StatementSyntax GetJumpStatement(SyntaxKind kind)
         => kind switch
         {
-            SyntaxKind.ContinueStatement => SyntaxFactory.ContinueStatement(),
-            SyntaxKind.BreakStatement => SyntaxFactory.BreakStatement(),
-            SyntaxKind.ReturnStatement => SyntaxFactory.ReturnStatement(),
-            SyntaxKind.YieldBreakStatement => SyntaxFactory.YieldStatement(SyntaxKind.YieldBreakStatement),
+            SyntaxKind.ContinueStatement => ContinueStatement(),
+            SyntaxKind.BreakStatement => BreakStatement(),
+            SyntaxKind.ReturnStatement => ReturnStatement(),
+            SyntaxKind.YieldBreakStatement => YieldStatement(SyntaxKind.YieldBreakStatement),
             _ => throw ExceptionUtilities.UnexpectedValue(kind),
         };
 
@@ -127,7 +129,7 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCo
             ? block.WithStatements([.. statementArray])
             : statementArray.Length == 1
                 ? statementArray[0]
-                : SyntaxFactory.Block(statementArray);
+                : Block(statementArray);
     }
 
     protected override IfStatementSyntax UpdateIf(
@@ -153,14 +155,14 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCo
         var updatedIf = ifNode
             .WithCondition((ExpressionSyntax)condition)
             .WithStatement(trueStatement is IfStatementSyntax
-                ? SyntaxFactory.Block(trueStatement)
+                ? Block(trueStatement)
                 : trueStatement);
 
         if (ShouldKeepFalse(ifNode, falseStatementOpt))
         {
             var elseClause = updatedIf.Else != null
                 ? updatedIf.Else.WithStatement(falseStatementOpt)
-                : SyntaxFactory.ElseClause(falseStatementOpt);
+                : ElseClause(falseStatementOpt);
 
             updatedIf = updatedIf.WithElse(elseClause);
         }

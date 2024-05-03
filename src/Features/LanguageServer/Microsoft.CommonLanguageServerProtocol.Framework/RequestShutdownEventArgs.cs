@@ -8,12 +8,7 @@
 using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
-
-#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
-public class RequestShutdownEventArgs : EventArgs
-#else
 internal class RequestShutdownEventArgs : EventArgs
-#endif
 {
     public string Message { get; }
 

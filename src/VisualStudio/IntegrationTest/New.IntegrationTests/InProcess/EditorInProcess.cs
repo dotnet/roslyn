@@ -309,7 +309,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 activeSession.Collapse();
                 var classifier = classifierAggregatorService.GetClassifier(preview);
                 var classifiedSpans = classifier.GetClassificationSpans(new SnapshotSpan(preview.TextBuffer.CurrentSnapshot, 0, preview.TextBuffer.CurrentSnapshot.Length));
-                return classifiedSpans.ToArray();
+                return [.. classifiedSpans];
             }
 
             activeSession.Collapse();

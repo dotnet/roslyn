@@ -82,7 +82,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             new DocumentInfo.DocumentAttributes(
                 documentIdentity.DocumentId,
                 name: documentIdentity.HintName,
-                folders: SpecializedCollections.EmptyReadOnlyList<string>(),
+                folders: [],
                 parseOptions.Kind,
                 filePath: documentIdentity.FilePath,
                 isGenerated: true,
@@ -102,10 +102,10 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         IDocumentServiceProvider? documentServiceProvider,
         DocumentInfo.DocumentAttributes attributes,
         ParseOptions options,
-        ConstantTextAndVersionSource textSource,
+        ITextAndVersionSource textSource,
         SourceText text,
         LoadTextOptions loadTextOptions,
-        AsyncLazy<TreeAndVersion> treeSource,
+        ITreeAndVersionSource treeSource,
         Lazy<Checksum> lazyContentHash,
         DateTime generationDateTime)
         : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
@@ -168,13 +168,19 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         if (this.GenerationDateTime == generationDateTime)
             return this;
 
-        return Create(
-            Identity,
-            SourceText,
-            ParseOptions,
-            LanguageServices,
-            // We're just changing the date time only.  So the checksum will remain as is.
-            _lazyContentHash,
+        // Copy over all state as-is.  The generation time doesn't change any actual state (the same tree will be
+        // produced for example).
+        return new(
+            this.Identity,
+            this.LanguageServices,
+            this.Services,
+            this.Attributes,
+            this.ParseOptions,
+            this.TextAndVersionSource,
+            this.SourceText,
+            this.LoadTextOptions,
+            this.TreeSource!,
+            this._lazyContentHash,
             generationDateTime);
     }
 

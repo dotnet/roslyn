@@ -41,21 +41,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // quick bail out
                 if (_activeFileStates.IsEmpty && _projectStates.IsEmpty)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ProjectId>();
-                }
+                    return [];
 
                 if (_activeFileStates.Count == 1 && _projectStates.IsEmpty)
                 {
                     // see whether we actually have diagnostics
                     var (documentId, state) = _activeFileStates.First();
                     if (state.IsEmpty)
-                    {
-                        return SpecializedCollections.EmptyEnumerable<ProjectId>();
-                    }
+                        return [];
 
                     // we do have diagnostics
-                    return SpecializedCollections.SingletonEnumerable(documentId.ProjectId);
+                    return [documentId.ProjectId];
                 }
 
                 return new HashSet<ProjectId>(

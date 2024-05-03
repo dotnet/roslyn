@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public TestAnalyzerReferenceByLanguage WithAdditionalAnalyzers(string language, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
             var newAnalyzersMap = ImmutableDictionary.CreateRange(
-                _analyzersMap.Select(kvp => new KeyValuePair<string, ImmutableArray<DiagnosticAnalyzer>>(
+                _analyzersMap.Select(kvp => KeyValuePairUtil.Create(
                     kvp.Key, kvp.Key == language ? kvp.Value.AddRange(analyzers) : kvp.Value)));
             return new(newAnalyzersMap);
         }

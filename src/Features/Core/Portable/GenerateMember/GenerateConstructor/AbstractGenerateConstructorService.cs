@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -87,7 +88,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             {
                 Contract.ThrowIfNull(state.TypeToGenerateIn);
 
-                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
+                using var result = TemporaryArray<CodeAction>.Empty;
 
                 // If we have any fields we'd like to generate, offer a code action to do that.
                 if (state.ParameterToNewFieldMap.Count > 0)
@@ -113,7 +114,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                     c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c),
                     nameof(FeaturesResources.Generate_constructor_in_0) + "_" + state.TypeToGenerateIn.Name));
 
-                return result.ToImmutable();
+                return result.ToImmutableAndClear();
             }
         }
 

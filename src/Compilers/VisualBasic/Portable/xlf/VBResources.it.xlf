@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
-        <target state="new">A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</target>
+        <target state="translated">Un valore di tipo 'System.Threading.Lock' non è supportato in SyncLock. Prendi in considerazione di chiamare manualmente i metodi 'Enter' e 'Exit' in un blocco Try/Finally.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -616,12 +616,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</target>
+        <target state="translated">Un valore di tipo 'System.Threading.Lock' convertito in un tipo diverso userà probabilmente un blocco basato su monitoraggio non intenzionale nell'istruzione SyncLock.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</target>
+        <target state="translated">Un valore di tipo 'System.Threading.Lock' convertito in un tipo diverso userà probabilmente un blocco basato su monitoraggio non intenzionale nell'istruzione SyncLock.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">

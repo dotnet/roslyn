@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
 
             void AddDocumentsFromProject(Project? project, ImmutableArray<string> supportedLanguages)
             {

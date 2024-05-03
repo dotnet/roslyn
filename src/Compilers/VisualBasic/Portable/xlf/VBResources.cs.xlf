@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
-        <target state="new">A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</target>
+        <target state="translated">Hodnota typu System.Threading.Lock není v SyncLock podporována. Zvažte ruční volání metod Enter a Exit ve Zkušebním/Závěrečném bloku.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -615,12 +615,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</target>
+        <target state="translated">Hodnota typu System.Threading.Lock převedená na jiný typ použije pravděpodobně nezamýšlené zamykání na základě monitorování v příkazu SyncLock.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</target>
+        <target state="translated">Hodnota typu System.Threading.Lock převedená na jiný typ použije pravděpodobně nezamýšlené zamykání na základě monitorování v příkazu SyncLock.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">

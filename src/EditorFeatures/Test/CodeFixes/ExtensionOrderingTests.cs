@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
             ExtensionOrderer.TestAccessor.CheckForCycles(vbProviders);
-            actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
+            actualOrder = [.. ExtensionOrderer.Order(vbProviders)];
             Assert.True(actualOrder.Length > 0);
             Assert.True(actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.AddImport) <
                 actualOrder.IndexOf(p => p.Metadata.Name == PredefinedCodeFixProviderNames.FullyQualify));
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var vbProviders = providersPerLanguage[LanguageNames.VisualBasic];
             ExtensionOrderer.TestAccessor.CheckForCycles(vbProviders);
-            actualOrder = ExtensionOrderer.Order(vbProviders).ToArray();
+            actualOrder = [.. ExtensionOrderer.Order(vbProviders)];
             Assert.True(actualOrder.Length > 0);
         }
 

@@ -61,11 +61,10 @@ internal partial class SymbolTreeInfo
             var persistentStorageService = services.GetPersistentStorageService();
 
             var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                using (var writer = new ObjectWriter(stream, leaveOpen: true))
                 {
                     result.WriteTo(writer);
                 }
@@ -91,14 +90,13 @@ internal partial class SymbolTreeInfo
         var persistentStorageService = services.GetPersistentStorageService();
 
         var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-        await using var _ = storage.ConfigureAwait(false);
 
         // Get the unique key to identify our data.
         var key = PrefixSymbolTreeInfo + keySuffix;
 
         // If the checksum doesn't need to match, then we can pass in 'null' here allowing any result to be found.
         using var stream = await storage.ReadStreamAsync(key, checksumMustMatch ? checksum : null, cancellationToken).ConfigureAwait(false);
-        using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
+        using var reader = ObjectReader.TryGetReader(stream);
 
         // We have some previously persisted data.  Attempt to read it back.  
         // If we're able to, and the version of the persisted data matches

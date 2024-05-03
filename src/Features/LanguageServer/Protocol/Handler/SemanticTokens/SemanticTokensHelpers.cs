@@ -39,13 +39,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var options = globalOptions.GetClassificationOptions(project.Language);
             var supportsVisualStudioExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
 
-            using var _ = ArrayBuilder<LinePositionSpan>.GetInstance(ranges.Length, out var spans);
+            var spans = new FixedSizeArrayBuilder<LinePositionSpan>(ranges.Length);
             foreach (var range in ranges)
-            {
                 spans.Add(ProtocolConversions.RangeToLinePositionSpan(range));
-            }
 
-            var tokensData = await HandleRequestHelperAsync(contextDocument, spans.ToImmutable(), supportsVisualStudioExtensions, options, cancellationToken).ConfigureAwait(false);
+            var tokensData = await HandleRequestHelperAsync(contextDocument, spans.MoveToImmutable(), supportsVisualStudioExtensions, options, cancellationToken).ConfigureAwait(false);
 
             // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick
             // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
             document = document.WithFrozenPartialSemantics(cancellationToken);
-            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
+            options = options with { FrozenPartialSemantics = true };
 
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole
@@ -100,13 +98,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
             else
             {
-                using var _ = ArrayBuilder<TextSpan>.GetInstance(spans.Length, out var textSpansBuilder);
+                var textSpansBuilder = new FixedSizeArrayBuilder<TextSpan>(spans.Length);
                 foreach (var span in spans)
-                {
                     textSpansBuilder.Add(text.Lines.GetTextSpan(span));
-                }
 
-                textSpans = textSpansBuilder.ToImmutable();
+                textSpans = textSpansBuilder.MoveToImmutable();
             }
 
             await GetClassifiedSpansForDocumentAsync(
@@ -240,8 +236,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             bool supportsVisualStudioExtensions,
             IReadOnlyDictionary<string, int> tokenTypesToIndex)
         {
-            using var _ = ArrayBuilder<int>.GetInstance(classifiedSpans.Count, out var data);
-
             // We keep track of the last line number and last start character since tokens are
             // reported relative to each other.
             var lastLineNumber = 0;
@@ -249,6 +243,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
 
+            using var _ = ArrayBuilder<int>.GetInstance(5 * classifiedSpans.Count, out var data);
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
             {
                 currentClassifiedSpanIndex = ComputeNextToken(
@@ -257,7 +252,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     out var deltaLine, out var startCharacterDelta, out var tokenLength,
                     out var tokenType, out var tokenModifiers);
 
-                data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
+                data.Add(deltaLine);
+                data.Add(startCharacterDelta);
+                data.Add(tokenLength);
+                data.Add(tokenType);
+                data.Add(tokenModifiers);
             }
 
             return data.ToArray();

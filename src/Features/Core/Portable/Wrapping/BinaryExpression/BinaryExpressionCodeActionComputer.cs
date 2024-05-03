@@ -115,21 +115,22 @@ internal partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax>
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private ImmutableArray<Edit> GetUnwrapEdits()
         {
-            using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
+            var count = _exprsAndOperators.Length - 1;
+            var result = new FixedSizeArrayBuilder<Edit>(count);
 
-            for (var i = 0; i < _exprsAndOperators.Length - 1; i++)
+            for (var i = 0; i < count; i++)
             {
                 result.Add(Edit.UpdateBetween(
                     _exprsAndOperators[i], SingleWhitespaceTrivia,
                     NoTrivia, _exprsAndOperators[i + 1]));
             }
 
-            return result.ToImmutable();
+            return result.MoveToImmutable();
         }
     }
 }

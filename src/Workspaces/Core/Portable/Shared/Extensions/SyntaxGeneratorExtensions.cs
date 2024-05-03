@@ -91,7 +91,7 @@ internal static partial class SyntaxGeneratorExtensions
                 .OfType<IFieldSymbol>()
                 .Where(field => !field.IsStatic)
                 .Select(field => field.AssociatedSymbol ?? field)
-                .Except(parameterToExistingFieldMap?.Values ?? SpecializedCollections.EmptyEnumerable<ISymbol>())
+                .Except(parameterToExistingFieldMap?.Values ?? [])
                 .Any();
         }
 
@@ -117,7 +117,7 @@ internal static partial class SyntaxGeneratorExtensions
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
@@ -147,7 +147,7 @@ internal static partial class SyntaxGeneratorExtensions
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static bool TryGetValue(IDictionary<string, string>? dictionary, string key, [NotNullWhen(true)] out string? value)
@@ -191,9 +191,7 @@ internal static partial class SyntaxGeneratorExtensions
         var throwStatement = factory.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter);
 
         // generates: if (s is null) { throw new ArgumentNullException(nameof(s)); }
-        return factory.IfStatement(
-            condition,
-            SpecializedCollections.SingletonEnumerable(throwStatement));
+        return factory.IfStatement(condition, [throwStatement]);
     }
 
     public static SyntaxNode CreateThrowArgumentNullExceptionStatement(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)

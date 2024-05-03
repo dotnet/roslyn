@@ -103,7 +103,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         {
             if (commitUpdates)
             {
-                _encService.CommitSolutionUpdate(sessionId, out _);
+                _encService.CommitSolutionUpdate(sessionId);
             }
             else
             {
@@ -135,7 +135,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     public void EndSession()
     {
         Contract.ThrowIfFalse(_sessionId != default, "Session has not started");
-        _encService.EndDebuggingSession(_sessionId, out _);
+        _encService.EndDebuggingSession(_sessionId);
     }
 
     internal TestAccessor GetTestAccessor()

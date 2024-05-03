@@ -214,7 +214,7 @@ internal abstract partial class MethodExtractor<
     }
 
     private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
-        => ImmutableArray.Create(GetCustomFormattingRule(document)).AddRange(Formatter.GetDefaultFormattingRules(document));
+        => [GetCustomFormattingRule(document), .. Formatter.GetDefaultFormattingRules(document)];
 
     private OperationStatus CheckVariableTypes(
         OperationStatus status,

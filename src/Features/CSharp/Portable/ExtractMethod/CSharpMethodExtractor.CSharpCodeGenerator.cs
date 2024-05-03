@@ -29,6 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal partial class CSharpMethodExtractor
@@ -178,8 +179,8 @@ internal partial class CSharpMethodExtractor
         private SimpleNameSyntax CreateMethodNameForInvocation()
         {
             return AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0
-                ? SyntaxFactory.IdentifierName(_methodName)
-                : SyntaxFactory.GenericName(_methodName, SyntaxFactory.TypeArgumentList(CreateMethodCallTypeVariables()));
+                ? IdentifierName(_methodName)
+                : GenericName(_methodName, TypeArgumentList(CreateMethodCallTypeVariables()));
         }
 
         private SeparatedSyntaxList<TypeSyntax> CreateMethodCallTypeVariables()
@@ -278,8 +279,8 @@ internal partial class CSharpMethodExtractor
                 return statements;
 
             return statements is [BlockSyntax block]
-                ? [SyntaxFactory.CheckedStatement(kind, block)]
-                : [SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements))];
+                ? [CheckedStatement(kind, block)]
+                : [CheckedStatement(kind, Block(statements))];
         }
 
         private static ImmutableArray<StatementSyntax> CleanupCode(ImmutableArray<StatementSyntax> statements)
@@ -394,9 +395,9 @@ internal partial class CSharpMethodExtractor
                 // return survived var decls
                 if (list.Count > 0)
                 {
-                    result.Add(SyntaxFactory.LocalDeclarationStatement(
+                    result.Add(LocalDeclarationStatement(
                         declarationStatement.Modifiers,
-                        SyntaxFactory.VariableDeclaration(
+                        VariableDeclaration(
                             declarationStatement.Declaration.Type,
                             [.. list]),
                         declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList)));
@@ -407,7 +408,7 @@ internal partial class CSharpMethodExtractor
                 result.AddRange(expressionStatements);
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         /// <summary>
@@ -447,7 +448,7 @@ internal partial class CSharpMethodExtractor
                                 newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetTrailingTrivia());
                                 newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
 
-                                replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
+                                replacements.Add(declaration, IdentifierName(designation.Identifier)
                                     .WithLeadingTrivia(newLeadingTrivia));
                             }
 
@@ -520,9 +521,9 @@ internal partial class CSharpMethodExtractor
 
         private static ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
         {
-            return SyntaxFactory.AssignmentExpression(
+            return AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
-                SyntaxFactory.IdentifierName(identifier),
+                IdentifierName(identifier),
                 rvalue);
         }
 
@@ -555,13 +556,13 @@ internal partial class CSharpMethodExtractor
         }
 
         protected override SyntaxToken CreateIdentifier(string name)
-            => SyntaxFactory.Identifier(name);
+            => Identifier(name);
 
         protected override StatementSyntax CreateReturnStatement(string identifierName = null)
         {
             return string.IsNullOrEmpty(identifierName)
-                ? SyntaxFactory.ReturnStatement()
-                : SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(identifierName));
+                ? ReturnStatement()
+                : ReturnStatement(IdentifierName(identifierName));
         }
 
         protected override ExpressionSyntax CreateCallSignature()
@@ -611,7 +612,7 @@ internal partial class CSharpMethodExtractor
         }
 
         protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)
-            => SyntaxFactory.ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
+            => ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
 
         protected override StatementSyntax CreateDeclarationStatement(
             VariableInfo variable,
@@ -626,14 +627,14 @@ internal partial class CSharpMethodExtractor
             // Hierarchy being checked for to see if a using keyword is needed is
             // Token -> VariableDeclarator -> VariableDeclaration -> LocalDeclaration
             var usingKeyword = originalIdentifierToken.Parent?.Parent?.Parent is LocalDeclarationStatementSyntax { UsingKeyword.FullSpan.IsEmpty: false }
-                ? SyntaxFactory.Token(SyntaxKind.UsingKeyword)
+                ? UsingKeyword
                 : default;
 
-            var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
+            var equalsValueClause = initialValue == null ? null : EqualsValueClause(value: initialValue);
 
-            return SyntaxFactory.LocalDeclarationStatement(
-                SyntaxFactory.VariableDeclaration(typeNode)
-                      .AddVariables(SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(variable.Name))
+            return LocalDeclarationStatement(
+                VariableDeclaration(typeNode)
+                      .AddVariables(VariableDeclarator(Identifier(variable.Name))
                       .WithInitializer(equalsValueClause)))
                 .WithUsingKeyword(usingKeyword);
         }
@@ -673,14 +674,14 @@ internal partial class CSharpMethodExtractor
                 return method.ReplaceToken(
                         body.OpenBraceToken,
                         body.OpenBraceToken.WithAppendedTrailingTrivia(
-                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
+                            ElasticCarriageReturnLineFeed));
             }
             else if (expressionBody != null)
             {
                 return method.ReplaceToken(
                         expressionBody.ArrowToken,
                         expressionBody.ArrowToken.WithPrependedLeadingTrivia(
-                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
+                            ElasticCarriageReturnLineFeed));
             }
             else
             {
@@ -695,10 +696,10 @@ internal partial class CSharpMethodExtractor
             if (AnalyzerResult.HasReturnType)
             {
                 Contract.ThrowIfTrue(AnalyzerResult.HasVariableToUseAsReturnValue);
-                return SyntaxFactory.ReturnStatement(callSignature);
+                return ReturnStatement(callSignature);
             }
 
-            return SyntaxFactory.ExpressionStatement(callSignature);
+            return ExpressionStatement(callSignature);
         }
 
         protected override async Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
@@ -794,7 +795,7 @@ internal partial class CSharpMethodExtractor
                 scope = this.SelectionResult.GetFirstTokenInSelection().Parent;
             }
 
-            return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(scope, GenerateMethodNameFromUserPreference()));
+            return Identifier(nameGenerator.CreateUniqueMethodName(scope, GenerateMethodNameFromUserPreference()));
         }
 
         protected string GenerateMethodNameFromUserPreference()
