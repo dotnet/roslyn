@@ -3040,37 +3040,21 @@ class extension
     public void ExplicitConversionOperator_ExplicitImplementationInExtensionNamespace()
     {
         var text = """
-class C : I<C>
-{
-    static explicit extension.I<C>.operator int(C i)
-    {
-        return 1;
-    }
-}
-""";
+            class C : I<C>
+            {
+                static explicit extension.I<C>.operator int(C i)
+                {
+                    return 1;
+                }
+            }
+            """;
         // PROTOTYPE consider avoiding this break (in following context)
         // namespace extension;
         // public interface I<T> where T : I<T>
         // {
         //    public abstract static explicit operator int(T i);
         // }
-        UsingTreeWithCSharpNext(text,
-            // (3,30): error CS1001: Identifier expected
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(3, 30),
-            // (3,30): error CS1514: { expected
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(3, 30),
-            // (3,30): error CS1513: } expected
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(3, 30),
-            // (3,30): error CS1519: Invalid token '.' in class, record, struct, or interface member declaration
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 30),
-            // (3,31): error CS1003: Syntax error, 'explicit' expected
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_SyntaxError, "I").WithArguments("explicit").WithLocation(3, 31)
-            );
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3099,31 +3083,31 @@ class C : I<C>
                     }
                 }
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ConversionOperatorDeclaration);
                 {
                     N(SyntaxKind.StaticKeyword);
                     N(SyntaxKind.ExplicitKeyword);
-                    N(SyntaxKind.ExtensionKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.ConversionOperatorDeclaration);
-                {
-                    M(SyntaxKind.ExplicitKeyword);
                     N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
-                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.QualifiedName);
                         {
-                            N(SyntaxKind.IdentifierToken, "I");
-                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierToken, "extension");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                                N(SyntaxKind.TypeArgumentList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "C");
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
                             }
                         }
                         N(SyntaxKind.DotToken);
@@ -3185,32 +3169,7 @@ class C : extension<C>
         // {
         //    public abstract static explicit operator int(T i);
         // }
-        UsingTreeWithCSharpNext(text,
-            // (3,30): error CS1001: Identifier expected
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "<").WithLocation(3, 30),
-            // (3,33): error CS1514: { expected
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(3, 33),
-            // (3,33): error CS1513: } expected
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(3, 33),
-            // (3,33): error CS1519: Invalid token '.' in class, record, struct, or interface member declaration
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 33),
-            // (3,46): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 46),
-            // (3,50): error CS8124: Tuple must contain at least two elements.
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 50),
-            // (4,5): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-            //     {
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 5),
-            // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1)
-            );
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3239,37 +3198,36 @@ class C : extension<C>
                     }
                 }
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ConversionOperatorDeclaration);
                 {
                     N(SyntaxKind.StaticKeyword);
                     N(SyntaxKind.ExplicitKeyword);
-                    N(SyntaxKind.ExtensionKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.TypeParameterList);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TypeParameter);
+                        N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.IdentifierToken, "C");
+                            N(SyntaxKind.IdentifierToken, "extension");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "C");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
                         }
-                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.DotToken);
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
+                    N(SyntaxKind.OperatorKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -3277,15 +3235,21 @@ class C : extension<C>
                             }
                             N(SyntaxKind.IdentifierToken, "i");
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ReturnStatement);
+                        {
+                            N(SyntaxKind.ReturnKeyword);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -3364,28 +3328,8 @@ class C : extension<C>
             """;
 
         // In C# next, we always treat `explicit extension` as the start of an extension type.
-        UsingTreeWithCSharpNext(text,
-            // (3,37): error CS1001: Identifier expected
-            //     public static implicit extension.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(3, 37),
-            // (3,37): error CS1514: { expected
-            //     public static implicit extension.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(3, 37),
-            // (3,37): error CS1513: } expected
-            //     public static implicit extension.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(3, 37),
-            // (3,37): error CS1519: Invalid token '.' in class, record, struct, or interface member declaration
-            //     public static implicit extension.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 37),
-            // (3,50): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-            //     public static implicit extension.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 50),
-            // (3,54): error CS8124: Tuple must contain at least two elements.
-            //     public static implicit extension.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 54),
-            // (3,56): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-            //     public static implicit extension.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 56));
+        UsingTreeWithCSharpNext(text);
+
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3394,29 +3338,28 @@ class C : extension<C>
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ConversionOperatorDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
                     N(SyntaxKind.StaticKeyword);
                     N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
-                    N(SyntaxKind.ExtensionKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -3424,16 +3367,17 @@ class C : extension<C>
                             }
                             N(SyntaxKind.IdentifierToken, "c");
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -3509,23 +3453,7 @@ class C : extension<C>
             }
             """;
 
-        // In C# next, we always treat `explicit extension` as the start of an extension type.
-        UsingTreeWithCSharpNext(text,
-            // (3,37): error CS1001: Identifier expected
-            //     public static implicit extension.A.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(3, 37),
-            // (3,37): error CS1514: { expected
-            //     public static implicit extension.A.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(3, 37),
-            // (3,37): error CS1513: } expected
-            //     public static implicit extension.A.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(3, 37),
-            // (3,37): error CS1519: Invalid token '.' in class, record, struct, or interface member declaration
-            //     public static implicit extension.A.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 37),
-            // (3,38): error CS1003: Syntax error, 'explicit' expected
-            //     public static implicit extension.A.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "A").WithArguments("explicit").WithLocation(3, 38));
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3534,24 +3462,24 @@ class C : extension<C>
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ConversionOperatorDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
                     N(SyntaxKind.StaticKeyword);
                     N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
-                    N(SyntaxKind.ExtensionKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.ConversionOperatorDeclaration);
-                {
-                    M(SyntaxKind.ExplicitKeyword);
                     N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.QualifiedName);
                         {
-                            N(SyntaxKind.IdentifierToken, "A");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "extension");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
                         }
                         N(SyntaxKind.DotToken);
                     }
@@ -3589,7 +3517,6 @@ class C : extension<C>
         }
         EOF();
 
-        // In legacy parsing, we respect this potentially being an explicit impl of an interface named `extension`.
         UsingTree(text, options: TestOptions.Regular12);
 
         N(SyntaxKind.CompilationUnit);
@@ -3665,29 +3592,7 @@ class C : extension<C>
             }
             """;
 
-        // In C# next, we always treat `explicit extension` as the start of an extension type.
-        UsingTreeWithCSharpNext(text,
-            // (3,37): error CS1001: Identifier expected
-            //     public static implicit extension<X>.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "<").WithLocation(3, 37),
-            // (3,40): error CS1514: { expected
-            //     public static implicit extension<X>.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(3, 40),
-            // (3,40): error CS1513: } expected
-            //     public static implicit extension<X>.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(3, 40),
-            // (3,40): error CS1519: Invalid token '.' in class, record, struct, or interface member declaration
-            //     public static implicit extension<X>.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 40),
-            // (3,53): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-            //     public static implicit extension<X>.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 53),
-            // (3,57): error CS8124: Tuple must contain at least two elements.
-            //     public static implicit extension<X>.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 57),
-            // (3,59): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-            //     public static implicit extension<X>.operator int(C c) => default;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 59));
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3696,38 +3601,37 @@ class C : extension<C>
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ConversionOperatorDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
                     N(SyntaxKind.StaticKeyword);
                     N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
-                    N(SyntaxKind.ExtensionKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.TypeParameterList);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TypeParameter);
+                        N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.IdentifierToken, "X");
+                            N(SyntaxKind.IdentifierToken, "extension");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "X");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
                         }
-                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.DotToken);
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
+                    N(SyntaxKind.OperatorKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -3735,16 +3639,17 @@ class C : extension<C>
                             }
                             N(SyntaxKind.IdentifierToken, "c");
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -3752,7 +3657,6 @@ class C : extension<C>
         }
         EOF();
 
-        // In legacy parsing, we respect this potentially being an explicit impl of an interface named `extension`.
         UsingTree(text, options: TestOptions.Regular12);
 
         N(SyntaxKind.CompilationUnit);
@@ -3780,6 +3684,145 @@ class C : extension<C>
                                     N(SyntaxKind.IdentifierToken, "X");
                                 }
                                 N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void ImplicitExtensionOperator4(bool isExplicit)
+    {
+        var text = $$"""
+            class C
+            {
+                public static {{(isExplicit ? "explicit" : "implicit")}} extension::A.operator int(C c) => default;
+            }
+            """;
+
+        UsingTreeWithCSharpNext(text);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConversionOperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.AliasQualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "extension");
+                            }
+                            N(SyntaxKind.ColonColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+
+        UsingTree(text, options: TestOptions.Regular12);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConversionOperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.AliasQualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "extension");
+                            }
+                            N(SyntaxKind.ColonColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
                         }
                         N(SyntaxKind.DotToken);

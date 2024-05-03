@@ -2228,15 +2228,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword
                     when this.PeekToken(1).ContextualKind is SyntaxKind.ExtensionKeyword:
 
-                    // If we have `implicit extension E` then this is definitely an extension as it could not be parsed
-                    // as anything else.
-                    if (IsTrueIdentifier(this.PeekToken(2)))
-                        return true;
+                    // implicit extension.operator x
+                    // implicit extension::X.operator x
+                    // implicit extension<X>.operator x
+                    //
+                    // All of these should be treated as a conversion operator, with `extension` as part of an explicit
+                    // interface name.
+                    if (this.PeekToken(2).Kind is SyntaxKind.ColonColonToken or SyntaxKind.DotToken or SyntaxKind.LessThanToken)
+                        return false;
 
-                    // we have `implicit extension ...` technically this could be something like `implicit
-                    // extension.operator X(` (an implicit conversion with a explicit interface impl name). For compat,
-                    // determine the parsing strategy based on the lang version.
-                    return IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                    // Otherwise, treat it as an extension type.
+                    return true;
 
                 case SyntaxKind.IdentifierToken:
                     if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
@@ -3492,21 +3494,15 @@ parse_member_name:;
                     ? this.EatToken()
                     : this.EatToken(SyntaxKind.ExplicitKeyword);
 
-                var possiblyExtension = this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword;
-                if (possiblyExtension)
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
                 {
-                    // If we have `implicit extension E` then this is definitely an extension type as it could not be parsed
-                    // as anything else.
-                    if (IsTrueIdentifier(this.PeekToken(1)))
-                    {
-                        this.Reset(ref point);
-                        return null;
-                    }
-
-                    // we have `implicit extension ...` technically this could be something like `implicit
-                    // extension.operator X(` (an implicit conversion with a explicit interface impl name). For compat,
-                    // determine the parsing strategy based on the lang version.
-                    if (IsCompatBreakingFeatureEnabled(MessageID.IDS_FeatureExtensions))
+                    // implicit extension.operator x
+                    // implicit extension::X.operator x
+                    // implicit extension<X>.operator x
+                    //
+                    // All of these should be treated as a conversion operator, with `extension` as part of an explicit
+                    // interface name.
+                    if (this.PeekToken(1).Kind is not SyntaxKind.ColonColonToken and not SyntaxKind.DotToken and not SyntaxKind.LessThanToken)
                     {
                         this.Reset(ref point);
                         return null;
@@ -3515,14 +3511,6 @@ parse_member_name:;
 
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
                 Debug.Assert(!style.IsMissing || haveExplicitInterfaceName == explicitInterfaceOpt is not null);
-
-                if (explicitInterfaceOpt is null && possiblyExtension)
-                {
-                    // we didn't get something like `implicit extension.` but we did have `implicit extension`
-                    // treat this as an extension type.
-                    this.Reset(ref point);
-                    return null;
-                }
 
                 SyntaxToken opKeyword;
                 TypeSyntax type;
