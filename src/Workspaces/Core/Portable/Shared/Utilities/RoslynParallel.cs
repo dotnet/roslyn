@@ -19,25 +19,22 @@ internal static partial class RoslynParallel
         CancellationToken cancellationToken,
         Func<TSource, CancellationToken, ValueTask> body)
     {
-        return ForEachAsync(source, GetParallelOptions(cancellationToken), body);
+#if NET
+        return Parallel.ForEachAsync(source, cancellationToken, body);
+#else
+        return NetFramework.ForEachAsync(source, cancellationToken, body);
+#endif
     }
 
-    private static ParallelOptions GetParallelOptions(CancellationToken cancellationToken)
-        => new() { TaskScheduler = TaskScheduler.Default, CancellationToken = cancellationToken };
-
-    public static async Task ForEachAsync<TSource>(
+    public static Task ForEachAsync<TSource>(
         IEnumerable<TSource> source,
         ParallelOptions parallelOptions,
         Func<TSource, CancellationToken, ValueTask> body)
     {
-        var cancellationToken = parallelOptions.CancellationToken;
-        if (cancellationToken.IsCancellationRequested)
-            return;
-
 #if NET
-        await Parallel.ForEachAsync(source, parallelOptions, body).ConfigureAwait(false);
+        return Parallel.ForEachAsync(source, parallelOptions, body);
 #else
-        await NetFramework.ForEachAsync(source, parallelOptions, body).ConfigureAwait(false);
+        return NetFramework.ForEachAsync(source, parallelOptions, body);
 #endif
     }
 
@@ -46,22 +43,22 @@ internal static partial class RoslynParallel
         CancellationToken cancellationToken,
         Func<TSource, CancellationToken, ValueTask> body)
     {
-        return ForEachAsync(source, GetParallelOptions(cancellationToken), body);
+#if NET
+        return Parallel.ForEachAsync(source, cancellationToken, body);
+#else
+        return NetFramework.ForEachAsync(source, cancellationToken, body);
+#endif
     }
 
-    public static async Task ForEachAsync<TSource>(
+    public static Task ForEachAsync<TSource>(
         IAsyncEnumerable<TSource> source,
         ParallelOptions parallelOptions,
         Func<TSource, CancellationToken, ValueTask> body)
     {
-        var cancellationToken = parallelOptions.CancellationToken;
-        if (cancellationToken.IsCancellationRequested)
-            return;
-
 #if NET
-        await Parallel.ForEachAsync(source, parallelOptions, body).ConfigureAwait(false);
+        return Parallel.ForEachAsync(source, parallelOptions, body);
 #else
-        await NetFramework.ForEachAsync(source, parallelOptions, body).ConfigureAwait(false);
+        return NetFramework.ForEachAsync(source, parallelOptions, body);
 #endif
     }
 }
