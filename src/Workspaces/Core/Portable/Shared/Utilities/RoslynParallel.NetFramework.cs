@@ -463,7 +463,7 @@ internal static partial class RoslynParallel
 #if false
                         ThreadPool.UnsafeQueueUserWorkItem(this, preferLocal: false);
 #else
-                        ThreadPool.QueueUserWorkItem(this);
+                        ThreadPool.QueueUserWorkItem(s => ((ForEachAsyncState<TSource>)s).Execute(), this);
 #endif
                     }
                     else
@@ -560,9 +560,12 @@ internal static partial class RoslynParallel
                 Debug.Assert(taskSet, "Complete should only be called once.");
             }
 
-#if false
             /// <summary>Executes the task body using the <see cref="ExecutionContext"/> captured when ForEachAsync was invoked.</summary>
+#if false
             void IThreadPoolWorkItem.Execute()
+#else
+            private void Execute()
+#endif
             {
                 Debug.Assert(_scheduler == TaskScheduler.Default, $"Expected {nameof(_scheduler)} == TaskScheduler.Default, got {_scheduler}");
 
@@ -575,7 +578,6 @@ internal static partial class RoslynParallel
                     ExecutionContext.Run(_executionContext, static o => ((ForEachAsyncState<TSource>)o!)._taskBody(o), this);
                 }
             }
-#endif
         }
 
         /// <summary>Stores the state associated with an IEnumerable ForEachAsync operation, shared between all its workers.</summary>
