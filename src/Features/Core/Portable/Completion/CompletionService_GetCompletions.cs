@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -235,16 +236,26 @@ public abstract partial class CompletionService
         SharedSyntaxContextsWithSpeculativeModel sharedContext,
         CancellationToken cancellationToken)
     {
-        var completionContextTasks = new List<Task<CompletionContext>>();
-        foreach (var provider in providers)
-        {
-            completionContextTasks.Add(GetContextAsync(
-                provider, document, caretPosition, trigger,
-                options, completionListSpan, sharedContext, cancellationToken));
-        }
+        using var _ = ArrayBuilder<CompletionContext>.GetInstance(out var results);
 
-        var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
-        return completionContexts.Where(HasAnyItems).ToImmutableArray();
+        await ProducerConsumer<CompletionContext>.RunParallelAsync(
+            source: providers,
+            produceItems: static async (provider, callback, args, cancellationToken) =>
+            {
+                var context = await GetContextAsync(
+                    provider, args.document, args.caretPosition, args.trigger, args.options, args.completionListSpan, args.sharedContext, cancellationToken).ConfigureAwait(false);
+                if (HasAnyItems(context))
+                    callback(context);
+            },
+            consumeItems: static async (stream, args, cancellationToken) =>
+            {
+                await foreach (var result in stream)
+                    args.results.Add(result);
+            },
+            args: (document, caretPosition, trigger, options, completionListSpan, sharedContext, results),
+            cancellationToken).ConfigureAwait(false);
+
+        return results.ToImmutableAndClear();
     }
 
     private CompletionList MergeAndPruneCompletionLists(
