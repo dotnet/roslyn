@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 ImmutableArray.Create(new CommandLineAnalyzerReference(mvidAlpha2.Path)),
                 assemblyLoader,
                 Logger,
-                out List<string> errorMessages);
+                out List<string>? errorMessages);
             Assert.False(result);
             Assert.NotNull(errorMessages);
 
