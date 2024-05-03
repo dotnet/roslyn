@@ -54,7 +54,7 @@ internal static class ProducerConsumer<TItem>
             (produceItems, consumeItems, args),
             cancellationToken);
 
-        static async Task ConsumeItemsAsArrayAsync(
+        static async Task<VoidResult> ConsumeItemsAsArrayAsync(
             ChannelReader<TItem> reader,
             Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
             TArgs args,
@@ -71,6 +71,8 @@ internal static class ProducerConsumer<TItem>
 
                 await consumeItems(items.ToImmutableAndClear(), args, cancellationToken).ConfigureAwait(false);
             }
+
+            return default;
         }
     }
 
@@ -157,7 +159,11 @@ internal static class ProducerConsumer<TItem>
                     cancellationToken,
                     async (source, cancellationToken) =>
                         await args.produceItems(source, callback, args.args, cancellationToken).ConfigureAwait(false)),
-            consumeItems: static (enumerable, args, cancellationToken) => args.consumeItems(enumerable, args.args, cancellationToken),
+            consumeItems: static async (enumerable, args, cancellationToken) =>
+            {
+                await args.consumeItems(enumerable, args.args, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
+            },
             args: (source, produceItems, consumeItems, args),
             cancellationToken);
     }
