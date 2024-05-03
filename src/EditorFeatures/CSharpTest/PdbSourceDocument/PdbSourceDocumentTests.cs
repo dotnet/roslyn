@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 {
     public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
     {
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PreprocessorSymbols1(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -42,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), preprocessorSymbols: ["SOME_DEFINED_CONSTANT"]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task PreprocessorSymbols2(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -63,8 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Method(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -79,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Constructor(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -95,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Parameter(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -111,8 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember<IMethodSymbol>("C.M").Parameters.First());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Class_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -125,8 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Constructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -138,8 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NestedClass_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -154,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NestedClassConstructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -170,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C..ctor"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Class_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -186,8 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Constructor_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -203,8 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NestedClass_FromMethodDocument(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -222,8 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NestedClassConstructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -242,8 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C..ctor"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Class_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -262,8 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Constructor_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -282,8 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer..ctor"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Class_FromMethodDocument(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -298,8 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Constructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -314,8 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Field(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -327,8 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.f"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Property(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -340,8 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.P"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Property_WithBody(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -353,8 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.P"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task EventField(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -366,8 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task EventField_WithMethod(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -384,8 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Event(Location pdbLocation, Location sourceLocation)
         {
             var source = """
@@ -756,8 +733,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task SourceFileChecksumIncorrect_NullResult(Location pdbLocation)
         {
             var source1 = """
@@ -828,8 +804,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task EncodedEmbeddedSource_SJIS(Location pdbLocation)
         {
             var source = """
@@ -858,8 +833,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task EncodedEmbeddedSource_SJIS_FallbackEncoding(Location pdbLocation)
         {
             var source = """

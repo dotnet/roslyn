@@ -2180,8 +2180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task MultipleFields_AllUnused_FixOne(
             [CombinatorialValues("[|_goo|]", "[|_goo|] = 0")] string firstField,
             [CombinatorialValues("[|_bar|]", "[|_bar|] = 2")] string secondField,

@@ -10,8 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public class AnalyzerLoadFailureTests
     {
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void CanCreateDiagnosticForAnalyzerLoadFailure(
             AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode,
             [CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic, null)] string? languageName)
