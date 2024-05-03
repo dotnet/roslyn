@@ -90,12 +90,12 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
     /// </summary>
     private static Task PerformParallelSearchAsync<T>(
         IEnumerable<T> items,
-        Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
+        Func<T, Action<RoslynNavigateToItem>, CancellationToken, ValueTask> callback,
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
         => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
             source: items,
-            produceItems: static async (item, onItemFound, args, cancellationToken) => await args.callback(item, onItemFound).ConfigureAwait(false),
+            produceItems: static async (item, onItemFound, args, cancellationToken) => await args.callback(item, onItemFound, cancellationToken).ConfigureAwait(false),
             consumeItems: static (items, args, cancellationToken) => args.onItemsFound(items),
             args: (items, callback, onItemsFound),
             cancellationToken);
