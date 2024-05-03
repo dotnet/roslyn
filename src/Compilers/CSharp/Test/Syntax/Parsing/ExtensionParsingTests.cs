@@ -73,9 +73,6 @@ public sealed class ExtensionParsingTests : ParsingTests
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (1,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // implicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 10),
             // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
             // implicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
             Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": BaseExtension1, BaseExtension2").WithArguments("base extensions").WithLocation(1, 41));
@@ -301,10 +298,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
-            // (1,18): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // partial implicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 18));
+        UsingTree(text, options: TestOptions.Regular11);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -450,10 +444,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
-            // (1,27): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // readonly partial implicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 27));
+        UsingTree(text, options: TestOptions.Regular11);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -783,10 +774,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         var keyword = isExplicit ? "explicit" : "implicit";
         var text = $$"""{{keyword}} extension C() for UnderlyingType { }""";
 
-        UsingTreeWithCSharpNext(text,
-            // (1,21): error CS9329: Extension cannot have a primary constructor.
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_ExtensionPrimaryConstructor, "()").WithLocation(1, 21));
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -945,9 +933,6 @@ public sealed class ExtensionParsingTests : ParsingTests
         var text = $$"""{{keyword}} extension C() for UnderlyingType;""";
 
         UsingTreeWithCSharpNext(text,
-            // (1,21): error CS9329: Extension cannot have a primary constructor.
-            // implicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_ExtensionPrimaryConstructor, "()").WithLocation(1, 21),
             // (1,42): error CS1514: { expected
             // implicit extension C() for UnderlyingType;
             Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 42),
@@ -990,10 +975,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         var keyword = isExplicit ? "explicit" : "implicit";
         var text = $$"""{{keyword}} extension C(int i) for UnderlyingType { }""";
 
-        UsingTreeWithCSharpNext(text,
-            // (1,21): error CS9329: Extension cannot have a primary constructor.
-            // implicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_ExtensionPrimaryConstructor, "(int i)").WithLocation(1, 21));
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1372,10 +1354,7 @@ using
         UsingTree(text, options: TestOptions.Regular11,
             // (1,6): error CS1041: Identifier expected; 'implicit' is a keyword
             // using
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", isExplicit ? "explicit" : "implicit").WithLocation(1, 6),
-            // (2,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // implicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(2, 10));
+            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", isExplicit ? "explicit" : "implicit").WithLocation(1, 6));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1458,10 +1437,7 @@ using Type
         UsingTree(text, options: TestOptions.Regular11,
             // (1,11): error CS1002: ; expected
             // using Type
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11),
-            // (2,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // implicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(2, 10));
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1561,10 +1537,7 @@ partial {{keyword}} extension R for U { }
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 11),
             // (1,11): error CS1002: ; expected
             // using Type
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11),
-            // (2,18): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // partial implicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(2, 18));
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
 
         N(SyntaxKind.CompilationUnit);
         {
