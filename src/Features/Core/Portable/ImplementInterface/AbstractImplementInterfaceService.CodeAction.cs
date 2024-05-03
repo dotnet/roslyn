@@ -262,7 +262,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 }
             }
 
-            return implementedMembers.ToImmutable();
+            return implementedMembers.ToImmutableAndClear();
         }
 
         private bool IsReservedName(string name)
@@ -307,7 +307,7 @@ internal abstract partial class AbstractImplementInterfaceService
             //
             // In this case we only want to generate 'Goo' once.
             if (HasMatchingMember(implementedVisibleMembers, member))
-                return SpecializedCollections.EmptyEnumerable<ISymbol?>();
+                return [];
 
             var memberName = DetermineMemberName(member, implementedVisibleMembers);
 

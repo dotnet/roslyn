@@ -1546,7 +1546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundImplicitReceiver implicitReceiver = new BoundImplicitReceiver(memberName, inputType);
             string name = memberName.Identifier.ValueText;
 
-            BoundExpression boundMember = BindInstanceMemberAccess(
+            BoundExpression boundMember = BindMemberAccessWithBoundLeftCore(
                 node: memberName,
                 right: memberName,
                 boundLeft: implicitReceiver,

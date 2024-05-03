@@ -134,9 +134,20 @@ internal sealed class TotalClassificationAggregateTagger(
 
         while (currentSyntactic != null && currentSemantic != null)
         {
-            // as long as we see semantic spans before the next syntactic one, keep adding them.
-            if (currentSemantic.Span.Start <= currentSyntactic.Span.Start)
+            // If both the syntactic and semantic tags are for the same span, and the semantic tag is more specific,
+            // then just prefer that one (and eschew the syntactic one). Semantics is more accurate, but often will
+            // produce these accurate tags more slowly than the syntactic classifier.  This allows the syntactic
+            // classifier to produce an initial result, which the semantic classifier can refine.
+            if (currentSyntactic.Span == currentSemantic.Span &&
+                currentSemantic.Tag.ClassificationType.IsOfType(currentSyntactic.Tag.ClassificationType.Classification))
             {
+                totalTags.Add(currentSemantic);
+                currentSyntactic = GetNextSyntacticSpan();
+                currentSemantic = GetNextSemanticSpan();
+            }
+            else if (currentSemantic.Span.Start <= currentSyntactic.Span.Start)
+            {
+                // as long as we see semantic spans before the next syntactic one, keep adding them.
                 totalTags.Add(currentSemantic);
                 currentSemantic = GetNextSemanticSpan();
             }

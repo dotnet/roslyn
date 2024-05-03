@@ -56,7 +56,7 @@ internal abstract class AbstractReassignedVariableService<
         }
 
         result.RemoveDuplicates();
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
 
         void Recurse(TextSpan span, SemanticModel semanticModel)
         {

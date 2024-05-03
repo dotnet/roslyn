@@ -87,41 +87,50 @@ internal partial class FindReferencesSearchEngine
             // appropriate finders checking this document for hits.  We're likely going to need to perform syntax
             // and semantics checks in this file.  So just grab those once here and hold onto them for the lifetime
             // of this call.
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var cache = FindReferenceCache.GetCache(model);
+            var cache = await FindReferenceCache.GetCacheAsync(document, cancellationToken).ConfigureAwait(false);
 
             foreach (var symbol in symbols)
             {
-                var globalAliases = GetGlobalAliasesSet(symbolToGlobalAliases, symbol);
-                var state = new FindReferencesDocumentState(document, model, root, cache, globalAliases);
+                var state = new FindReferencesDocumentState(
+                    cache, TryGet(symbolToGlobalAliases, symbol));
 
-                await PerformSearchInDocumentWorkerAsync(symbol, document, state).ConfigureAwait(false);
+                await PerformSearchInDocumentWorkerAsync(symbol, state).ConfigureAwait(false);
             }
         }
 
-        async ValueTask PerformSearchInDocumentWorkerAsync(
-            ISymbol symbol, Document document, FindReferencesDocumentState state)
+        async ValueTask PerformSearchInDocumentWorkerAsync(ISymbol symbol, FindReferencesDocumentState state)
         {
             // Always perform a normal search, looking for direct references to exactly that symbol.
-            foreach (var finder in _finders)
-            {
-                var references = await finder.FindReferencesInDocumentAsync(
-                    symbol, state, _options, cancellationToken).ConfigureAwait(false);
-                foreach (var (_, location) in references)
-                {
-                    var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                    await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
-                }
-            }
+            await DirectSymbolSearchAsync(symbol, state).ConfigureAwait(false);
 
             // Now, for symbols that could involve inheritance, look for references to the same named entity, and
             // see if it's a reference to a symbol that shares an inheritance relationship with that symbol.
+            await InheritanceSymbolSearchAsync(symbol, state).ConfigureAwait(false);
+        }
 
+        async ValueTask DirectSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
+        {
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var referencesForFinder);
+            foreach (var finder in _finders)
+            {
+                await finder.FindReferencesInDocumentAsync(
+                    symbol, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, referencesForFinder, _options, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (referencesForFinder.Count > 0)
+            {
+                var group = await ReportGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                var references = referencesForFinder.SelectAsArray(r => (group, symbol, r.Location));
+
+                await _progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        async ValueTask InheritanceSymbolSearchAsync(ISymbol symbol, FindReferencesDocumentState state)
+        {
             if (InvolvesInheritance(symbol))
             {
-                var tokens = await AbstractReferenceFinder.FindMatchingIdentifierTokensAsync(
-                    state, symbol.Name, cancellationToken).ConfigureAwait(false);
+                var tokens = AbstractReferenceFinder.FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
 
                 foreach (var token in tokens)
                 {
@@ -135,7 +144,7 @@ internal partial class FindReferencesSearchEngine
                         var candidateGroup = await ReportGroupAsync(candidate, cancellationToken).ConfigureAwait(false);
 
                         var location = AbstractReferenceFinder.CreateReferenceLocation(state, token, candidateReason, cancellationToken);
-                        await _progress.OnReferenceFoundAsync(candidateGroup, candidate, location, cancellationToken).ConfigureAwait(false);
+                        await _progress.OnReferencesFoundAsync([(candidateGroup, candidate, location)], cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -177,7 +186,7 @@ internal partial class FindReferencesSearchEngine
             // Counter-intuitive, but if these are matching symbols, they do *not* have an inheritance relationship.
             // We do *not* want to report these as they would have been found in the original call to the finders in
             // PerformSearchInTextSpanAsync.
-            if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidate, cancellationToken).ConfigureAwait(false))
+            if (SymbolFinder.OriginalSymbolsMatch(_solution, searchSymbol, candidate))
                 return false;
 
             // walk up the original symbol's inheritance hierarchy to see if we hit the candidate. Don't walk down
@@ -186,7 +195,7 @@ internal partial class FindReferencesSearchEngine
                 this, [searchSymbol], includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
             foreach (var symbolUp in searchSymbolUpSet.GetAllSymbols())
             {
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, symbolUp, candidate, cancellationToken).ConfigureAwait(false))
+                if (SymbolFinder.OriginalSymbolsMatch(_solution, symbolUp, candidate))
                     return true;
             }
 
@@ -196,7 +205,7 @@ internal partial class FindReferencesSearchEngine
                 this, [candidate], includeImplementationsThroughDerivedTypes: false, cancellationToken).ConfigureAwait(false);
             foreach (var candidateUp in candidateSymbolUpSet.GetAllSymbols())
             {
-                if (await SymbolFinder.OriginalSymbolsMatchAsync(_solution, searchSymbol, candidateUp, cancellationToken).ConfigureAwait(false))
+                if (SymbolFinder.OriginalSymbolsMatch(_solution, searchSymbol, candidateUp))
                     return true;
             }
 

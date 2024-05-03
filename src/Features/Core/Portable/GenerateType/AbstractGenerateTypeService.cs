@@ -140,7 +140,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         if (generateNewTypeInDialog)
             result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state, fallbackOptions));
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, CancellationToken cancellationToken)
@@ -234,7 +234,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 typeParameters[i] = CodeGenerationSymbolFactory.CreateTypeParameterSymbol(names[i]);
         }
 
-        return typeParameters.ToImmutable();
+        return typeParameters.ToImmutableAndClear();
     }
 
     protected static Accessibility DetermineDefaultAccessibility(
@@ -272,7 +272,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         var availableInnerTypeParameters = GetTypeParameters(state, semanticModel, cancellationToken);
         var availableOuterTypeParameters = !intoNamespace && state.TypeToGenerateInOpt != null
             ? state.TypeToGenerateInOpt.GetAllTypeParameters()
-            : SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
+            : [];
 
         return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
     }

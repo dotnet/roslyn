@@ -26,7 +26,7 @@ internal interface IRemoteNavigateToSearchService
 
     public interface ICallback
     {
-        ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
+        ValueTask OnItemsFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<RoslynNavigateToItem> items);
         ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId);
     }
 }
@@ -39,22 +39,22 @@ internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : Remote
     private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
         => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
 
-    public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
-        => GetCallback(callbackId).OnResultFoundAsync(result);
+    public ValueTask OnItemsFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<RoslynNavigateToItem> items)
+        => GetCallback(callbackId).OnItemsFoundAsync(items);
 
     public ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId)
         => GetCallback(callbackId).OnProjectCompletedAsync();
 }
 
 internal sealed class NavigateToSearchServiceCallback(
-    Func<RoslynNavigateToItem, Task> onResultFound,
+    Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
     Func<Task>? onProjectCompleted)
 {
-    public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+    public async ValueTask OnItemsFoundAsync(ImmutableArray<RoslynNavigateToItem> items)
     {
         try
         {
-            await onResultFound(result).ConfigureAwait(false);
+            await onItemsFound(items).ConfigureAwait(false);
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
         {

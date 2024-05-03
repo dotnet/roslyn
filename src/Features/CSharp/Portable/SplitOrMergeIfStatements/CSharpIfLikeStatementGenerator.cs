@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.SplitOrMergeIfStatements;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements;
 
+using static SyntaxFactory;
+
 [ExportLanguageService(typeof(IIfLikeStatementGenerator), LanguageNames.CSharp), Shared]
 internal sealed class CSharpIfLikeStatementGenerator : IIfLikeStatementGenerator
 {
@@ -110,7 +112,7 @@ internal sealed class CSharpIfLikeStatementGenerator : IIfLikeStatementGenerator
     public SyntaxNode WithStatementInBlock(SyntaxNode ifOrElseIf, SyntaxNode statement)
     {
         var ifStatement = (IfStatementSyntax)ifOrElseIf;
-        return ifStatement.WithStatement(SyntaxFactory.Block((StatementSyntax)statement));
+        return ifStatement.WithStatement(Block((StatementSyntax)statement));
     }
 
     public SyntaxNode WithStatementsOf(SyntaxNode ifOrElseIf, SyntaxNode otherIfOrElseIf)
@@ -137,14 +139,14 @@ internal sealed class CSharpIfLikeStatementGenerator : IIfLikeStatementGenerator
             var elseIfStatement = (IfStatementSyntax)elseIfClause;
 
             var newElseIfStatement = elseIfStatement.WithElse(ifStatement.Else);
-            var newIfStatement = ifStatement.WithElse(SyntaxFactory.ElseClause(newElseIfStatement));
+            var newIfStatement = ifStatement.WithElse(ElseClause(newElseIfStatement));
 
             if (ifStatement.Else == null && ContainsEmbeddedIfStatement(ifStatement))
             {
                 // If the if statement contains an embedded if statement (not wrapped inside a block), adding an else
                 // clause might introduce a dangling else problem (the 'else' would bind to the inner if statement),
                 // so if there used to be no else clause, we'll insert a new block to prevent that.
-                newIfStatement = newIfStatement.WithStatement(SyntaxFactory.Block(newIfStatement.Statement));
+                newIfStatement = newIfStatement.WithStatement(Block(newIfStatement.Statement));
             }
 
             return newIfStatement;

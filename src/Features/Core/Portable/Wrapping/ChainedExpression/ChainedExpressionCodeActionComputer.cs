@@ -163,7 +163,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
                 position += NormalizedWidth(chunk);
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private static int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
@@ -178,7 +178,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
             var flattened = _chunks.SelectManyAsArray(c => c);
             DeleteAllSpacesInChunk(result, flattened);
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private static void DeleteAllSpacesInChunk(

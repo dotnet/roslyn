@@ -19,10 +19,8 @@ internal interface IRemoteSymbolFinderService
         ValueTask ReferenceItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
         ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
         ValueTask OnCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
-        ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
-        ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
         ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group, CancellationToken cancellationToken);
-        ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup group, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference, CancellationToken cancellationToken);
+        ValueTask OnReferencesFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<(SerializableSymbolGroup group, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)> references, CancellationToken cancellationToken);
 
         ValueTask AddLiteralItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
         ValueTask LiteralItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);

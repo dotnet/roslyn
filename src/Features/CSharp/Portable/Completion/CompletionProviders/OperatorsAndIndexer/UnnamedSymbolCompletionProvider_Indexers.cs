@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.LanguageService;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
 internal partial class UnnamedSymbolCompletionProvider
 {
     private readonly ImmutableArray<KeyValuePair<string, string>> IndexerProperties =
-        [new KeyValuePair<string, string>(KindName, IndexerKindName)];
+        [KeyValuePairUtil.Create(KindName, IndexerKindName)];
 
     private void AddIndexers(CompletionContext context, ImmutableArray<ISymbol> indexers)
     {

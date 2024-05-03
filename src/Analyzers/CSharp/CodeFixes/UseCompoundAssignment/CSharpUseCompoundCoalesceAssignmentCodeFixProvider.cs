@@ -21,6 +21,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundCoalesceAssignment), Shared]
 internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
@@ -59,10 +62,10 @@ internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider : SyntaxEditor
 
                 // we have `if (x is null) x = y;`.  Update `x = y` to be `x ??= y`, then replace the entire
                 // if-statement with that assignment statement.
-                var newAssignment = SyntaxFactory.AssignmentExpression(
+                var newAssignment = AssignmentExpression(
                     SyntaxKind.CoalesceAssignmentExpression,
                     assignment.Left,
-                    SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken).WithTriviaFrom(assignment.OperatorToken),
+                    QuestionQuestionEqualsToken.WithTriviaFrom(assignment.OperatorToken),
                     assignment.Right).WithTriviaFrom(assignment);
 
                 var newWhenTrueStatement = whenTrueStatement.ReplaceNode(assignment, newAssignment);
@@ -105,8 +108,8 @@ internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider : SyntaxEditor
                         var coalesceRight = (ParenthesizedExpressionSyntax)currentCoalesce.Right;
                         var assignment = (AssignmentExpressionSyntax)coalesceRight.Expression;
 
-                        var compoundOperator = SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken);
-                        var finalAssignment = SyntaxFactory.AssignmentExpression(
+                        var compoundOperator = QuestionQuestionEqualsToken;
+                        var finalAssignment = AssignmentExpression(
                             SyntaxKind.CoalesceAssignmentExpression,
                             assignment.Left,
                             compoundOperator.WithTriviaFrom(assignment.OperatorToken),

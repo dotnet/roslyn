@@ -149,7 +149,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // may try to mutate the list while we're enumerating.
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
-            processesToDispose = _processes.Values.ToList();
+            processesToDispose = [.. _processes.Values];
             _processes.Clear();
         }
 

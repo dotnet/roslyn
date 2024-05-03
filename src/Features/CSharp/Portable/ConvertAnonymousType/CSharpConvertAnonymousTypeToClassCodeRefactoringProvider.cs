@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 
+using static CSharpSyntaxTokens;
+
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass), Shared]
 internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
@@ -38,9 +40,9 @@ internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
 
     private ArgumentListSyntax CreateArgumentList(AnonymousObjectCreationExpressionSyntax anonymousObject)
         => SyntaxFactory.ArgumentList(
-            SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTriviaFrom(anonymousObject.OpenBraceToken),
+            OpenParenToken.WithTriviaFrom(anonymousObject.OpenBraceToken),
             CreateArguments(anonymousObject.Initializers),
-            SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(anonymousObject.CloseBraceToken));
+            CloseParenToken.WithTriviaFrom(anonymousObject.CloseBraceToken));
 
     private SeparatedSyntaxList<ArgumentSyntax> CreateArguments(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
         => SyntaxFactory.SeparatedList<ArgumentSyntax>(CreateArguments(OmitTrailingComma(initializers.GetWithSeparators())));

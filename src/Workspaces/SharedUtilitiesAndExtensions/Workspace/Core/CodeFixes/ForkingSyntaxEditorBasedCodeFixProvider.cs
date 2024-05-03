@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -63,7 +64,7 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
     {
         var originalRoot = editor.OriginalRoot;
 
-        var originalNodes = new Stack<(TDiagnosticNode diagnosticNode, Diagnostic diagnostic)>();
+        using var _ = ArrayBuilder<(TDiagnosticNode diagnosticNode, Diagnostic diagnostic)>.GetInstance(out var originalNodes);
         foreach (var diagnostic in diagnostics)
         {
             var diagnosticNode = (TDiagnosticNode)originalRoot.FindNode(
@@ -79,9 +80,9 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
             document.WithSyntaxRoot(originalRoot.TrackNodes(originalNodes.Select(static t => t.diagnosticNode))),
             cancellationToken).ConfigureAwait(false);
 
-        while (originalNodes.Count > 0)
+        while (originalNodes.TryPop(out var tuple))
         {
-            var (originalDiagnosticNode, diagnostic) = originalNodes.Pop();
+            var (originalDiagnosticNode, diagnostic) = tuple;
             var currentRoot = semanticDocument.Root;
             var diagnosticNode = currentRoot.GetCurrentNodes(originalDiagnosticNode).Single();
 

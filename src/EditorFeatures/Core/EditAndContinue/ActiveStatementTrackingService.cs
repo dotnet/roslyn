@@ -38,12 +38,21 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
     [ExportWorkspaceServiceFactory(typeof(IActiveStatementTrackingService), ServiceLayer.Editor), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class Factory(IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
+    internal sealed class ServiceFactory(IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
     {
         private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new ActiveStatementTrackingService(workspaceServices.Workspace, _listenerProvider.GetListener(FeatureAttribute.EditAndContinue));
+    }
+
+    [ExportWorkspaceService(typeof(IActiveStatementSpanLocator), ServiceLayer.Editor), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class SpanLocator() : IActiveStatementSpanLocator
+    {
+        public ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(Solution solution, DocumentId? documentId, string filePath, CancellationToken cancellationToken)
+            => solution.Services.GetRequiredService<IActiveStatementTrackingService>().GetSpansAsync(solution, documentId, filePath, cancellationToken);
     }
 
     private readonly IAsynchronousOperationListener _listener = listener;
@@ -56,7 +65,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
     /// </summary>
     public event Action? TrackingChanged;
 
-    public void StartTracking(Solution solution, IActiveStatementSpanProvider spanProvider)
+    public void StartTracking(Solution solution, IActiveStatementSpanFactory spanProvider)
     {
         var newSession = new TrackingSession(_workspace, spanProvider);
         if (Interlocked.CompareExchange(ref _session, newSession, null) != null)
@@ -91,7 +100,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
     {
         private readonly Workspace _workspace;
         private readonly CancellationTokenSource _cancellationSource = new();
-        private readonly IActiveStatementSpanProvider _spanProvider;
+        private readonly IActiveStatementSpanFactory _spanProvider;
         private readonly ICompileTimeSolutionProvider _compileTimeSolutionProvider;
 
         #region lock(_trackingSpans)
@@ -105,7 +114,7 @@ internal sealed class ActiveStatementTrackingService(Workspace workspace, IAsync
 
         #endregion
 
-        public TrackingSession(Workspace workspace, IActiveStatementSpanProvider spanProvider)
+        public TrackingSession(Workspace workspace, IActiveStatementSpanFactory spanProvider)
         {
             _workspace = workspace;
             _spanProvider = spanProvider;

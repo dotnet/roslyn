@@ -24,10 +24,13 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertLinqQueryToForEach), Shared]
 internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertLinqQueryToForEachProvider<QueryExpressionSyntax, StatementSyntax>
 {
-    private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
+    private static readonly TypeSyntax VarNameIdentifier = IdentifierName("var");
 
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -92,7 +95,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                 if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                     documentUpdateInfo.Destinations.Length > 1)
                 {
-                    documentUpdateInfo = new DocumentUpdateInfo(documentUpdateInfo.Source, SyntaxFactory.Block(documentUpdateInfo.Destinations));
+                    documentUpdateInfo = new DocumentUpdateInfo(documentUpdateInfo.Source, Block(documentUpdateInfo.Destinations));
                 }
 
                 return true;
@@ -113,7 +116,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
             switch (node.Kind())
             {
                 case SyntaxKind.WhereClause:
-                    return SyntaxFactory.Block(SyntaxFactory.IfStatement(((WhereClauseSyntax)node).Condition.WithAdditionalAnnotations(Simplifier.Annotation).WithoutTrivia(), statement));
+                    return Block(IfStatement(((WhereClauseSyntax)node).Condition.WithAdditionalAnnotations(Simplifier.Annotation).WithoutTrivia(), statement));
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)node;
 
@@ -130,14 +133,14 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                             _cancellationToken);
                         var variable = GetFreeSymbolNameAndMarkUsed(expressionName);
                         extraStatementToAddAbove = CreateLocalDeclarationStatement(variable, fromClause.Expression, generateTypeFromExpression: false);
-                        expression1 = SyntaxFactory.IdentifierName(variable);
+                        expression1 = IdentifierName(variable);
                     }
                     else
                     {
                         expression1 = fromClause.Expression.WithoutTrivia();
                     }
 
-                    return SyntaxFactory.ForEachStatement(
+                    return ForEachStatement(
                         fromClause.Type ?? VarNameIdentifier,
                         fromClause.Identifier,
                         expression1,
@@ -175,7 +178,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                             extraStatementToAddAbove = CreateLocalDeclarationStatement(variable, joinClause.InExpression, generateTypeFromExpression: false);
 
                             // Replace YY() with yy declared above.
-                            expression2 = SyntaxFactory.IdentifierName(variable);
+                            expression2 = IdentifierName(variable);
                         }
 
                         // Output for the join
@@ -186,21 +189,21 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                         //  if (object.Equals(x, y))
                         //  {
                         //      ...
-                        return SyntaxFactory.Block(
-                            SyntaxFactory.ForEachStatement(
+                        return Block(
+                            ForEachStatement(
                                 joinClause.Type ?? VarNameIdentifier,
                                 joinClause.Identifier,
                                 expression2,
-                                SyntaxFactory.Block(
-                                    SyntaxFactory.IfStatement(
-                                        SyntaxFactory.InvocationExpression(
-                                            SyntaxFactory.MemberAccessExpression(
+                                Block(
+                                    IfStatement(
+                                        InvocationExpression(
+                                            MemberAccessExpression(
                                                 SyntaxKind.SimpleMemberAccessExpression,
-                                                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-                                                SyntaxFactory.IdentifierName(nameof(object.Equals))),
-                                            SyntaxFactory.ArgumentList([
-                                                SyntaxFactory.Argument(joinClause.LeftExpression),
-                                                SyntaxFactory.Argument(joinClause.RightExpression.WithoutTrailingTrivia())])),
+                                                PredefinedType(ObjectKeyword),
+                                                IdentifierName(nameof(object.Equals))),
+                                            ArgumentList([
+                                                Argument(joinClause.LeftExpression),
+                                                Argument(joinClause.RightExpression.WithoutTrailingTrivia())])),
                                         statement)))).WithAdditionalAnnotations(Simplifier.Annotation);
                     }
                 case SyntaxKind.SelectClause:
@@ -312,9 +315,9 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                         invocationExpression,
                         queryExpressionProcessingInfo,
                         IsInt,
-                        (variableIdentifier, expression) => SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, variableIdentifier)), // Generating 'count++'
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)), // count = 0
+                        (variableIdentifier, expression) => ExpressionStatement(
+                            PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, variableIdentifier)), // Generating 'count++'
+                        LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)), // count = 0
                         variableName: "count",
                         out documentUpdateInfo);
             }
@@ -344,15 +347,15 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                           invocationExpression,
                           queryExpressionProcessingInfo,
                           IsList,
-                          (listIdentifier, expression) => SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
-                                SyntaxFactory.MemberAccessExpression(
+                          (listIdentifier, expression) => ExpressionStatement(InvocationExpression(
+                                MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     listIdentifier,
-                                    SyntaxFactory.IdentifierName(nameof(IList.Add))),
-                                SyntaxFactory.ArgumentList([SyntaxFactory.Argument(expression)]))),
-                          SyntaxFactory.ObjectCreationExpression(
+                                    IdentifierName(nameof(IList.Add))),
+                                ArgumentList([Argument(expression)]))),
+                          ObjectCreationExpression(
                               methodSymbol.GenerateReturnTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
-                              SyntaxFactory.ArgumentList(),
+                              ArgumentList(),
                               initializer: null),
                            variableName: "list",
                           out documentUpdateInfo);
@@ -446,7 +449,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                     // var list = new List<T>(); or assignment
                     // foreach(...)
                     // IReadOnlyList<int> a = list;
-                    variableLocal = SyntaxFactory.IdentifierName(symbolName);
+                    variableLocal = IdentifierName(symbolName);
                     nodesBeforeLocal = new[] { CreateLocalDeclarationStatement(symbolName, initializer, generateTypeFromExpression: false) };
                     nodesAfterLocal = [parentStatement.ReplaceNode(invocationExpression, variableLocal.WithAdditionalAnnotations(Simplifier.Annotation))];
                 }
@@ -465,7 +468,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                     {
                         var variableDeclarator = ((VariableDeclaratorSyntax)invocationParent.Parent);
                         Convert(
-                            SyntaxFactory.IdentifierName(variableDeclarator.Identifier),
+                            IdentifierName(variableDeclarator.Identifier),
                             ((VariableDeclarationSyntax)variableDeclarator.Parent).Type,
                             checkForLocalOrParameter: false,
                             out variable,
@@ -495,9 +498,9 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                     // after var list = new List<T>();
                     // foreach(...)
                     // return list;
-                    variable = SyntaxFactory.IdentifierName(symbolName);
+                    variable = IdentifierName(symbolName);
                     nodesBefore = new[] { CreateLocalDeclarationStatement(symbolName, initializer, generateTypeFromExpression: false) };
-                    nodesAfter = new[] { SyntaxFactory.ReturnStatement(variable).WithAdditionalAnnotations(Simplifier.Annotation) };
+                    nodesAfter = new[] { ReturnStatement(variable).WithAdditionalAnnotations(Simplifier.Annotation) };
                     return true;
                     // SyntaxKind.Argument:
                     // SyntaxKind.ArrowExpressionClause is not supported
@@ -518,13 +521,13 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
             var typeSyntax = generateTypeFromExpression
                 ? _semanticModel.GetTypeInfo(expression, _cancellationToken).ConvertedType.GenerateTypeSyntax()
                 : VarNameIdentifier;
-            return SyntaxFactory.LocalDeclarationStatement(
-                        SyntaxFactory.VariableDeclaration(
+            return LocalDeclarationStatement(
+                        VariableDeclaration(
                             typeSyntax,
-                            [SyntaxFactory.VariableDeclarator(
+                            [VariableDeclarator(
                                 identifier,
                                 argumentList: null,
-                                SyntaxFactory.EqualsValueClause(expression))])).WithAdditionalAnnotations(Simplifier.Annotation);
+                                EqualsValueClause(expression))])).WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         private bool TryReplaceWithLocalFunction(QueryExpressionProcessingInfo queryExpressionProcessingInfo, out DocumentUpdateInfo documentUpdateInfo)
@@ -567,7 +570,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
             }
 
             static StatementSyntax internalNodeMethod(ExpressionSyntax expression)
-                => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression);
+                => YieldStatement(SyntaxKind.YieldReturnStatement, expression);
 
             var statements = GenerateStatements(internalNodeMethod, queryExpressionProcessingInfo);
             var localFunctionNamePrefix = _semanticFacts.GenerateNameForExpression(
@@ -576,23 +579,23 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                 capitalize: false,
                 _cancellationToken);
             var localFunctionToken = GetFreeSymbolNameAndMarkUsed(localFunctionNamePrefix);
-            var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
+            var localFunctionDeclaration = LocalFunctionStatement(
                 modifiers: default,
                 returnType: returnedType.GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
                 identifier: localFunctionToken,
                 typeParameterList: null,
-                parameterList: SyntaxFactory.ParameterList(),
+                parameterList: ParameterList(),
                 constraintClauses: default,
-                body: SyntaxFactory.Block(
-                    SyntaxFactory.Token(
+                body: Block(
+                    Token(
                         [],
                         SyntaxKind.OpenBraceToken,
-                        [SyntaxFactory.EndOfLine(Environment.NewLine)]),
+                        [EndOfLine(Environment.NewLine)]),
                     [.. statements],
-                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken)),
+                    CloseBraceToken),
                 expressionBody: null);
 
-            var localFunctionInvocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
+            var localFunctionInvocation = InvocationExpression(IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
             var newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
             documentUpdateInfo = new DocumentUpdateInfo(parentStatement, [localFunctionDeclaration, newParentExpressionStatement]);
             return true;
@@ -688,13 +691,13 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
             //      dosomething(x); 
             //  }
             var statements = GenerateStatements(
-                expression => AddToBlockTop(SyntaxFactory.LocalDeclarationStatement(
-                    SyntaxFactory.VariableDeclaration(
+                expression => AddToBlockTop(LocalDeclarationStatement(
+                    VariableDeclaration(
                         forEachStatement.Type,
-                        [SyntaxFactory.VariableDeclarator(
+                        [VariableDeclarator(
                             forEachStatement.Identifier,
                             argumentList: null,
-                            SyntaxFactory.EqualsValueClause(expression))])),
+                            EqualsValueClause(expression))])),
                                 forEachStatement.Statement).WithAdditionalAnnotations(Formatter.Annotation), queryExpressionProcessingInfo);
             return new DocumentUpdateInfo(forEachStatement, statements);
         }
@@ -759,10 +762,10 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                 //
                 // yield break;
                 var statements = GenerateStatements((ExpressionSyntax expression)
-                    => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression), queryExpressionProcessingInfo);
+                    => YieldStatement(SyntaxKind.YieldReturnStatement, expression), queryExpressionProcessingInfo);
 
                 // add an yield break to avoid throws after the return.
-                var yieldBreakStatement = SyntaxFactory.YieldStatement(SyntaxKind.YieldBreakStatement);
+                var yieldBreakStatement = YieldStatement(SyntaxKind.YieldBreakStatement);
                 documentUpdateInfo = new DocumentUpdateInfo(returnStatement, statements.Concat(new[] { yieldBreakStatement }));
                 return true;
             }
@@ -824,7 +827,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
             // The stack was processed in the reverse order, but the extra statements should be provided in the direct order.
             statements.Reverse();
             statements.Add(statement.WithAdditionalAnnotations(Simplifier.Annotation));
-            return statements.ToArray();
+            return [.. statements];
         }
 
         private bool TryProcessQueryBody(QueryBodySyntax queryBody, QueryExpressionProcessingInfo queryExpressionProcessingInfo)
@@ -896,7 +899,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
             }
             else
             {
-                return SyntaxFactory.Block(newStatement, statement);
+                return Block(newStatement, statement);
             }
         }
 
@@ -914,7 +917,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
         }
 
         private static BlockSyntax WrapWithBlock(StatementSyntax statement)
-            => statement is BlockSyntax block ? block : SyntaxFactory.Block(statement);
+            => statement is BlockSyntax block ? block : Block(statement);
 
         // Checks if the node is within an immediate lambda or within an immediate anonymous method.
         // 'lambda => node' returns true
