@@ -80,9 +80,7 @@ internal static partial class RoslynParallel
             ArgumentNullException.ThrowIfNull(source);
             ArgumentNullException.ThrowIfNull(parallelOptions);
             ArgumentNullException.ThrowIfNull(body);
-#endif
 
-#if false
             return ForEachAsync(source, parallelOptions.EffectiveMaxConcurrencyLevel, parallelOptions.EffectiveTaskScheduler, parallelOptions.CancellationToken, body);
 #else
             return ForEachAsync(source, EffectiveMaxConcurrencyLevel(parallelOptions), EffectiveTaskScheduler(parallelOptions), parallelOptions.CancellationToken, body);
