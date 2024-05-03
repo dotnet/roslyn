@@ -347,6 +347,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me.RuntimeSupportsVirtualStaticsInInterfaces
                 Case RuntimeCapability.InlineArrayTypes
                     Return Me.RuntimeSupportsInlineArrayTypes
+                Case RuntimeCapability.ByRefLikeGenerics
+                    Return Me.RuntimeSupportsByRefLikeGenerics
             End Select
 
             Return False
@@ -406,6 +408,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsInlineArrayTypes
                 Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) IsNot Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsByRefLikeGenerics As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsByRefLikeGenerics
+                ' PROTOTYPE(RefStructInterfaces) Implement real check once RuntimeFeature.ByRefLikeGenerics becomes available in ref assembly.
+                '                                See https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for details.
+                Return RuntimeSupportsInlineArrayTypes
             End Get
         End Property
 

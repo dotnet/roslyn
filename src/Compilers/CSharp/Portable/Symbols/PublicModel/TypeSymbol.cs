@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         SpecialType ITypeSymbol.SpecialType => UnderlyingTypeSymbol.SpecialType;
 
-        bool ITypeSymbol.IsRefLikeType => UnderlyingTypeSymbol.IsRefLikeType; // PROTOTYPE(RefStructInterfaces): adjust?
+        bool ITypeSymbol.IsRefLikeType => UnderlyingTypeSymbol.IsRefLikeType;
 
         bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
 

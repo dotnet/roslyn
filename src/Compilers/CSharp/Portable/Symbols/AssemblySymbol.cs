@@ -427,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.RuntimeSupportsStaticAbstractMembersInInterfaces;
                 case RuntimeCapability.InlineArrayTypes:
                     return this.RuntimeSupportsInlineArrayTypes;
+                case RuntimeCapability.ByRefLikeGenerics:
+                    return this.RuntimeSupportsByRefLikeGenerics;
             }
 
             return false;
@@ -480,9 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Figure out if the target runtime supports inline array types.
         /// </summary>
-        internal bool RuntimeSupportsByRefLikeGenerics // PROTOTYPE(RefStructInterfaces): Implement public API.
+        internal bool RuntimeSupportsByRefLikeGenerics
         {
-            // PROTOTYPE(RefStructInterfaces): Implement VB side.
             // Keep in sync with VB's AssemblySymbol.RuntimeSupportsByRefLikeGenerics
             get
             {

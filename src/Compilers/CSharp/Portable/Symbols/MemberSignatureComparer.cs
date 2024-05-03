@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((typeParameter1.HasConstructorConstraint != typeParameter2.HasConstructorConstraint) ||
                 (typeParameter1.HasReferenceTypeConstraint != typeParameter2.HasReferenceTypeConstraint) ||
                 (typeParameter1.HasValueTypeConstraint != typeParameter2.HasValueTypeConstraint) ||
-                (typeParameter1.AllowByRefLike != typeParameter2.AllowByRefLike) ||
+                (typeParameter1.AllowsByRefLike != typeParameter2.AllowsByRefLike) ||
                 (typeParameter1.HasUnmanagedTypeConstraint != typeParameter2.HasUnmanagedTypeConstraint) ||
                 (typeParameter1.Variance != typeParameter2.Variance))
             {

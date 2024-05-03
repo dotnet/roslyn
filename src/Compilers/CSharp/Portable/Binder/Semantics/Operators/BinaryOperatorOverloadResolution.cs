@@ -718,8 +718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetReferenceEquality(kind, operators);
                 Debug.Assert(operators.Count == 1);
 
-                if ((left.Type is TypeParameterSymbol { AllowByRefLike: true } && right.IsLiteralNull()) ||
-                    (right.Type is TypeParameterSymbol { AllowByRefLike: true } && left.IsLiteralNull()))
+                if ((left.Type is TypeParameterSymbol { AllowsByRefLike: true } && right.IsLiteralNull()) ||
+                    (right.Type is TypeParameterSymbol { AllowsByRefLike: true } && left.IsLiteralNull()))
                 {
                     BinaryOperatorSignature op = operators[0];
                     Debug.Assert(op.LeftType.IsObjectType());
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion getOperandConversionForAllowByRefLikeNullCheck(bool isChecked, BoundExpression operand, TypeSymbol objectType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                return (operand.Type is TypeParameterSymbol { AllowByRefLike: true }) ? Conversion.Boxing : Conversions.ClassifyConversionFromExpression(operand, objectType, isChecked: isChecked, ref useSiteInfo);
+                return (operand.Type is TypeParameterSymbol { AllowsByRefLike: true }) ? Conversion.Boxing : Conversions.ClassifyConversionFromExpression(operand, objectType, isChecked: isChecked, ref useSiteInfo);
             }
         }
 

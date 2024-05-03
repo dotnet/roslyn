@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool AllowByRefLike
+        public override bool AllowsByRefLike
         {
             get
             {
-                return _underlyingTypeParameter.AllowByRefLike;
+                return _underlyingTypeParameter.AllowsByRefLike;
             }
         }
 

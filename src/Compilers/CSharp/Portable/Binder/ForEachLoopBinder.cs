@@ -1245,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!enumeratorType.IsRefLikeType); // Ref like types are supposed to be structs, therefore, sealed.
 
-                if (enumeratorType is TypeParameterSymbol { AllowByRefLike: true })
+                if (enumeratorType is TypeParameterSymbol { AllowsByRefLike: true })
                 {
                     Error(diagnostics, ErrorCode.ERR_BadAllowByRefLikeEnumerator, expr.Syntax, enumeratorType);
                 }

@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool AllowByRefLike
+        public override bool AllowsByRefLike
         {
             get
             {
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool AllowByRefLike
+        public override bool AllowsByRefLike
         {
             get
             {
@@ -909,12 +909,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool AllowByRefLike
+        public override bool AllowsByRefLike
         {
             get
             {
                 var typeParameter = this.OverriddenTypeParameter;
-                return ((object)typeParameter != null) && typeParameter.AllowByRefLike;
+                return ((object)typeParameter != null) && typeParameter.AllowsByRefLike;
             }
         }
 

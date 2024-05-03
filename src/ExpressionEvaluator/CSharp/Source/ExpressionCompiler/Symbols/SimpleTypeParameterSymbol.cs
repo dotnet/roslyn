@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        public override bool AllowByRefLike
+        public override bool AllowsByRefLike
         {
             get { return false; }
         }
