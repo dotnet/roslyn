@@ -71,7 +71,7 @@ internal abstract partial class AbstractNavigateToSearchService
         return;
 
         async ValueTask ProcessSingleProjectAsync(
-            Project project, Action<RoslynNavigateToItem> onItemFound)
+            Project project, Action<RoslynNavigateToItem> onItemFound, CancellationToken cancellationToken)
         {
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
