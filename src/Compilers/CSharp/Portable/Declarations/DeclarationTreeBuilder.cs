@@ -205,7 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 //The implicit class is not static and has no extensions
                 SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
-                var memberNames = GetNonTypeMemberNames(node, internalMembers, ref declFlags, skipGlobalStatements: acceptSimpleProgram);
+                var (memberNames, declFlagsToMerge) = GetNonTypeMemberNames(node, internalMembers, skipGlobalStatements: acceptSimpleProgram);
+                declFlags |= declFlagsToMerge;
                 var container = _syntaxTree.GetReference(node);
 
                 childrenBuilder.Add(CreateImplicitClass(memberNames, container, declFlags));
@@ -290,7 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //Script class is not static and contains no extensions.
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
-            var membernames = GetNonTypeMemberNames(compilationUnit, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members, ref declFlags);
+            var (membernames, declFlagsToMerge) = GetNonTypeMemberNames(compilationUnit, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members);
+            declFlags |= declFlagsToMerge;
+
             rootChildren.Add(
                 CreateScriptClass(
                     compilationUnit,
@@ -719,9 +722,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var memberNames = GetNonTypeMemberNames(
-                node, ((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
-                ref declFlags, hasPrimaryCtor: hasPrimaryCtor);
+            var (memberNames, declFlagsToMerge) = GetNonTypeMemberNames(
+                node, ((Syntax.InternalSyntax.TypeDeclarationSyntax)node.Green).Members, hasPrimaryCtor: hasPrimaryCtor);
+            declFlags |= declFlagsToMerge;
 
             // If we have `record class` or `record struct` check that this is supported in the language. Note: we don't
             // have to do any check for the simple `record` case as the parser itself would never produce such a node
@@ -929,13 +932,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 members);
         }
 
-        private BoxedMemberNames GetNonTypeMemberNames(
+        private (BoxedMemberNames memberNames, SingleTypeDeclaration.TypeDeclarationFlags declFlags) GetNonTypeMemberNames(
             CSharpSyntaxNode parent,
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members,
-            ref SingleTypeDeclaration.TypeDeclarationFlags declFlags,
             bool skipGlobalStatements = false,
             bool hasPrimaryCtor = false)
         {
+            SingleTypeDeclaration.TypeDeclarationFlags declFlags = default;
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
@@ -993,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasRequiredMembers;
             }
 
-            return GetOrComputeMemberNames(
+            var memberNames = GetOrComputeMemberNames(
                 parent,
                 static (memberNamesBuilder, tuple) =>
                 {
@@ -1004,6 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddNonTypeMemberNames(member, memberNamesBuilder);
                 },
                 (members, hasPrimaryCtor));
+            return (memberNames, declFlags);
 
             static bool checkPropertyOrFieldMemberForRequiredModifier(Syntax.InternalSyntax.CSharpSyntaxNode member)
             {
