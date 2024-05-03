@@ -2358,6 +2358,10 @@ explicit extension R(int i) for UnderlyingClass { }
             // (3,21): error CS9122: Unexpected parameter list.
             // explicit extension R(int i) for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "(int i)").WithLocation(3, 21));
+
+        // No constructor, despite the presence of an invalid primary constructor in syntax.
+        var rType = comp.GetTypeByMetadataName("R");
+        Assert.Empty(rType.Constructors);
     }
 
     [Fact]
