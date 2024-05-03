@@ -264,7 +264,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // but also stop any searches once we get enough results.
         using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        // Defer to the ProducerConsumer.  We're search the unreferenced projects in parallel. As we get results, we'll
+        // Defer to the ProducerConsumer.  We're search the metadata references in parallel. As we get results, we'll
         // add them to the 'allSymbolReferences' queue.  If we get enough results, we'll cancel all the other work.
         await ProducerConsumer<ImmutableArray<SymbolReference>>.RunAsync(
             ProducerConsumerOptions.SingleReaderOptions,
