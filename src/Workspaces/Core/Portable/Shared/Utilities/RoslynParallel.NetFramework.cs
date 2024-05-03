@@ -463,13 +463,11 @@ internal static partial class RoslynParallel
                         ThreadPool.UnsafeQueueUserWorkItem(this, preferLocal: false);
                     }
                     else
+#endif
                     {
                         // We're targeting a non-default TaskScheduler, so queue the task body to it.
                         System.Threading.Tasks.Task.Factory.StartNew(_taskBody!, this, default(CancellationToken), TaskCreationOptions.DenyChildAttach, _scheduler);
                     }
-#else
-                    System.Threading.Tasks.Task.Factory.StartNew(_taskBody!, this, default(CancellationToken), TaskCreationOptions.DenyChildAttach, _scheduler);
-#endif
                 }
             }
 
