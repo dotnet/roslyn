@@ -42,21 +42,21 @@ internal static class ProducerConsumer<TItem>
     /// </summary>
     public static Task RunAsync<TArgs>(
         ProducerConsumerOptions options,
-        Func<Action<TItem>, TArgs, Task> produceItems,
-        Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
         return RunImplAsync(
             options,
-            static (onItemFound, args) => args.produceItems(onItemFound, args.args),
-            static (reader, args) => ConsumeItemsAsArrayAsync(reader, args.consumeItems, args.args, args.cancellationToken),
-            (produceItems, consumeItems, args, cancellationToken),
+            static (onItemFound, args, cancellationToken) => args.produceItems(onItemFound, args.args, cancellationToken),
+            static (reader, args, cancellationToken) => ConsumeItemsAsArrayAsync(reader, args.consumeItems, args.args, cancellationToken),
+            (produceItems, consumeItems, args),
             cancellationToken);
 
         static async Task ConsumeItemsAsArrayAsync(
             ChannelReader<TItem> reader,
-            Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
+            Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
             TArgs args,
             CancellationToken cancellationToken)
         {
@@ -69,7 +69,7 @@ internal static class ProducerConsumer<TItem>
                 while (reader.TryRead(out var item))
                     items.Add(item);
 
-                await consumeItems(items.ToImmutableAndClear(), args).ConfigureAwait(false);
+                await consumeItems(items.ToImmutableAndClear(), args, cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -79,16 +79,64 @@ internal static class ProducerConsumer<TItem>
     /// </summary>
     public static Task RunAsync<TArgs>(
         ProducerConsumerOptions options,
-        Func<Action<TItem>, TArgs, Task> produceItems,
-        Func<IAsyncEnumerable<TItem>, TArgs, Task> consumeItems,
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
         return RunImplAsync(
             options,
-            static (onItemFound, args) => args.produceItems(onItemFound, args.args),
-            static (reader, args) => args.consumeItems(reader.ReadAllAsync(args.cancellationToken), args.args),
-            (produceItems, consumeItems, args, cancellationToken),
+            static (onItemFound, args, cancellationToken) => args.produceItems(onItemFound, args.args, cancellationToken),
+            static (reader, args, cancellationToken) => args.consumeItems(reader.ReadAllAsync(cancellationToken), args.args, cancellationToken),
+            (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunAsync(
+            // We're running in parallel, so we def have multiple writers
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems: static (callback, args, cancellationToken) =>
+                RoslynParallel.ForEachAsync(
+                    args.source,
+                    cancellationToken,
+                    async (source, cancellationToken) =>
+                        await args.produceItems(source, callback, args.args, cancellationToken).ConfigureAwait(false)),
+            consumeItems: static (enumerable, args, cancellationToken) => args.consumeItems(enumerable, args.args, cancellationToken),
+            args: (source, produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunAsync(
+            // We're running in parallel, so we def have multiple writers
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems: static (callback, args, cancellationToken) =>
+                RoslynParallel.ForEachAsync(
+                    args.source,
+                    cancellationToken,
+                    async (source, cancellationToken) =>
+                        await args.produceItems(source, callback, args.args, cancellationToken).ConfigureAwait(false)),
+            consumeItems: static (enumerable, args, cancellationToken) => args.consumeItems(enumerable, args.args, cancellationToken),
+            args: (source, produceItems, consumeItems, args),
             cancellationToken);
     }
 
@@ -109,8 +157,8 @@ internal static class ProducerConsumer<TItem>
     /// </summary>
     private static async Task RunImplAsync<TArgs>(
         ProducerConsumerOptions options,
-        Func<Action<TItem>, TArgs, Task> produceItems,
-        Func<ChannelReader<TItem>, TArgs, Task> consumeItems,
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ChannelReader<TItem>, TArgs, CancellationToken, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
@@ -139,7 +187,7 @@ internal static class ProducerConsumer<TItem>
         async Task ReadFromChannelAndConsumeItemsAsync()
         {
             await Task.Yield().ConfigureAwait(false);
-            await consumeItems(channel.Reader, args).ConfigureAwait(false);
+            await consumeItems(channel.Reader, args, cancellationToken).ConfigureAwait(false);
         }
 
         async Task ProduceItemsAndWriteToChannelAsync()
@@ -153,7 +201,7 @@ internal static class ProducerConsumer<TItem>
                 // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
                 // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
                 // channel to do nothing as we no longer need to write out those assets to the pipe.
-                await produceItems(item => channel.Writer.TryWrite(item), args).ConfigureAwait(false);
+                await produceItems(item => channel.Writer.TryWrite(item), args, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
             {
