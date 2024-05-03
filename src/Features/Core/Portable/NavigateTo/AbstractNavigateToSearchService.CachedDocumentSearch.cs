@@ -101,7 +101,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<DocumentKey> priorityDocumentKeys,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -120,14 +120,19 @@ internal abstract partial class AbstractNavigateToSearchService
 
         // Sort the groups into a high pri group (projects that contain a high-pri doc), and low pri groups (those that
         // don't), and process in that order.
-        await PerformParallelSearchAsync(
-            Prioritize(groups, g => g.Any(priorityDocumentKeysSet.Contains)),
-            ProcessSingleProjectGroupAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
+        await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
+            source: Prioritize(groups, g => g.Any(priorityDocumentKeysSet.Contains)),
+            produceItems: ProcessSingleProjectGroupAsync,
+            consumeItems: onItemsFound,
+            args: default,
+            cancellationToken).ConfigureAwait(false);
+
         return;
 
-        async ValueTask ProcessSingleProjectGroupAsync(
+        async Task ProcessSingleProjectGroupAsync(
             IGrouping<ProjectKey, DocumentKey> group,
             Action<RoslynNavigateToItem> onItemFound,
+            VoidResult _,
             CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)

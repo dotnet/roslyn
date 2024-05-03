@@ -60,18 +60,23 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Project> projects,
         string pattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        await PerformParallelSearchAsync(projects, ProcessSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
+        await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
+            source: projects,
+            produceItems: ProcessSingleProjectAsync,
+            consumeItems: onItemsFound,
+            args: default,
+            cancellationToken).ConfigureAwait(false);
         return;
 
-        async ValueTask ProcessSingleProjectAsync(
-            Project project, Action<RoslynNavigateToItem> onItemFound, CancellationToken cancellationToken)
+        async Task ProcessSingleProjectAsync(
+            Project project, Action<RoslynNavigateToItem> onItemFound, VoidResult _, CancellationToken cancellationToken)
         {
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);

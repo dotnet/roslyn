@@ -33,12 +33,12 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> GetOnItemsFoundCallback(
+    private static Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> GetOnItemsFoundCallback(
         Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound)
     {
-        return async (items, cancellationToken) =>
+        return async (items, _, cancellationToken) =>
         {
-            using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
+            using var _1 = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
 
             foreach (var item in items)
             {

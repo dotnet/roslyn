@@ -45,7 +45,11 @@ internal abstract partial class AbstractNavigateToSearchService
     }
 
     public static async Task SearchDocumentInCurrentProcessAsync(
-        Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> onItemsFound, CancellationToken cancellationToken)
+        Document document,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
+        CancellationToken cancellationToken)
     {
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
@@ -55,7 +59,7 @@ internal abstract partial class AbstractNavigateToSearchService
             document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
 
         if (results.Count > 0)
-            await onItemsFound(results.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+            await onItemsFound(results.ToImmutableArray(), default, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task SearchProjectsAsync(
@@ -105,7 +109,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
@@ -120,17 +124,21 @@ internal abstract partial class AbstractNavigateToSearchService
 
         // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
         // projects with priority documents ahead of those without so we can get results for those faster.
-        await PerformParallelSearchAsync(
-            Prioritize(projects, highPriProjects.Contains),
-            SearchSingleProjectAsync, onItemsFound, cancellationToken).ConfigureAwait(false);
+        await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
+            source: Prioritize(projects, highPriProjects.Contains),
+            produceItems: SearchSingleProjectAsync,
+            consumeItems: onItemsFound,
+            args: default,
+            cancellationToken).ConfigureAwait(false);
         return;
 
-        async ValueTask SearchSingleProjectAsync(
+        async Task SearchSingleProjectAsync(
             Project project,
             Action<RoslynNavigateToItem> onItemFound,
+            VoidResult _,
             CancellationToken cancellationToken)
         {
-            using var _ = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
+            using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project == d.Project), out var highPriDocs);
 
             await RoslynParallel.ForEachAsync(
                 Prioritize(project.Documents, highPriDocs.Contains),

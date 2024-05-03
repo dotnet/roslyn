@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -47,7 +48,7 @@ internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : Remote
 }
 
 internal sealed class NavigateToSearchServiceCallback(
-    Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> onItemsFound,
+    Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
     Func<Task>? onProjectCompleted,
     CancellationToken cancellationToken)
 {
@@ -55,7 +56,7 @@ internal sealed class NavigateToSearchServiceCallback(
     {
         try
         {
-            await onItemsFound(items, cancellationToken).ConfigureAwait(false);
+            await onItemsFound(items, default, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
         {
