@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
                     alwaysOrMaybeDisposeStmt = RewriteIfStatement(
                         syntax: forEachSyntax,
-                        rewrittenCondition: _factory.ObjectNotEqual(_factory.Convert(objectType, boundEnumeratorVar, allowBoxingByRefLikeTypeParametersToObject: true), _factory.Null(objectType)),
+                        rewrittenCondition: _factory.IsNotNullReference(boundEnumeratorVar),
                         rewrittenConsequence: disposeCallStatement,
                         rewrittenAlternativeOpt: null,
                         hasErrors: false);
