@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -14,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal static partial class RoslynParallel
 {
+    // For all these helpers, we defer to the native .net core version if we're on .net core.  Otherwise, we defer to
+    // our ported version of that code when on .net framework.
+
     public static Task ForEachAsync<TSource>(
         IEnumerable<TSource> source,
         CancellationToken cancellationToken,
