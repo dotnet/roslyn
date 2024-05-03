@@ -33,10 +33,10 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<ImmutableArray<RoslynNavigateToItem>, Task> GetOnItemsFoundCallback(
-        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
+    private static Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> GetOnItemsFoundCallback(
+        Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound)
     {
-        return async items =>
+        return async (items, cancellationToken) =>
         {
             using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
 
@@ -91,12 +91,12 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
     private static Task PerformParallelSearchAsync<T>(
         IEnumerable<T> items,
         Func<T, Action<RoslynNavigateToItem>, CancellationToken, ValueTask> callback,
-        Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> onItemsFound,
         CancellationToken cancellationToken)
         => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
             source: items,
             produceItems: static async (item, onItemFound, args, cancellationToken) => await args.callback(item, onItemFound, cancellationToken).ConfigureAwait(false),
-            consumeItems: static (items, args, cancellationToken) => args.onItemsFound(items),
+            consumeItems: static (items, args, cancellationToken) => args.onItemsFound(items, cancellationToken),
             args: (items, callback, onItemsFound),
             cancellationToken);
 }
