@@ -461,7 +461,7 @@ internal static partial class RoslynParallel
 #if false
                         ThreadPool.UnsafeQueueUserWorkItem(this, preferLocal: false);
 #else
-                        ThreadPool.QueueUserWorkItem(s => ((ForEachAsyncState<TSource>)s).Execute(), this);
+                        ThreadPool.QueueUserWorkItem(static s => ((ForEachAsyncState<TSource>)s).Execute(), this);
 #endif
                     }
                     else
