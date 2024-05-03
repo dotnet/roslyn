@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !NET
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 #pragma warning disable IDE2003 // Blank line required between block and subsequent statement
 #pragma warning disable IDE2004 // Blank line not allowed after constructor initializer colon
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-
-#if !NET
 
 // Ported from
 // https://github.com/dotnet/runtime/blob/main/src/libraries/System.Threading.Tasks.Parallel/src/System/Threading/Tasks/Parallel.ForEachAsync.cs
