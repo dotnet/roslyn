@@ -136,10 +136,10 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
             {
                 var context = new CodeFixContext(document, diagnostic, registerCodeFix, cancellationToken);
 
-                // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
+                // TODO: Wrap call to RegisterCodeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                 // a buggy extension that throws can't bring down the host?
-                var task = fixAllState.Provider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
-                await task.ConfigureAwait(false);
+                if (fixAllState.Provider.RegisterCodeFixesAsync(context) is Task task)
+                    await task.ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 
