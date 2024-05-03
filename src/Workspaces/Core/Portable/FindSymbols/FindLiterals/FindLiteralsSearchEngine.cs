@@ -92,7 +92,7 @@ internal class FindLiteralsSearchEngine
             cancellationToken,
             ProcessDocumentAsync).ConfigureAwait(false);
 
-        async IAsyncEnumerable<TResult> SelectManyAsync<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, IAsyncEnumerable<TResult>> selector)
+        static async IAsyncEnumerable<TResult> SelectManyAsync<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, IAsyncEnumerable<TResult>> selector)
         {
             foreach (var item in source)
             {
