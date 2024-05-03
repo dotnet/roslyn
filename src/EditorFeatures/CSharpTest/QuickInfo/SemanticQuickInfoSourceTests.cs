@@ -8852,5 +8852,51 @@ $@"
     'a {FeaturesResources.is_} new {{ string @string }}")
             });
         }
+
+        [Theory, CombinatorialData]
+        public async Task TestExtensionReference1(bool isExplicit)
+        {
+            await TestAsync(
+                $$"""
+                using System;
+
+                {{(isExplicit ? "explicit" : "implicit")}} extension E for Console
+                {
+                    public static void M() { }
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        $$E.M();
+                    }
+                }
+                """,
+                MainDescription($"{(isExplicit ? "explicit" : "implicit")} extension E"));
+        }
+
+        [Fact]
+        public async Task TestExtensionReference2()
+        {
+            await TestAsync(
+                """
+                using System;
+
+                implicit extension E for Console
+                {
+                    public static void M() { }
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        Console.$$M();
+                    }
+                }
+                """,
+                MainDescription("void E.M()"));
+        }
     }
 }
