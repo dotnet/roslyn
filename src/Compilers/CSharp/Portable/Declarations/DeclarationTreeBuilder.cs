@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationKind.Delegate => false,
 
                 DeclarationKind.Class or
+                DeclarationKind.Extension or
                 DeclarationKind.Interface or
                 DeclarationKind.Struct or
                 DeclarationKind.Enum or
