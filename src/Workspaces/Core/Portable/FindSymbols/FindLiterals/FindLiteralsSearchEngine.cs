@@ -92,7 +92,7 @@ internal class FindLiteralsSearchEngine
             cancellationToken.ThrowIfCancellationRequested();
 
             var documentTasks = new List<Task>();
-            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
             {
                 documentTasks.Add(ProcessDocumentAsync(document, cancellationToken));
             }
