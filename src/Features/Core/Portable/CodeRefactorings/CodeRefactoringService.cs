@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.EditAndContinue.TraceLog;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -89,20 +90,15 @@ internal sealed class CodeRefactoringService(
         CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
-        var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-
         foreach (var provider in GetProviders(document))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
             var refactoring = await GetRefactoringFromProviderAsync(
-                document, state, provider, providerMetadata, extensionManager, options, cancellationToken).ConfigureAwait(false);
+                document, state, provider, options, cancellationToken).ConfigureAwait(false);
 
             if (refactoring != null)
-            {
                 return true;
-            }
         }
 
         return false;
@@ -119,12 +115,15 @@ internal sealed class CodeRefactoringService(
         using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
         using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
         {
-            using var _ = ArrayBuilder<CodeRefactoring>.GetInstance(out var codeRefactorings);
+            using var _1 = ArrayBuilder<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.GetInstance(out var pairs);
+            using var _2 = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
 
-            var providers = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority);
+            var orderedProviders = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority).ToImmutableArray();
+            foreach (var provider in orderedProviders)
+                providerToIndex.Add(provider, providerToIndex.Count);
 
-            await ProducerConsumer<CodeRefactoring>.RunParallelAsync(
-                providers,
+            await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
+                orderedProviders,
                 produceItems: static async (provider, callback, args) =>
                 {
                     // Run all providers in parallel to get the set of refactorings for this document.
@@ -135,7 +134,6 @@ internal sealed class CodeRefactoringService(
                     const int CodeRefactoringTelemetryDelay = 500;
 
                     var providerName = provider.GetType().Name;
-                    args.@this.RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                     var logMessage = KeyValueLogMessage.Create(m =>
                     {
@@ -147,23 +145,23 @@ internal sealed class CodeRefactoringService(
                     using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, args.cancellationToken))
                     using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                     {
-                        var extensionManager = args.document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-
                         var refactoring = await args.@this.GetRefactoringFromProviderAsync(
-                            args.document, args.state, provider, providerMetadata, extensionManager, args.options, args.cancellationToken).ConfigureAwait(false);
+                            args.document, args.state, provider, args.options, args.cancellationToken).ConfigureAwait(false);
                         if (refactoring != null)
-                            callback(refactoring);
+                            callback((provider, refactoring));
                     }
                 },
                 consumeItems: static async (reader, args) =>
                 {
-                    await foreach (var refactoring in reader)
-                        args.codeRefactorings.Add(refactoring);
+                    await foreach (var pair in reader)
+                        args.pairs.Add(pair);
                 },
-                args: (@this: this, document, state, providers, options, addOperationScope, codeRefactorings, cancellationToken),
+                args: (@this: this, document, state, options, addOperationScope, pairs, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            return codeRefactorings.ToImmutableAndClear();
+            return pairs
+                .OrderBy((tuple1, tuple2) => providerToIndex[tuple1.provider] - providerToIndex[tuple2.provider])
+                .SelectAsArray(t => t.codeRefactoring);
         }
     }
 
@@ -171,11 +169,13 @@ internal sealed class CodeRefactoringService(
         TextDocument textDocument,
         TextSpan state,
         CodeRefactoringProvider provider,
-        CodeChangeProviderMetadata? providerMetadata,
-        IExtensionManager extensionManager,
         CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
+        RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
+
+        var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+
         return extensionManager.PerformFunctionAsync(
             provider,
             async cancellationToken =>
