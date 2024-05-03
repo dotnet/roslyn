@@ -81,22 +81,4 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         foreach (var item in normalItems)
             yield return item;
     }
-
-    /// <summary>
-    /// Main utility for searching across items in a solution.  The actual code to search the item should be provided in
-    /// <paramref name="callback"/>.  Each item in <paramref name="items"/> will be processed using
-    /// <code>Parallel.ForEachAsync</code>, allowing for parallel processing of the items, with a preference towards
-    /// earlier items.
-    /// </summary>
-    private static Task PerformParallelSearchAsync<T>(
-        IEnumerable<T> items,
-        Func<T, Action<RoslynNavigateToItem>, CancellationToken, ValueTask> callback,
-        Func<ImmutableArray<RoslynNavigateToItem>, CancellationToken, Task> onItemsFound,
-        CancellationToken cancellationToken)
-        => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
-            source: items,
-            produceItems: static async (item, onItemFound, args, cancellationToken) => await args.callback(item, onItemFound, cancellationToken).ConfigureAwait(false),
-            consumeItems: static (items, args, cancellationToken) => args.onItemsFound(items, cancellationToken),
-            args: (items, callback, onItemsFound),
-            cancellationToken);
 }

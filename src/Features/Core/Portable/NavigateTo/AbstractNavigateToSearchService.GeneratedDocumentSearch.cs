@@ -68,11 +68,7 @@ internal abstract partial class AbstractNavigateToSearchService
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
-            source: projects,
-            produceItems: ProcessSingleProjectAsync,
-            consumeItems: onItemsFound,
-            args: default,
-            cancellationToken).ConfigureAwait(false);
+            projects, ProcessSingleProjectAsync, onItemsFound, args: default, cancellationToken).ConfigureAwait(false);
         return;
 
         async Task ProcessSingleProjectAsync(

@@ -125,11 +125,8 @@ internal abstract partial class AbstractNavigateToSearchService
         // Process each project on its own.  That way we can tell the client when we are done searching it.  Put the
         // projects with priority documents ahead of those without so we can get results for those faster.
         await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
-            source: Prioritize(projects, highPriProjects.Contains),
-            produceItems: SearchSingleProjectAsync,
-            consumeItems: onItemsFound,
-            args: default,
-            cancellationToken).ConfigureAwait(false);
+            Prioritize(projects, highPriProjects.Contains),
+            SearchSingleProjectAsync, onItemsFound, args: default, cancellationToken).ConfigureAwait(false);
         return;
 
         async Task SearchSingleProjectAsync(

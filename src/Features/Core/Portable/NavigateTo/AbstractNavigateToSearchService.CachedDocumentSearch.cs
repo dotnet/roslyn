@@ -121,12 +121,8 @@ internal abstract partial class AbstractNavigateToSearchService
         // Sort the groups into a high pri group (projects that contain a high-pri doc), and low pri groups (those that
         // don't), and process in that order.
         await ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
-            source: Prioritize(groups, g => g.Any(priorityDocumentKeysSet.Contains)),
-            produceItems: ProcessSingleProjectGroupAsync,
-            consumeItems: onItemsFound,
-            args: default,
-            cancellationToken).ConfigureAwait(false);
-
+            Prioritize(groups, g => g.Any(priorityDocumentKeysSet.Contains)),
+            ProcessSingleProjectGroupAsync, onItemsFound, args: default, cancellationToken).ConfigureAwait(false);
         return;
 
         async Task ProcessSingleProjectGroupAsync(
