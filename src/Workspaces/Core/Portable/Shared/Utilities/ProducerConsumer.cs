@@ -77,10 +77,10 @@ internal static class ProducerConsumer<TItem>
     /// <summary>
     /// Version of <see cref="RunImplAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
-    public static Task RunAsync<TArgs>(
+    public static Task<TResult> RunAsync<TArgs, TResult>(
         ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
@@ -99,6 +99,28 @@ internal static class ProducerConsumer<TItem>
         IEnumerable<TSource> source,
         Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunParallelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static async (results, args, cancellationToken) =>
+            {
+                await args.consumeItems(results, args.args, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
+            },
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
+    /// </summary>
+    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
@@ -229,10 +251,10 @@ internal static class ProducerConsumer<TItem>
     /// <paramref name="consumeItems"/> is the routine called to consume the items.  Similarly, reading can have just a
     /// single reader or multiple readers, depending on the value passed into <see cref="ChannelOptions.SingleReader"/>.
     /// </summary>
-    private static async Task RunImplAsync<TArgs>(
+    private static async Task<TResult> RunImplAsync<TArgs, TResult>(
         ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        Func<ChannelReader<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        Func<ChannelReader<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
@@ -252,16 +274,16 @@ internal static class ProducerConsumer<TItem>
             () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
 #endif
 
-        await Task.WhenAll(
-            ProduceItemsAndWriteToChannelAsync(),
-            ReadFromChannelAndConsumeItemsAsync()).ConfigureAwait(false);
+        var writeTask = ProduceItemsAndWriteToChannelAsync();
+        var readTask = ReadFromChannelAndConsumeItemsAsync();
+        await Task.WhenAll(writeTask, readTask).ConfigureAwait(false);
 
-        return;
+        return await readTask.ConfigureAwait(false);
 
-        async Task ReadFromChannelAndConsumeItemsAsync()
+        async Task<TResult> ReadFromChannelAndConsumeItemsAsync()
         {
             await Task.Yield().ConfigureAwait(false);
-            await consumeItems(channel.Reader, args, cancellationToken).ConfigureAwait(false);
+            return await consumeItems(channel.Reader, args, cancellationToken).ConfigureAwait(false);
         }
 
         async Task ProduceItemsAndWriteToChannelAsync()
