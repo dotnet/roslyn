@@ -263,15 +263,15 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         CompletionOptions options,
         CancellationToken cancellationToken)
     {
-        var relatedDocumentIds = document.GetLinkedDocumentIds();
+        var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id);
 
-        if (relatedDocumentIds.IsEmpty)
+        if (relatedDocumentIds.Length == 1)
         {
             var itemsForCurrentDocument = await GetSymbolsAsync(completionContext, syntaxContext, position, options, cancellationToken).ConfigureAwait(false);
             return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null);
         }
 
-        var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, options, new[] { document.Id }.Concat(relatedDocumentIds), cancellationToken).ConfigureAwait(false);
+        var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, options, relatedDocumentIds, cancellationToken).ConfigureAwait(false);
         var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
         var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
         var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
@@ -297,45 +297,41 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
             // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
             foreach (var symbol in symbols.GroupBy(s => new { s.Symbol.Name, s.Symbol.Kind }).Select(g => g.First()))
-            {
-                if (!result.ContainsKey(symbol))
-                    result.Add(symbol, syntaxContext);
-            }
+                result.TryAdd(symbol, syntaxContext);
         }
 
         return result;
     }
 
     private async Task<ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>> GetPerContextSymbolsAsync(
-        CompletionContext completionContext, Document document, CompletionOptions options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
+        CompletionContext completionContext, Document document, CompletionOptions options, ImmutableArray<DocumentId> relatedDocuments, CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
 
-        using var _1 = ArrayBuilder<Task<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>>.GetInstance(out var tasks);
-        using var _2 = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.GetInstance(out var perContextSymbols);
+        using var _ = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.GetInstance(out var perContextSymbols);
 
-        foreach (var relatedDocumentId in relatedDocuments)
-        {
-            tasks.Add(Task.Run(async () =>
+        await ProducerConsumer<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.RunParallelAsync(
+            source: relatedDocuments,
+            produceItems: static async (relatedDocumentId, callback, args, cancellationToken) =>
             {
-                var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
-                var syntaxContext = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
+                var relatedDocument = args.solution.GetRequiredDocument(relatedDocumentId);
+                var syntaxContext = await args.completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(
+                    relatedDocument, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
 
                 Contract.ThrowIfNull(syntaxContext);
-                var symbols = await TryGetSymbolsForContextAsync(completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
+                var symbols = await args.@this.TryGetSymbolsForContextAsync(
+                    args.completionContext, syntaxContext, args.options, cancellationToken).ConfigureAwait(false);
 
-                return (relatedDocument.Id, syntaxContext, symbols);
-            }, cancellationToken));
-        }
-
-        await Task.WhenAll(tasks).ConfigureAwait(false);
-
-        foreach (var task in tasks)
-        {
-            var (relatedDocumentId, syntaxContext, symbols) = await task.ConfigureAwait(false);
-            if (!symbols.IsDefault)
-                perContextSymbols.Add((relatedDocumentId, syntaxContext, symbols));
-        }
+                if (!symbols.IsDefault)
+                    callback((relatedDocument.Id, syntaxContext, symbols));
+            },
+            consumeItems: static async (results, args, cancellationToken) =>
+            {
+                await foreach (var tuple in results)
+                    args.perContextSymbols.Add(tuple);
+            },
+            args: (@this: this, solution, completionContext, options, perContextSymbols),
+            cancellationToken).ConfigureAwait(false);
 
         return perContextSymbols.ToImmutableAndClear();
     }
