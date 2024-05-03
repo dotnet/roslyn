@@ -14,19 +14,19 @@ internal sealed class VoidKeywordRecommender() : AbstractSyntacticSingleKeywordR
 {
     private static readonly ISet<SyntaxKind> s_validClassInterfaceRecordModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
-        SyntaxKind.NewKeyword,
-        SyntaxKind.PublicKeyword,
-        SyntaxKind.ProtectedKeyword,
-        SyntaxKind.InternalKeyword,
-        SyntaxKind.PrivateKeyword,
-        SyntaxKind.StaticKeyword,
-        SyntaxKind.VirtualKeyword,
-        SyntaxKind.SealedKeyword,
-        SyntaxKind.OverrideKeyword,
         SyntaxKind.AbstractKeyword,
+        SyntaxKind.AsyncKeyword,
         SyntaxKind.ExternKeyword,
+        SyntaxKind.InternalKeyword,
+        SyntaxKind.NewKeyword,
+        SyntaxKind.OverrideKeyword,
+        SyntaxKind.PrivateKeyword,
+        SyntaxKind.ProtectedKeyword,
+        SyntaxKind.PublicKeyword,
+        SyntaxKind.SealedKeyword,
+        SyntaxKind.StaticKeyword,
         SyntaxKind.UnsafeKeyword,
-        SyntaxKind.AsyncKeyword
+        SyntaxKind.VirtualKeyword,
     };
 
     private static readonly ISet<SyntaxKind> s_validStructModifiers = new HashSet<SyntaxKind>(s_validClassInterfaceRecordModifiers, SyntaxFacts.EqualityComparer)
@@ -36,22 +36,21 @@ internal sealed class VoidKeywordRecommender() : AbstractSyntacticSingleKeywordR
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        var syntaxTree = context.SyntaxTree;
         return
-            IsMemberReturnTypeContext(position, context, cancellationToken) ||
+            context.IsDelegateReturnTypeContext ||
+            context.IsFixedVariableDeclarationContext ||
+            context.IsFunctionPointerTypeArgumentContext ||
             context.IsGlobalStatementContext ||
             context.IsTypeOfExpressionContext ||
-            syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken) ||
-            context.IsDelegateReturnTypeContext ||
-            context.IsFunctionPointerTypeArgumentContext ||
-            IsUnsafeLocalVariableDeclarationContext(context) ||
-            IsUnsafeParameterTypeContext(context) ||
+            IsMemberReturnTypeContext(position, context, cancellationToken) ||
             IsUnsafeCastTypeContext(context) ||
             IsUnsafeDefaultExpressionContext(context) ||
+            IsUnsafeLocalVariableDeclarationContext(context) ||
+            IsUnsafeParameterTypeContext(context) ||
             IsUnsafeUsingDirectiveContext(context) ||
-            context.IsFixedVariableDeclarationContext ||
             context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.SyntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
+            context.SyntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken) ||
+            context.SyntaxTree.IsSizeOfExpressionContext(position, context.LeftToken);
     }
 
     private static bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
@@ -110,6 +109,6 @@ internal sealed class VoidKeywordRecommender() : AbstractSyntacticSingleKeywordR
 
     private static bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsMemberDeclarationContext(validModifiers: s_validClassInterfaceRecordModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
+            context.IsMemberDeclarationContext(validModifiers: s_validClassInterfaceRecordModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumNonStructTypeDeclarations, canBePartial: true, cancellationToken) ||
             context.IsMemberDeclarationContext(validModifiers: s_validStructModifiers, validTypeDeclarations: SyntaxKindSet.StructOnlyTypeDeclarations, canBePartial: false, cancellationToken);
 }

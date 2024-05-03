@@ -2347,6 +2347,11 @@
         <target state="translated">扩展的属性模式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extension types</source>
+        <target state="new">extension types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="translated">文件范围内的命名空间</target>

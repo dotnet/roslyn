@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class PropertyKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class PropertyKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public PropertyKeywordRecommender()
         : base(SyntaxKind.PropertyKeyword)
@@ -16,5 +16,5 @@ internal class PropertyKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
     }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        => context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, cancellationToken);
+        => context.IsMemberAttributeContext(SyntaxKindSet.NonEnumTypeDeclarations, cancellationToken);
 }

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class DecimalKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class DecimalKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public DecimalKeywordRecommender()
         : base(SyntaxKind.DecimalKeyword)
@@ -22,31 +22,31 @@ internal class DecimalKeywordRecommender : AbstractSpecialTypePreselectingKeywor
     {
         var syntaxTree = context.SyntaxTree;
         return
-            context.IsAnyExpressionContext ||
-            context.IsDefiniteCastTypeContext ||
-            context.IsStatementContext ||
-            context.IsGlobalStatementContext ||
-            context.IsObjectCreationTypeContext ||
             (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
-            context.IsFunctionPointerTypeArgumentContext ||
-            context.IsIsOrAsTypeContext ||
-            context.IsLocalVariableDeclarationContext ||
+            context.IsAnyExpressionContext ||
+            context.IsCrefContext ||
+            context.IsDefiniteCastTypeContext ||
+            context.IsDelegateReturnTypeContext ||
             context.IsFixedVariableDeclarationContext ||
+            context.IsFunctionPointerTypeArgumentContext ||
+            context.IsGlobalStatementContext ||
+            context.IsImplicitOrExplicitOperatorTypeContext ||
+            context.IsIsOrAsTypeContext ||
+            context.IsLocalFunctionDeclarationContext ||
+            context.IsLocalVariableDeclarationContext ||
+            context.IsObjectCreationTypeContext ||
             context.IsParameterTypeContext ||
             context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
-            context.IsLocalFunctionDeclarationContext ||
-            context.IsImplicitOrExplicitOperatorTypeContext ||
+            context.IsPossibleTupleContext ||
             context.IsPrimaryFunctionExpressionContext ||
-            context.IsCrefContext ||
+            context.IsStatementContext ||
             context.IsUsingAliasTypeContext ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
             syntaxTree.IsAfterKeyword(position, SyntaxKind.StackAllocKeyword, cancellationToken) ||
-            context.IsDelegateReturnTypeContext ||
             syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
     }

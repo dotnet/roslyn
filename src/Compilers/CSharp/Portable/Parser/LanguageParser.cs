@@ -1447,7 +1447,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (nextToken.Kind is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword &&
                 this.PeekToken(2).ContextualKind is SyntaxKind.ExtensionKeyword)
             {
-                return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                // There are no partial conversion operators.  So if we see `partial implicit extension` we can assume
+                // this is a extension.
+                return true;
             }
 
             return false;
@@ -1575,18 +1577,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword // PROTOTYPE
-                ? ParseParenthesizedParameterList() : null;
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken
+                ? ParseParenthesizedParameterList()
+                : null;
 
-            SyntaxToken? forKeyword = null;
-            TypeSyntax? forType = null;
-            if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
-                && CurrentToken.Kind == SyntaxKind.ForKeyword)
-            {
-                // PROTOTYPE consider error recovery for `class X for type`
-                forKeyword = EatToken(SyntaxKind.ForKeyword);
-                forType = ParseType();
-            }
+            // PROTOTYPE. Parse this for all type declarations and give good error message.
+            var extensionForType = mainKeyword.Kind == SyntaxKind.ExtensionKeyword && CurrentToken.Kind == SyntaxKind.ForKeyword
+                ? _syntaxFactory.ForType(EatToken(SyntaxKind.ForKeyword), ParseType())
+                : null;
 
             // PROTOTYPE decide whether to keep parsing base extensions or not
             var baseList = this.ParseBaseList();
@@ -1688,7 +1686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 return constructTypeDeclaration(_syntaxFactory, attributes, modifiers, firstKeyword, secondKeyword, mainKeyword, name, typeParameters, paramList,
-                    forKeyword, forType, baseList, constraints, openBrace, members, closeBrace, semicolon);
+                    extensionForType, baseList, constraints, openBrace, members, closeBrace, semicolon);
             }
             finally
             {
@@ -1755,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers,
                 SyntaxToken? firstKeyword, SyntaxToken? secondKeyword, SyntaxToken mainKeyword,
-                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, SyntaxToken? forKeyword, TypeSyntax? forType,
+                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, ForTypeSyntax? forType,
                 BaseListSyntax? baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
                 SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
             {
@@ -1767,7 +1765,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.ClassKeyword:
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
-                        RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
                         return syntaxFactory.ClassDeclaration(
                             attributes,
@@ -1786,7 +1783,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.StructKeyword:
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
-                        RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
                         return syntaxFactory.StructDeclaration(
                             attributes,
@@ -1805,7 +1801,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.InterfaceKeyword:
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null);
-                        RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
@@ -1827,7 +1822,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // record class ...
                         RoslynDebug.Assert(firstKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword is null or { Kind: SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword });
-                        RoslynDebug.Assert(forKeyword is null);
                         RoslynDebug.Assert(forType is null);
                         SyntaxKind declarationKind = secondKeyword?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
                         return syntaxFactory.RecordDeclaration(
@@ -1852,9 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         RoslynDebug.Assert(firstKeyword!.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword);
                         RoslynDebug.Assert(secondKeyword == (object)mainKeyword);
                         RoslynDebug.Assert(secondKeyword!.Kind == SyntaxKind.ExtensionKeyword);
-                        RoslynDebug.Assert(forKeyword is null == forType is null);
 
-                        ForTypeSyntax? forUnderlyingType = forKeyword == null ? null : syntaxFactory.ForType(forKeyword, forType!);
                         return syntaxFactory.ExtensionDeclaration(
                             attributes,
                             modifiers.ToList(),
@@ -1863,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             name,
                             typeParameters,
                             paramList,
-                            forUnderlyingType,
+                            forType,
                             baseList,
                             constraints,
                             openBrace,
@@ -2236,7 +2228,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword
                     when this.PeekToken(1).ContextualKind is SyntaxKind.ExtensionKeyword:
 
-                    return IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+                    // See if this is actually the start of an implicit/explicit conversion.
+                    if (ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(nextTokenKind: this.PeekToken(2).Kind))
+                        return false;
+
+                    // Otherwise, treat it as an extension type.
+                    return true;
 
                 case SyntaxKind.IdentifierToken:
                     if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
@@ -2249,6 +2246,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
+        }
+
+        private static bool ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(SyntaxKind nextTokenKind)
+        {
+            // implicit extension.operator x
+            // implicit extension::X.operator x
+            // implicit extension<X>.operator x
+            //
+            // All of these should be treated as a conversion operator, with `extension` as part of an explicit
+            // interface name.
+            return nextTokenKind is SyntaxKind.ColonColonToken or SyntaxKind.DotToken or SyntaxKind.LessThanToken;
         }
 
         private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)
@@ -3492,7 +3500,10 @@ parse_member_name:;
                     ? this.EatToken()
                     : this.EatToken(SyntaxKind.ExplicitKeyword);
 
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
+                // `implicit extension` and `explicit extension` could be the start of an extension type, or an
+                // explicitly implemented conversion operator.  Check for this, and bail out in the former case.
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword &&
+                    !ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(nextTokenKind: this.PeekToken(1).Kind))
                 {
                     this.Reset(ref point);
                     return null;

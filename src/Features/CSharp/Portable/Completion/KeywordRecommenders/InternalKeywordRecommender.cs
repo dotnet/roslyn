@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class InternalKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class InternalKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public InternalKeywordRecommender()
         : base(SyntaxKind.InternalKeyword)
@@ -39,7 +39,7 @@ internal class InternalKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
     private static bool IsValidContextForMember(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         if (context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-            context.IsMemberDeclarationContext(validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            context.IsMemberDeclarationContext(validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
         {
             return CheckPreviousAccessibilityModifiers(context);
         }
@@ -49,7 +49,7 @@ internal class InternalKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
 
     private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+        if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
         {
             return CheckPreviousAccessibilityModifiers(context);
         }

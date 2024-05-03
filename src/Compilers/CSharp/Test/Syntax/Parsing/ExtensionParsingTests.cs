@@ -73,107 +73,46 @@ public sealed class ExtensionParsingTests : ParsingTests
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (1,1): error CS1031: Type expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, keyword).WithLocation(1, 1),
-            // (1,1): error CS1003: Syntax error, 'operator' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, keyword).WithArguments("operator").WithLocation(1, 1),
-            // (1,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, keyword).WithArguments("+").WithLocation(1, 1),
-            // (1,1): error CS1037: Overloadable operator expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_OvlOperatorExpected, keyword).WithLocation(1, 1),
-            // (1,10): error CS1003: Syntax error, '(' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(1, 10),
-            // (1,22): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 22),
-            // (1,26): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments(",").WithLocation(1, 26),
-            // (1,41): error CS1001: Identifier expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 41),
-            // (1,41): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 41),
-            // (1,43): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "BaseExtension1").WithArguments(",").WithLocation(1, 43),
-            // (1,57): error CS1001: Identifier expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 57),
-            // (1,74): error CS1001: Identifier expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 74),
-            // (1,74): error CS1003: Syntax error, ',' expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 74),
-            // (1,76): error CS1026: ) expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 76),
-            // (1,76): error CS1002: ; expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 76),
-            // (1,76): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 76)
-            );
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // implicit extension C for UnderlyingType : BaseExtension1, BaseExtension2 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": BaseExtension1, BaseExtension2").WithArguments("base extensions").WithLocation(1, 41));
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.ForType);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "UnderlyingType");
+                    }
                 }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
+                N(SyntaxKind.BaseList);
                 {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "C");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "UnderlyingType");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "BaseExtension1");
                         }
-                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.SimpleBaseType);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "BaseExtension2");
                         }
-                        M(SyntaxKind.IdentifierToken);
                     }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -359,75 +298,26 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
-            // (1,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("+").WithLocation(1, 1),
-            // (1,9): error CS1003: Syntax error, 'operator' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, keyword).WithArguments("operator").WithLocation(1, 9),
-            // (1,9): error CS1020: Overloadable binary operator expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, keyword).WithLocation(1, 9),
-            // (1,18): error CS1003: Syntax error, '(' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(1, 18),
-            // (1,30): error CS1003: Syntax error, ',' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 30),
-            // (1,34): error CS1003: Syntax error, ',' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments(",").WithLocation(1, 34),
-            // (1,49): error CS1001: Identifier expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 49),
-            // (1,49): error CS1003: Syntax error, ',' expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 49),
-            // (1,51): error CS1026: ) expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 51),
-            // (1,51): error CS1002: ; expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 51),
-            // (1,51): error CS1022: Type or namespace definition, or end-of-file expected
-            // partial explicit extension C for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 51)
-            );
+        UsingTree(text, options: TestOptions.Regular11);
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.PartialKeyword);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.ForType);
                 {
-                    N(SyntaxKind.IdentifierToken, "partial");
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.IdentifierToken, "UnderlyingType");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "UnderlyingType");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -554,76 +444,27 @@ public sealed class ExtensionParsingTests : ParsingTests
         }
         EOF();
 
-        UsingTree(text, options: TestOptions.Regular11,
-            // (1,10): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("+").WithLocation(1, 10),
-            // (1,18): error CS1003: Syntax error, 'operator' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, keyword).WithArguments("operator").WithLocation(1, 18),
-            // (1,18): error CS1020: Overloadable binary operator expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, keyword).WithLocation(1, 18),
-            // (1,27): error CS1003: Syntax error, '(' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(1, 27),
-            // (1,39): error CS1003: Syntax error, ',' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 39),
-            // (1,43): error CS1003: Syntax error, ',' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(1, 43),
-            // (1,45): error CS1001: Identifier expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 45),
-            // (1,45): error CS1003: Syntax error, ',' expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 45),
-            // (1,47): error CS1026: ) expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 47),
-            // (1,47): error CS1002: ; expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 47),
-            // (1,47): error CS1022: Type or namespace definition, or end-of-file expected
-            // readonly partial explicit extension S for U { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 47)
-            );
+        UsingTree(text, options: TestOptions.Regular11);
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
                 N(SyntaxKind.ReadOnlyKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.PartialKeyword);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "S");
+                N(SyntaxKind.ForType);
                 {
-                    N(SyntaxKind.IdentifierToken, "partial");
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.IdentifierToken, "U");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "U");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -933,38 +774,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         var keyword = isExplicit ? "explicit" : "implicit";
         var text = $$"""{{keyword}} extension C() for UnderlyingType { }""";
 
-        UsingTreeWithCSharpNext(text,
-            // (1,21): error CS1514: { expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS1513: } expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS8803: Top-level statements must precede namespace and type declarations.
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "() ").WithLocation(1, 21),
-            // (1,22): error CS1525: Invalid expression term ')'
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
-            // (1,24): error CS1002: ; expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "for").WithLocation(1, 24),
-            // (1,28): error CS1003: Syntax error, '(' expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments("(").WithLocation(1, 28),
-            // (1,43): error CS1002: ; expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 43),
-            // (1,43): error CS1525: Invalid expression term '{'
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 43),
-            // (1,43): error CS1002: ; expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 43),
-            // (1,43): error CS1026: ) expected
-            // implicit extension C() for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(1, 43)
-            );
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -973,48 +783,21 @@ public sealed class ExtensionParsingTests : ParsingTests
                 N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
                 N(SyntaxKind.ExtensionKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
-                M(SyntaxKind.OpenBraceToken);
-                M(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParenthesizedExpression);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ForStatement);
+                N(SyntaxKind.ForType);
                 {
                     N(SyntaxKind.ForKeyword);
-                    M(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "UnderlyingType");
                     }
-                    M(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.CloseParenToken);
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
                 }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1150,40 +933,12 @@ public sealed class ExtensionParsingTests : ParsingTests
         var text = $$"""{{keyword}} extension C() for UnderlyingType;""";
 
         UsingTreeWithCSharpNext(text,
-            // (1,21): error CS1514: { expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS1513: } expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS8803: Top-level statements must precede namespace and type declarations.
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "() ").WithLocation(1, 21),
-            // (1,22): error CS1525: Invalid expression term ')'
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 22),
-            // (1,24): error CS1002: ; expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "for").WithLocation(1, 24),
-            // (1,28): error CS1003: Syntax error, '(' expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments("(").WithLocation(1, 28),
-            // (1,43): error CS1733: Expected expression
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 43),
-            // (1,43): error CS1002: ; expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 43),
-            // (1,43): error CS1026: ) expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 43),
-            // (1,43): error CS1733: Expected expression
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 43),
-            // (1,43): error CS1002: ; expected
-            // explicit extension C() for UnderlyingType;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 43)
-            );
+            // (1,42): error CS1514: { expected
+            // implicit extension C() for UnderlyingType;
+            Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 42),
+            // (1,42): error CS1513: } expected
+            // implicit extension C() for UnderlyingType;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 42));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1192,51 +947,22 @@ public sealed class ExtensionParsingTests : ParsingTests
                 N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
                 N(SyntaxKind.ExtensionKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
-                M(SyntaxKind.OpenBraceToken);
-                M(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParenthesizedExpression);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ForStatement);
+                N(SyntaxKind.ForType);
                 {
                     N(SyntaxKind.ForKeyword);
-                    M(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "UnderlyingType");
                     }
-                    N(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.CloseParenToken);
-                    M(SyntaxKind.ExpressionStatement);
-                    {
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
                 }
+                M(SyntaxKind.OpenBraceToken);
+                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1249,38 +975,7 @@ public sealed class ExtensionParsingTests : ParsingTests
         var keyword = isExplicit ? "explicit" : "implicit";
         var text = $$"""{{keyword}} extension C(int i) for UnderlyingType { }""";
 
-        UsingTreeWithCSharpNext(text,
-            // (1,21): error CS1514: { expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS1513: } expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 21),
-            // (1,21): error CS8803: Top-level statements must precede namespace and type declarations.
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int ").WithLocation(1, 21),
-            // (1,22): error CS1525: Invalid expression term 'int'
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 22),
-            // (1,26): error CS1026: ) expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "i").WithLocation(1, 26),
-            // (1,26): error CS1002: ; expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "i").WithLocation(1, 26),
-            // (1,27): error CS1001: Identifier expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 27),
-            // (1,27): error CS1003: Syntax error, ',' expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 27),
-            // (1,50): error CS1002: ; expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 50),
-            // (1,50): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 50)
-            );
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1289,42 +984,29 @@ public sealed class ExtensionParsingTests : ParsingTests
                 N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
                 N(SyntaxKind.ExtensionKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
-                M(SyntaxKind.OpenBraceToken);
-                M(SyntaxKind.CloseBraceToken);
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.ParenthesizedExpression);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.IdentifierToken, "i");
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.CloseParenToken);
                 }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
+                N(SyntaxKind.ForType);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "i");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "UnderlyingType");
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1670,46 +1352,9 @@ using
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (1,6): error CS1041: Identifier expected; 'explicit' is a keyword
+            // (1,6): error CS1041: Identifier expected; 'implicit' is a keyword
             // using
-            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", keyword).WithLocation(1, 6),
-            // (1,6): error CS1031: Type expected
-            // using
-            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 6),
-            // (1,6): error CS1003: Syntax error, 'operator' expected
-            // using
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("operator").WithLocation(1, 6),
-            // (1,6): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // using
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "").WithArguments("+").WithLocation(1, 6),
-            // (1,6): error CS1020: Overloadable binary operator expected
-            // using
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "").WithLocation(1, 6),
-            // (2,10): error CS1003: Syntax error, '(' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(2, 10),
-            // (2,22): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(2, 22),
-            // (2,26): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(2, 26),
-            // (2,28): error CS1001: Identifier expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 28),
-            // (2,28): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 28),
-            // (2,30): error CS1026: ) expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(2, 30),
-            // (2,30): error CS1002: ; expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 30),
-            // (2,30): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 30)
-            );
+            Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", isExplicit ? "explicit" : "implicit").WithLocation(1, 6));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1722,37 +1367,21 @@ using
                 }
                 M(SyntaxKind.SemicolonToken);
             }
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.ForType);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.IdentifierToken, "U");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "U");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1808,44 +1437,7 @@ using Type
         UsingTree(text, options: TestOptions.Regular11,
             // (1,11): error CS1002: ; expected
             // using Type
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11),
-            // (1,11): error CS1031: Type expected
-            // using Type
-            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 11),
-            // (1,11): error CS1003: Syntax error, 'operator' expected
-            // using Type
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("operator").WithLocation(1, 11),
-            // (1,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // using Type
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "").WithArguments("+").WithLocation(1, 11),
-            // (1,11): error CS1020: Overloadable binary operator expected
-            // using Type
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "").WithLocation(1, 11),
-            // (2,10): error CS1003: Syntax error, '(' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(2, 10),
-            // (2,22): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(2, 22),
-            // (2,26): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(2, 26),
-            // (2,28): error CS1001: Identifier expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 28),
-            // (2,28): error CS1003: Syntax error, ',' expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 28),
-            // (2,30): error CS1026: ) expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(2, 30),
-            // (2,30): error CS1002: ; expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 30),
-            // (2,30): error CS1022: Type or namespace definition, or end-of-file expected
-            // explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 30)
-            );
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1858,37 +1450,21 @@ using Type
                 }
                 M(SyntaxKind.SemicolonToken);
             }
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.ForType);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.IdentifierToken, "U");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "U");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -1956,46 +1532,12 @@ partial {{keyword}} extension R for U { }
         EOF();
 
         UsingTree(text, options: TestOptions.Regular11,
-            // (2,9): error CS1002: ; expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, keyword).WithLocation(2, 9),
-            // (2,9): error CS1031: Type expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, keyword).WithLocation(2, 9),
-            // (2,9): error CS1003: Syntax error, 'operator' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, keyword).WithArguments("operator").WithLocation(2, 9),
-            // (2,9): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_BadOperatorSyntax, keyword).WithArguments("+").WithLocation(2, 9),
-            // (2,9): error CS1020: Overloadable binary operator expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, keyword).WithLocation(2, 9),
-            // (2,18): error CS1003: Syntax error, '(' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(2, 18),
-            // (2,30): error CS1003: Syntax error, ',' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(2, 30),
-            // (2,34): error CS1003: Syntax error, ',' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(2, 34),
-            // (2,36): error CS1001: Identifier expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 36),
-            // (2,36): error CS1003: Syntax error, ',' expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(2, 36),
-            // (2,38): error CS1026: ) expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(2, 38),
-            // (2,38): error CS1002: ; expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 38),
-            // (2,38): error CS1022: Type or namespace definition, or end-of-file expected
-            // partial explicit extension R for U { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 38)
-            );
+            // (1,11): error CS1525: Invalid expression term 'partial'
+            // using Type
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 11),
+            // (1,11): error CS1002: ; expected
+            // using Type
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2010,45 +1552,30 @@ partial {{keyword}} extension R for U { }
                         {
                             N(SyntaxKind.IdentifierToken, "Type");
                         }
-                        N(SyntaxKind.VariableDeclarator);
+                        M(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
             }
-            N(SyntaxKind.OperatorDeclaration);
+            N(SyntaxKind.ExtensionDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.PartialKeyword);
+                N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.IdentifierToken, "R");
+                N(SyntaxKind.ForType);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                M(SyntaxKind.OperatorKeyword);
-                M(SyntaxKind.PlusToken);
-                N(SyntaxKind.ParameterList);
-                {
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ForKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "extension");
-                        }
-                        N(SyntaxKind.IdentifierToken, "R");
+                        N(SyntaxKind.IdentifierToken, "U");
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "U");
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }
@@ -3513,37 +3040,16 @@ class extension
     public void ExplicitConversionOperator_ExplicitImplementationInExtensionNamespace()
     {
         var text = """
-class C : I<C>
-{
-    static explicit extension.I<C>.operator int(C i)
-    {
-        return 1;
-    }
-}
-""";
-        // PROTOTYPE consider avoiding this break (in following context)
-        // namespace extension;
-        // public interface I<T> where T : I<T>
-        // {
-        //    public abstract static explicit operator int(T i);
-        // }
-        UsingTreeWithCSharpNext(text,
-            // (3,30): error CS1001: Identifier expected
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(3, 30),
-            // (3,30): error CS1514: { expected
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(3, 30),
-            // (3,30): error CS1513: } expected
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(3, 30),
-            // (3,30): error CS1519: Invalid token '.' in class, record, struct, or interface member declaration
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 30),
-            // (3,31): error CS1003: Syntax error, 'explicit' expected
-            //     static explicit extension.I<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_SyntaxError, "I").WithArguments("explicit").WithLocation(3, 31)
-            );
+            class C : I<C>
+            {
+                static explicit extension.I<C>.operator int(C i)
+                {
+                    return 1;
+                }
+            }
+            """;
+
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3572,31 +3078,31 @@ class C : I<C>
                     }
                 }
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ConversionOperatorDeclaration);
                 {
                     N(SyntaxKind.StaticKeyword);
                     N(SyntaxKind.ExplicitKeyword);
-                    N(SyntaxKind.ExtensionKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.ConversionOperatorDeclaration);
-                {
-                    M(SyntaxKind.ExplicitKeyword);
                     N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
-                        N(SyntaxKind.GenericName);
+                        N(SyntaxKind.QualifiedName);
                         {
-                            N(SyntaxKind.IdentifierToken, "I");
-                            N(SyntaxKind.TypeArgumentList);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierToken, "extension");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                                N(SyntaxKind.TypeArgumentList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "C");
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
                             }
                         }
                         N(SyntaxKind.DotToken);
@@ -3653,37 +3159,8 @@ class C : extension<C>
     }
 }
 """;
-        // PROTOTYPE consider avoiding this break (in following context)
-        // public interface extension<T> where T : extension<T>
-        // {
-        //    public abstract static explicit operator int(T i);
-        // }
-        UsingTreeWithCSharpNext(text,
-            // (3,30): error CS1001: Identifier expected
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "<").WithLocation(3, 30),
-            // (3,33): error CS1514: { expected
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_LbraceExpected, ".").WithLocation(3, 33),
-            // (3,33): error CS1513: } expected
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(3, 33),
-            // (3,33): error CS1519: Invalid token '.' in class, record, struct, or interface member declaration
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 33),
-            // (3,46): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 46),
-            // (3,50): error CS8124: Tuple must contain at least two elements.
-            //     static explicit extension<C>.operator int(C i)
-            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 50),
-            // (4,5): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-            //     {
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 5),
-            // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1)
-            );
+
+        UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3712,37 +3189,36 @@ class C : extension<C>
                     }
                 }
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ConversionOperatorDeclaration);
                 {
                     N(SyntaxKind.StaticKeyword);
                     N(SyntaxKind.ExplicitKeyword);
-                    N(SyntaxKind.ExtensionKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.TypeParameterList);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TypeParameter);
+                        N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.IdentifierToken, "C");
+                            N(SyntaxKind.IdentifierToken, "extension");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "C");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
                         }
-                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.DotToken);
                     }
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
+                    N(SyntaxKind.OperatorKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
@@ -3750,15 +3226,21 @@ class C : extension<C>
                             }
                             N(SyntaxKind.IdentifierToken, "i");
                         }
-                        M(SyntaxKind.CommaToken);
-                        M(SyntaxKind.TupleElement);
-                        {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
                         N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ReturnStatement);
+                        {
+                            N(SyntaxKind.ReturnKeyword);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -3819,6 +3301,307 @@ class C : extension<C>
                     }
                 }
                 N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void ImplicitExtensionOperator1(
+        bool isExplicit,
+        [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+    {
+        var text = $$"""
+            class C
+            {
+                public static {{(isExplicit ? "explicit" : "implicit")}} extension.operator int(C c) => default;
+            }
+            """;
+
+        UsingTree(text, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConversionOperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void ImplicitExtensionOperator2(
+        bool isExplicit,
+        [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+    {
+        var text = $$"""
+            class C
+            {
+                public static {{(isExplicit ? "explicit" : "implicit")}} extension.A.operator int(C c) => default;
+            }
+            """;
+
+        UsingTree(text, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConversionOperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "extension");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void ImplicitExtensionOperator3(
+        bool isExplicit,
+        [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+    {
+        var text = $$"""
+            class C
+            {
+                public static {{(isExplicit ? "explicit" : "implicit")}} extension<X>.operator int(C c) => default;
+            }
+            """;
+
+        UsingTree(text, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConversionOperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "extension");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "X");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void ImplicitExtensionOperator4(
+        bool isExplicit,
+        [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+    {
+        var text = $$"""
+            class C
+            {
+                public static {{(isExplicit ? "explicit" : "implicit")}} extension::A.operator int(C c) => default;
+            }
+            """;
+
+        UsingTree(text, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConversionOperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(isExplicit ? SyntaxKind.ExplicitKeyword : SyntaxKind.ImplicitKeyword);
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.AliasQualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "extension");
+                            }
+                            N(SyntaxKind.ColonColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
                 N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);

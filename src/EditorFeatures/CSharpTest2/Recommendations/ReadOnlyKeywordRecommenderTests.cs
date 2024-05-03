@@ -490,7 +490,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
-            => await VerifyAbsenceAsync(@"new $$");
+            // new readonly struct
+            => await VerifyKeywordAsync(@"new $$");
 
         [Fact]
         public async Task TestAfterNewInClass()
@@ -720,6 +721,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 class C
 {{
     delegate*<{modifier} $$");
+        }
+
+        [Fact]
+        public async Task TestNotInExtensionForType()
+        {
+            await VerifyAbsenceAsync(
+                """
+                implicit extension E for $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestInsideExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                implicit extension E
+                {
+                    $$
+                """);
         }
     }
 }

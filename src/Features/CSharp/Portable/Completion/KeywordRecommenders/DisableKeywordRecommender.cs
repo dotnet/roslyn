@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class DisableKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class DisableKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public DisableKeywordRecommender()
         : base(SyntaxKind.DisableKeyword, isValidInPreprocessorContext: true)

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class PublicKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class PublicKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public PublicKeywordRecommender()
         : base(SyntaxKind.PublicKeyword)
@@ -28,7 +28,7 @@ internal class PublicKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
         if (context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken))
         {
@@ -40,7 +40,7 @@ internal class PublicKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
 
     private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+        if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
         {
             return CheckPreviousAccessibilityModifiers(context);
         }

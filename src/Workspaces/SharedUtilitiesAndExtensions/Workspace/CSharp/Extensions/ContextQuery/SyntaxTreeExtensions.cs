@@ -541,13 +541,8 @@ internal static partial class SyntaxTreeExtensions
 
         validTypeDeclarations ??= SpecializedCollections.EmptySet<SyntaxKind>();
 
-        if (typeDecl != null)
-        {
-            if (!validTypeDeclarations.Contains(typeDecl.Kind()))
-            {
-                return false;
-            }
-        }
+        if (typeDecl != null && !validTypeDeclarations.Contains(typeDecl.Kind()))
+            return false;
 
         // Check many of the simple cases first.
         var leftToken = context != null
@@ -561,14 +556,10 @@ internal static partial class SyntaxTreeExtensions
             : leftToken.GetPreviousTokenIfTouchingWord(position);
 
         if (token.IsAnyAccessorDeclarationContext(position))
-        {
             return false;
-        }
 
         if (syntaxTree.IsTypeDeclarationContext(position, leftToken, cancellationToken))
-        {
             return true;
-        }
 
         // A type can also show up after certain types of modifiers
         if (canBePartial &&
@@ -579,9 +570,7 @@ internal static partial class SyntaxTreeExtensions
 
         // using directive is never a type declaration context
         if (token.GetAncestor<UsingDirectiveSyntax>() is not null)
-        {
             return false;
-        }
 
         var modifierTokens = context?.PrecedingModifiers ?? syntaxTree.GetPrecedingModifiers(position, cancellationToken);
         if (modifierTokens.IsEmpty())
@@ -605,6 +594,15 @@ internal static partial class SyntaxTreeExtensions
 
             if (container is VariableDeclarationSyntax && modifierTokens.Contains(SyntaxKind.FileKeyword))
                 return true;
+
+            // `new` can be parsed by compiler as an object creation expression.  If our construct allows for 'new',
+            // then this is an ok start for this type declaration.
+            if (container is ExpressionStatementSyntax { Expression: ObjectCreationExpressionSyntax objectCreation } &&
+                objectCreation.NewKeyword == token &&
+                modifierTokens.Contains(SyntaxKind.NewKeyword))
+            {
+                return true;
+            }
         }
 
         return false;
@@ -738,6 +736,7 @@ internal static partial class SyntaxTreeExtensions
             syntaxTree.IsDefiniteCastTypeContext(position, tokenOnLeftOfPosition) ||
             syntaxTree.IsDelegateReturnTypeContext(position, tokenOnLeftOfPosition) ||
             syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel) ||
+            syntaxTree.IsExtensionForTypeContext(position, tokenOnLeftOfPosition) ||
             syntaxTree.IsPrimaryFunctionExpressionContext(position, tokenOnLeftOfPosition) ||
             syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModel) ||
             syntaxTree.IsFunctionPointerTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken) ||
@@ -759,7 +758,7 @@ internal static partial class SyntaxTreeExtensions
                 position,
                 context: null,
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken) ||
             syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
@@ -3044,6 +3043,12 @@ internal static partial class SyntaxTreeExtensions
         }
 
         return false;
+    }
+
+    public static bool IsExtensionForTypeContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+    {
+        var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
+        return token.IsKind(SyntaxKind.ForKeyword) && token.Parent is ForTypeSyntax;
     }
 
     public static bool IsFunctionPointerCallingConventionContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)

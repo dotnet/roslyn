@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -31,7 +31,7 @@ internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
             SyntaxKind.VolatileKeyword,
         };
 
-    protected static readonly ISet<SyntaxKind> ValidTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    private static readonly ISet<SyntaxKind> s_validTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.AbstractKeyword,
             SyntaxKind.InternalKeyword,
@@ -61,7 +61,7 @@ internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 
     private static bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        if (context.IsTypeDeclarationContext(validModifiers: ValidTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+        if (context.IsTypeDeclarationContext(validModifiers: s_validTypeModifiers, validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
         {
             // we must be on a nested type.
             var token = context.LeftToken;
@@ -79,7 +79,7 @@ internal class NewKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
             context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: s_validMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
     }

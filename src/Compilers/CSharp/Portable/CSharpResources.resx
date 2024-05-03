@@ -288,6 +288,9 @@
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
   </data>
+  <data name="IDS_FeatureExtensions" xml:space="preserve">
+    <value>extension types</value>
+  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -7923,7 +7926,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <data name="ERR_MalformedExtensionInMetadata" xml:space="preserve">
     <value>Extension marker method on type '{0}' is malformed.</value>
   </data>
-    <data name="ERR_UnderspecifiedImplicitExtension" xml:space="preserve">
+  <data name="ERR_UnderspecifiedImplicitExtension" xml:space="preserve">
     <value>The underlying type '{0}' of implicit extension '{1}' must reference all the type parameters declared by the extension, but type parameter '{2}' is missing.</value>
   </data>
   <data name="IDS_FeatureParamsCollections" xml:space="preserve">
