@@ -168,7 +168,11 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         return index < symbolList.Length;
     }
 
-    private static SupportedPlatformData? ComputeSupportedPlatformData(CompletionContext completionContext, ImmutableArray<SymbolAndSelectionInfo> symbols, Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap, List<ProjectId>? totalProjects)
+    private static SupportedPlatformData? ComputeSupportedPlatformData(
+        CompletionContext completionContext,
+        ImmutableArray<SymbolAndSelectionInfo> symbols,
+        Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
+        List<ProjectId>? totalProjects)
     {
         SupportedPlatformData? supportedPlatformData = null;
         if (invalidProjectMap != null)
