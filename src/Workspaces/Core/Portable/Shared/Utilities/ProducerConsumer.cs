@@ -93,6 +93,30 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
+    /// Version of <see cref="RunImplAsync"/> when the caller prefers working with a stream of results.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunAsync(
+            // We're running in parallel, so we def have multiple writers
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems: static (callback, args) =>
+                RoslynParallel.ForEachAsync(
+                    args.source,
+                    args.cancellationToken,
+                    async (source, cancellationToken) =>
+                        await args.produceItems(source, callback, args.args).ConfigureAwait(false)),
+            consumeItems: static (enumerable, args) => args.consumeItems(enumerable, args.args),
+            args: (source, produceItems, consumeItems, args, cancellationToken),
+            cancellationToken);
+    }
+
+    /// <summary>
     /// Helper utility for the pattern of a pair of a production routine and consumption routine using a channel to
     /// coordinate data transfer.  The provided <paramref name="options"/> are used to create a <see
     /// cref="Channel{T}"/>, which will then then manage the rules and behaviors around the routines. Importantly, the

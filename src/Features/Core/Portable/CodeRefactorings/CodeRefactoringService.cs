@@ -123,42 +123,38 @@ internal sealed class CodeRefactoringService(
 
             var providers = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority);
 
-            await ProducerConsumer<CodeRefactoring>.RunAsync(
-                ProducerConsumerOptions.SingleReaderOptions,
-                produceItems: static (callback, args) =>
+            await ProducerConsumer<CodeRefactoring>.RunParallelAsync(
+                providers,
+                produceItems: static async (provider, callback, args) =>
+                {
                     // Run all providers in parallel to get the set of refactorings for this document.
-                    RoslynParallel.ForEachAsync(
-                        args.providers,
-                        args.cancellationToken,
-                        async (provider, cancellationToken) =>
-                        {
-                            // Log an individual telemetry event for slow code refactoring computations to
-                            // allow targeted trace notifications for further investigation. 500 ms seemed like
-                            // a good value so as to not be too noisy, but if fired, indicates a potential
-                            // area requiring investigation.
-                            const int CodeRefactoringTelemetryDelay = 500;
+                    // Log an individual telemetry event for slow code refactoring computations to
+                    // allow targeted trace notifications for further investigation. 500 ms seemed like
+                    // a good value so as to not be too noisy, but if fired, indicates a potential
+                    // area requiring investigation.
+                    const int CodeRefactoringTelemetryDelay = 500;
 
-                            var providerName = provider.GetType().Name;
-                            args.@this.RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
+                    var providerName = provider.GetType().Name;
+                    args.@this.RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
-                            var logMessage = KeyValueLogMessage.Create(m =>
-                            {
-                                m[TelemetryLogging.KeyName] = providerName;
-                                m[TelemetryLogging.KeyLanguageName] = args.document.Project.Language;
-                            });
+                    var logMessage = KeyValueLogMessage.Create(m =>
+                    {
+                        m[TelemetryLogging.KeyName] = providerName;
+                        m[TelemetryLogging.KeyLanguageName] = args.document.Project.Language;
+                    });
 
-                            using (args.addOperationScope(providerName))
-                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
-                            using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
-                            {
-                                var extensionManager = args.document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+                    using (args.addOperationScope(providerName))
+                    using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
+                    using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
+                    {
+                        var extensionManager = args.document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
-                                var refactoring = await args.@this.GetRefactoringFromProviderAsync(
-                                    args.document, args.state, provider, providerMetadata, extensionManager, args.options, cancellationToken).ConfigureAwait(false);
-                                if (refactoring != null)
-                                    callback(refactoring);
-                            }
-                        }),
+                        var refactoring = await args.@this.GetRefactoringFromProviderAsync(
+                            args.document, args.state, provider, providerMetadata, extensionManager, args.options, cancellationToken).ConfigureAwait(false);
+                        if (refactoring != null)
+                            callback(refactoring);
+                    }
+                },
                 consumeItems: static async (reader, args) =>
                 {
                     await foreach (var refactoring in reader)
