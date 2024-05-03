@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.EditAndContinue.TraceLog;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
@@ -89,20 +90,16 @@ internal sealed class CodeRefactoringService(
         CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
-        var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-
         foreach (var provider in GetProviders(document))
         {
             cancellationToken.ThrowIfCancellationRequested();
             RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
             var refactoring = await GetRefactoringFromProviderAsync(
-                document, state, provider, providerMetadata, extensionManager, options, cancellationToken).ConfigureAwait(false);
+                document, state, provider, providerMetadata, options, cancellationToken).ConfigureAwait(false);
 
             if (refactoring != null)
-            {
                 return true;
-            }
         }
 
         return false;
@@ -151,10 +148,8 @@ internal sealed class CodeRefactoringService(
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                             {
-                                var extensionManager = args.document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-
                                 var refactoring = await args.@this.GetRefactoringFromProviderAsync(
-                                    args.document, args.state, provider, providerMetadata, extensionManager, args.options, cancellationToken).ConfigureAwait(false);
+                                    args.document, args.state, provider, providerMetadata, args.options, cancellationToken).ConfigureAwait(false);
                                 if (refactoring != null)
                                     callback(refactoring);
                             }
@@ -176,10 +171,11 @@ internal sealed class CodeRefactoringService(
         TextSpan state,
         CodeRefactoringProvider provider,
         CodeChangeProviderMetadata? providerMetadata,
-        IExtensionManager extensionManager,
         CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
+        var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+
         return extensionManager.PerformFunctionAsync(
             provider,
             async cancellationToken =>
