@@ -141,6 +141,41 @@ public class ExtensionTypeTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
+    public void TestCSharp12(bool isExplicit)
+    {
+        var src = $$"""
+            {{(isExplicit ? "explicit" : "implicit")}} extension E { }
+            """;
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70)
+            .VerifyEmitDiagnostics(
+                // (1,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // implicit extension E { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 10),
+                // (1,20): error CS9314: No part of a partial extension 'E' includes an underlying type specification.
+                // implicit extension E { }
+                Diagnostic(ErrorCode.ERR_ExtensionMissingUnderlyingType, "E").WithArguments("E").WithLocation(1, 20));
+    }
+
+    [Theory, CombinatorialData]
+    public void TestCSharp12_WithParameterList(bool isExplicit)
+    {
+        var src = $$"""
+            {{(isExplicit ? "explicit" : "implicit")}} extension E(int i) { }
+            """;
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70)
+            .VerifyEmitDiagnostics(
+                // (1,10): error CS8652: The feature 'extension types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // implicit extension E(int i) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension").WithArguments("extension types").WithLocation(1, 10),
+                // (1,20): error CS9314: No part of a partial extension 'E' includes an underlying type specification.
+                // implicit extension E(int i) { }
+                Diagnostic(ErrorCode.ERR_ExtensionMissingUnderlyingType, "E").WithArguments("E").WithLocation(1, 20),
+                // (1,21): error CS9122: Unexpected parameter list.
+                // implicit extension E(int i) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedParameterList, "(int i)").WithLocation(1, 21));
+    }
+
+    [Theory, CombinatorialData]
     public void ForClass(bool useImageReference, bool isExplicit)
     {
         var src = $$"""
