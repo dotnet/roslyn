@@ -719,12 +719,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (node is ExtensionDeclarationSyntax extension &&
-                extension.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ExplicitKeyword))
-            {
-                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.IsExplicitExtension;
-            }
-
             var memberNames = GetNonTypeMemberNames(
                 node, ((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                 ref declFlags, hasPrimaryCtor: hasPrimaryCtor);
@@ -758,16 +752,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node, node.SemicolonToken.GetLocation());
                 }
             }
-            else if (node.Kind() is SyntaxKind.ExtensionDeclaration)
+            else if (node is ExtensionDeclarationSyntax extension)
             {
+                if (extension.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ExplicitKeyword))
+                {
+                    declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.IsExplicitExtension;
+                }
+
                 if (node.ParameterList != null)
                 {
                     diagnostics.Add(ErrorCode.ERR_UnexpectedParameterList, node.ParameterList.GetLocation());
                 }
-                else
-                {
-                    MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
-                }
+
+                MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
