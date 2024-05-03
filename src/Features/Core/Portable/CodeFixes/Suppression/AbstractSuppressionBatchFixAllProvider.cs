@@ -98,8 +98,15 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
                 produceItems: static async (tuple, callback, args, cancellationToken) =>
                 {
                     var (document, diagnosticsToFix) = tuple;
-                    await args.@this.AddDocumentFixesAsync(
-                        document, diagnosticsToFix, callback, args.fixAllState, args.progressTracker, cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        await args.@this.AddDocumentFixesAsync(
+                            document, diagnosticsToFix, callback, args.fixAllState, cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        args.progressTracker.ItemCompleted();
+                    }
                 },
                 consumeItems: static async (stream, args, cancellationToken) =>
                 {
@@ -110,21 +117,6 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
                 cancellationToken).ConfigureAwait(false);
 
             return results.ToImmutableAndClear();
-        }
-    }
-
-    private async Task AddDocumentFixesAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics,
-        Action<(Diagnostic diagnostic, CodeAction action)> onItemFound,
-        FixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await this.AddDocumentFixesAsync(document, diagnostics, onItemFound, fixAllState, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            progressTracker.ItemCompleted();
         }
     }
 
