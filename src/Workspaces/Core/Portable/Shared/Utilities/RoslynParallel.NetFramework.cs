@@ -396,8 +396,10 @@ internal static partial class RoslynParallel
             private readonly Func<object, Task> _taskBody;
             /// <summary>The <see cref="TaskScheduler"/> on which all work should be performed.</summary>
             private readonly TaskScheduler _scheduler;
+#if false
             /// <summary>The <see cref="ExecutionContext"/> present at the time of the ForEachAsync invocation.  This is only used if on the default scheduler.</summary>
             private readonly ExecutionContext? _executionContext;
+#endif
             /// <summary>Semaphore used to provide exclusive access to the enumerator.</summary>
             private readonly SemaphoreSlim? _lock;
 
@@ -421,10 +423,13 @@ internal static partial class RoslynParallel
                 _remainingDop = dop < 0 ? DefaultDegreeOfParallelism : dop;
                 LoopBody = body;
                 _scheduler = scheduler;
+
+#if false
                 if (scheduler == TaskScheduler.Default)
                 {
                     _executionContext = ExecutionContext.Capture();
                 }
+#endif
 
                 _externalCancellationToken = cancellationToken;
 #if false
@@ -450,21 +455,21 @@ internal static partial class RoslynParallel
                     // work item ref count prior to queueing the worker in order to avoid race conditions that could lead to temporarily
                     // and erroneously bouncing at zero, which would trigger completion too early.
                     Interlocked.Increment(ref _completionRefCount);
+#if false
                     if (_scheduler == TaskScheduler.Default)
                     {
                         // If the scheduler is the default, we can avoid the overhead of the StartNew Task by just queueing
                         // this state object as the work item.
-#if false
                         ThreadPool.UnsafeQueueUserWorkItem(this, preferLocal: false);
-#else
-                        ThreadPool.QueueUserWorkItem(static s => ((ForEachAsyncState<TSource>)s).Execute(), this);
-#endif
                     }
                     else
                     {
                         // We're targeting a non-default TaskScheduler, so queue the task body to it.
                         System.Threading.Tasks.Task.Factory.StartNew(_taskBody!, this, default(CancellationToken), TaskCreationOptions.DenyChildAttach, _scheduler);
                     }
+#else
+                    System.Threading.Tasks.Task.Factory.StartNew(_taskBody!, this, default(CancellationToken), TaskCreationOptions.DenyChildAttach, _scheduler);
+#endif
                 }
             }
 
@@ -554,12 +559,9 @@ internal static partial class RoslynParallel
                 Debug.Assert(taskSet, "Complete should only be called once.");
             }
 
-            /// <summary>Executes the task body using the <see cref="ExecutionContext"/> captured when ForEachAsync was invoked.</summary>
 #if false
+            /// <summary>Executes the task body using the <see cref="ExecutionContext"/> captured when ForEachAsync was invoked.</summary>
             void IThreadPoolWorkItem.Execute()
-#else
-            private void Execute()
-#endif
             {
                 Debug.Assert(_scheduler == TaskScheduler.Default, $"Expected {nameof(_scheduler)} == TaskScheduler.Default, got {_scheduler}");
 
@@ -572,6 +574,7 @@ internal static partial class RoslynParallel
                     ExecutionContext.Run(_executionContext, static o => ((ForEachAsyncState<TSource>)o!)._taskBody(o), this);
                 }
             }
+#endif
         }
 
         /// <summary>Stores the state associated with an IEnumerable ForEachAsync operation, shared between all its workers.</summary>
