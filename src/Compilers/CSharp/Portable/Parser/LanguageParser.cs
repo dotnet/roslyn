@@ -2228,13 +2228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword
                     when this.PeekToken(1).ContextualKind is SyntaxKind.ExtensionKeyword:
 
-                    // implicit extension.operator x
-                    // implicit extension::X.operator x
-                    // implicit extension<X>.operator x
-                    //
-                    // All of these should be treated as a conversion operator, with `extension` as part of an explicit
-                    // interface name.
-                    if (this.PeekToken(2).Kind is SyntaxKind.ColonColonToken or SyntaxKind.DotToken or SyntaxKind.LessThanToken)
+                    // See if this is actually the start of an implicit/explicit conversion.
+                    if (ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(nextTokenKind: this.PeekToken(2).Kind))
                         return false;
 
                     // Otherwise, treat it as an extension type.
@@ -2251,6 +2246,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     return false;
             }
+        }
+
+        private static bool ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(SyntaxKind nextTokenKind)
+        {
+            // implicit extension.operator x
+            // implicit extension::X.operator x
+            // implicit extension<X>.operator x
+            //
+            // All of these should be treated as a conversion operator, with `extension` as part of an explicit
+            // interface name.
+            return nextTokenKind is SyntaxKind.ColonColonToken or SyntaxKind.DotToken or SyntaxKind.LessThanToken;
         }
 
         private bool CanReuseMemberDeclaration(SyntaxKind kind, bool isGlobal)
@@ -3494,19 +3500,13 @@ parse_member_name:;
                     ? this.EatToken()
                     : this.EatToken(SyntaxKind.ExplicitKeyword);
 
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword)
+                // `implicit extension` and `explicit extension` could be the start of an extension type, or an
+                // explicitly implemented conversion operator.  Check for this, and bail out in the former case.
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword &&
+                    !ShouldTreatExtensionKeywordAsStartOfExplicitInterfaceConversionOperator(nextTokenKind: this.PeekToken(1).Kind))
                 {
-                    // implicit extension.operator x
-                    // implicit extension::X.operator x
-                    // implicit extension<X>.operator x
-                    //
-                    // All of these should be treated as a conversion operator, with `extension` as part of an explicit
-                    // interface name.
-                    if (this.PeekToken(1).Kind is not SyntaxKind.ColonColonToken and not SyntaxKind.DotToken and not SyntaxKind.LessThanToken)
-                    {
-                        this.Reset(ref point);
-                        return null;
-                    }
+                    this.Reset(ref point);
+                    return null;
                 }
 
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
