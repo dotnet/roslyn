@@ -93,12 +93,36 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// Version of <see cref="RunImplAsync"/> when the caller prefers working with a stream of results.
+    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
     /// </summary>
     public static Task RunParallelAsync<TSource, TArgs>(
         IEnumerable<TSource> source,
         Func<TSource, Action<TItem>, TArgs, Task> produceItems,
         Func<IAsyncEnumerable<TItem>, TArgs, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunAsync(
+            // We're running in parallel, so we def have multiple writers
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems: static (callback, args) =>
+                RoslynParallel.ForEachAsync(
+                    args.source,
+                    args.cancellationToken,
+                    async (source, cancellationToken) =>
+                        await args.produceItems(source, callback, args.args).ConfigureAwait(false)),
+            consumeItems: static (enumerable, args) => args.consumeItems(enumerable, args.args),
+            args: (source, produceItems, consumeItems, args, cancellationToken),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {

@@ -93,9 +93,9 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
         Func<T, Action<RoslynNavigateToItem>, ValueTask> callback,
         Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound,
         CancellationToken cancellationToken)
-        => ProducerConsumer<RoslynNavigateToItem>.RunAsync(
-            ProducerConsumerOptions.SingleReaderOptions,
-            produceItems: static (onItemFound, args) => RoslynParallel.ForEachAsync(args.items, args.cancellationToken, (item, cancellationToken) => args.callback(item, onItemFound)),
+        => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
+            items,
+            produceItems: static async (item, onItemFound, args) => await args.callback(item, onItemFound).ConfigureAwait(false),
             consumeItems: static (items, args) => args.onItemsFound(items),
             args: (items, callback, onItemsFound, cancellationToken),
             cancellationToken);
