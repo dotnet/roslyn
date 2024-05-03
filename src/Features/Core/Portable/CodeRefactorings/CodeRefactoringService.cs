@@ -122,7 +122,7 @@ internal sealed class CodeRefactoringService(
                 providerToIndex.Add(provider, providerToIndex.Count);
 
             await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
-                orderedProviders,
+                source: orderedProviders,
                 produceItems: static async (provider, callback, args) =>
                 {
                     // Run all providers in parallel to get the set of refactorings for this document.

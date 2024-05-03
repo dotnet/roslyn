@@ -223,7 +223,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // Defer to the ProducerConsumer.  We're search the unreferenced projects in parallel. As we get results, we'll
         // add them to the 'allSymbolReferences' queue.  If we get enough results, we'll cancel all the other work.
         await ProducerConsumer<ImmutableArray<SymbolReference>>.RunParallelAsync(
-            viableUnreferencedProjects,
+            source: viableUnreferencedProjects,
             produceItems: static async (project, onItemsFound, args) =>
             {
                 // Search in this unreferenced project.  But don't search in any of its' direct references.  i.e. we
@@ -264,7 +264,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // Defer to the ProducerConsumer.  We're search the metadata references in parallel. As we get results, we'll
         // add them to the 'allSymbolReferences' queue.  If we get enough results, we'll cancel all the other work.
         await ProducerConsumer<ImmutableArray<SymbolReference>>.RunParallelAsync(
-            newReferences,
+            source: newReferences,
             produceItems: static async (tuple, onItemsFound, args) =>
             {
                 var (referenceProject, reference) = tuple;
