@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             // Both the original and failed paths need to appear in the message, not the shadow copy 
             // paths
-            var errorMessage = errorMessages.Single();
+            var errorMessage = errorMessages!.Single();
             Assert.Contains(mvidAlpha1.Path, errorMessage);
             Assert.Contains(mvidAlpha2.Path, errorMessage);
         }
