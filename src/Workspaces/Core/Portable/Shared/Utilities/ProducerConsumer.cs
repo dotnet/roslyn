@@ -38,6 +38,28 @@ internal readonly record struct ProducerConsumerOptions
 internal static class Producer<TItem>
 {
     public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
+        ImmutableArray<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<TItem>.GetInstance(out var results);
+
+        await ProducerConsumer<TItem>.RunParallelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static async (stream, args, cancellationToken) =>
+            {
+                await foreach (var item in stream)
+                    args.results.Add(item);
+            },
+            args: (produceItems, args, results),
+            cancellationToken).ConfigureAwait(false);
+
+        return results.ToImmutableAndClear();
+    }
+
+    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
         IAsyncEnumerable<TSource> source,
         Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         TArgs args,
