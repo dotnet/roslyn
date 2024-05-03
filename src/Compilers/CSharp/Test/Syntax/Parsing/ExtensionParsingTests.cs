@@ -3048,12 +3048,7 @@ class extension
                 }
             }
             """;
-        // PROTOTYPE consider avoiding this break (in following context)
-        // namespace extension;
-        // public interface I<T> where T : I<T>
-        // {
-        //    public abstract static explicit operator int(T i);
-        // }
+
         UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
@@ -3164,11 +3159,7 @@ class C : extension<C>
     }
 }
 """;
-        // PROTOTYPE consider avoiding this break (in following context)
-        // public interface extension<T> where T : extension<T>
-        // {
-        //    public abstract static explicit operator int(T i);
-        // }
+
         UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
@@ -3327,7 +3318,6 @@ class C : extension<C>
             }
             """;
 
-        // In C# next, we always treat `explicit extension` as the start of an extension type.
         UsingTreeWithCSharpNext(text);
 
         N(SyntaxKind.CompilationUnit);
@@ -3384,7 +3374,6 @@ class C : extension<C>
         }
         EOF();
 
-        // In legacy parsing, we respect this potentially being an explicit impl of an interface named `extension`.
         UsingTree(text, options: TestOptions.Regular12);
 
         N(SyntaxKind.CompilationUnit);
