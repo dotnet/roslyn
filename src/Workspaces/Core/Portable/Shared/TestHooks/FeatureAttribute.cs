@@ -48,6 +48,7 @@ internal static class FeatureAttribute
     public const string NavigableSymbols = nameof(NavigableSymbols);
     public const string NavigateTo = nameof(NavigateTo);
     public const string NavigationBar = nameof(NavigationBar);
+    public const string OnTheFlyDocs = nameof(OnTheFlyDocs);
     public const string Outlining = nameof(Outlining);
     public const string OrganizeDocument = nameof(OrganizeDocument);
     public const string PackageInstaller = nameof(PackageInstaller);

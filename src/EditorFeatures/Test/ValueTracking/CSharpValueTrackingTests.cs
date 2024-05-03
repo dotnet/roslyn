@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
         protected override TestWorkspace CreateWorkspace(string code, TestComposition composition)
             => TestWorkspace.CreateCSharp(code, composition: composition);
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestProperty(TestHost testHost)
         {
             var code =
@@ -51,8 +50,7 @@ class C
                 });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestPropertyWithThis(TestHost testHost)
         {
             var code =
@@ -85,8 +83,7 @@ class C
                 });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestField(TestHost testHost)
         {
             var code =
@@ -119,8 +116,7 @@ class C
                 });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestFieldWithThis(TestHost testHost)
         {
             var code =
@@ -153,8 +149,7 @@ class C
                 });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestLocal(TestHost testHost)
         {
             var code =
@@ -181,8 +176,7 @@ class C
             ValidateItem(initialItems[1], 5);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestParameter(TestHost testHost)
         {
             var code =
@@ -208,8 +202,7 @@ class C
             ValidateItem(initialItems[1], 3);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMissingOnMethod(TestHost testHost)
         {
             var code =
@@ -227,8 +220,7 @@ class C
             Assert.Empty(initialItems);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMissingOnClass(TestHost testHost)
         {
             var code =
@@ -246,8 +238,7 @@ class $$C
             Assert.Empty(initialItems);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMissingOnNamespace(TestHost testHost)
         {
             var code =
@@ -268,8 +259,7 @@ namespace $$N
             Assert.Empty(initialItems);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task MethodTracking1(TestHost testHost)
         {
             var code =
@@ -379,8 +369,7 @@ class Other
             }
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task MethodTracking2(TestHost testHost)
         {
             var code =
@@ -547,8 +536,7 @@ class Program
             await ValidateChildrenEmptyAsync(workspace, items[4]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task MethodTracking3(TestHost testHost)
         {
             var code =
@@ -622,8 +610,7 @@ namespace N
                 });
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task OutParam(TestHost testHost)
         {
             var code = @"
@@ -694,8 +681,7 @@ class C
             await ValidateChildrenEmptyAsync(workspace, children.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestVariableReferenceStart(TestHost testHost)
         {
             var code =
@@ -757,8 +743,7 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestVariableReferenceStart2(TestHost testHost)
         {
             var code =
@@ -820,8 +805,7 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestVariableReferenceStart3(TestHost testHost)
         {
             var code =
@@ -890,8 +874,7 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMultipleDeclarators(TestHost testHost)
         {
             var code =
@@ -960,8 +943,7 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestIndex(TestHost testHost)
         {
             var code =
@@ -1010,8 +992,7 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items[3]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestPropertyValue(TestHost testHost)
         {
             var code =

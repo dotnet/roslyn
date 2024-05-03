@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRedundantRestoreDiffersFromPriorContext(NullableContextOptions compilationContext)
         {
             var enable = compilationContext != NullableContextOptions.Enable;
@@ -146,8 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNul
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRedundantRestoreMatchesCompilation(NullableContextOptions compilationContext)
         {
             await VerifyCodeFixAsync(

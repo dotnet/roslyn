@@ -41,8 +41,7 @@ class C
             await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestOutVariable(
             [CombinatorialValues("string", "bool", "int?")] string type,
             [CombinatorialValues("out", "ref", "in")] string modifier)

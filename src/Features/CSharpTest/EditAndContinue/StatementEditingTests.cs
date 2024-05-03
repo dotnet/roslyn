@@ -4725,8 +4725,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_First(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
         {
@@ -4739,8 +4738,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_Second(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
         {
@@ -4753,8 +4751,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [_, _]), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/68731")]
         public void Lambdas_Update_CeaseCapture_PrimaryParameter_InPrimaryConstructor_BaseInitializer(
             [CombinatorialValues("class", "record")] string keyword)
@@ -5246,8 +5243,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_First(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
         {
@@ -5260,8 +5256,7 @@ class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Lambdas_Update_Capturing_PrimaryParameter_InPrimaryConstructor_Second(
             [CombinatorialValues("class", "struct", "record", "record struct")] string keyword)
         {
@@ -6569,7 +6564,7 @@ class Test
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         #endregion
@@ -9615,7 +9610,7 @@ class Test
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -9649,7 +9644,7 @@ class Test
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -11484,7 +11479,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: [TargetFramework.Mscorlib40AndSystemCore],
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         #endregion
@@ -12079,7 +12074,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
@@ -12431,7 +12426,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: [TargetFramework.MinimalAsync],
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
         }
 
         [Fact]
