@@ -3330,7 +3330,6 @@ class C : extension<C>
         // In C# next, we always treat `explicit extension` as the start of an extension type.
         UsingTreeWithCSharpNext(text);
 
-
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
