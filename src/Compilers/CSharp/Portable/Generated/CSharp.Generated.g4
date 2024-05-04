@@ -964,6 +964,27 @@ regular_string_literal_token
   : '"' regular_string_literal_character* '"'
   ;
 
+regular_string_literal_character
+  : hexadecimal_escape_sequence
+  | simple_escape_sequence
+  | single_regular_string_literal_character
+  | unicode_escape_sequence
+  ;
+
+simple_escape_sequence
+  : '\\"'
+  | '\\0'
+  | '\\\''
+  | '\\\\'
+  | '\\a'
+  | '\\b'
+  | '\\f'
+  | '\\n'
+  | '\\r'
+  | '\\t'
+  | '\\v'
+  ;
+
 verbatim_string_literal_token
   : '@"' verbatim_string_literal_character* '"'
   ;
@@ -1419,6 +1440,10 @@ expression_or_pattern
   | pattern
   ;
 
+hexadecimal_escape_sequence
+  : /* see lexical specification */
+  ;
+
 identifier_token
   : /* see lexical specification */
   ;
@@ -1447,15 +1472,19 @@ numeric_literal_token
   : /* see lexical specification */
   ;
 
-regular_string_literal_character
-  : /* see lexical specification */
-  ;
-
 single_line_raw_string_literal_token
   : /* see lexical specification */
   ;
 
+single_regular_string_literal_character
+  : /* see lexical specification */
+  ;
+
 syntax_token
+  : /* see lexical specification */
+  ;
+
+unicode_escape_sequence
   : /* see lexical specification */
   ;
 
