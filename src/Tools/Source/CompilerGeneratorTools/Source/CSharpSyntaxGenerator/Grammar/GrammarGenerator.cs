@@ -141,6 +141,7 @@ namespace CSharpSyntaxGenerator.Grammar
             void addEscapeSequenceRules()
             {
                 rules.Add("SimpleEscapeSequence", [new("""'\\\''"""), new("""'\\"'"""), new("""'\\\\'"""), new("""'\\0'"""), new("""'\\a'"""), new("""'\\b'"""), new("""'\\f'"""), new("""'\\n'"""), new("""'\\r'"""), new("""'\\t'"""), new("""'\\v'""")]);
+                rules.Add("HexadecimalEscapeSequence", [Join(" ", [new("""'\\x'"""), RuleReference("HexDigit"), RuleReference("HexDigit").Suffix("?"), RuleReference("HexDigit").Suffix("?"), RuleReference("HexDigit").Suffix("?")])]);
             }
 
             void addStringLiteralRules()
