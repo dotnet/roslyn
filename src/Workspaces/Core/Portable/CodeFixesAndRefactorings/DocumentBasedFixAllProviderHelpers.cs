@@ -131,7 +131,7 @@ internal static class DocumentBasedFixAllProviderHelpers
                     callback(cleaned);
                 }
             },
-            consumeItems: async (results, currentSolution, _) =>
+            consumeItems: static async (results, currentSolution, _) =>
             {
                 // Finally, apply the cleaned documents to the solution.
                 var finalSolution = currentSolution;

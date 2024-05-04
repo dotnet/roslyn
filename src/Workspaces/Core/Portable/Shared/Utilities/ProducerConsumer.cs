@@ -96,7 +96,7 @@ internal static class ProducerConsumer<TItem>
     /// <summary>
     /// Version of <see cref="RunImplAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
-    public static Task<TResult> RunAsync<TArgs, TResult>(
+    private static Task<TResult> RunAsync<TArgs, TResult>(
         ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
