@@ -86,33 +86,15 @@ internal static class ProducerConsumer<TItem>
         CancellationToken cancellationToken)
     {
         // Bridge to sibling helper that takes a consumeItems that returns a value.
-        return RunAsync(
+        return RunChannelAsync(
             options,
             produceItems: static (callback, args, cancellationToken) => args.produceItems(callback, args.args, cancellationToken),
             consumeItems: static async (items, args, cancellationToken) =>
             {
-                await args.consumeItems(items, args.args, cancellationToken).ConfigureAwait(false);
+                await args.consumeItems(items.ReadAllAsync(cancellationToken), args.args, cancellationToken).ConfigureAwait(false);
                 return default(VoidResult);
             },
             args: (produceItems, consumeItems, args),
-            cancellationToken);
-    }
-
-    /// <summary>
-    /// Version of <see cref="RunChannelAsync"/> when the caller prefers working with a stream of results.
-    /// </summary>
-    private static Task<TResult> RunAsync<TArgs, TResult>(
-        ProducerConsumerOptions options,
-        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        return RunChannelAsync(
-            options,
-            static (onItemFound, args, cancellationToken) => args.produceItems(onItemFound, args.args, cancellationToken),
-            static (reader, args, cancellationToken) => args.consumeItems(reader.ReadAllAsync(cancellationToken), args.args, cancellationToken),
-            (produceItems, consumeItems, args),
             cancellationToken);
     }
 
