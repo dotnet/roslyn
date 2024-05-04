@@ -181,6 +181,7 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules.Add("CharacterLiteralToken", [Join(" ", [new("""'\''"""), RuleReference("Character"), new("""'\''""")])]);
                 rules.Add("Character", [RuleReference("SingleCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
+                rules.Add("SingleCharacter", [new("/* anything but ', \\, and new_line_character */")]);
             }
         }
 
