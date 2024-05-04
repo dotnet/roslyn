@@ -1291,6 +1291,211 @@ line_directive_trivia
   : '#' 'line' (numeric_literal_token | 'default' | 'hidden') string_literal_token?
   ;
 
+line_span_directive_trivia
+  : '#' 'line' line_directive_position '-' line_directive_position numeric_literal_token? string_literal_token
+  ;
+
+line_directive_position
+  : '(' numeric_literal_token ',' numeric_literal_token ')'
+  ;
+
+load_directive_trivia
+  : '#' 'load' string_literal_token
+  ;
+
+nullable_directive_trivia
+  : '#' 'nullable' ('enable' | 'disable' | 'restore') ('warnings' | 'annotations')?
+  ;
+
+pragma_checksum_directive_trivia
+  : '#' 'pragma' 'checksum' string_literal_token string_literal_token string_literal_token
+  ;
+
+pragma_warning_directive_trivia
+  : '#' 'pragma' 'warning' ('disable' | 'restore') (expression (',' expression)*)?
+  ;
+
+reference_directive_trivia
+  : '#' 'r' string_literal_token
+  ;
+
+region_directive_trivia
+  : '#' 'region'
+  ;
+
+shebang_directive_trivia
+  : '#' '!'
+  ;
+
+undef_directive_trivia
+  : '#' 'undef' identifier_token
+  ;
+
+warning_directive_trivia
+  : '#' 'warning'
+  ;
+
+documentation_comment_trivia
+  : xml_node*
+  ;
+
+skipped_tokens_trivia
+  : syntax_token*
+  ;
+
+literal_expression
+  : '__arglist'
+  | 'default'
+  | 'false'
+  | 'null'
+  | 'true'
+  | character_literal_token
+  | multi_line_raw_string_literal_token
+  | numeric_literal_token
+  | single_line_raw_string_literal_token
+  | string_literal_token
+  | utf8_multi_line_raw_string_literal_token
+  | utf8_single_line_raw_string_literal_token
+  | utf8_string_literal_token
+  ;
+
+utf8_multi_line_raw_string_literal_token
+  : multi_line_raw_string_literal_token utf8_suffix
+  ;
+
+utf8_single_line_raw_string_literal_token
+  : single_line_raw_string_literal_token utf8_suffix
+  ;
+
+utf8_string_literal_token
+  : string_literal_token utf8_suffix
+  ;
+
+syntax_token
+  : character_literal_token
+  | identifier_token
+  | keyword
+  | numeric_literal_token
+  | operator_token
+  | punctuation_token
+  | string_literal_token
+  ;
+
+identifier_token
+  : '@'? identifier_start_character identifier_part_character
+  ;
+
+identifier_start_character
+  : letter_character
+  | underscore_character
+  ;
+
+letter_character
+  : /* [\p{L}\p{Nl}] category letter, all subcategories; category number, subcategory letter */
+  | unicode_escape_sequence /* only escapes for categories L & Nl allowed */
+  ;
+
+underscore_character
+  : '\\u005' /* unicode_escape_sequence for underscore */
+  | '_'
+  ;
+
+identifier_part_character
+  : combining_character
+  | connecting_character
+  | decimal_digit_character
+  | formatting_character
+  | letter_character
+  ;
+
+combining_character
+  : /* [\p{Mn}\p{Mc}] category Mark, subcategories non-spacing and spacing combining */
+  | unicode_escape_sequence /* only escapes for categories Mn & Mc allowed */
+  ;
+
+connecting_character
+  : /* [\p{Pc}] category Punctuation, subcategory connector */
+  | unicode_escape_sequence /* only escapes for category Pc allowed */
+  ;
+
+decimal_digit_character
+  : /* [\p{Nd}] category number, subcategory decimal digit */
+  | unicode_escape_sequence /* only escapes for category Nd allowed */
+  ;
+
+formatting_character
+  : /* [\p{Cf}] category Other, subcategory format. */
+  | unicode_escape_sequence /* only escapes for category Cf allowed */
+  ;
+
+keyword
+  : '__arglist'
+  | '__makeref'
+  | '__reftype'
+  | '__refvalue'
+  | 'as'
+  | 'base'
+  | 'bool'
+  | 'break'
+  | 'byte'
+  | 'case'
+  | 'catch'
+  | 'char'
+  | 'checked'
+  | 'class'
+  | 'continue'
+  | 'decimal'
+  | 'default'
+  | 'delegate'
+  | 'do'
+  | 'double'
+  | 'else'
+  | 'enum'
+  | 'event'
+  | 'explicit'
+  | 'false'
+  | 'finally'
+  | 'float'
+  | 'for'
+  | 'foreach'
+  | 'goto'
+  | 'if'
+  | 'implicit'
+  | 'in'
+  | 'int'
+  | 'interface'
+  | 'is'
+  | 'lock'
+  | 'long'
+  | 'namespace'
+  | 'null'
+  | 'object'
+  | 'operator'
+  | 'out'
+  | 'params'
+  | 'return'
+  | 'sbyte'
+  | 'short'
+  | 'sizeof'
+  | 'stackalloc'
+  | 'string'
+  | 'struct'
+  | 'switch'
+  | 'this'
+  | 'throw'
+  | 'true'
+  | 'try'
+  | 'typeof'
+  | 'uint'
+  | 'ulong'
+  | 'unchecked'
+  | 'ushort'
+  | 'using'
+  | 'void'
+  | 'while'
+  | modifier
+  ;
+
 numeric_literal_token
   : integer_literal_token
   | real_literal_token
@@ -1378,19 +1583,14 @@ real_type_suffix
   | 'm'
   ;
 
-string_literal_token
-  : regular_string_literal_token
-  | verbatim_string_literal_token
+character_literal_token
+  : '\'' character '\''
   ;
 
-regular_string_literal_token
-  : '"' regular_string_literal_character* '"'
-  ;
-
-regular_string_literal_character
+character
   : hexadecimal_escape_sequence
   | simple_escape_sequence
-  | single_regular_string_literal_character
+  | single_character
   | unicode_escape_sequence
   ;
 
@@ -1412,13 +1612,33 @@ simple_escape_sequence
   | '\\v'
   ;
 
-single_regular_string_literal_character
-  : /* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */
+single_character
+  : /* ~['\\\u000D\u000A\u0085\u2028\u2029] anything but ', \\, and new_line_character */
   ;
 
 unicode_escape_sequence
   : '\\U' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
   | '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  ;
+
+string_literal_token
+  : regular_string_literal_token
+  | verbatim_string_literal_token
+  ;
+
+regular_string_literal_token
+  : '"' regular_string_literal_character* '"'
+  ;
+
+regular_string_literal_character
+  : hexadecimal_escape_sequence
+  | simple_escape_sequence
+  | single_regular_string_literal_character
+  | unicode_escape_sequence
+  ;
+
+single_regular_string_literal_character
+  : /* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */
   ;
 
 verbatim_string_literal_token
@@ -1436,179 +1656,6 @@ quote_escape_sequence
 
 single_verbatim_string_literal_character
   : /* anything but quotation mark (U+0022) */
-  ;
-
-line_span_directive_trivia
-  : '#' 'line' line_directive_position '-' line_directive_position numeric_literal_token? string_literal_token
-  ;
-
-line_directive_position
-  : '(' numeric_literal_token ',' numeric_literal_token ')'
-  ;
-
-load_directive_trivia
-  : '#' 'load' string_literal_token
-  ;
-
-nullable_directive_trivia
-  : '#' 'nullable' ('enable' | 'disable' | 'restore') ('warnings' | 'annotations')?
-  ;
-
-pragma_checksum_directive_trivia
-  : '#' 'pragma' 'checksum' string_literal_token string_literal_token string_literal_token
-  ;
-
-pragma_warning_directive_trivia
-  : '#' 'pragma' 'warning' ('disable' | 'restore') (expression (',' expression)*)?
-  ;
-
-reference_directive_trivia
-  : '#' 'r' string_literal_token
-  ;
-
-region_directive_trivia
-  : '#' 'region'
-  ;
-
-shebang_directive_trivia
-  : '#' '!'
-  ;
-
-undef_directive_trivia
-  : '#' 'undef' identifier_token
-  ;
-
-warning_directive_trivia
-  : '#' 'warning'
-  ;
-
-documentation_comment_trivia
-  : xml_node*
-  ;
-
-skipped_tokens_trivia
-  : syntax_token*
-  ;
-
-literal_expression
-  : '__arglist'
-  | 'default'
-  | 'false'
-  | 'null'
-  | 'true'
-  | character_literal_token
-  | multi_line_raw_string_literal_token
-  | numeric_literal_token
-  | single_line_raw_string_literal_token
-  | string_literal_token
-  | utf8_multi_line_raw_string_literal_token
-  | utf8_single_line_raw_string_literal_token
-  | utf8_string_literal_token
-  ;
-
-character_literal_token
-  : '\'' character '\''
-  ;
-
-character
-  : hexadecimal_escape_sequence
-  | simple_escape_sequence
-  | single_character
-  | unicode_escape_sequence
-  ;
-
-single_character
-  : /* ~['\\\u000D\u000A\u0085\u2028\u2029] anything but ', \\, and new_line_character */
-  ;
-
-utf8_multi_line_raw_string_literal_token
-  : multi_line_raw_string_literal_token utf8_suffix
-  ;
-
-utf8_single_line_raw_string_literal_token
-  : single_line_raw_string_literal_token utf8_suffix
-  ;
-
-utf8_string_literal_token
-  : string_literal_token utf8_suffix
-  ;
-
-syntax_token
-  : character_literal_token
-  | identifier_token
-  | keyword
-  | numeric_literal_token
-  | operator_token
-  | punctuation_token
-  | string_literal_token
-  ;
-
-keyword
-  : '__arglist'
-  | '__makeref'
-  | '__reftype'
-  | '__refvalue'
-  | 'as'
-  | 'base'
-  | 'bool'
-  | 'break'
-  | 'byte'
-  | 'case'
-  | 'catch'
-  | 'char'
-  | 'checked'
-  | 'class'
-  | 'continue'
-  | 'decimal'
-  | 'default'
-  | 'delegate'
-  | 'do'
-  | 'double'
-  | 'else'
-  | 'enum'
-  | 'event'
-  | 'explicit'
-  | 'false'
-  | 'finally'
-  | 'float'
-  | 'for'
-  | 'foreach'
-  | 'goto'
-  | 'if'
-  | 'implicit'
-  | 'in'
-  | 'int'
-  | 'interface'
-  | 'is'
-  | 'lock'
-  | 'long'
-  | 'namespace'
-  | 'null'
-  | 'object'
-  | 'operator'
-  | 'out'
-  | 'params'
-  | 'return'
-  | 'sbyte'
-  | 'short'
-  | 'sizeof'
-  | 'stackalloc'
-  | 'string'
-  | 'struct'
-  | 'switch'
-  | 'this'
-  | 'throw'
-  | 'true'
-  | 'try'
-  | 'typeof'
-  | 'uint'
-  | 'ulong'
-  | 'unchecked'
-  | 'ushort'
-  | 'using'
-  | 'void'
-  | 'while'
-  | modifier
   ;
 
 operator_token
@@ -1681,53 +1728,6 @@ punctuation_token
   | ']]>'
   | '{'
   | '}'
-  ;
-
-identifier_token
-  : '@'? identifier_start_character identifier_part_character
-  ;
-
-identifier_start_character
-  : letter_character
-  | underscore_character
-  ;
-
-letter_character
-  : /* [\p{L}\p{Nl}] category letter, all subcategories; category number, subcategory letter */
-  | unicode_escape_sequence /* only escapes for categories L & Nl allowed */
-  ;
-
-underscore_character
-  : '\\u005' /* unicode_escape_sequence for underscore */
-  | '_'
-  ;
-
-identifier_part_character
-  : combining_character
-  | connecting_character
-  | decimal_digit_character
-  | formatting_character
-  | letter_character
-  ;
-
-combining_character
-  : /* [\p{Mn}\p{Mc}] category Mark, subcategories non-spacing and spacing combining */
-  | unicode_escape_sequence /* only escapes for categories Mn & Mc allowed */
-  ;
-
-connecting_character
-  : /* [\p{Pc}] category Punctuation, subcategory connector */
-  | unicode_escape_sequence /* only escapes for category Pc allowed */
-  ;
-
-decimal_digit_character
-  : /* [\p{Nd}] category number, subcategory decimal digit */
-  | unicode_escape_sequence /* only escapes for category Nd allowed */
-  ;
-
-formatting_character
-  : /* [\p{Cf}] category Other, subcategory format. */
-  | unicode_escape_sequence /* only escapes for category Cf allowed */
   ;
 
 utf8_suffix
