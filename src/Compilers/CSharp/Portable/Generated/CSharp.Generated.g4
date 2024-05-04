@@ -971,6 +971,10 @@ regular_string_literal_character
   | unicode_escape_sequence
   ;
 
+hexadecimal_escape_sequence
+  : '\\x' hex_digit hex_digit? hex_digit? hex_digit?
+  ;
+
 simple_escape_sequence
   : '\\"'
   | '\\0'
@@ -1435,16 +1439,37 @@ character_literal_token
   : /* see lexical specification */
   ;
 
+decimal_digit
+  : '0'..'9'
+  ;
+
+decimal_integer_literal_token
+  : decimal_digit+ integer_type_suffix?
+  ;
+
 expression_or_pattern
   : expression
   | pattern
   ;
 
-hexadecimal_escape_sequence
+hexadecimal_integer_literal_token
+  : /* see lexical specification */
+  ;
+
+hex_digit
   : /* see lexical specification */
   ;
 
 identifier_token
+  : /* see lexical specification */
+  ;
+
+integer_literal_token
+  : decimal_integer_literal_token
+  | hexadecimal_integer_literal_token
+  ;
+
+integer_type_suffix
   : /* see lexical specification */
   ;
 
