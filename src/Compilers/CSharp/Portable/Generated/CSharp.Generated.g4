@@ -951,6 +951,34 @@ is_pattern_expression
   : expression 'is' pattern
   ;
 
+literal_expression
+  : '__arglist'
+  | 'default'
+  | 'false'
+  | 'null'
+  | 'true'
+  | character_literal_token
+  | multi_line_raw_string_literal_token
+  | numeric_literal_token
+  | single_line_raw_string_literal_token
+  | string_literal_token
+  | utf8_multi_line_raw_string_literal_token
+  | utf8_single_line_raw_string_literal_token
+  | utf8_string_literal_token
+  ;
+
+utf8_multi_line_raw_string_literal_token
+  : multi_line_raw_string_literal_token utf8_suffix
+  ;
+
+utf8_single_line_raw_string_literal_token
+  : single_line_raw_string_literal_token utf8_suffix
+  ;
+
+utf8_string_literal_token
+  : string_literal_token utf8_suffix
+  ;
+
 make_ref_expression
   : '__makeref' '(' expression ')'
   ;
@@ -1341,34 +1369,6 @@ documentation_comment_trivia
 
 skipped_tokens_trivia
   : syntax_token*
-  ;
-
-literal_expression
-  : '__arglist'
-  | 'default'
-  | 'false'
-  | 'null'
-  | 'true'
-  | character_literal_token
-  | multi_line_raw_string_literal_token
-  | numeric_literal_token
-  | single_line_raw_string_literal_token
-  | string_literal_token
-  | utf8_multi_line_raw_string_literal_token
-  | utf8_single_line_raw_string_literal_token
-  | utf8_string_literal_token
-  ;
-
-utf8_multi_line_raw_string_literal_token
-  : multi_line_raw_string_literal_token utf8_suffix
-  ;
-
-utf8_single_line_raw_string_literal_token
-  : single_line_raw_string_literal_token utf8_suffix
-  ;
-
-utf8_string_literal_token
-  : string_literal_token utf8_suffix
   ;
 
 syntax_token

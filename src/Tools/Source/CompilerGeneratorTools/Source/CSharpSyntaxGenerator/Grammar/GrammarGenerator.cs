@@ -87,7 +87,6 @@ namespace CSharpSyntaxGenerator.Grammar
                 "ExpressionSyntax",
                 "XmlNodeSyntax",
                 "StructuredTriviaSyntax",
-                "LiteralExpressionSyntax",
                 // Place all syntax tokens at the end to keep them out of the way.
                 "SyntaxToken",
                 .. rules["SyntaxToken"].SelectMany(r => r.ReferencedRules),
