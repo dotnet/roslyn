@@ -1569,7 +1569,7 @@ syntax_token
   | identifier_token
   | keyword
   | numeric_literal_token
-  | operator_or_punctuator_token
+  | operator_or_punctuation_token
   | string_literal_token
   ;
 
@@ -1657,6 +1657,73 @@ keyword
   | 'while'
   ;
 
+operator_or_punctuation_token
+  : '!'
+  | '!='
+  | '"'
+  | '#'
+  | '%'
+  | '%='
+  | '&&'
+  | '&'
+  | '&='
+  | '''
+  | '('
+  | ')'
+  | '*'
+  | '*='
+  | '+'
+  | '++'
+  | '+='
+  | ','
+  | '-'
+  | '--'
+  | '-->'
+  | '-='
+  | '->'
+  | '.'
+  | '..'
+  | '/'
+  | '/='
+  | '/>'
+  | ':'
+  | '::'
+  | ';'
+  | '<!--'
+  | '<![CDATA['
+  | '<'
+  | '</'
+  | '<<'
+  | '<<='
+  | '<='
+  | '<?'
+  | '='
+  | '=='
+  | '=>'
+  | '>'
+  | '>='
+  | '>>'
+  | '>>='
+  | '>>>'
+  | '>>>='
+  | '?'
+  | '?>'
+  | '??'
+  | '??='
+  | '['
+  | '\'
+  | ']'
+  | ']]>'
+  | '^'
+  | '^='
+  | '{'
+  | '|'
+  | '|='
+  | '||'
+  | '}'
+  | '~'
+  ;
+
 utf8_suffix
   : 'U8'
   | 'u8'
@@ -1704,10 +1771,6 @@ interpolated_string_text_token
   ;
 
 multi_line_raw_string_literal_token
-  : /* see lexical specification */
-  ;
-
-operator_or_punctuator_token
   : /* see lexical specification */
   ;
 

@@ -128,7 +128,6 @@ namespace CSharpSyntaxGenerator.Grammar
         {
             addUtf8Rules();
             addTokenRules();
-            addKeywordRules();
             addIdentifierRules();
             addRealLiteralRules();
             addNumericLiteralRules();
@@ -147,15 +146,9 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addTokenRules()
             {
-                rules["SyntaxToken"].AddRange([RuleReference("IdentifierToken"), RuleReference("Keyword"), RuleReference("NumericLiteralToken"), RuleReference("CharacterLiteralToken"), RuleReference("StringLiteralToken"), RuleReference("OperatorOrPunctuatorToken")]);
-                rules.Add("Keyword", JoinWords(
-                    GetMembers<SyntaxKind>().Where(SyntaxFacts.IsReservedKeyword).Select(SyntaxFacts.GetText).ToArray()));
-            }
-
-            void addKeywordRules()
-            {
-    //            rules.Add()
-    //
+                rules["SyntaxToken"].AddRange([RuleReference("IdentifierToken"), RuleReference("Keyword"), RuleReference("NumericLiteralToken"), RuleReference("CharacterLiteralToken"), RuleReference("StringLiteralToken"), RuleReference("OperatorOrPunctuationToken")]);
+                rules.Add("Keyword", JoinWords(GetMembers<SyntaxKind>().Where(SyntaxFacts.IsReservedKeyword).Select(SyntaxFacts.GetText).ToArray()));
+                rules.Add("OperatorOrPunctuationToken", JoinWords(GetMembers<SyntaxKind>().Where(SyntaxFacts.IsLanguagePunctuation).Select(SyntaxFacts.GetText).ToArray()));
             }
 
             void addIdentifierRules()
