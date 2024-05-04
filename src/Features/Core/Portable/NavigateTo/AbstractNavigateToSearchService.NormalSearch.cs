@@ -50,7 +50,7 @@ internal abstract partial class AbstractNavigateToSearchService
         Document document,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
+        Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task<VoidResult>> onItemsFound,
         CancellationToken cancellationToken)
     {
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);

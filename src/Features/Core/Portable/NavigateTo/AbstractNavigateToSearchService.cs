@@ -33,7 +33,7 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
     public bool CanFilter => true;
 
-    private static Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> GetOnItemsFoundCallback(
+    private static Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task<VoidResult>> GetOnItemsFoundCallback(
         Solution solution, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound)
     {
         return async (items, _, cancellationToken) =>
@@ -49,6 +49,8 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
 
             if (results.Count > 0)
                 await onResultsFound(results.ToImmutableAndClear()).ConfigureAwait(false);
+
+            return default(VoidResult);
         };
     }
 
