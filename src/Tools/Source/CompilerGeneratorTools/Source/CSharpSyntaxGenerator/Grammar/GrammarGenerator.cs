@@ -179,7 +179,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addCharacterLiteralRules()
             {
-                rules.Add("CharacterLiteralToken", [Join(" ", [new("'\''"), RuleReference("Character"), new("'\''")])]);
+                rules.Add("CharacterLiteralToken", [Join(" ", [new("""'\''"""), RuleReference("Character"), new("""'\''""")])]);
                 rules.Add("Character", [RuleReference("SingleCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
             }
         }

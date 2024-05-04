@@ -1466,7 +1466,7 @@ literal_expression
   ;
 
 character_literal_token
-  : ''' character '''
+  : '\'' character '\''
   ;
 
 character
