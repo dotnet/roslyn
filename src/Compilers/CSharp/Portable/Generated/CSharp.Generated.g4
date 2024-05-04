@@ -1440,11 +1440,26 @@ character_literal_token
   ;
 
 decimal_digit
-  : '0'..'9'
+  : /* see lexical specification */
   ;
 
 decimal_integer_literal_token
   : decimal_digit+ integer_type_suffix?
+  ;
+
+integer_type_suffix
+  : L
+  | LU
+  | Lu
+  | U
+  | UL
+  | Ul
+  | l
+  | lU
+  | lu
+  | u
+  | uL
+  | ul
   ;
 
 expression_or_pattern
@@ -1467,10 +1482,6 @@ identifier_token
 integer_literal_token
   : decimal_integer_literal_token
   | hexadecimal_integer_literal_token
-  ;
-
-integer_type_suffix
-  : /* see lexical specification */
   ;
 
 interpolated_multi_line_raw_string_start_token
