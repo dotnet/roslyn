@@ -127,6 +127,7 @@ namespace CSharpSyntaxGenerator.Grammar
         private static void AddLexicalRules(Dictionary<string, List<Production>> rules)
         {
             addUtf8Rules();
+            addIdentifierRules();
             addRealLiteralRules();
             addNumericLiteralRules();
             addIntegerLiteralRules();
@@ -140,6 +141,15 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8Suffix", [new("'u8'"), new("'U8'")]);
+            }
+
+            void addIdentifierRules()
+            {
+                rules.Add("IdentifierToken", [Join(" ", [new("'@'?"), RuleReference("IdentifierStartCharacter"), RuleReference("IdentifierPartCharacter")])]);
+                rules.Add("IdentifierStartCharacter", [RuleReference("LetterCharacter"), RuleReference("UnderscoreCharacter")]);
+                rules.Add("IdentifierPartCharacter", [RuleReference("LetterCharacter"), RuleReference("DecimalDigitCharacter"), RuleReference("ConnectingCharacter"), RuleReference("CombiningCharacter"), RuleReference("FormattingCharacter")]);
+                rules.Add("UnderscoreCharacter", [new("'_'"), new("""'\\u005' // unicode_escape_sequence for underscore""")]);
+                rules.Add("LetterCharacter", [new("""[\p{L}\p{Nl}]""")]);
             }
 
             void addRealLiteralRules()

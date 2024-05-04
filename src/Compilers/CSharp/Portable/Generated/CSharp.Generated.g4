@@ -9,6 +9,32 @@ extern_alias_directive
   : 'extern' 'alias' identifier_token ';'
   ;
 
+identifier_token
+  : '@'? identifier_start_character identifier_part_character
+  ;
+
+identifier_start_character
+  : letter_character
+  | underscore_character
+  ;
+
+letter_character
+  : [\p{L}\p{Nl}]
+  ;
+
+underscore_character
+  : '\\u005' // unicode_escape_sequence for underscore
+  | '_'
+  ;
+
+identifier_part_character
+  : combining_character
+  | connecting_character
+  | decimal_digit_character
+  | formatting_character
+  | letter_character
+  ;
+
 using_directive
   : 'global'? 'using' ('static' | ('unsafe'? name_equals))? type ';'
   ;
@@ -1542,12 +1568,24 @@ base_parameter
   | parameter
   ;
 
+combining_character
+  : /* see lexical specification */
+  ;
+
+connecting_character
+  : /* see lexical specification */
+  ;
+
+decimal_digit_character
+  : /* see lexical specification */
+  ;
+
 expression_or_pattern
   : expression
   | pattern
   ;
 
-identifier_token
+formatting_character
   : /* see lexical specification */
   ;
 
