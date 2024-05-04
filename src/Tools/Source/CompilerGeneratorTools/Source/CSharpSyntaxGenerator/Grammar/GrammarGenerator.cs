@@ -143,7 +143,7 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
                 rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
-                rules.Add("IntegerTypeSuffix", [new("U"), new("u"), new("L"), new("l"), new("UL"), new("Ul"), new("uL"), new("ul"), new("LU"), new("Lu"), new("lU"), new("lu")]);
+                rules.Add("IntegerTypeSuffix", [new("'U'"), new("'u'"), new("'L'"), new("'l'"), new("'UL'"), new("'Ul'"), new("'uL'"), new("'ul'"), new("'LU'"), new("'Lu'"), new("'lU'"), new("'lu'")]);
             }
 
             void addEscapeSequenceRules()

@@ -1448,18 +1448,18 @@ decimal_integer_literal_token
   ;
 
 integer_type_suffix
-  : L
-  | LU
-  | Lu
-  | U
-  | UL
-  | Ul
-  | l
-  | lU
-  | lu
-  | u
-  | uL
-  | ul
+  : 'L'
+  | 'LU'
+  | 'Lu'
+  | 'U'
+  | 'UL'
+  | 'Ul'
+  | 'l'
+  | 'lU'
+  | 'lu'
+  | 'u'
+  | 'uL'
+  | 'ul'
   ;
 
 expression_or_pattern
