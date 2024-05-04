@@ -80,7 +80,7 @@ namespace CSharpSyntaxGenerator.Grammar
             var seen = new HashSet<string>();
 
             // Define a few major sections to help keep the grammar file naturally grouped.
-            ImmutableArray<string> majorRules = [
+            List<string> majorRules = [
                 "CompilationUnitSyntax",
                 "MemberDeclarationSyntax",
                 "TypeSyntax",
@@ -280,9 +280,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 do
                 {
                     for (var i = 0; i < value.Length; i++)
-                    {
                         builder.Append(array[i][indices[i]]);
-                    }
 
                     yield return new($"'{builder}'");
                     builder.Clear();
@@ -372,7 +370,7 @@ namespace CSharpSyntaxGenerator.Grammar
         string text, IEnumerable<string> referencedRules = null) : IComparable<Production>
     {
         public readonly string Text = text;
-        public readonly ImmutableArray<string> ReferencedRules = referencedRules?.ToImmutableArray() ?? [];
+        public readonly ImmutableArray<string> ReferencedRules = referencedRules?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
 
         public override string ToString() => Text;
         public int CompareTo(Production other) => StringComparer.Ordinal.Compare(this.Text, other.Text);
