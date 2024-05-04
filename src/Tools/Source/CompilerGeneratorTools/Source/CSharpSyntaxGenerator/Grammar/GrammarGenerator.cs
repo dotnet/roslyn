@@ -149,7 +149,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules["SyntaxToken"].AddRange([RuleReference("IdentifierToken"), RuleReference("Keyword"), RuleReference("NumericLiteralToken"), RuleReference("CharacterLiteralToken"), RuleReference("StringLiteralToken"), RuleReference("OperatorToken"), RuleReference("PunctuationToken")]);
                 rules.Add("Keyword", JoinWords(GetMembers<SyntaxKind>().Where(SyntaxFacts.IsReservedKeyword).Select(SyntaxFacts.GetText).ToArray()));
 
-                var operatorTokens = GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsBinaryExpressionOperatorToken(m) || SyntaxFacts.IsPostfixUnaryExpression(m) || SyntaxFacts.IsPrefixUnaryExpression(m));
+                var operatorTokens = GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsBinaryExpressionOperatorToken(m) || SyntaxFacts.IsPostfixUnaryExpression(m) || SyntaxFacts.IsPrefixUnaryExpression(m) || SyntaxFacts.IsAssignmentExpressionOperatorToken(m));
                 rules.Add("OperatorToken", JoinWords(operatorTokens.Select(SyntaxFacts.GetText).ToArray()));
                 rules.Add("PunctuationToken", JoinWords(GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsLanguagePunctuation(m) && !operatorTokens.Contains(m)).Select(SyntaxFacts.GetText).ToArray()));
             }
@@ -243,7 +243,10 @@ namespace CSharpSyntaxGenerator.Grammar
         }
 
         private static List<Production> JoinWords(params string[] strings)
-            => strings.Select(s => new Production($"""'{s}'""")).ToList();
+            => strings.Select(s => new Production($"""'{Escape(s)}'""")).ToList();
+
+        private static string Escape(string s)
+            => s.Replace("""\""", """\\""").Replace("'", """\'""");
 
         private static Production Join(string delim, IEnumerable<Production> productions)
             => new(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
