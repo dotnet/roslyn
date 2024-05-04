@@ -112,7 +112,7 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// <code>IEnumerable&lt;TSource&gt; -> Task</code>
+    /// <code>IEnumerable&lt;TSource&gt; -> Task</code>.  Callback receives IAsyncEnumerable items.
     /// </summary>
     public static Task RunParallelAsync<TSource, TArgs>(
         IEnumerable<TSource> source,
@@ -126,7 +126,7 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task</code>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task</code>.  Callback receives IAsyncEnumerable items.
     /// </summary>
     public static Task RunParallelAsync<TSource, TArgs>(
         IAsyncEnumerable<TSource> source,
@@ -147,6 +147,77 @@ internal static class ProducerConsumer<TItem>
             args: (produceItems, consumeItems, args),
             cancellationToken);
     }
+
+    /// <summary>
+    /// <code>IEnumerable&lt;TSource&gt; -> Task</code>.  Callback receives ImmutableArray of items.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that operates on an IAsyncEnumerable.
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task</code>.  Callback receives ImmutableArray of items.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that takes a consumeItems that returns a value.
+        return RunParallelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static async (items, args, cancellationToken) =>
+            {
+                await args.consumeItems(items, args.args, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
+            },
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IEnumerable&lt;TSource&gt; -> Task&lt;TResult&gt;</code>
+    /// </summary>
+    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that operates on an IAsyncEnumerable.
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task&lt;TResult&gt;</code> / Callback receives an IAsyncEnumerable of items.
+    /// </summary>
+    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunParallelImplAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static (reader, args, cancellationToken) => args.consumeItems(reader.ReadAllAsync(cancellationToken), args.args, cancellationToken),
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    #region helpers that return arrays
 
     /// <summary>
     /// <code>IEnumerable&lt;TSource&gt; -> Task&lt;ImmutableArray&lt;TResult&gt;&gt;</code>
@@ -179,31 +250,18 @@ internal static class ProducerConsumer<TItem>
             cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// <code>IEnumerable&lt;TSource&gt; -> Task&lt;TResult&gt;</code>
-    /// </summary>
-    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
-        IEnumerable<TSource> source,
-        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        // Bridge to sibling helper that operates on an IAsyncEnumerable.
-        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
-    }
+    #endregion
 
-    /// <summary>
-    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task&lt;TResult&gt;</code>
-    /// </summary>
-    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
+    #region Core channel-based impl
+
+    private static Task<TResult> RunParallelImplAsync<TSource, TArgs, TResult>(
         IAsyncEnumerable<TSource> source,
         Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
+        Func<ChannelReader<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunAsync(
+        return RunImplAsync(
             // We're running in parallel, so we def have multiple writers
             ProducerConsumerOptions.SingleReaderOptions,
             produceItems: static (callback, args, cancellationToken) =>
@@ -292,4 +350,6 @@ internal static class ProducerConsumer<TItem>
             }
         }
     }
+
+    #endregion
 }
