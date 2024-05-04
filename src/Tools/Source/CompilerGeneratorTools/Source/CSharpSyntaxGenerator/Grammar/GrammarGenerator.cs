@@ -75,10 +75,7 @@ namespace CSharpSyntaxGenerator.Grammar
             }
 
             // Add some rules not present in Syntax.xml.
-            rules.Add("Utf8StringLiteralToken", [Join(" ", [RuleReference("StringLiteralToken"), RuleReference("Utf8Suffix")])]);
-            rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
-            rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
-            rules.Add("Utf8Suffix", [new("'u8'"), new("'U8'")]);
+            AddLexicalRules(rules);
 
             // The grammar will bottom out with certain lexical productions. Create rules for these.
             var lexicalRules = rules.Values.SelectMany(ps => ps).SelectMany(p => p.ReferencedRules)
@@ -106,8 +103,16 @@ namespace CSharpSyntaxGenerator.Grammar
                 {
                     // Order the productions to keep us independent from whatever changes happen in Syntax.xml.
                     var sorted = rules[name].OrderBy(v => v);
-                    result += Environment.NewLine + RuleReference(name).Text + Environment.NewLine + "  : " +
-                                string.Join(Environment.NewLine + "  | ", sorted) + Environment.NewLine + "  ;" + Environment.NewLine;
+                    var ruleReference = RuleReference(name);
+                    result +=
+                        Environment.NewLine
+                        + ruleReference.Text
+                        + Environment.NewLine
+                        + "  : "
+                        + string.Join(Environment.NewLine + "  | ", sorted)
+                        + Environment.NewLine
+                        + "  ;"
+                        + Environment.NewLine;
 
                     // Now proceed in depth-first fashion through the referenced rules to keep related rules
                     // close by. Don't recurse into major-sections to help keep them separated in grammar file.
@@ -116,6 +121,26 @@ namespace CSharpSyntaxGenerator.Grammar
                             if (!majorRules.Concat(lexicalRules).Contains(referencedRule))
                                 processRule(referencedRule, ref result);
                 }
+            }
+        }
+
+        private static void AddLexicalRules(Dictionary<string, List<Production>> rules)
+        {
+            addUtf8Rules();
+            addStringLiteralRules();
+
+            void addUtf8Rules()
+            {
+                rules.Add("Utf8StringLiteralToken", [Join(" ", [RuleReference("StringLiteralToken"), RuleReference("Utf8Suffix")])]);
+                rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
+                rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
+                rules.Add("Utf8Suffix", [new("'u8'"), new("'U8'")]);
+            }
+
+            void addStringLiteralRules()
+            {
+                rules.Add("StringLiteralToken", [RuleReference("RegularStringLiteralToken"), RuleReference("VerbatimStringLiteralToken")]);
+                rules.Add("RegularStringLiteralToken", [Join(" ", [new("'\"'"), RuleReference("RegularStringLiteralCharacter").Suffix("*"), new("'\"'")])]);
             }
         }
 
@@ -182,9 +207,11 @@ namespace CSharpSyntaxGenerator.Grammar
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
     }
 
-    internal readonly struct Production(string text, IEnumerable<string> referencedRules = null) : IComparable<Production>
+    internal readonly struct Production(
+        string text, IEnumerable<string> referencedRules = null, bool isFragment = false) : IComparable<Production>
     {
         public readonly string Text = text;
+        public readonly bool IsFragment = isFragment;
         public readonly ImmutableArray<string> ReferencedRules = referencedRules?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
 
         public override string ToString() => Text;
