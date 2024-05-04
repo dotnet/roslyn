@@ -127,6 +127,7 @@ namespace CSharpSyntaxGenerator.Grammar
         private static void AddLexicalRules(Dictionary<string, List<Production>> rules)
         {
             addUtf8Rules();
+            addIntegerLiterals();
             addEscapeSequenceRules();
             addStringLiteralRules();
 
@@ -136,6 +137,13 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8Suffix", [new("'u8'"), new("'U8'")]);
+            }
+
+            void addIntegerLiterals()
+            {
+                rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
+                rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
+                rules.Add("DecimalDigit", [new("'0'..'9'")]);
             }
 
             void addEscapeSequenceRules()
