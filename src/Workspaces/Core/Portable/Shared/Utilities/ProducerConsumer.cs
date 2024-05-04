@@ -50,30 +50,24 @@ internal static class ProducerConsumer<TItem>
         return RunImplAsync(
             options,
             static (onItemFound, args, cancellationToken) => args.produceItems(onItemFound, args.args, cancellationToken),
-            static (reader, args, cancellationToken) => ConsumeItemsAsArrayAsync(reader, args.consumeItems, args.args, cancellationToken),
+            static async (reader, args, cancellationToken) =>
+            {
+                using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
+
+                while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // Grab as many items as we can from the channel at once and report in a single array. Then wait for the
+                    // next set of items to be available.
+                    while (reader.TryRead(out var item))
+                        items.Add(item);
+
+                    await args.consumeItems(items.ToImmutableAndClear(), args.args, cancellationToken).ConfigureAwait(false);
+                }
+
+                return default(VoidResult);
+            },
             (produceItems, consumeItems, args),
             cancellationToken);
-
-        static async Task<VoidResult> ConsumeItemsAsArrayAsync(
-            ChannelReader<TItem> reader,
-            Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
-            TArgs args,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
-
-            while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // Grab as many items as we can from the channel at once and report in a single array. Then wait for the
-                // next set of items to be available.
-                while (reader.TryRead(out var item))
-                    items.Add(item);
-
-                await consumeItems(items.ToImmutableAndClear(), args, cancellationToken).ConfigureAwait(false);
-            }
-
-            return default;
-        }
     }
 
     /// <summary>
