@@ -1440,7 +1440,16 @@ character_literal_token
   ;
 
 decimal_digit
-  : /* see lexical specification */
+  : '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
   ;
 
 decimal_integer_literal_token
@@ -1465,6 +1474,22 @@ integer_type_suffix
 expression_or_pattern
   : expression
   | pattern
+  ;
+
+hexadecimal_digit
+  : 'A'
+  | 'B'
+  | 'C'
+  | 'D'
+  | 'E'
+  | 'F'
+  | 'a'
+  | 'b'
+  | 'c'
+  | 'd'
+  | 'e'
+  | 'f'
+  | decimal_digit
   ;
 
 hexadecimal_integer_literal_token

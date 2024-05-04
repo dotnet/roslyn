@@ -144,6 +144,8 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
                 rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
                 rules.Add("IntegerTypeSuffix", [new("'U'"), new("'u'"), new("'L'"), new("'l'"), new("'UL'"), new("'Ul'"), new("'uL'"), new("'ul'"), new("'LU'"), new("'Lu'"), new("'lU'"), new("'lu'")]);
+                rules.Add("DecimalDigit", [new("'0'"), new("'1'"), new("'2'"), new("'3'"), new("'4'"), new("'5'"), new("'6'"), new("'7'"), new("'8'"), new("'9'")]);
+                rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), new("'A'"), new("'B'"), new("'C'"), new("'D'"), new("'E'"), new("'F'"), new("'a'"), new("'b'"), new("'c'"), new("'d'"), new("'e'"), new("'f'")]);
             }
 
             void addEscapeSequenceRules()
