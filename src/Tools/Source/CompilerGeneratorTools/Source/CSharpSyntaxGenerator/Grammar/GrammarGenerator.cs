@@ -131,6 +131,7 @@ namespace CSharpSyntaxGenerator.Grammar
             addIntegerLiteralRules();
             addEscapeSequenceRules();
             addStringLiteralRules();
+            addCharacterLiteralRules();
 
             void addUtf8Rules()
             {
@@ -159,6 +160,9 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules.Add("SimpleEscapeSequence", [new("""'\\\''"""), new("""'\\"'"""), new("""'\\\\'"""), new("""'\\0'"""), new("""'\\a'"""), new("""'\\b'"""), new("""'\\f'"""), new("""'\\n'"""), new("""'\\r'"""), new("""'\\t'"""), new("""'\\v'""")]);
                 rules.Add("HexadecimalEscapeSequence", [Join(" ", [new("""'\\x'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?")])]);
+                rules.Add("UnicodeEscapeSequence", [
+                    Join(" ", [new("""'\\u'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")]),
+                    Join(" ", [new("""'\\U'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")])]);
             }
 
             void addStringLiteralRules()
@@ -171,6 +175,12 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("VerbatimStringLiteralCharacter", [RuleReference("SingleVerbatimStringLiteralCharacter"), RuleReference("QuoteEscapeSequence")]);
                 rules.Add("SingleVerbatimStringLiteralCharacter", [new("/* anything but quotation mark (U+0022) */")]);
                 rules.Add("QuoteEscapeSequence", [new("'\"\"'")]);
+            }
+
+            void addCharacterLiteralRules()
+            {
+                rules.Add("CharacterLiteralToken", [Join(" ", [new("'\''"), RuleReference("Character"), new("'\''")])]);
+                rules.Add("Character", [RuleReference("SingleCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
             }
         }
 

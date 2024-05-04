@@ -1375,6 +1375,11 @@ simple_escape_sequence
   | '\\v'
   ;
 
+unicode_escape_sequence
+  : '\\U' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  | '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  ;
+
 verbatim_string_literal_token
   : '@"' verbatim_string_literal_character* '"'
   ;
@@ -1460,6 +1465,17 @@ literal_expression
   | utf8_string_literal_token
   ;
 
+character_literal_token
+  : ''' character '''
+  ;
+
+character
+  : hexadecimal_escape_sequence
+  | simple_escape_sequence
+  | single_character
+  | unicode_escape_sequence
+  ;
+
 utf8_multi_line_raw_string_literal_token
   : multi_line_raw_string_literal_token utf8_suffix
   ;
@@ -1497,10 +1513,6 @@ base_parameter
   | parameter
   ;
 
-character_literal_token
-  : /* see lexical specification */
-  ;
-
 expression_or_pattern
   : expression
   | pattern
@@ -1534,6 +1546,10 @@ real_literal_token
   : /* see lexical specification */
   ;
 
+single_character
+  : /* see lexical specification */
+  ;
+
 single_line_raw_string_literal_token
   : /* see lexical specification */
   ;
@@ -1543,10 +1559,6 @@ single_regular_string_literal_character
   ;
 
 syntax_token
-  : /* see lexical specification */
-  ;
-
-unicode_escape_sequence
   : /* see lexical specification */
   ;
 
