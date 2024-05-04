@@ -53,8 +53,8 @@ namespace CSharpSyntaxGenerator.Grammar
                             var originalLastFieldKinds = lastField.Kinds.ToList();
                             for (int i = 0; i < originalFirstFieldKinds.Count; i++)
                             {
-                                firstField.Kinds = new List<Kind> { originalFirstFieldKinds[i] };
-                                lastField.Kinds = new List<Kind> { originalLastFieldKinds[i] };
+                                firstField.Kinds = [originalFirstFieldKinds[i]];
+                                lastField.Kinds = [originalLastFieldKinds[i]];
                                 rules[type.Name].Add(HandleChildren(type.Children));
                             }
                         }
@@ -74,11 +74,13 @@ namespace CSharpSyntaxGenerator.Grammar
                 }
             }
 
+            // rules.Add()
+
             // The grammar will bottom out with certain lexical productions. Create rules for these.
             var lexicalRules = rules.Values.SelectMany(ps => ps).SelectMany(p => p.ReferencedRules)
                 .Where(r => !rules.TryGetValue(r, out var productions) || productions.Count == 0).ToArray();
             foreach (var name in lexicalRules)
-                rules[name] = new List<Production> { new Production("/* see lexical specification */") };
+                rules[name] = [new("/* see lexical specification */")];
 
             var seen = new HashSet<string>();
 
@@ -114,13 +116,17 @@ namespace CSharpSyntaxGenerator.Grammar
         }
 
         private static Production Join(string delim, IEnumerable<Production> productions)
-            => new Production(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
+            => new(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
 
         private static Production HandleChildren(IEnumerable<TreeTypeChild> children, string delim = " ")
             => Join(delim, children.Select(child =>
-                child is Choice c ? HandleChildren(c.Children, delim: " | ").Parenthesize().Suffix("?", when: c.Optional) :
-                child is Sequence s ? HandleChildren(s.Children).Parenthesize() :
-                child is Field f ? HandleField(f).Suffix("?", when: f.IsOptional) : throw new InvalidOperationException()));
+                child switch
+                {
+                    Choice c => HandleChildren(c.Children, delim: " | ").Parenthesize().Suffix("?", when: c.Optional),
+                    Sequence s => HandleChildren(s.Children).Parenthesize(),
+                    Field f => HandleField(f).Suffix("?", when: f.IsOptional),
+                    _ => throw new InvalidOperationException(),
+                }));
 
         private static Production HandleField(Field field)
             // 'bool' fields are for a few properties we generate on DirectiveTrivia. They're not
@@ -162,26 +168,20 @@ namespace CSharpSyntaxGenerator.Grammar
             => (IEnumerable<TEnum>)Enum.GetValues(typeof(TEnum));
 
         private static Production RuleReference(string name)
-            => new Production(
+            => new(
                 s_normalizationRegex.Replace(name.EndsWith("Syntax") ? name[..^"Syntax".Length] : name, "_").ToLower(),
                 ImmutableArray.Create(name));
 
         // Converts a PascalCased name into snake_cased name.
         private static readonly Regex s_normalizationRegex = new Regex(
-            "(?<=[A-Z])(?=[A-Z][a-z]) | (?<=[^A-Z])(?=[A-Z]) | (?<=[A-Za-z])(?=[^A-Za-z])",
+            "(?<=[A-Z0-9])(?=[A-Z0-9][a-z0-9]) | (?<=[^A-Z0-9])(?=[A-Z0-9]) | (?<=[A-Za-z0-9])(?=[^A-Za-z0-9])",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
     }
 
-    internal readonly struct Production : IComparable<Production>
+    internal readonly struct Production(string text, IEnumerable<string> referencedRules = null) : IComparable<Production>
     {
-        public readonly string Text;
-        public readonly ImmutableArray<string> ReferencedRules;
-
-        public Production(string text, IEnumerable<string> referencedRules = null)
-        {
-            Text = text;
-            ReferencedRules = referencedRules?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
-        }
+        public readonly string Text = text;
+        public readonly ImmutableArray<string> ReferencedRules = referencedRules?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
 
         public override string ToString() => Text;
         public int CompareTo(Production other) => StringComparer.Ordinal.Compare(this.Text, other.Text);
