@@ -323,10 +323,9 @@ namespace CSharpSyntaxGenerator.Grammar
     }
 
     internal readonly struct Production(
-        string text, IEnumerable<string> referencedRules = null, bool isFragment = false) : IComparable<Production>
+        string text, IEnumerable<string> referencedRules = null) : IComparable<Production>
     {
         public readonly string Text = text;
-        public readonly bool IsFragment = isFragment;
         public readonly ImmutableArray<string> ReferencedRules = referencedRules?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
 
         public override string ToString() => Text;
