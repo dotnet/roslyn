@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-        private (Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task<VoidResult>> onItemsFound, Func<Task> onProjectCompleted) GetCallbacks(
+        private (Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound, Func<Task> onProjectCompleted) GetCallbacks(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return (
@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var array = await enumerable.ToImmutableArrayAsync(cancellationToken).ConfigureAwait(false);
                     await callback.OnItemsFoundAsync(callbackId, array).ConfigureAwait(false);
-                    return default(VoidResult);
                 }, cancellationToken).ConfigureAwait(false),
                 async () => await _callback.InvokeAsync((callback, cancellationToken) => callback.OnProjectCompletedAsync(callbackId), cancellationToken).ConfigureAwait(false));
         }
