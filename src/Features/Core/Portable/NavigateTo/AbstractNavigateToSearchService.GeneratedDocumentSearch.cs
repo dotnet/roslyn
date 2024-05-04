@@ -61,7 +61,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Project> projects,
         string pattern,
         IImmutableSet<string> kinds,
-        Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {

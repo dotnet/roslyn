@@ -50,7 +50,7 @@ internal abstract partial class AbstractNavigateToSearchService
         Document document,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         CancellationToken cancellationToken)
     {
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
@@ -61,7 +61,7 @@ internal abstract partial class AbstractNavigateToSearchService
             document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
 
         if (results.Count > 0)
-            await onItemsFound(results.AsAsyncEnumerable(), default, cancellationToken).ConfigureAwait(false);
+            await onItemsFound([.. results], default, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task SearchProjectsAsync(
@@ -111,7 +111,7 @@ internal abstract partial class AbstractNavigateToSearchService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
-        Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
+        Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
