@@ -950,9 +950,21 @@ literal_expression
   | numeric_literal_token
   | single_line_raw_string_literal_token
   | string_literal_token
-  | utf_8_multi_line_raw_string_literal_token
-  | utf_8_single_line_raw_string_literal_token
-  | utf_8_string_literal_token
+  | utf8_multi_line_raw_string_literal_token
+  | utf8_single_line_raw_string_literal_token
+  | utf8_string_literal_token
+  ;
+
+utf8_multi_line_raw_string_literal_token
+  : multi_line_raw_string_literal_token utf8_suffix
+  ;
+
+utf8_single_line_raw_string_literal_token
+  : single_line_raw_string_literal_token utf8_suffix
+  ;
+
+utf8_string_literal_token
+  : string_literal_token utf8_suffix
   ;
 
 make_ref_expression
@@ -1347,6 +1359,11 @@ skipped_tokens_trivia
   : syntax_token*
   ;
 
+utf8_suffix
+  : 'U8'
+  | 'u8'
+  ;
+
 base_argument_list
   : argument_list
   | bracketed_argument_list
@@ -1413,18 +1430,6 @@ string_literal_token
   ;
 
 syntax_token
-  : /* see lexical specification */
-  ;
-
-utf_8_multi_line_raw_string_literal_token
-  : /* see lexical specification */
-  ;
-
-utf_8_single_line_raw_string_literal_token
-  : /* see lexical specification */
-  ;
-
-utf_8_string_literal_token
   : /* see lexical specification */
   ;
 
