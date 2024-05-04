@@ -106,16 +106,8 @@ namespace CSharpSyntaxGenerator.Grammar
                 {
                     // Order the productions to keep us independent from whatever changes happen in Syntax.xml.
                     var sorted = rules[name].OrderBy(v => v);
-                    var ruleReference = RuleReference(name);
-                    result +=
-                        Environment.NewLine
-                        + ruleReference.Text
-                        + Environment.NewLine
-                        + "  : "
-                        + string.Join(Environment.NewLine + "  | ", sorted)
-                        + Environment.NewLine
-                        + "  ;"
-                        + Environment.NewLine;
+                    result += Environment.NewLine + RuleReference(name).Text + Environment.NewLine + "  : " +
+                        string.Join(Environment.NewLine + "  | ", sorted) + Environment.NewLine + "  ;" + Environment.NewLine;
 
                     // Now proceed in depth-first fashion through the referenced rules to keep related rules
                     // close by. Don't recurse into major-sections to help keep them separated in grammar file.
