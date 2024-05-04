@@ -18,15 +18,8 @@ namespace CSharpSyntaxGenerator.Grammar
 {
     internal static class GrammarGenerator
     {
-        // Syntax.xml refers to a special pseudo-element 'Modifier'.  Synthesize that for the grammar.
-        private static readonly List<Kind> s_modifiers = GetMembers<DeclarationModifiers>()
-            .Select(m => m + "Keyword").Where(n => GetSyntaxKind(n) != SyntaxKind.None)
-            .Select(n => new Kind { Name = n }).ToList();
-
         public static string Run(List<TreeType> types)
         {
-            types.Add(new Node { Name = "Modifier", Children = { new Field { Type = "SyntaxToken", Kinds = s_modifiers } } });
-
             var rules = types.ToDictionary(n => n.Name, _ => new List<Production>());
             foreach (var type in types)
             {
@@ -148,8 +141,12 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules["SyntaxToken"].AddRange([RuleReference("IdentifierToken"), RuleReference("Keyword"), RuleReference("NumericLiteralToken"), RuleReference("CharacterLiteralToken"), RuleReference("StringLiteralToken"), RuleReference("OperatorToken"), RuleReference("PunctuationToken")]);
 
-                var modifiers = s_modifiers.Select(t => GetSyntaxKind(t.Name));
-                var keywords = JoinWords(GetMembers<SyntaxKind>().Where(k => SyntaxFacts.IsReservedKeyword(k) && !modifiers.Contains(k)).Select(SyntaxFacts.GetText).ToArray());
+                var modifierWords = GetMembers<DeclarationModifiers>()
+                    .Where(n => GetSyntaxKind(n + "Keyword") != SyntaxKind.None)
+                    .Select(n => n.ToString().ToLower());
+                rules.Add("Modifier", JoinWords(modifierWords.ToArray()));
+
+                var keywords = JoinWords(GetMembers<SyntaxKind>().Where(k => SyntaxFacts.IsReservedKeyword(k)).Select(SyntaxFacts.GetText).Where(t => !modifierWords.Contains(t)).ToArray());
                 keywords.Add(RuleReference("Modifier"));
                 rules.Add("Keyword", keywords);
 
