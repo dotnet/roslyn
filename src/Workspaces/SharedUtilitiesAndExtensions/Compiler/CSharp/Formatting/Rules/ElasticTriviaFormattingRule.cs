@@ -296,8 +296,9 @@ internal class ElasticTriviaFormattingRule : BaseFormattingRule
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
             }
 
-            // make every operation forced
-            return CreateAdjustSpacesOperation(Math.Max(0, operation.Space), AdjustSpacesOption.ForceSpaces);
+            // make every operation forced, except at the end of the file
+            var option = currentToken.IsKind(SyntaxKind.EndOfFileToken) ? AdjustSpacesOption.PreserveSpaces : AdjustSpacesOption.ForceSpaces;
+            return CreateAdjustSpacesOperation(Math.Max(0, operation.Space), option);
         }
 
         return operation;

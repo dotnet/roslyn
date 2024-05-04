@@ -570,7 +570,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """;
 
             var expectedCodeAfterCommit = $$"""
-
                 {{trivia}}
                 {{ItemToCommit}} (true)
                 {

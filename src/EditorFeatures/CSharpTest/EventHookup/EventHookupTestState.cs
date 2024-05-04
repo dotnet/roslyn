@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         internal void AssertCodeIs(string expectedCode)
         {
-            Assert.Equal(expectedCode, TextView.TextSnapshot.GetText());
+            AssertEx.EqualOrDiff(expectedCode, TextView.TextSnapshot.GetText());
         }
 
         public void SendTypeChar(char ch)

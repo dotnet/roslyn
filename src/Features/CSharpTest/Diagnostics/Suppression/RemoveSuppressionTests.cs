@@ -760,7 +760,6 @@ class Class2
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-
 ";
                 var expected = @"
 <Workspace>
@@ -889,7 +888,6 @@ class Class2
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
 
-
 ";
                 var expected = @"
 <Workspace>
@@ -1013,7 +1011,6 @@ class Class2
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given 
 // a specific target and scoped to a namespace, type, member, etc.
-
 
 ";
                 var expected = @"

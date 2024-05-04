@@ -623,7 +623,8 @@ partial class Program
     {
         Console.WriteLine(0);
     }
-}",
+}
+",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
@@ -661,7 +662,8 @@ using System;
     {{
         Console.WriteLine(0);
     }}
-}}",
+}}
+",
                 LanguageVersion = LanguageVersion.CSharp11,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
