@@ -198,7 +198,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
                 rules.Add("ExponentPart", [Join(" ", [new("('e' | 'E')"), RuleReference("Sign").Suffix("?"), decimalDigitPlus])]);
                 rules.Add("Sign", [new("'+'"), new("'-'")]);
-                rules.Add("RealTypeSuffix", [new("'F'"), new("'f'"), new("'D'"), new("'d'"), new("'M'"), new("'m'")]);
+                rules.Add("RealTypeSuffix", [.. anyCasing('F'), .. anyCasing('D'), .. anyCasing('M')]);
             }
 
             void addNumericLiteralRules()
@@ -255,6 +255,12 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 for (char c = start; c <= end; c++)
                     yield return new($"'{c}'");
+            }
+
+            IEnumerable<Production> anyCasing(char v)
+            {
+                yield return new($"'{v}'");
+                yield return new($"'{(char.IsLower(v) ? char.ToUpperInvariant(v) : char.ToLowerInvariant(v))}'");
             }
         }
 
