@@ -77,6 +77,253 @@ attribute_target_specifier
   : syntax_token ':'
   ;
 
+syntax_token
+  : character_literal_token
+  | identifier_token
+  | keyword
+  | numeric_literal_token
+  | operator_or_punctuator_token
+  | string_literal_token
+  ;
+
+character_literal_token
+  : '\'' character '\''
+  ;
+
+character
+  : hexadecimal_escape_sequence
+  | simple_escape_sequence
+  | single_character
+  | unicode_escape_sequence
+  ;
+
+hexadecimal_escape_sequence
+  : '\\x' hexadecimal_digit hexadecimal_digit? hexadecimal_digit? hexadecimal_digit?
+  ;
+
+hexadecimal_digit
+  : 'A'
+  | 'B'
+  | 'C'
+  | 'D'
+  | 'E'
+  | 'F'
+  | 'a'
+  | 'b'
+  | 'c'
+  | 'd'
+  | 'e'
+  | 'f'
+  | decimal_digit
+  ;
+
+decimal_digit
+  : '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
+  ;
+
+simple_escape_sequence
+  : '\\"'
+  | '\\0'
+  | '\\\''
+  | '\\\\'
+  | '\\a'
+  | '\\b'
+  | '\\f'
+  | '\\n'
+  | '\\r'
+  | '\\t'
+  | '\\v'
+  ;
+
+single_character
+  : /* anything but ', \, and new_line_character */
+  ;
+
+unicode_escape_sequence
+  : '\\U' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  | '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  ;
+
+numeric_literal_token
+  : integer_literal_token
+  | real_literal_token
+  ;
+
+integer_literal_token
+  : decimal_integer_literal_token
+  | hexadecimal_integer_literal_token
+  ;
+
+decimal_integer_literal_token
+  : decimal_digit+ integer_type_suffix?
+  ;
+
+integer_type_suffix
+  : 'L'
+  | 'LU'
+  | 'Lu'
+  | 'U'
+  | 'UL'
+  | 'Ul'
+  | 'l'
+  | 'lU'
+  | 'lu'
+  | 'u'
+  | 'uL'
+  | 'ul'
+  ;
+
+hexadecimal_integer_literal_token
+  : ('0x' | '0X') hexadecimal_digit+ integer_type_suffix?
+  ;
+
+real_literal_token
+  : '.' decimal_digit+ exponent_part? real_type_suffix?
+  | decimal_digit+ '.' decimal_digit+ exponent_part? real_type_suffix?
+  | decimal_digit+ exponent_part real_type_suffix?
+  | decimal_digit+ real_type_suffix
+  ;
+
+exponent_part
+  : ('e' | 'E') sign? decimal_digit+
+  ;
+
+sign
+  : '+'
+  | '-'
+  ;
+
+real_type_suffix
+  : 'D'
+  | 'F'
+  | 'M'
+  | 'd'
+  | 'f'
+  | 'm'
+  ;
+
+operator_or_punctuator_token
+  : 'abstract'
+  | 'as'
+  | 'base'
+  | 'bool'
+  | 'break'
+  | 'byte'
+  | 'case'
+  | 'catch'
+  | 'char'
+  | 'checked'
+  | 'class'
+  | 'const'
+  | 'continue'
+  | 'decimal'
+  | 'default'
+  | 'delegate'
+  | 'do'
+  | 'double'
+  | 'else'
+  | 'enum'
+  | 'event'
+  | 'explicit'
+  | 'extern'
+  | 'false'
+  | 'finally'
+  | 'fixed'
+  | 'float'
+  | 'for'
+  | 'foreach'
+  | 'goto'
+  | 'if'
+  | 'implicit'
+  | 'in'
+  | 'int'
+  | 'interface'
+  | 'internal'
+  | 'is'
+  | 'lock'
+  | 'long'
+  | 'namespace'
+  | 'new'
+  | 'null'
+  | 'object'
+  | 'operator'
+  | 'out'
+  | 'override'
+  | 'params'
+  | 'private'
+  | 'protected'
+  | 'public'
+  | 'readonly'
+  | 'ref'
+  | 'return'
+  | 'sbyte'
+  | 'sealed'
+  | 'short'
+  | 'sizeof'
+  | 'stackalloc'
+  | 'static'
+  | 'string'
+  | 'struct'
+  | 'switch'
+  | 'this'
+  | 'throw'
+  | 'true'
+  | 'try'
+  | 'typeof'
+  | 'uint'
+  | 'ulong'
+  | 'unchecked'
+  | 'unsafe'
+  | 'ushort'
+  | 'using'
+  | 'virtual'
+  | 'void'
+  | 'volatile'
+  | 'while'
+  ;
+
+string_literal_token
+  : regular_string_literal_token
+  | verbatim_string_literal_token
+  ;
+
+regular_string_literal_token
+  : '"' regular_string_literal_character* '"'
+  ;
+
+regular_string_literal_character
+  : hexadecimal_escape_sequence
+  | simple_escape_sequence
+  | single_regular_string_literal_character
+  | unicode_escape_sequence
+  ;
+
+verbatim_string_literal_token
+  : '@"' verbatim_string_literal_character* '"'
+  ;
+
+verbatim_string_literal_character
+  : quote_escape_sequence
+  | single_verbatim_string_literal_character
+  ;
+
+quote_escape_sequence
+  : '""'
+  ;
+
+single_verbatim_string_literal_character
+  : /* anything but quotation mark (U+0022) */
+  ;
+
 attribute
   : name attribute_argument_list?
   ;
@@ -1326,149 +1573,6 @@ line_directive_trivia
   : '#' 'line' (numeric_literal_token | 'default' | 'hidden') string_literal_token?
   ;
 
-numeric_literal_token
-  : integer_literal_token
-  | real_literal_token
-  ;
-
-integer_literal_token
-  : decimal_integer_literal_token
-  | hexadecimal_integer_literal_token
-  ;
-
-decimal_integer_literal_token
-  : decimal_digit+ integer_type_suffix?
-  ;
-
-decimal_digit
-  : '0'
-  | '1'
-  | '2'
-  | '3'
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | '8'
-  | '9'
-  ;
-
-integer_type_suffix
-  : 'L'
-  | 'LU'
-  | 'Lu'
-  | 'U'
-  | 'UL'
-  | 'Ul'
-  | 'l'
-  | 'lU'
-  | 'lu'
-  | 'u'
-  | 'uL'
-  | 'ul'
-  ;
-
-hexadecimal_integer_literal_token
-  : ('0x' | '0X') hexadecimal_digit+ integer_type_suffix?
-  ;
-
-hexadecimal_digit
-  : 'A'
-  | 'B'
-  | 'C'
-  | 'D'
-  | 'E'
-  | 'F'
-  | 'a'
-  | 'b'
-  | 'c'
-  | 'd'
-  | 'e'
-  | 'f'
-  | decimal_digit
-  ;
-
-real_literal_token
-  : '.' decimal_digit+ exponent_part? real_type_suffix?
-  | decimal_digit+ '.' decimal_digit+ exponent_part? real_type_suffix?
-  | decimal_digit+ exponent_part real_type_suffix?
-  | decimal_digit+ real_type_suffix
-  ;
-
-exponent_part
-  : ('e' | 'E') sign? decimal_digit+
-  ;
-
-sign
-  : '+'
-  | '-'
-  ;
-
-real_type_suffix
-  : 'D'
-  | 'F'
-  | 'M'
-  | 'd'
-  | 'f'
-  | 'm'
-  ;
-
-string_literal_token
-  : regular_string_literal_token
-  | verbatim_string_literal_token
-  ;
-
-regular_string_literal_token
-  : '"' regular_string_literal_character* '"'
-  ;
-
-regular_string_literal_character
-  : hexadecimal_escape_sequence
-  | simple_escape_sequence
-  | single_regular_string_literal_character
-  | unicode_escape_sequence
-  ;
-
-hexadecimal_escape_sequence
-  : '\\x' hexadecimal_digit hexadecimal_digit? hexadecimal_digit? hexadecimal_digit?
-  ;
-
-simple_escape_sequence
-  : '\\"'
-  | '\\0'
-  | '\\\''
-  | '\\\\'
-  | '\\a'
-  | '\\b'
-  | '\\f'
-  | '\\n'
-  | '\\r'
-  | '\\t'
-  | '\\v'
-  ;
-
-unicode_escape_sequence
-  : '\\U' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
-  | '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
-  ;
-
-verbatim_string_literal_token
-  : '@"' verbatim_string_literal_character* '"'
-  ;
-
-verbatim_string_literal_character
-  : quote_escape_sequence
-  | single_verbatim_string_literal_character
-  ;
-
-quote_escape_sequence
-  : '""'
-  ;
-
-single_verbatim_string_literal_character
-  : /* anything but quotation mark (U+0022) */
-  ;
-
 line_span_directive_trivia
   : '#' 'line' line_directive_position '-' line_directive_position numeric_literal_token? string_literal_token
   ;
@@ -1537,21 +1641,6 @@ literal_expression
   | utf8_string_literal_token
   ;
 
-character_literal_token
-  : '\'' character '\''
-  ;
-
-character
-  : hexadecimal_escape_sequence
-  | simple_escape_sequence
-  | single_character
-  | unicode_escape_sequence
-  ;
-
-single_character
-  : /* anything but ', \, and new_line_character */
-  ;
-
 utf8_multi_line_raw_string_literal_token
   : multi_line_raw_string_literal_token utf8_suffix
   ;
@@ -1610,6 +1699,10 @@ interpolated_string_text_token
   : /* see lexical specification */
   ;
 
+keyword
+  : /* see lexical specification */
+  ;
+
 multi_line_raw_string_literal_token
   : /* see lexical specification */
   ;
@@ -1619,10 +1712,6 @@ single_line_raw_string_literal_token
   ;
 
 single_regular_string_literal_character
-  : /* see lexical specification */
-  ;
-
-syntax_token
   : /* see lexical specification */
   ;
 

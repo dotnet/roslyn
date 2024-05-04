@@ -127,6 +127,8 @@ namespace CSharpSyntaxGenerator.Grammar
         private static void AddLexicalRules(Dictionary<string, List<Production>> rules)
         {
             addUtf8Rules();
+            addTokenRules();
+            addKeywordRules();
             addIdentifierRules();
             addRealLiteralRules();
             addNumericLiteralRules();
@@ -141,6 +143,36 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8Suffix", [new("'u8'"), new("'U8'")]);
+            }
+
+            void addTokenRules()
+            {
+                rules["SyntaxToken"].AddRange([RuleReference("IdentifierToken"), RuleReference("Keyword"), RuleReference("NumericLiteralToken"), RuleReference("CharacterLiteralToken"), RuleReference("StringLiteralToken"), RuleReference("OperatorOrPunctuatorToken")]);
+                rules.Add("OperatorOrPunctuatorToken", JoinWords(
+                    GetMembers<SyntaxKind>().Where(m => m.ToString().EndsWith("Keyword")).Select(m => m.ToString()[0..^"Keyword".Length].ToLower()))
+                    .Concat(
+                    "abstract", "as", "base", "bool", "break"
+                    , "byte", "case", "catch", "char", "checked"
+                    , "class", "const", "continue", "decimal", "default"
+                    , "delegate", "do", "double", "else", "enum"
+                    , "event", "explicit", "extern", "false", "finally"
+                    , "fixed", "float", "for", "foreach", "goto"
+                    , "if", "implicit", "in", "int", "interface"
+                    , "internal", "is", "lock", "long", "namespace"
+                    , "new", "null", "object", "operator", "out"
+                    , "override", "params", "private", "protected", "public"
+                    , "readonly", "ref", "return", "sbyte", "sealed"
+                    , "short", "sizeof", "stackalloc", "static", "string"
+                    , "struct", "switch", "this", "throw", "true"
+                    , "try", "typeof", "uint", "ulong", "unchecked"
+                    , "unsafe", "ushort", "using", "virtual", "void"
+                    , "volatile", "while"));
+            }
+
+            void addKeywordRules()
+            {
+    //            rules.Add()
+    //
             }
 
             void addIdentifierRules()
@@ -230,6 +262,9 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("SingleCharacter", [new("/* anything but ', \\, and new_line_character */")]);
             }
         }
+
+        private static List<Production> JoinWords(params string[] strings)
+            => strings.Select(s => new Production($"""'{s}'""")).ToList();
 
         private static Production Join(string delim, IEnumerable<Production> productions)
             => new(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
