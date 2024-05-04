@@ -153,66 +153,12 @@ unicode_escape_sequence
   | '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
   ;
 
-numeric_literal_token
-  : integer_literal_token
-  | real_literal_token
-  ;
-
-integer_literal_token
-  : decimal_integer_literal_token
-  | hexadecimal_integer_literal_token
-  ;
-
-decimal_integer_literal_token
-  : decimal_digit+ integer_type_suffix?
-  ;
-
-integer_type_suffix
-  : 'L'
-  | 'LU'
-  | 'Lu'
-  | 'U'
-  | 'UL'
-  | 'Ul'
-  | 'l'
-  | 'lU'
-  | 'lu'
-  | 'u'
-  | 'uL'
-  | 'ul'
-  ;
-
-hexadecimal_integer_literal_token
-  : ('0x' | '0X') hexadecimal_digit+ integer_type_suffix?
-  ;
-
-real_literal_token
-  : '.' decimal_digit+ exponent_part? real_type_suffix?
-  | decimal_digit+ '.' decimal_digit+ exponent_part? real_type_suffix?
-  | decimal_digit+ exponent_part real_type_suffix?
-  | decimal_digit+ real_type_suffix
-  ;
-
-exponent_part
-  : ('e' | 'E') sign? decimal_digit+
-  ;
-
-sign
-  : '+'
-  | '-'
-  ;
-
-real_type_suffix
-  : 'D'
-  | 'F'
-  | 'M'
-  | 'd'
-  | 'f'
-  | 'm'
-  ;
-
-operator_or_punctuator_token
-  : 'abstract'
+keyword
+  : '__arglist'
+  | '__makeref'
+  | '__reftype'
+  | '__refvalue'
+  | 'abstract'
   | 'as'
   | 'base'
   | 'bool'
@@ -289,6 +235,64 @@ operator_or_punctuator_token
   | 'void'
   | 'volatile'
   | 'while'
+  ;
+
+numeric_literal_token
+  : integer_literal_token
+  | real_literal_token
+  ;
+
+integer_literal_token
+  : decimal_integer_literal_token
+  | hexadecimal_integer_literal_token
+  ;
+
+decimal_integer_literal_token
+  : decimal_digit+ integer_type_suffix?
+  ;
+
+integer_type_suffix
+  : 'L'
+  | 'LU'
+  | 'Lu'
+  | 'U'
+  | 'UL'
+  | 'Ul'
+  | 'l'
+  | 'lU'
+  | 'lu'
+  | 'u'
+  | 'uL'
+  | 'ul'
+  ;
+
+hexadecimal_integer_literal_token
+  : ('0x' | '0X') hexadecimal_digit+ integer_type_suffix?
+  ;
+
+real_literal_token
+  : '.' decimal_digit+ exponent_part? real_type_suffix?
+  | decimal_digit+ '.' decimal_digit+ exponent_part? real_type_suffix?
+  | decimal_digit+ exponent_part real_type_suffix?
+  | decimal_digit+ real_type_suffix
+  ;
+
+exponent_part
+  : ('e' | 'E') sign? decimal_digit+
+  ;
+
+sign
+  : '+'
+  | '-'
+  ;
+
+real_type_suffix
+  : 'D'
+  | 'F'
+  | 'M'
+  | 'd'
+  | 'f'
+  | 'm'
   ;
 
 string_literal_token
@@ -1699,11 +1703,11 @@ interpolated_string_text_token
   : /* see lexical specification */
   ;
 
-keyword
+multi_line_raw_string_literal_token
   : /* see lexical specification */
   ;
 
-multi_line_raw_string_literal_token
+operator_or_punctuator_token
   : /* see lexical specification */
   ;
 
