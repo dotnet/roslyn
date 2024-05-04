@@ -211,8 +211,8 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
                 rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
                 rules.Add("IntegerTypeSuffix", [new("'U'"), new("'u'"), new("'L'"), new("'l'"), new("'UL'"), new("'Ul'"), new("'uL'"), new("'ul'"), new("'LU'"), new("'Lu'"), new("'lU'"), new("'lu'")]);
-                rules.Add("DecimalDigit", [.. Enumerable.Range(0, 10).Select(v => new Production($"'{v}'"))]);
-                rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), new("'A'"), new("'B'"), new("'C'"), new("'D'"), new("'E'"), new("'F'"), new("'a'"), new("'b'"), new("'c'"), new("'d'"), new("'e'"), new("'f'")]);
+                rules.Add("DecimalDigit", [.. productionRange('0', '9')]);
+                rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), .. productionRange('A', 'F'), .. productionRange('a', 'f')]);
                 rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [new("('0x' | '0X')"), RuleReference("HexadecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
             }
 
@@ -249,6 +249,12 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("CharacterLiteralToken", [Join(" ", [new("""'\''"""), RuleReference("Character"), new("""'\''""")])]);
                 rules.Add("Character", [RuleReference("SingleCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
                 rules.Add("SingleCharacter", [new("""/* ~['\\\u000D\u000A\u0085\u2028\u2029] anything but ', \\, and new_line_character */""")]);
+            }
+
+            IEnumerable<Production> productionRange(char start, char end)
+            {
+                for (char c = start; c <= end; c++)
+                    yield return new($"'{c}'");
             }
         }
 
