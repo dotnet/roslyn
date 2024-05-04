@@ -146,9 +146,12 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addTokenRules()
             {
-                rules["SyntaxToken"].AddRange([RuleReference("IdentifierToken"), RuleReference("Keyword"), RuleReference("NumericLiteralToken"), RuleReference("CharacterLiteralToken"), RuleReference("StringLiteralToken"), RuleReference("OperatorOrPunctuationToken")]);
+                rules["SyntaxToken"].AddRange([RuleReference("IdentifierToken"), RuleReference("Keyword"), RuleReference("NumericLiteralToken"), RuleReference("CharacterLiteralToken"), RuleReference("StringLiteralToken"), RuleReference("OperatorToken"), RuleReference("PunctuationToken")]);
                 rules.Add("Keyword", JoinWords(GetMembers<SyntaxKind>().Where(SyntaxFacts.IsReservedKeyword).Select(SyntaxFacts.GetText).ToArray()));
-                rules.Add("OperatorOrPunctuationToken", JoinWords(GetMembers<SyntaxKind>().Where(SyntaxFacts.IsLanguagePunctuation).Select(SyntaxFacts.GetText).ToArray()));
+
+                var operatorTokens = GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsBinaryExpressionOperatorToken(m) || SyntaxFacts.IsPostfixUnaryExpression(m) || SyntaxFacts.IsPrefixUnaryExpression(m));
+                rules.Add("OperatorToken", JoinWords(operatorTokens.Select(SyntaxFacts.GetText).ToArray()));
+                rules.Add("PunctuationToken", JoinWords(GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsLanguagePunctuation(m) && !operatorTokens.Contains(m)).Select(SyntaxFacts.GetText).ToArray()));
             }
 
             void addIdentifierRules()
