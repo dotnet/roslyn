@@ -1565,8 +1565,7 @@ character
   ;
 
 single_character
-  : /* ~['\
-  ] anything but ', \, and new_line_character */
+  : /* ~['\\\u000D\u000A\u0085\u2028\u2029] anything but ', \\, and new_line_character */
   ;
 
 utf8_multi_line_raw_string_literal_token
