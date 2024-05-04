@@ -978,7 +978,7 @@ quote_escape_sequence
   ;
 
 single_verbatim_string_literal_character
-  : ~["] // anything but quotation mark (U+0022)
+  : /* anything but quotation mark (U+0022) */
   ;
 
 utf8_multi_line_raw_string_literal_token
