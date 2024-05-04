@@ -95,7 +95,7 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
+    /// <code>IEnumerable&lt;TSource&gt; -> Task</code>
     /// </summary>
     public static Task RunParallelAsync<TSource, TArgs>(
         IEnumerable<TSource> source,
@@ -109,34 +109,7 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
-    /// </summary>
-    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
-        IEnumerable<TSource> source,
-        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        // Bridge to sibling helper that operates on an IAsyncEnumerable.
-        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
-    }
-
-    /// <summary>
-    /// Version of RunParallelAsync that returns the produced items as an array.
-    /// </summary>
-    public static Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
-        IEnumerable<TSource> source,
-        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        // Bridge to sibling helper that operates on an IAsyncEnumerable.
-        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, args, cancellationToken);
-    }
-
-    /// <summary>
-    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task</code>
     /// </summary>
     public static Task RunParallelAsync<TSource, TArgs>(
         IAsyncEnumerable<TSource> source,
@@ -159,7 +132,52 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
+    /// <code>IEnumerable&lt;TSource&gt; -> Task&lt;ImmutableArray&lt;TResult&gt;&gt;</code>
+    /// </summary>
+    public static Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that operates on an IAsyncEnumerable.
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task&lt;ImmutableArray&lt;TResult&gt;&gt;</code>
+    /// </summary>
+    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that takes a consumeItems that returns a value.
+        return await RunParallelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static (stream, args, cancellationToken) => stream.ToImmutableArrayAsync(cancellationToken),
+            args: (produceItems, args),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// <code>IEnumerable&lt;TSource&gt; -> Task&lt;TResult&gt;</code>
+    /// </summary>
+    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that operates on an IAsyncEnumerable.
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task&lt;TResult&gt;</code>
     /// </summary>
     public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
         IAsyncEnumerable<TSource> source,
@@ -180,23 +198,6 @@ internal static class ProducerConsumer<TItem>
             consumeItems: static (enumerable, args, cancellationToken) => args.consumeItems(enumerable, args.args, cancellationToken),
             args: (source, produceItems, consumeItems, args),
             cancellationToken);
-    }
-
-    /// <summary>
-    /// Version of RunParallelAsync that returns the produced items as an array.
-    /// </summary>
-    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
-        IAsyncEnumerable<TSource> source,
-        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        return await RunParallelAsync(
-            source,
-            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
-            consumeItems: static (stream, args, cancellationToken) => stream.ToImmutableArrayAsync(cancellationToken),
-            args: (produceItems, args),
-            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
