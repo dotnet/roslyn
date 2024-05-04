@@ -38,7 +38,7 @@ internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavig
     {
         return async (items, _, cancellationToken) =>
         {
-            using var _1 = ArrayBuilder<INavigateToSearchResult>.GetInstance(out var results);
+            using var _1 = ArrayBuilder<INavigateToSearchResult>.GetInstance(items.Length, out var results);
 
             foreach (var item in items)
             {
