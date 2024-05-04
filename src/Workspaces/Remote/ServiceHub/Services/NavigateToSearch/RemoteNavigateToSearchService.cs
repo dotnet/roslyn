@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteNavigateToSearchService : BrokeredServiceBase, IRemoteNavigateToSearchService
+    internal sealed class RemoteNavigateToSearchService(
+        in BrokeredServiceBase.ServiceConstructionArguments arguments,
+        RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteNavigateToSearchService
     {
         internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService, IRemoteNavigateToSearchService.ICallback>
         {
@@ -23,13 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemoteNavigateToSearchService(arguments, callback);
         }
 
-        private readonly RemoteCallback<IRemoteNavigateToSearchService.ICallback> _callback;
-
-        public RemoteNavigateToSearchService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
-        }
+        private readonly RemoteCallback<IRemoteNavigateToSearchService.ICallback> _callback = callback;
 
         private (Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound, Func<Task> onProjectCompleted) GetCallbacks(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
