@@ -73,6 +73,29 @@ internal static class ProducerConsumer<TItem>
     /// <summary>
     /// Version of <see cref="RunImplAsync"/> when the caller prefers working with a stream of results.
     /// </summary>
+    public static Task RunAsync<TArgs>(
+        ProducerConsumerOptions options,
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that takes a consumeItems that returns a value.
+        return RunAsync(
+            options,
+            produceItems: static (callback, args, cancellationToken) => args.produceItems(callback, args.args, cancellationToken),
+            consumeItems: static async (items, args, cancellationToken) =>
+            {
+                await args.consumeItems(items, args.args, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
+            },
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Version of <see cref="RunImplAsync"/> when the caller prefers working with a stream of results.
+    /// </summary>
     public static Task<TResult> RunAsync<TArgs, TResult>(
         ProducerConsumerOptions options,
         Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,

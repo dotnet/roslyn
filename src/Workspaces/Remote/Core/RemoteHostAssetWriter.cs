@@ -82,7 +82,7 @@ internal readonly struct RemoteHostAssetWriter(
             static (checksum, asset, onItemFound) => onItemFound((checksum, asset)),
             onItemFound, cancellationToken);
 
-    private async Task<VoidResult> WriteBatchToPipeAsync(
+    private async Task WriteBatchToPipeAsync(
         IAsyncEnumerable<ChecksumAndAsset> checksumsAndAssets, CancellationToken cancellationToken)
     {
         // Get the in-memory buffer and object-writer we'll use to serialize the assets into.  Don't write any
@@ -112,8 +112,6 @@ internal readonly struct RemoteHostAssetWriter(
 
         // If we weren't canceled, we better have found and written out all the expected assets.
         Contract.ThrowIfTrue(foundChecksumCount != _checksums.Length);
-
-        return default(VoidResult);
     }
 
     private async ValueTask WriteSingleAssetToPipeAsync(
