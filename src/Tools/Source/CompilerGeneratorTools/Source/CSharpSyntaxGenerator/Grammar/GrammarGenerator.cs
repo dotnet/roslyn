@@ -324,7 +324,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 ImmutableArray.Create(name));
 
         // Converts a PascalCased name into snake_cased name.
-        private static readonly Regex s_normalizationRegex = new Regex(
+        private static readonly Regex s_normalizationRegex = new(
             "(?<=[A-Z])(?=[A-Z][a-z0-9]) | (?<=[^A-Z])(?=[A-Z]) | (?<=[A-Za-z0-9])(?=[^A-Za-z0-9])",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
     }
@@ -333,7 +333,7 @@ namespace CSharpSyntaxGenerator.Grammar
         string text, IEnumerable<string> referencedRules = null) : IComparable<Production>
     {
         public readonly string Text = text;
-        public readonly ImmutableArray<string> ReferencedRules = referencedRules?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
+        public readonly ImmutableArray<string> ReferencedRules = referencedRules?.ToImmutableArray() ?? [];
 
         public override string ToString() => Text;
         public int CompareTo(Production other) => StringComparer.Ordinal.Compare(this.Text, other.Text);
