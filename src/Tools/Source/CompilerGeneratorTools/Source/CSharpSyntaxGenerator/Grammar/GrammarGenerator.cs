@@ -127,6 +127,7 @@ namespace CSharpSyntaxGenerator.Grammar
         private static void AddLexicalRules(Dictionary<string, List<Production>> rules)
         {
             addUtf8Rules();
+            addRealLiteralRules();
             addNumericLiteralRules();
             addIntegerLiteralRules();
             addEscapeSequenceRules();
@@ -139,6 +140,23 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8Suffix", [new("'u8'"), new("'U8'")]);
+            }
+
+            void addRealLiteralRules()
+            {
+                var decimalDigitPlus = RuleReference("DecimalDigit").Suffix("+");
+                var exponentPartOpt = RuleReference("ExponentPart").Suffix("?");
+                var realTypeSuffixOpt = RuleReference("RealTypeSuffix").Suffix("?");
+                rules.Add("RealLiteralToken", [
+                    Join(" ", [decimalDigitPlus, new("'.'"), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
+                    Join(" ", [new("'.'"), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
+                    Join(" ", [decimalDigitPlus, RuleReference("ExponentPart"), realTypeSuffixOpt]),
+                    Join(" ", [decimalDigitPlus, RuleReference("RealTypeSuffix")]),
+                ]);
+
+                rules.Add("ExponentPart", [Join(" ", [new("('e' | 'E')"), RuleReference("Sign").Suffix("?"), decimalDigitPlus])]);
+                rules.Add("Sign", [new("'+'"), new("'-'")]);
+                rules.Add("RealTypeSuffix", [new("'F'"), new("'f'"), new("'D'"), new("'d'"), new("'M'"), new("'m'")]);
             }
 
             void addNumericLiteralRules()

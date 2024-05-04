@@ -1341,6 +1341,31 @@ hexadecimal_digit
   | decimal_digit
   ;
 
+real_literal_token
+  : '.' decimal_digit+ exponent_part? real_type_suffix?
+  | decimal_digit+ '.' decimal_digit+ exponent_part? real_type_suffix?
+  | decimal_digit+ exponent_part real_type_suffix?
+  | decimal_digit+ real_type_suffix
+  ;
+
+exponent_part
+  : ('e' | 'E') sign? decimal_digit+
+  ;
+
+sign
+  : '+'
+  | '-'
+  ;
+
+real_type_suffix
+  : 'D'
+  | 'F'
+  | 'M'
+  | 'd'
+  | 'f'
+  | 'm'
+  ;
+
 string_literal_token
   : regular_string_literal_token
   | verbatim_string_literal_token
@@ -1476,6 +1501,10 @@ character
   | unicode_escape_sequence
   ;
 
+single_character
+  : /* anything but ', \, and new_line_character */
+  ;
+
 utf8_multi_line_raw_string_literal_token
   : multi_line_raw_string_literal_token utf8_suffix
   ;
@@ -1539,14 +1568,6 @@ interpolated_string_text_token
   ;
 
 multi_line_raw_string_literal_token
-  : /* see lexical specification */
-  ;
-
-real_literal_token
-  : /* see lexical specification */
-  ;
-
-single_character
   : /* see lexical specification */
   ;
 
