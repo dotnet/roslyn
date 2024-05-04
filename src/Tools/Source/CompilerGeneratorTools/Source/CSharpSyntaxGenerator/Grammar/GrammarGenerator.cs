@@ -141,6 +141,7 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules.Add("StringLiteralToken", [RuleReference("RegularStringLiteralToken"), RuleReference("VerbatimStringLiteralToken")]);
                 rules.Add("RegularStringLiteralToken", [Join(" ", [new("'\"'"), RuleReference("RegularStringLiteralCharacter").Suffix("*"), new("'\"'")])]);
+                rules.Add("RegularStringLiteralCharacter", [RuleReference("SingleRegularStringLiteralCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
 
                 rules.Add("VerbatimStringLiteralToken", [Join(" ", [new("'@\"'"), RuleReference("VerbatimStringLiteralCharacter").Suffix("*"), new("'\"'")])]);
                 rules.Add("VerbatimStringLiteralCharacter", [RuleReference("SingleVerbatimStringLiteralCharacter"), RuleReference("QuoteEscapeSequence")]);
