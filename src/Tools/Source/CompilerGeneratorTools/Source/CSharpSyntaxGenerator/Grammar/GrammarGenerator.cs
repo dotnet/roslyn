@@ -146,12 +146,13 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("IntegerTypeSuffix", [new("'U'"), new("'u'"), new("'L'"), new("'l'"), new("'UL'"), new("'Ul'"), new("'uL'"), new("'ul'"), new("'LU'"), new("'Lu'"), new("'lU'"), new("'lu'")]);
                 rules.Add("DecimalDigit", [new("'0'"), new("'1'"), new("'2'"), new("'3'"), new("'4'"), new("'5'"), new("'6'"), new("'7'"), new("'8'"), new("'9'")]);
                 rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), new("'A'"), new("'B'"), new("'C'"), new("'D'"), new("'E'"), new("'F'"), new("'a'"), new("'b'"), new("'c'"), new("'d'"), new("'e'"), new("'f'")]);
+                rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [new("('0x' | '0X')"), RuleReference("HexadecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
             }
 
             void addEscapeSequenceRules()
             {
                 rules.Add("SimpleEscapeSequence", [new("""'\\\''"""), new("""'\\"'"""), new("""'\\\\'"""), new("""'\\0'"""), new("""'\\a'"""), new("""'\\b'"""), new("""'\\f'"""), new("""'\\n'"""), new("""'\\r'"""), new("""'\\t'"""), new("""'\\v'""")]);
-                rules.Add("HexadecimalEscapeSequence", [Join(" ", [new("""'\\x'"""), RuleReference("HexDigit"), RuleReference("HexDigit").Suffix("?"), RuleReference("HexDigit").Suffix("?"), RuleReference("HexDigit").Suffix("?")])]);
+                rules.Add("HexadecimalEscapeSequence", [Join(" ", [new("""'\\x'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?")])]);
             }
 
             void addStringLiteralRules()

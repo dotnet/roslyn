@@ -972,7 +972,36 @@ regular_string_literal_character
   ;
 
 hexadecimal_escape_sequence
-  : '\\x' hex_digit hex_digit? hex_digit? hex_digit?
+  : '\\x' hexadecimal_digit hexadecimal_digit? hexadecimal_digit? hexadecimal_digit?
+  ;
+
+hexadecimal_digit
+  : 'A'
+  | 'B'
+  | 'C'
+  | 'D'
+  | 'E'
+  | 'F'
+  | 'a'
+  | 'b'
+  | 'c'
+  | 'd'
+  | 'e'
+  | 'f'
+  | decimal_digit
+  ;
+
+decimal_digit
+  : '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
   ;
 
 simple_escape_sequence
@@ -1439,19 +1468,6 @@ character_literal_token
   : /* see lexical specification */
   ;
 
-decimal_digit
-  : '0'
-  | '1'
-  | '2'
-  | '3'
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | '8'
-  | '9'
-  ;
-
 decimal_integer_literal_token
   : decimal_digit+ integer_type_suffix?
   ;
@@ -1476,28 +1492,8 @@ expression_or_pattern
   | pattern
   ;
 
-hexadecimal_digit
-  : 'A'
-  | 'B'
-  | 'C'
-  | 'D'
-  | 'E'
-  | 'F'
-  | 'a'
-  | 'b'
-  | 'c'
-  | 'd'
-  | 'e'
-  | 'f'
-  | decimal_digit
-  ;
-
 hexadecimal_integer_literal_token
-  : /* see lexical specification */
-  ;
-
-hex_digit
-  : /* see lexical specification */
+  : ('0x' | '0X') hexadecimal_digit+ integer_type_suffix?
   ;
 
 identifier_token
