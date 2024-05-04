@@ -983,7 +983,7 @@ interpolated_multi_line_raw_string_start_token
   ;
 
 interpolated_raw_string_end_token
-  : '"""' '"'*
+  : '"""' '"'* /* must match number of quotes in raw_string_start_token */
   ;
 
 interpolated_single_line_raw_string_start_token

@@ -237,7 +237,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("QuoteEscapeSequence", [new("'\"\"'")]);
 
                 rules.Add("InterpolatedMultiLineRawStringStartToken", [new(""""'$'+ '"""' '"'*"""")]);
-                rules.Add("InterpolatedRawStringEndToken", [new(""""'"""' '"'*"""")]);
+                rules.Add("InterpolatedRawStringEndToken", [new(""""'"""' '"'* /* must match number of quotes in raw_string_start_token */"""")]);
                 rules.Add("InterpolatedSingleLineRawStringStartToken", [new(""""'$'+ '"""' '"'*"""")]);
             }
 
