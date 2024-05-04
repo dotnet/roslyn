@@ -964,6 +964,10 @@ regular_string_literal_token
   : '"' regular_string_literal_character* '"'
   ;
 
+verbatim_string_literal_token
+  : '@"' verbatim_string_literal_character* '"'
+  ;
+
 utf8_multi_line_raw_string_literal_token
   : multi_line_raw_string_literal_token utf8_suffix
   ;
@@ -1442,7 +1446,7 @@ syntax_token
   : /* see lexical specification */
   ;
 
-verbatim_string_literal_token
+verbatim_string_literal_character
   : /* see lexical specification */
   ;
 
