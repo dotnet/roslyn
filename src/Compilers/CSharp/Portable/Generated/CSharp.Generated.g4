@@ -19,11 +19,12 @@ identifier_start_character
   ;
 
 letter_character
-  : [\p{L}\p{Nl}]
+  : /* [\p{L}\p{Nl}] category letter, all subcategories; category number, subcategory letter */
+  | unicode_escape_sequence /* only escapes for categories L & Nl allowed */
   ;
 
 underscore_character
-  : '\\u005' // unicode_escape_sequence for underscore
+  : '\\u005' /* unicode_escape_sequence for underscore */
   | '_'
   ;
 
@@ -33,6 +34,26 @@ identifier_part_character
   | decimal_digit_character
   | formatting_character
   | letter_character
+  ;
+
+combining_character
+  : /* [\p{Mn}\p{Mc}] category Mark, subcategories non-spacing and spacing combining */
+  | unicode_escape_sequence /* only escapes for categories Mn & Mc allowed */
+  ;
+
+connecting_character
+  : /* [\p{Pc}] category Punctuation, subcategory connector */
+  | unicode_escape_sequence /* only escapes for category Pc allowed */
+  ;
+
+decimal_digit_character
+  : /* [\p{Nd}] category number, subcategory decimal digit */
+  | unicode_escape_sequence /* only escapes for category Nd allowed */
+  ;
+
+formatting_character
+  : /* [\p{Cf}] category Other, subcategory format. */
+  | unicode_escape_sequence /* only escapes for category Cf allowed */
   ;
 
 using_directive
@@ -1568,25 +1589,9 @@ base_parameter
   | parameter
   ;
 
-combining_character
-  : /* see lexical specification */
-  ;
-
-connecting_character
-  : /* see lexical specification */
-  ;
-
-decimal_digit_character
-  : /* see lexical specification */
-  ;
-
 expression_or_pattern
   : expression
   | pattern
-  ;
-
-formatting_character
-  : /* see lexical specification */
   ;
 
 interpolated_multi_line_raw_string_start_token

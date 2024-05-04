@@ -148,8 +148,26 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("IdentifierToken", [Join(" ", [new("'@'?"), RuleReference("IdentifierStartCharacter"), RuleReference("IdentifierPartCharacter")])]);
                 rules.Add("IdentifierStartCharacter", [RuleReference("LetterCharacter"), RuleReference("UnderscoreCharacter")]);
                 rules.Add("IdentifierPartCharacter", [RuleReference("LetterCharacter"), RuleReference("DecimalDigitCharacter"), RuleReference("ConnectingCharacter"), RuleReference("CombiningCharacter"), RuleReference("FormattingCharacter")]);
-                rules.Add("UnderscoreCharacter", [new("'_'"), new("""'\\u005' // unicode_escape_sequence for underscore""")]);
-                rules.Add("LetterCharacter", [new("""[\p{L}\p{Nl}]""")]);
+                rules.Add("UnderscoreCharacter", [new("'_'"), new("""'\\u005' /* unicode_escape_sequence for underscore */""")]);
+                rules.Add("LetterCharacter", [
+                    new("""/* [\p{L}\p{Nl}] category letter, all subcategories; category number, subcategory letter */"""),
+                    new("unicode_escape_sequence /* only escapes for categories L & Nl allowed */")]);
+
+                rules.Add("CombiningCharacter", [
+                    new("""/* [\p{Mn}\p{Mc}] category Mark, subcategories non-spacing and spacing combining */"""),
+                    new("unicode_escape_sequence /* only escapes for categories Mn & Mc allowed */")]);
+
+                rules.Add("DecimalDigitCharacter", [
+                    new("""/* [\p{Nd}] category number, subcategory decimal digit */"""),
+                    new("unicode_escape_sequence /* only escapes for category Nd allowed */")]);
+
+                rules.Add("ConnectingCharacter", [
+                    new("""/* [\p{Pc}] category Punctuation, subcategory connector */"""),
+                    new("unicode_escape_sequence /* only escapes for category Pc allowed */")]);
+
+                rules.Add("FormattingCharacter", [
+                    new("""/* [\p{Cf}] category Other, subcategory format. */"""),
+                    new("unicode_escape_sequence /* only escapes for category Cf allowed */")]);
             }
 
             void addRealLiteralRules()
