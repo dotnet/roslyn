@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -210,7 +211,7 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
                 rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
-                rules.Add("IntegerTypeSuffix", [new("'U'"), new("'u'"), new("'L'"), new("'l'"), new("'UL'"), new("'Ul'"), new("'uL'"), new("'ul'"), new("'LU'"), new("'Lu'"), new("'lU'"), new("'lu'")]);
+                rules.Add("IntegerTypeSuffix", [.. anyCasing('U'), .. anyCasing('L'), .. permuteCasing("UL"), .. permuteCasing("LU")]);
                 rules.Add("DecimalDigit", [.. productionRange('0', '9')]);
                 rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), .. productionRange('A', 'F'), .. productionRange('a', 'f')]);
                 rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [new("('0x' | '0X')"), RuleReference("HexadecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
@@ -261,6 +262,40 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 yield return new($"'{v}'");
                 yield return new($"'{(char.IsLower(v) ? char.ToUpperInvariant(v) : char.ToLowerInvariant(v))}'");
+            }
+
+            IEnumerable<Production> permuteCasing(string value)
+            {
+                char[][] array = new char[value.Length][];
+                for (int i = 0; i < value.Length; i++)
+                {
+                    var c = value[i];
+                    array[i] = char.IsLetter(c)
+                        ? [char.ToUpperInvariant(c), char.ToLowerInvariant(c)]
+                        : [c];
+                }
+
+                var indices = new int[array.Length];
+                var builder = new StringBuilder();
+                do
+                {
+                    for (var i = 0; i < value.Length; i++)
+                    {
+                        builder.Append(array[i][indices[i]]);
+                    }
+
+                    yield return new($"'{builder}'");
+                    builder.Clear();
+
+                    for (var i = 0; i < indices.Length; i++)
+                    {
+                        if (++indices[i] < array[i].Length)
+                            break;
+
+                        indices[i] = 0;
+                    }
+                }
+                while (!indices.All(i => i == 0));
             }
         }
 
