@@ -968,6 +968,19 @@ verbatim_string_literal_token
   : '@"' verbatim_string_literal_character* '"'
   ;
 
+verbatim_string_literal_character
+  : quote_escape_sequence
+  | single_verbatim_string_literal_character
+  ;
+
+quote_escape_sequence
+  : '""'
+  ;
+
+single_verbatim_string_literal_character
+  : ~["] // anything but quotation mark (U+0022)
+  ;
+
 utf8_multi_line_raw_string_literal_token
   : multi_line_raw_string_literal_token utf8_suffix
   ;
@@ -1443,10 +1456,6 @@ single_line_raw_string_literal_token
   ;
 
 syntax_token
-  : /* see lexical specification */
-  ;
-
-verbatim_string_literal_character
   : /* see lexical specification */
   ;
 
