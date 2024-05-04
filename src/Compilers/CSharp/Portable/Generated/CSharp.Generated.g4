@@ -978,6 +978,18 @@ interpolation_format_clause
   : ':' interpolated_string_text_token
   ;
 
+interpolated_multi_line_raw_string_start_token
+  : '$'+ '"""' '"'*
+  ;
+
+interpolated_raw_string_end_token
+  : '"""' '"'*
+  ;
+
+interpolated_single_line_raw_string_start_token
+  : '$'+ '"""' '"'*
+  ;
+
 invocation_expression
   : expression argument_list
   ;
@@ -1447,6 +1459,10 @@ simple_escape_sequence
   | '\\v'
   ;
 
+single_regular_string_literal_character
+  : /* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */
+  ;
+
 unicode_escape_sequence
   : '\\U' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
   | '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
@@ -1549,7 +1565,8 @@ character
   ;
 
 single_character
-  : /* anything but ', \, and new_line_character */
+  : /* ~['\
+  ] anything but ', \, and new_line_character */
   ;
 
 utf8_multi_line_raw_string_literal_token
@@ -1760,18 +1777,6 @@ expression_or_pattern
   | pattern
   ;
 
-interpolated_multi_line_raw_string_start_token
-  : /* see lexical specification */
-  ;
-
-interpolated_raw_string_end_token
-  : /* see lexical specification */
-  ;
-
-interpolated_single_line_raw_string_start_token
-  : /* see lexical specification */
-  ;
-
 interpolated_string_text_token
   : /* see lexical specification */
   ;
@@ -1781,10 +1786,6 @@ multi_line_raw_string_literal_token
   ;
 
 single_line_raw_string_literal_token
-  : /* see lexical specification */
-  ;
-
-single_regular_string_literal_character
   : /* see lexical specification */
   ;
 

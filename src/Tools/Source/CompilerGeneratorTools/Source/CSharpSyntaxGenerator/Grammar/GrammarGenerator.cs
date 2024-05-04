@@ -225,20 +225,27 @@ namespace CSharpSyntaxGenerator.Grammar
             void addStringLiteralRules()
             {
                 rules.Add("StringLiteralToken", [RuleReference("RegularStringLiteralToken"), RuleReference("VerbatimStringLiteralToken")]);
+
                 rules.Add("RegularStringLiteralToken", [Join(" ", [new("'\"'"), RuleReference("RegularStringLiteralCharacter").Suffix("*"), new("'\"'")])]);
                 rules.Add("RegularStringLiteralCharacter", [RuleReference("SingleRegularStringLiteralCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
+                rules.Add("SingleRegularStringLiteralCharacter", [new("""/* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */""")]);
 
                 rules.Add("VerbatimStringLiteralToken", [Join(" ", [new("'@\"'"), RuleReference("VerbatimStringLiteralCharacter").Suffix("*"), new("'\"'")])]);
                 rules.Add("VerbatimStringLiteralCharacter", [RuleReference("SingleVerbatimStringLiteralCharacter"), RuleReference("QuoteEscapeSequence")]);
                 rules.Add("SingleVerbatimStringLiteralCharacter", [new("/* anything but quotation mark (U+0022) */")]);
+
                 rules.Add("QuoteEscapeSequence", [new("'\"\"'")]);
+
+                rules.Add("InterpolatedMultiLineRawStringStartToken", [new(""""'$'+ '"""' '"'*"""")]);
+                rules.Add("InterpolatedRawStringEndToken", [new(""""'"""' '"'*"""")]);
+                rules.Add("InterpolatedSingleLineRawStringStartToken", [new(""""'$'+ '"""' '"'*"""")]);
             }
 
             void addCharacterLiteralRules()
             {
                 rules.Add("CharacterLiteralToken", [Join(" ", [new("""'\''"""), RuleReference("Character"), new("""'\''""")])]);
                 rules.Add("Character", [RuleReference("SingleCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
-                rules.Add("SingleCharacter", [new("/* anything but ', \\, and new_line_character */")]);
+                rules.Add("SingleCharacter", [new("/* ~['\\\u000D\u000A\u0085\u2028\u2029] anything but ', \\, and new_line_character */")]);
             }
         }
 
