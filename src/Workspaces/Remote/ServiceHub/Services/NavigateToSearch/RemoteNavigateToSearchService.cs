@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,12 +31,13 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-        private (Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task<VoidResult>> onItemsFound, Func<Task> onProjectCompleted) GetCallbacks(
+        private (Func<IAsyncEnumerable<RoslynNavigateToItem>, VoidResult, CancellationToken, Task<VoidResult>> onItemsFound, Func<Task> onProjectCompleted) GetCallbacks(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return (
-                async (array, _, cancellationToken) => await _callback.InvokeAsync(async (callback, cancellationToken) =>
+                async (enumerable, _, cancellationToken) => await _callback.InvokeAsync(async (callback, cancellationToken) =>
                 {
+                    var array = await enumerable.ToImmutableArrayAsync(cancellationToken).ConfigureAwait(false);
                     await callback.OnItemsFoundAsync(callbackId, array).ConfigureAwait(false);
                     return default(VoidResult);
                 }, cancellationToken).ConfigureAwait(false),
