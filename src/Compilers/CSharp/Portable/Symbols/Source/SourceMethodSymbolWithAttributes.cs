@@ -369,6 +369,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // diagnostics that might later get thrown away as possible when binding method calls.
                     return (null, null);
                 }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+                {
+                    (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+
+                    if (attributeData.CommonConstructorArguments is [{ ValueInternal: int priority }])
+                    {
+                        arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
+                    }
+                    else
+                    {
+                        attributeData = null;
+                        boundAttribute = null;
+                    }
+
+                    return (attributeData, boundAttribute);
+                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -1706,6 +1722,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return result;
             }
+        }
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            return GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
         }
     }
 }

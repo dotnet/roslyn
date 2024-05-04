@@ -361,6 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((options & Options.DynamicResolution) == 0)
             {
+                RemoveLowerPriorityMembers(results);
+
                 // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified,
                 // SPEC: the method invocation is ambiguous, and a binding-time error occurs.
 
@@ -1696,6 +1698,79 @@ outerDefault:
             }
 
             return currentBestIndex;
+        }
+
+        private static void RemoveLowerPriorityMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
+            where TMember : Symbol
+        {
+            // - Then, the reduced set of candidate members is grouped by declaring type. Within each group:
+            //     - Candidate function members are ordered by *overload_resolution_priority*.
+            //     - All members that have a lower *overload_resolution_priority* than the highest found within its declaring type group are removed.
+            // - The reduced groups are then recombined into the final set of applicable candidate function members.
+
+            // PROTOTYPE: Properties
+            if (results is not [{ Member: MethodSymbol }, { }, ..])
+            {
+                // We only look at methods and properties, so if this isn't one of those scenarios, we don't need to do anything. Likewise, if there's only 1 candidate,
+                // then there can be pruning of lower-priority candidates
+                return;
+            }
+
+            // PROTOTYPE: There be cycles here accessing overload resolution priority through attribute binding. May need to avoid accessing then
+
+            // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.
+            if (results.All(r => r.LeastOverriddenMember.GetOverloadResolutionPriority() == 0))
+            {
+                // All default, nothing to do
+                return;
+            }
+
+            bool removedMembers = false;
+            var resultsByContainingType = PooledDictionary<NamedTypeSymbol, OneOrMany<MemberResolutionResult<TMember>>>.GetInstance();
+
+            foreach (var result in results)
+            {
+                var containingType = result.LeastOverriddenMember.ContainingType;
+                if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
+                {
+                    // PROTOTYPE: LeastOverriddenMember or Member? Also adjust assert in the else
+                    var previousOverloadResolutionPriority = previousResults.First().LeastOverriddenMember.GetOverloadResolutionPriority();
+                    var currentOverloadResolutionPriority = result.LeastOverriddenMember.GetOverloadResolutionPriority();
+
+                    if (currentOverloadResolutionPriority > previousOverloadResolutionPriority)
+                    {
+                        removedMembers = true;
+                        resultsByContainingType[containingType] = OneOrMany.Create(result);
+                    }
+                    else if (currentOverloadResolutionPriority == previousOverloadResolutionPriority)
+                    {
+                        resultsByContainingType[containingType] = previousResults.Add(result);
+                    }
+                    else
+                    {
+                        removedMembers = true;
+                        Debug.Assert(previousResults.All(r => r.LeastOverriddenMember.GetOverloadResolutionPriority() > currentOverloadResolutionPriority));
+                    }
+                }
+                else
+                {
+                    resultsByContainingType.Add(containingType, OneOrMany.Create(result));
+                }
+            }
+
+            if (!removedMembers)
+            {
+                // No changes, so we can just return
+                resultsByContainingType.Free();
+                return;
+            }
+
+            results.Clear();
+            foreach (var (_, resultsForType) in resultsByContainingType)
+            {
+                resultsForType.AddRangeTo(results);
+            }
+            resultsByContainingType.Free();
         }
 
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

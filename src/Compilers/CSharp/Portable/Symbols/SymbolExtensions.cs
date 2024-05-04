@@ -826,5 +826,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool ShouldCheckRequiredMembers(this MethodSymbol method)
             => method is { MethodKind: MethodKind.Constructor, HasSetsRequiredMembers: false };
+
+        internal static int GetOverloadResolutionPriority(this Symbol symbol)
+        {
+            Debug.Assert(symbol is MethodSymbol || symbol is PropertySymbol);
+            return symbol is MethodSymbol method ? method.OverloadResolutionPriority : 0 /* PROTOTYPE: Properties */;
+        }
     }
 }

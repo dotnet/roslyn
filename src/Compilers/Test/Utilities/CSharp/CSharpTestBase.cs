@@ -716,6 +716,16 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        internal const string OverloadResolutionPriorityAttributeDefinition = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+            public sealed class OverloadResolutionPriorityAttribute(int priority) : Attribute
+            {
+                public int Priority => priority;
+            }
+            """;
+
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
         {
             return GetSyntaxes<T>(tree, text).Single();
