@@ -955,24 +955,50 @@ literal_expression
   | utf8_string_literal_token
   ;
 
-string_literal_token
-  : regular_string_literal_token
-  | verbatim_string_literal_token
+numeric_literal_token
+  : integer_literal_token
+  | real_literal_token
   ;
 
-regular_string_literal_token
-  : '"' regular_string_literal_character* '"'
+integer_literal_token
+  : decimal_integer_literal_token
+  | hexadecimal_integer_literal_token
   ;
 
-regular_string_literal_character
-  : hexadecimal_escape_sequence
-  | simple_escape_sequence
-  | single_regular_string_literal_character
-  | unicode_escape_sequence
+decimal_integer_literal_token
+  : decimal_digit+ integer_type_suffix?
   ;
 
-hexadecimal_escape_sequence
-  : '\\x' hexadecimal_digit hexadecimal_digit? hexadecimal_digit? hexadecimal_digit?
+decimal_digit
+  : '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
+  ;
+
+integer_type_suffix
+  : 'L'
+  | 'LU'
+  | 'Lu'
+  | 'U'
+  | 'UL'
+  | 'Ul'
+  | 'l'
+  | 'lU'
+  | 'lu'
+  | 'u'
+  | 'uL'
+  | 'ul'
+  ;
+
+hexadecimal_integer_literal_token
+  : ('0x' | '0X') hexadecimal_digit+ integer_type_suffix?
   ;
 
 hexadecimal_digit
@@ -991,17 +1017,24 @@ hexadecimal_digit
   | decimal_digit
   ;
 
-decimal_digit
-  : '0'
-  | '1'
-  | '2'
-  | '3'
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | '8'
-  | '9'
+string_literal_token
+  : regular_string_literal_token
+  | verbatim_string_literal_token
+  ;
+
+regular_string_literal_token
+  : '"' regular_string_literal_character* '"'
+  ;
+
+regular_string_literal_character
+  : hexadecimal_escape_sequence
+  | simple_escape_sequence
+  | single_regular_string_literal_character
+  | unicode_escape_sequence
+  ;
+
+hexadecimal_escape_sequence
+  : '\\x' hexadecimal_digit hexadecimal_digit? hexadecimal_digit? hexadecimal_digit?
   ;
 
 simple_escape_sequence
@@ -1468,41 +1501,13 @@ character_literal_token
   : /* see lexical specification */
   ;
 
-decimal_integer_literal_token
-  : decimal_digit+ integer_type_suffix?
-  ;
-
-integer_type_suffix
-  : 'L'
-  | 'LU'
-  | 'Lu'
-  | 'U'
-  | 'UL'
-  | 'Ul'
-  | 'l'
-  | 'lU'
-  | 'lu'
-  | 'u'
-  | 'uL'
-  | 'ul'
-  ;
-
 expression_or_pattern
   : expression
   | pattern
   ;
 
-hexadecimal_integer_literal_token
-  : ('0x' | '0X') hexadecimal_digit+ integer_type_suffix?
-  ;
-
 identifier_token
   : /* see lexical specification */
-  ;
-
-integer_literal_token
-  : decimal_integer_literal_token
-  | hexadecimal_integer_literal_token
   ;
 
 interpolated_multi_line_raw_string_start_token
@@ -1525,7 +1530,7 @@ multi_line_raw_string_literal_token
   : /* see lexical specification */
   ;
 
-numeric_literal_token
+real_literal_token
   : /* see lexical specification */
   ;
 
