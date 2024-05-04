@@ -18,14 +18,14 @@ namespace CSharpSyntaxGenerator.Grammar
 {
     internal static class GrammarGenerator
     {
+        // Syntax.xml refers to a special pseudo-element 'Modifier'.  Synthesize that for the grammar.
+        private static readonly List<Kind> s_modifiers = GetMembers<DeclarationModifiers>()
+            .Select(m => m + "Keyword").Where(n => GetSyntaxKind(n) != SyntaxKind.None)
+            .Select(n => new Kind { Name = n }).ToList();
+
         public static string Run(List<TreeType> types)
         {
-            // Syntax.xml refers to a special pseudo-element 'Modifier'.  Synthesize that for the grammar.
-            var modifiers = GetMembers<DeclarationModifiers>()
-                .Select(m => m + "Keyword").Where(n => GetSyntaxKind(n) != SyntaxKind.None)
-                .Select(n => new Kind { Name = n }).ToList();
-
-            types.Add(new Node { Name = "Modifier", Children = { new Field { Type = "SyntaxToken", Kinds = modifiers } } });
+            types.Add(new Node { Name = "Modifier", Children = { new Field { Type = "SyntaxToken", Kinds = s_modifiers } } });
 
             var rules = types.ToDictionary(n => n.Name, _ => new List<Production>());
             foreach (var type in types)
@@ -147,7 +147,11 @@ namespace CSharpSyntaxGenerator.Grammar
             void addTokenRules()
             {
                 rules["SyntaxToken"].AddRange([RuleReference("IdentifierToken"), RuleReference("Keyword"), RuleReference("NumericLiteralToken"), RuleReference("CharacterLiteralToken"), RuleReference("StringLiteralToken"), RuleReference("OperatorToken"), RuleReference("PunctuationToken")]);
-                rules.Add("Keyword", JoinWords(GetMembers<SyntaxKind>().Where(SyntaxFacts.IsReservedKeyword).Select(SyntaxFacts.GetText).ToArray()));
+
+                var modifiers = s_modifiers.Select(t => GetSyntaxKind(t.Name));
+                var keywords = JoinWords(GetMembers<SyntaxKind>().Where(k => SyntaxFacts.IsReservedKeyword(k) && !modifiers.Contains(k)).Select(SyntaxFacts.GetText).ToArray());
+                keywords.Add(RuleReference("Modifier"));
+                rules.Add("Keyword", keywords);
 
                 var operatorTokens = GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsBinaryExpressionOperatorToken(m) || SyntaxFacts.IsPostfixUnaryExpression(m) || SyntaxFacts.IsPrefixUnaryExpression(m) || SyntaxFacts.IsAssignmentExpressionOperatorToken(m));
                 rules.Add("OperatorToken", JoinWords(operatorTokens.Select(SyntaxFacts.GetText).ToArray()));
