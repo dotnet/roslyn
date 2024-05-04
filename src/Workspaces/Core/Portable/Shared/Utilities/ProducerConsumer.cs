@@ -104,16 +104,7 @@ internal static class ProducerConsumer<TItem>
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunParallelAsync(
-            source,
-            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
-            consumeItems: static async (results, args, cancellationToken) =>
-            {
-                await args.consumeItems(results, args.args, cancellationToken).ConfigureAwait(false);
-                return default(VoidResult);
-            },
-            args: (produceItems, consumeItems, args),
-            cancellationToken);
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
     }
 
     /// <summary>
@@ -121,6 +112,19 @@ internal static class ProducerConsumer<TItem>
     /// </summary>
     public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
         IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
+    /// </summary>
+    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
+        IAsyncEnumerable<TSource> source,
         Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
         TArgs args,
@@ -150,7 +154,7 @@ internal static class ProducerConsumer<TItem>
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunAsync(
+        return RunParallelAsync(
             // We're running in parallel, so we def have multiple writers
             ProducerConsumerOptions.SingleReaderOptions,
             produceItems: static (callback, args, cancellationToken) =>
@@ -169,52 +173,15 @@ internal static class ProducerConsumer<TItem>
     }
 
     /// <summary>
-    /// Version of RunAsync that will process <paramref name="source"/> in parallel.
-    /// </summary>
-    public static Task RunParallelAsync<TSource, TArgs>(
-        IEnumerable<TSource> source,
-        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
-        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
-        TArgs args,
-        CancellationToken cancellationToken)
-    {
-        return RunAsync(
-            // We're running in parallel, so we def have multiple writers
-            ProducerConsumerOptions.SingleReaderOptions,
-            produceItems: static (callback, args, cancellationToken) =>
-                RoslynParallel.ForEachAsync(
-                    args.source,
-                    cancellationToken,
-                    async (source, cancellationToken) =>
-                        await args.produceItems(source, callback, args.args, cancellationToken).ConfigureAwait(false)),
-            consumeItems: static (enumerable, args, cancellationToken) => args.consumeItems(enumerable, args.args, cancellationToken),
-            args: (source, produceItems, consumeItems, args),
-            cancellationToken);
-    }
-
-    /// <summary>
     /// Version of RunParallelAsync that returns the produced items as an array.
     /// </summary>
-    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
+    public static Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
         IEnumerable<TSource> source,
         Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<TItem>.GetInstance(out var results);
-
-        await RunParallelAsync(
-            source,
-            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
-            consumeItems: static async (stream, args, cancellationToken) =>
-            {
-                await foreach (var item in stream)
-                    args.results.Add(item);
-            },
-            args: (produceItems, args, results),
-            cancellationToken).ConfigureAwait(false);
-
-        return results.ToImmutableAndClear();
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, args, cancellationToken);
     }
 
     /// <summary>
@@ -226,20 +193,12 @@ internal static class ProducerConsumer<TItem>
         TArgs args,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<TItem>.GetInstance(out var results);
-
         await RunParallelAsync(
             source,
             produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
-            consumeItems: static async (stream, args, cancellationToken) =>
-            {
-                await foreach (var item in stream)
-                    args.results.Add(item);
-            },
+            consumeItems: static (stream, args, cancellationToken) => stream.ToImmutableArrayAsync(cancellationToken),
             args: (produceItems, args, results),
             cancellationToken).ConfigureAwait(false);
-
-        return results.ToImmutableAndClear();
     }
 
     /// <summary>
