@@ -49,7 +49,7 @@ namespace CSharpSyntaxGenerator.Grammar
                             {
                                 firstField.Kinds = [originalFirstFieldKinds[i]];
                                 lastField.Kinds = [originalLastFieldKinds[i]];
-                                rules[type.Name].Add(HandleChildren(type.Children));
+                                rules[type.Name].Add(Sequence(type.Children.Select(ToProduction)));
                             }
                         }
                         else
@@ -57,13 +57,13 @@ namespace CSharpSyntaxGenerator.Grammar
                             for (int i = 0; i < originalFirstFieldKinds.Count; i++)
                             {
                                 firstField.Kinds = [originalFirstFieldKinds[i]];
-                                rules[type.Name].Add(HandleChildren(type.Children));
+                                rules[type.Name].Add(Sequence(type.Children.Select(ToProduction)));
                             }
                         }
                     }
                     else
                     {
-                        rules[type.Name].Add(HandleChildren(type.Children));
+                        rules[type.Name].Add(Sequence(type.Children.Select(ToProduction)));
                     }
                 }
             }
@@ -315,11 +315,8 @@ namespace CSharpSyntaxGenerator.Grammar
         private static Production Text(string value)
             => new($"'{Escape(value)}'");
 
-        private static Production Join(IEnumerable<Production> productions, string delim = " ")
+        private static Production Join(IEnumerable<Production> productions, string delim)
             => new(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
-
-        private static Production HandleChildren(IEnumerable<TreeTypeChild> children, string delim = " ")
-            => Join(children.Select(ToProduction), delim);
 
         private static Production ToProduction(TreeTypeChild child)
             => child switch
@@ -334,7 +331,7 @@ namespace CSharpSyntaxGenerator.Grammar
             => Join(productions, " | ").Parenthesize(parenthesize);
 
         private static Production Sequence(IEnumerable<Production> productions)
-            => Join(productions);
+            => Join(productions, " ");
 
         private static Production HandleField(Field field)
             // 'bool' fields are for a few properties we generate on DirectiveTrivia. They're not
