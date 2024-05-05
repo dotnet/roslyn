@@ -165,7 +165,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("IdentifierToken", [Join(" ", [Text("@").Optional, RuleReference("IdentifierStartCharacter"), RuleReference("IdentifierPartCharacter")])]);
                 rules.Add("IdentifierStartCharacter", [RuleReference("LetterCharacter"), RuleReference("UnderscoreCharacter")]);
                 rules.Add("IdentifierPartCharacter", [RuleReference("LetterCharacter"), RuleReference("DecimalDigitCharacter"), RuleReference("ConnectingCharacter"), RuleReference("CombiningCharacter"), RuleReference("FormattingCharacter")]);
-                rules.Add("UnderscoreCharacter", [new("'_'"), new("""'\\u005' /* unicode_escape_sequence for underscore */""")]);
+                rules.Add("UnderscoreCharacter", [Text("_"), new("""'\\u005' /* unicode_escape_sequence for underscore */""")]);
                 rules.Add("LetterCharacter", [
                     new("""/* [\p{L}\p{Nl}] category letter, all subcategories; category number, subcategory letter */"""),
                     new("unicode_escape_sequence /* only escapes for categories L & Nl allowed */")]);
@@ -189,7 +189,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addRealLiteralRules()
             {
-                var decimalDigitPlus = RuleReference("DecimalDigit").Suffix("+");
+                var decimalDigitPlus = RuleReference("DecimalDigit").OneOrMany;
                 var exponentPartOpt = RuleReference("ExponentPart").Optional;
                 var realTypeSuffixOpt = RuleReference("RealTypeSuffix").Optional;
                 rules.Add("RealLiteralToken", [
@@ -211,11 +211,11 @@ namespace CSharpSyntaxGenerator.Grammar
             void addIntegerLiteralRules()
             {
                 rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
-                rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Optional])]);
+                rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").OneOrMany, RuleReference("IntegerTypeSuffix").Optional])]);
                 rules.Add("IntegerTypeSuffix", [.. anyCasing('U'), .. anyCasing('L'), .. permuteCasing("UL"), .. permuteCasing("LU")]);
                 rules.Add("DecimalDigit", [.. productionRange('0', '9')]);
                 rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), .. productionRange('A', 'F'), .. productionRange('a', 'f')]);
-                rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [Choice([new("'0x'"), new("'0X'")]), RuleReference("HexadecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Optional])]);
+                rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [Choice([Text("0x"), Text("0X")]), RuleReference("HexadecimalDigit").OneOrMany, RuleReference("IntegerTypeSuffix").Optional])]);
             }
 
             void addEscapeSequenceRules()
@@ -231,11 +231,11 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules.Add("StringLiteralToken", [RuleReference("RegularStringLiteralToken"), RuleReference("VerbatimStringLiteralToken")]);
 
-                rules.Add("RegularStringLiteralToken", [Join(" ", [new("""'"'"""), RuleReference("RegularStringLiteralCharacter").Suffix("*"), new("""'"'""")])]);
+                rules.Add("RegularStringLiteralToken", [Join(" ", [new("""'"'"""), RuleReference("RegularStringLiteralCharacter").ZeroOrMany, new("""'"'""")])]);
                 rules.Add("RegularStringLiteralCharacter", [RuleReference("SingleRegularStringLiteralCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
                 rules.Add("SingleRegularStringLiteralCharacter", [new("""/* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */""")]);
 
-                rules.Add("VerbatimStringLiteralToken", [Join(" ", [new("""'@"'"""), RuleReference("VerbatimStringLiteralCharacter").Suffix("*"), new("""'"'""")])]);
+                rules.Add("VerbatimStringLiteralToken", [Join(" ", [new("""'@"'"""), RuleReference("VerbatimStringLiteralCharacter").ZeroOrMany, new("""'"'""")])]);
                 rules.Add("VerbatimStringLiteralCharacter", [RuleReference("SingleVerbatimStringLiteralCharacter"), RuleReference("QuoteEscapeSequence")]);
                 rules.Add("SingleVerbatimStringLiteralCharacter", [new("/* anything but quotation mark (U+0022) */")]);
 
