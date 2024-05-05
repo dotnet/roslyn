@@ -554,7 +554,7 @@ internal partial class SerializerService
                 Guids={modules.Select(m => GetMetadataGuid(m).ToString()).Join(",")}
             """;
 
-            ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
+            static ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
             {
                 if (metadata is AssemblyMetadata assemblyMetadata)
                 {
