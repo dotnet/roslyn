@@ -545,7 +545,8 @@ internal partial class SerializerService
             var modules = GetModules(metadata);
 
             return $"""
-            {nameof(SerializedMetadataReference)}({FilePath})
+            {nameof(SerializedMetadataReference)}
+                FilePath={this.FilePath}
                 Kind={this.Properties.Kind}
                 Aliases={this.Properties.Aliases.Join(",")}
                 EmbedInteropTypes={this.Properties.EmbedInteropTypes}
