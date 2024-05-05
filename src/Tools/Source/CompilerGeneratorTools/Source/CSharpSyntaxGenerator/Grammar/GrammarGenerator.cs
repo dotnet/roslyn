@@ -231,10 +231,8 @@ namespace CSharpSyntaxGenerator.Grammar
                 var hexDigitOpt = hexDigit.Optional;
 
                 rules.Add("SimpleEscapeSequence", [Text(@"\'"), Text(@"\"""), Text(@"\\"), Text(@"\0"), Text(@"\a"), Text(@"\b"), Text(@"\f"), Text(@"\n"), Text(@"\r"), Text(@"\t"), Text(@"\v")]);
-                rules.Add("HexadecimalEscapeSequence", [Sequence([Text(@"\x"), hexDigit, hexDigitOpt, hexDigitOpt, hexDigitOpt])]);
-                rules.Add("UnicodeEscapeSequence", [
-                    Sequence([Text(@"\u"), hexDigit, hexDigit, hexDigit, hexDigit]),
-                    Sequence([Text(@"\U"), hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit])]);
+                rules.Add("HexadecimalEscapeSequence", [Sequence([Text(@"\x"), hexDigit, .. repeat(hexDigitOpt, 3)])]);
+                rules.Add("UnicodeEscapeSequence", [Sequence([Text(@"\u"), .. repeat(hexDigit, 4)]), Sequence([Text(@"\U"), .. repeat(hexDigit, 8)])]);
             }
 
             void addStringLiteralRules()
@@ -269,14 +267,12 @@ namespace CSharpSyntaxGenerator.Grammar
                     yield return Text($"{c}");
             }
 
+            IEnumerable<Production> repeat(Production production, int count)
+                => Enumerable.Repeat(production, count);
+
             IEnumerable<Production> anyCasing(string value)
             {
-                var array = new char[value.Length][];
-                for (int i = 0; i < value.Length; i++)
-                {
-                    var c = value[i];
-                    array[i] = char.IsLetter(c) ? [char.ToUpperInvariant(c), char.ToLowerInvariant(c)] : [c];
-                }
+                var array = value.Select(c => char.IsLetter(c) ? [char.ToUpperInvariant(c), char.ToLowerInvariant(c)] : new[] { c }).ToArray();
 
                 var indices = new int[array.Length];
                 var builder = new StringBuilder();
