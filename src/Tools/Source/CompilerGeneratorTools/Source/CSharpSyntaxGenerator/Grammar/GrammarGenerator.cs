@@ -248,7 +248,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addCharacterLiteralRules()
             {
-                rules.Add("CharacterLiteralToken", [Join(" ", [new("""'\''"""), RuleReference("Character"), new("""'\''""")])]);
+                rules.Add("CharacterLiteralToken", [Join(" ", [Text("'"), RuleReference("Character"), Text("'")])]);
                 rules.Add("Character", [RuleReference("SingleCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
                 rules.Add("SingleCharacter", [new("""/* ~['\\\u000D\u000A\u0085\u2028\u2029] anything but ', \\, and new_line_character */""")]);
             }
@@ -388,6 +388,8 @@ namespace CSharpSyntaxGenerator.Grammar
         public Production Suffix(string suffix, bool when = true) => when ? new Production(this + suffix, ReferencedRules) : this;
         public Production Parenthesize(bool when = true) => when ? Prefix("(").Suffix(")") : this;
         public Production Optional => Suffix("?");
+        public Production ZeroOrMany => Suffix("*");
+        public Production OneOrMany => Suffix("+");
     }
 }
 
