@@ -220,7 +220,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addEscapeSequenceRules()
             {
-                rules.Add("SimpleEscapeSequence", [new("""'\\\''"""), new("""'\\"'"""), new("""'\\\\'"""), new("""'\\0'"""), new("""'\\a'"""), new("""'\\b'"""), new("""'\\f'"""), new("""'\\n'"""), new("""'\\r'"""), new("""'\\t'"""), new("""'\\v'""")]);
+                rules.Add("SimpleEscapeSequence", [Text("""\'"""), new("""'\\"'"""), Text(@"\\"), Text(@"\0"), Text(@"\a"), Text(@"\b"), Text(@"\f"), Text(@"\n"), Text(@"\r"), Text(@"\t"), Text(@"\v")]);
                 rules.Add("HexadecimalEscapeSequence", [Sequence([new("""'\\x'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?")])]);
                 rules.Add("UnicodeEscapeSequence", [
                     Sequence([new("""'\\u'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")]),
@@ -231,7 +231,7 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules.Add("StringLiteralToken", [RuleReference("RegularStringLiteralToken"), RuleReference("VerbatimStringLiteralToken")]);
 
-                rules.Add("RegularStringLiteralToken", [Sequence([new("""'"'"""), RuleReference("RegularStringLiteralCharacter").ZeroOrMany, new("""'"'""")])]);
+                rules.Add("RegularStringLiteralToken", [Sequence([Text("\""), RuleReference("RegularStringLiteralCharacter").ZeroOrMany, Text("\"")])]);
                 rules.Add("RegularStringLiteralCharacter", [RuleReference("SingleRegularStringLiteralCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
                 rules.Add("SingleRegularStringLiteralCharacter", [new("""/* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */""")]);
 
