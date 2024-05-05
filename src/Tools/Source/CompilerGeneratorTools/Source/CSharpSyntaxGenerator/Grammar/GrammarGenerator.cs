@@ -197,8 +197,7 @@ namespace CSharpSyntaxGenerator.Grammar
                     Join(" ", [decimalDigitPlus, RuleReference("RealTypeSuffix")]),
                 ]);
 
-                rules.Add("ExponentPart", [Join(" ", [new("('e' | 'E')"), RuleReference("Sign").Suffix("?"), decimalDigitPlus])]);
-                rules.Add("Sign", [new("'+'"), new("'-'")]);
+                rules.Add("ExponentPart", [Join(" ", [new("('e' | 'E') ('+' | '-')?"), decimalDigitPlus])]);
                 rules.Add("RealTypeSuffix", [.. anyCasing('F'), .. anyCasing('D'), .. anyCasing('M')]);
             }
 
@@ -270,9 +269,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 for (int i = 0; i < value.Length; i++)
                 {
                     var c = value[i];
-                    array[i] = char.IsLetter(c)
-                        ? [char.ToUpperInvariant(c), char.ToLowerInvariant(c)]
-                        : [c];
+                    array[i] = char.IsLetter(c) ? [char.ToUpperInvariant(c), char.ToLowerInvariant(c)] : [c];
                 }
 
                 var indices = new int[array.Length];

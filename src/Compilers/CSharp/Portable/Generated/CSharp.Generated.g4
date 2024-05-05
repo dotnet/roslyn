@@ -1566,12 +1566,7 @@ real_literal_token
   ;
 
 exponent_part
-  : ('e' | 'E') sign? decimal_digit+
-  ;
-
-sign
-  : '+'
-  | '-'
+  : ('e' | 'E') ('+' | '-')? decimal_digit+
   ;
 
 real_type_suffix
