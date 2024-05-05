@@ -605,7 +605,8 @@ End Class
                     New TypeAndValue(uint64Type, CULng(18)),
                     New TypeAndValue(decimalType, CDec(-11.3)),
                     New TypeAndValue(doubleType, CDbl(&HF000000000000000UL)),
-                    New TypeAndValue(doubleType, CDbl(&H70000000000000F0L)),
+                    New TypeAndValue(doubleType, CDbl(&H8000000000000000L)),
+                    New TypeAndValue(doubleType, CDbl(&H7FFFFFFFFFFFFC00L)),
                     New TypeAndValue(typeCodeType, Int32.MinValue),
                     New TypeAndValue(typeCodeType, Int32.MaxValue),
                     New TypeAndValue(typeCodeType, CInt(-3)),
@@ -1165,7 +1166,8 @@ End Class
                     New TypeAndValue(uint64Type, CULng(18)),
                     New TypeAndValue(decimalType, CDec(-11.3)),
                     New TypeAndValue(doubleType, CDbl(&HF000000000000000UL)),
-                    New TypeAndValue(doubleType, CDbl(&H70000000000000F0L)),
+                    New TypeAndValue(doubleType, CDbl(&H8000000000000000L)),
+                    New TypeAndValue(doubleType, CDbl(&H7FFFFFFFFFFFFC00L)),
                     New TypeAndValue(typeCodeType, Int32.MinValue),
                     New TypeAndValue(typeCodeType, Int32.MaxValue),
                     New TypeAndValue(typeCodeType, CInt(-3)),
@@ -5093,6 +5095,43 @@ End Module
   IL_0010:  ret
 }
 ]]>)
+        End Sub
+
+        <WorkItem(73032, "https://github.com/dotnet/roslyn/issues/73032")>
+        <Fact()>
+        Public Sub ConvertLargeDoubleConstantsAndLiteralsToLong()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main()
+        System.Console.WriteLine(CType(CDbl(&H8000000000000000L), Long))
+        System.Console.WriteLine(CType(CDbl(&H8000000000000400L), Long))
+        System.Console.WriteLine(CType(-9.0E+18, Long))
+        System.Console.WriteLine(CType(CDbl(&H8FFFFFFFFFFFFC00L), Long))
+        System.Console.WriteLine(CType(CDbl(&H9000000000000000L), Long))
+        System.Console.WriteLine(CType(CDbl(&H7000000000000000L), Long))
+        System.Console.WriteLine(CType(CDbl(&H7000000000000400L), Long))
+        System.Console.WriteLine(CType(9.0E+18, Long))
+        System.Console.WriteLine(CType(CDbl(&H7FFFFFFFFFFFFC00L), Long))
+    End Sub
+End Module
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe)
+
+            Dim expectedOutput = <![CDATA[
+-9223372036854775808
+-9223372036854774784
+-9000000000000000000
+-8070450532247929856
+-8070450532247928832
+8070450532247928832
+8070450532247929856
+9000000000000000000
+9223372036854774784
+]]>
+
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
     End Class
