@@ -215,7 +215,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("IntegerTypeSuffix", [.. anyCasing('U'), .. anyCasing('L'), .. permuteCasing("UL"), .. permuteCasing("LU")]);
                 rules.Add("DecimalDigit", [.. productionRange('0', '9')]);
                 rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), .. productionRange('A', 'F'), .. productionRange('a', 'f')]);
-                rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [new("('0x' | '0X')"), RuleReference("HexadecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
+                rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [Choice([new("'0x'"), new("'0X'")]), RuleReference("HexadecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
             }
 
             void addEscapeSequenceRules()
