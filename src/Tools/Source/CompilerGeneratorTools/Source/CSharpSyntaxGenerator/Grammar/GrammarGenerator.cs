@@ -362,7 +362,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
         private static Production HandleTokenName(string tokenName)
             => GetSyntaxKind(tokenName) is var kind && kind == SyntaxKind.None ? RuleReference("SyntaxToken") :
-               SyntaxFacts.GetText(kind) is var text && text != "" ? new Production(text == "'" ? "'\\''" : $"'{text}'") :
+               SyntaxFacts.GetText(kind) is var text && text != "" ? Text(text) :
                tokenName.StartsWith("EndOf") ? new Production("") :
                tokenName.StartsWith("Omitted") ? new Production("/* epsilon */") : RuleReference(tokenName);
 
