@@ -1404,7 +1404,6 @@ async () => {
                 // dict[x is int? await]
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 21));
 
-
             N(SyntaxKind.ElementAccessExpression);
             {
                 N(SyntaxKind.IdentifierName);
