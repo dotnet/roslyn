@@ -153,7 +153,10 @@ namespace CSharpSyntaxGenerator.Grammar
 
                 var operatorTokens = GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsBinaryExpressionOperatorToken(m) || SyntaxFacts.IsPostfixUnaryExpression(m) || SyntaxFacts.IsPrefixUnaryExpression(m) || SyntaxFacts.IsAssignmentExpressionOperatorToken(m));
                 rules.Add("OperatorToken", JoinWords(operatorTokens.Select(SyntaxFacts.GetText).ToArray()));
-                rules.Add("PunctuationToken", JoinWords(GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsLanguagePunctuation(m) && !operatorTokens.Contains(m)).Select(SyntaxFacts.GetText).ToArray()));
+
+                rules.Add("PunctuationToken", JoinWords(GetMembers<SyntaxKind>()
+                    .Where(m => SyntaxFacts.IsLanguagePunctuation(m) && !operatorTokens.Contains(m) && !m.ToString().StartsWith("Xml"))
+                    .Select(SyntaxFacts.GetText).ToArray()));
             }
 
             void addIdentifierRules()
