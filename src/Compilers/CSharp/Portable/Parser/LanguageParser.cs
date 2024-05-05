@@ -7164,11 +7164,15 @@ done:;
                     case ParseTypeMode.AfterIs:
                     case ParseTypeMode.DefinitePattern:
                     case ParseTypeMode.AsExpression:
-                        // These contexts might be a type that is at the end of an expression.
-                        // For backward compatibility we want to consider a `?` token as part of the `?:` operator if possible.
-                        // However, if current token is an identifier, it might be beneficial to allow `?`
-                        // and treat this identifier as a designation. Nullable types in patterns are semantically invalid,
-                        // so we will get a nice error about that during binding
+                        // We are currently after `?` token after a type pattern
+                        // and need to decide how to parse next, e.g. `obj is string?| s ...` - `|` represents our position
+                        // There are 2 ways of treating identifier after `?` token after a type pattern:
+                        // 1. As a start of conditional expression, e.g. `var a = obj is string ? a : b`
+                        // 2. As a designation of a nullable-typed pattern, e.g. `if (obj is string? str)`
+                        // Since nullable types (no matter reference of value types) are not valid in patterns
+                        // by default we are biased towards the first option and consider case 2 only for error recovery purposes
+                        // (if we parse here as nullable type pattern an error will be reported during binding).
+                        // This condition checks for simple cases, where we better use option 2 and parse a nullable-typed pattern
                         if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
                         {
                             // Given that we are deciding whether we take `?:` operator or not while looking at state after `?`,
