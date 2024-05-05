@@ -305,14 +305,22 @@ namespace CSharpSyntaxGenerator.Grammar
             => new(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
 
         private static Production HandleChildren(IEnumerable<TreeTypeChild> children, string delim = " ")
-            => Join(delim, children.Select(child =>
-                child switch
-                {
-                    Choice c => HandleChildren(c.Children, delim: " | ").Parenthesize().Suffix("?", when: c.Optional),
-                    Sequence s => HandleChildren(s.Children).Parenthesize(),
-                    Field f => HandleField(f).Suffix("?", when: f.IsOptional),
-                    _ => throw new InvalidOperationException(),
-                }));
+            => Join(delim, children.Select(ToProduction));
+
+        private static Production ToProduction(TreeTypeChild child)
+            => child switch
+            {
+                Choice c => Choice(c.Children.Select(ToProduction)).Suffix("?", when: c.Optional),
+                Sequence s => Sequence(s.Children.Select(ToProduction)),
+                Field f => HandleField(f).Suffix("?", when: f.IsOptional),
+                _ => throw new InvalidOperationException(),
+            };
+
+        private static Production Choice(IEnumerable<Production> productions)
+            => Join(" | ", productions).Parenthesize();
+
+        private static Production Sequence(IEnumerable<Production> productions)
+            => Join(" ", productions).Parenthesize();
 
         private static Production HandleField(Field field)
             // 'bool' fields are for a few properties we generate on DirectiveTrivia. They're not
