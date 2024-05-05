@@ -220,12 +220,13 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addEscapeSequenceRules()
             {
-                var hexDigitOpt = RuleReference("HexadecimalDigit").Optional;
+                var hexDigit = RuleReference("HexadecimalDigit");
+                var hexDigitOpt = hexDigit.Optional;
                 rules.Add("SimpleEscapeSequence", [Text(@"\'"), Text(@"\"""), Text(@"\\"), Text(@"\0"), Text(@"\a"), Text(@"\b"), Text(@"\f"), Text(@"\n"), Text(@"\r"), Text(@"\t"), Text(@"\v")]);
-                rules.Add("HexadecimalEscapeSequence", [Sequence([new("""'\\x'"""), RuleReference("HexadecimalDigit"), hexDigitOpt, hexDigitOpt, hexDigitOpt])]);
+                rules.Add("HexadecimalEscapeSequence", [Sequence([new("""'\\x'"""), hexDigit, hexDigitOpt, hexDigitOpt, hexDigitOpt])]);
                 rules.Add("UnicodeEscapeSequence", [
-                    Sequence([new("""'\\u'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")]),
-                    Sequence([new("""'\\U'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")])]);
+                    Sequence([Text(@"\u"), hexDigit, hexDigit, hexDigit, hexDigit]),
+                    Sequence([Text(@"\U"), hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit])]);
             }
 
             void addStringLiteralRules()
