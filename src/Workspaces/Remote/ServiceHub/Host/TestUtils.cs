@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var lastModules = SerializerService.GetModules(lastReferenceMetadata);
 
                 sb.AppendLine($"Comparing two metadata references: {firstChecksum}-{lastChecksum}");
+                sb.AppendLine($"    RefEquals={ReferenceEquals(firstReference, lastReference)}");
                 sb.AppendLine($"    FilePaths={Equals(firstReference.FilePath, lastReference.FilePath)}");
                 sb.AppendLine($"    Kind={Equals(firstReference.Properties.Kind, lastReference.Properties.Kind)}");
                 sb.AppendLine($"    Aliases={firstReference.Properties.Aliases.SequenceEqual(lastReference.Properties.Aliases)}");
