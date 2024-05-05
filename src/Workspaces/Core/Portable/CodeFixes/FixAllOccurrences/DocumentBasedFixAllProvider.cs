@@ -111,36 +111,36 @@ public abstract class DocumentBasedFixAllProvider : FixAllProvider
 
         using var _1 = progressTracker.ItemCompletedScope();
 
-        var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
-        if (!diagnostics.IsEmpty)
-        {
-            // Then, process all documents in parallel to get the change for each doc.
-            await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
-                source: diagnostics.Where(kvp => !kvp.Value.IsDefaultOrEmpty),
-                produceItems: static async (kvp, callback, args, cancellationToken) =>
-                {
-                    var (document, documentDiagnostics) = kvp;
+        if (diagnostics.IsEmpty)
+            return [];
 
-                    var newDocument = await args.@this.FixAllAsync(args.fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
-                    if (newDocument == null || newDocument == document)
-                        return;
+        // Then, process all documents in parallel to get the change for each doc.
+        return await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
+            source: diagnostics.Where(kvp => !kvp.Value.IsDefaultOrEmpty),
+            produceItems: static async (kvp, callback, args, cancellationToken) =>
+            {
+                var (document, documentDiagnostics) = kvp;
 
-                    // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
-                    // language that doesn't support that, then just grab the text.
-                    var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                    var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newDocument = await args.@this.FixAllAsync(args.fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
+                if (newDocument == null || newDocument == document)
+                    return;
 
-                    callback((document.Id, (node, text)));
-                },
-                consumeItems: static async (results, args, cancellationToken) =>
-                {
-                    await foreach (var (docId, nodeOrText) in results)
-                        args.docIdToNewRootOrText[docId] = nodeOrText;
-                },
-                args: (@this: this, fixAllContext, docIdToNewRootOrText),
-                cancellationToken).ConfigureAwait(false);
-        }
+                // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
+                // language that doesn't support that, then just grab the text.
+                var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
+                var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-        return docIdToNewRootOrText;
+                callback((document.Id, (node, text)));
+            },
+            consumeItems: static async (results, args, cancellationToken) =>
+            {
+                var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
+                await foreach (var (docId, nodeOrText) in results)
+                    docIdToNewRootOrText[docId] = nodeOrText;
+
+                return docIdToNewRootOrText;
+            },
+            args: (@this: this, fixAllContext),
+            cancellationToken).ConfigureAwait(false);
     }
 }

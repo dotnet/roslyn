@@ -119,8 +119,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         //
         // Do this in parallel across all the documents that were fixed.
 
-        var finalSolution = currentSolution;
-        await ProducerConsumer<(DocumentId docId, SourceText sourceText)>.RunParallelAsync(
+        return await ProducerConsumer<(DocumentId docId, SourceText sourceText)>.RunParallelAsync(
             source: docIdToNewRootOrText,
             produceItems: static async (tuple, callback, currentSolution, cancellationToken) =>
             {
@@ -132,16 +131,17 @@ internal static class DocumentBasedFixAllProviderHelpers
                     callback(cleaned);
                 }
             },
-            consumeItems: async (results, _, _) =>
+            consumeItems: static async (results, currentSolution, _) =>
             {
                 // Finally, apply the cleaned documents to the solution.
+                var finalSolution = currentSolution;
                 await foreach (var (docId, cleanedText) in results)
                     finalSolution = finalSolution.WithDocumentText(docId, cleanedText);
+
+                return finalSolution;
             },
             args: currentSolution,
             cancellationToken).ConfigureAwait(false);
-
-        return finalSolution;
 
         static async Task<(DocumentId docId, SourceText sourceText)> GetCleanedDocumentAsync(Document dirtyDocument, CancellationToken cancellationToken)
         {

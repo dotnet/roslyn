@@ -87,21 +87,22 @@ internal class FindLiteralsSearchEngine
         var count = _solution.Projects.SelectMany(p => p.DocumentIds).Count();
         await _progressTracker.AddItemsAsync(count, cancellationToken).ConfigureAwait(false);
 
-        foreach (var project in _solution.Projects)
+        await RoslynParallel.ForEachAsync(
+            source: SelectManyAsync(_solution.Projects, p => p.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken)),
+            cancellationToken,
+            ProcessDocumentAsync).ConfigureAwait(false);
+
+        static async IAsyncEnumerable<TResult> SelectManyAsync<TSource, TResult>(IEnumerable<TSource> source, Func<TSource, IAsyncEnumerable<TResult>> selector)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var documentTasks = new List<Task>();
-            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+            foreach (var item in source)
             {
-                documentTasks.Add(ProcessDocumentAsync(document, cancellationToken));
+                await foreach (var result in selector(item))
+                    yield return result;
             }
-
-            await Task.WhenAll(documentTasks).ConfigureAwait(false);
         }
     }
 
-    private async Task ProcessDocumentAsync(Document document, CancellationToken cancellationToken)
+    private async ValueTask ProcessDocumentAsync(Document document, CancellationToken cancellationToken)
     {
         try
         {

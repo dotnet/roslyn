@@ -259,7 +259,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
             var view = await GetActiveTextViewAsync(cancellationToken);
 
-            bool filterTag(IMappingTagSpan<ITag> tag)
+            static bool filterTag(IMappingTagSpan<ITag> tag)
             {
                 return tag.Tag.GetType().Equals(typeof(TTag));
             }

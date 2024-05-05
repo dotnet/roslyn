@@ -114,14 +114,11 @@ internal sealed class CodeRefactoringService(
         using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
         using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
         {
-            using var _1 = ArrayBuilder<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.GetInstance(out var pairs);
-            using var _2 = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
+            using var _ = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
 
             var orderedProviders = GetProviders(document).Where(p => priority == null || p.RequestPriority == priority).ToImmutableArray();
-            foreach (var provider in orderedProviders)
-                providerToIndex.Add(provider, providerToIndex.Count);
 
-            await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
+            var pairs = await ProducerConsumer<(CodeRefactoringProvider provider, CodeRefactoring codeRefactoring)>.RunParallelAsync(
                 source: orderedProviders,
                 produceItems: static async (provider, callback, args, cancellationToken) =>
                 {
@@ -150,13 +147,12 @@ internal sealed class CodeRefactoringService(
                             callback((provider, refactoring));
                     }
                 },
-                consumeItems: static async (reader, args, cancellationToken) =>
-                {
-                    await foreach (var pair in reader)
-                        args.pairs.Add(pair);
-                },
-                args: (@this: this, document, state, options, addOperationScope, pairs),
+                args: (@this: this, document, state, options, addOperationScope),
                 cancellationToken).ConfigureAwait(false);
+
+            // Order the refactorings by the order of the providers.
+            foreach (var provider in orderedProviders)
+                providerToIndex.Add(provider, providerToIndex.Count);
 
             return pairs
                 .OrderBy((tuple1, tuple2) => providerToIndex[tuple1.provider] - providerToIndex[tuple2.provider])
