@@ -968,15 +968,15 @@ literal_expression
   ;
 
 utf8_multi_line_raw_string_literal_token
-  : multi_line_raw_string_literal_token utf8_suffix
+  : multi_line_raw_string_literal_token ('u8' | 'U8')
   ;
 
 utf8_single_line_raw_string_literal_token
-  : single_line_raw_string_literal_token utf8_suffix
+  : single_line_raw_string_literal_token ('u8' | 'U8')
   ;
 
 utf8_string_literal_token
-  : string_literal_token utf8_suffix
+  : string_literal_token ('u8' | 'U8')
   ;
 
 make_ref_expression
@@ -1723,11 +1723,6 @@ punctuation_token
   | ']]>'
   | '{'
   | '}'
-  ;
-
-utf8_suffix
-  : 'U8'
-  | 'u8'
   ;
 
 base_argument_list
