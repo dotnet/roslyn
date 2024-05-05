@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -535,5 +536,17 @@ internal partial class SerializerService
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
             => new SerializedMetadataReference(properties, FilePath, _metadata, _storageHandles, _provider);
+
+        public override string ToString()
+        {
+            var metadata = TryGetMetadata(this);
+            return $"""
+            {nameof(SerializedMetadataReference)}({FilePath})
+                Kind={this.Properties.Kind}
+                Aliases={this.Properties.Aliases.Join(",")}
+                EmbedInteropTypes={this.Properties.EmbedInteropTypes}
+                MetadataKind={metadata switch { null => "null", AssemblyMetadata => "assembly", ModuleMetadata => "module", _ => metadata.GetType().Name }}
+            """;
+        }
     }
 }
