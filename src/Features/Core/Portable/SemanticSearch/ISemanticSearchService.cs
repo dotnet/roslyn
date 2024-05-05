@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -29,6 +28,6 @@ internal interface ISemanticSearchService : ILanguageService
         string referenceAssembliesDir,
         ISemanticSearchResultsObserver observer,
         OptionsProvider<ClassificationOptions> classificationOptions,
-        TraceSource traceSource,
+        TraceSource? traceSource,
         CancellationToken cancellationToken);
 }

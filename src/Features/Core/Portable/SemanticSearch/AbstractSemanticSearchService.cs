@@ -1,42 +1,38 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#if NET6_0_OR_GREATER
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if NET6_0_OR_GREATER
+using System.Runtime.Loader;
+#endif
+
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
 internal abstract partial class AbstractSemanticSearchService : ISemanticSearchService
 {
+#if NET6_0_OR_GREATER
     internal sealed class LoadContext() : AssemblyLoadContext("SemanticSearchLoadContext", isCollectible: true)
     {
         private readonly AssemblyLoadContext _current = GetLoadContext(typeof(LoadContext).Assembly)!;
@@ -47,6 +43,22 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
             => IntPtr.Zero;
     }
+#else
+    internal sealed class LoadContext
+    {
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Signature needs to match AssemblyLoadContext")]
+        public Assembly LoadFromStream(Stream assembly, Stream? assemblySymbols)
+        {
+            return Assembly.Load(assembly.ReadAllBytes(), assemblySymbols?.ReadAllBytes());
+        }
+
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Signature needs to match AssemblyLoadContext")]
+        public void Unload()
+        {
+            // No action to take
+        }
+    }
+#endif
 
     private static readonly FindReferencesSearchOptions s_findReferencesSearchOptions = new()
     {
@@ -63,7 +75,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         string referenceAssembliesDir,
         ISemanticSearchResultsObserver observer,
         OptionsProvider<ClassificationOptions> classificationOptions,
-        TraceSource traceSource,
+        TraceSource? traceSource,
         CancellationToken cancellationToken)
     {
         try
@@ -108,7 +120,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 {
                     if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
-                        traceSource.TraceInformation($"Semantic search query compilation failed: {diagnostic}");
+                        traceSource?.TraceInformation($"Semantic search query compilation failed: {diagnostic}");
                     }
                 }
 
@@ -136,7 +148,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
                 if (!TryGetFindMethod(queryAssembly, out var findMethod, out var errorMessage, out var errorMessageArgs))
                 {
-                    traceSource.TraceInformation($"Semantic search failed: {errorMessage}");
+                    traceSource?.TraceInformation($"Semantic search failed: {errorMessage}");
                     return CreateResult(errorMessage, errorMessageArgs);
                 }
 
@@ -208,7 +220,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
                         await observer.OnUserCodeExceptionAsync(new UserCodeExceptionInfo(projectDisplay, e.Message, exceptionNameTaggedText, stackTraceTaggedText, span), cancellationToken).ConfigureAwait(false);
 
-                        traceSource.TraceInformation($"Semantic query execution failed due to user code exception: {e}");
+                        traceSource?.TraceInformation($"Semantic query execution failed due to user code exception: {e}");
                         return CreateResult(FeaturesResources.Semantic_search_query_terminated_with_exception);
                     }
 
@@ -289,7 +301,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
                 // display last StackDisplayDepthLimit frames preceding the host frame:
                 skippedFrameCount = Math.Max(0, displayFramesEnd - StackDisplayDepthLimit);
-                displayFrames = frames[skippedFrameCount..displayFramesEnd];
+                displayFrames = frames.AsSpan()[skippedFrameCount..displayFramesEnd].ToArray();
             }
             catch
             {
@@ -433,4 +445,3 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         }
     }
 }
-#endif
