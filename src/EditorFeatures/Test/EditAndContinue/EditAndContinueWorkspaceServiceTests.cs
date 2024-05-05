@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
@@ -216,42 +215,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private void EnterBreakState(
             DebuggingSession session,
-            ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default,
-            ImmutableArray<DocumentId> documentsWithRudeEdits = default)
+            ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default)
         {
             _debuggerService.GetActiveStatementsImpl = () => activeStatements.NullToEmpty();
-            session.BreakStateOrCapabilitiesChanged(inBreakState: true, out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
+            session.BreakStateOrCapabilitiesChanged(inBreakState: true);
         }
 
         private void ExitBreakState(
-            DebuggingSession session,
-            ImmutableArray<DocumentId> documentsWithRudeEdits = default)
+            DebuggingSession session)
         {
             _debuggerService.GetActiveStatementsImpl = () => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
-            session.BreakStateOrCapabilitiesChanged(inBreakState: false, out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
+            session.BreakStateOrCapabilitiesChanged(inBreakState: false);
         }
 
-        private static void CapabilitiesChanged(
-            DebuggingSession session,
-            ImmutableArray<DocumentId> documentsWithRudeEdits = default)
-        {
-            session.BreakStateOrCapabilitiesChanged(inBreakState: null, out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
-        }
+        private static void CapabilitiesChanged(DebuggingSession session)
+            => session.BreakStateOrCapabilitiesChanged(inBreakState: null);
 
-        private static void CommitSolutionUpdate(DebuggingSession session, ImmutableArray<DocumentId> documentsWithRudeEdits = default)
-        {
-            session.CommitSolutionUpdate(out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
-        }
+        private static void CommitSolutionUpdate(DebuggingSession session)
+            => session.CommitSolutionUpdate();
 
-        private static void EndDebuggingSession(DebuggingSession session, ImmutableArray<DocumentId> documentsWithRudeEdits = default)
-        {
-            session.EndSession(out var documentsToReanalyze, out _);
-            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
-        }
+        private static void EndDebuggingSession(DebuggingSession session)
+            => session.EndSession(out _);
 
         private static async Task<(ModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(
             DebuggingSession session,
@@ -489,8 +473,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return null;
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task StartDebuggingSession_CapturingDocuments(bool captureAllDocuments)
         {
             var encodingA = Encoding.BigEndianUnicode;
@@ -680,8 +663,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, _telemetryLog);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ProjectThatDoesNotSupportEnC(bool breakMode)
         {
             using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
@@ -786,8 +768,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Empty(emitDiagnostics);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open, bool designTimeOnlyAddedAfterSessionStarts)
         {
             var source = "class A { }";
@@ -890,8 +871,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ErrorReadingModuleFile(bool breakMode)
         {
             // module file is empty, which will cause a read error:
@@ -1083,8 +1063,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, _telemetryLog);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task FileAdded(bool breakMode)
         {
             var sourceA = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -1169,8 +1148,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         /// solution
         /// </code>
         /// </summary>
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ModuleDisallowsEditAndContinue_NoChanges(bool breakMode)
         {
             var source0 = "class C1 { void M() { System.Console.WriteLine(0); } }";
@@ -1381,8 +1359,7 @@ class C1
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task RudeEdits(bool breakMode)
         {
             var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -1419,12 +1396,12 @@ class C1
 
             if (breakMode)
             {
-                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                ExitBreakState(debuggingSession);
                 EndDebuggingSession(debuggingSession);
             }
             else
             {
-                EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                EndDebuggingSession(debuggingSession);
             }
 
             AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
@@ -1483,7 +1460,7 @@ class C1
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             // exit break state without applying the change:
-            ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            ExitBreakState(debuggingSession);
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
             AssertEx.Empty(diagnostics);
@@ -1497,7 +1474,7 @@ class C1
                 diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             // exit break state without applying the change:
-            ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            ExitBreakState(debuggingSession);
 
             // apply the change:
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -1554,11 +1531,10 @@ class C { int Y => 2; }
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
-            EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(generatedDocument.Id));
+            EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task RudeEdits_DocumentOutOfSync(bool breakMode)
         {
             var source0 = "class C1 { void M() { System.Console.WriteLine(0); } }";
@@ -1632,12 +1608,12 @@ class C { int Y => 2; }
 
             if (breakMode)
             {
-                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                ExitBreakState(debuggingSession);
                 EndDebuggingSession(debuggingSession);
             }
             else
             {
-                EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+                EndDebuggingSession(debuggingSession);
             }
 
             AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
@@ -1703,7 +1679,7 @@ class C { int Y => 2; }
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
-            EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            EndDebuggingSession(debuggingSession);
         }
 
         [Fact]
@@ -1760,7 +1736,7 @@ class C { int Y => 2; }
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
-            EndDebuggingSession(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(document2.Id));
+            EndDebuggingSession(debuggingSession);
         }
 
         [Fact]
@@ -1924,8 +1900,7 @@ class C { int Y => 2; }
             AnalyzerConfig,
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task HasChanges_Documents(DocumentKind documentKind)
         {
             using var _ = CreateWorkspace(out var solution, out var service);
@@ -2175,8 +2150,7 @@ class C { int Y => 2; }
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Capabilities(bool breakState)
         {
             var source1 = "class C { void M() { } }";
@@ -2231,7 +2205,7 @@ class C { int Y => 2; }
 
             if (breakState)
             {
-                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+                ExitBreakState(debuggingSession);
             }
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
@@ -2243,11 +2217,11 @@ class C { int Y => 2; }
 
             if (breakState)
             {
-                EnterBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+                EnterBreakState(debuggingSession);
             }
             else
             {
-                CapabilitiesChanged(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+                CapabilitiesChanged(debuggingSession);
             }
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
@@ -2392,7 +2366,7 @@ class G
             // no pending update:
             Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
-            Assert.Throws<InvalidOperationException>(() => debuggingSession.CommitSolutionUpdate(out var _));
+            Assert.Throws<InvalidOperationException>(() => debuggingSession.CommitSolutionUpdate());
             Assert.Throws<InvalidOperationException>(() => debuggingSession.DiscardSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
@@ -2645,8 +2619,7 @@ class G
             EndDebuggingSession(debuggingSession);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValidSignificantChange_DocumentOutOfSync(bool delayLoad)
         {
             var sourceOnDisk = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -2699,8 +2672,7 @@ class G
             Assert.Empty(debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ValidSignificantChange_EmitSuccessful(bool breakMode, bool commitUpdate)
         {
             var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -3624,8 +3596,7 @@ class C { int Y => 1; }
             AssertEx.Equal(new[] { adjustedActiveLineSpan1, adjustedActiveLineSpan2 }, currentSpans.Select(s => s.LineSpan));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ActiveStatements_SyntaxErrorOrOutOfSyncDocument(bool isOutOfSync)
         {
             var sourceV1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
@@ -3689,8 +3660,7 @@ class C { int Y => 1; }
             AssertEx.Equal(new[] { activeLineSpan11, activeLineSpan12 }, currentSpans.Select(s => s.LineSpan));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task ActiveStatements_ForeignDocument(bool withPath, bool designTimeOnly)
         {
             using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
@@ -4078,7 +4048,7 @@ class C
             solution = solution.WithDocumentText(document.Id, CreateText(source1));
             document = solution.GetDocument(document.Id);
 
-            ExitBreakState(debuggingSession, ImmutableArray.Create(document.Id));
+            ExitBreakState(debuggingSession);
 
             // change the source (now a valid edit since there is no active statement)
             solution = solution.WithDocumentText(document.Id, CreateText(source2));
@@ -4469,7 +4439,7 @@ class C
                 Assert.Equal("CS0103", result2.Diagnostics.Single().Diagnostics.Single().Id);
                 Assert.Empty(result2.ModuleUpdates.Updates);
 
-                encService.EndDebuggingSession(sessionId, out var _);
+                encService.EndDebuggingSession(sessionId);
             });
 
             await Task.WhenAll(tasks);
@@ -4489,10 +4459,10 @@ class C
 
             // The folling methods shall not be called after the debugging session ended.
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None));
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState: true, out _));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState: true));
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.DiscardSolutionUpdate());
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate(out _));
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.EndSession(out _, out _));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate());
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.EndSession(out _));
 
             // The following methods can be called at any point in time, so we must handle race with dispose gracefully.
             Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));

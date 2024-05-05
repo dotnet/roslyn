@@ -159,7 +159,7 @@ internal sealed class TraceLog(int logSize, string id, string fileName)
             try
             {
                 path = Path.Combine(CreateSessionDirectory(sessionId, directory), fileName);
-                File.WriteAllBytes(path, bytes.ToArray());
+                File.WriteAllBytes(path, [.. bytes]);
             }
             catch (Exception e)
             {

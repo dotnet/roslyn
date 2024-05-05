@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -85,7 +86,15 @@ public abstract partial class Workspace : IDisposable
 
         var emptyOptions = new SolutionOptionSet(_legacyOptions);
 
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
+        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: []);
+
+        _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
+            // Idle processing speed
+            TimeSpan.FromMilliseconds(1500),
+            ProcessUpdateSourceGeneratorRequestAsync,
+            EqualityComparer<(ProjectId? projectId, bool forceRegeneration)>.Default,
+            listenerProvider.GetListener(),
+            _updateSourceGeneratorsQueueTokenSource.Token);
     }
 
     /// <summary>
@@ -620,9 +629,24 @@ public abstract partial class Workspace : IDisposable
         {
             disposableService.Dispose();
         }
+
+        // We're disposing this workspace.  Stop any work to update SG docs in the background.
+        _updateSourceGeneratorsQueueTokenSource.Cancel();
     }
 
     #region Host API
+
+    private static Solution CheckAndAddProjects(Solution solution, IReadOnlyList<ProjectInfo> projects)
+    {
+        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(projects.Count, out var builder);
+        foreach (var project in projects)
+        {
+            CheckProjectIsNotInSolution(solution, project.Id);
+            builder.Add(project);
+        }
+
+        return solution.AddProjects(builder);
+    }
 
     private static Solution CheckAndAddProject(Solution newSolution, ProjectInfo project)
     {
@@ -642,8 +666,7 @@ public abstract partial class Workspace : IDisposable
 
                 var newSolution = this.CreateSolution(solutionInfo);
 
-                foreach (var project in solutionInfo.Projects)
-                    newSolution = CheckAndAddProject(newSolution, project);
+                newSolution = CheckAndAddProjects(newSolution, solutionInfo.Projects);
 
                 return newSolution;
             }, WorkspaceChangeKind.SolutionAdded);
@@ -659,8 +682,7 @@ public abstract partial class Workspace : IDisposable
             {
                 var newSolution = this.CreateSolution(reloadedSolutionInfo);
 
-                foreach (var project in reloadedSolutionInfo.Projects)
-                    newSolution = CheckAndAddProject(newSolution, project);
+                newSolution = CheckAndAddProjects(newSolution, reloadedSolutionInfo.Projects);
 
                 return this.AdjustReloadedSolution(oldSolution, newSolution);
             }, WorkspaceChangeKind.SolutionReloaded);

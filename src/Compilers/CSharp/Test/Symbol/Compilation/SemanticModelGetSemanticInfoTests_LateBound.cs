@@ -225,7 +225,7 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode1);
 
-            Assert.Equal("C", semanticInfo.Type.ToTestDisplayString());
+            Assert.True(semanticInfo.Type.IsDynamic());
             Assert.Equal("C C.Create(System.Int32 arg)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -548,8 +548,8 @@ class C
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
-            Assert.False(semanticInfo.Type.IsDynamic());
-            Assert.False(semanticInfo.ConvertedType.IsDynamic());
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);

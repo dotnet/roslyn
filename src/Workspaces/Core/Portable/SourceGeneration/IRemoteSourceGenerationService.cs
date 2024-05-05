@@ -31,6 +31,12 @@ internal interface IRemoteSourceGenerationService
     /// </summary>
     ValueTask<ImmutableArray<string>> GetContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Whether or not the specified analyzer references have source generators or not.
+    /// </summary>
+    ValueTask<bool> HasGeneratorsAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<Checksum> analyzerReferenceChecksums, string language, CancellationToken cancellationToken);
 }
 
 /// <summary>

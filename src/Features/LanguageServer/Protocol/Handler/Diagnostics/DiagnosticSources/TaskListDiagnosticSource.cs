@@ -33,7 +33,7 @@ internal sealed class TaskListDiagnosticSource(Document document, IGlobalOptionS
         => true;
 
     public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
+        RequestContext context, CancellationToken cancellationToken)
     {
         var service = this.Document.GetLanguageService<ITaskListService>();
         if (service == null)

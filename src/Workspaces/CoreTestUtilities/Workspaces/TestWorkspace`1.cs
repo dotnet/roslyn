@@ -347,6 +347,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 WorkspaceKind.MiscellaneousFiles => false,
                 WorkspaceKind.Interactive => false,
+                WorkspaceKind.SemanticSearch => false,
                 _ => true
             };
 
@@ -637,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Documents.Add(submission.Documents.Single());
             }
 
-            var solution = CreateSolution(projectNameToTestHostProject.Values.ToArray());
+            var solution = CreateSolution([.. projectNameToTestHostProject.Values]);
             AddTestSolution(solution);
 
             foreach (var projectElement in workspaceElement.Elements(ProjectElementName))

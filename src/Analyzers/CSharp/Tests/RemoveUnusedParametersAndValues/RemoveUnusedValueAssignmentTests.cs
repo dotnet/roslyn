@@ -496,8 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Initialization_NonConstantValue_LocalReference(
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option,
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne)] CodeFixTestBehaviors testBehaviors)
@@ -557,8 +556,7 @@ class C
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task Assignment_NonConstantValue_LocalReference(
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option,
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne)] CodeFixTestBehaviors testBehaviors)
@@ -1115,8 +1113,7 @@ class C
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NestedAssignment_ConstantValue(
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option,
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck)] CodeFixTestBehaviors testBehaviors)
@@ -1195,8 +1192,7 @@ class C
             await test.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task NestedAssignment_NonConstantValue(
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option,
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck)] CodeFixTestBehaviors testBehaviors)
@@ -1329,8 +1325,7 @@ class C
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task IncrementOrDecrementOperator_ValueUsed_SameStatement(
             [CombinatorialValues("++", "--")] string @operator,
             bool applyAsPrefix,
@@ -1384,8 +1379,7 @@ class C
             await test.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task IncrementOrDecrementOperator_ValueUsed_LaterStatement(
             [CombinatorialValues("++", "--")] string @operator,
             bool applyAsPrefix,
@@ -1415,8 +1409,7 @@ class C
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task IncrementOrDecrementOperator_ValueUnused(
             [CombinatorialValues("++", "--")] string @operator,
             bool applyAsPrefix,
@@ -1454,8 +1447,7 @@ class C
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CompoundAssignmentOperator_ValueUsed_SameStatement(
             [CombinatorialValues("1" /*Constant*/, "M2()" /*Non-constant*/)] string rightHandSide,
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option)
@@ -1511,8 +1503,7 @@ class C
             await test.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CompoundAssignmentOperator_ValueUsed_LaterStatement(
             [CombinatorialValues("1" /*Constant*/, "M2()" /*Non-constant*/)] string rightHandSide,
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option)
@@ -1542,8 +1533,7 @@ class C
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CompoundLogicalOrOperator_ValueUsed_LaterStatement(
             [CombinatorialValues("true" /*Constant*/, "M2()" /*Non-constant*/)] string rightHandSide,
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option)
@@ -1573,8 +1563,7 @@ class C
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task CompoundLogicalOrOperator_ValueUsed_LaterStatement_02(
             [CombinatorialValues("true" /*Constant*/, "M2()" /*Non-constant*/)] string rightHandSide,
             [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option)
@@ -2781,8 +2770,7 @@ class C
                 """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferUnusedLocal(
             [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
@@ -2803,8 +2791,7 @@ class C
                 """, new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion)));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_TypePattern(
             [CombinatorialValues(CodeFixTestBehaviors.None, CodeFixTestBehaviors.FixOne)] CodeFixTestBehaviors testBehaviors)
         {

@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 #pragma warning disable CS8602 // Dereference of a possibly null reference. (Can localRoot be null here?)
                 var splitRoot = localRoot.TrimEnd('\\').Split('\\');
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-                splitRoot[splitRoot.Length - 1] = "~external";
+                splitRoot[^1] = "~external";
                 var externalPath = string.Join("\\", splitRoot) + "\\";
 
                 remoteRootPaths.Add(localRoot);

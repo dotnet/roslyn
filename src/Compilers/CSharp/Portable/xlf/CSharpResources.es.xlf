@@ -327,6 +327,11 @@
         <target state="translated">No se puede convertir el grupo de métodos '{0}' al tipo delegado '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">El tipo de delegado no se puede deducir.</target>
@@ -444,7 +449,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
-        <target state="new">Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</target>
+        <target state="translated">El tipo de expresión de colección "{0}" debe tener una instancia o un método de extensión "Add" al que se pueda llamar con un único argumento.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
@@ -1095,6 +1100,31 @@
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
         <target state="translated">La característica experimental "interceptores" no está habilitada en este espacio de nombres. Agregue '{0}' al proyecto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
+        <source>The data argument to InterceptsLocationAttribute is not in the correct format.</source>
+        <target state="new">The data argument to InterceptsLocationAttribute is not in the correct format.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationDataInvalidPosition">
+        <source>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</source>
+        <target state="new">The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationDuplicateFile">
+        <source>Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</source>
+        <target state="new">Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationFileNotFound">
+        <source>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</source>
+        <target state="new">Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationUnsupportedVersion">
+        <source>Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</source>
+        <target state="new">Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -2435,6 +2465,16 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">puntero</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_TooManyBoundLambdas">
+        <source>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
+        <target state="new">Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_TooManyBoundLambdas_Title">
+        <source>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
+        <target state="new">Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">

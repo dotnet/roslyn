@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
@@ -84,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteStackTraceExplorerService), null),
             (typeof(IRemoteUnitTestingSearchService), null),
             (typeof(IRemoteSourceGenerationService), null),
+            (typeof(IRemoteSemanticSearchService), typeof(IRemoteSemanticSearchService.ICallback)),
         });
 
         internal readonly RemoteSerializationOptions Options;
@@ -133,7 +135,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ServiceDescriptor GetServiceDescriptor(Type serviceType, RemoteProcessConfiguration configuration)
         {
-            var (descriptorCoreClr64, descriptorCoreClr64ServerGC) = _descriptors[serviceType];
+            if (!_descriptors.TryGetValue(serviceType, out var descriptor))
+            {
+                throw ExceptionUtilities.UnexpectedValue(serviceType);
+            }
+
+            var (descriptorCoreClr64, descriptorCoreClr64ServerGC) = descriptor;
             return (configuration & RemoteProcessConfiguration.ServerGC) switch
             {
                 0 => descriptorCoreClr64,

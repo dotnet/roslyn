@@ -59,7 +59,7 @@ internal partial struct SymbolKey
                 namespaceSymbol = namespaceSymbol.ContainingNamespace;
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         protected sealed override SymbolKeyResolution Resolve(

@@ -91,7 +91,7 @@ internal partial class InlineHintsDataTaggerProvider(
             return base.GetSpansToTag(textView, subjectBuffer);
         }
 
-        return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
+        return [visibleSpanOpt.Value];
     }
 
     protected override async Task ProduceTagsAsync(

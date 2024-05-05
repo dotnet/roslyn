@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             bool testWithTransformation = true,
             ParseOptions parseOptions = null)
         {
-            return AssertFormatAsync(code, code, SpecializedCollections.SingletonEnumerable(new TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, parseOptions);
+            return AssertFormatAsync(code, code, [new TextSpan(0, code.Length)], debugMode, changedOptionSet, testWithTransformation, parseOptions);
         }
 
         private protected Task AssertFormatAsync(
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             bool testWithTransformation = true,
             ParseOptions parseOptions = null)
         {
-            return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(new TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, parseOptions);
+            return AssertFormatAsync(expected, code, [new TextSpan(0, code.Length)], debugMode, changedOptionSet, testWithTransformation, parseOptions);
         }
 
         private protected Task AssertFormatAsync(

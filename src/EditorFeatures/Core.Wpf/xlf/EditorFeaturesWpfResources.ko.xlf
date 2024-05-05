@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Generating_suggestions">
         <source>Generating suggestions...</source>
-        <target state="new">Generating suggestions...</target>
+        <target state="translated">제안 사항을 생성하는 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_AI_suggestions">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Toggle_AI_suggestions">
         <source>Toggle rename suggestions (Ctrl+Space)</source>
-        <target state="new">Toggle rename suggestions (Ctrl+Space)</target>
+        <target state="translated">이름 바꾸기 제안 토글(Ctrl+스페이스바)</target>
         <note />
       </trans-unit>
     </body>

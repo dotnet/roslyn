@@ -82,7 +82,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             new DocumentInfo.DocumentAttributes(
                 documentIdentity.DocumentId,
                 name: documentIdentity.HintName,
-                folders: SpecializedCollections.EmptyReadOnlyList<string>(),
+                folders: [],
                 parseOptions.Kind,
                 filePath: documentIdentity.FilePath,
                 isGenerated: true,
@@ -105,7 +105,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         ITextAndVersionSource textSource,
         SourceText text,
         LoadTextOptions loadTextOptions,
-        AsyncLazy<TreeAndVersion> treeSource,
+        ITreeAndVersionSource treeSource,
         Lazy<Checksum> lazyContentHash,
         DateTime generationDateTime)
         : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)

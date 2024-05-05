@@ -1968,70 +1968,132 @@ public interface I
         }
 
         [Fact]
-        public void Class_ImplementingInterface_Add()
+        public void Class_ImplementingInterface_Add_Implicit_NonVirtual()
         {
-            var src1 = @"
-using System;
+            var src1 = """
+                interface I
+                {
+                    void F();
+                }
+                """;
 
-public interface ISample
-{
-    string Get();
-}
+            var src2 = """
+                interface I
+                {
+                    void F();
+                }
 
-public interface IConflict
-{
-    string Get();
-}
+                class C : I
+                {
+                    public void F() {}
+                }
+                """;
 
-public class BaseClass : ISample
-{
-    public virtual string Get() => string.Empty;
-}
-";
-            var src2 = @"
-using System;
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"))],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
 
-public interface ISample
-{
-    string Get();
-}
+        [Fact]
+        public void Class_ImplementingInterface_Add_Implicit_Virtual()
+        {
+            var src1 = """
+                interface I
+                {
+                    void F();
+                }
+                """;
 
-public interface IConflict
-{
-    string Get();
-}
+            var src2 = """
+                interface I
+                {
+                    void F();
+                }
 
-public class BaseClass : ISample
-{
-    public virtual string Get() => string.Empty;
-}
+                class C : I
+                {
+                    public virtual void F() {}
+                }
+                """;
 
-public class SubClass : BaseClass, IConflict
-{
-    public override string Get() => string.Empty;
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"))],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
 
-    string IConflict.Get() => String.Empty;
-}
-";
+        [Fact]
+        public void Class_ImplementingInterface_Add_Implicit_Override()
+        {
+            var src1 = """
+                interface I
+                {
+                    void F();
+                }
+
+                class C : I
+                {
+                    public virtual void F() {}
+                }
+                """;
+
+            var src2 = """
+                interface I
+                {
+                    void F();
+                }
+
+                class C : I
+                {
+                    public virtual void F() {}
+                }
+
+                class D : C
+                {
+                    public override void F() {}
+                }
+                """;
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("D"))],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
+        }
+
+        [Theory]
+        [InlineData("void F();", "void I.F() {}")]
+        [InlineData("int F { get; }", "int I.F { get; }")]
+        [InlineData("event System.Action F;", "event System.Action I.F { add {} remove {} }")]
+        public void Class_ImplementingInterface_Add_Explicit_NonVirtual(string memberDef, string explicitImpl)
+        {
+            var src1 = $$"""
+                interface I
+                {
+                    {{memberDef}}
+                }
+                """;
+
+            var src2 = $$"""
+                interface I
+                {
+                    {{memberDef}}
+                }
+
+                class C<T> : I
+                {
+                    {{explicitImpl}}
+                }
+                """;
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(
-                @"Insert [public class SubClass : BaseClass, IConflict
-{
-    public override string Get() => string.Empty;
+            edits.VerifySemantics(
+                [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"))],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
 
-    string IConflict.Get() => String.Empty;
-}]@219",
-                "Insert [: BaseClass, IConflict]@241",
-                "Insert [public override string Get() => string.Empty;]@272",
-                "Insert [string IConflict.Get() => String.Empty;]@325",
-                "Insert [()]@298",
-                "Insert [()]@345");
-
-            // Here we add a class implementing an interface and a method inside it with explicit interface specifier.
-            // We want to be sure that adding the method will not tirgger a rude edit as it happens if adding a single method with explicit interface specifier.
             edits.VerifySemanticDiagnostics(
+                [Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "class C<T>", GetResource("class"))],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -2312,15 +2374,28 @@ class C<T>
         public void Type_Generic_InsertMembers_Reloadable()
         {
             var src1 = ReloadableAttributeSrc + @"
-[CreateNewOnMetadataUpdate]
-class C<T>
+interface IExplicit
 {
+    void F() {}
+}
+
+[CreateNewOnMetadataUpdate]
+class C<T> : IExplicit
+{
+    void IExplicit.F() {}
 }
 ";
             var src2 = ReloadableAttributeSrc + @"
-[CreateNewOnMetadataUpdate]
-class C<T>
+interface IExplicit
 {
+    void F() {}
+}
+
+[CreateNewOnMetadataUpdate]
+class C<T> : IExplicit
+{
+    void IExplicit.F() {}
+
     void M() {}
     int P1 { get; set; }
     int P2 { get => 1; set {} }
@@ -2337,6 +2412,10 @@ class C<T>
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemantics(
                 [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
+
+            edits.VerifySemanticDiagnostics(
+                [Diagnostic(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, "void M()", "CreateNewOnMetadataUpdateAttribute")],
                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
@@ -3679,7 +3758,7 @@ record C(int X)
             expectedEdits.Add(SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true));
 
             edits.VerifySemantics(
-                expectedEdits.ToArray(),
+                [.. expectedEdits],
                 capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
@@ -7534,7 +7613,7 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
         }
@@ -9667,7 +9746,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
         }
@@ -10730,8 +10809,7 @@ class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Parameter_Update_TypeOrRefKind_RuntimeTypeChanged(
             [CombinatorialValues("int", "in byte", "ref byte", "out byte", "ref readonly byte")] string type,
             bool direction)
@@ -12836,8 +12914,7 @@ partial class C
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_UpdatingImplicit(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "protected")] string accessibility)
@@ -12856,8 +12933,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_UpdatingImplicit_Partial(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "protected")] string accessibility)
@@ -12882,8 +12958,7 @@ partial class C
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_AddingParameterless(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "internal", "private", "protected", "private protected", "internal protected")] string accessibility)
@@ -12899,8 +12974,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_AddingParameterless_Primary(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "internal", "private", "protected", "private protected", "internal protected")] string accessibility)
@@ -12916,8 +12990,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_AddingParameterless_Partial(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "internal", "private", "protected", "private protected", "internal protected")] string accessibility)
@@ -12943,8 +13016,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_AddingParameterless_Partial_Primary(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "internal", "private", "protected", "private protected", "internal protected")] string accessibility)
@@ -12970,8 +13042,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_ReplacingSynthesizedWithCustom_ChangingAccessibilty(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "protected", "internal", "private protected", "internal protected")] string accessibility)
@@ -12988,8 +13059,7 @@ partial class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Insert_ReplacingSynthesizedWithCustom_ChangingAccessibilty_AbstractType(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "public", "internal", "private protected", "internal protected")] string accessibility)
@@ -13161,8 +13231,7 @@ partial class C
                 Diagnostic(RudeEditKind.ChangingAccessibility, "class C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_UpdatingImplicit(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("public", "protected")] string accessibility)
@@ -13213,8 +13282,7 @@ class C
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_WithParameters([CombinatorialValues("record", "class")] string keyword)
         {
             var src1 = keyword + " C { public C(int x) { } }";
@@ -13227,8 +13295,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_Primary_WithParameters([CombinatorialValues("record", "class")] string keyword)
         {
             var src1 = keyword + " C(int a) { public C(bool b) { } }";
@@ -13308,8 +13375,7 @@ class C
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized(
             [CombinatorialValues("record", "class")] string keyword)
         {
@@ -13322,8 +13388,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters is []), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized_ChangingAccessibility(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "protected", "internal", "private protected", "internal protected")] string accessibility)
@@ -13340,8 +13405,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized_AbstractType(
             [CombinatorialValues("record", "class")] string keyword)
         {
@@ -13354,8 +13418,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_ReplacingCustomWithSynthesized_AbstractType_ChangingAccessibility(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "public", "internal", "private protected", "internal protected")] string accessibility)
@@ -13420,8 +13483,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_Primary_ReplacingWithRegular(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "protected", "internal", "private protected", "internal protected")] string accessibility)
@@ -13438,8 +13500,7 @@ class C
                 capabilities: EditAndContinueCapabilities.Baseline);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void Constructor_Instance_Delete_Primary_ReplacingWithRegular_AbstractType(
             [CombinatorialValues("record", "class")] string keyword,
             [CombinatorialValues("", "private", "public", "internal", "private protected", "internal protected")] string accessibility)
@@ -16055,8 +16116,7 @@ class C : B
                 ]);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void MemberInitializer_Update_Lambda_ConstructorWithMemberInitializers_ReplacingCustomWithSynthesized_Primary(
             [CombinatorialValues("", "()")] string initializer, bool isInsert)
         {

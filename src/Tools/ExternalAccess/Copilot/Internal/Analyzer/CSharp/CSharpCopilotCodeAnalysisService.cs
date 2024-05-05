@@ -25,34 +25,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp
 [ExportLanguageService(typeof(ICopilotCodeAnalysisService), LanguageNames.CSharp), Shared]
 internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService
 {
-    private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
-    private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
-
     private readonly Lazy<IExternalCSharpCopilotCodeAnalysisService> _lazyExternalCopilotService;
-    private readonly VisualStudioCopilotOptionService _copilotOptionService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
-        IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
-        VisualStudioCopilotOptionService copilotOptionService,
+        [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
         IDiagnosticsRefresher diagnosticsRefresher,
         SVsServiceProvider serviceProvider,
         IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer
         ) : base(diagnosticsRefresher)
     {
         _lazyExternalCopilotService = new Lazy<IExternalCSharpCopilotCodeAnalysisService>(GetExternalService, LazyThreadSafetyMode.PublicationOnly);
-        _copilotOptionService = copilotOptionService;
 
         IExternalCSharpCopilotCodeAnalysisService GetExternalService()
             => externalCopilotService ?? new ReflectionWrapper(serviceProvider, brokeredServiceContainer);
     }
-
-    public override Task<bool> IsRefineOptionEnabledAsync()
-        => _copilotOptionService.IsCopilotOptionEnabledAsync(CopilotRefineOptionName);
-
-    public override Task<bool> IsCodeAnalysisOptionEnabledAsync()
-        => _copilotOptionService.IsCopilotOptionEnabledAsync(CopilotCodeAnalysisOptionName);
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
         => _lazyExternalCopilotService.Value.AnalyzeDocumentAsync(document, span, promptTitle, cancellationToken);
@@ -68,6 +56,9 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
 
     protected override Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
         => _lazyExternalCopilotService.Value.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
+
+    protected override Task<string> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetOnTheFlyDocsAsync(symbolSignature, declarationCode, language, cancellationToken);
 
     protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(
         Document document, IReadOnlyList<Diagnostic> diagnostics, TextSpan span, CancellationToken cancellationToken)

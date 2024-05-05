@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(3, optionService.GetExternallyDefinedOption(optionKey));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void ExternallyDefinedOption(bool subclass)
         {
             using var workspace1 = new AdhocWorkspace();

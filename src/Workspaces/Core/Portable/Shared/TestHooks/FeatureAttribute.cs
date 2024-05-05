@@ -28,6 +28,7 @@ internal static class FeatureAttribute
     public const string EventHookup = nameof(EventHookup);
     public const string ExtractMethod = nameof(ExtractMethod);
     public const string FindReferences = nameof(FindReferences);
+    public const string SemanticSearch = nameof(SemanticSearch);
     public const string GlobalOperation = nameof(GlobalOperation);
     public const string GoToBase = nameof(GoToBase);
     public const string GoToDefinition = nameof(GoToDefinition);
@@ -47,6 +48,7 @@ internal static class FeatureAttribute
     public const string NavigableSymbols = nameof(NavigableSymbols);
     public const string NavigateTo = nameof(NavigateTo);
     public const string NavigationBar = nameof(NavigationBar);
+    public const string OnTheFlyDocs = nameof(OnTheFlyDocs);
     public const string Outlining = nameof(Outlining);
     public const string OrganizeDocument = nameof(OrganizeDocument);
     public const string PackageInstaller = nameof(PackageInstaller);

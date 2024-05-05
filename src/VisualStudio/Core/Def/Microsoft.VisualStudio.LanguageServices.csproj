@@ -170,9 +170,9 @@
 
   <Target Name="SetNuspecDependencyVersions" BeforeTargets="InitializeStandardNuspecProperties">
     <ItemGroup>
-      <NuspecProperty Include="@(PackageVersion->'MicrosoftCSharpVersion=%(Version)')" Condition="'%(Identity)' == 'Microsoft.CSharp'"/>
-      <NuspecProperty Include="@(PackageVersion->'MicrosoftVisualStudioCompositionVersion=%(Version)')" Condition="'%(Identity)' == 'Microsoft.VisualStudio.Composition'"/>
-      <NuspecProperty Include="@(PackageVersion->'SystemThreadingTasksDataflowVersion=%(Version)')" Condition="'%(Identity)' == 'System.Threading.Tasks.Dataflow'"/>
+      <NuspecProperty Include="@(PackageVersion->'MicrosoftCSharpVersion=%(Version)')" Condition="'%(Identity)' == 'Microsoft.CSharp'" />
+      <NuspecProperty Include="@(PackageVersion->'MicrosoftVisualStudioCompositionVersion=%(Version)')" Condition="'%(Identity)' == 'Microsoft.VisualStudio.Composition'" />
+      <NuspecProperty Include="@(PackageVersion->'SystemThreadingTasksDataflowVersion=%(Version)')" Condition="'%(Identity)' == 'System.Threading.Tasks.Dataflow'" />
     </ItemGroup>
   </Target>
 </Project>

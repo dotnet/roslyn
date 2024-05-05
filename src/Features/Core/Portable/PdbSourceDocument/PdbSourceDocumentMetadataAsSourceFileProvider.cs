@@ -338,7 +338,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, info.ChecksumAlgorithm, sourceProject.Id, sourceWorkspace);
         }
 
-        return documents.ToImmutable();
+        return documents.ToImmutableAndClear();
     }
 
     private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)

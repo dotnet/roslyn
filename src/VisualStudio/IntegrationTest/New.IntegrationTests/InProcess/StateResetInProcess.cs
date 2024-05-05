@@ -53,7 +53,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             configurationService.Clear();
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            ResetOption(globalOptions, DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag);
             ResetOption(globalOptions, CSharpCodeStyleOptions.NamespaceDeclarations);
             ResetOption(globalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);
             ResetOption(globalOptions, InlineRenameSessionOptionsStorage.PreviewChanges);
@@ -64,6 +63,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetOption(globalOptions, InlineRenameUIOptionsStorage.UseInlineAdornment);
             ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
+            ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution);
+            ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
             ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
             ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);
             ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.TriggerInArgumentLists);

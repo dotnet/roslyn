@@ -96,11 +96,13 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
     protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
         Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueExpressionStatementOption,
         Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption)
-        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                    .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
-                    .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption)
-                    .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
-               fadingOption: null)
+        : base(
+            [
+                (s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption),
+                (s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
+                (s_unusedParameterRule, CodeStyleOptions2.UnusedParameters)
+            ],
+            fadingOption: null)
     {
     }
 

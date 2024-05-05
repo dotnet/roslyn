@@ -157,7 +157,7 @@ internal abstract class AbstractFileBannerFacts : IFileBannerFacts
 
         leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index));
 
-        strippedTrivia = leadingTriviaToStrip.ToImmutableArray();
+        strippedTrivia = [.. leadingTriviaToStrip];
         return node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index));
     }
 

@@ -35,7 +35,7 @@ internal static partial class DependentProjectsFinder
     {
         // namespaces are visible in all projects.
         if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
-            return projects.ToImmutableArray();
+            return [.. projects];
 
         var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
         return dependentProjects.WhereAsArray(projects.Contains);
@@ -84,7 +84,7 @@ internal static partial class DependentProjectsFinder
             result.AddRange(filteredProjects.Select(p => p.project));
         }
 
-        return result.ToImmutableArray();
+        return [.. result];
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ internal static partial class DependentProjectsFinder
         // further submissions can bind to them.
         await AddSubmissionDependentProjectsAsync(solution, symbolOrigination.sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
 
-        return dependentProjects.ToImmutableArray();
+        return [.. dependentProjects];
     }
 
     private static async Task AddSubmissionDependentProjectsAsync(
@@ -191,12 +191,12 @@ internal static partial class DependentProjectsFinder
         // and 2, even though 2 doesn't have a direct reference to 1. Hence we need to take
         // our current set of projects and find the transitive closure over backwards
         // submission previous references.
-        var projectIdsToProcess = new Stack<ProjectId>(dependentProjects.Select(dp => dp.project.Id));
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var projectIdsToProcess);
+        foreach (var dependentProject in dependentProjects.Select(dp => dp.project.Id))
+            projectIdsToProcess.Push(dependentProject);
 
-        while (projectIdsToProcess.Count > 0)
+        while (projectIdsToProcess.TryPop(out var toProcess))
         {
-            var toProcess = projectIdsToProcess.Pop();
-
             if (projectIdsToReferencingSubmissionIds.TryGetValue(toProcess, out var submissionIds))
             {
                 foreach (var pId in submissionIds)

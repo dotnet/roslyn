@@ -151,7 +151,7 @@ internal sealed partial class AsynchronousOperationListenerProvider : IAsynchron
             do
             {
                 // wait for all current tasks to be done for the time given
-                if (Task.WaitAll(tasks.ToArray(), smallTimeout))
+                if (Task.WaitAll([.. tasks], smallTimeout))
                 {
                     // current set of tasks are done.
                     // see whether there are new tasks added while we were waiting

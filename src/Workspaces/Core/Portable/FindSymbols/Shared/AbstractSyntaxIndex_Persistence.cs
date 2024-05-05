@@ -64,14 +64,13 @@ internal partial class AbstractSyntaxIndex<TIndex>
         try
         {
             var storage = await storageService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             // attempt to load from persisted state
             using var stream = await storage.ReadStreamAsync(documentKey, s_persistenceName, checksum, cancellationToken).ConfigureAwait(false);
             if (stream != null)
             {
                 using var gzipStream = new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true);
-                using var reader = ObjectReader.TryGetReader(gzipStream, cancellationToken: cancellationToken);
+                using var reader = ObjectReader.TryGetReader(gzipStream);
                 if (reader != null)
                     return read(stringTable, reader, checksum);
             }
@@ -156,12 +155,11 @@ internal partial class AbstractSyntaxIndex<TIndex>
         try
         {
             var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             {
                 using (var gzipStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true))
-                using (var writer = new ObjectWriter(gzipStream, leaveOpen: true, cancellationToken))
+                using (var writer = new ObjectWriter(gzipStream, leaveOpen: true))
                 {
                     WriteTo(writer);
                     gzipStream.Flush();
