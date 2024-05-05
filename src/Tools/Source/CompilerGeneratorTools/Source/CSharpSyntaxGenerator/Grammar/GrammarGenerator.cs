@@ -231,7 +231,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 var hexDigitOpt = hexDigit.Optional;
 
                 rules.Add("SimpleEscapeSequence", [Text(@"\'"), Text(@"\"""), Text(@"\\"), Text(@"\0"), Text(@"\a"), Text(@"\b"), Text(@"\f"), Text(@"\n"), Text(@"\r"), Text(@"\t"), Text(@"\v")]);
-                rules.Add("HexadecimalEscapeSequence", [Sequence([new("""'\\x'"""), hexDigit, hexDigitOpt, hexDigitOpt, hexDigitOpt])]);
+                rules.Add("HexadecimalEscapeSequence", [Sequence([Text(@"\x"), hexDigit, hexDigitOpt, hexDigitOpt, hexDigitOpt])]);
                 rules.Add("UnicodeEscapeSequence", [
                     Sequence([Text(@"\u"), hexDigit, hexDigit, hexDigit, hexDigit]),
                     Sequence([Text(@"\U"), hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit, hexDigit])]);
@@ -245,11 +245,11 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("RegularStringLiteralCharacter", [RuleReference("SingleRegularStringLiteralCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
                 rules.Add("SingleRegularStringLiteralCharacter", [new("""/* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */""")]);
 
-                rules.Add("VerbatimStringLiteralToken", [Sequence([new("""'@"'"""), RuleReference("VerbatimStringLiteralCharacter").ZeroOrMany, new("""'"'""")])]);
+                rules.Add("VerbatimStringLiteralToken", [Sequence([Text("@\""), RuleReference("VerbatimStringLiteralCharacter").ZeroOrMany, Text("\"")])]);
                 rules.Add("VerbatimStringLiteralCharacter", [RuleReference("SingleVerbatimStringLiteralCharacter"), RuleReference("QuoteEscapeSequence")]);
                 rules.Add("SingleVerbatimStringLiteralCharacter", [new("/* anything but quotation mark (U+0022) */")]);
 
-                rules.Add("QuoteEscapeSequence", [new("""'""'""")]);
+                rules.Add("QuoteEscapeSequence", [Text("\"\"")]);
 
                 rules.Add("InterpolatedMultiLineRawStringStartToken", [new(""""'$'+ '"""' '"'*"""")]);
                 rules.Add("InterpolatedRawStringEndToken", [new(""""'"""' '"'* /* must match number of quotes in raw_string_start_token */"""")]);
