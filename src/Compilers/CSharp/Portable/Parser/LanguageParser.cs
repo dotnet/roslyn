@@ -7015,20 +7015,20 @@ done:
             FirstElementOfPossibleTupleLiteral,
         }
 
-        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal, bool isTopLevelSwitchPattern = false)
+        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal, bool inSwitchArmPattern = false)
         {
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 return _syntaxFactory.RefType(
                     this.EatToken(),
                     this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword ? this.EatToken() : null,
-                    ParseTypeCore(ParseTypeMode.AfterRef, isTopLevelSwitchPattern));
+                    ParseTypeCore(ParseTypeMode.AfterRef, inSwitchArmPattern));
             }
 
-            return ParseTypeCore(mode, isTopLevelSwitchPattern);
+            return ParseTypeCore(mode, inSwitchArmPattern);
         }
 
-        private TypeSyntax ParseTypeCore(ParseTypeMode mode, bool isTopLevelSwitchPattern)
+        private TypeSyntax ParseTypeCore(ParseTypeMode mode, bool inSwitchArmPattern)
         {
             NameOptions nameOptions;
             switch (mode)
@@ -7069,7 +7069,7 @@ done:
                 {
                     case SyntaxKind.QuestionToken when canBeNullableType():
                         {
-                            var question = EatNullableQualifierIfApplicable(mode, isTopLevelSwitchPattern);
+                            var question = EatNullableQualifierIfApplicable(mode, inSwitchArmPattern);
                             if (question != null)
                             {
                                 type = _syntaxFactory.NullableType(type, question);
@@ -7142,7 +7142,9 @@ done:;
             return type;
         }
 
-        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode, bool isTopLevelSwitchPattern)
+        /// <param name="inSwitchArmPattern">If this is in the patternsection of a switch-expression arm or a
+        /// switch-statement case-clause.</param>
+        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode, bool inSwitchArmPattern)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
@@ -7186,7 +7188,7 @@ done:;
                             //
                             // In both these cases, this isn't a conditional expression and should be treated as a
                             // nullable type pattern (with a a good binding error to be reported later).
-                            if (isTopLevelSwitchPattern)
+                            if (inSwitchArmPattern)
                                 return true;
 
                             // In a non-async method, `await` is a simple identifier.  However, if we see `x ? await`
