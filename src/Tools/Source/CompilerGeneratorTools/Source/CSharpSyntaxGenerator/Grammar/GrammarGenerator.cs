@@ -146,18 +146,18 @@ namespace CSharpSyntaxGenerator.Grammar
                 var modifierWords = GetMembers<DeclarationModifiers>()
                     .Where(n => GetSyntaxKind(n + "Keyword") != SyntaxKind.None)
                     .Select(n => n.ToString().ToLower());
-                rules.Add("Modifier", JoinWords(modifierWords.ToArray()));
+                rules.Add("Modifier", JoinWords(modifierWords));
 
-                var keywords = JoinWords(GetMembers<SyntaxKind>().Where(k => SyntaxFacts.IsReservedKeyword(k)).Select(SyntaxFacts.GetText).Where(t => !modifierWords.Contains(t)).ToArray());
+                var keywords = JoinWords(GetMembers<SyntaxKind>().Where(k => SyntaxFacts.IsReservedKeyword(k)).Select(SyntaxFacts.GetText).Where(t => !modifierWords.Contains(t)));
                 keywords.Add(RuleReference("Modifier"));
                 rules.Add("Keyword", keywords);
 
                 var operatorTokens = GetMembers<SyntaxKind>().Where(m => SyntaxFacts.IsBinaryExpressionOperatorToken(m) || SyntaxFacts.IsPostfixUnaryExpression(m) || SyntaxFacts.IsPrefixUnaryExpression(m) || SyntaxFacts.IsAssignmentExpressionOperatorToken(m));
-                rules.Add("OperatorToken", JoinWords(operatorTokens.Select(SyntaxFacts.GetText).ToArray()));
+                rules.Add("OperatorToken", JoinWords(operatorTokens.Select(SyntaxFacts.GetText)));
 
                 rules.Add("PunctuationToken", JoinWords(GetMembers<SyntaxKind>()
                     .Where(m => SyntaxFacts.IsLanguagePunctuation(m) && !operatorTokens.Contains(m) && !m.ToString().StartsWith("Xml"))
-                    .Select(SyntaxFacts.GetText).ToArray()));
+                    .Select(SyntaxFacts.GetText)));
             }
 
             void addIdentifierRules()
@@ -296,7 +296,7 @@ namespace CSharpSyntaxGenerator.Grammar
             }
         }
 
-        private static List<Production> JoinWords(params string[] strings)
+        private static List<Production> JoinWords(IEnumerable<string> strings)
             => strings.Select(s => new Production($"""'{Escape(s)}'""")).ToList();
 
         private static string Escape(string s)
