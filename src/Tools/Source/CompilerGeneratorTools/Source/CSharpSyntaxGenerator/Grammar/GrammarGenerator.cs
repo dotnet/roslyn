@@ -298,7 +298,7 @@ namespace CSharpSyntaxGenerator.Grammar
             => strings.Select(s => new Production($"""'{Escape(s)}'""")).ToList();
 
         private static string Escape(string s)
-            => s.Replace("""\""", """\\""").Replace("'", """\'""");
+            => s.Replace(@"\", @"\\").Replace("'", @"\'");
 
         private static Production Join(string delim, IEnumerable<Production> productions)
             => new(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
