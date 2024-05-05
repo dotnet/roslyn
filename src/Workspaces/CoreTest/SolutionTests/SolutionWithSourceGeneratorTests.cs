@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // reference with another reference that's equal, we correctly update generators. We'll have the underlying generators
             // be different since two AnalyzerFileReferences that are value equal but different instances would have their own generators as well.
             const string SharedPath = "Z:\\Generator.dll";
-
             static ISourceGenerator CreateGenerator() => new SingleFileTestGenerator("// StaticContent", hintName: "generated");
 
             var analyzerReference1 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);

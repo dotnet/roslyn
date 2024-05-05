@@ -401,7 +401,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateComparisonOpera
                 [||]
                 }
                 """;
-
             static string GetFixedCode(string type)
 => $@"using System;
 
