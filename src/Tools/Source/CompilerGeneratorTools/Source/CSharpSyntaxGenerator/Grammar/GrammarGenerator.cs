@@ -162,7 +162,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addIdentifierRules()
             {
-                rules.Add("IdentifierToken", [Join(" ", [new("'@'?"), RuleReference("IdentifierStartCharacter"), RuleReference("IdentifierPartCharacter")])]);
+                rules.Add("IdentifierToken", [Join(" ", [Text("@").Optional, RuleReference("IdentifierStartCharacter"), RuleReference("IdentifierPartCharacter")])]);
                 rules.Add("IdentifierStartCharacter", [RuleReference("LetterCharacter"), RuleReference("UnderscoreCharacter")]);
                 rules.Add("IdentifierPartCharacter", [RuleReference("LetterCharacter"), RuleReference("DecimalDigitCharacter"), RuleReference("ConnectingCharacter"), RuleReference("CombiningCharacter"), RuleReference("FormattingCharacter")]);
                 rules.Add("UnderscoreCharacter", [new("'_'"), new("""'\\u005' /* unicode_escape_sequence for underscore */""")]);
@@ -190,16 +190,16 @@ namespace CSharpSyntaxGenerator.Grammar
             void addRealLiteralRules()
             {
                 var decimalDigitPlus = RuleReference("DecimalDigit").Suffix("+");
-                var exponentPartOpt = RuleReference("ExponentPart").Suffix("?");
-                var realTypeSuffixOpt = RuleReference("RealTypeSuffix").Suffix("?");
+                var exponentPartOpt = RuleReference("ExponentPart").Optional;
+                var realTypeSuffixOpt = RuleReference("RealTypeSuffix").Optional;
                 rules.Add("RealLiteralToken", [
-                    Join(" ", [decimalDigitPlus, new("'.'"), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
-                    Join(" ", [new("'.'"), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
+                    Join(" ", [decimalDigitPlus, Text("."), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
+                    Join(" ", [Text("."), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
                     Join(" ", [decimalDigitPlus, RuleReference("ExponentPart"), realTypeSuffixOpt]),
                     Join(" ", [decimalDigitPlus, RuleReference("RealTypeSuffix")]),
                 ]);
 
-                rules.Add("ExponentPart", [Join(" ", [Choice(anyCasing('E')), Choice([new("'+'"), new("'-'")], isOptional: true), decimalDigitPlus])]);
+                rules.Add("ExponentPart", [Join(" ", [Choice(anyCasing('E')), Choice([Text("+"), Text("-")]).Optional, decimalDigitPlus])]);
                 rules.Add("RealTypeSuffix", [.. anyCasing('F'), .. anyCasing('D'), .. anyCasing('M')]);
             }
 
@@ -211,11 +211,11 @@ namespace CSharpSyntaxGenerator.Grammar
             void addIntegerLiteralRules()
             {
                 rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
-                rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
+                rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Optional])]);
                 rules.Add("IntegerTypeSuffix", [.. anyCasing('U'), .. anyCasing('L'), .. permuteCasing("UL"), .. permuteCasing("LU")]);
                 rules.Add("DecimalDigit", [.. productionRange('0', '9')]);
                 rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), .. productionRange('A', 'F'), .. productionRange('a', 'f')]);
-                rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [Choice([new("'0x'"), new("'0X'")]), RuleReference("HexadecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Suffix("?")])]);
+                rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [Choice([new("'0x'"), new("'0X'")]), RuleReference("HexadecimalDigit").Suffix("+"), RuleReference("IntegerTypeSuffix").Optional])]);
             }
 
             void addEscapeSequenceRules()
@@ -302,6 +302,9 @@ namespace CSharpSyntaxGenerator.Grammar
         private static string Escape(string s)
             => s.Replace(@"\", @"\\").Replace("'", @"\'");
 
+        private static Production Text(string value)
+            => new($"'{Escape(value)}'");
+
         private static Production Join(string delim, IEnumerable<Production> productions)
             => new(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
 
@@ -384,6 +387,7 @@ namespace CSharpSyntaxGenerator.Grammar
         public Production Prefix(string prefix) => new Production(prefix + this, ReferencedRules);
         public Production Suffix(string suffix, bool when = true) => when ? new Production(this + suffix, ReferencedRules) : this;
         public Production Parenthesize(bool when = true) => when ? Prefix("(").Suffix(")") : this;
+        public Production Optional => Suffix("?");
     }
 }
 
