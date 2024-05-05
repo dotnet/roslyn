@@ -238,7 +238,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("VerbatimStringLiteralCharacter", [RuleReference("SingleVerbatimStringLiteralCharacter"), RuleReference("QuoteEscapeSequence")]);
                 rules.Add("SingleVerbatimStringLiteralCharacter", [new("/* anything but quotation mark (U+0022) */")]);
 
-                rules.Add("QuoteEscapeSequence", [new("'\"\"'")]);
+                rules.Add("QuoteEscapeSequence", [new("""'""'""")]);
 
                 rules.Add("InterpolatedMultiLineRawStringStartToken", [new(""""'$'+ '"""' '"'*"""")]);
                 rules.Add("InterpolatedRawStringEndToken", [new(""""'"""' '"'* /* must match number of quotes in raw_string_start_token */"""")]);
