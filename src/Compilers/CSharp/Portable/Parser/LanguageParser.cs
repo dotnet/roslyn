@@ -7015,20 +7015,20 @@ done:
             FirstElementOfPossibleTupleLiteral,
         }
 
-        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal, bool whenIsKeyword = false)
+        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal, bool isTopLevelSwitchPattern = false)
         {
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 return _syntaxFactory.RefType(
                     this.EatToken(),
                     this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword ? this.EatToken() : null,
-                    ParseTypeCore(ParseTypeMode.AfterRef, whenIsKeyword));
+                    ParseTypeCore(ParseTypeMode.AfterRef, isTopLevelSwitchPattern));
             }
 
-            return ParseTypeCore(mode, whenIsKeyword);
+            return ParseTypeCore(mode, isTopLevelSwitchPattern);
         }
 
-        private TypeSyntax ParseTypeCore(ParseTypeMode mode, bool whenIsKeyword)
+        private TypeSyntax ParseTypeCore(ParseTypeMode mode, bool isTopLevelSwitchPattern)
         {
             NameOptions nameOptions;
             switch (mode)
@@ -7069,7 +7069,7 @@ done:
                 {
                     case SyntaxKind.QuestionToken when canBeNullableType():
                         {
-                            var question = EatNullableQualifierIfApplicable(mode, whenIsKeyword);
+                            var question = EatNullableQualifierIfApplicable(mode, isTopLevelSwitchPattern);
                             if (question != null)
                             {
                                 type = _syntaxFactory.NullableType(type, question);
@@ -7142,7 +7142,7 @@ done:;
             return type;
         }
 
-        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode, bool whenIsKeyword)
+        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode, bool isTopLevelSwitchPattern)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
@@ -7176,11 +7176,8 @@ done:;
                             // and expressions (since `:` in switch expressions is recovered to `=>`). So consider the following case:
                             // `case T? t:`. On its own `T ? t :` can be treated as a conditional expression with condition `T`,
                             // 'whenTrue' `t` and 'whenFalse' not yet parsed. But it is way better to take `:` as case label end and
-                            // thus parse label condition as a declaration pattern `T? t`. `whenIsKeyword` flag can conveniently tell
-                            // whether we are in a 'top-level' state of a label, so if condition get parenthesized like `case (a ? b : c):`
-                            // we don't take the first `:` as label end and parse label condition as a parenthesized conditional expression
-                            if ((_termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) ||
-                                 _termState.HasFlag(TerminatorState.IsPatternInSwitchExpressionArm)) && whenIsKeyword)
+                            // thus parse label condition as a declaration pattern `T? t`
+                            if (isTopLevelSwitchPattern)
                             {
                                 return true;
                             }

@@ -214,7 +214,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TypeSyntax? type = null;
             if (LooksLikeTypeOfPattern())
             {
-                type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern, whenIsKeyword);
+                // Given that we are in a pattern parsing context, the only way `whenIsKeyword` flag can be true is if we are in a top level switch pattern, e.g.:
+                // num switch
+                // {
+                //     1 $$ => ... // `when` can be a keyword at `$$` and we are in a top-level switch pattern context
+                //     (2 $$) => ... // `when` cannot be a keyword at `$$` since we are inside a parenthesized pattern. But that also means we are not in a top-level switch pattern context
+                // }
+                type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern, isTopLevelSwitchPattern: whenIsKeyword);
                 if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
                 {
                     // either it is not shaped like a type, or it is a constant expression.
