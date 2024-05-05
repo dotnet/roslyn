@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
