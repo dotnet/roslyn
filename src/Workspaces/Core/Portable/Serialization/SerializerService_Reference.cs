@@ -204,16 +204,12 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         writer.WriteInt32((int)metadata.Kind);
-
-        var guid = GetMetadataGuid(metadata);
-
-        writer.WriteGuid(guid);
+        writer.WriteGuid(GetMetadataGuid(metadata));
     }
 
     private static Guid GetMetadataGuid(ModuleMetadata metadata)
     {
         var metadataReader = metadata.GetMetadataReader();
-
         var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
         var guid = metadataReader.GetGuid(mvidHandle);
         return guid;
