@@ -952,11 +952,11 @@ is_pattern_expression
   ;
 
 literal_expression
-  : '__arglist'
-  | 'default'
+  : 'default'
   | 'false'
   | 'null'
   | 'true'
+  | '__arglist'
   | character_literal_token
   | multi_line_raw_string_literal_token
   | numeric_literal_token
@@ -1125,20 +1125,20 @@ with_expression
   ;
 
 xml_node
-  : xml_c_data_section
-  | xml_comment
+  : xml_comment
+  | xml_c_data_section
   | xml_element
   | xml_empty_element
   | xml_processing_instruction
   | xml_text
   ;
 
-xml_c_data_section
-  : '<![CDATA[' xml_text_literal_token* ']]>'
-  ;
-
 xml_comment
   : '<!--' xml_text_literal_token* '-->'
+  ;
+
+xml_c_data_section
+  : '<![CDATA[' xml_text_literal_token* ']]>'
   ;
 
 xml_element
@@ -1429,11 +1429,7 @@ formatting_character
   ;
 
 keyword
-  : '__arglist'
-  | '__makeref'
-  | '__reftype'
-  | '__refvalue'
-  | 'as'
+  : 'as'
   | 'base'
   | 'bool'
   | 'break'
@@ -1493,6 +1489,10 @@ keyword
   | 'using'
   | 'void'
   | 'while'
+  | '__arglist'
+  | '__makeref'
+  | '__reftype'
+  | '__refvalue'
   | modifier
   ;
 
@@ -1525,16 +1525,16 @@ decimal_digit
 
 integer_type_suffix
   : 'L'
-  | 'LU'
-  | 'Lu'
-  | 'U'
-  | 'UL'
-  | 'Ul'
   | 'l'
+  | 'LU'
   | 'lU'
+  | 'Lu'
   | 'lu'
+  | 'U'
   | 'u'
+  | 'UL'
   | 'uL'
+  | 'Ul'
   | 'ul'
   ;
 
@@ -1544,16 +1544,16 @@ hexadecimal_integer_literal_token
 
 hexadecimal_digit
   : 'A'
-  | 'B'
-  | 'C'
-  | 'D'
-  | 'E'
-  | 'F'
   | 'a'
+  | 'B'
   | 'b'
+  | 'C'
   | 'c'
+  | 'D'
   | 'd'
+  | 'E'
   | 'e'
+  | 'F'
   | 'f'
   | decimal_digit
   ;
@@ -1571,10 +1571,10 @@ exponent_part
 
 real_type_suffix
   : 'D'
-  | 'F'
-  | 'M'
   | 'd'
+  | 'F'
   | 'f'
+  | 'M'
   | 'm'
   ;
 
@@ -1596,8 +1596,6 @@ hexadecimal_escape_sequence
 simple_escape_sequence
   : '\\"'
   | '\\0'
-  | '\\\''
-  | '\\\\'
   | '\\a'
   | '\\b'
   | '\\f'
@@ -1605,6 +1603,8 @@ simple_escape_sequence
   | '\\r'
   | '\\t'
   | '\\v'
+  | '\\\''
+  | '\\\\'
   ;
 
 single_character
@@ -1612,8 +1612,8 @@ single_character
   ;
 
 unicode_escape_sequence
-  : '\\U' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
-  | '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  : '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  | '\\U' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
   ;
 
 string_literal_token
@@ -1685,10 +1685,10 @@ operator_token
   | '>>>='
   | '??'
   | '??='
-  | '^'
-  | '^='
   | 'as'
   | 'is'
+  | '^'
+  | '^='
   | '|'
   | '|='
   | '||'
