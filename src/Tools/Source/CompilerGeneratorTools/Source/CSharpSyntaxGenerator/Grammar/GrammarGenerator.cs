@@ -134,9 +134,9 @@ namespace CSharpSyntaxGenerator.Grammar
             void addUtf8Rules()
             {
                 var utf8Suffix = Choice(permuteCasing("U8"));
-                rules.Add("Utf8StringLiteralToken", [Join(" ", [RuleReference("StringLiteralToken"), utf8Suffix])]);
-                rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), utf8Suffix])]);
-                rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), utf8Suffix])]);
+                rules.Add("Utf8StringLiteralToken", [Sequence([RuleReference("StringLiteralToken"), utf8Suffix])]);
+                rules.Add("Utf8MultiLineRawStringLiteralToken", [Sequence([RuleReference("MultiLineRawStringLiteralToken"), utf8Suffix])]);
+                rules.Add("Utf8SingleLineRawStringLiteralToken", [Sequence([RuleReference("SingleLineRawStringLiteralToken"), utf8Suffix])]);
             }
 
             void addTokenRules()
@@ -162,7 +162,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addIdentifierRules()
             {
-                rules.Add("IdentifierToken", [Join(" ", [Text("@").Optional, RuleReference("IdentifierStartCharacter"), RuleReference("IdentifierPartCharacter")])]);
+                rules.Add("IdentifierToken", [Sequence([Text("@").Optional, RuleReference("IdentifierStartCharacter"), RuleReference("IdentifierPartCharacter")])]);
                 rules.Add("IdentifierStartCharacter", [RuleReference("LetterCharacter"), RuleReference("UnderscoreCharacter")]);
                 rules.Add("IdentifierPartCharacter", [RuleReference("LetterCharacter"), RuleReference("DecimalDigitCharacter"), RuleReference("ConnectingCharacter"), RuleReference("CombiningCharacter"), RuleReference("FormattingCharacter")]);
                 rules.Add("UnderscoreCharacter", [Text("_"), new("""'\\u005' /* unicode_escape_sequence for underscore */""")]);
@@ -193,13 +193,13 @@ namespace CSharpSyntaxGenerator.Grammar
                 var exponentPartOpt = RuleReference("ExponentPart").Optional;
                 var realTypeSuffixOpt = RuleReference("RealTypeSuffix").Optional;
                 rules.Add("RealLiteralToken", [
-                    Join(" ", [decimalDigitPlus, Text("."), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
-                    Join(" ", [Text("."), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
-                    Join(" ", [decimalDigitPlus, RuleReference("ExponentPart"), realTypeSuffixOpt]),
-                    Join(" ", [decimalDigitPlus, RuleReference("RealTypeSuffix")]),
+                    Sequence([decimalDigitPlus, Text("."), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
+                    Sequence([Text("."), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
+                    Sequence([decimalDigitPlus, RuleReference("ExponentPart"), realTypeSuffixOpt]),
+                    Sequence([decimalDigitPlus, RuleReference("RealTypeSuffix")]),
                 ]);
 
-                rules.Add("ExponentPart", [Join(" ", [Choice(anyCasing('E')), Choice([Text("+"), Text("-")]).Optional, decimalDigitPlus])]);
+                rules.Add("ExponentPart", [Sequence([Choice(anyCasing('E')), Choice([Text("+"), Text("-")]).Optional, decimalDigitPlus])]);
                 rules.Add("RealTypeSuffix", [.. anyCasing('F'), .. anyCasing('D'), .. anyCasing('M')]);
             }
 
@@ -211,31 +211,31 @@ namespace CSharpSyntaxGenerator.Grammar
             void addIntegerLiteralRules()
             {
                 rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
-                rules.Add("DecimalIntegerLiteralToken", [Join(" ", [RuleReference("DecimalDigit").OneOrMany, RuleReference("IntegerTypeSuffix").Optional])]);
+                rules.Add("DecimalIntegerLiteralToken", [Sequence([RuleReference("DecimalDigit").OneOrMany, RuleReference("IntegerTypeSuffix").Optional])]);
                 rules.Add("IntegerTypeSuffix", [.. anyCasing('U'), .. anyCasing('L'), .. permuteCasing("UL"), .. permuteCasing("LU")]);
                 rules.Add("DecimalDigit", [.. productionRange('0', '9')]);
                 rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), .. productionRange('A', 'F'), .. productionRange('a', 'f')]);
-                rules.Add("HexadecimalIntegerLiteralToken", [Join(" ", [Choice([Text("0x"), Text("0X")]), RuleReference("HexadecimalDigit").OneOrMany, RuleReference("IntegerTypeSuffix").Optional])]);
+                rules.Add("HexadecimalIntegerLiteralToken", [Sequence([Choice([Text("0x"), Text("0X")]), RuleReference("HexadecimalDigit").OneOrMany, RuleReference("IntegerTypeSuffix").Optional])]);
             }
 
             void addEscapeSequenceRules()
             {
                 rules.Add("SimpleEscapeSequence", [new("""'\\\''"""), new("""'\\"'"""), new("""'\\\\'"""), new("""'\\0'"""), new("""'\\a'"""), new("""'\\b'"""), new("""'\\f'"""), new("""'\\n'"""), new("""'\\r'"""), new("""'\\t'"""), new("""'\\v'""")]);
-                rules.Add("HexadecimalEscapeSequence", [Join(" ", [new("""'\\x'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?")])]);
+                rules.Add("HexadecimalEscapeSequence", [Sequence([new("""'\\x'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?"), RuleReference("HexadecimalDigit").Suffix("?")])]);
                 rules.Add("UnicodeEscapeSequence", [
-                    Join(" ", [new("""'\\u'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")]),
-                    Join(" ", [new("""'\\U'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")])]);
+                    Sequence([new("""'\\u'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")]),
+                    Sequence([new("""'\\U'"""), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit"), RuleReference("HexadecimalDigit")])]);
             }
 
             void addStringLiteralRules()
             {
                 rules.Add("StringLiteralToken", [RuleReference("RegularStringLiteralToken"), RuleReference("VerbatimStringLiteralToken")]);
 
-                rules.Add("RegularStringLiteralToken", [Join(" ", [new("""'"'"""), RuleReference("RegularStringLiteralCharacter").ZeroOrMany, new("""'"'""")])]);
+                rules.Add("RegularStringLiteralToken", [Sequence([new("""'"'"""), RuleReference("RegularStringLiteralCharacter").ZeroOrMany, new("""'"'""")])]);
                 rules.Add("RegularStringLiteralCharacter", [RuleReference("SingleRegularStringLiteralCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
                 rules.Add("SingleRegularStringLiteralCharacter", [new("""/* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */""")]);
 
-                rules.Add("VerbatimStringLiteralToken", [Join(" ", [new("""'@"'"""), RuleReference("VerbatimStringLiteralCharacter").ZeroOrMany, new("""'"'""")])]);
+                rules.Add("VerbatimStringLiteralToken", [Sequence([new("""'@"'"""), RuleReference("VerbatimStringLiteralCharacter").ZeroOrMany, new("""'"'""")])]);
                 rules.Add("VerbatimStringLiteralCharacter", [RuleReference("SingleVerbatimStringLiteralCharacter"), RuleReference("QuoteEscapeSequence")]);
                 rules.Add("SingleVerbatimStringLiteralCharacter", [new("/* anything but quotation mark (U+0022) */")]);
 
@@ -248,7 +248,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addCharacterLiteralRules()
             {
-                rules.Add("CharacterLiteralToken", [Join(" ", [Text("'"), RuleReference("Character"), Text("'")])]);
+                rules.Add("CharacterLiteralToken", [Sequence([Text("'"), RuleReference("Character"), Text("'")])]);
                 rules.Add("Character", [RuleReference("SingleCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
                 rules.Add("SingleCharacter", [new("""/* ~['\\\u000D\u000A\u0085\u2028\u2029] anything but ', \\, and new_line_character */""")]);
             }
@@ -315,7 +315,7 @@ namespace CSharpSyntaxGenerator.Grammar
             => child switch
             {
                 Choice c => Choice(c.Children.Select(ToProduction), c.Optional),
-                Sequence s => Sequence(s.Children.Select(ToProduction)),
+                Sequence s => Sequence(s.Children.Select(ToProduction)).Parenthesize(),
                 Field f => HandleField(f).Suffix("?", when: f.IsOptional),
                 _ => throw new InvalidOperationException(),
             };
@@ -324,7 +324,7 @@ namespace CSharpSyntaxGenerator.Grammar
             => Join(" | ", productions).Parenthesize().Suffix("?", when: isOptional);
 
         private static Production Sequence(IEnumerable<Production> productions)
-            => Join(" ", productions).Parenthesize();
+            => Join(" ", productions);
 
         private static Production HandleField(Field field)
             // 'bool' fields are for a few properties we generate on DirectiveTrivia. They're not
