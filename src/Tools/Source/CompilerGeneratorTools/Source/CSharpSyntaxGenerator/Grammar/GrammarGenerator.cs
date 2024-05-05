@@ -350,7 +350,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
         private static Production HandleList(Field field, string elementType)
             => (elementType != "SyntaxToken" ? RuleReference(elementType) :
-                field.Name == "Commas" ? new Production("','") :
+                field.Name == "Commas" ? Text(",") :
                 field.Name == "Modifiers" ? RuleReference("Modifier") :
                 field.Name == "TextTokens" ? RuleReference(nameof(SyntaxKind.XmlTextLiteralToken)) : RuleReference(elementType))
                     .Suffix(field.MinCount == 0 ? "*" : "+");
