@@ -230,11 +230,11 @@ namespace CSharpSyntaxGenerator.Grammar
             {
                 rules.Add("StringLiteralToken", [RuleReference("RegularStringLiteralToken"), RuleReference("VerbatimStringLiteralToken")]);
 
-                rules.Add("RegularStringLiteralToken", [Join(" ", [new("'\"'"), RuleReference("RegularStringLiteralCharacter").Suffix("*"), new("'\"'")])]);
+                rules.Add("RegularStringLiteralToken", [Join(" ", [new("""'"'"""), RuleReference("RegularStringLiteralCharacter").Suffix("*"), new("""'"'""")])]);
                 rules.Add("RegularStringLiteralCharacter", [RuleReference("SingleRegularStringLiteralCharacter"), RuleReference("SimpleEscapeSequence"), RuleReference("HexadecimalEscapeSequence"), RuleReference("UnicodeEscapeSequence")]);
                 rules.Add("SingleRegularStringLiteralCharacter", [new("""/* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */""")]);
 
-                rules.Add("VerbatimStringLiteralToken", [Join(" ", [new("'@\"'"), RuleReference("VerbatimStringLiteralCharacter").Suffix("*"), new("'\"'")])]);
+                rules.Add("VerbatimStringLiteralToken", [Join(" ", [new("""'@"'"""), RuleReference("VerbatimStringLiteralCharacter").Suffix("*"), new("""'"'""")])]);
                 rules.Add("VerbatimStringLiteralCharacter", [RuleReference("SingleVerbatimStringLiteralCharacter"), RuleReference("QuoteEscapeSequence")]);
                 rules.Add("SingleVerbatimStringLiteralCharacter", [new("/* anything but quotation mark (U+0022) */")]);
 
