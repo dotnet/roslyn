@@ -315,11 +315,11 @@ namespace CSharpSyntaxGenerator.Grammar
         private static Production Text(string value)
             => new($"'{Escape(value)}'");
 
-        private static Production Join(string delim, IEnumerable<Production> productions)
+        private static Production Join(IEnumerable<Production> productions, string delim = " ")
             => new(string.Join(delim, productions.Where(p => p.Text.Length > 0)), productions.SelectMany(p => p.ReferencedRules));
 
         private static Production HandleChildren(IEnumerable<TreeTypeChild> children, string delim = " ")
-            => Join(delim, children.Select(ToProduction));
+            => Join(children.Select(ToProduction), delim);
 
         private static Production ToProduction(TreeTypeChild child)
             => child switch
@@ -331,10 +331,10 @@ namespace CSharpSyntaxGenerator.Grammar
             };
 
         private static Production Choice(IEnumerable<Production> productions)
-            => Join(" | ", productions).Parenthesize();
+            => Join(productions, " | ").Parenthesize();
 
         private static Production Sequence(IEnumerable<Production> productions)
-            => Join(" ", productions);
+            => Join(productions);
 
         private static Production HandleField(Field field)
             // 'bool' fields are for a few properties we generate on DirectiveTrivia. They're not
@@ -361,7 +361,7 @@ namespace CSharpSyntaxGenerator.Grammar
         private static Production HandleTokenField(Field field)
             => field.Kinds.Count == 0
                 ? HandleTokenName(field.Name)
-                : Join(" | ", field.Kinds.Select(k => HandleTokenName(k.Name))).Parenthesize(when: field.Kinds.Count >= 2);
+                : Join(field.Kinds.Select(k => HandleTokenName(k.Name)), " | ").Parenthesize(when: field.Kinds.Count >= 2);
 
         private static Production HandleTokenName(string tokenName)
             => GetSyntaxKind(tokenName) is var kind && kind == SyntaxKind.None ? RuleReference("SyntaxToken") :
