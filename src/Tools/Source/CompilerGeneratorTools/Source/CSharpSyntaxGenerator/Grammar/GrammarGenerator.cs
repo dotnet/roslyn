@@ -137,7 +137,7 @@ namespace CSharpSyntaxGenerator.Grammar
                 rules.Add("Utf8StringLiteralToken", [Join(" ", [RuleReference("StringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
                 rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), RuleReference("Utf8Suffix")])]);
-                rules.Add("Utf8Suffix", [new("'u8'"), new("'U8'")]);
+                rules.Add("Utf8Suffix", [.. permuteCasing("U8")]);
             }
 
             void addTokenRules()
@@ -266,7 +266,7 @@ namespace CSharpSyntaxGenerator.Grammar
 
             IEnumerable<Production> permuteCasing(string value)
             {
-                char[][] array = new char[value.Length][];
+                var array = new char[value.Length][];
                 for (int i = 0; i < value.Length; i++)
                 {
                     var c = value[i];
