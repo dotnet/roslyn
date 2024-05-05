@@ -182,7 +182,7 @@ internal partial class SerializerService
         WriteMvidTo((ModuleMetadata)metadata, writer, cancellationToken);
     }
 
-    private static bool TryGetModules(AssemblyMetadata assemblyMetadata, out ImmutableArray<ModuleMetadata> modules)
+    public static bool TryGetModules(AssemblyMetadata assemblyMetadata, out ImmutableArray<ModuleMetadata> modules)
     {
         // Gracefully handle documented exceptions from 'GetModules' invocation.
         try
@@ -199,6 +199,21 @@ internal partial class SerializerService
         }
     }
 
+    public static ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
+    {
+        if (metadata is AssemblyMetadata assemblyMetadata)
+        {
+            if (TryGetModules(assemblyMetadata, out var modules))
+                return modules;
+        }
+        else if (metadata is ModuleMetadata moduleMetadata)
+        {
+            return [moduleMetadata];
+        }
+
+        return [];
+    }
+
     private static void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -207,7 +222,7 @@ internal partial class SerializerService
         writer.WriteGuid(GetMetadataGuid(metadata));
     }
 
-    private static Guid GetMetadataGuid(ModuleMetadata metadata)
+    public static Guid GetMetadataGuid(ModuleMetadata metadata)
     {
         var metadataReader = metadata.GetMetadataReader();
         var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
@@ -455,7 +470,7 @@ internal partial class SerializerService
         writer.WriteString(reference.FullPath);
     }
 
-    private static Metadata? TryGetMetadata(PortableExecutableReference reference)
+    public static Metadata? TryGetMetadata(PortableExecutableReference reference)
     {
         try
         {
@@ -504,7 +519,7 @@ internal partial class SerializerService
     }
 
     [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
-    private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
+    internal sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly Metadata _metadata;
         private readonly ImmutableArray<TemporaryStorageStreamHandle> _storageHandles;
@@ -553,21 +568,6 @@ internal partial class SerializerService
                 MetadataKind={metadata switch { null => "null", AssemblyMetadata => "assembly", ModuleMetadata => "module", _ => metadata.GetType().Name }}
                 Guids={modules.Select(m => GetMetadataGuid(m).ToString()).Join(",")}
             """;
-
-            static ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
-            {
-                if (metadata is AssemblyMetadata assemblyMetadata)
-                {
-                    if (TryGetModules(assemblyMetadata, out var modules))
-                        return modules;
-                }
-                else if (metadata is ModuleMetadata moduleMetadata)
-                {
-                    return [moduleMetadata];
-                }
-
-                return [];
-            }
         }
     }
 }

@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.Remote
             var assetMapFromNewSolution = await solutionFromScratch.GetAssetMapAsync(projectConeId, CancellationToken.None).ConfigureAwait(false);
             var assetMapFromIncrementalSolution = await incrementalSolutionBuilt.GetAssetMapAsync(projectConeId, CancellationToken.None).ConfigureAwait(false);
 
+#pragma warning disable CA1416 // Validate platform compatibility
+            var serializedReferences = new Dictionary<Checksum, SerializerService.SerializedMetadataReference>();
+
             // check 4 things
             // 1. first see if we create new solution from scratch, it works as expected (indicating a bug in incremental update)
             var mismatch1 = assetMapFromNewSolution.Where(p => !allChecksumsFromRequest.Contains(p.Key)).ToList();
@@ -73,6 +76,28 @@ namespace Microsoft.CodeAnalysis.Remote
             var mismatch6 = await GetAssetFromAssetServiceAsync(allChecksumsFromRequest.Except(assetMapFromIncrementalSolution.Keys)).ConfigureAwait(false);
             AppendMismatch(mismatch6, "Assets only in the request but not in incremental solution", sb);
 
+            sb.AppendLine($"Serialized Metadata References: {serializedReferences.Count}");
+
+            if (serializedReferences.Count == 2)
+            {
+                var (firstChecksum, firstReference) = serializedReferences.First();
+                var (lastChecksum, lastReference) = serializedReferences.Last();
+
+                var firstReferenceMetadata = SerializerService.TryGetMetadata(firstReference);
+                var lastReferenceMetadata = SerializerService.TryGetMetadata(lastReference);
+
+                var firstModules = SerializerService.GetModules(firstReferenceMetadata);
+                var lastModules = SerializerService.GetModules(lastReferenceMetadata);
+
+                sb.AppendLine($"Comparing two metadata references: {firstChecksum}-{lastChecksum}");
+                sb.AppendLine($"    FilePaths={Equals(firstReference.FilePath, lastReference.FilePath)}");
+                sb.AppendLine($"    Kind={Equals(firstReference.Properties.Kind, lastReference.Properties.Kind)}");
+                sb.AppendLine($"    Aliases={firstReference.Properties.Aliases.SequenceEqual(lastReference.Properties.Aliases)}");
+                sb.AppendLine($"    EmbedInteropTypes={Equals(firstReference.Properties.EmbedInteropTypes, lastReference.Properties.EmbedInteropTypes)}");
+                sb.AppendLine($"    MetadataKind={Equals(firstReferenceMetadata!.Kind, lastReferenceMetadata!.Kind)}");
+                sb.AppendLine($"    Guids={firstModules.Select(SerializerService.GetMetadataGuid).SequenceEqual(lastModules.Select(SerializerService.GetMetadataGuid))}");
+            }
+
             var result = sb.ToString();
             if (result.Length > 0)
             {
@@ -82,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return;
 
-            static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
+            void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
             {
                 if (items.Count == 0)
                 {
@@ -90,9 +115,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 stringBuilder.AppendLine(title);
-                foreach (var kv in items)
+                foreach (var (checksum, asset) in items)
                 {
-                    stringBuilder.AppendLine($"{kv.Key.ToString()}, {kv.Value?.ToString()}");
+                    if (asset is SerializerService.SerializedMetadataReference reference)
+                        serializedReferences[checksum] = reference;
+
+                    stringBuilder.AppendLine($"{checksum}, {asset}");
                 }
 
                 stringBuilder.AppendLine();
@@ -139,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
 #else
 
-            // have this to avoid error on async
+                // have this to avoid error on async
             await Task.CompletedTask.ConfigureAwait(false);
 #endif
         }
