@@ -92,8 +92,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
             var source = documentsAndDiagnosticsToFixMap.WhereAsArray(static (kvp, _) => !kvp.Value.IsDefaultOrEmpty, state: false);
             progressTracker.AddItems(source.Length);
 
-            using var _ = ArrayBuilder<(Diagnostic diagnostic, CodeAction action)>.GetInstance(out var results);
-            await ProducerConsumer<(Diagnostic diagnostic, CodeAction action)>.RunParallelAsync(
+            return await ProducerConsumer<(Diagnostic diagnostic, CodeAction action)>.RunParallelAsync(
                 source,
                 produceItems: static async (tuple, callback, args, cancellationToken) =>
                 {
@@ -108,15 +107,8 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
                         args.progressTracker.ItemCompleted();
                     }
                 },
-                consumeItems: static async (stream, args, cancellationToken) =>
-                {
-                    await foreach (var tuple in stream)
-                        args.results.Add(tuple);
-                },
-                args: (@this: this, fixAllState, progressTracker, results),
+                args: (@this: this, fixAllState, progressTracker),
                 cancellationToken).ConfigureAwait(false);
-
-            return results.ToImmutableAndClear();
         }
     }
 

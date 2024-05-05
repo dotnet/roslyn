@@ -82,27 +82,27 @@ public partial class FixAllContext
                             return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(project, diagnostics)]);
 
                         case FixAllScope.Solution:
-                            var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
-
-                            await ProducerConsumer<(Project project, ImmutableArray<Diagnostic> diagnostics)>.RunParallelAsync(
+                            return await ProducerConsumer<(Project project, ImmutableArray<Diagnostic> diagnostics)>.RunParallelAsync(
                                 source: project.Solution.Projects,
-                                produceItems: static async (project, callback, args, cancellationToken) =>
+                                produceItems: static async (project, callback, fixAllContext, cancellationToken) =>
                                 {
-                                    var diagnostics = await args.fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
+                                    var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
                                     callback((project, diagnostics));
                                 },
                                 consumeItems: static async (results, args, cancellationToken) =>
                                 {
+                                    var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
+
                                     await foreach (var (project, diagnostics) in results)
                                     {
                                         if (diagnostics.Any())
-                                            args.projectsAndDiagnostics.Add(project, diagnostics);
+                                            projectsAndDiagnostics.Add(project, diagnostics);
                                     }
-                                },
-                                args: (fixAllContext, projectsAndDiagnostics),
-                                fixAllContext.CancellationToken).ConfigureAwait(false);
 
-                            return projectsAndDiagnostics.ToImmutable();
+                                    return projectsAndDiagnostics.ToImmutable();
+                                },
+                                args: fixAllContext,
+                                fixAllContext.CancellationToken).ConfigureAwait(false);
                     }
                 }
 

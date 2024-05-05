@@ -325,9 +325,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     {
         var solution = document.Project.Solution;
 
-        using var _1 = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.GetInstance(out var perContextSymbols);
-
-        await ProducerConsumer<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.RunParallelAsync(
+        return await ProducerConsumer<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.RunParallelAsync(
             source: relatedDocuments,
             produceItems: static async (relatedDocumentId, callback, args, cancellationToken) =>
             {
@@ -342,15 +340,8 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
                 if (!symbols.IsDefault)
                     callback((relatedDocument.Id, syntaxContext, symbols));
             },
-            consumeItems: static async (results, args, cancellationToken) =>
-            {
-                await foreach (var tuple in results)
-                    args.perContextSymbols.Add(tuple);
-            },
-            args: (@this: this, solution, completionContext, options, perContextSymbols),
+            args: (@this: this, solution, completionContext, options),
             cancellationToken).ConfigureAwait(false);
-
-        return perContextSymbols.ToImmutableAndClear();
     }
 
     /// <summary>

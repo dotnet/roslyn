@@ -236,9 +236,7 @@ public abstract partial class CompletionService
         SharedSyntaxContextsWithSpeculativeModel sharedContext,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<CompletionContext>.GetInstance(out var results);
-
-        await ProducerConsumer<CompletionContext>.RunParallelAsync(
+        return await ProducerConsumer<CompletionContext>.RunParallelAsync(
             source: providers,
             produceItems: static async (provider, callback, args, cancellationToken) =>
             {
@@ -247,15 +245,8 @@ public abstract partial class CompletionService
                 if (HasAnyItems(context))
                     callback(context);
             },
-            consumeItems: static async (stream, args, cancellationToken) =>
-            {
-                await foreach (var result in stream)
-                    args.results.Add(result);
-            },
-            args: (document, caretPosition, trigger, options, completionListSpan, sharedContext, results),
+            args: (document, caretPosition, trigger, options, completionListSpan, sharedContext),
             cancellationToken).ConfigureAwait(false);
-
-        return results.ToImmutableAndClear();
     }
 
     private CompletionList MergeAndPruneCompletionLists(

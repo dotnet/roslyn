@@ -94,12 +94,10 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
 
         using var _1 = progressTracker.ItemCompletedScope();
 
-        var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
-
         // Process all documents in parallel to get the change for each doc.
         var documentsAndSpansToFix = await fixAllContext.GetFixAllSpansAsync(cancellationToken).ConfigureAwait(false);
 
-        await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
+        return await ProducerConsumer<(DocumentId, (SyntaxNode? node, SourceText? text))>.RunParallelAsync(
             source: documentsAndSpansToFix,
             produceItems: static async (tuple, callback, args, cancellationToken) =>
             {
@@ -117,12 +115,14 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
             },
             consumeItems: static async (results, args, cancellationToken) =>
             {
-                await foreach (var (docId, nodeOrText) in results)
-                    args.docIdToNewRootOrText[docId] = nodeOrText;
-            },
-            args: (@this: this, fixAllContext, docIdToNewRootOrText),
-            cancellationToken).ConfigureAwait(false);
+                var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
 
-        return docIdToNewRootOrText;
+                await foreach (var (docId, nodeOrText) in results)
+                    docIdToNewRootOrText[docId] = nodeOrText;
+
+                return docIdToNewRootOrText;
+            },
+            args: (@this: this, fixAllContext),
+            cancellationToken).ConfigureAwait(false);
     }
 }
