@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Xml.Linq;
@@ -205,12 +206,18 @@ internal partial class SerializerService
 
         writer.WriteInt32((int)metadata.Kind);
 
+        var guid = GetMetadataGuid(metadata);
+
+        writer.WriteGuid(guid);
+    }
+
+    private static Guid GetMetadataGuid(ModuleMetadata metadata)
+    {
         var metadataReader = metadata.GetMetadataReader();
 
         var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
         var guid = metadataReader.GetGuid(mvidHandle);
-
-        writer.WriteGuid(guid);
+        return guid;
     }
 
     private static void WritePortableExecutableReferenceTo(
@@ -540,13 +547,31 @@ internal partial class SerializerService
         public override string ToString()
         {
             var metadata = TryGetMetadata(this);
+            var modules = GetModules(metadata);
+
             return $"""
             {nameof(SerializedMetadataReference)}({FilePath})
                 Kind={this.Properties.Kind}
                 Aliases={this.Properties.Aliases.Join(",")}
                 EmbedInteropTypes={this.Properties.EmbedInteropTypes}
                 MetadataKind={metadata switch { null => "null", AssemblyMetadata => "assembly", ModuleMetadata => "module", _ => metadata.GetType().Name }}
+                Guids={modules.Select(m => GetMetadataGuid(m).ToString()).Join(",")}
             """;
+
+            ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
+            {
+                if (metadata is AssemblyMetadata assemblyMetadata)
+                {
+                    if (TryGetModules(assemblyMetadata, out var modules))
+                        return modules;
+                }
+                else if (metadata is ModuleMetadata moduleMetadata)
+                {
+                    return [moduleMetadata];
+                }
+
+                return [];
+            }
         }
     }
 }
