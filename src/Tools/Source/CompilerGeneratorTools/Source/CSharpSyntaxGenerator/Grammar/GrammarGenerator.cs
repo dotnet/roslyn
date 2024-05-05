@@ -190,13 +190,16 @@ namespace CSharpSyntaxGenerator.Grammar
             void addRealLiteralRules()
             {
                 var decimalDigitPlus = RuleReference("DecimalDigit").OneOrMany;
-                var exponentPartOpt = RuleReference("ExponentPart").Optional;
-                var realTypeSuffixOpt = RuleReference("RealTypeSuffix").Optional;
+                var exponentPart = RuleReference("ExponentPart");
+                var exponentPartOpt = exponentPart.Optional;
+                var realTypeSuffix = RuleReference("RealTypeSuffix");
+                var realTypeSuffixOpt = realTypeSuffix.Optional;
+
                 rules.Add("RealLiteralToken", [
                     Sequence([decimalDigitPlus, Text("."), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
                     Sequence([Text("."), decimalDigitPlus, exponentPartOpt, realTypeSuffixOpt]),
-                    Sequence([decimalDigitPlus, RuleReference("ExponentPart"), realTypeSuffixOpt]),
-                    Sequence([decimalDigitPlus, RuleReference("RealTypeSuffix")]),
+                    Sequence([decimalDigitPlus, exponentPart, realTypeSuffixOpt]),
+                    Sequence([decimalDigitPlus, realTypeSuffix]),
                 ]);
 
                 rules.Add("ExponentPart", [Sequence([Choice(anyCasing('E')), Choice([Text("+"), Text("-")]).Optional, decimalDigitPlus])]);
@@ -210,18 +213,23 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addIntegerLiteralRules()
             {
+                var decimalDigit = RuleReference("DecimalDigit");
+                var decimalDigitPlus = decimalDigit.OneOrMany;
+                var integerTypeSuffixOpt = RuleReference("IntegerTypeSuffix").Optional;
+
                 rules.Add("IntegerLiteralToken", [RuleReference("DecimalIntegerLiteralToken"), RuleReference("HexadecimalIntegerLiteralToken")]);
-                rules.Add("DecimalIntegerLiteralToken", [Sequence([RuleReference("DecimalDigit").OneOrMany, RuleReference("IntegerTypeSuffix").Optional])]);
+                rules.Add("DecimalIntegerLiteralToken", [Sequence([decimalDigitPlus, integerTypeSuffixOpt])]);
                 rules.Add("IntegerTypeSuffix", [.. anyCasing('U'), .. anyCasing('L'), .. permuteCasing("UL"), .. permuteCasing("LU")]);
                 rules.Add("DecimalDigit", [.. productionRange('0', '9')]);
-                rules.Add("HexadecimalDigit", [RuleReference("DecimalDigit"), .. productionRange('A', 'F'), .. productionRange('a', 'f')]);
-                rules.Add("HexadecimalIntegerLiteralToken", [Sequence([Choice([Text("0x"), Text("0X")]), RuleReference("HexadecimalDigit").OneOrMany, RuleReference("IntegerTypeSuffix").Optional])]);
+                rules.Add("HexadecimalDigit", [decimalDigit, .. productionRange('A', 'F'), .. productionRange('a', 'f')]);
+                rules.Add("HexadecimalIntegerLiteralToken", [Sequence([Choice([Text("0x"), Text("0X")]), RuleReference("HexadecimalDigit").OneOrMany, integerTypeSuffixOpt])]);
             }
 
             void addEscapeSequenceRules()
             {
                 var hexDigit = RuleReference("HexadecimalDigit");
                 var hexDigitOpt = hexDigit.Optional;
+
                 rules.Add("SimpleEscapeSequence", [Text(@"\'"), Text(@"\"""), Text(@"\\"), Text(@"\0"), Text(@"\a"), Text(@"\b"), Text(@"\f"), Text(@"\n"), Text(@"\r"), Text(@"\t"), Text(@"\v")]);
                 rules.Add("HexadecimalEscapeSequence", [Sequence([new("""'\\x'"""), hexDigit, hexDigitOpt, hexDigitOpt, hexDigitOpt])]);
                 rules.Add("UnicodeEscapeSequence", [
@@ -258,13 +266,13 @@ namespace CSharpSyntaxGenerator.Grammar
             IEnumerable<Production> productionRange(char start, char end)
             {
                 for (char c = start; c <= end; c++)
-                    yield return new($"'{c}'");
+                    yield return Text($"{c}");
             }
 
             IEnumerable<Production> anyCasing(char v)
             {
-                yield return new($"'{v}'");
-                yield return new($"'{(char.IsLower(v) ? char.ToUpperInvariant(v) : char.ToLowerInvariant(v))}'");
+                yield return Text($"{v}");
+                yield return Text($"{(char.IsLower(v) ? char.ToUpperInvariant(v) : char.ToLowerInvariant(v))}");
             }
 
             IEnumerable<Production> permuteCasing(string value)
@@ -283,7 +291,7 @@ namespace CSharpSyntaxGenerator.Grammar
                     for (var i = 0; i < value.Length; i++)
                         builder.Append(array[i][indices[i]]);
 
-                    yield return new($"'{builder}'");
+                    yield return Text($"{builder}");
                     builder.Clear();
 
                     for (var i = 0; i < indices.Length; i++)
