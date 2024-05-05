@@ -968,15 +968,15 @@ literal_expression
   ;
 
 utf8_multi_line_raw_string_literal_token
-  : multi_line_raw_string_literal_token ('u8' | 'U8')
+  : multi_line_raw_string_literal_token ('U8' | 'u8')
   ;
 
 utf8_single_line_raw_string_literal_token
-  : single_line_raw_string_literal_token ('u8' | 'U8')
+  : single_line_raw_string_literal_token ('U8' | 'u8')
   ;
 
 utf8_string_literal_token
-  : string_literal_token ('u8' | 'U8')
+  : string_literal_token ('U8' | 'u8')
   ;
 
 make_ref_expression
@@ -1566,7 +1566,7 @@ real_literal_token
   ;
 
 exponent_part
-  : ('e' | 'E') ('+' | '-')? decimal_digit+
+  : ('E' | 'e') ('+' | '-')? decimal_digit+
   ;
 
 real_type_suffix

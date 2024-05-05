@@ -133,9 +133,10 @@ namespace CSharpSyntaxGenerator.Grammar
 
             void addUtf8Rules()
             {
-                rules.Add("Utf8StringLiteralToken", [Join(" ", [RuleReference("StringLiteralToken"), new("('u8' | 'U8')")])]);
-                rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), new("('u8' | 'U8')")])]);
-                rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), new("('u8' | 'U8')")])]);
+                var utf8Suffix = Choice(permuteCasing("U8"));
+                rules.Add("Utf8StringLiteralToken", [Join(" ", [RuleReference("StringLiteralToken"), utf8Suffix])]);
+                rules.Add("Utf8MultiLineRawStringLiteralToken", [Join(" ", [RuleReference("MultiLineRawStringLiteralToken"), utf8Suffix])]);
+                rules.Add("Utf8SingleLineRawStringLiteralToken", [Join(" ", [RuleReference("SingleLineRawStringLiteralToken"), utf8Suffix])]);
             }
 
             void addTokenRules()
@@ -198,7 +199,7 @@ namespace CSharpSyntaxGenerator.Grammar
                     Join(" ", [decimalDigitPlus, RuleReference("RealTypeSuffix")]),
                 ]);
 
-                rules.Add("ExponentPart", [Join(" ", [new("('e' | 'E') ('+' | '-')?"), decimalDigitPlus])]);
+                rules.Add("ExponentPart", [Join(" ", [Choice(anyCasing('E')), Choice([new("'+'"), new("'-'")], isOptional: true), decimalDigitPlus])]);
                 rules.Add("RealTypeSuffix", [.. anyCasing('F'), .. anyCasing('D'), .. anyCasing('M')]);
             }
 
@@ -310,14 +311,14 @@ namespace CSharpSyntaxGenerator.Grammar
         private static Production ToProduction(TreeTypeChild child)
             => child switch
             {
-                Choice c => Choice(c.Children.Select(ToProduction)).Suffix("?", when: c.Optional),
+                Choice c => Choice(c.Children.Select(ToProduction), c.Optional),
                 Sequence s => Sequence(s.Children.Select(ToProduction)),
                 Field f => HandleField(f).Suffix("?", when: f.IsOptional),
                 _ => throw new InvalidOperationException(),
             };
 
-        private static Production Choice(IEnumerable<Production> productions)
-            => Join(" | ", productions).Parenthesize();
+        private static Production Choice(IEnumerable<Production> productions, bool isOptional = false)
+            => Join(" | ", productions).Parenthesize().Suffix("?", when: isOptional);
 
         private static Production Sequence(IEnumerable<Production> productions)
             => Join(" ", productions).Parenthesize();
