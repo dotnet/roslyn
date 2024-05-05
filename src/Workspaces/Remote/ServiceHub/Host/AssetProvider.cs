@@ -25,7 +25,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
     private readonly Checksum _solutionChecksum = solutionChecksum;
-    private readonly ISerializerService _serializerService = serializerService;
+    public readonly ISerializerService _serializerService = serializerService;
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
 

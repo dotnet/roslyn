@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var firstModules = SerializerService.GetModules(firstReferenceMetadata);
                 var lastModules = SerializerService.GetModules(lastReferenceMetadata);
 
-                sb.AppendLine($"Comparing two metadata references: {firstChecksum}-{lastChecksum}");
+                sb.AppendLine($"Comparing two metadata references: {firstChecksum} - {lastChecksum}");
                 sb.AppendLine($"    RefEquals={ReferenceEquals(firstReference, lastReference)}");
                 sb.AppendLine($"    FilePaths={Equals(firstReference.FilePath, lastReference.FilePath)}");
                 sb.AppendLine($"    Kind={Equals(firstReference.Properties.Kind, lastReference.Properties.Kind)}");
@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 sb.AppendLine($"    EmbedInteropTypes={Equals(firstReference.Properties.EmbedInteropTypes, lastReference.Properties.EmbedInteropTypes)}");
                 sb.AppendLine($"    MetadataKind={Equals(firstReferenceMetadata!.Kind, lastReferenceMetadata!.Kind)}");
                 sb.AppendLine($"    Guids={firstModules.Select(SerializerService.GetMetadataGuid).SequenceEqual(lastModules.Select(SerializerService.GetMetadataGuid))}");
+
+                var firstChecksumComputed = assetService._serializerService.CreateChecksum(firstReference, CancellationToken.None);
+                var lastChecksumComputed = assetService._serializerService.CreateChecksum(lastReference, CancellationToken.None);
+
+                sb.AppendLine($"Recomputed checksums: {firstChecksumComputed} - {lastChecksumComputed}");
             }
 
             var result = sb.ToString();
