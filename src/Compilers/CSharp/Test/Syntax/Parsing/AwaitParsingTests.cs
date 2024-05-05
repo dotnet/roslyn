@@ -1340,9 +1340,15 @@ async () => {
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
-        public void AwaitAsDesignationAfterNullableTypeInPattern1()
+        public void AwaitAsStartOfExpressionInConditional1()
         {
-            UsingExpression("f(x is int? await)");
+            UsingExpression("f(x is int? await)",
+                // (1,18): error CS1003: Syntax error, ':' expected
+                // f(x is int? await)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(1, 18),
+                // (1,18): error CS1525: Invalid expression term ')'
+                // f(x is int? await)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 18));
 
             N(SyntaxKind.InvocationExpression);
             {
@@ -1355,27 +1361,29 @@ async () => {
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Argument);
                     {
-                        N(SyntaxKind.IsPatternExpression);
+                        N(SyntaxKind.ConditionalExpression);
                         {
+                            N(SyntaxKind.IsExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.IdentifierToken, "await");
                             }
-                            N(SyntaxKind.IsKeyword);
-                            N(SyntaxKind.DeclarationPattern);
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.NullableType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.QuestionToken);
-                                }
-                                N(SyntaxKind.SingleVariableDesignation);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "await");
-                                }
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
                     }
@@ -1386,9 +1394,16 @@ async () => {
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
-        public void AwaitAsDesignationAfterNullableTypeInPattern2()
+        public void AwaitAsStartOfExpressionInConditional2()
         {
-            UsingExpression("dict[x is int? await]");
+            UsingExpression("dict[x is int? await]",
+                // (1,21): error CS1003: Syntax error, ':' expected
+                // dict[x is int? await]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(":").WithLocation(1, 21),
+                // (1,21): error CS1525: Invalid expression term ']'
+                // dict[x is int? await]
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 21));
+
 
             N(SyntaxKind.ElementAccessExpression);
             {
@@ -1401,27 +1416,29 @@ async () => {
                     N(SyntaxKind.OpenBracketToken);
                     N(SyntaxKind.Argument);
                     {
-                        N(SyntaxKind.IsPatternExpression);
+                        N(SyntaxKind.ConditionalExpression);
                         {
+                            N(SyntaxKind.IsExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.IdentifierToken, "await");
                             }
-                            N(SyntaxKind.IsKeyword);
-                            N(SyntaxKind.DeclarationPattern);
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.NullableType);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.QuestionToken);
-                                }
-                                N(SyntaxKind.SingleVariableDesignation);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "await");
-                                }
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
                     }
@@ -1432,9 +1449,15 @@ async () => {
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
-        public void AwaitAsDesignationAfterNullableTypeInPattern3()
+        public void AwaitAsStartOfExpressionInConditional3()
         {
-            UsingExpression("x is { Prop: int? await }");
+            UsingExpression("x is { Prop: int? await }",
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // x is { Prop: int? await }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",").WithLocation(1, 17),
+                // (1,19): error CS1003: Syntax error, ',' expected
+                // x is { Prop: int? await }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "await").WithArguments(",").WithLocation(1, 19));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -1458,17 +1481,20 @@ async () => {
                                 }
                                 N(SyntaxKind.ColonToken);
                             }
-                            N(SyntaxKind.DeclarationPattern);
+                            N(SyntaxKind.TypePattern);
                             {
-                                N(SyntaxKind.NullableType);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.IntKeyword);
                                 }
-                                N(SyntaxKind.SingleVariableDesignation);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "await");
                                 }

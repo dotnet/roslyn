@@ -7164,9 +7164,9 @@ done:;
                     case ParseTypeMode.AfterIs:
                     case ParseTypeMode.DefinitePattern:
                     case ParseTypeMode.AsExpression:
-                        // We are currently after `?` token after a type pattern and need to decide how to parse next,
-                        // e.g. `obj is string?| s ...` - `|` represents our position There are 2 ways of treating
-                        // identifier after `?` token after a type pattern:
+                        // We are currently after `?` token after a nullable type pattern and need to decide how to
+                        // parse what we see next.  In the case of an identifier (e.g. `x ? a` there are two ways we can
+                        // see things
                         //
                         // 1. As a start of conditional expression, e.g. `var a = obj is string ? a : b`
                         // 2. As a designation of a nullable-typed pattern, e.g. `if (obj is string? str)`
@@ -7176,27 +7176,25 @@ done:;
                         // purposes (if we parse here as nullable type pattern an error will be reported during
                         // binding). This condition checks for simple cases, where we better use option 2 and parse a
                         // nullable-typed pattern
-                        if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                        if (IsTrueIdentifier(this.CurrentToken))
                         {
-                            // Given that we are deciding whether we take `?:` operator or not while looking at state
-                            // after `?`, our focus is on `:` token as well. But `:` have special meaning in context of
-                            // switch statements and expressions (since `:` in switch expressions is recovered to `=>`).
-                            // So consider the following case: `case T? t:`. On its own `T ? t :` can be treated as a
-                            // conditional expression with condition `T`, 'whenTrue' `t` and 'whenFalse' not yet parsed.
-                            // But it is way better to take `:` as case label end and thus parse label condition as a
-                            // declaration pattern `T? t`
+                            // If we're in a cast statement/expression arm, then we have:
+                            //
+                            // `switch { case X ? y` or
+                            //
+                            //  e switch { X ? y `
+                            //
+                            // In both these cases, this isn't a conditional expression and should be treated as a
+                            // nullable type pattern (with a a good binding error to be reported later).
                             if (isTopLevelSwitchPattern)
                                 return true;
 
-                            // Special case for `await`: if current token is an `await` identifier and the next token
-                            // can start an expression, prefer parsing conditional expression
-                            // rather than having `await` as a pattern designation
+                            // In a non-async method, `await` is a simple identifier.  However, if we see `x ? await`
+                            // it's almost certainly the start of an `await expression` in a conditional expression
+                            // (e.g. `x is Y ? await ...`), not a nullable type pattern (since users would not use
+                            // 'await' as the name of a variable).  So just treat this as a conditional expression.
                             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
-                            {
-                                using var _ = GetDisposableResetPoint(resetOnDispose: true);
-                                this.EatToken();
-                                return !CanStartExpression();
-                            }
+                                return false;
 
                             var nextTokenKind = PeekToken(1).Kind;
 
@@ -7240,15 +7238,14 @@ done:;
                             return false;
                         }
 
-                        // If nothing from above worked permit the nullable qualifier
-                        // if it is followed by a token that could not start an expression
-                        // If we have `T?[]` we do want to treat that as an array of nullables (following
-                        // existing parsing), not a conditional that returns a list.
+                        // If nothing from above worked permit the nullable qualifier if it is followed by a token that
+                        // could not start an expression If we have `T?[]` we do want to treat that as an array of
+                        // nullables (following existing parsing), not a conditional that returns a list.
                         return !CanStartExpression() || this.CurrentToken.Kind is SyntaxKind.OpenBracketToken;
                     case ParseTypeMode.NewExpression:
-                        // A nullable qualifier is permitted as part of the type in a `new` expression.
-                        // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
-                        // Similarly `new int? {}` is allowed.
+                        // A nullable qualifier is permitted as part of the type in a `new` expression. e.g. `new
+                        // int?()` is allowed.  It creates a null value of type `Nullable<int>`. Similarly `new int? {}`
+                        // is allowed.
                         return
                             this.CurrentToken.Kind is SyntaxKind.OpenParenToken or   // ctor parameters
                                                       SyntaxKind.OpenBracketToken or   // array type
