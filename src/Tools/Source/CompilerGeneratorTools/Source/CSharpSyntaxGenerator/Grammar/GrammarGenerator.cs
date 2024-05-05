@@ -330,8 +330,8 @@ namespace CSharpSyntaxGenerator.Grammar
                 _ => throw new InvalidOperationException(),
             };
 
-        private static Production Choice(IEnumerable<Production> productions)
-            => Join(productions, " | ").Parenthesize();
+        private static Production Choice(IEnumerable<Production> productions, bool parenthesize = true)
+            => Join(productions, " | ").Parenthesize(parenthesize);
 
         private static Production Sequence(IEnumerable<Production> productions)
             => Join(productions);
@@ -361,7 +361,7 @@ namespace CSharpSyntaxGenerator.Grammar
         private static Production HandleTokenField(Field field)
             => field.Kinds.Count == 0
                 ? HandleTokenName(field.Name)
-                : Join(field.Kinds.Select(k => HandleTokenName(k.Name)), " | ").Parenthesize(when: field.Kinds.Count >= 2);
+                : Choice(field.Kinds.Select(k => HandleTokenName(k.Name)), parenthesize: field.Kinds.Count >= 2);
 
         private static Production HandleTokenName(string tokenName)
             => GetSyntaxKind(tokenName) is var kind && kind == SyntaxKind.None ? RuleReference("SyntaxToken") :
