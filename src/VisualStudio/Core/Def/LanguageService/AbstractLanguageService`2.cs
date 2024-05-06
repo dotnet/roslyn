@@ -7,6 +7,8 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -26,6 +28,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -35,10 +38,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     where TPackage : AbstractPackage<TPackage, TLanguageService>
     where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
 {
-    private readonly Lazy<VsLanguageDebugInfo> _vsLanguageDebugInfo;
-
     internal TPackage Package { get; }
-    private VsLanguageDebugInfo LanguageDebugInfo => _vsLanguageDebugInfo.Value;
+    public VsLanguageDebugInfo LanguageDebugInfo { get; private set; }
 
     // DevDiv 753309:
     // We've redefined some VS interfaces that had incorrect PIAs. When 
@@ -76,7 +77,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     protected AbstractLanguageService(TPackage package)
     {
         Package = package;
-        _vsLanguageDebugInfo = new Lazy<VsLanguageDebugInfo>(CreateLanguageDebugInfo);
     }
 
     public override IServiceProvider SystemServiceProvider
@@ -85,25 +85,33 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     /// <summary>
     /// Setup and TearDown go in reverse order.
     /// </summary>
-    internal void Setup()
+    public async Task SetupAsync(CancellationToken cancellationToken)
     {
-        this.ComAggregate = CreateComAggregate();
-
         // First, acquire any services we need throughout our lifetime.
-        this.GetServices();
+        // This method should only contain calls to acquire services off of the component model
+        // or service providers.  Anything else which is more complicated should go in Initialize
+        // instead.
+        this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
+        this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
+        this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+        this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
 
-        // TODO: Is the below access to component model required or can be removed?
-        _ = this.Package.ComponentModel;
+        this.LanguageDebugInfo = CreateLanguageDebugInfo();
 
-        // Start off a background task to prime some components we'll need for editing
-        VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.BackgroundThread,
-            () => PrimeLanguageServiceComponentsOnBackground());
+        // Start off a background task to prime some components we'll need for editing.
+        Task.Run(() =>
+        {
+            var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
+            formatter?.GetDefaultFormattingRules();
+        }, cancellationToken).Forget();
+
+        await this.Package.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        // Creating the com aggregate has to happen on the UI thread.
+        this.ComAggregate = Interop.ComAggregate.CreateAggregatedObject(this);
 
         _isSetUp = true;
     }
-
-    private object CreateComAggregate()
-        => Interop.ComAggregate.CreateAggregatedObject(this);
 
     internal void TearDown()
     {
@@ -126,27 +134,10 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         }
     }
 
-    protected virtual void GetServices()
-    {
-        // This method should only contain calls to acquire services off of the component model
-        // or service providers.  Anything else which is more complicated should go in Initialize
-        // instead.
-        this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
-        this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
-        this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-        this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
-    }
-
     protected virtual void RemoveServices()
     {
         this.EditorAdaptersFactoryService = null;
         this.Workspace = null;
-    }
-
-    private void PrimeLanguageServiceComponentsOnBackground()
-    {
-        var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
-        formatter?.GetDefaultFormattingRules();
     }
 
     protected abstract string ContentTypeName { get; }
