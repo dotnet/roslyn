@@ -40,12 +40,12 @@ internal partial class VisualStudioMetadataReferenceManager
             VisualStudioMetadataReferenceManager provider,
             MetadataReferenceProperties properties,
             string fullPath,
-            FileChangeTracker? fileChangeTrackerOpt)
+            FileChangeTracker? fileChangeTracker)
             : base(properties, fullPath)
         {
             Debug.Assert(Properties.Kind == MetadataImageKind.Assembly);
             _provider = provider;
-            _fileChangeTracker = fileChangeTrackerOpt;
+            _fileChangeTracker = fileChangeTracker;
 
             _timestamp = new Lazy<DateTime>(() =>
             {

@@ -108,7 +108,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     }
 
     public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
-        => new VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTrackerOpt: null);
+        => new VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTracker: null);
 
     private bool VsSmartScopeCandidate(string fullPath)
         => _runtimeDirectories.Any(static (d, fullPath) => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase), fullPath);
