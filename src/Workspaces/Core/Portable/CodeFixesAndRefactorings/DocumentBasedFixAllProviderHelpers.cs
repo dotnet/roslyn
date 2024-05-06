@@ -93,8 +93,6 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         async Task<Solution> CleanSolutionAsync(Solution dirtySolution, ImmutableArray<DocumentId> changedRootDocumentIds)
         {
-            // Update our progress for the single cleaning pass.
-
             if (changedRootDocumentIds.IsEmpty)
                 return dirtySolution;
 
