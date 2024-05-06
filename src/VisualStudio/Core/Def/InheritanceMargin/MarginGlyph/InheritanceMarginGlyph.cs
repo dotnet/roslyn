@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -110,6 +111,9 @@ internal class InheritanceMarginGlyph : Button
         base.OnContextMenuOpening(e);
     }
 
+    protected override AutomationPeer OnCreateAutomationPeer()
+        => new InheritanceMarginAutomationPeer(this);
+
     private void LazyInitializeContextMenu()
     {
         if (ContextMenu is not InheritanceMarginContextMenu)
@@ -209,6 +213,14 @@ internal class InheritanceMarginGlyph : Button
             {
                 Keyboard.Focus(visualElement);
             }
+        }
+    }
+
+    private sealed class InheritanceMarginAutomationPeer(InheritanceMarginGlyph owner) : ButtonAutomationPeer(owner)
+    {
+        protected override AutomationControlType GetAutomationControlTypeCore()
+        {
+            return AutomationControlType.Group;
         }
     }
 }

@@ -22,7 +22,7 @@ internal static partial class EditAndContinueDiagnosticSource
         public override bool IsLiveSource()
             => true;
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
             => Task.FromResult(diagnostics);
     }
 
@@ -31,7 +31,7 @@ internal static partial class EditAndContinueDiagnosticSource
         public override bool IsLiveSource()
             => true;
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
             => Task.FromResult(diagnostics);
     }
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -203,13 +204,15 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         writer.WriteInt32((int)metadata.Kind);
+        writer.WriteGuid(GetMetadataGuid(metadata));
+    }
 
+    private static Guid GetMetadataGuid(ModuleMetadata metadata)
+    {
         var metadataReader = metadata.GetMetadataReader();
-
         var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
         var guid = metadataReader.GetGuid(mvidHandle);
-
-        writer.WriteGuid(guid);
+        return guid;
     }
 
     private static void WritePortableExecutableReferenceTo(
@@ -309,7 +312,7 @@ internal partial class SerializerService
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
         PortableExecutableReference reference,
-        IReadOnlyList<ITemporaryStorageHandle> handles,
+        IReadOnlyList<ITemporaryStorageStreamHandle> handles,
         ObjectWriter writer,
         CancellationToken cancellationToken)
     {
@@ -329,7 +332,7 @@ internal partial class SerializerService
         return true;
     }
 
-    private (Metadata metadata, ImmutableArray<TemporaryStorageHandle> storageHandles)? TryReadMetadataFrom(
+    private (Metadata metadata, ImmutableArray<TemporaryStorageStreamHandle> storageHandles)? TryReadMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         var imageKind = reader.ReadInt32();
@@ -342,10 +345,11 @@ internal partial class SerializerService
         var metadataKind = (MetadataImageKind)imageKind;
         if (metadataKind == MetadataImageKind.Assembly)
         {
-            using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-            using var pooledHandles = Creator.CreateList<TemporaryStorageHandle>();
-
             var count = reader.ReadInt32();
+
+            var allMetadata = new FixedSizeArrayBuilder<ModuleMetadata>(count);
+            var allHandles = new FixedSizeArrayBuilder<TemporaryStorageStreamHandle>(count);
+
             for (var i = 0; i < count; i++)
             {
                 metadataKind = (MetadataImageKind)reader.ReadInt32();
@@ -353,11 +357,11 @@ internal partial class SerializerService
 
                 var (metadata, storageHandle) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
 
-                pooledMetadata.Object.Add(metadata);
-                pooledHandles.Object.Add(storageHandle);
+                allMetadata.Add(metadata);
+                allHandles.Add(storageHandle);
             }
 
-            return (AssemblyMetadata.Create(pooledMetadata.Object), pooledHandles.Object.ToImmutableArrayOrEmpty());
+            return (AssemblyMetadata.Create(allMetadata.MoveToImmutable()), allHandles.MoveToImmutable());
         }
         else
         {
@@ -368,7 +372,7 @@ internal partial class SerializerService
         }
     }
 
-    private (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) ReadModuleMetadataFrom(
+    private (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -379,16 +383,16 @@ internal partial class SerializerService
             ? ReadModuleMetadataFromBits()
             : ReadModuleMetadataFromMemoryMappedFile();
 
-        (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) ReadModuleMetadataFromMemoryMappedFile()
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromMemoryMappedFile()
         {
             // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
             // will not be released by the host.
             var storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
-            var storageHandle = _storageService.GetHandle(storageIdentifier);
+            var storageHandle = TemporaryStorageService.GetStreamHandle(storageIdentifier);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
 
-        (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) ReadModuleMetadataFromBits()
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromBits()
         {
             // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
             // server side so that we can refer to this data uniformly.
@@ -401,8 +405,8 @@ internal partial class SerializerService
             return ReadModuleMetadataFromStorage(storageHandle);
         }
 
-        (ModuleMetadata metadata, TemporaryStorageHandle storageHandle) ReadModuleMetadataFromStorage(
-            TemporaryStorageHandle storageHandle)
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromStorage(
+            TemporaryStorageStreamHandle storageHandle)
         {
             // Now read in the module data using that identifier.  This will either be reading from the host's memory if
             // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
@@ -503,16 +507,16 @@ internal partial class SerializerService
     private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly Metadata _metadata;
-        private readonly ImmutableArray<TemporaryStorageHandle> _storageHandles;
+        private readonly ImmutableArray<TemporaryStorageStreamHandle> _storageHandles;
         private readonly DocumentationProvider _provider;
 
-        public IReadOnlyList<ITemporaryStorageHandle> StorageHandles => _storageHandles;
+        public IReadOnlyList<ITemporaryStorageStreamHandle> StorageHandles => _storageHandles;
 
         public SerializedMetadataReference(
             MetadataReferenceProperties properties,
             string? fullPath,
             Metadata metadata,
-            ImmutableArray<TemporaryStorageHandle> storageHandles,
+            ImmutableArray<TemporaryStorageStreamHandle> storageHandles,
             DocumentationProvider initialDocumentation)
             : base(properties, fullPath, initialDocumentation)
         {
@@ -534,5 +538,36 @@ internal partial class SerializerService
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
             => new SerializedMetadataReference(properties, FilePath, _metadata, _storageHandles, _provider);
+
+        public override string ToString()
+        {
+            var metadata = TryGetMetadata(this);
+            var modules = GetModules(metadata);
+
+            return $"""
+            {nameof(SerializedMetadataReference)}
+                FilePath={this.FilePath}
+                Kind={this.Properties.Kind}
+                Aliases={this.Properties.Aliases.Join(",")}
+                EmbedInteropTypes={this.Properties.EmbedInteropTypes}
+                MetadataKind={metadata switch { null => "null", AssemblyMetadata => "assembly", ModuleMetadata => "module", _ => metadata.GetType().Name }}
+                Guids={modules.Select(m => GetMetadataGuid(m).ToString()).Join(",")}
+            """;
+
+            static ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
+            {
+                if (metadata is AssemblyMetadata assemblyMetadata)
+                {
+                    if (TryGetModules(assemblyMetadata, out var modules))
+                        return modules;
+                }
+                else if (metadata is ModuleMetadata moduleMetadata)
+                {
+                    return [moduleMetadata];
+                }
+
+                return [];
+            }
+        }
     }
 }

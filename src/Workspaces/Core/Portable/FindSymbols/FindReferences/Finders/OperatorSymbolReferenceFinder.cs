@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -47,7 +48,7 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
             project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, processResult, processResultData, cancellationToken);
     }
 
-    protected sealed override async ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
         IMethodSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -62,10 +63,11 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
                 static (token, tuple) => IsPotentialReference(tuple.state.SyntaxFacts, tuple.op, token),
                 (state, op));
 
-        await FindReferencesInTokensAsync(
-            symbol, state, tokens, processResult, processResultData, cancellationToken).ConfigureAwait(false);
-        await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-            symbol, state, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+        FindReferencesInTokens(
+            symbol, state, tokens, processResult, processResultData, cancellationToken);
+        FindReferencesInDocumentInsideGlobalSuppressions(
+            symbol, state, processResult, processResultData, cancellationToken);
+        return ValueTaskFactory.CompletedTask;
     }
 
     private static bool IsPotentialReference(

@@ -198,4 +198,4 @@
 [$RootKey$\SettingsManifests\{13c3bbb4-f18f-4111-9f54-a0fb010d9194}]
 @="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage"
 "ManifestPath"="$PackageFolder$\UnifiedSettings\csharpSettings.registration.json"
-"CacheTag"=qword:08DC1824DFE0117B
+"CacheTag"=qword:CE76341698AB8CD3

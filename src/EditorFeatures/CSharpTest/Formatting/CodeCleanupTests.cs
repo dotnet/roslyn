@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             var supportedDiagnostics = enabledDiagnostics.Diagnostics.SelectMany(x => x.DiagnosticIds).ToArray();
             return supportedDiagnostics;
 
-            EditorTestWorkspace GetTestWorkspaceForLanguage(string language)
+            static EditorTestWorkspace GetTestWorkspaceForLanguage(string language)
             {
                 if (language == LanguageNames.CSharp)
                 {

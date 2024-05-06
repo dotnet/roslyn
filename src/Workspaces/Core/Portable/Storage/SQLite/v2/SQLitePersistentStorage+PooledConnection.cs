@@ -3,61 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
-internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService connectionPoolService, IPersistentStorageFaultInjector? faultInjector, string databasePath, IDisposable ownershipLock) : IDisposable
+internal partial class SQLitePersistentStorage
 {
-    // We pool connections to the DB so that we don't have to take the hit of 
-    // reconnecting.  The connections also cache the prepared statements used
-    // to get/set data from the db.  A connection is safe to use by one thread
-    // at a time, but is not safe for simultaneous use by multiple threads.
-    private readonly object _connectionGate = new();
-    private readonly Stack<SqlConnection> _connectionsPool = new();
-
-    private readonly CancellationTokenSource _shutdownTokenSource = new();
-
-    internal void Initialize(
-        Action<SqlConnection, CancellationToken> initializer,
-        CancellationToken cancellationToken)
+    private readonly struct PooledConnection(SQLitePersistentStorage storage, SqlConnection sqlConnection) : IDisposable
     {
-        // This is our startup path.  No other code can be running.  So it's safe for us to access a connection that
-        // can talk to the db without having to be on the reader/writer scheduler queue.
-        using var _ = GetPooledConnection(checkScheduler: false, out var connection);
+        public readonly SqlConnection Connection = sqlConnection;
 
-        initializer(connection, cancellationToken);
-    }
-
-    public void Dispose()
-    {
-        // Flush all pending writes so that all data our features wanted written
-        // are definitely persisted to the DB.
-        try
-        {
-            _shutdownTokenSource.Cancel();
-            CloseWorker();
-        }
-        finally
-        {
-            // let the lock go
-            ownershipLock.Dispose();
-        }
-    }
-
-    private void CloseWorker()
-    {
-        lock (_connectionGate)
-        {
-            // Go through all our pooled connections and close them.
-            while (_connectionsPool.TryPop(out var connection))
-                connection.Close_OnlyForUseBySQLiteConnectionPool();
-        }
+        public void Dispose()
+            => storage.ReleaseConnection(Connection);
     }
 
     /// <summary>
@@ -68,7 +27,7 @@ internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService c
     /// longer in use. In particular, make sure to avoid letting a connection lease cross an <see langword="await"/>
     /// boundary, as it will prevent code in the asynchronous operation from using the existing connection.
     /// </remarks>
-    internal PooledConnection GetPooledConnection(out SqlConnection connection)
+    private PooledConnection GetPooledConnection(out SqlConnection connection)
         => GetPooledConnection(checkScheduler: true, out connection);
 
     /// <summary>
@@ -81,8 +40,8 @@ internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService c
         if (checkScheduler)
         {
             var scheduler = TaskScheduler.Current;
-            if (scheduler != connectionPoolService.Scheduler.ConcurrentScheduler && scheduler != connectionPoolService.Scheduler.ExclusiveScheduler)
-                throw new InvalidOperationException($"Cannot get a connection to the DB unless running on one of {nameof(SQLiteConnectionPoolService)}'s schedulers");
+            if (scheduler != this.Scheduler.ConcurrentScheduler && scheduler != this.Scheduler.ExclusiveScheduler)
+                throw new InvalidOperationException($"Cannot get a connection to the DB unless running on one of {nameof(SQLitePersistentStorage)}'s schedulers");
         }
 
         var result = new PooledConnection(this, GetConnection());
@@ -100,7 +59,7 @@ internal sealed partial class SQLiteConnectionPool(SQLiteConnectionPoolService c
         }
 
         // Otherwise create a new connection.
-        return SqlConnection.Create(faultInjector, databasePath);
+        return SqlConnection.Create(_faultInjector, this.DatabaseFile);
     }
 
     private void ReleaseConnection(SqlConnection connection)

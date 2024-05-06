@@ -272,21 +272,6 @@
         <target state="translated">_No agregar nunca una nueva línea al presionar Entrar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Always_include_snippets">
-        <source>Always include snippets</source>
-        <target state="translated">Incluir siempre fragmentos de código</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
-        <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Incluir fragmentos de código cuando ?-Tab se escriba después de un identificador</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">No incluir nunca fragmentos de código</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="translated">Comportamiento de los fragmentos de código</target>

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -109,38 +110,41 @@ internal static class DocumentBasedFixAllProviderHelpers
     {
         using var _1 = progressTracker.ItemCompletedScope();
 
-        if (docIdToNewRootOrText.Count > 0)
-        {
+        if (docIdToNewRootOrText.Count == 0)
+            return currentSolution;
 
-            // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and insert
-            // that back into the final solution.  This way we can release both the original fixed tree, and the cleaned
-            // tree (both of which can be much more expensive than just text).
-            //
-            // Do this in parallel across all the documents that were fixed.
+        // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and insert
+        // that back into the final solution.  This way we can release both the original fixed tree, and the cleaned
+        // tree (both of which can be much more expensive than just text).
+        //
+        // Do this in parallel across all the documents that were fixed.
 
-            using var _2 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var tasks);
-            foreach (var (docId, (newRoot, _)) in docIdToNewRootOrText)
+        return await ProducerConsumer<(DocumentId docId, SourceText sourceText)>.RunParallelAsync(
+            source: docIdToNewRootOrText,
+            produceItems: static async (tuple, callback, currentSolution, cancellationToken) =>
             {
+                var (docId, (newRoot, _)) = tuple;
                 if (newRoot != null)
-                    tasks.Add(GetCleanedDocumentAsync(currentSolution.GetRequiredDocument(docId), cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            // Finally, apply the cleaned documents to the solution.
-            foreach (var task in tasks)
+                {
+                    var cleaned = await GetCleanedDocumentAsync(
+                        currentSolution.GetRequiredDocument(docId), cancellationToken).ConfigureAwait(false);
+                    callback(cleaned);
+                }
+            },
+            consumeItems: static async (results, currentSolution, _) =>
             {
-                var (docId, cleanedText) = await task.ConfigureAwait(false);
-                currentSolution = currentSolution.WithDocumentText(docId, cleanedText);
-            }
-        }
+                // Finally, apply the cleaned documents to the solution.
+                var finalSolution = currentSolution;
+                await foreach (var (docId, cleanedText) in results)
+                    finalSolution = finalSolution.WithDocumentText(docId, cleanedText);
 
-        return currentSolution;
+                return finalSolution;
+            },
+            args: currentSolution,
+            cancellationToken).ConfigureAwait(false);
 
         static async Task<(DocumentId docId, SourceText sourceText)> GetCleanedDocumentAsync(Document dirtyDocument, CancellationToken cancellationToken)
         {
-            await Task.Yield();
-
             var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
             var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return (dirtyDocument.Id, cleanedText);

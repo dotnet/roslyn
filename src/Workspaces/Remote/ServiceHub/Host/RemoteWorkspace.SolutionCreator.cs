@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var workspace = new AdhocWorkspace(_hostServices);
                 workspace.AddSolution(solutionInfo);
 
-                await TestUtils.AssertChecksumsAsync(_assetProvider, checksumFromRequest, workspace.CurrentSolution, incrementalSolutionBuilt).ConfigureAwait(false);
+                await TestUtils.AssertChecksumsAsync(_assetProvider, checksumFromRequest, workspace.CurrentSolution, incrementalSolutionBuilt, projectConeId).ConfigureAwait(false);
             }
 #endif
         }

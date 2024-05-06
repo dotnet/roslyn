@@ -110,8 +110,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 8})
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
         Public Sub EndConstruct_NotOnLineFollowingToken()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C

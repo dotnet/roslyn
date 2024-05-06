@@ -2021,10 +2021,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasErrors = true;
             }
-            else if (destination is AnonymousTypeManager.AnonymousDelegatePublicSymbol { CheckParamsCollectionsFeatureAvailability: true })
-            {
-                MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, syntax);
-            }
 
             Debug.Assert(conversion.UnderlyingConversions.IsDefault);
             conversion.MarkUnderlyingConversionsChecked();
