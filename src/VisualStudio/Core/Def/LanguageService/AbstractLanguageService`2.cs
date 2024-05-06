@@ -221,8 +221,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
     private VsLanguageDebugInfo CreateLanguageDebugInfo()
     {
-        var workspace = this.Workspace;
-        var languageServices = workspace.Services.GetLanguageServices(RoslynLanguageName);
+        var languageServices = this.Workspace.Services.GetLanguageServices(RoslynLanguageName);
 
         return new VsLanguageDebugInfo(
             this.DebuggerLanguageId,
