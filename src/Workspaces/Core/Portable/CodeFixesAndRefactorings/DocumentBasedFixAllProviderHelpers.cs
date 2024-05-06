@@ -54,6 +54,7 @@ internal static class DocumentBasedFixAllProviderHelpers
                 source: fixAllContexts,
                 produceItems: static async (fixAllContext, callback, args, cancellationToken) =>
                 {
+                    // Update our progress for each fixAllContext we process.
                     using var _ = args.progressTracker.ItemCompletedScope();
 
                     Contract.ThrowIfFalse(
@@ -92,6 +93,7 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         async Task<Solution> CleanSolutionAsync(Solution dirtySolution, ImmutableArray<DocumentId> changedRootDocumentIds)
         {
+            // Update our progress for the single cleaning pass.
             using var _1 = progressTracker.ItemCompletedScope();
 
             if (changedRootDocumentIds.IsEmpty)
