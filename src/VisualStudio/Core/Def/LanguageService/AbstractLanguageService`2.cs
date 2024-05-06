@@ -39,7 +39,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
 {
     internal TPackage Package { get; }
-    public VsLanguageDebugInfo LanguageDebugInfo { get; private set; }
+
+    private readonly VsLanguageDebugInfo LanguageDebugInfo;
 
     // DevDiv 753309:
     // We've redefined some VS interfaces that had incorrect PIAs. When 
