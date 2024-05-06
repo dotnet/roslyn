@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -53,7 +51,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     // 
     // This also fixes 752331, which is a similar problem with the 
     // exception assistant.
-    internal object ComAggregate { get; private set; }
+    internal object? ComAggregate { get; private set; }
 
     // Note: The lifetime for state in this class is carefully managed.  For every bit of state
     // we set up, there is a corresponding tear down phase which deconstructs the state in the
@@ -163,7 +161,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             // If the file is metadata as source, and the user has the preference set to collapse them, then
             // always collapse all metadata as source
             var globalOptions = this.Package.ComponentModel.GetService<IGlobalOptionService>();
-            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(globalOptions, openDocument.Project.Language, isMetadataAsSource: masWorkspace is not null);
+            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(globalOptions, openDocument.Project.Language, isMetadataAsSource: true);
             collapseAllImplementations = masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options);
         }
 
