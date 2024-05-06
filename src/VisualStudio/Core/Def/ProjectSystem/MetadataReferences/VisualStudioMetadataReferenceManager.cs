@@ -296,12 +296,14 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         string fullPath,
         Func<string, (ModuleMetadata moduleMetadata, TemporaryStorageStreamHandle? storageHandle)> moduleMetadataFactory)
     {
-        using var _1 = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
-        using var _2 = ArrayBuilder<TemporaryStorageStreamHandle?>.GetInstance(out var storageHandles);
-
         var (manifestModule, manifestHandle) = moduleMetadataFactory(fullPath);
-        moduleBuilder.Add(manifestModule);
-        storageHandles.Add(manifestHandle);
+        var moduleNames = manifestModule.GetModuleNames();
+
+        var modules = new FixedSizeArrayBuilder<ModuleMetadata>(1 + moduleNames.Length);
+        var handles = new FixedSizeArrayBuilder<TemporaryStorageStreamHandle?>(1 + moduleNames.Length);
+
+        modules.Add(manifestModule);
+        handles.Add(manifestHandle);
 
         var assemblyDir = Path.GetDirectoryName(fullPath);
         foreach (var moduleName in manifestModule.GetModuleNames())
@@ -309,21 +311,18 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
             var moduleFileKey = PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!;
 
-            var (metadata, metadataStorageHandle) = moduleMetadataFactory(moduleFileKey);
-            moduleBuilder.Add(metadata);
-            storageHandles.Add(metadataStorageHandle);
+            var (moduleMetadata, moduleHandle) = moduleMetadataFactory(moduleFileKey);
+            modules.Add(moduleMetadata);
+            handles.Add(moduleHandle);
         }
 
-        var assembly = AssemblyMetadata.Create(moduleBuilder.ToImmutable());
+        var assembly = AssemblyMetadata.Create(modules.MoveToImmutable());
 
         // If we got any null handles, then we weren't able to map this whole assembly into memory mapped files. So we
         // can't use those to transfer over the data efficiently to the OOP process.  In that case, we don't store the
         // handles at all.
-        Contract.ThrowIfTrue(storageHandles.Count == 0);
-        IReadOnlyList<TemporaryStorageStreamHandle>? storageHandlesToStore =
-            storageHandles.Any(h => h == null) ? null : storageHandles.ToImmutable();
-
-        return (assembly, storageHandlesToStore);
+        var storageHandles = handles.MoveToImmutable();
+        return (assembly, storageHandles.Any(h => h is null) ? null : storageHandles);
     }
 
     public static class TestAccessor
