@@ -59,10 +59,10 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     // Note: The lifetime for state in this class is carefully managed.  For every bit of state
     // we set up, there is a corresponding tear down phase which deconstructs the state in the
     // reverse order it was created in.
-    internal EditorOptionsService EditorOptionsService { get; private set; }
-    internal VisualStudioWorkspaceImpl Workspace { get; private set; }
-    internal IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; private set; }
-    internal AnalyzerFileWatcherService AnalyzerFileWatcherService { get; private set; }
+    internal readonly EditorOptionsService EditorOptionsService;
+    internal readonly VisualStudioWorkspaceImpl Workspace;
+    internal readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
+    internal readonly AnalyzerFileWatcherService AnalyzerFileWatcherService;
 
     /// <summary>
     /// Whether or not we have been set up. This is set once everything is wired up and cleared once tear down has begun.
@@ -77,6 +77,12 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
     protected AbstractLanguageService(TPackage package)
     {
         Package = package;
+
+        this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
+        this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
+        this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+        this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
+        this.LanguageDebugInfo = CreateLanguageDebugInfo();
     }
 
     public override IServiceProvider SystemServiceProvider
@@ -91,12 +97,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         // This method should only contain calls to acquire services off of the component model
         // or service providers.  Anything else which is more complicated should go in Initialize
         // instead.
-        this.EditorOptionsService = this.Package.ComponentModel.GetService<EditorOptionsService>();
-        this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
-        this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-        this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
-
-        this.LanguageDebugInfo = CreateLanguageDebugInfo();
 
         // Start off a background task to prime some components we'll need for editing.
         Task.Run(() =>
