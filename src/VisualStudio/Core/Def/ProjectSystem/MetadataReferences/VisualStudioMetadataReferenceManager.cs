@@ -161,7 +161,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     private static (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) GetMetadataFromTemporaryStorage(
         string fullPath, TemporaryStorageService temporaryStorageService)
     {
-        GetStorageInfoFromTemporaryStorage(fullPath, out var storageHandle, out var stream);
+        GetStorageInfoFromTemporaryStorage(fullPath, temporaryStorageService, out var storageHandle, out var stream);
 
         unsafe
         {
@@ -172,8 +172,8 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             return (metadata, storageHandle);
         }
 
-        void GetStorageInfoFromTemporaryStorage(
-            string fullPath, out TemporaryStorageStreamHandle storageHandle, out UnmanagedMemoryStream stream)
+        static void GetStorageInfoFromTemporaryStorage(
+            string fullPath, TemporaryStorageService temporaryStorageService, out TemporaryStorageStreamHandle storageHandle, out UnmanagedMemoryStream stream)
         {
             int size;
 
