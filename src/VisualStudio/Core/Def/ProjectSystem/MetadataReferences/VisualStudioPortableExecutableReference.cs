@@ -86,16 +86,16 @@ internal partial class VisualStudioMetadataReferenceManager
             {
                 throw ExceptionUtilities.Unreachable();
             }
-        }
 
-        private bool SaveMetadataReadingException(Exception e)
-        {
-            // Save metadata reading failure so that future compilations created 
-            // with this reference snapshot fail consistently in the same way.
-            if (e is IOException or BadImageFormatException)
-                _error = e;
+            bool SaveMetadataReadingException(Exception e)
+            {
+                // Save metadata reading failure so that future compilations created 
+                // with this reference snapshot fail consistently in the same way.
+                if (e is IOException or BadImageFormatException)
+                    _error = e;
 
-            return false;
+                return false;
+            }
         }
 
         protected override DocumentationProvider CreateDocumentationProvider()
